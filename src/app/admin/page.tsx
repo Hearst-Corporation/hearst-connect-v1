@@ -2,6 +2,7 @@ import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge } from '@/components/admin/truthful'
 import { BACKEND_ENDPOINTS } from '@/lib/backend/endpoints'
+import { requireSession } from '@/lib/auth'
 import { announceConfigurationOnce, checkConfiguration } from '@/lib/env'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -25,15 +26,19 @@ function registryCounts() {
   }
 }
 
-export default function AdminOverviewPage() {
+export default async function AdminOverviewPage() {
   const counts = registryCounts()
+
+  // Le layout garantit déjà une session ; on la relit ici pour décrire son état
+  // réel (échéance du jeton backend), sans jamais l'afficher lui-même.
+  const session = await requireSession()
 
   // Validation au démarrage : signale une seule fois les variables manquantes,
   // par leur NOM. Aucune valeur n'est journalisée.
   announceConfigurationOnce()
   const config = checkConfiguration()
   const configured = config.publicReady
-  const signingConfigured = config.authenticatedReady
+  const sessionExpiry = new Date(session.expiresAt * 1000)
 
   return (
     <div className="space-y-6">
@@ -61,14 +66,13 @@ export default function AdminOverviewPage() {
           </p>
         </div>
         <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
-          <p className="text-xs tracking-wide text-zinc-500 uppercase">Signature de jeton</p>
+          <p className="text-xs tracking-wide text-zinc-500 uppercase">Session backend</p>
           <div className="mt-2">
-            <StatusBadge status={signingConfigured ? 'LIVE' : 'NOT_CONFIGURED'} />
+            <StatusBadge status="LIVE" />
           </div>
           <p className="mt-2 text-xs text-zinc-500">
-            {signingConfigured
-              ? 'SESSION_SIGNING_KEY présente — les routes authentifiées sont appelables.'
-              : 'SESSION_SIGNING_KEY absente : les routes authentifiées répondront « non configuré ».'}
+            Jeton émis par le backend, porté par le cookie serveur. Valide jusqu’au{' '}
+            <span className="tabular-nums">{sessionExpiry.toISOString()}</span>.
           </p>
         </div>
         <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
