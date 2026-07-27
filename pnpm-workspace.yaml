@@ -1,0 +1,17 @@
+# Scripts de post-installation autorisés (binaires natifs légitimes) :
+# - sharp         : optimisation d'images de next/image en production
+# - unrs-resolver : résolveur natif utilisé par eslint-import-resolver
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+# Paquets exclus de la politique locale minimumReleaseAge (outillage qualité
+# posé par hearst-setup ; versions épinglées dans pnpm-lock.yaml).
+minimumReleaseAgeExclude:
+  - jscpd-darwin-arm64@5.0.14
+  - jscpd-darwin-x64@5.0.14
+  - jscpd-linux-arm64-gnu@5.0.14
+  - jscpd-linux-x64-gnu@5.0.14
+  - jscpd-linux-x64-musl@5.0.14
+  - jscpd-windows-x64-msvc@5.0.14
+  - jscpd@5.0.14
