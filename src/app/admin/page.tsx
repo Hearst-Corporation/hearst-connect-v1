@@ -1,115 +1,276 @@
-import { EndpointSection } from '@/components/admin/endpoint-section'
+import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
+import {
+  CalmState,
+  Card,
+  CardHeader,
+  ExceptionBanner,
+  HeroFigure,
+  SideFact,
+  SourceAttendue,
+  VerdictCard,
+} from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { StatusBadge } from '@/components/admin/truthful'
-import { BACKEND_ENDPOINTS } from '@/lib/backend/endpoints'
-import { requireSession } from '@/lib/auth'
-import { announceConfigurationOnce, checkConfiguration } from '@/lib/env'
+import { callBackend } from '@/lib/backend/client'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Vue d’ensemble' }
+export const metadata: Metadata = { title: 'Accueil' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Compte des endpoints par catégorie — lu du registre, jamais codé en dur.
+ * Accueil — le poste de commande.
  *
- * Compté par filtrage plutôt que par accumulateur : ces nombres décrivent le
- * registre lui-même, pas une donnée backend, et l'écrire sans `?? 0` évite
- * d'avoir à excuser une coalescence dans le gate de véracité.
+ * Il répond à trois questions, dans cet ordre : que dois-je traiter
+ * maintenant, que se passe-t-il aujourd'hui, y a-t-il un blocage.
+ *
+ * Le silence est une réponse valide. Quand rien ne réclame d'attention, la
+ * première zone se réduit à une ligne calme au lieu d'aligner des compteurs à
+ * zéro : un mur de vert est aussi peu lisible qu'un mur de rouge, et il
+ * apprend à ignorer l'écran.
  */
-function registryCounts() {
-  return {
-    probe: BACKEND_ENDPOINTS.filter((e) => e.category === 'probe').length,
-    business: BACKEND_ENDPOINTS.filter((e) => e.category === 'business').length,
-    aiContext: BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length,
-    keeper: BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length,
-  }
+
+type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+
+type Dashboard = {
+  readonly capacity?: Resolu<{ tvlCap: string; totalAssets: string; utilizationBps: number | null }>
+  readonly reserve?: Resolu<{ reserveUsdc: string; electricityCoveredMonths: number | null }>
+  readonly performance?: Resolu<{ navPerShare: string | null; totalReturnBps: number | null }>
+  readonly strategies?: Resolu<readonly { pocket: string; targetBps: number; actualBps: number | null }[]>
 }
 
-export default async function AdminOverviewPage() {
-  const counts = registryCounts()
+type Mouvement = {
+  readonly id: string
+  readonly eventName: string
+  readonly assetAmountAtomic: string | null
+  readonly occurredAt: string | null
+}
 
-  // Le layout garantit déjà une session ; on la relit ici pour décrire son état
-  // réel (échéance du jeton backend), sans jamais l'afficher lui-même.
-  const session = await requireSession()
+type Evenements = { readonly events?: Resolu<readonly Mouvement[]> }
 
-  // Validation au démarrage : signale une seule fois les variables manquantes,
-  // par leur NOM. Aucune valeur n'est journalisée.
-  announceConfigurationOnce()
-  const config = checkConfiguration()
-  const configured = config.publicReady
-  const sessionExpiry = new Date(session.expiresAt * 1000)
+const LIBELLE: Record<string, string> = {
+  Deposit: 'Un dépôt a été enregistré',
+  Redeem: 'Un rachat a été enregistré',
+  StrategyAdded: 'Une stratégie a été ajoutée au portefeuille',
+  StrategyRemoved: 'Une stratégie a été retirée du portefeuille',
+  Rebalance: 'Le portefeuille a été rééquilibré',
+  VaultSwapped: 'Un échange a été réalisé dans le portefeuille',
+  ElecPayeeUpdated: 'Le bénéficiaire de l’électricité a été modifié',
+  MonthlyElecCostUpdated: 'Le coût mensuel d’électricité a été mis à jour',
+  MiningMetricsReported: 'Un relevé de minage a été transmis',
+  ElectricityPaid: 'L’électricité a été réglée',
+}
+
+/** USDC à six décimales. Une absence rend un tiret — jamais un zéro. */
+function usdc(atomique: string | null | undefined, decimales = 0): string {
+  if (atomique === null || atomique === undefined || atomique === '') return '—'
+  const brut = Number(atomique)
+  if (!Number.isFinite(brut)) return '—'
+  return `${(brut / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
+}
+
+function pourcentage(bps: number | null | undefined): string {
+  if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
+  return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
+}
+
+function ilYA(iso: string | null): string {
+  if (iso === null) return ''
+  const t = Date.parse(iso)
+  if (Number.isNaN(t)) return ''
+  const minutes = Math.round((Date.now() - t) / 60000)
+  if (minutes < 60) return `il y a ${minutes} min`
+  const heures = Math.round(minutes / 60)
+  if (heures < 24) return `il y a ${heures} h`
+  return `il y a ${Math.round(heures / 24)} j`
+}
+
+const estResolu = (v: unknown): v is Resolu<unknown> =>
+  typeof v === 'object' && v !== null && 'status' in v && 'value' in v
+
+/**
+ * Les motifs machine du service, dits en français.
+ *
+ * Un code comme `no_investor_record` est parfaitement clair pour qui a écrit
+ * le backend, et parfaitement opaque pour l'équipe qui lit cet écran. Un motif
+ * inconnu n'est pas affiché brut : mieux vaut ne rien dire que de laisser
+ * fuir du vocabulaire technique dans une console métier.
+ */
+const MOTIF_LISIBLE: Record<string, string> = {
+  no_investor_record: 'aucun dossier investisseur n’est rattaché à ce compte',
+  engine_not_initialised: 'le moteur de minage n’a pas encore été initialisé',
+  dynavault_not_deployed: 'cette fonctionnalité n’est pas encore ouverte',
+  no_events_indexed: 'aucun mouvement n’a encore été relevé',
+  db_error: 'la base de données n’a pas répondu',
+  rpc_error: 'la chaîne n’a pas répondu',
+  not_available: 'la donnée n’est pas disponible',
+}
+
+function motifLisible(motif: string | null | undefined): string | undefined {
+  if (typeof motif !== 'string' || motif === '') return undefined
+  const traduit = MOTIF_LISIBLE[motif]
+  return traduit === undefined ? undefined : traduit
+}
+
+export default async function Page() {
+  const [dashboard, evenements, disponibilite] = await Promise.all([
+    callBackend<Dashboard>('dashboard'),
+    callBackend<Evenements>('series1-events', { params: { limit: 5 } }),
+    callBackend<{ ready?: boolean }>('ready'),
+  ])
+
+  const serviceIndisponible = !disponibilite.ok
+  const d = dashboard.ok ? dashboard.data : null
+
+  // Combien de surfaces du produit ne livrent pas de valeur exploitable ?
+  // C'est le seul signal d'attention réellement mesurable aujourd'hui : les
+  // files de travail, elles, n'ont pas encore de source.
+  const surfaces = d === null ? [] : Object.values(d).filter(estResolu)
+  const incompletes = surfaces.filter((s) => s.status !== 'LIVE')
+  const motif = incompletes.map((s) => motifLisible(s.reason)).find((m) => m !== undefined)
+
+  const capacite = d?.capacity?.value
+  const reserve = d?.reserve?.value
+  const perf = d?.performance?.value
+
+  const strategies = d?.strategies?.value
+  const poches: PocheAllocation[] =
+    strategies === null || strategies === undefined
+      ? []
+      : strategies.map((s) => ({
+          poche: s.pocket,
+          cible: s.targetBps / 100,
+          reel: s.actualBps === null ? null : s.actualBps / 100,
+        }))
+
+  const mouvements = evenements.ok ? evenements.data.events?.value : null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        title="Vue d’ensemble"
-        description="État opérationnel du backend Hearst Connect et couverture du registre d’endpoints. Toute valeur affichée provient du backend ; rien n’est calculé ici."
-        endpointIds={['health', 'ready', 'runtime']}
+        title="Accueil"
+        description="Ce qui vous attend, puis l’état du fonds. Toute valeur provient du service ; rien n’est calculé ici."
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
-          <p className="text-xs tracking-wide text-zinc-500 uppercase">Endpoints au registre</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-white">{BACKEND_ENDPOINTS.length}</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {counts.probe} sondes · {counts.business} métier · {counts.aiContext} IA · {counts.keeper} keeper
-          </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
-          <p className="text-xs tracking-wide text-zinc-500 uppercase">URL backend</p>
-          <div className="mt-2">
-            <StatusBadge status={configured ? 'LIVE' : 'NOT_CONFIGURED'} />
+      {serviceIndisponible ? (
+        <ExceptionBanner
+          message="Le service ne répond pas. Les valeurs ci-dessous peuvent être incomplètes ou absentes."
+          href="/admin/administration"
+          actionLabel="Voir l’état détaillé"
+        />
+      ) : null}
+
+      {/* ── A. Ce qui vous attend ───────────────────────────────────────── */}
+      <section aria-labelledby="attente" className="space-y-4">
+        <h2 id="attente" className="text-sm font-semibold text-white">
+          Ce qui vous attend
+        </h2>
+
+        {incompletes.length === 0 && !serviceIndisponible ? (
+          <CalmState message="Rien ne demande votre attention. Toutes les surfaces du produit répondent." />
+        ) : incompletes.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <VerdictCard
+              titre="Surfaces sans donnée"
+              compte={String(incompletes.length)}
+              unite={`sur ${surfaces.length}`}
+              contexte="Ces surfaces répondent, mais sans valeur exploitable."
+              casUrgent={motif === undefined ? undefined : `Le plus souvent, ${motif}.`}
+              ton="attention"
+              href="/admin/dashboard"
+              actionLabel="Examiner le détail"
+            />
           </div>
-          <p className="mt-2 font-mono text-xs break-all text-zinc-500">
-            {configured ? 'HEARST_API_URL défini' : 'HEARST_API_URL absent'}
-          </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
-          <p className="text-xs tracking-wide text-zinc-500 uppercase">Session backend</p>
-          <div className="mt-2">
-            <StatusBadge status="LIVE" />
-          </div>
-          <p className="mt-2 text-xs text-zinc-500">
-            Jeton émis par le backend, porté par le cookie serveur. Valide jusqu’au{' '}
-            <span className="tabular-nums">{sessionExpiry.toISOString()}</span>.
-          </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
-          <p className="text-xs tracking-wide text-zinc-500 uppercase">Explorer</p>
-          <p className="mt-2 text-sm text-zinc-300">Chaque route du registre est appelable individuellement.</p>
-          <Link
-            href="/admin/api-explorer"
-            className="mt-2 inline-block text-sm font-medium text-hearst-accent hover:text-hearst-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent"
-          >
-            Ouvrir l’API Explorer →
-          </Link>
-        </div>
+        ) : null}
+
+        <SourceAttendue
+          quoi="Les files de travail ne sont pas encore ouvertes"
+          detail="Dossiers de conformité à instruire et virements à valider apparaîtront ici dès que le service les transmettra. Aucun compteur n’est avancé d’ici là : un zéro signifierait « rien à traiter », ce que personne ne peut affirmer aujourd’hui."
+          requis={[
+            'La lecture des dossiers de connaissance client en attente',
+            'La lecture des demandes de validation financière',
+          ]}
+        />
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-cockpit-card p-5">
-        <h2 className="text-sm font-semibold text-white">Configuration serveur</h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          Noms et états uniquement — aucune valeur de secret n’est lue, affichée ni journalisée.
-        </p>
-        <dl className="mt-4 divide-y divide-white/5">
-          {config.report.map((entry) => (
-            <div key={entry.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
-              <dt className="font-mono text-xs text-zinc-300">{entry.name}</dt>
-              <dd>
-                <StatusBadge status={entry.status === 'ok' ? 'LIVE' : 'NOT_CONFIGURED'} />
-              </dd>
-              <dd className="text-xs text-zinc-500">{entry.detail ?? entry.purpose}</dd>
+      {/* ── B. Le fonds aujourd'hui ─────────────────────────────────────── */}
+      <section aria-labelledby="fonds" className="space-y-3">
+        <h2 id="fonds" className="text-sm font-semibold text-white">
+          Le fonds aujourd’hui
+        </h2>
+
+        {d === null ? (
+          <SourceAttendue
+            quoi="L’état du fonds n’a pas pu être lu"
+            detail="Le service n’a pas répondu à la demande d’état du fonds. Aucune valeur n’est affichée plutôt qu’une valeur périmée."
+            requis={['Une réponse du service']}
+          />
+        ) : (
+          <Card className="p-6">
+            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+              <HeroFigure valeur={usdc(capacite?.totalAssets)} libelle="Encours du portefeuille" unite="USDC" />
+              <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+                <SideFact libelle="Plafond utilisé" valeur={pourcentage(capacite?.utilizationBps)} />
+                <SideFact
+                  libelle="Valeur d’une part"
+                  valeur={perf?.navPerShare === null || perf?.navPerShare === undefined ? '—' : perf.navPerShare}
+                />
+                <SideFact libelle="Rendement depuis l’origine" valeur={pourcentage(perf?.totalReturnBps)} />
+                <SideFact
+                  libelle="Électricité couverte"
+                  valeur={
+                    reserve?.electricityCoveredMonths === null || reserve?.electricityCoveredMonths === undefined
+                      ? '—'
+                      : `${reserve.electricityCoveredMonths} mois`
+                  }
+                />
+              </dl>
             </div>
-          ))}
-        </dl>
+          </Card>
+        )}
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <EndpointSection endpointId="health" title="Vivacité du service" />
-        <EndpointSection endpointId="ready" title="Disponibilité, base comprise" />
-      </div>
-      <EndpointSection endpointId="runtime" title="Runtime : contrat, chaîne, indexeur" />
+      {/* ── C. Où l'argent est placé ────────────────────────────────────── */}
+      {poches.length > 0 ? (
+        <Card>
+          <CardHeader
+            title="L’argent est-il placé là où il devrait l’être ?"
+            hint="Allocation visée et allocation constatée, en pourcentage du portefeuille"
+          />
+          <AllocationChart poches={poches} />
+        </Card>
+      ) : null}
+
+      {/* ── D. Fil du jour ──────────────────────────────────────────────── */}
+      <section aria-labelledby="fil" className="space-y-3">
+        <h2 id="fil" className="text-sm font-semibold text-white">
+          Fil du jour
+        </h2>
+        {mouvements === null || mouvements === undefined || mouvements.length === 0 ? (
+          <CalmState message="Aucun mouvement n’a été relevé récemment." />
+        ) : (
+          <Card>
+            <ul className="divide-y divide-white/[0.07]">
+              {mouvements.map((m) => (
+                <li key={m.id} className="flex flex-wrap items-baseline gap-x-2 px-5 py-3 text-sm">
+                  <span className="text-zinc-200">{LIBELLE[m.eventName] ?? m.eventName}</span>
+                  {m.assetAmountAtomic !== null ? (
+                    <span className="font-semibold text-accent-300 tabular-nums">{usdc(m.assetAmountAtomic, 2)}</span>
+                  ) : null}
+                  <span className="ml-auto text-xs text-zinc-500">{ilYA(m.occurredAt)}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+      </section>
+
+      {/* ── E. État du service ──────────────────────────────────────────── */}
+      <p className="flex items-center gap-2 text-xs text-zinc-500">
+        <span
+          aria-hidden="true"
+          className={`size-1.5 rounded-full ${serviceIndisponible ? 'bg-danger-500' : 'bg-success-500'}`}
+        />
+        {serviceIndisponible ? 'Service indisponible' : 'Service disponible'}
+      </p>
     </div>
   )
 }
