@@ -26,7 +26,7 @@ import { Mark } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { logout } from '@/lib/actions'
 import { toggleTheme } from '@/lib/theme'
-import type { Workspace } from '@/lib/demo-data'
+import type { Workspace } from '@/lib/data-sources'
 import type { SessionUser } from '@/lib/session'
 import {
   ArrowRightStartOnRectangleIcon,
@@ -113,7 +113,7 @@ export function ApplicationLayout({
                   <Cog8ToothIcon />
                   <DropdownLabel>Paramètres de l’espace</DropdownLabel>
                 </DropdownItem>
-                <DropdownDivider />
+                {workspaces.length > 0 ? <DropdownDivider /> : null}
                 {workspaces.map((workspace) => (
                   <DropdownItem key={workspace.id} href="/dashboard">
                     <Avatar
@@ -142,14 +142,17 @@ export function ApplicationLayout({
               ))}
             </SidebarSection>
 
-            <SidebarSection className="max-lg:hidden">
-              <SidebarHeading>Espaces</SidebarHeading>
-              {workspaces.map((workspace) => (
-                <SidebarItem key={workspace.id} href="/dashboard">
-                  {workspace.name}
-                </SidebarItem>
-              ))}
-            </SidebarSection>
+            {/* Section rendue seulement si des espaces réels ont été reçus. */}
+            {workspaces.length > 0 ? (
+              <SidebarSection className="max-lg:hidden">
+                <SidebarHeading>Espaces</SidebarHeading>
+                {workspaces.map((workspace) => (
+                  <SidebarItem key={workspace.id} href="/dashboard">
+                    {workspace.name}
+                  </SidebarItem>
+                ))}
+              </SidebarSection>
+            ) : null}
 
             <SidebarSpacer />
 
