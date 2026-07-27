@@ -5,13 +5,12 @@ import {
   DescriptionTerm,
 } from '@/components/catalyst/description-list'
 import { Divider } from '@/components/catalyst/divider'
-import { Description, Fieldset, Label, Legend } from '@/components/catalyst/fieldset'
 import { Heading, Subheading } from '@/components/catalyst/heading'
-import { Switch, SwitchField, SwitchGroup } from '@/components/catalyst/switch'
 import { Text } from '@/components/catalyst/text'
-import { DemoNotice } from '@/components/demo-notice'
+import { DataState } from '@/components/data-state'
 import { logout } from '@/lib/actions'
 import { requireSession, roleLabel } from '@/lib/auth'
+import { resolved } from '@/lib/resolved'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -20,6 +19,11 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   const user = await requireSession()
+
+  // Aucune route de configuration d'espace n'existe côté backend : l'état le dit.
+  const securitySettings = resolved.notConfigured(
+    "Aucun service de configuration n'est branché : le backend Hearst Connect n'expose pas de route de réglages d'espace. Les valeurs affichées auparavant ne commandaient rien.",
+  )
 
   return (
     <>
@@ -47,32 +51,16 @@ export default async function SettingsPage() {
 
       <Divider className="my-10" />
 
-      <Fieldset>
-        <Legend>Sécurité de l’espace</Legend>
-        <Text className="mt-2">Réglages appliqués à l’ensemble des membres.</Text>
-        <div className="mt-6">
-          <DemoNotice>
-            Réglages de démonstration — ces interrupteurs ne sont pas encore reliés à un service de configuration.
-          </DemoNotice>
-        </div>
-        <SwitchGroup className="mt-6">
-          <SwitchField>
-            <Label>Second facteur obligatoire</Label>
-            <Description>Impose une vérification supplémentaire à chaque nouvelle session.</Description>
-            <Switch name="mfa" defaultChecked />
-          </SwitchField>
-          <SwitchField>
-            <Label>Restreindre aux adresses IP listées</Label>
-            <Description>Refuse toute connexion venant d’une adresse absente de la liste.</Description>
-            <Switch name="ip_allowlist" />
-          </SwitchField>
-          <SwitchField>
-            <Label>Alerter sur accès refusé</Label>
-            <Description>Envoie une notification aux propriétaires dès qu’un accès est refusé.</Description>
-            <Switch name="alerts" defaultChecked />
-          </SwitchField>
-        </SwitchGroup>
-      </Fieldset>
+      <Subheading>Sécurité de l’espace</Subheading>
+      <Text className="mt-2">Réglages appliqués à l’ensemble des membres.</Text>
+      {/*
+        Les interrupteurs ont été retirés : aucun service de configuration ne les
+        lit ni ne les écrit. Un interrupteur qui ne commande rien affiche un état
+        de sécurité inventé — exactement ce que cette page ne doit pas faire.
+      */}
+      <div className="mt-6">
+        <DataState state={securitySettings} />
+      </div>
 
       <Divider className="my-10" />
 
