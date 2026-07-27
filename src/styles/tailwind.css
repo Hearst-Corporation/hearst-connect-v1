@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+/*
+ * Design system — Hearst Connect
+ * ------------------------------------------------------------------
+ * Ce workspace déclare SA propre palette. Rien n'est hérité d'un autre
+ * projet (doctrine Hearst §5bis / §6 — vérifié par `npm run check:catalyst`).
+ *
+ * Un seul accent : `accent` (bleu Hearst, H≈217°). Le reste de l'interface
+ * repose sur l'échelle `zinc` de Catalyst, non redéfinie ici.
+ */
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans--font-feature-settings: 'cv11';
+
+  --color-accent-50: #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --color-accent-800: #1e40af;
+  --color-accent-900: #1e3a8a;
+  --color-accent-950: #172554;
+}
