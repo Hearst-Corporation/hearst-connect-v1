@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     'Hearst Connect fédère les identités, les autorisations et les journaux d’accès des espaces de travail de Hearst Corporation.',
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className="text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white">
       <head>

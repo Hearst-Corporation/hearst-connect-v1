@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
 /** Glyphe seul — carré arrondi + monogramme « H » relié. */
-export function Mark({ className, ...props }: React.ComponentPropsWithoutRef<'svg'>) {
+export function Mark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" {...props} className={clsx(className, 'shrink-0')}>
       <rect width="32" height="32" rx="8" className="fill-accent-600" />
@@ -19,7 +19,7 @@ export function Mark({ className, ...props }: React.ComponentPropsWithoutRef<'sv
 }
 
 /** Glyphe + wordmark. Hérite de la couleur courante pour le texte. */
-export function Logo({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
+export function Logo({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'span'>>) {
   return (
     <span {...props} className={clsx(className, 'inline-flex items-center gap-2.5')}>
       <Mark className="size-8" />

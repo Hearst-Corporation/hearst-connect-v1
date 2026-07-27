@@ -6,10 +6,20 @@ import { endSession, startSession } from './session'
 
 export type LoginState = { error: string | null }
 
+/**
+ * Lit un champ texte du formulaire. `FormData.get` peut rendre un `File` : on ne
+ * le stringifie pas (ça donnerait « [object File] », donc un identifiant fantôme
+ * qui traverserait la validation) — un champ non textuel vaut champ vide.
+ */
+function textField(formData: FormData, name: string): string {
+  const value = formData.get(name)
+  return typeof value === 'string' ? value : ''
+}
+
 /** Server Action du formulaire de connexion. */
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get('email') ?? '')
-  const password = String(formData.get('password') ?? '')
+  const email = textField(formData, 'email')
+  const password = textField(formData, 'password')
 
   if (!email || !password) {
     return { error: 'Renseignez votre e-mail et votre mot de passe.' }

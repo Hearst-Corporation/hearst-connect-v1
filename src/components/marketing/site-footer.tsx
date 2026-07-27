@@ -22,11 +22,11 @@ const navigation = {
   ],
 }
 
-function Column({ title, items }: { title: string; items: { name: string; href: string }[] }) {
+function Column({ title, items }: Readonly<{ title: string; items: { name: string; href: string }[] }>) {
   return (
     <div>
       <h3 className="text-sm/6 font-semibold text-zinc-950 dark:text-white">{title}</h3>
-      <ul role="list" className="mt-6 space-y-4">
+      <ul className="mt-6 space-y-4">
         {items.map((item) => (
           <li key={item.name}>
             <Link

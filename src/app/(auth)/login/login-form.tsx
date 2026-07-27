@@ -11,7 +11,7 @@ import { useActionState } from 'react'
 
 const initialState: LoginState = { error: null }
 
-export function LoginForm({ devBypass = false }: { devBypass?: boolean }) {
+export function LoginForm({ devBypass = false }: Readonly<{ devBypass?: boolean }>) {
   const [state, formAction, pending] = useActionState(login, initialState)
 
   return (

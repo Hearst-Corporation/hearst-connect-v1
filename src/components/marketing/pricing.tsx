@@ -140,7 +140,7 @@ export function Pricing() {
               >
                 {tier.cta}
               </a>
-              <ul role="list" className="mt-8 space-y-3 text-sm/6 text-zinc-600 xl:mt-10 dark:text-zinc-300">
+              <ul className="mt-8 space-y-3 text-sm/6 text-zinc-600 xl:mt-10 dark:text-zinc-300">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex gap-x-3">
                     <CheckIcon aria-hidden="true" className="h-6 w-5 flex-none text-accent-600 dark:text-accent-400" />
