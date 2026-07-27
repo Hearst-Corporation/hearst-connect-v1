@@ -1,0 +1,149 @@
+{
+  "mission": "HC-BRAND-ALIGN-001",
+  "branch": "feat/hc-brand-align-001",
+  "captureCommitSha": "3ad8b709654ba3258de40538c8849a3eaf121627",
+  "browser": {
+    "name": "Google Chrome",
+    "version": "150.0.7871.186",
+    "engine": "Chromium",
+    "mode": "headless"
+  },
+  "backend": {
+    "state": "available",
+    "environment": "production",
+    "authentication": "session locale temporaire issue du raccourci dev, sans identifiant ni cookie conservé"
+  },
+  "validation": {
+    "status": "passed",
+    "commands": ["pnpm run check", "pnpm run build"],
+    "typecheck": "passed",
+    "lint": "passed",
+    "tests": "100 passed in 9 files",
+    "build": "passed",
+    "catalyst": "passed",
+    "noMocksEquivalent": "pnpm run check:mocks passed",
+    "routes": "17/17 protected routes returned HTTP 200 without redirect",
+    "contrast": "no WCAG AA text failure detected",
+    "keyboard": "skip link reached on first Tab with a visible 2px focus outline",
+    "mobileNavigation": "opened and closed with Escape",
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "captures": [
+    {
+      "file": "reference-home-desktop.png",
+      "route": "https://www.hearstcorporation.io/",
+      "viewport": "1288x711",
+      "imageDimensions": "1288x8322 full page",
+      "capturedAt": "2026-07-28T02:23:40+04:00",
+      "backendState": "not applicable",
+      "visibleDataSources": ["public content and computed styles served by hearstcorporation.io"]
+    },
+    {
+      "file": "before-admin-desktop.png",
+      "route": "/admin",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x2002 full page",
+      "capturedAt": "2026-07-28T02:23:24+04:00",
+      "backendState": "available",
+      "visibleDataSources": ["GET /api/v1/dashboard", "GET /api/v1/series1/events", "GET /ready"]
+    },
+    {
+      "file": "after-admin-desktop-1440x900.png",
+      "route": "/admin",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x900",
+      "capturedAt": "2026-07-28T02:30:40+04:00",
+      "backendState": "available",
+      "visibleDataSources": ["GET /api/v1/dashboard", "GET /api/v1/series1/events", "GET /ready"]
+    },
+    {
+      "file": "after-admin-laptop-1280x800.png",
+      "route": "/admin",
+      "viewport": "1280x800",
+      "imageDimensions": "1280x800",
+      "capturedAt": "2026-07-28T02:30:41+04:00",
+      "backendState": "available",
+      "visibleDataSources": ["GET /api/v1/dashboard", "GET /api/v1/series1/events", "GET /ready"]
+    },
+    {
+      "file": "after-admin-mobile-375x812.png",
+      "route": "/admin",
+      "viewport": "375x812",
+      "imageDimensions": "375x812",
+      "capturedAt": "2026-07-28T02:30:43+04:00",
+      "backendState": "available",
+      "visibleDataSources": ["GET /api/v1/dashboard", "GET /api/v1/series1/events", "GET /ready"]
+    },
+    {
+      "file": "after-admin-mobile-menu-open.png",
+      "route": "/admin",
+      "viewport": "375x812",
+      "imageDimensions": "375x812",
+      "capturedAt": "2026-07-28T02:31:12+04:00",
+      "backendState": "available",
+      "visibleDataSources": [
+        "NAV_ITEMS application registry",
+        "server-side sanitized session exposed through publicUser"
+      ]
+    },
+    {
+      "file": "after-clients-desktop.png",
+      "route": "/admin/clients",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x900",
+      "capturedAt": "2026-07-28T02:30:44+04:00",
+      "backendState": "no client directory source exposed",
+      "visibleDataSources": [
+        "static capability statement from application code",
+        "no organization, person, portfolio or movement value displayed"
+      ]
+    },
+    {
+      "file": "after-conformite-desktop.png",
+      "route": "/admin/conformite",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x900",
+      "capturedAt": "2026-07-28T02:30:44+04:00",
+      "backendState": "no compliance case source exposed",
+      "visibleDataSources": [
+        "five static workflow stages from application code",
+        "no KYC count, case or decision displayed"
+      ]
+    },
+    {
+      "file": "after-operations-desktop.png",
+      "route": "/admin/operations",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x900",
+      "capturedAt": "2026-07-28T02:30:45+04:00",
+      "backendState": "available; approval queue source unavailable",
+      "visibleDataSources": [
+        "GET /api/v1/series1/events",
+        "static unavailable-state statement for the unexposed approval queue"
+      ]
+    },
+    {
+      "file": "after-administration-desktop.png",
+      "route": "/admin/administration",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x900",
+      "capturedAt": "2026-07-28T02:30:46+04:00",
+      "backendState": "available; administration journal source unavailable",
+      "visibleDataSources": [
+        "server-side sanitized session exposed through publicUser",
+        "application route registry",
+        "static unavailable-state statement for roles and administration journal"
+      ]
+    },
+    {
+      "file": "after-runtime-desktop.png",
+      "route": "/admin/runtime",
+      "viewport": "1440x900",
+      "imageDimensions": "1440x900",
+      "capturedAt": "2026-07-28T02:30:47+04:00",
+      "backendState": "available",
+      "visibleDataSources": ["GET /health", "GET /ready", "GET /api/v1/runtime"]
+    }
+  ]
+}
