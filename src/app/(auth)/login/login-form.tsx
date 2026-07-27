@@ -6,12 +6,12 @@ import { Heading } from '@/components/catalyst/heading'
 import { Input } from '@/components/catalyst/input'
 import { Strong, Text, TextLink } from '@/components/catalyst/text'
 import { Logo } from '@/components/logo'
-import { login, type LoginState } from '@/lib/actions'
+import { devLogin, login, type LoginState } from '@/lib/actions'
 import { useActionState } from 'react'
 
 const initialState: LoginState = { error: null }
 
-export function LoginForm() {
+export function LoginForm({ devBypass = false }: { devBypass?: boolean }) {
   const [state, formAction, pending] = useActionState(login, initialState)
 
   return (
@@ -36,6 +36,25 @@ export function LoginForm() {
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? 'Connexion…' : 'Se connecter'}
       </Button>
+
+      {devBypass ? (
+        <div className="rounded-lg bg-amber-50 p-4 ring-1 ring-amber-500/20 dark:bg-amber-400/10 dark:ring-amber-400/20">
+          <Button
+            type="button"
+            outline
+            className="w-full"
+            disabled={pending}
+            onClick={() => {
+              void devLogin()
+            }}
+          >
+            Entrer sans mot de passe (local)
+          </Button>
+          <Text className="mt-3 text-xs/5!">
+            Raccourci de développement, absent des déploiements : la Server Action refuse hors local.
+          </Text>
+        </div>
+      ) : null}
 
       <Text>
         Pas encore d’accès ?{' '}
