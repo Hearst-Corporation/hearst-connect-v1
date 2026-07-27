@@ -18,14 +18,28 @@ export const dynamic = 'force-dynamic'
  */
 
 const SURFACES_PRODUIT = [
-  { href: '/admin/dashboard', libelle: 'Tableau de bord du produit', aide: 'Les dix-huit surfaces et leur état' },
-  { href: '/admin/vault', libelle: 'Portefeuille', aide: 'Encours, capacité, stratégies' },
-  { href: '/admin/mining', libelle: 'Minage', aide: 'Puissance de calcul, bitcoin produit, électricité' },
-  { href: '/admin/btc', libelle: 'Bitcoin', aide: 'Réserve et exposition' },
-  { href: '/admin/product', libelle: 'Fiche produit', aide: 'Termes contractuels' },
-  { href: '/admin/series-1', libelle: 'Série 1', aide: 'Mouvements relevés sur la chaîne' },
-  { href: '/admin/backtest', libelle: 'Rétro-test', aide: 'Séries historiques' },
-  { href: '/admin/profile', libelle: 'Profil', aide: 'Identité de l’utilisateur connecté' },
+  {
+    href: '/admin/administration/produit',
+    libelle: 'Produit',
+    aide: 'Production, réserve, rémunération — six anciennes vues réunies',
+  },
+  { href: '/admin/dashboard', libelle: 'Détail des dix-huit surfaces', aide: 'Chaque surface et son état exact' },
+  { href: '/admin/vault', libelle: 'Portefeuille, vue détaillée', aide: 'Stratégies, une par une' },
+] as const
+
+/**
+ * Les vues brutes conservées telles quelles. Elles rendent la réponse du
+ * service sans mise en forme : c'est leur intérêt quand on cherche à vérifier
+ * un champ précis, et c'est pourquoi elles ne sont pas refondues. Elles ne
+ * réclament l'attention de personne au quotidien.
+ */
+const VUES_BRUTES = [
+  { href: '/admin/mining', libelle: 'Minage', aide: 'Réponse brute des trois routes' },
+  { href: '/admin/btc', libelle: 'Bitcoin', aide: 'Réponse brute' },
+  { href: '/admin/product', libelle: 'Fiche produit', aide: 'Termes contractuels, réponse brute' },
+  { href: '/admin/series-1', libelle: 'Série 1', aide: 'Mouvements relevés, réponse brute' },
+  { href: '/admin/backtest', libelle: 'Rétro-test', aide: 'Réponse brute' },
+  { href: '/admin/profile', libelle: 'Profil', aide: 'Identité du compte connecté' },
 ] as const
 
 const SURFACES_TECHNIQUES = [
@@ -105,6 +119,14 @@ export default async function Page() {
           <ListeLiens items={SURFACES_TECHNIQUES} />
         </Card>
       </div>
+
+      <Card>
+        <CardHeader
+          title="Vues brutes"
+          hint="La réponse du service, sans mise en forme — pour vérifier un champ précis"
+        />
+        <ListeLiens items={VUES_BRUTES} />
+      </Card>
 
       <SourceAttendue
         quoi="Rôles, permissions et délégations attendent leur source"
