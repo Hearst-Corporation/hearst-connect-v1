@@ -48,7 +48,15 @@ export function authenticate(email: string, password: string): AuthResult {
 
   return {
     ok: true,
-    user: { email: ownerEmail(), name: 'Adrien', role: 'OWNER' },
+    // Identifiant canonique du compte propriétaire. Il vient de
+    // l'environnement quand un enregistrement réel existe côté backend ;
+    // à défaut, une valeur stable et explicite — jamais l'e-mail.
+    user: {
+      userId: (process.env.ADRIEN_OWNER_ID || 'owner-adrien').trim(),
+      email: ownerEmail(),
+      name: 'Adrien',
+      role: 'OWNER',
+    },
   }
 }
 

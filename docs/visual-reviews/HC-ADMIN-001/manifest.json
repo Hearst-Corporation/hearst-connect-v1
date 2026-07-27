@@ -1,0 +1,20 @@
+{
+  "mission": "HC-ADMIN-001",
+  "issue": 3,
+  "branch": "feat/hc-admin-001-backend-admin-layout",
+  "capturedAt": "2026-07-27",
+  "backend": {
+    "url": "https://connect-api.hearst.app",
+    "publicProbes": "réponses réelles (HTTP 200)",
+    "authenticatedRoutes": "SESSION_SIGNING_KEY absente en local — état « non configuré » authentique, non simulé"
+  },
+  "consoleErrors": 0,
+  "screenshots": [
+    { "file": "desktop-1440x900.png", "viewport": "1440x900", "route": "/admin", "shows": "Overview, registre 26 endpoints, sondes publiques live" },
+    { "file": "laptop-1280x800.png", "viewport": "1280x800", "route": "/admin/api-explorer", "shows": "registre complet par catégorie" },
+    { "file": "mobile-375x812.png", "viewport": "375x812", "route": "/admin", "shows": "navigation fermée" },
+    { "file": "mobile-drawer-375x812.png", "viewport": "375x812", "route": "/admin", "shows": "tiroir de navigation ouvert" },
+    { "file": "vault-not-configured-1440x900.png", "viewport": "1440x900", "route": "/admin/vault", "shows": "état de contrat honnête" },
+    { "file": "keeper-disabled-1440x900.png", "viewport": "1440x900", "route": "/admin/keeper", "shows": "keeper fail-closed" }
+  ]
+}
