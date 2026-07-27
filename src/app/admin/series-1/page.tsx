@@ -48,6 +48,20 @@ type ReponseEvenements = { readonly events?: Resolu<readonly Mouvement[]> }
 const estFinancier = (m: Mouvement): boolean =>
   m.assetAmountAtomic !== null && m.assetAmountAtomic !== undefined && m.assetAmountAtomic !== ''
 
+function JournalVide({ motif }: Readonly<{ motif: string | undefined }>) {
+  const suffixe =
+    motif === undefined
+      ? 'la chaîne n’a encore rien déposé pour ce fonds. Ce n’est pas une panne.'
+      : `${motif}. Ce n’est pas une panne.`
+  return (
+    <SourceAttendue
+      quoi="Aucun mouvement enregistré à ce jour"
+      detail={`Le journal est consulté et il est vide : ${suffixe}`}
+      requis={['Un premier mouvement enregistré sur la chaîne']}
+    />
+  )
+}
+
 export default async function Page() {
   const reponse = await callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } })
   const bloc = reponse.ok ? reponse.data.events : undefined
@@ -67,18 +81,10 @@ export default async function Page() {
           detail="Le service n’a pas répondu à la demande. Aucun mouvement n’est supposé : une liste vide se lirait à tort comme « il ne s’est rien passé »."
           requis={['Une réponse du service']}
         />
-      ) : mouvements === null || mouvements === undefined || mouvements.length === 0 ? (
-        <SourceAttendue
-          quoi="Aucun mouvement enregistré à ce jour"
-          detail={
-            motifLisible(bloc?.reason) === undefined
-              ? 'Le journal est consulté et il est vide : la chaîne n’a encore rien déposé pour ce fonds. Ce n’est pas une panne.'
-              : `Le journal est consulté et il est vide : ${motifLisible(bloc?.reason)}. Ce n’est pas une panne.`
-          }
-          requis={['Un premier mouvement enregistré sur la chaîne']}
-        />
       ) : (
-        <JournalSerie1 mouvements={mouvements} />
+        mouvements === null || mouvements === undefined || mouvements.length === 0
+          ? <JournalVide motif={motifLisible(bloc?.reason)} />
+          : <JournalSerie1 mouvements={mouvements} />
       )}
 
       {/* Le sous-sol : la réponse détaillée reste consultable pour qui veut

@@ -30,15 +30,26 @@ export function CapacityBar({
   const tendu = pourcent >= 90
   const soutenu = pourcent >= 75 && pourcent < 90
 
+  let texteTon = 'text-success-400'
+  let messageTon = 'Capacité confortable'
+  let barreTon = 'bg-accent-400'
+  if (tendu) {
+    texteTon = 'text-danger-400'
+    messageTon = 'Capacité presque atteinte'
+    barreTon = 'bg-danger-500'
+  } else if (soutenu) {
+    texteTon = 'text-warning-400'
+    messageTon = 'Remplissage soutenu'
+    barreTon = 'bg-warning-500'
+  }
+
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
         <p className="text-2xl font-semibold text-white tabular-nums">
           {pourcent.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %
         </p>
-        <p className={clsx('text-xs font-medium', tendu ? 'text-danger-400' : soutenu ? 'text-warning-400' : 'text-success-400')}>
-          {tendu ? 'Capacité presque atteinte' : soutenu ? 'Remplissage soutenu' : 'Capacité confortable'}
-        </p>
+        <p className={clsx('text-xs font-medium', texteTon)}>{messageTon}</p>
       </div>
 
       <div
@@ -46,10 +57,7 @@ export function CapacityBar({
         aria-label={`Plafond utilisé à ${pourcent.toFixed(2)} pour cent`}
         className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-surface-sunken"
       >
-        <div
-          className={clsx('h-full rounded-full', tendu ? 'bg-danger-500' : soutenu ? 'bg-warning-500' : 'bg-accent-400')}
-          style={{ width: `${largeur}%` }}
-        />
+        <div className={clsx('h-full rounded-full', barreTon)} style={{ width: `${largeur}%` }} />
       </div>
 
       <dl className="mt-3 flex flex-wrap justify-between gap-x-6 gap-y-1 text-xs">

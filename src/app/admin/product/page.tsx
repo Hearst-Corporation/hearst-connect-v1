@@ -59,8 +59,7 @@ const MOTIF: Record<string, string> = {
 function explication(bloc: Resolu<unknown> | undefined, defaut: string): string {
   const brut = bloc?.reason
   if (typeof brut !== 'string' || brut === '') return defaut
-  const lisible = MOTIF[brut]
-  return lisible === undefined ? defaut : lisible
+  return MOTIF[brut] ?? defaut
 }
 
 function etatDe(bloc: Resolu<unknown> | undefined, defaut: string): EtatSerie {
@@ -97,7 +96,9 @@ function ecartLisible(cible: number | null, reel: number | null): { texte: strin
   if (cible === null || reel === null) return { texte: '—', ton: 'text-zinc-500' }
   const pts = (reel - cible) / 100
   const ampleur = Math.abs(pts)
-  const ton = ampleur >= 5 ? 'text-warning-400' : ampleur >= 1 ? 'text-zinc-300' : 'text-success-400'
+  let ton = 'text-success-400'
+  if (ampleur >= 5) ton = 'text-warning-400'
+  else if (ampleur >= 1) ton = 'text-zinc-300'
   const signe = pts > 0 ? '+' : ''
   return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
 }
@@ -105,6 +106,18 @@ function ecartLisible(cible: number | null, reel: number | null): { texte: strin
 function partLisible(bps: number | null | undefined): string {
   if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
   return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
+}
+
+function etatCourbe(points: readonly PointCourbe[], courbeParametree: boolean, vendingCurve: Resolu<unknown> | undefined): EtatSerie {
+  if (points.length === 0) {
+    return etatDe(vendingCurve, 'Les termes de rémunération ne sont pas encore transmis.')
+  }
+  if (courbeParametree) return { type: 'tracee' }
+  return {
+    type: 'attendue',
+    explication:
+      'Les cinq échéances du produit sont bien définies, mais aucun taux n’y est encore inscrit. La courbe s’affichera dès qu’ils le seront.',
+  }
 }
 
 export default async function Page() {
@@ -117,7 +130,7 @@ export default async function Page() {
   // Répartition cible par poche. Une poche sans cible lisible est écartée
   // plutôt que ramenée à zéro.
   const pochesBrutes = termes?.allocation?.pockets
-  const poches = pochesBrutes === null || pochesBrutes === undefined ? [] : pochesBrutes
+  const poches = pochesBrutes ?? []
   const lisibles = poches.filter((p) => p.targetBps !== null && p.targetBps !== undefined && Number.isFinite(p.targetBps))
 
   const repartition: PocheAllocation[] = lisibles.map((p) => ({
@@ -177,17 +190,7 @@ export default async function Page() {
             question="Comment la rémunération évolue-t-elle sur la durée ?"
             unite="en pourcentage, par mois"
             provenance="termes du produit"
-            etat={
-              points.length === 0
-                ? etatDe(f.vendingCurve, 'Les termes de rémunération ne sont pas encore transmis.')
-                : courbeParametree
-                  ? { type: 'tracee' }
-                  : {
-                      type: 'attendue',
-                      explication:
-                        'Les cinq échéances du produit sont bien définies, mais aucun taux n’y est encore inscrit. La courbe s’affichera dès qu’ils le seront.',
-                    }
-            }
+            etat={etatCourbe(points, courbeParametree, f.vendingCurve)}
           >
             <VendingCurveChart points={points} />
           </ChartFrame>

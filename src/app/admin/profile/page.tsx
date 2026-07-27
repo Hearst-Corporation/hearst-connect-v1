@@ -41,6 +41,53 @@ const LIBELLE_ROLE: Record<Role, string> = {
   MEMBER: 'Membre',
 }
 
+function DossierInvestisseur({
+  ok,
+  identite,
+  motif,
+}: Readonly<{ ok: boolean; identite: Identite | null | undefined; motif: string | undefined }>) {
+  if (!ok) {
+    return (
+      <SourceAttendue
+        quoi="Le dossier investisseur n’a pas pu être lu"
+        detail="Le service n’a pas répondu à la demande. On ne conclut pas de ce silence qu’aucun dossier n’existe."
+        requis={['Une réponse du service']}
+      />
+    )
+  }
+
+  if (identite === null || identite === undefined) {
+    const suffixe =
+      motif === undefined
+        ? 'Le service a bien été consulté : il ne trouve pas de dossier associé.'
+        : `Le service a bien été consulté : ${motif}.`
+    return (
+      <SourceAttendue
+        quoi="Aucun dossier investisseur n’est rattaché à ce compte"
+        detail={`${suffixe} C’est le cas normal d’un compte d’administration — administrer l’espace et souscrire au fonds sont deux choses distinctes, et l’un n’implique pas l’autre. Aucune fiche n’est affichée ici plutôt qu’une fiche vide, qu’on prendrait pour un dossier perdu.`}
+        requis={[
+          'Une souscription au fonds effectuée avec cette adresse e-mail',
+          'Un dossier de connaissance client instruit et validé',
+          'Une adresse de portefeuille rattachée au dossier',
+        ]}
+      />
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader title="Ce que le service sait de vous" hint="Transmis par le service, sans retouche" />
+      <dl className="divide-y divide-white/[0.07]">
+        <Ligne libelle="Nom du dossier" valeur={identite.displayName} />
+        <Ligne libelle="Adresse e-mail" valeur={identite.email} />
+        <Ligne libelle="Portefeuille" valeur={identite.walletAddress} mono />
+        <Ligne libelle="Connaissance client" valeur={identite.kycStatus} />
+        <Ligne libelle="Qualification" valeur={identite.accreditation} />
+      </dl>
+    </Card>
+  )
+}
+
 export default async function Page() {
   const [session, reponse] = await Promise.all([getSession(), callBackend<ReponseProfil>('profile')])
 
@@ -78,38 +125,7 @@ export default async function Page() {
           Dossier investisseur
         </h2>
 
-        {!reponse.ok ? (
-          <SourceAttendue
-            quoi="Le dossier investisseur n’a pas pu être lu"
-            detail="Le service n’a pas répondu à la demande. On ne conclut pas de ce silence qu’aucun dossier n’existe."
-            requis={['Une réponse du service']}
-          />
-        ) : identite === null || identite === undefined ? (
-          <SourceAttendue
-            quoi="Aucun dossier investisseur n’est rattaché à ce compte"
-            detail={
-              motif === undefined
-                ? 'Le service a bien été consulté : il ne trouve pas de dossier associé. C’est le cas normal d’un compte d’administration — administrer l’espace et souscrire au fonds sont deux choses distinctes, et l’un n’implique pas l’autre. Aucune fiche n’est affichée ici plutôt qu’une fiche vide, qu’on prendrait pour un dossier perdu.'
-                : `Le service a bien été consulté : ${motif}. C’est le cas normal d’un compte d’administration — administrer l’espace et souscrire au fonds sont deux choses distinctes, et l’un n’implique pas l’autre. Aucune fiche n’est affichée ici plutôt qu’une fiche vide, qu’on prendrait pour un dossier perdu.`
-            }
-            requis={[
-              'Une souscription au fonds effectuée avec cette adresse e-mail',
-              'Un dossier de connaissance client instruit et validé',
-              'Une adresse de portefeuille rattachée au dossier',
-            ]}
-          />
-        ) : (
-          <Card>
-            <CardHeader title="Ce que le service sait de vous" hint="Transmis par le service, sans retouche" />
-            <dl className="divide-y divide-white/[0.07]">
-              <Ligne libelle="Nom du dossier" valeur={identite.displayName} />
-              <Ligne libelle="Adresse e-mail" valeur={identite.email} />
-              <Ligne libelle="Portefeuille" valeur={identite.walletAddress} mono />
-              <Ligne libelle="Connaissance client" valeur={identite.kycStatus} />
-              <Ligne libelle="Qualification" valeur={identite.accreditation} />
-            </dl>
-          </Card>
-        )}
+        <DossierInvestisseur ok={reponse.ok} identite={identite} motif={motif} />
       </section>
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}

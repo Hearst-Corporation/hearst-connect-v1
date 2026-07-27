@@ -65,6 +65,58 @@ function ecartLisible(driftBps: number | null): { texte: string; ton: string } {
   return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
 }
 
+function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
+  return (
+    <Card>
+      <CardHeader
+        title="Quelles poches s’écartent de leur cible ?"
+        hint="Un écart positif signale une poche en avance sur sa cible"
+      />
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[34rem] text-sm">
+          <thead>
+            <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-400">
+              <th scope="col" className="px-5 py-2.5 font-medium">
+                Poche
+              </th>
+              <th scope="col" className="px-5 py-2.5 text-right font-medium">
+                Visée
+              </th>
+              <th scope="col" className="px-5 py-2.5 text-right font-medium">
+                Constatée
+              </th>
+              <th scope="col" className="px-5 py-2.5 text-right font-medium">
+                Écart
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.07]">
+            {actives.map((s) => {
+              const ecart = ecartLisible(s.driftBps)
+              return (
+                <tr key={s.pocket}>
+                  <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
+                    {s.label}
+                  </th>
+                  <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">
+                    {(s.targetBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %
+                  </td>
+                  <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">
+                    {s.actualBps === null
+                      ? '—'
+                      : `${(s.actualBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`}
+                  </td>
+                  <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
 export default async function Page() {
   const [vault, strategies] = await Promise.all([
     callBackend<Vault>('vault'),
@@ -106,13 +158,10 @@ export default async function Page() {
                 <HeroFigure
                   valeur={usdc(snap?.totalAssets)}
                   libelle="Encours du portefeuille"
-                  unite={snap?.asset === undefined || snap.asset === null ? undefined : snap.asset}
+                  unite={snap?.asset ?? undefined}
                 />
                 <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
-                  <SideFact
-                    libelle="Valeur d’une part"
-                    valeur={snap?.navPerShare === null || snap?.navPerShare === undefined ? '—' : snap.navPerShare}
-                  />
+                  <SideFact libelle="Valeur d’une part" valeur={snap?.navPerShare ?? '—'} />
                   <SideFact
                     libelle="Parts émises"
                     valeur={
@@ -150,55 +199,7 @@ export default async function Page() {
             <AllocationChart poches={poches} />
           </ChartFrame>
 
-          {actives.length > 0 ? (
-            <Card>
-              <CardHeader
-                title="Quelles poches s’écartent de leur cible ?"
-                hint="Un écart positif signale une poche en avance sur sa cible"
-              />
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[34rem] text-sm">
-                  <thead>
-                    <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-400">
-                      <th scope="col" className="px-5 py-2.5 font-medium">
-                        Poche
-                      </th>
-                      <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                        Visée
-                      </th>
-                      <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                        Constatée
-                      </th>
-                      <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                        Écart
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/[0.07]">
-                    {actives.map((s) => {
-                      const ecart = ecartLisible(s.driftBps)
-                      return (
-                        <tr key={s.pocket}>
-                          <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
-                            {s.label}
-                          </th>
-                          <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">
-                            {(s.targetBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %
-                          </td>
-                          <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">
-                            {s.actualBps === null
-                              ? '—'
-                              : `${(s.actualBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`}
-                          </td>
-                          <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          ) : null}
+          {actives.length > 0 ? <EcartsTable actives={actives} /> : null}
         </>
       )}
     </div>

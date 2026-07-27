@@ -71,6 +71,18 @@ function duree(secondes: number | undefined): string {
   return `${Math.round(minutes / 60)} h`
 }
 
+function etatPlanificateur(statut: string | undefined): { texte: string; ton: Ton } {
+  if (statut === 'running') return { texte: 'Actif', ton: 'sain' }
+  if (statut === 'disabled') return { texte: 'Désactivé', ton: 'attention' }
+  return { texte: 'Non communiqué', ton: 'neutre' }
+}
+
+function precisionErreurs(erreurs: number | undefined): string | undefined {
+  if (erreurs === undefined) return undefined
+  if (erreurs > 0) return `${erreurs} erreur${erreurs > 1 ? 's' : ''} d’affilée`
+  return 'aucune erreur'
+}
+
 function Ligne({ libelle, etat, precision }: Readonly<{ libelle: string; etat: ReturnType<typeof lireEtat>; precision?: string }>) {
   return (
     <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
@@ -82,18 +94,55 @@ function Ligne({ libelle, etat, precision }: Readonly<{ libelle: string; etat: R
   )
 }
 
+function SanteService({ r }: Readonly<{ r: Runtime | null }>) {
+  const hint =
+    r === null
+      ? 'Le service n’a pas répondu'
+      : `En fonctionnement depuis ${duree(r.uptimeSeconds)} · environnement ${r.environment ?? 'non communiqué'}`
+
+  return (
+    <Card>
+      <CardHeader title="Le service est-il en bonne santé ?" hint={hint} />
+      {r === null ? <EtatIndisponible /> : <ListeEtats r={r} />}
+    </Card>
+  )
+}
+
+function EtatIndisponible() {
+  return (
+    <p className="px-5 py-6 text-sm text-danger-400">
+      Le service n’a pas répondu à la demande d’état. Aucun état n’est supposé.
+    </p>
+  )
+}
+
+function ListeEtats({ r }: Readonly<{ r: Runtime }>) {
+  const base = lireEtat(r.databaseStatus)
+  const contrat = lireEtat(r.contractStatus)
+  const releve = lireEtat(r.indexerStatus)
+  const planificateur = r.indexerScheduler
+
+  const latence = r.db?.latencyMs
+  const erreurs = planificateur?.consecutiveErrors
+  const bloc = planificateur?.lastIndexedBlock
+
+  return (
+    <ul className="divide-y divide-white/[0.07]">
+      <Ligne libelle="Base de données" etat={base} precision={latence === null || latence === undefined ? undefined : `${latence} ms`} />
+      <Ligne libelle="Contrat" etat={contrat} />
+      <Ligne
+        libelle="Relevé des mouvements"
+        etat={releve}
+        precision={bloc === null || bloc === undefined ? undefined : `bloc ${bloc.toLocaleString('fr-FR')}`}
+      />
+      <Ligne libelle="Planificateur" etat={etatPlanificateur(planificateur?.status)} precision={precisionErreurs(erreurs)} />
+    </ul>
+  )
+}
+
 export default async function RuntimePage() {
   const reponse = await callBackend<Runtime>('runtime')
   const r = reponse.ok ? reponse.data : null
-
-  const base = lireEtat(r?.databaseStatus)
-  const contrat = lireEtat(r?.contractStatus)
-  const releve = lireEtat(r?.indexerStatus)
-  const planificateur = r?.indexerScheduler
-
-  const latence = r?.db?.latencyMs
-  const erreurs = planificateur?.consecutiveErrors
-  const bloc = planificateur?.lastIndexedBlock
 
   return (
     <div className="space-y-6">
@@ -103,52 +152,7 @@ export default async function RuntimePage() {
         endpointIds={['health', 'ready', 'runtime']}
       />
 
-      <Card>
-        <CardHeader
-          title="Le service est-il en bonne santé ?"
-          hint={
-            r === null
-              ? 'Le service n’a pas répondu'
-              : `En fonctionnement depuis ${duree(r.uptimeSeconds)} · environnement ${r.environment ?? 'non communiqué'}`
-          }
-        />
-        {r === null ? (
-          <p className="px-5 py-6 text-sm text-danger-400">
-            Le service n’a pas répondu à la demande d’état. Aucun état n’est supposé.
-          </p>
-        ) : (
-          <ul className="divide-y divide-white/[0.07]">
-            <Ligne
-              libelle="Base de données"
-              etat={base}
-              precision={latence === null || latence === undefined ? undefined : `${latence} ms`}
-            />
-            <Ligne libelle="Contrat" etat={contrat} />
-            <Ligne
-              libelle="Relevé des mouvements"
-              etat={releve}
-              precision={bloc === null || bloc === undefined ? undefined : `bloc ${bloc.toLocaleString('fr-FR')}`}
-            />
-            <Ligne
-              libelle="Planificateur"
-              etat={
-                planificateur?.status === 'running'
-                  ? { texte: 'Actif', ton: 'sain' }
-                  : planificateur?.status === 'disabled'
-                    ? { texte: 'Désactivé', ton: 'attention' }
-                    : { texte: 'Non communiqué', ton: 'neutre' }
-              }
-              precision={
-                erreurs === undefined
-                  ? undefined
-                  : erreurs > 0
-                    ? `${erreurs} erreur${erreurs > 1 ? 's' : ''} d’affilée`
-                    : 'aucune erreur'
-              }
-            />
-          </ul>
-        )}
-      </Card>
+      <SanteService r={r} />
 
       {/* La réponse brute reste consultable : c'est le sous-sol, et on y descend
           volontairement plutôt que d'y être déposé. */}

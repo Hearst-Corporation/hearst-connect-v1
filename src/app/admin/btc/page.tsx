@@ -60,8 +60,7 @@ const MOTIF: Record<string, string> = {
 function explication(bloc: Resolu<unknown> | undefined, defaut: string): string {
   const brut = bloc?.reason
   if (typeof brut !== 'string' || brut === '') return defaut
-  const lisible = MOTIF[brut]
-  return lisible === undefined ? defaut : lisible
+  return MOTIF[brut] ?? defaut
 }
 
 /** Décide l'état d'un cadre à partir du statut réel renvoyé par le service. */
@@ -139,6 +138,42 @@ function nomLisible(brut: string | null | undefined): string {
   return decoupe === '' ? 'Événement sans intitulé' : decoupe
 }
 
+function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: readonly Evenement[]; statutLive: boolean }>) {
+  if (evenements.length === 0) {
+    return statutLive ? (
+      <CalmState message="Aucun mouvement bitcoin n’a été enregistré. Rien ne demande d’attention." />
+    ) : null
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Que s’est-il passé récemment ?"
+        hint="Les mouvements et alertes remontés par le service, du plus récent au plus ancien"
+      />
+      <ul className="divide-y divide-white/[0.07]">
+        {evenements.map((e, index) => {
+          const gravite = graviteLisible(e.severity)
+          return (
+            <li
+              key={`${e.name ?? 'evenement'}-${e.occurredAt ?? String(index)}`}
+              className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm"
+            >
+              <span aria-hidden="true" className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)} />
+              <span className="min-w-0 flex-1 text-white">{nomLisible(e.name)}</span>
+              {e.category === null || e.category === undefined || e.category === '' ? null : (
+                <span className="text-xs text-zinc-500">{nomLisible(e.category)}</span>
+              )}
+              <span className={clsx('text-xs font-medium', gravite.texte)}>{gravite.mot}</span>
+              <span className="text-xs text-zinc-500 tabular-nums">{dateLisible(e.occurredAt)}</span>
+            </li>
+          )
+        })}
+      </ul>
+    </Card>
+  )
+}
+
 export default async function Page() {
   const reponse = await callBackend<Btc>('btc')
   const b = reponse.ok ? reponse.data : null
@@ -148,12 +183,11 @@ export default async function Page() {
   const produit = b?.btcProduced?.value
 
   const sats = produit?.totalSats
+  const satsNombre = sats === null || sats === undefined ? null : Number(sats)
   const bitcoinProduit =
-    sats === null || sats === undefined
+    satsNombre === null || !Number.isFinite(satsNombre)
       ? '—'
-      : Number.isFinite(Number(sats))
-        ? (Number(sats) / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 8 })
-        : '—'
+      : (satsNombre / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 8 })
 
   // Réserve et exposition : deux montants réels, comparables sur une même
   // échelle. Un poste illisible est écarté, jamais ramené à zéro.
@@ -164,7 +198,7 @@ export default async function Page() {
   if (montantExposition !== null) postes.push({ poste: 'Exposition', montant: montantExposition, accent: true })
 
   const evenements = b?.events?.value
-  const listeEvenements = evenements === null || evenements === undefined ? [] : evenements
+  const listeEvenements = evenements ?? []
 
   return (
     <div className="space-y-6">
@@ -242,38 +276,7 @@ export default async function Page() {
           )}
 
           {/* ── Ce qui s'est passé ────────────────────────────────────────── */}
-          {listeEvenements.length > 0 ? (
-            <Card>
-              <CardHeader
-                title="Que s’est-il passé récemment ?"
-                hint="Les mouvements et alertes remontés par le service, du plus récent au plus ancien"
-              />
-              <ul className="divide-y divide-white/[0.07]">
-                {listeEvenements.map((e, index) => {
-                  const gravite = graviteLisible(e.severity)
-                  return (
-                    <li
-                      key={`${e.name ?? 'evenement'}-${e.occurredAt ?? String(index)}`}
-                      className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)}
-                      />
-                      <span className="min-w-0 flex-1 text-white">{nomLisible(e.name)}</span>
-                      {e.category === null || e.category === undefined || e.category === '' ? null : (
-                        <span className="text-xs text-zinc-500">{nomLisible(e.category)}</span>
-                      )}
-                      <span className={clsx('text-xs font-medium', gravite.texte)}>{gravite.mot}</span>
-                      <span className="text-xs text-zinc-500 tabular-nums">{dateLisible(e.occurredAt)}</span>
-                    </li>
-                  )
-                })}
-              </ul>
-            </Card>
-          ) : b.events?.status === 'LIVE' ? (
-            <CalmState message="Aucun mouvement bitcoin n’a été enregistré. Rien ne demande d’attention." />
-          ) : null}
+          <CeQuiSestPasse evenements={listeEvenements} statutLive={b.events?.status === 'LIVE'} />
 
           {/* ── Cadres en attente de leur source ──────────────────────────── */}
           <div className="grid gap-4 lg:grid-cols-2">
