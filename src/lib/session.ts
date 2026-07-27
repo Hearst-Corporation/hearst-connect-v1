@@ -17,6 +17,13 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 7
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER'
 
 export type SessionUser = {
+  /**
+   * Identifiant canonique de l'utilisateur, tel qu'il figure dans
+   * l'enregistrement authentifié — c'est lui que le backend attend comme
+   * `userId`. Un e-mail n'est PAS un identifiant : le confondre exposerait un
+   * compte au périmètre d'un autre.
+   */
+  userId: string
   email: string
   name: string
   role: Role
@@ -66,9 +73,9 @@ export function verifyToken(token: string | undefined): SessionUser | null {
   }
 
   if (typeof payload.exp !== 'number' || payload.exp * 1000 < Date.now()) return null
-  if (!payload.email || !payload.name || !payload.role) return null
+  if (!payload.userId || !payload.email || !payload.name || !payload.role) return null
 
-  return { email: payload.email, name: payload.name, role: payload.role }
+  return { userId: payload.userId, email: payload.email, name: payload.name, role: payload.role }
 }
 
 /** Pose le cookie de session. À n'appeler que depuis une Server Action ou un Route Handler. */
