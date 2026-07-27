@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "hearst": {
+      "source": {
+        "source": "github",
+        "repo": "Hearst-Corporation/hearst-claude"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "hearst-core@hearst": true,
+    "hearst-secops@hearst": true
+  }
+}
