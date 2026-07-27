@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux positifs assumés"
+paths = ['''\.env\.example$''', '''lock''']

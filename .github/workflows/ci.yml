@@ -1,0 +1,7 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  ci:
+    uses: Hearst-Corporation/.github/.github/workflows/ci-nextjs.yml@v1

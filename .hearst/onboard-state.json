@@ -1,0 +1,12 @@
+{
+  "completedSteps": [
+    "governanceRead",
+    "projectPr",
+    "projectFilesWritten"
+  ],
+  "data": {
+    "frozenSha": "47a1c9897b08c736a2981f4272bc8b6f53aed2b3",
+    "projectPrUrl": "https://github.com/Hearst-Corporation/hearst-connect-v1/pull/1",
+    "hasUnresolvedArbitrage": false
+  }
+}

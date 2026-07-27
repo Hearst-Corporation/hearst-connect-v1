@@ -2,6 +2,7 @@
   "name": "hearst-connect",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +10,10 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm run check:catalyst",
-    "check:catalyst": "node ~/catalyst-doctor.mjs ."
+    "check:catalyst": "node ~/catalyst-doctor.mjs .",
+    "lint:fast": "oxlint src",
+    "quality:dead": "knip",
+    "quality:dup": "jscpd src --threshold 100 --reporters consoleFull"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -27,6 +31,9 @@
     "@types/react-dom": "19.2.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.6",
+    "jscpd": "^5.0.14",
+    "knip": "^6.29.0",
+    "oxlint": "^1.75.0",
     "postcss": "^8.5.12",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
