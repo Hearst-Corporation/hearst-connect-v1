@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { authenticate, isDevBypassAllowed } from './auth'
+import { authenticate, loginErrorMessage } from './auth'
 import { endSession, startSession } from './session'
 
 export type LoginState = { error: string | null }
@@ -16,21 +16,32 @@ function textField(formData: FormData, name: string): string {
   return typeof value === 'string' ? value : ''
 }
 
-/** Server Action du formulaire de connexion. */
+/**
+ * Server Action du formulaire de connexion.
+ *
+ * Tout se passe côté serveur : les identifiants partent vers le backend depuis
+ * ici, et le jeton reçu est scellé dans le cookie de session. Aucun jeton n'est
+ * renvoyé au client, ni dans l'état de l'action, ni dans un message d'erreur.
+ */
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
   const email = textField(formData, 'email')
   const password = textField(formData, 'password')
 
   if (!email || !password) {
-    return { error: 'Renseignez votre e-mail et votre mot de passe.' }
+    return { error: loginErrorMessage('missing_fields') }
   }
 
-  const result = authenticate(email, password)
+  const result = await authenticate(email, password)
   if (!result.ok) {
     return { error: result.error }
   }
 
-  await startSession(result.user)
+  const started = await startSession(result.session)
+  if (!started) {
+    // Jeton déjà expiré à la réception : on ne pose pas un cookie mort-né.
+    return { error: loginErrorMessage('malformed_response') }
+  }
+
   redirect('/admin')
 }
 
@@ -38,26 +49,4 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
 export async function logout(): Promise<void> {
   await endSession()
   redirect('/login')
-}
-
-/**
- * Raccourci de développement : ouvre une session propriétaire sans mot de passe.
- *
- * Réservé au poste local. La garde est ici, côté serveur — le bouton qui l'appelle
- * n'est qu'un confort : même appelée directement, l'action refuse hors développement.
- * `next build` fige NODE_ENV à 'production', donc rien de tout ceci n'existe sur
- * un déploiement.
- */
-export async function devLogin(): Promise<void> {
-  if (!isDevBypassAllowed()) {
-    throw new Error('Connexion directe indisponible : réservée au développement local.')
-  }
-
-  await startSession({
-    userId: (process.env.ADRIEN_OWNER_ID || 'owner-adrien').trim(),
-    email: (process.env.ADRIEN_OWNER_EMAIL || 'adrien@hearstcorporation.io').trim().toLowerCase(),
-    name: 'Adrien',
-    role: 'OWNER',
-  })
-  redirect('/admin')
 }

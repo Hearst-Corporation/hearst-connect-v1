@@ -2,8 +2,8 @@
 
 import { getSession } from '@/lib/session'
 import { callBackend, type CallTrace, type KeeperActionResult, type Problem } from './client'
+import { toBackendRole } from './auth'
 import { endpointById } from './endpoints'
-import { toBackendRole } from './token'
 import { z } from 'zod'
 
 /**
