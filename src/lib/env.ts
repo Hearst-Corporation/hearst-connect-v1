@@ -72,7 +72,9 @@ export function backendUrl(): string | null {
   } catch {
     return null
   }
-  return raw.replace(/\/+$/, '')
+  let end = raw.length
+  while (end > 0 && raw[end - 1] === '/') end -= 1
+  return raw.slice(0, end)
 }
 
 /**

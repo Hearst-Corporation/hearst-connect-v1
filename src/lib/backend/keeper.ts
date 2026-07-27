@@ -46,12 +46,17 @@ function parseNumber(form: FormData, field: string): number | null {
   return Number.isFinite(value) ? value : null
 }
 
+function parseString(form: FormData, field: string): string {
+  const raw = form.get(field)
+  return typeof raw === 'string' ? raw : ''
+}
+
 /**
  * Exécute une action Keeper. `confirm` doit valoir exactement "CONFIRMER" :
  * une soumission accidentelle ne déclenche aucun appel.
  */
 export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormData): Promise<KeeperOutcome> {
-  const endpointId = String(form.get('endpointId') ?? '')
+  const endpointId = parseString(form, 'endpointId')
   const base: KeeperOutcome = {
     ok: false,
     endpointId,
@@ -72,7 +77,7 @@ export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormDat
     return { ...base, validationError: "Cette action n'est pas une route Keeper." }
   }
 
-  if (String(form.get('confirm') ?? '') !== 'CONFIRMER') {
+  if (parseString(form, 'confirm') !== 'CONFIRMER') {
     return { ...base, validationError: 'Confirmation absente : aucune requête n’a été émise.' }
   }
 
@@ -91,10 +96,8 @@ export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormDat
     }
     const parsed = schema.safeParse(candidate)
     if (!parsed.success) {
-      return {
-        ...base,
-        validationError: `Requête invalide au regard du contrat : ${parsed.error.issues.map((i) => `${i.path.join('.')} ${i.message}`).join(', ')}.`,
-      }
+      const issues = parsed.error.issues.map((i) => `${i.path.join('.')} ${i.message}`).join(', ')
+      return { ...base, validationError: `Requête invalide au regard du contrat : ${issues}.` }
     }
     body = parsed.data
   }

@@ -21,7 +21,8 @@ export type ProbeOutcome = {
 }
 
 export async function probeEndpoint(_prev: ProbeOutcome | null, form: FormData): Promise<ProbeOutcome> {
-  const endpointId = String(form.get('endpointId') ?? '')
+  const rawEndpointId = form.get('endpointId')
+  const endpointId = typeof rawEndpointId === 'string' ? rawEndpointId : ''
   const endpoint = endpointById(endpointId)
 
   if (endpoint.method !== 'GET') {

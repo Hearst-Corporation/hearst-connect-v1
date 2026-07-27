@@ -33,22 +33,16 @@ export function LoginForm({
       </div>
 
       {notice ? (
-        <p
-          role="status"
-          className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/20"
-        >
+        <output className="block rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/20">
           {notice}
-        </p>
+        </output>
       ) : null}
 
       {!loginReady ? (
-        <p
-          role="status"
-          className="rounded-lg bg-zinc-50 px-4 py-3 text-sm text-zinc-700 ring-1 ring-zinc-950/10 dark:bg-white/5 dark:text-zinc-300 dark:ring-white/10"
-        >
+        <output className="block rounded-lg bg-zinc-50 px-4 py-3 text-sm text-zinc-700 ring-1 ring-zinc-950/10 dark:bg-white/5 dark:text-zinc-300 dark:ring-white/10">
           Le service d’authentification n’est pas configuré sur ce déploiement : aucune connexion n’est possible pour
           l’instant.
-        </p>
+        </output>
       ) : null}
 
       <Field>

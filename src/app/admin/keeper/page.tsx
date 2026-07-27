@@ -21,11 +21,12 @@ export default async function KeeperPage() {
   // `requireSession` a déjà écarté toute session expirée : arrivé ici, le jeton
   // est valide — on ne réévalue pas l'horloge pendant le rendu.
 
-  const disabledReason = !isAdmin
-    ? `Le rôle ${session.role} n’ouvre pas droit aux actions Keeper.`
-    : !backendConfigured
-      ? 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
-      : null
+  let disabledReason: string | null = null
+  if (!isAdmin) {
+    disabledReason = `Le rôle ${session.role} n’ouvre pas droit aux actions Keeper.`
+  } else if (!backendConfigured) {
+    disabledReason = 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
+  }
 
   return (
     <div className="space-y-6">
@@ -42,13 +43,13 @@ export default async function KeeperPage() {
         </div>
         <p className="mt-2 text-sm text-zinc-300">
           Le backend ne dispose d’aucun helper d’écriture on-chain : ces routes enregistrent une demande, elles ne
-          produisent ni signature ni hash de transaction. Trois d’entre elles répondent aujourd’hui un HTTP 501 avec un
-          <span className="font-mono"> KeeperActionResult</span>. Cette console n’affichera jamais de hash fabriqué.
+          produisent ni signature ni hash de transaction. Trois d’entre elles répondent aujourd’hui un HTTP 501 avec
+          un <span className="font-mono">KeeperActionResult</span>. Cette console n’affichera jamais de hash fabriqué.
         </p>
         <p className="mt-2 text-sm text-zinc-400">
           Deux verrous supplémentaires côté backend : un quota de 5 requêtes par minute et par utilisateur, et le
-          coupe-circuit <span className="font-mono">KEEPER_ENABLED</span> — désactivé par défaut, il répond 503
-          <span className="font-mono"> NOT_CONFIGURED</span>.
+          coupe-circuit <span className="font-mono">KEEPER_ENABLED</span> — désactivé par défaut, il répond
+          503 <span className="font-mono">NOT_CONFIGURED</span>.
         </p>
       </section>
 

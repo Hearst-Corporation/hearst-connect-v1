@@ -1,6 +1,6 @@
 'use client'
 
-import { Bar, BarChart, CartesianGrid, Cell, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
  * « L'argent est-il placé là où il devrait l'être ? »
@@ -106,11 +106,14 @@ export function AllocationChart({ poches }: Readonly<{ poches: readonly PocheAll
               maxBarSize={26}
               isAnimationActive={false}
             />
-            <Bar dataKey="reel" name="Constatée" radius={[3, 3, 0, 0]} maxBarSize={26} isAnimationActive={false}>
-              {lisibles.map((p) => (
-                <Cell key={p.poche} fill={OR} />
-              ))}
-            </Bar>
+            <Bar
+              dataKey="reel"
+              name="Constatée"
+              fill={OR}
+              radius={[3, 3, 0, 0]}
+              maxBarSize={26}
+              isAnimationActive={false}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

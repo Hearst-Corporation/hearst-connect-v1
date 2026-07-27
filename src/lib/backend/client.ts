@@ -84,6 +84,45 @@ function trace(endpoint: BackendEndpoint, path: string, startedAt: number, extra
   }
 }
 
+type AuthorizationOutcome =
+  | { ok: true; authorization: string | null }
+  | { ok: false; state: Resolved<never> }
+
+/**
+ * Résout l'en-tête d'autorisation d'une route non publique, ou l'état nommé
+ * qui explique pourquoi elle reste inaccessible. Isolé de `callBackend` pour
+ * garder sa complexité cognitive sous le seuil autorisé.
+ */
+async function resolveAuthorization(endpoint: BackendEndpoint, path: string): Promise<AuthorizationOutcome> {
+  if (endpoint.auth === 'public') {
+    return { ok: true, authorization: null }
+  }
+
+  const session = await getSession()
+  if (!session) {
+    return { ok: false, state: resolved.permissionDenied('Session frontend absente ou expirée.', { route: path }) }
+  }
+
+  const backendRole = toBackendRole(session.role)
+  if (!backendRole) {
+    return {
+      ok: false,
+      state: resolved.permissionDenied(`Le rôle ${session.role} n'ouvre pas d'accès au backend.`, { route: path }),
+    }
+  }
+
+  if (endpoint.auth === 'admin' && backendRole !== 'admin') {
+    return {
+      ok: false,
+      state: resolved.permissionDenied('Rôle administrateur requis par cette route.', { route: path }),
+    }
+  }
+
+  // Composition unique de l'en-tête : `authorizationHeader` retire tout
+  // préfixe « Bearer » déjà présent dans la valeur stockée.
+  return { ok: true, authorization: authorizationHeader(session.backendToken) }
+}
+
 /**
  * Appelle un endpoint du registre.
  *
@@ -118,47 +157,17 @@ export async function callBackend<T = unknown>(
 
   // Jeton porteur émis par le backend, lu dans la session serveur. Il n'est
   // ni fabriqué ni dérivé ici : le frontend ne signe plus rien.
-  let authorization: string | null = null
-  if (endpoint.auth !== 'public') {
-    const session = await getSession()
-    if (!session) {
-      return {
-        ok: false,
-        problem: null,
-        keeper: null,
-        trace: trace(endpoint, path, startedAt, {}),
-        state: resolved.permissionDenied('Session frontend absente ou expirée.', { route: path }),
-      }
+  const authOutcome = await resolveAuthorization(endpoint, path)
+  if (!authOutcome.ok) {
+    return {
+      ok: false,
+      problem: null,
+      keeper: null,
+      trace: trace(endpoint, path, startedAt, {}),
+      state: authOutcome.state,
     }
-
-    const backendRole = toBackendRole(session.role)
-    if (!backendRole) {
-      return {
-        ok: false,
-        problem: null,
-        keeper: null,
-        trace: trace(endpoint, path, startedAt, {}),
-        state: resolved.permissionDenied(
-          `Le rôle ${session.role} n'ouvre pas d'accès au backend.`,
-          { route: path },
-        ),
-      }
-    }
-
-    if (endpoint.auth === 'admin' && backendRole !== 'admin') {
-      return {
-        ok: false,
-        problem: null,
-        keeper: null,
-        trace: trace(endpoint, path, startedAt, {}),
-        state: resolved.permissionDenied('Rôle administrateur requis par cette route.', { route: path }),
-      }
-    }
-
-    // Composition unique de l'en-tête : `authorizationHeader` retire tout
-    // préfixe « Bearer » déjà présent dans la valeur stockée.
-    authorization = authorizationHeader(session.backendToken)
   }
+  const authorization = authOutcome.authorization
 
   const requestId = crypto.randomUUID()
   const controller = new AbortController()
