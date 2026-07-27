@@ -1,0 +1,91 @@
+{
+  "review": "HC-AUTH-001",
+  "generatedAt": "2026-07-27T19:13:30Z",
+  "frontendCommit": "7471f39505b05c7502bfaf96f0212fbb6bc80996",
+  "backend": {
+    "url": "https://hearst-connect-backend-production.up.railway.app",
+    "runtimeEndpoint": "GET /api/v1/runtime",
+    "commitSha": null,
+    "commitShaNote": "Le backend renvoie commitSha: null sur /api/v1/runtime. Le champ existe dans la reponse mais n'est pas renseigne par le deploiement Railway courant. Valeurs reellement exposees : serviceVersion 0.1.0, environment production.",
+    "serviceVersion": "0.1.0",
+    "environment": "production"
+  },
+  "environment": {
+    "frontendUrl": "http://localhost:3000",
+    "nodeEnv": "development",
+    "browser": "Chromium via Playwright MCP"
+  },
+  "screenshots": [
+    {
+      "file": "login-desktop-1440x900.png",
+      "route": "/login",
+      "viewport": { "width": 1440, "height": 900 },
+      "state": "anonyme, formulaire vierge"
+    },
+    {
+      "file": "login-error-1440x900.png",
+      "route": "/login",
+      "viewport": { "width": 1440, "height": 900 },
+      "state": "anonyme, apres soumission d'un mot de passe volontairement faux"
+    },
+    {
+      "file": "login-mobile-375x812.png",
+      "route": "/login",
+      "viewport": { "width": 375, "height": 812 },
+      "state": "anonyme, formulaire vierge"
+    },
+    {
+      "file": "admin-authenticated-1440x900.png",
+      "route": "/admin",
+      "viewport": { "width": 1440, "height": 900 },
+      "state": "authentifie OWNER"
+    },
+    {
+      "file": "admin-mobile-375x812.png",
+      "route": "/admin",
+      "viewport": { "width": 375, "height": 812 },
+      "state": "authentifie OWNER, apres rafraichissement"
+    }
+  ],
+  "cookie": {
+    "name": "hearst_session",
+    "httpOnly": true,
+    "secure": false,
+    "secureNote": "false en local car le code conditionne secure a process.env.NODE_ENV === 'production' (src/lib/session.ts:126). Comportement voulu, pas un echec. Non verifiable en local que secure passe a true en production.",
+    "sameSite": "lax",
+    "path": "/",
+    "maxAgeSource": "session.expiresAt - now, derive de l'expiration du jeton backend (src/lib/session.ts:119)",
+    "observedExpiry": "2026-07-27T20:11:53.000Z",
+    "loginAt": "2026-07-27T19:11:53Z",
+    "effectiveTtlSeconds": 3600,
+    "ttlVerdict": "Coherent avec le TTL backend de 1 heure. Aucune duree fixe de 7 jours constatee.",
+    "readableByJavaScript": false
+  },
+  "leakHunt": {
+    "scope": "page /admin authentifiee",
+    "htmlOccurrences": {
+      "backendToken": 0,
+      "eyJ": 0,
+      "Bearer ": 0,
+      "hearst_session": 0,
+      "accessToken": 0
+    },
+    "documentCookie": "",
+    "localStorage": { "theme": "dark" },
+    "sessionStorage": {},
+    "url": "http://localhost:3000/admin",
+    "screenshotBinaryScan": "Les 5 PNG greppes contre la valeur du mot de passe : 0 occurrence.",
+    "verdict": "Aucune fuite detectee."
+  },
+  "console": {
+    "errors": 0,
+    "warnings": 1,
+    "warningDetail": "Preload CSS non utilise (_next/static/chunks/src_styles_tailwind_*.css) — bruit du serveur de dev Next.js, absent d'un build de production.",
+    "otherMessages": "React DevTools, [HMR] connected, [Fast Refresh] — messages de developpement."
+  },
+  "tests": {
+    "automatedSuite": "aucune suite de tests automatises dans ce repo (cf. CLAUDE.md)",
+    "manualJourney": "9 etapes, toutes PASS",
+    "runBy": "agent QA navigateur, parcours reel pilote Playwright"
+  }
+}
