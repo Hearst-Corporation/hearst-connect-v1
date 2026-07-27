@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default async function LoginPage() {
   // Une session valide n'a rien à faire sur l'écran de connexion.
-  if (await getSession()) redirect('/dashboard')
+  if (await getSession()) redirect('/admin')
 
   // Le raccourci local n'est même pas rendu en production ; la garde qui compte
   // reste celle de la Server Action.

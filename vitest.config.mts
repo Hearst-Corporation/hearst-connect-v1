@@ -8,7 +8,14 @@ import { defineConfig } from 'vitest/config'
  */
 export default defineConfig({
   resolve: {
-    alias: { '@': resolve(import.meta.dirname, './src') },
+    alias: {
+      '@': resolve(import.meta.dirname, './src'),
+      // `server-only` lève à l'import hors serveur — c'est sa raison d'être, et
+      // la preuve que la garde tient. Sous vitest, on pointe vers sa variante
+      // serveur : les modules serveur restent testables sans que la protection
+      // soit affaiblie dans le bundle applicatif.
+      'server-only': resolve(import.meta.dirname, './node_modules/server-only/empty.js'),
+    },
   },
   esbuild: {
     jsx: 'automatic',

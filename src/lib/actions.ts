@@ -31,7 +31,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
   }
 
   await startSession(result.user)
-  redirect('/dashboard')
+  redirect('/admin')
 }
 
 /** Server Action de déconnexion. */
@@ -54,9 +54,10 @@ export async function devLogin(): Promise<void> {
   }
 
   await startSession({
+    userId: (process.env.ADRIEN_OWNER_ID || 'owner-adrien').trim(),
     email: (process.env.ADRIEN_OWNER_EMAIL || 'adrien@hearstcorporation.io').trim().toLowerCase(),
     name: 'Adrien',
     role: 'OWNER',
   })
-  redirect('/dashboard')
+  redirect('/admin')
 }
