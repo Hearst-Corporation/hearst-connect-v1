@@ -59,9 +59,9 @@ function ListeLiens({ items }: Readonly<{ items: readonly { href: string; libell
           >
             <span className="min-w-0">
               <span className="block truncate text-sm text-zinc-200">{s.libelle}</span>
-              <span className="block truncate text-xs text-zinc-500">{s.aide}</span>
+              <span className="block truncate text-xs text-zinc-400">{s.aide}</span>
             </span>
-            <span aria-hidden="true" className="shrink-0 text-zinc-600">
+            <span aria-hidden="true" className="shrink-0 text-zinc-400">
               →
             </span>
           </Link>
@@ -86,11 +86,11 @@ export default async function Page() {
           <CardHeader title="Équipe" hint="Qui accède à cette console" />
           <div className="px-5 py-4">
             <p className="text-sm text-white">{session.name}</p>
-            <p className="text-xs text-zinc-500">{session.email}</p>
+            <p className="text-xs text-zinc-400">{session.email}</p>
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-accent-400/10 px-2 py-0.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30 ring-inset">
               Propriétaire
             </p>
-            <p className="mt-4 text-xs text-zinc-500">
+            <p className="mt-4 text-xs text-zinc-400">
               Un seul compte propriétaire est déclaré aujourd’hui. L’ajout de membres, les rôles distincts et les
               délégations attendent leur source.
             </p>
