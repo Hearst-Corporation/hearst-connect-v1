@@ -4,17 +4,53 @@
   "branch": "feat/hc-admin-001-backend-admin-layout",
   "capturedAt": "2026-07-27",
   "backend": {
-    "url": "https://connect-api.hearst.app",
+    "url": "https://hearst-connect-backend-production.up.railway.app",
     "publicProbes": "réponses réelles (HTTP 200)",
-    "authenticatedRoutes": "SESSION_SIGNING_KEY absente en local — état « non configuré » authentique, non simulé"
+    "authenticatedRoutes": "bridge vérifié : jeton Bearer accepté, HTTP 200 sur /api/v1/dashboard"
   },
   "consoleErrors": 0,
   "screenshots": [
-    { "file": "desktop-1440x900.png", "viewport": "1440x900", "route": "/admin", "shows": "Overview, registre 26 endpoints, sondes publiques live" },
-    { "file": "laptop-1280x800.png", "viewport": "1280x800", "route": "/admin/api-explorer", "shows": "registre complet par catégorie" },
-    { "file": "mobile-375x812.png", "viewport": "375x812", "route": "/admin", "shows": "navigation fermée" },
-    { "file": "mobile-drawer-375x812.png", "viewport": "375x812", "route": "/admin", "shows": "tiroir de navigation ouvert" },
-    { "file": "vault-not-configured-1440x900.png", "viewport": "1440x900", "route": "/admin/vault", "shows": "état de contrat honnête" },
-    { "file": "keeper-disabled-1440x900.png", "viewport": "1440x900", "route": "/admin/keeper", "shows": "keeper fail-closed" }
+    {
+      "file": "desktop-1440x900.png",
+      "viewport": "1440x900",
+      "route": "/admin",
+      "shows": "Overview, registre 26 endpoints, sondes publiques live"
+    },
+    {
+      "file": "dashboard-authenticated-1440x900.png",
+      "viewport": "1440x900",
+      "route": "/admin/dashboard",
+      "shows": "bridge authentifié fonctionnel — enveloppe backend, statut NOT_CONFIGURED d'origine backend"
+    },
+    {
+      "file": "laptop-1280x800.png",
+      "viewport": "1280x800",
+      "route": "/admin/api-explorer",
+      "shows": "registre complet par catégorie"
+    },
+    {
+      "file": "mobile-375x812.png",
+      "viewport": "375x812",
+      "route": "/admin",
+      "shows": "navigation fermée"
+    },
+    {
+      "file": "mobile-drawer-375x812.png",
+      "viewport": "375x812",
+      "route": "/admin",
+      "shows": "tiroir de navigation ouvert"
+    },
+    {
+      "file": "vault-not-configured-1440x900.png",
+      "viewport": "1440x900",
+      "route": "/admin/vault",
+      "shows": "état de contrat honnête"
+    },
+    {
+      "file": "keeper-disabled-1440x900.png",
+      "viewport": "1440x900",
+      "route": "/admin/keeper",
+      "shows": "keeper fail-closed"
+    }
   ]
 }
