@@ -62,6 +62,26 @@ function JournalVide({ motif }: Readonly<{ motif: string | undefined }>) {
   )
 }
 
+function CorpsJournal({
+  reponseOk,
+  mouvements,
+  motif,
+}: Readonly<{ reponseOk: boolean; mouvements: readonly Mouvement[] | null | undefined; motif: string | undefined }>) {
+  if (!reponseOk) {
+    return (
+      <SourceAttendue
+        quoi="Le journal des mouvements n’a pas pu être lu"
+        detail="Le service n’a pas répondu à la demande. Aucun mouvement n’est supposé : une liste vide se lirait à tort comme « il ne s’est rien passé »."
+        requis={['Une réponse du service']}
+      />
+    )
+  }
+  if (mouvements === null || mouvements === undefined || mouvements.length === 0) {
+    return <JournalVide motif={motif} />
+  }
+  return <JournalSerie1 mouvements={mouvements} />
+}
+
 export default async function Page() {
   const reponse = await callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } })
   const bloc = reponse.ok ? reponse.data.events : undefined
@@ -75,17 +95,7 @@ export default async function Page() {
         endpointIds={['series1-events']}
       />
 
-      {!reponse.ok ? (
-        <SourceAttendue
-          quoi="Le journal des mouvements n’a pas pu être lu"
-          detail="Le service n’a pas répondu à la demande. Aucun mouvement n’est supposé : une liste vide se lirait à tort comme « il ne s’est rien passé »."
-          requis={['Une réponse du service']}
-        />
-      ) : (
-        mouvements === null || mouvements === undefined || mouvements.length === 0
-          ? <JournalVide motif={motifLisible(bloc?.reason)} />
-          : <JournalSerie1 mouvements={mouvements} />
-      )}
+      <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
 
       {/* Le sous-sol : la réponse détaillée reste consultable pour qui veut
           vérifier un champ, jamais imposée à qui vient lire le journal. */}
