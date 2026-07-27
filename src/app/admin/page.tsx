@@ -2,6 +2,7 @@ import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge } from '@/components/admin/truthful'
 import { BACKEND_ENDPOINTS } from '@/lib/backend/endpoints'
+import { announceConfigurationOnce, checkConfiguration } from '@/lib/env'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -26,8 +27,13 @@ function registryCounts() {
 
 export default function AdminOverviewPage() {
   const counts = registryCounts()
-  const configured = Boolean(process.env.CONNECT_BACKEND_URL?.trim())
-  const signingConfigured = Boolean(process.env.SESSION_SIGNING_KEY?.trim())
+
+  // Validation au démarrage : signale une seule fois les variables manquantes,
+  // par leur NOM. Aucune valeur n'est journalisée.
+  announceConfigurationOnce()
+  const config = checkConfiguration()
+  const configured = config.publicReady
+  const signingConfigured = config.authenticatedReady
 
   return (
     <div className="space-y-6">
@@ -51,7 +57,7 @@ export default function AdminOverviewPage() {
             <StatusBadge status={configured ? 'LIVE' : 'NOT_CONFIGURED'} />
           </div>
           <p className="mt-2 font-mono text-xs break-all text-zinc-500">
-            {configured ? 'CONNECT_BACKEND_URL défini' : 'CONNECT_BACKEND_URL absent'}
+            {configured ? 'HEARST_API_URL défini' : 'HEARST_API_URL absent'}
           </p>
         </div>
         <div className="rounded-xl border border-white/10 bg-cockpit-card p-4">
@@ -75,6 +81,24 @@ export default function AdminOverviewPage() {
             Ouvrir l’API Explorer →
           </Link>
         </div>
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-cockpit-card p-5">
+        <h2 className="text-sm font-semibold text-white">Configuration serveur</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Noms et états uniquement — aucune valeur de secret n’est lue, affichée ni journalisée.
+        </p>
+        <dl className="mt-4 divide-y divide-white/5">
+          {config.report.map((entry) => (
+            <div key={entry.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
+              <dt className="font-mono text-xs text-zinc-300">{entry.name}</dt>
+              <dd>
+                <StatusBadge status={entry.status === 'ok' ? 'LIVE' : 'NOT_CONFIGURED'} />
+              </dd>
+              <dd className="text-xs text-zinc-500">{entry.detail ?? entry.purpose}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">

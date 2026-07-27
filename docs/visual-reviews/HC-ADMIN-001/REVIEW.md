@@ -1,7 +1,7 @@
 # HC-ADMIN-001 — revue visuelle
 
 Captures prises sur `pnpm dev`, branche `feat/hc-admin-001-backend-admin-layout`,
-contre le backend de production `https://connect-api.hearst.app`.
+contre le backend canonique `https://hearst-connect-backend-production.up.railway.app`.
 **Console navigateur vierge sur les six captures.**
 
 ## Ce qui est authentique
@@ -11,10 +11,14 @@ réellement : HTTP 200, `X-Request-Id` et `X-RateLimit-Remaining` visibles dans
 la trace d'appel de chaque section. Aucune donnée n'a été fabriquée pour ces
 captures, et aucun serveur de test n'a été utilisé.
 
-Les routes authentifiées affichent « non configuré » parce que
-`SESSION_SIGNING_KEY` — secret du backend — n'est pas disponible sur ce poste.
-Cet état est le comportement correct du contrat, pas un placeholder : le
-frontend refuse d'inventer une donnée qu'il ne peut pas obtenir.
+**Le bridge authentifié est vérifié.** `SESSION_SIGNING_KEY` a été alignée sur
+la valeur du service Railway `hearst-connect-backend` : le backend accepte le
+jeton Bearer et répond HTTP 200 sur `/api/v1/dashboard`
+(`dashboard-authenticated-1440x900.png`, trace `req 294bde13… · quota 118`).
+
+Le « Non configuré » qui s'affiche alors n'est plus une absence de clé côté
+frontend : c'est le `meta.status` calculé par le backend lui-même, avec sa
+raison `see per-field reason in data`, transmis sans requalification.
 
 ## Captures
 
@@ -29,8 +33,8 @@ frontend refuse d'inventer une donnée qu'il ne peut pas obtenir.
 
 ## Limites assumées
 
-Les états `LIVE` sur données métier ne sont pas capturés : ils exigent
-`SESSION_SIGNING_KEY` et un compte backend réel. Les produire aurait demandé un
-serveur de simulation — la mission l'autorise pour les tests, mais interdit de
-présenter sa sortie comme une preuve de backend live. Nous avons préféré ne pas
-en produire plutôt que d'en produire une ambiguë.
+Aucun état `LIVE` sur données métier n'est capturé — non par défaut de
+configuration, mais parce que le backend lui-même renvoie aujourd'hui
+`NOT_CONFIGURED` sur l'agrégat investisseur (contrat non déployé, indexeur
+absent). Le frontend le rend tel quel. Ces captures montreront `LIVE` dès que le
+backend le renverra, sans aucune modification du frontend.
