@@ -50,3 +50,40 @@ export async function logout(): Promise<void> {
   await endSession()
   redirect('/login')
 }
+
+/**
+ * Connexion rapide owner — DEV LOCAL UNIQUEMENT.
+ *
+ * Rejoue le même flux que `login` (authentification réelle contre le
+ * backend), mais avec des identifiants lus depuis l'environnement serveur :
+ * aucun secret ne transite par le client, contrairement à un formulaire
+ * pré-rempli. Refuse systématiquement en production.
+ *
+ * Volontairement DEV_QUICK_LOGIN_* et non ADRIEN_OWNER_* : le mot de passe
+ * owner réel ne doit jamais être comparé dans ce dépôt (garde-fou vérifié par
+ * tests/auth-doctrine.test.ts). Ce raccourci exige donc son propre couple
+ * dédié au dev local, distinct du compte owner réel.
+ */
+export async function quickLoginOwner(_prevState: LoginState): Promise<LoginState> {
+  if (process.env.NODE_ENV === 'production') {
+    return { error: loginErrorMessage('missing_fields') }
+  }
+
+  const email = process.env.DEV_QUICK_LOGIN_EMAIL
+  const password = process.env.DEV_QUICK_LOGIN_PASSWORD
+  if (!email || !password) {
+    return { error: 'DEV_QUICK_LOGIN_EMAIL / DEV_QUICK_LOGIN_PASSWORD absents de .env.local.' }
+  }
+
+  const result = await authenticate(email, password)
+  if (!result.ok) {
+    return { error: result.error }
+  }
+
+  const started = await startSession(result.session)
+  if (!started) {
+    return { error: loginErrorMessage('malformed_response') }
+  }
+
+  redirect('/admin')
+}

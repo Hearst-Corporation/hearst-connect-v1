@@ -6,7 +6,7 @@ import { Heading } from '@/components/catalyst/heading'
 import { Input } from '@/components/catalyst/input'
 import { Strong, Text, TextLink } from '@/components/catalyst/text'
 import { Logo } from '@/components/logo'
-import { login, type LoginState } from '@/lib/actions'
+import { login, quickLoginOwner, type LoginState } from '@/lib/actions'
 import { useActionState } from 'react'
 
 const initialState: LoginState = { error: null }
@@ -21,17 +21,20 @@ const initialState: LoginState = { error: null }
 export function LoginForm({
   notice = null,
   loginReady = true,
-}: Readonly<{ notice?: string | null; loginReady?: boolean }>) {
+  devQuickLoginAvailable = false,
+}: Readonly<{ notice?: string | null; loginReady?: boolean; devQuickLoginAvailable?: boolean }>) {
   const [state, formAction, pending] = useActionState(login, initialState)
+  const [quickState, quickAction, quickPending] = useActionState(quickLoginOwner, initialState)
 
   return (
-    <form action={formAction} className="grid w-full max-w-sm grid-cols-1 gap-8">
+    <div className="grid w-full max-w-sm grid-cols-1 gap-8">
       <Logo className="text-zinc-950 dark:text-white" />
       <div>
         <Heading>Connexion à votre espace</Heading>
         <Text className="mt-2">Utilisez l’adresse professionnelle rattachée à votre organisation.</Text>
       </div>
 
+      <form action={formAction} className="grid grid-cols-1 gap-8">
       {notice ? (
         <output className="block rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/20">
           {notice}
@@ -81,6 +84,20 @@ export function LoginForm({
           <Strong>Demander une invitation</Strong>
         </TextLink>
       </Text>
-    </form>
+      </form>
+
+      {devQuickLoginAvailable ? (
+        <form action={quickAction} className="border-t border-zinc-950/10 pt-6 dark:border-white/10">
+          <Button type="submit" outline className="w-full" disabled={quickPending}>
+            {quickPending ? 'Connexion…' : 'Connexion rapide owner (dev local)'}
+          </Button>
+          {quickState.error ? (
+            <ErrorMessage role="alert" className="mt-2">
+              {quickState.error}
+            </ErrorMessage>
+          ) : null}
+        </form>
+      ) : null}
+    </div>
   )
 }
