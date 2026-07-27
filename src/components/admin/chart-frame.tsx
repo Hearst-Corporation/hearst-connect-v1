@@ -28,8 +28,8 @@ export type EtatSerie =
   | { readonly type: 'indisponible'; readonly explication: string }
 
 const TON_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
-  vide: 'text-zinc-500',
-  attendue: 'text-zinc-500',
+  vide: 'text-zinc-400',
+  attendue: 'text-zinc-400',
   indisponible: 'text-danger-400',
 }
 
@@ -75,7 +75,7 @@ export function ChartFrame({
             <div className="h-px w-full bg-hairline" />
           </div>
           <p className={clsx('text-sm font-medium', TON_ETAT[etat.type])}>{LIBELLE_ETAT[etat.type]}</p>
-          <p className="max-w-sm text-xs text-zinc-500">{etat.explication}</p>
+          <p className="max-w-sm text-xs text-zinc-400">{etat.explication}</p>
         </div>
       )}
     </Card>

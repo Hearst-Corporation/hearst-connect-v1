@@ -11,6 +11,7 @@ import {
 } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { callBackend } from '@/lib/backend/client'
+import { ilYA, montantUsdc, motifLisible, phraseMouvement } from '@/lib/mouvements'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Accueil' }
@@ -31,8 +32,12 @@ export const dynamic = 'force-dynamic'
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
 type Dashboard = {
-  readonly capacity?: Resolu<{ tvlCap: string; totalAssets: string; utilizationBps: number | null }>
-  readonly reserve?: Resolu<{ reserveUsdc: string; electricityCoveredMonths: number | null }>
+  readonly capacity?: Resolu<{
+    tvlCap: string
+    totalAssets: string
+    availableCapacity: string
+    utilizationBps: number | null
+  }>
   readonly performance?: Resolu<{ navPerShare: string | null; totalReturnBps: number | null }>
   readonly strategies?: Resolu<readonly { pocket: string; targetBps: number; actualBps: number | null }[]>
 }
@@ -46,69 +51,14 @@ type Mouvement = {
 
 type Evenements = { readonly events?: Resolu<readonly Mouvement[]> }
 
-const LIBELLE: Record<string, string> = {
-  Deposit: 'Un dépôt a été enregistré',
-  Redeem: 'Un rachat a été enregistré',
-  StrategyAdded: 'Une stratégie a été ajoutée au portefeuille',
-  StrategyRemoved: 'Une stratégie a été retirée du portefeuille',
-  Rebalance: 'Le portefeuille a été rééquilibré',
-  VaultSwapped: 'Un échange a été réalisé dans le portefeuille',
-  ElecPayeeUpdated: 'Le bénéficiaire de l’électricité a été modifié',
-  MonthlyElecCostUpdated: 'Le coût mensuel d’électricité a été mis à jour',
-  MiningMetricsReported: 'Un relevé de minage a été transmis',
-  ElectricityPaid: 'L’électricité a été réglée',
-}
-
-/** USDC à six décimales. Une absence rend un tiret — jamais un zéro. */
-function usdc(atomique: string | null | undefined, decimales = 0): string {
-  if (atomique === null || atomique === undefined || atomique === '') return '—'
-  const brut = Number(atomique)
-  if (!Number.isFinite(brut)) return '—'
-  return `${(brut / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
-}
-
 function pourcentage(bps: number | null | undefined): string {
   if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
   return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
 }
 
-function ilYA(iso: string | null): string {
-  if (iso === null) return ''
-  const t = Date.parse(iso)
-  if (Number.isNaN(t)) return ''
-  const minutes = Math.round((Date.now() - t) / 60000)
-  if (minutes < 60) return `il y a ${minutes} min`
-  const heures = Math.round(minutes / 60)
-  if (heures < 24) return `il y a ${heures} h`
-  return `il y a ${Math.round(heures / 24)} j`
-}
-
 const estResolu = (v: unknown): v is Resolu<unknown> =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
-/**
- * Les motifs machine du service, dits en français.
- *
- * Un code comme `no_investor_record` est parfaitement clair pour qui a écrit
- * le backend, et parfaitement opaque pour l'équipe qui lit cet écran. Un motif
- * inconnu n'est pas affiché brut : mieux vaut ne rien dire que de laisser
- * fuir du vocabulaire technique dans une console métier.
- */
-const MOTIF_LISIBLE: Record<string, string> = {
-  no_investor_record: 'aucun dossier investisseur n’est rattaché à ce compte',
-  engine_not_initialised: 'le moteur de minage n’a pas encore été initialisé',
-  dynavault_not_deployed: 'cette fonctionnalité n’est pas encore ouverte',
-  no_events_indexed: 'aucun mouvement n’a encore été relevé',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
-  not_available: 'la donnée n’est pas disponible',
-}
-
-function motifLisible(motif: string | null | undefined): string | undefined {
-  if (typeof motif !== 'string' || motif === '') return undefined
-  const traduit = MOTIF_LISIBLE[motif]
-  return traduit === undefined ? undefined : traduit
-}
 
 export default async function Page() {
   const [dashboard, evenements, disponibilite] = await Promise.all([
@@ -128,7 +78,6 @@ export default async function Page() {
   const motif = incompletes.map((s) => motifLisible(s.reason)).find((m) => m !== undefined)
 
   const capacite = d?.capacity?.value
-  const reserve = d?.reserve?.value
   const perf = d?.performance?.value
 
   const strategies = d?.strategies?.value
@@ -206,7 +155,7 @@ export default async function Page() {
         ) : (
           <Card className="p-6">
             <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-              <HeroFigure valeur={usdc(capacite?.totalAssets)} libelle="Encours du portefeuille" unite="USDC" />
+              <HeroFigure valeur={montantUsdc(capacite?.totalAssets, 0)} libelle="Encours du portefeuille" unite="USDC" />
               <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
                 <SideFact libelle="Plafond utilisé" valeur={pourcentage(capacite?.utilizationBps)} />
                 <SideFact
@@ -214,14 +163,21 @@ export default async function Page() {
                   valeur={perf?.navPerShare === null || perf?.navPerShare === undefined ? '—' : perf.navPerShare}
                 />
                 <SideFact libelle="Rendement depuis l’origine" valeur={pourcentage(perf?.totalReturnBps)} />
-                <SideFact
-                  libelle="Électricité couverte"
-                  valeur={
-                    reserve?.electricityCoveredMonths === null || reserve?.electricityCoveredMonths === undefined
-                      ? '—'
-                      : `${reserve.electricityCoveredMonths} mois`
-                  }
-                />
+                {/*
+                 * « Mois d'électricité couverts » a été RETIRÉ d'ici.
+                 *
+                 * Le service calcule cette durée en divisant `reserve.reserveUsdc`
+                 * par la facture mensuelle. Or ce champ vaut exactement
+                 * `capacity.totalAssets` — vérifié en production, au centime près.
+                 * Ce n'est donc pas une trésorerie dédiée à l'électricité : c'est
+                 * l'encours entier du fonds, argent des investisseurs compris.
+                 *
+                 * Le nombre était juste arithmétiquement et faux sémantiquement :
+                 * il laissait croire à une réserve d'exploitation qui n'existe pas.
+                 * Un chiffre exact qui affirme une chose fausse est plus dangereux
+                 * qu'une case vide, parce qu'on le cite en réunion.
+                 */}
+                <SideFact libelle="Capacité restante" valeur={montantUsdc(capacite?.availableCapacity, 0)} />
               </dl>
             </div>
           </Card>
@@ -251,11 +207,11 @@ export default async function Page() {
             <ul className="divide-y divide-white/[0.07]">
               {mouvements.map((m) => (
                 <li key={m.id} className="flex flex-wrap items-baseline gap-x-2 px-5 py-3 text-sm">
-                  <span className="text-zinc-200">{LIBELLE[m.eventName] ?? m.eventName}</span>
+                  <span className="text-zinc-200">{phraseMouvement(m.eventName)}</span>
                   {m.assetAmountAtomic !== null ? (
-                    <span className="font-semibold text-accent-300 tabular-nums">{usdc(m.assetAmountAtomic, 2)}</span>
+                    <span className="font-semibold text-accent-300 tabular-nums">{montantUsdc(m.assetAmountAtomic, 2)}</span>
                   ) : null}
-                  <span className="ml-auto text-xs text-zinc-500">{ilYA(m.occurredAt)}</span>
+                  <span className="ml-auto text-xs text-zinc-400">{ilYA(m.occurredAt)}</span>
                 </li>
               ))}
             </ul>
@@ -264,7 +220,7 @@ export default async function Page() {
       </section>
 
       {/* ── E. État du service ──────────────────────────────────────────── */}
-      <p className="flex items-center gap-2 text-xs text-zinc-500">
+      <p className="flex items-center gap-2 text-xs text-zinc-400">
         <span
           aria-hidden="true"
           className={`size-1.5 rounded-full ${serviceIndisponible ? 'bg-danger-500' : 'bg-success-500'}`}

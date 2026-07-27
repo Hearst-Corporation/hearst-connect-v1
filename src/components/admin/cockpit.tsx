@@ -37,7 +37,7 @@ export function CardHeader({
     <div className="flex items-start justify-between gap-4 border-b border-white/[0.07] px-5 py-4">
       <div className="min-w-0">
         <h2 className="text-sm font-semibold text-white">{title}</h2>
-        {hint ? <p className="mt-0.5 text-xs text-zinc-500">{hint}</p> : null}
+        {hint ? <p className="mt-0.5 text-xs text-zinc-400">{hint}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -103,13 +103,13 @@ export function VerdictCard({
 
       <p className="mt-4 flex items-baseline gap-2">
         <span className="text-4xl font-semibold tracking-tight text-white tabular-nums">{compte}</span>
-        {unite ? <span className="text-sm text-zinc-500">{unite}</span> : null}
+        {unite ? <span className="text-sm text-zinc-400">{unite}</span> : null}
       </p>
-      {contexte ? <p className="mt-1 text-xs text-zinc-500">{contexte}</p> : null}
+      {contexte ? <p className="mt-1 text-xs text-zinc-400">{contexte}</p> : null}
 
       {casUrgent ? (
         <p className="mt-4 border-t border-white/[0.07] pt-3 text-sm text-zinc-300">
-          <span className="block text-xs text-zinc-500">Le plus urgent</span>
+          <span className="block text-xs text-zinc-400">Le plus urgent</span>
           {casUrgent}
         </p>
       ) : null}
@@ -157,10 +157,10 @@ export function HeroFigure({
 }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
   return (
     <div>
-      <p className="text-xs tracking-wide text-zinc-500 uppercase">{libelle}</p>
+      <p className="text-xs tracking-wide text-zinc-400 uppercase">{libelle}</p>
       <p className="mt-1.5 flex items-baseline gap-2">
         <span className="text-4xl font-semibold tracking-tight text-white tabular-nums sm:text-5xl">{valeur}</span>
-        {unite ? <span className="text-base text-zinc-500">{unite}</span> : null}
+        {unite ? <span className="text-base text-zinc-400">{unite}</span> : null}
       </p>
     </div>
   )
@@ -170,7 +170,7 @@ export function HeroFigure({
 export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
   return (
     <div className="min-w-0">
-      <p className="truncate text-xs text-zinc-500">{libelle}</p>
+      <p className="truncate text-xs text-zinc-400">{libelle}</p>
       <p className="mt-0.5 truncate text-sm text-zinc-200 tabular-nums">{valeur}</p>
     </div>
   )
@@ -197,11 +197,11 @@ export function SourceAttendue({
       <p className="text-sm font-semibold text-white">{quoi}</p>
       <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">{detail}</p>
       <div className="mx-auto mt-6 max-w-md rounded-lg bg-surface-sunken px-4 py-3 text-left">
-        <p className="text-xs tracking-wide text-zinc-500 uppercase">Ce qu’il manque</p>
+        <p className="text-xs tracking-wide text-zinc-400 uppercase">Ce qu’il manque</p>
         <ul className="mt-2 space-y-1">
           {requis.map((r) => (
             <li key={r} className="flex gap-2 text-sm text-zinc-300">
-              <span aria-hidden="true" className="text-zinc-600">
+              <span aria-hidden="true" className="text-zinc-400">
                 ·
               </span>
               {r}

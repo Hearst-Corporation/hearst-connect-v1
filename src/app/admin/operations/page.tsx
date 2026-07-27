@@ -2,6 +2,7 @@ import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge, UnavailableState } from '@/components/admin/truthful'
 import { callBackend } from '@/lib/backend/client'
+import { adresseCourte, dateLisible, libelleMouvement, montantUsdc } from '@/lib/mouvements'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Opérations' }
@@ -36,46 +37,6 @@ type ReponseEvenements = {
     readonly value: readonly MouvementIndexe[] | null
     readonly reason?: string | null
   }
-}
-
-/** Le vocabulaire de la chaîne traduit en français métier. */
-const LIBELLE_MOUVEMENT: Record<string, string> = {
-  Deposit: 'Dépôt',
-  Redeem: 'Rachat',
-  StrategyAdded: 'Stratégie ajoutée',
-  StrategyRemoved: 'Stratégie retirée',
-  Rebalance: 'Rééquilibrage',
-  VaultSwapped: 'Échange de portefeuille',
-  ElectricityPaid: 'Électricité réglée',
-  ElecPayeeUpdated: 'Bénéficiaire électricité modifié',
-  MonthlyElecCostUpdated: 'Coût mensuel d’électricité mis à jour',
-  MiningMetricsReported: 'Relevé de minage transmis',
-  CurtailmentTriggered: 'Bridage déclenché',
-  CurtailmentLifted: 'Bridage levé',
-  TakeProfitExecuted: 'Prise de bénéfice exécutée',
-  MonthlyEngineRun: 'Cycle mensuel exécuté',
-}
-
-const libelle = (nom: string): string => LIBELLE_MOUVEMENT[nom] ?? nom
-
-/** USDC à six décimales. Une valeur absente rend un tiret, jamais un zéro. */
-function montantUsdc(atomique: string | null): string {
-  if (atomique === null || atomique === '') return '—'
-  const brut = Number(atomique)
-  if (!Number.isFinite(brut)) return '—'
-  return `${(brut / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $`
-}
-
-function dateLisible(iso: string | null): string {
-  if (iso === null) return 'date inconnue'
-  const t = Date.parse(iso)
-  if (Number.isNaN(t)) return 'date inconnue'
-  return new Date(t).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
-}
-
-function adresseCourte(adresse: string | null): string | null {
-  if (adresse === null || adresse.length < 12) return adresse
-  return `${adresse.slice(0, 6)}…${adresse.slice(-4)}`
 }
 
 export default async function Page() {
@@ -143,7 +104,7 @@ function RegistreMouvements({ bloc }: Readonly<{ bloc: ReponseEvenements['events
 
   const parType = new Map<string, number>()
   for (const m of mouvements) {
-    const nom = libelle(m.eventName)
+    const nom = libelleMouvement(m.eventName)
     const dejaVu = parType.get(nom)
     parType.set(nom, dejaVu === undefined ? 1 : dejaVu + 1)
   }
@@ -161,7 +122,7 @@ function RegistreMouvements({ bloc }: Readonly<{ bloc: ReponseEvenements['events
             <li key={nom}>
               <div className="flex items-baseline justify-between gap-3">
                 <span className="min-w-0 truncate text-xs text-zinc-300">{nom}</span>
-                <span className="shrink-0 text-xs text-zinc-500 tabular-nums">{nombre}</span>
+                <span className="shrink-0 text-xs text-zinc-400 tabular-nums">{nombre}</span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
                 <div
@@ -180,16 +141,16 @@ function RegistreMouvements({ bloc }: Readonly<{ bloc: ReponseEvenements['events
         <ul className="divide-y divide-white/[0.07]">
           {mouvements.map((m) => (
             <li key={m.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-              <span className="text-sm text-white">{libelle(m.eventName)}</span>
+              <span className="text-sm text-white">{libelleMouvement(m.eventName)}</span>
               {m.assetAmountAtomic !== null ? (
                 <span className="text-sm font-semibold text-accent-300 tabular-nums">
                   {montantUsdc(m.assetAmountAtomic)}
                 </span>
               ) : null}
               {adresseCourte(m.investorAddress) !== null ? (
-                <span className="font-mono text-xs text-zinc-500">{adresseCourte(m.investorAddress)}</span>
+                <span className="font-mono text-xs text-zinc-400">{adresseCourte(m.investorAddress)}</span>
               ) : null}
-              <span className="ml-auto text-xs text-zinc-500">{dateLisible(m.occurredAt)}</span>
+              <span className="ml-auto text-xs text-zinc-400">{dateLisible(m.occurredAt)}</span>
             </li>
           ))}
         </ul>

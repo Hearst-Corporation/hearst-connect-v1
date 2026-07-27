@@ -43,10 +43,10 @@ export default function Page() {
               <span
                 title={s.aide}
                 aria-disabled="true"
-                className="inline-flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-500"
+                className="inline-flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-400"
               >
                 {s.libelle}
-                <span className="text-xs text-zinc-600">—</span>
+                <span className="text-xs text-zinc-400">—</span>
               </span>
             </li>
           ))}

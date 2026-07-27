@@ -1,107 +1,204 @@
-import { EndpointSection } from '@/components/admin/endpoint-section'
+import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
+import { CapacityBar } from '@/components/admin/capacity-bar'
+import { ChartFrame } from '@/components/admin/chart-frame'
+import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { UnavailableState } from '@/components/admin/truthful'
 import { callBackend } from '@/lib/backend/client'
+import clsx from 'clsx'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Vault' }
+export const metadata: Metadata = { title: 'Portefeuille' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Extrait les index de stratégie RÉELLEMENT présents dans la réponse backend.
+ * Portefeuille — combien, jusqu'où, et réparti comment.
  *
- * Aucun index n'est fabriqué : si la forme de la réponse ne porte pas d'index
- * exploitable, le sélecteur ne s'affiche pas. Mieux vaut pas de sélecteur qu'un
- * sélecteur qui propose des index inexistants.
+ * L'ancienne page alignait trois réponses brutes de routes. Celle-ci pose
+ * trois questions : quel encours, quelle marge avant le plafond, et l'argent
+ * est-il placé conformément aux cibles du contrat.
+ *
+ * L'écart entre cible et réel est la seule colonne qui déclenche une action.
+ * Elle est donc traitée comme telle : signée, colorée par ampleur, et nommée
+ * en points d'écart plutôt qu'en points de base — personne ne lit « 315 »
+ * comme « trois points d'écart ».
  */
-function extractIndexes(data: unknown): number[] {
-  const list = Array.isArray(data)
-    ? data
-    : typeof data === 'object' && data !== null && Array.isArray((data as { strategies?: unknown[] }).strategies)
-      ? (data as { strategies: unknown[] }).strategies
-      : []
 
-  return list
-    .map((entry, position) => {
-      if (typeof entry === 'object' && entry !== null && 'index' in entry) {
-        const raw = (entry as { index: unknown }).index
-        if (typeof raw === 'number' && Number.isInteger(raw)) return raw
-        if (typeof raw === 'string' && /^\d+$/.test(raw)) return Number.parseInt(raw, 10)
-      }
-      return Array.isArray(data) ? position : null
-    })
-    .filter((value): value is number => value !== null)
+type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+
+type Vault = {
+  readonly snapshot?: Resolu<{ asset: string; totalAssets: string; totalShares: string; navPerShare: string }>
+  readonly capacity?: Resolu<{
+    tvlCap: string
+    totalAssets: string
+    availableCapacity: string
+    utilizationBps: number | null
+  }>
 }
 
-export default async function VaultPage({
-  searchParams,
-}: Readonly<{ searchParams: Promise<{ strategy?: string }> }>) {
-  const params = await searchParams
-  const strategies = await callBackend('vault-strategies')
-  const indexes = strategies.ok ? extractIndexes(strategies.data) : []
+type Strategie = {
+  readonly pocket: string
+  readonly label: string
+  readonly targetBps: number
+  readonly actualBps: number | null
+  readonly driftBps: number | null
+  readonly isIdle: boolean
+}
 
-  const requested = params.strategy ? Number.parseInt(params.strategy, 10) : null
-  const selected = requested !== null && indexes.includes(requested) ? requested : (indexes[0] ?? null)
+type Strategies = { readonly strategies?: Resolu<readonly Strategie[]> }
+
+function usdc(atomique: string | null | undefined, decimales = 0): string {
+  if (atomique === null || atomique === undefined || atomique === '') return '—'
+  const n = Number(atomique)
+  if (!Number.isFinite(n)) return '—'
+  return `${(n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
+}
+
+/** Un écart se lit signé, et son ampleur décide de sa couleur. */
+function ecartLisible(driftBps: number | null): { texte: string; ton: string } {
+  if (driftBps === null || !Number.isFinite(driftBps)) return { texte: '—', ton: 'text-zinc-400' }
+  const pts = driftBps / 100
+  const ampleur = Math.abs(pts)
+  const ton = ampleur >= 5 ? 'text-warning-400' : ampleur >= 1 ? 'text-zinc-300' : 'text-success-400'
+  const signe = pts > 0 ? '+' : ''
+  return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
+}
+
+export default async function Page() {
+  const [vault, strategies] = await Promise.all([
+    callBackend<Vault>('vault'),
+    callBackend<Strategies>('vault-strategies'),
+  ])
+
+  const v = vault.ok ? vault.data : null
+  const snap = v?.snapshot?.value
+  const cap = v?.capacity?.value
+
+  const liste = strategies.ok ? strategies.data.strategies?.value : null
+  const actives = liste === null || liste === undefined ? [] : liste.filter((s) => !s.isIdle)
+
+  const poches: PocheAllocation[] = actives.map((s) => ({
+    poche: s.pocket,
+    cible: s.targetBps / 100,
+    reel: s.actualBps === null ? null : s.actualBps / 100,
+  }))
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Vault"
-        description="État du vault, stratégies, RWA vault et rééquilibrage. Le détail de stratégie n’est interrogeable que sur les index réellement renvoyés par le backend."
-        endpointIds={['vault', 'vault-strategies', 'strategy-detail', 'rwa-vault', 'rebalancing-status']}
+        title="Portefeuille"
+        description="L’encours du fonds, la marge avant son plafond, et la conformité de sa répartition aux cibles du contrat."
+        endpointIds={['vault', 'vault-strategies']}
       />
 
-      <EndpointSection endpointId="vault" />
-      <EndpointSection endpointId="vault-strategies" />
-
-      <section className="rounded-xl border border-white/10 bg-cockpit-card p-5">
-        <h2 className="text-sm font-semibold text-white">Détail d’une stratégie</h2>
-        {indexes.length === 0 ? (
-          <div className="mt-4">
-            <UnavailableState
-              state={
-                strategies.ok
-                  ? {
-                      status: 'EMPTY',
-                      value: null,
-                      reason:
-                        "La réponse `vault/strategies` ne porte aucun index exploitable : aucun détail n'est proposé plutôt qu'un index inventé.",
-                      provenance: { route: '/api/v1/vault/strategies', field: null, fetchedAt: null, requestId: null },
+      {v === null ? (
+        <SourceAttendue
+          quoi="L’état du portefeuille n’a pas pu être lu"
+          detail="Le service n’a pas répondu. Aucune valeur n’est affichée plutôt qu’une valeur périmée."
+          requis={['Une réponse du service']}
+        />
+      ) : (
+        <>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card className="p-6 lg:col-span-2">
+              <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+                <HeroFigure
+                  valeur={usdc(snap?.totalAssets)}
+                  libelle="Encours du portefeuille"
+                  unite={snap?.asset === undefined || snap.asset === null ? undefined : snap.asset}
+                />
+                <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
+                  <SideFact
+                    libelle="Valeur d’une part"
+                    valeur={snap?.navPerShare === null || snap?.navPerShare === undefined ? '—' : snap.navPerShare}
+                  />
+                  <SideFact
+                    libelle="Parts émises"
+                    valeur={
+                      snap?.totalShares === null || snap?.totalShares === undefined
+                        ? '—'
+                        : Number(snap.totalShares).toLocaleString('fr-FR')
                     }
-                  : strategies.state
-              }
-            />
-          </div>
-        ) : (
-          <>
-            <nav className="mt-3 flex flex-wrap gap-2">
-              {indexes.map((index) => (
-                <Link
-                  key={index}
-                  href={`/admin/vault?strategy=${index}`}
-                  aria-current={index === selected ? 'page' : undefined}
-                  className={
-                    index === selected
-                      ? 'rounded border border-hearst-accent bg-hearst-accent/10 px-2.5 py-1 text-xs font-semibold text-hearst-accent'
-                      : 'rounded border border-white/10 px-2.5 py-1 text-xs text-zinc-400 hover:bg-white/5 hover:text-white'
-                  }
-                >
-                  #{index}
-                </Link>
-              ))}
-            </nav>
-            {selected !== null ? (
-              <div className="mt-4">
-                <EndpointSection endpointId="strategy-detail" params={{ index: selected }} title={`Stratégie #${selected}`} />
+                  />
+                </dl>
               </div>
-            ) : null}
-          </>
-        )}
-      </section>
+            </Card>
 
-      <EndpointSection endpointId="rwa-vault" />
-      <EndpointSection endpointId="rebalancing-status" />
+            <Card className="p-6">
+              <p className="text-xs tracking-wide text-zinc-400 uppercase">Plafond utilisé</p>
+              <div className="mt-3">
+                <CapacityBar
+                  utiliseBps={cap?.utilizationBps === undefined ? null : cap.utilizationBps}
+                  disponible={usdc(cap?.availableCapacity)}
+                  total={usdc(cap?.tvlCap)}
+                />
+              </div>
+            </Card>
+          </div>
+
+          <ChartFrame
+            question="L’argent est-il placé là où il devrait l’être ?"
+            unite="en pourcentage du portefeuille"
+            provenance="lu sur la chaîne"
+            etat={
+              poches.length > 0
+                ? { type: 'tracee' }
+                : { type: 'attendue', explication: 'Aucune stratégie active n’a pu être lue sur la chaîne.' }
+            }
+          >
+            <AllocationChart poches={poches} />
+          </ChartFrame>
+
+          {actives.length > 0 ? (
+            <Card>
+              <CardHeader
+                title="Quelles poches s’écartent de leur cible ?"
+                hint="Un écart positif signale une poche en avance sur sa cible"
+              />
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[34rem] text-sm">
+                  <thead>
+                    <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-400">
+                      <th scope="col" className="px-5 py-2.5 font-medium">
+                        Poche
+                      </th>
+                      <th scope="col" className="px-5 py-2.5 text-right font-medium">
+                        Visée
+                      </th>
+                      <th scope="col" className="px-5 py-2.5 text-right font-medium">
+                        Constatée
+                      </th>
+                      <th scope="col" className="px-5 py-2.5 text-right font-medium">
+                        Écart
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.07]">
+                    {actives.map((s) => {
+                      const ecart = ecartLisible(s.driftBps)
+                      return (
+                        <tr key={s.pocket}>
+                          <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
+                            {s.label}
+                          </th>
+                          <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">
+                            {(s.targetBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %
+                          </td>
+                          <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">
+                            {s.actualBps === null
+                              ? '—'
+                              : `${(s.actualBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`}
+                          </td>
+                          <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ) : null}
+        </>
+      )}
     </div>
   )
 }
