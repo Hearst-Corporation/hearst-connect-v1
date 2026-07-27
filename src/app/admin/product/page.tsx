@@ -96,9 +96,9 @@ function ecartLisible(cible: number | null, reel: number | null): { texte: strin
   if (cible === null || reel === null) return { texte: '—', ton: 'text-zinc-500' }
   const pts = (reel - cible) / 100
   const ampleur = Math.abs(pts)
-  let ton = 'text-success-400'
-  if (ampleur >= 5) ton = 'text-warning-400'
-  else if (ampleur >= 1) ton = 'text-zinc-300'
+  let ton = 'text-zinc-600'
+  if (ampleur >= 5) ton = 'text-zinc-950'
+  else if (ampleur >= 1) ton = 'text-zinc-800'
   const signe = pts > 0 ? '+' : ''
   return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
 }
@@ -108,7 +108,11 @@ function partLisible(bps: number | null | undefined): string {
   return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
 }
 
-function etatCourbe(points: readonly PointCourbe[], courbeParametree: boolean, vendingCurve: Resolu<unknown> | undefined): EtatSerie {
+function etatCourbe(
+  points: readonly PointCourbe[],
+  courbeParametree: boolean,
+  vendingCurve: Resolu<unknown> | undefined,
+): EtatSerie {
   if (points.length === 0) {
     return etatDe(vendingCurve, 'Les termes de rémunération ne sont pas encore transmis.')
   }
@@ -131,18 +135,14 @@ export default async function Page() {
   // plutôt que ramenée à zéro.
   const pochesBrutes = termes?.allocation?.pockets
   const poches = pochesBrutes ?? []
-  const lisibles = poches.filter((p) => p.targetBps !== null && p.targetBps !== undefined && Number.isFinite(p.targetBps))
+  const lisibles = poches.filter(
+    (p) => p.targetBps !== null && p.targetBps !== undefined && Number.isFinite(p.targetBps),
+  )
 
   const repartition: PocheAllocation[] = lisibles.map((p) => ({
-    poche:
-      p.label === null || p.label === undefined || p.label === ''
-        ? (p.pocket ?? 'Poche sans nom')
-        : p.label,
+    poche: p.label === null || p.label === undefined || p.label === '' ? (p.pocket ?? 'Poche sans nom') : p.label,
     cible: Number(p.targetBps) / 100,
-    reel:
-      p.actualBps === null || p.actualBps === undefined || !Number.isFinite(p.actualBps)
-        ? null
-        : p.actualBps / 100,
+    reel: p.actualBps === null || p.actualBps === undefined || !Number.isFinite(p.actualBps) ? null : p.actualBps / 100,
   }))
 
   // Courbe de rémunération. Cinq échéances réelles, tous les taux à zéro :
@@ -156,7 +156,7 @@ export default async function Page() {
   const courbeParametree = points.some((p) => p.taux !== 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Fiche produit"
         description="Les conditions auxquelles on souscrit : dépôt minimum, durée, plafond du fonds, rémunération attendue et répartition visée de l’argent."
@@ -172,12 +172,9 @@ export default async function Page() {
       ) : (
         <>
           {/* ── Les termes du produit ─────────────────────────────────────── */}
-          <Card className="p-6">
+          <Card className="p-6 sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-              <HeroFigure
-                valeur={usdc(termes?.minimumDepositUsdc)}
-                libelle="Dépôt minimum pour souscrire"
-              />
+              <HeroFigure valeur={usdc(termes?.minimumDepositUsdc)} libelle="Dépôt minimum pour souscrire" />
               <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
                 <SideFact libelle="Durée du produit" valeur={dureeLisible(termes?.productDurationMonths)} />
                 <SideFact libelle="Plafond du fonds" valeur={usdc(plafond)} />
@@ -218,7 +215,7 @@ export default async function Page() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-sm">
                   <thead>
-                    <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-500">
+                    <tr className="border-hairline border-b bg-zinc-50 text-left text-xs text-zinc-600">
                       <th scope="col" className="px-5 py-2.5 font-medium">
                         Poche
                       </th>
@@ -233,7 +230,7 @@ export default async function Page() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/[0.07]">
+                  <tbody className="divide-hairline divide-y">
                     {lisibles.map((p, index) => {
                       const cible = Number(p.targetBps)
                       const reel =
@@ -243,14 +240,14 @@ export default async function Page() {
                       const ecart = ecartLisible(cible, reel)
                       return (
                         <tr key={p.pocket ?? p.label ?? String(index)}>
-                          <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
+                          <th scope="row" className="px-5 py-4 text-left font-normal text-zinc-950">
                             {p.label === null || p.label === undefined || p.label === ''
                               ? (p.pocket ?? 'Poche sans nom')
                               : p.label}
                           </th>
-                          <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">{partLisible(cible)}</td>
-                          <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">{partLisible(reel)}</td>
-                          <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
+                          <td className="px-5 py-4 text-right text-zinc-600 tabular-nums">{partLisible(cible)}</td>
+                          <td className="px-5 py-4 text-right text-zinc-950 tabular-nums">{partLisible(reel)}</td>
+                          <td className={clsx('px-5 py-4 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
                         </tr>
                       )
                     })}

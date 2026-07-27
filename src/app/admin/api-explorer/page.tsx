@@ -1,3 +1,4 @@
+import { Card, CardHeader } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { BACKEND_ENDPOINTS, type EndpointCategory } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
@@ -26,7 +27,7 @@ export default function ApiExplorerPage() {
   const categories = Object.keys(CATEGORY_TITLES) as EndpointCategory[]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="API Explorer"
         description={`Registre complet des ${BACKEND_ENDPOINTS.length} endpoints du backend. Chaque lecture est appelable individuellement : aucun exemple statique n’est présenté comme une réponse exécutée.`}
@@ -35,11 +36,11 @@ export default function ApiExplorerPage() {
       {categories.map((category) => {
         const endpoints = BACKEND_ENDPOINTS.filter((endpoint) => endpoint.category === category)
         return (
-          <section key={category} className="rounded-xl border border-white/10 bg-cockpit-card">
-            <header className="flex items-baseline justify-between border-b border-white/10 px-4 py-3">
-              <h2 className="text-sm font-semibold text-white">{CATEGORY_TITLES[category]}</h2>
-              <span className="text-xs text-zinc-500">{endpoints.length}</span>
-            </header>
+          <Card key={category}>
+            <CardHeader
+              title={CATEGORY_TITLES[category]}
+              action={<span className="text-xs text-zinc-600">{endpoints.length} routes</span>}
+            />
             {endpoints.map((endpoint) => (
               <ExplorerRow
                 key={endpoint.id}
@@ -47,7 +48,7 @@ export default function ApiExplorerPage() {
                 curl={curlFor(endpoint.method, endpoint.path, endpoint.auth)}
               />
             ))}
-          </section>
+          </Card>
         )
       })}
     </div>

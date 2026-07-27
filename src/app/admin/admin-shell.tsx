@@ -1,24 +1,13 @@
 'use client'
 
-import { Mark } from '@/components/logo'
+import { Logo } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import type { SessionUser } from '@/lib/session'
-import { Dialog, DialogPanel } from '@headlessui/react'
-import {
-  ArrowRightStartOnRectangleIcon,
-  ArrowsRightLeftIcon,
-  Bars3Icon,
-  BuildingOffice2Icon,
-  Cog6ToothIcon,
-  HomeIcon,
-  MagnifyingGlassIcon,
-  ShieldCheckIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
+import { ArrowRightStartOnRectangleIcon, Bars3Icon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Coque de la console d'administration.
@@ -35,24 +24,32 @@ import { useState } from 'react'
  * latéral et `aria-current`, lisibles sans distinguer l'or.
  */
 
-type NavItem = { href: string; label: string; hint: string; icon: typeof HomeIcon }
+type NavItem = { href: string; label: string; index: string }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/admin', label: 'Accueil', hint: 'Ce qui vous attend', icon: HomeIcon },
-  { href: '/admin/clients', label: 'Clients', hint: 'Organisations et portefeuilles', icon: BuildingOffice2Icon },
-  { href: '/admin/conformite', label: 'Conformité', hint: 'Dossiers à instruire', icon: ShieldCheckIcon },
-  { href: '/admin/operations', label: 'Opérations', hint: 'Mouvements et validations', icon: ArrowsRightLeftIcon },
-  { href: '/admin/administration', label: 'Administration', hint: 'Équipe, traces, réglages', icon: Cog6ToothIcon },
+  { href: '/admin', label: 'Accueil', index: '01' },
+  { href: '/admin/clients', label: 'Clients', index: '02' },
+  { href: '/admin/conformite', label: 'Conformité', index: '03' },
+  { href: '/admin/operations', label: 'Opérations', index: '04' },
+  { href: '/admin/administration', label: 'Administration', index: '05' },
 ]
 
 function isActive(pathname: string, href: string): boolean {
   return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
 }
 
-function NavLinks({ pathname, onNavigate }: Readonly<{ pathname: string; onNavigate?: () => void }>) {
+function NavLinks({
+  pathname,
+  onNavigate,
+  mobile = false,
+}: Readonly<{ pathname: string; onNavigate?: () => void; mobile?: boolean }>) {
   return (
-    <nav aria-label="Sections" className="flex-1 px-3 py-4">
-      <ul className="space-y-1">
+    <nav aria-label="Sections principales">
+      <ul
+        className={clsx(
+          mobile ? 'border-y border-white/20 [&>li+li]:border-t [&>li+li]:border-white/20' : 'flex items-stretch',
+        )}
+      >
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href)
           return (
@@ -62,21 +59,25 @@ function NavLinks({ pathname, onNavigate }: Readonly<{ pathname: string; onNavig
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
                 className={clsx(
-                  'flex items-start gap-3 rounded-lg border-l-2 px-3 py-2.5 transition',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400',
+                  'group flex transition-colors duration-200',
+                  mobile
+                    ? 'items-baseline justify-between py-5 text-2xl'
+                    : 'text-label h-14 items-center gap-2 border-b-2 px-5',
                   active
-                    ? 'border-accent-400 bg-white/[0.06] text-white'
-                    : 'border-transparent text-zinc-400 hover:bg-white/[0.04] hover:text-white',
+                    ? 'border-accent-400 text-white'
+                    : 'border-transparent text-zinc-400 hover:border-white/40 hover:text-white',
                 )}
               >
-                <item.icon
-                  aria-hidden="true"
-                  className={clsx('mt-0.5 size-5 shrink-0', active ? 'text-accent-400' : 'text-zinc-500')}
-                />
-                <span className="min-w-0">
-                  <span className={clsx('block text-sm', active && 'font-semibold')}>{item.label}</span>
-                  <span className="block truncate text-xs text-zinc-500">{item.hint}</span>
+                <span
+                  className={clsx(
+                    'font-mono text-[0.625rem] tracking-[0.14em]',
+                    active ? 'text-accent-400' : 'text-zinc-500',
+                  )}
+                >
+                  {item.index}
                 </span>
+                <span>{item.label}</span>
+                {mobile ? <span aria-hidden="true">↗</span> : null}
               </Link>
             </li>
           )
@@ -97,17 +98,13 @@ function NavLinks({ pathname, onNavigate }: Readonly<{ pathname: string; onNavig
  */
 function GlobalSearch() {
   return (
-    <div className="px-3 pt-3">
-      <div
-        className="flex items-center gap-2 rounded-lg bg-surface-sunken px-3 py-2 text-sm ring-1 ring-white/10"
-        title="La recherche s’activera lorsque l’annuaire des organisations sera exposé."
-      >
-        <MagnifyingGlassIcon aria-hidden="true" className="size-4 shrink-0 text-zinc-600" />
-        <span className="truncate text-zinc-600">Rechercher une organisation</span>
-        <kbd className="ml-auto shrink-0 rounded border border-white/10 px-1.5 py-0.5 font-sans text-[10px] text-zinc-600">
-          ⌘K
-        </kbd>
-      </div>
+    <div
+      aria-label="Recherche globale indisponible"
+      className="text-metadata hidden min-w-64 items-center gap-2 border-b border-white/30 pb-2 text-zinc-400 xl:flex"
+      title="La recherche s’activera lorsque l’annuaire des organisations sera exposé."
+    >
+      <MagnifyingGlassIcon aria-hidden="true" className="size-4 shrink-0" />
+      <span className="truncate">Recherche indisponible — annuaire attendu</span>
     </div>
   )
 }
@@ -115,75 +112,114 @@ function GlobalSearch() {
 export function AdminShell({ user, children }: Readonly<{ user: SessionUser; children: React.ReactNode }>) {
   const pathname = usePathname()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
-  const sidebar = (
-    <>
-      <div className="flex items-center gap-2.5 px-5 py-4">
-        <Mark className="size-7" />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">Hearst Connect</p>
-          <p className="truncate text-xs text-zinc-500">Console d’administration</p>
-        </div>
-      </div>
-      <GlobalSearch />
-      <NavLinks pathname={pathname} onNavigate={() => setDrawerOpen(false)} />
-      <div className="border-t border-white/10 px-5 py-4">
-        <p className="truncate text-sm text-white">{user.name}</p>
-        <p className="truncate text-xs text-zinc-500">{user.email}</p>
-        <p className="mt-1 text-xs text-zinc-600">rôle {user.role}</p>
-        <form action={logout} className="mt-3">
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs text-zinc-400 ring-1 ring-white/10 hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-          >
-            <ArrowRightStartOnRectangleIcon aria-hidden="true" className="size-4" />
-            Se déconnecter
-          </button>
-        </form>
-      </div>
-    </>
-  )
+  useEffect(() => {
+    if (!drawerOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    closeButtonRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDrawerOpen(false)
+        menuButtonRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [drawerOpen])
 
   return (
-    <div className="min-h-dvh bg-surface-page text-zinc-200">
-      {/* Barre latérale — écrans larges */}
-      <div className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-white/10 bg-surface-panel lg:flex">
-        {sidebar}
-      </div>
+    <div className="bg-surface-page min-h-dvh text-zinc-950">
+      <a href="#contenu" className="bg-accent-400 fixed -top-16 left-2 z-60 px-4 py-2 text-sm text-black focus:top-2">
+        Aller au contenu
+      </a>
 
-      {/* Tiroir — mobile */}
-      <Dialog open={drawerOpen} onClose={setDrawerOpen} className="lg:hidden">
-        <div className="fixed inset-0 z-40 bg-black/70" aria-hidden="true" />
-        <DialogPanel className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-surface-panel">
+      <header className="sticky top-0 z-30 bg-black text-white">
+        <div className="mx-auto flex h-19 max-w-360 items-center justify-between gap-8 px-5 sm:px-8 lg:px-[4vw]">
+          <Link href="/admin" aria-label="Hearst Connect — Accueil">
+            <Logo />
+          </Link>
+          <GlobalSearch />
+          <div className="hidden items-center gap-5 lg:flex">
+            <div className="text-right">
+              <p className="text-label text-white">{user.name}</p>
+              <p className="text-metadata text-zinc-400">{user.email}</p>
+            </div>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="text-metadata hover:border-accent-400 inline-flex items-center gap-2 border-b border-white/40 pb-1 text-zinc-300 transition-colors hover:text-white"
+              >
+                <ArrowRightStartOnRectangleIcon aria-hidden="true" className="size-4" />
+                Déconnexion
+              </button>
+            </form>
+          </div>
           <button
-            type="button"
-            onClick={() => setDrawerOpen(false)}
-            className="absolute top-4 right-4 rounded-md p-1 text-zinc-400 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-          >
-            <span className="sr-only">Fermer la navigation</span>
-            <XMarkIcon aria-hidden="true" className="size-5" />
-          </button>
-          {sidebar}
-        </DialogPanel>
-      </Dialog>
-
-      <div className="lg:pl-64">
-        {/* Barre supérieure — mobile */}
-        <header className="flex items-center gap-3 border-b border-white/10 bg-surface-panel px-4 py-3 lg:hidden">
-          <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="rounded-md p-1.5 text-zinc-300 ring-1 ring-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+            className="p-2 text-white lg:hidden"
+            aria-expanded={drawerOpen}
           >
             <span className="sr-only">Ouvrir la navigation</span>
-            <Bars3Icon aria-hidden="true" className="size-5" />
+            <Bars3Icon aria-hidden="true" className="size-6" />
           </button>
-          <Mark className="size-6" />
-          <span className="text-sm font-semibold text-white">Hearst Connect</span>
-        </header>
+        </div>
+        <div className="hidden border-t border-white/15 lg:block">
+          <div className="mx-auto max-w-360 px-[4vw]">
+            <NavLinks pathname={pathname} />
+          </div>
+        </div>
+      </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">{children}</main>
-      </div>
+      {drawerOpen ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation principale"
+          className="fixed inset-0 z-50 flex flex-col bg-black px-5 py-5 text-white lg:hidden"
+        >
+          <div className="flex items-center justify-between">
+            <Logo />
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={() => {
+                setDrawerOpen(false)
+                menuButtonRef.current?.focus()
+              }}
+              className="p-2 text-white"
+            >
+              <span className="sr-only">Fermer la navigation</span>
+              <XMarkIcon aria-hidden="true" className="size-6" />
+            </button>
+          </div>
+          <div className="mt-16">
+            <NavLinks pathname={pathname} onNavigate={() => setDrawerOpen(false)} mobile />
+          </div>
+          <div className="mt-auto border-t border-white/20 pt-5">
+            <p className="text-label">{user.name}</p>
+            <p className="text-metadata mt-1 text-zinc-400">{user.email}</p>
+            <p className="text-metadata mt-1 text-zinc-500">Rôle : {user.role}</p>
+            <form action={logout} className="mt-6">
+              <button type="submit" className="text-label inline-flex items-center gap-2 border-b border-white/40 pb-1">
+                <ArrowRightStartOnRectangleIcon aria-hidden="true" className="size-4" />
+                Se déconnecter
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      <main id="contenu" className="mx-auto max-w-360 px-5 py-10 sm:px-8 lg:px-[4vw] lg:py-16">
+        {children}
+      </main>
     </div>
   )
 }

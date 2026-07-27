@@ -1,14 +1,5 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
-import {
-  CalmState,
-  Card,
-  CardHeader,
-  ExceptionBanner,
-  HeroFigure,
-  SideFact,
-  SourceAttendue,
-  VerdictCard,
-} from '@/components/admin/cockpit'
+import { CalmState, Card, CardHeader, ExceptionBanner, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { callBackend } from '@/lib/backend/client'
 import { ilYA, montantUsdc, motifLisible, phraseMouvement } from '@/lib/mouvements'
@@ -59,38 +50,6 @@ function pourcentage(bps: number | null | undefined): string {
 const estResolu = (v: unknown): v is Resolu<unknown> =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
-
-function CeQuiVousAttend({
-  incompletes,
-  surfaces,
-  motif,
-  serviceIndisponible,
-}: Readonly<{
-  incompletes: readonly Resolu<unknown>[]
-  surfaces: readonly Resolu<unknown>[]
-  motif: string | undefined
-  serviceIndisponible: boolean
-}>) {
-  if (incompletes.length === 0 && !serviceIndisponible) {
-    return <CalmState message="Rien ne demande votre attention. Toutes les surfaces du produit répondent." />
-  }
-  if (incompletes.length === 0) return null
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      <VerdictCard
-        titre="Surfaces sans donnée"
-        compte={String(incompletes.length)}
-        unite={`sur ${surfaces.length}`}
-        contexte="Ces surfaces répondent, mais sans valeur exploitable."
-        casUrgent={motif === undefined ? undefined : `Le plus souvent, ${motif}.`}
-        ton="attention"
-        href="/admin/dashboard"
-        actionLabel="Examiner le détail"
-      />
-    </div>
-  )
-}
-
 export default async function Page() {
   const [dashboard, evenements, disponibilite] = await Promise.all([
     callBackend<Dashboard>('dashboard'),
@@ -122,9 +81,14 @@ export default async function Page() {
         }))
 
   const mouvements = evenements.ok ? evenements.data.events?.value : null
+  const decision = serviceIndisponible
+    ? 'Vérifier l’état détaillé du service'
+    : incompletes.length > 0
+      ? `${incompletes.length} surface${incompletes.length > 1 ? 's' : ''} à examiner`
+      : 'Aucune décision immédiate signalée'
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-14">
       <PageHeader
         title="Accueil"
         description="Ce qui vous attend, puis l’état du fonds. Toute valeur provient du service ; rien n’est calculé ici."
@@ -138,71 +102,64 @@ export default async function Page() {
         />
       ) : null}
 
-      {/* ── A. Ce qui vous attend ───────────────────────────────────────── */}
-      <section aria-labelledby="attente" className="space-y-4">
-        <h2 id="attente" className="text-sm font-semibold text-white">
-          Ce qui vous attend
-        </h2>
-
-        <CeQuiVousAttend
-          incompletes={incompletes}
-          surfaces={surfaces}
-          motif={motif}
-          serviceIndisponible={serviceIndisponible}
-        />
-
-        <SourceAttendue
-          quoi="Les files de travail ne sont pas encore ouvertes"
-          detail="Dossiers de conformité à instruire et virements à valider apparaîtront ici dès que le service les transmettra. Aucun compteur n’est avancé d’ici là : un zéro signifierait « rien à traiter », ce que personne ne peut affirmer aujourd’hui."
-          requis={[
-            'La lecture des dossiers de connaissance client en attente',
-            'La lecture des demandes de validation financière',
-          ]}
-        />
+      {/* ── A. Situation immédiate ──────────────────────────────────────── */}
+      <section
+        aria-labelledby="situation"
+        className="grid min-h-104 gap-10 bg-black px-6 py-10 text-white md:grid-cols-[1.25fr_0.75fr] md:px-10 md:py-14"
+      >
+        <div className="flex flex-col justify-between">
+          <div>
+            <p className="text-metadata text-accent-400 tracking-[0.14em] uppercase">Situation actuelle</p>
+            <h2 id="situation" className="text-section-title mt-8 max-w-3xl text-white">
+              Encours du portefeuille
+            </h2>
+            <p className="mt-5 flex flex-wrap items-baseline gap-3">
+              <span className="text-numeric-display text-white tabular-nums">
+                {montantUsdc(capacite?.totalAssets, 0)}
+              </span>
+              <span className="text-body text-zinc-400">USDC</span>
+            </p>
+          </div>
+          <p className="text-label mt-10 max-w-xl text-zinc-400">
+            {d === null
+              ? 'L’état du fonds n’a pas pu être lu. Aucune valeur de remplacement n’est affichée.'
+              : 'Valeur transmise par le service, sans estimation côté interface.'}
+          </p>
+        </div>
+        <div className="flex flex-col justify-between border-t border-white/30 pt-5 md:border-t-0 md:border-l md:pt-0 md:pl-8">
+          <div>
+            <p className="text-metadata tracking-[0.12em] text-zinc-400 uppercase">Décision attendue</p>
+            <p className="mt-4 text-2xl leading-tight text-white">{decision}</p>
+            {motif ? <p className="text-label mt-3 text-zinc-400">Motif principal : {motif}.</p> : null}
+          </div>
+          <p className="text-metadata mt-10 text-zinc-500">
+            {surfaces.length > 0 ? `${surfaces.length} surfaces observées` : 'Aucune surface lisible'}
+          </p>
+        </div>
       </section>
 
-      {/* ── B. Le fonds aujourd'hui ─────────────────────────────────────── */}
-      <section aria-labelledby="fonds" className="space-y-3">
-        <h2 id="fonds" className="text-sm font-semibold text-white">
-          Le fonds aujourd’hui
+      <section aria-labelledby="indicateurs">
+        <h2 id="indicateurs" className="text-metadata tracking-[0.12em] text-zinc-600 uppercase">
+          Indicateurs secondaires
         </h2>
-
-        {d === null ? (
-          <SourceAttendue
-            quoi="L’état du fonds n’a pas pu être lu"
-            detail="Le service n’a pas répondu à la demande d’état du fonds. Aucune valeur n’est affichée plutôt qu’une valeur périmée."
-            requis={['Une réponse du service']}
-          />
-        ) : (
-          <Card className="p-6">
-            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-              <HeroFigure valeur={montantUsdc(capacite?.totalAssets, 0)} libelle="Encours du portefeuille" unite="USDC" />
-              <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-                <SideFact libelle="Plafond utilisé" valeur={pourcentage(capacite?.utilizationBps)} />
-                <SideFact libelle="Valeur d’une part" valeur={perf?.navPerShare ?? '—'} />
-                <SideFact libelle="Rendement depuis l’origine" valeur={pourcentage(perf?.totalReturnBps)} />
-                {/*
-                 * « Mois d'électricité couverts » a été RETIRÉ d'ici.
-                 *
-                 * Le service calcule cette durée en divisant `reserve.reserveUsdc`
-                 * par la facture mensuelle. Or ce champ vaut exactement
-                 * `capacity.totalAssets` — vérifié en production, au centime près.
-                 * Ce n'est donc pas une trésorerie dédiée à l'électricité : c'est
-                 * l'encours entier du fonds, argent des investisseurs compris.
-                 *
-                 * Le nombre était juste arithmétiquement et faux sémantiquement :
-                 * il laissait croire à une réserve d'exploitation qui n'existe pas.
-                 * Un chiffre exact qui affirme une chose fausse est plus dangereux
-                 * qu'une case vide, parce qu'on le cite en réunion.
-                 */}
-                <SideFact libelle="Capacité restante" valeur={montantUsdc(capacite?.availableCapacity, 0)} />
-              </dl>
-            </div>
-          </Card>
-        )}
+        <dl className="mt-5 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          <SideFact libelle="Plafond utilisé" valeur={pourcentage(capacite?.utilizationBps)} />
+          <SideFact libelle="Valeur d’une part" valeur={perf?.navPerShare ?? '—'} />
+          <SideFact libelle="Rendement depuis l’origine" valeur={pourcentage(perf?.totalReturnBps)} />
+          <SideFact libelle="Capacité restante" valeur={montantUsdc(capacite?.availableCapacity, 0)} />
+        </dl>
       </section>
 
-      {/* ── C. Où l'argent est placé ────────────────────────────────────── */}
+      <SourceAttendue
+        quoi="Les files de travail ne sont pas encore ouvertes"
+        detail="Dossiers de conformité à instruire et virements à valider apparaîtront ici dès que le service les transmettra. Aucun compteur n’est avancé d’ici là : un zéro signifierait « rien à traiter », ce que personne ne peut affirmer aujourd’hui."
+        requis={[
+          'La lecture des dossiers de connaissance client en attente',
+          'La lecture des demandes de validation financière',
+        ]}
+      />
+
+      {/* ── B. Où l'argent est placé ────────────────────────────────────── */}
       {poches.length > 0 ? (
         <Card>
           <CardHeader
@@ -213,23 +170,23 @@ export default async function Page() {
         </Card>
       ) : null}
 
-      {/* ── D. Fil du jour ──────────────────────────────────────────────── */}
+      {/* ── C. Fil du jour ──────────────────────────────────────────────── */}
       <section aria-labelledby="fil" className="space-y-3">
-        <h2 id="fil" className="text-sm font-semibold text-white">
+        <h2 id="fil" className="text-section-title text-black">
           Fil du jour
         </h2>
         {mouvements === null || mouvements === undefined || mouvements.length === 0 ? (
           <CalmState message="Aucun mouvement n’a été relevé récemment." />
         ) : (
           <Card>
-            <ul className="divide-y divide-white/[0.07]">
+            <ul className="divide-y divide-zinc-200">
               {mouvements.map((m) => (
-                <li key={m.id} className="flex flex-wrap items-baseline gap-x-2 px-5 py-3 text-sm">
-                  <span className="text-zinc-200">{phraseMouvement(m.eventName)}</span>
+                <li key={m.id} className="text-label flex flex-wrap items-baseline gap-x-3 gap-y-2 py-5">
+                  <span className="text-zinc-800">{phraseMouvement(m.eventName)}</span>
                   {m.assetAmountAtomic !== null ? (
-                    <span className="font-semibold text-accent-300 tabular-nums">{montantUsdc(m.assetAmountAtomic, 2)}</span>
+                    <span className="font-medium text-black tabular-nums">{montantUsdc(m.assetAmountAtomic, 2)}</span>
                   ) : null}
-                  <span className="ml-auto text-xs text-zinc-400">{ilYA(m.occurredAt)}</span>
+                  <span className="text-metadata ml-auto text-zinc-600">{ilYA(m.occurredAt)}</span>
                 </li>
               ))}
             </ul>
@@ -237,12 +194,9 @@ export default async function Page() {
         )}
       </section>
 
-      {/* ── E. État du service ──────────────────────────────────────────── */}
-      <p className="flex items-center gap-2 text-xs text-zinc-400">
-        <span
-          aria-hidden="true"
-          className={`size-1.5 rounded-full ${serviceIndisponible ? 'bg-danger-500' : 'bg-success-500'}`}
-        />
+      {/* ── D. État du service ──────────────────────────────────────────── */}
+      <p className="text-metadata flex items-center gap-3 border-t border-zinc-300 pt-4 text-zinc-600">
+        <span aria-hidden="true" className={`h-px w-8 ${serviceIndisponible ? 'bg-danger-600' : 'bg-success-600'}`} />
         {serviceIndisponible ? 'Service indisponible' : 'Service disponible'}
       </p>
     </div>

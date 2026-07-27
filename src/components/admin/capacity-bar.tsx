@@ -46,7 +46,7 @@ export function CapacityBar({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
-        <p className="text-2xl font-semibold text-white tabular-nums">
+        <p className="text-2xl font-normal text-black tabular-nums">
           {pourcent.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %
         </p>
         <p className={clsx('text-xs font-medium', texteTon)}>{messageTon}</p>
@@ -55,9 +55,9 @@ export function CapacityBar({
       <div
         role="img"
         aria-label={`Plafond utilisé à ${pourcent.toFixed(2)} pour cent`}
-        className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-surface-sunken"
+        className="mt-4 h-2 w-full overflow-hidden bg-zinc-200"
       >
-        <div className={clsx('h-full rounded-full', barreTon)} style={{ width: `${largeur}%` }} />
+        <div className={clsx('h-full', barreTon)} style={{ width: `${largeur}%` }} />
       </div>
 
       <dl className="mt-3 flex flex-wrap justify-between gap-x-6 gap-y-1 text-xs">

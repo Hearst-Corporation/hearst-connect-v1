@@ -141,7 +141,7 @@ export default async function Page() {
   const courbeParametree = points.some((p) => p.taux !== 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Produit"
         description="Ce que le fonds produit, où son argent se trouve, et comment sa rémunération évolue. Six anciennes vues réunies ici."
@@ -149,7 +149,7 @@ export default async function Page() {
       />
 
       {/* ── Ce que le fonds produit ─────────────────────────────────────── */}
-      <Card className="p-6">
+      <Card className="p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <HeroFigure
             valeur={hashrate ? Number(hashrate.reportedHashrateTh).toLocaleString('fr-FR') : '—'}
@@ -165,7 +165,7 @@ export default async function Page() {
       </Card>
 
       {/* ── Graphiques ──────────────────────────────────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
         <ChartFrame
           question="Où l’argent du fonds se trouve-t-il ?"
           unite="en dollars"
@@ -175,7 +175,7 @@ export default async function Page() {
               ? { type: 'tracee' }
               : { type: 'attendue', explication: 'Ni la réserve ni l’exposition n’ont pu être lues sur la chaîne.' }
           }
-          hauteur="h-44"
+          hauteur="h-56"
         >
           <ReserveExpositionChart postes={postes} />
         </ChartFrame>
@@ -191,7 +191,7 @@ export default async function Page() {
       </div>
 
       {/* ── Cadres en attente de leur source ────────────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         <ChartFrame
           question="Comment la performance se compare-t-elle à l’historique ?"
           unite="en pourcentage"
@@ -200,21 +200,21 @@ export default async function Page() {
             backtest.ok ? backtest.data.runs : undefined,
             'Aucun rétro-test n’a encore été exécuté sur ce déploiement.',
           )}
-          hauteur="h-40"
+          hauteur="h-52"
         />
         <ChartFrame
           question="D’où vient le rendement ?"
           unite="en pourcentage du total"
           provenance="attribution"
           etat={etatDe(b?.attribution, 'La décomposition du rendement n’est pas encore calculée.')}
-          hauteur="h-40"
+          hauteur="h-52"
         />
         <ChartFrame
           question="Comment la flotte se comporte-t-elle dans le temps ?"
           unite="en TH/s"
           provenance="télémétrie"
           etat={etatDe(m?.operationalTelemetry, 'La télémétrie d’exploitation n’est pas encore transmise.')}
-          hauteur="h-40"
+          hauteur="h-52"
         />
       </div>
     </div>

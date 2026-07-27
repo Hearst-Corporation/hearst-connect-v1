@@ -55,12 +55,12 @@ function usdc(atomique: string | null | undefined, decimales = 0): string {
 
 /** Un écart se lit signé, et son ampleur décide de sa couleur. */
 function ecartLisible(driftBps: number | null): { texte: string; ton: string } {
-  if (driftBps === null || !Number.isFinite(driftBps)) return { texte: '—', ton: 'text-zinc-400' }
+  if (driftBps === null || !Number.isFinite(driftBps)) return { texte: '—', ton: 'text-zinc-500' }
   const pts = driftBps / 100
   const ampleur = Math.abs(pts)
-  let ton = 'text-success-400'
-  if (ampleur >= 5) ton = 'text-warning-400'
-  else if (ampleur >= 1) ton = 'text-zinc-300'
+  let ton = 'text-zinc-600'
+  if (ampleur >= 5) ton = 'text-zinc-950'
+  else if (ampleur >= 1) ton = 'text-zinc-800'
   const signe = pts > 0 ? '+' : ''
   return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
 }
@@ -75,7 +75,7 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] text-sm">
           <thead>
-            <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-400">
+            <tr className="border-hairline border-b bg-zinc-50 text-left text-xs text-zinc-600">
               <th scope="col" className="px-5 py-2.5 font-medium">
                 Poche
               </th>
@@ -90,23 +90,23 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.07]">
+          <tbody className="divide-hairline divide-y">
             {actives.map((s) => {
               const ecart = ecartLisible(s.driftBps)
               return (
                 <tr key={s.pocket}>
-                  <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
+                  <th scope="row" className="px-5 py-4 text-left font-normal text-zinc-950">
                     {s.label}
                   </th>
-                  <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">
+                  <td className="px-5 py-4 text-right text-zinc-600 tabular-nums">
                     {(s.targetBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %
                   </td>
-                  <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">
+                  <td className="px-5 py-4 text-right text-zinc-950 tabular-nums">
                     {s.actualBps === null
                       ? '—'
                       : `${(s.actualBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`}
                   </td>
-                  <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
+                  <td className={clsx('px-5 py-4 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
                 </tr>
               )
             })}
@@ -137,7 +137,7 @@ export default async function Page() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Portefeuille"
         description="L’encours du fonds, la marge avant son plafond, et la conformité de sa répartition aux cibles du contrat."
@@ -152,8 +152,8 @@ export default async function Page() {
         />
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="p-6 lg:col-span-2">
+          <div className="grid gap-8 lg:grid-cols-3">
+            <Card className="p-6 sm:p-8 lg:col-span-2">
               <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
                 <HeroFigure
                   valeur={usdc(snap?.totalAssets)}
@@ -174,8 +174,8 @@ export default async function Page() {
               </div>
             </Card>
 
-            <Card className="p-6">
-              <p className="text-xs tracking-wide text-zinc-400 uppercase">Plafond utilisé</p>
+            <Card className="p-6 sm:p-8">
+              <p className="text-xs tracking-wide text-zinc-600 uppercase">Plafond utilisé</p>
               <div className="mt-3">
                 <CapacityBar
                   utiliseBps={cap?.utilizationBps === undefined ? null : cap.utilizationBps}

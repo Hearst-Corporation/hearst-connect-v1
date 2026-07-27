@@ -77,7 +77,7 @@ function DossierInvestisseur({
   return (
     <Card>
       <CardHeader title="Ce que le service sait de vous" hint="Transmis par le service, sans retouche" />
-      <dl className="divide-y divide-white/[0.07]">
+      <dl className="divide-hairline divide-y">
         <Ligne libelle="Nom du dossier" valeur={identite.displayName} />
         <Ligne libelle="Adresse e-mail" valeur={identite.email} />
         <Ligne libelle="Portefeuille" valeur={identite.walletAddress} mono />
@@ -96,7 +96,7 @@ export default async function Page() {
   const motif = motifLisible(bloc?.reason)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Votre compte"
         description="Le compte qui ouvre cette console, et le dossier investisseur qui lui est rattaché — s’il en existe un."
@@ -105,13 +105,13 @@ export default async function Page() {
 
       {/* ── A. Le compte connecté : la seule certitude de cette page ────── */}
       <Card>
-        <CardHeader title="Avec quel compte êtes-vous connecté ?" hint="Lu dans votre session, pas dans le service" />
+        <CardHeader title="Compte connecté" hint="Lu dans votre session, pas dans le service" />
         {session === null ? (
-          <p className="px-5 py-6 text-sm text-danger-400">
+          <p className="px-6 py-10 text-sm text-zinc-700 sm:px-8">
             Aucune session valide n’a été trouvée. Reconnectez-vous pour afficher votre compte.
           </p>
         ) : (
-          <dl className="divide-y divide-white/[0.07]">
+          <dl className="divide-hairline divide-y">
             <Ligne libelle="Nom" valeur={session.name} />
             <Ligne libelle="Adresse e-mail" valeur={session.email} />
             <Ligne libelle="Rôle" valeur={LIBELLE_ROLE[session.role]} />
@@ -120,8 +120,8 @@ export default async function Page() {
       </Card>
 
       {/* ── B. Le dossier investisseur : présent, ou honnêtement absent ─── */}
-      <section aria-labelledby="dossier" className="space-y-3">
-        <h2 id="dossier" className="text-sm font-semibold text-white">
+      <section aria-labelledby="dossier" className="border-hairline space-y-4 border-t pt-8">
+        <h2 id="dossier" className="text-2xl font-normal tracking-tight text-zinc-950">
           Dossier investisseur
         </h2>
 
@@ -143,8 +143,8 @@ function Ligne({
   const affiche = valeur === null || valeur === undefined || valeur === '' ? '—' : valeur
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-      <dt className="w-40 shrink-0 text-sm text-zinc-400">{libelle}</dt>
-      <dd className={mono ? 'min-w-0 truncate font-mono text-sm text-zinc-200' : 'min-w-0 text-sm text-white'}>
+      <dt className="w-40 shrink-0 text-sm text-zinc-600">{libelle}</dt>
+      <dd className={mono ? 'min-w-0 truncate font-mono text-sm text-zinc-800' : 'min-w-0 text-sm text-zinc-950'}>
         {affiche}
       </dd>
     </div>

@@ -1,13 +1,6 @@
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { endpointById } from '@/lib/backend/endpoints'
-import {
-  EmptyState,
-  EnvelopeMetaLine,
-  ProblemState,
-  RawJsonPanel,
-  RequestMetadata,
-  UnavailableState,
-} from './truthful'
+import { EmptyState, EnvelopeMetaLine, ProblemState, RawJsonPanel, RequestMetadata, UnavailableState } from './truthful'
 
 function EndpointBody({
   result,
@@ -69,11 +62,11 @@ export async function EndpointSection({
       (typeof result.data === 'object' && result.data !== null && Object.keys(result.data).length === 0))
 
   return (
-    <section className="rounded-xl border border-white/10 bg-cockpit-card p-5">
+    <section className="border-t border-zinc-300 py-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-white">{title ?? endpoint.summary}</h2>
-          <p className="mt-0.5 font-mono text-xs text-zinc-500">
+          <h2 className="text-xl font-normal tracking-[-0.02em] text-black">{title ?? endpoint.summary}</h2>
+          <p className="text-metadata mt-1 font-mono text-zinc-600">
             {endpoint.method} {result.trace.path}
           </p>
         </div>
@@ -81,7 +74,7 @@ export async function EndpointSection({
       </div>
 
       {endpoint.caveat ? (
-        <p className="mt-3 rounded border border-hearst-warn/25 bg-hearst-warn/5 px-3 py-2 text-xs text-hearst-warn">
+        <p className="border-warning-600 bg-warning-50 text-metadata text-warning-700 mt-4 border-l-2 px-4 py-3">
           {endpoint.caveat}
         </p>
       ) : null}
@@ -92,7 +85,7 @@ export async function EndpointSection({
         </EndpointBody>
       </div>
 
-      <div className="mt-4 border-t border-white/5 pt-3">
+      <div className="mt-5 border-t border-zinc-200 pt-3">
         <RequestMetadata trace={result.trace} />
       </div>
     </section>

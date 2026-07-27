@@ -43,11 +43,11 @@ const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
 }
 
 const TONE_CLASS: Record<BadgeTone, string> = {
-  ok: 'bg-hearst-ok/15 text-hearst-ok ring-hearst-ok/30',
-  warn: 'bg-hearst-warn/15 text-hearst-warn ring-hearst-warn/30',
-  bad: 'bg-hearst-bad/20 text-hearst-bad ring-hearst-bad/40',
-  info: 'bg-hearst-info/15 text-hearst-info ring-hearst-info/30',
-  neutral: 'bg-white/5 text-zinc-400 ring-white/15',
+  ok: 'border-success-600 text-success-700',
+  warn: 'border-warning-600 text-warning-700',
+  bad: 'border-danger-600 text-danger-700',
+  info: 'border-info-600 text-info-700',
+  neutral: 'border-zinc-400 text-zinc-600',
 }
 
 export function StatusBadge({
@@ -58,12 +58,10 @@ export function StatusBadge({
     <span
       className={clsx(
         className,
-        'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+        'text-metadata inline-flex items-center border-l-2 px-2 py-0.5 font-medium',
         TONE_CLASS[STATUS_TONE[status]],
       )}
     >
-      {/* Le point n'est pas la seule marque : le libellé porte l'information. */}
-      <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
       {STATUS_LABEL[status]}
     </span>
   )
@@ -89,13 +87,7 @@ export function DataProvenance({
   const conspicuous = provenance === 'fixture' || provenance === 'manual'
 
   return (
-    <span
-      className={clsx(
-        className,
-        'text-xs',
-        conspicuous ? 'font-medium text-hearst-warn' : 'text-zinc-500',
-      )}
-    >
+    <span className={clsx(className, 'text-xs', conspicuous ? 'text-warning-700 font-medium' : 'text-zinc-600')}>
       {[label, source].filter(Boolean).join(' · ')}
     </span>
   )
@@ -108,7 +100,7 @@ export function FreshnessIndicator({
 }: Readonly<{ asOf?: string | null; ageSeconds?: number | null; stale?: boolean }>) {
   if (!asOf && ageSeconds === null) return null
   return (
-    <span className={clsx('text-xs', stale ? 'text-hearst-warn' : 'text-zinc-500')}>
+    <span className={clsx('text-xs', stale ? 'text-warning-700' : 'text-zinc-600')}>
       {asOf ? `au ${asOf}` : null}
       {typeof ageSeconds === 'number' ? ` · ${ageSeconds} s` : null}
       {stale ? ' · fraîcheur insuffisante' : null}
@@ -127,9 +119,13 @@ export function ResolvedValue({
   status,
   unit,
   className,
-}: Readonly<{ value: string | number | null | undefined; status?: ResolvedStatus; unit?: string; className?: string }>) {
-  const displayable =
-    value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
+}: Readonly<{
+  value: string | number | null | undefined
+  status?: ResolvedStatus
+  unit?: string
+  className?: string
+}>) {
+  const displayable = value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
 
   if (!displayable) {
     return (
@@ -140,9 +136,9 @@ export function ResolvedValue({
   }
 
   return (
-    <span className={clsx(className, 'tabular-nums text-white')}>
+    <span className={clsx(className, 'text-black tabular-nums')}>
       {typeof value === 'number' ? value.toLocaleString('fr-FR') : value}
-      {unit ? <span className="ml-1 text-zinc-500">{unit}</span> : null}
+      {unit ? <span className="ml-1 text-zinc-600">{unit}</span> : null}
     </span>
   )
 }
@@ -157,7 +153,7 @@ export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
     trace.rateLimitRemaining !== null ? `quota ${trace.rateLimitRemaining}` : null,
   ].filter(Boolean)
 
-  return <p className="font-mono text-xs break-all text-zinc-500">{bits.join(' · ')}</p>
+  return <p className="text-metadata font-mono break-all text-zinc-600">{bits.join(' · ')}</p>
 }
 
 export function EnvelopeMetaLine({ meta }: Readonly<{ meta: EnvelopeMeta | null }>) {
@@ -167,7 +163,7 @@ export function EnvelopeMetaLine({ meta }: Readonly<{ meta: EnvelopeMeta | null 
       <StatusBadge status={meta.status} />
       <DataProvenance source={meta.source} />
       <FreshnessIndicator asOf={meta.generatedAt} ageSeconds={meta.freshnessSeconds} />
-      {meta.reason ? <span className="text-xs text-hearst-warn">{meta.reason}</span> : null}
+      {meta.reason ? <span className="text-warning-700 text-xs">{meta.reason}</span> : null}
     </div>
   )
 }
@@ -181,24 +177,29 @@ function StateShell({
   children,
 }: Readonly<{ status: ResolvedStatus; title: string; reason?: string | null; children?: React.ReactNode }>) {
   return (
-    <div className="rounded-lg border border-dashed border-white/10 bg-cockpit-inset px-5 py-8 text-center">
+    <div className="bg-surface-subtle border border-dashed border-zinc-400 px-5 py-10 text-center">
       <StatusBadge status={status} />
-      <p className="mt-3 text-sm font-medium text-white">{title}</p>
-      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">{reason}</p> : null}
+      <p className="text-label mt-4 font-medium text-black">{title}</p>
+      {reason ? <p className="text-label mx-auto mt-2 max-w-xl text-zinc-600">{reason}</p> : null}
       {children}
     </div>
   )
 }
 
 export function EmptyState({ reason }: Readonly<{ reason?: string | null }>) {
-  return <StateShell status="EMPTY" title="Réponse vide" reason={reason ?? 'Le backend a répondu sans aucun élément.'} />
+  return (
+    <StateShell status="EMPTY" title="Réponse vide" reason={reason ?? 'Le backend a répondu sans aucun élément.'} />
+  )
 }
 
-export function UnavailableState({ state, children }: Readonly<{ state: Resolved<unknown>; children?: React.ReactNode }>) {
+export function UnavailableState({
+  state,
+  children,
+}: Readonly<{ state: Resolved<unknown>; children?: React.ReactNode }>) {
   return (
     <StateShell status={state.status} title={STATUS_LABEL[state.status]} reason={state.reason}>
       {state.provenance.route ? (
-        <p className="mt-3 font-mono text-xs break-all text-zinc-600">
+        <p className="text-metadata mt-3 font-mono break-all text-zinc-600">
           {state.provenance.route}
           {state.provenance.requestId ? ` · req ${state.provenance.requestId}` : null}
         </p>
@@ -209,31 +210,34 @@ export function UnavailableState({ state, children }: Readonly<{ state: Resolved
 }
 
 /** Rend un `Problem` backend tel quel — le code machine fait foi. */
-export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | null; keeper?: KeeperActionResult | null }>) {
+export function ProblemState({
+  problem,
+  keeper,
+}: Readonly<{ problem: Problem | null; keeper?: KeeperActionResult | null }>) {
   if (!problem && !keeper) return null
 
   return (
-    <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-lg bg-cockpit-inset p-4 text-xs">
+    <dl className="bg-surface-subtle text-metadata mt-5 grid grid-cols-[auto_1fr] gap-x-5 gap-y-2 border-t border-zinc-300 p-5">
       {problem ? (
         <>
           <dt className="text-zinc-500">code</dt>
-          <dd className="font-mono text-white">{problem.code}</dd>
+          <dd className="font-mono text-black">{problem.code}</dd>
           <dt className="text-zinc-500">title</dt>
-          <dd className="text-zinc-300">{problem.title}</dd>
+          <dd className="text-zinc-700">{problem.title}</dd>
           <dt className="text-zinc-500">detail</dt>
-          <dd className="text-zinc-300">{problem.detail}</dd>
+          <dd className="text-zinc-700">{problem.detail}</dd>
           <dt className="text-zinc-500">requestId</dt>
-          <dd className="font-mono break-all text-zinc-400">{problem.requestId}</dd>
+          <dd className="font-mono break-all text-zinc-600">{problem.requestId}</dd>
         </>
       ) : null}
       {keeper ? (
         <>
           <dt className="text-zinc-500">reason</dt>
-          <dd className="font-mono text-white">{keeper.reason}</dd>
+          <dd className="font-mono text-black">{keeper.reason}</dd>
           {keeper.detail ? (
             <>
               <dt className="text-zinc-500">detail</dt>
-              <dd className="text-zinc-300">{keeper.detail}</dd>
+              <dd className="text-zinc-700">{keeper.detail}</dd>
             </>
           ) : null}
         </>
@@ -245,9 +249,13 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
 /** JSON brut replié — la preuve technique reste consultable, jamais imposée. */
 export function RawJsonPanel({ label = 'Réponse brute', data }: Readonly<{ label?: string; data: unknown }>) {
   return (
-    <details className="mt-4 rounded-lg bg-cockpit-inset">
-      <summary className="cursor-pointer px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white">{label}</summary>
-      <pre className="overflow-x-auto px-4 pb-4 font-mono text-xs text-zinc-300">{JSON.stringify(data, null, 2)}</pre>
+    <details className="bg-surface-code mt-5 text-white">
+      <summary className="text-metadata cursor-pointer px-5 py-3 font-medium text-zinc-400 hover:text-white">
+        {label}
+      </summary>
+      <pre className="text-metadata overflow-x-auto border-t border-white/15 px-5 py-5 font-mono text-zinc-200">
+        {JSON.stringify(data, null, 2)}
+      </pre>
     </details>
   )
 }

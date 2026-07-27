@@ -43,7 +43,7 @@ export default async function Page() {
   const reponse = await callBackend<ReponseEvenements>('series1-events', { params: { limit: 50 } })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <PageHeader
         title="Opérations"
         description="Ce qui attend une décision, puis ce qui s’est passé. Toute valeur provient du service ; rien n’est calculé ici."
@@ -51,10 +51,13 @@ export default async function Page() {
       />
 
       {/* ── A. En attente de décision ───────────────────────────────────── */}
-      <section aria-labelledby="attente-decision" className="space-y-3">
-        <h2 id="attente-decision" className="text-sm font-semibold text-white">
-          En attente de votre validation
-        </h2>
+      <section aria-labelledby="attente-decision" className="space-y-5">
+        <div className="border-t border-zinc-300 pt-5">
+          <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">Décisions</p>
+          <h2 id="attente-decision" className="mt-3 text-3xl font-normal tracking-tight text-black">
+            En attente de votre validation
+          </h2>
+        </div>
         <SourceAttendue
           quoi="Aucune file de validation n’est encore ouverte"
           detail="Les demandes d’approbation financière ne sont pas encore transmises par le service. Tant qu’elles ne le sont pas, cet écran n’affiche rien plutôt qu’une file vide, qu’on lirait à tort comme « rien à valider »."
@@ -67,19 +70,18 @@ export default async function Page() {
       </section>
 
       {/* ── B. Registre des mouvements ──────────────────────────────────── */}
-      <section aria-labelledby="registre" className="space-y-3">
-        <div className="flex items-center justify-between gap-4">
-          <h2 id="registre" className="text-sm font-semibold text-white">
-            Registre des mouvements
-          </h2>
+      <section aria-labelledby="registre" className="space-y-5">
+        <div className="flex items-end justify-between gap-4 border-t border-zinc-300 pt-5">
+          <div>
+            <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">Registre institutionnel</p>
+            <h2 id="registre" className="mt-3 text-3xl font-normal tracking-tight text-black">
+              Mouvements enregistrés
+            </h2>
+          </div>
           {reponse.ok && reponse.data.events ? <StatusBadge status={reponse.data.events.status as never} /> : null}
         </div>
 
-        {!reponse.ok ? (
-          <UnavailableState state={reponse.state} />
-        ) : (
-          <RegistreMouvements bloc={reponse.data.events} />
-        )}
+        {!reponse.ok ? <UnavailableState state={reponse.state} /> : <RegistreMouvements bloc={reponse.data.events} />}
       </section>
     </div>
   )
@@ -113,22 +115,18 @@ function RegistreMouvements({ bloc }: Readonly<{ bloc: ReponseEvenements['events
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {/* Répartition — barres horizontales : lisibles dès le premier élément,
-          contrairement à une part de camembert. */}
+      {/* Répartition monochrome : la longueur porte l'information, sans couleur décorative. */}
       <Card className="lg:col-span-1">
-        <CardHeader title="Quels mouvements composent le registre ?" hint={`${mouvements.length} au total`} />
-        <ul className="space-y-3 px-5 py-4">
+        <CardHeader title="Composition du registre" hint={`${mouvements.length} au total`} />
+        <ul className="space-y-5 px-5 py-5">
           {repartition.map(([nom, nombre]) => (
             <li key={nom}>
               <div className="flex items-baseline justify-between gap-3">
-                <span className="min-w-0 truncate text-xs text-zinc-300">{nom}</span>
-                <span className="shrink-0 text-xs text-zinc-400 tabular-nums">{nombre}</span>
+                <span className="min-w-0 truncate text-sm text-black">{nom}</span>
+                <span className="shrink-0 text-xs text-zinc-600 tabular-nums">{nombre}</span>
               </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
-                <div
-                  className="h-full rounded-full bg-accent-400"
-                  style={{ width: `${Math.round((nombre / maximum) * 100)}%` }}
-                />
+              <div className="mt-2 h-px bg-zinc-300">
+                <div className="h-px bg-black" style={{ width: `${Math.round((nombre / maximum) * 100)}%` }} />
               </div>
             </li>
           ))}
@@ -137,20 +135,25 @@ function RegistreMouvements({ bloc }: Readonly<{ bloc: ReponseEvenements['events
 
       {/* Registre chronologique */}
       <Card className="lg:col-span-2">
-        <CardHeader title="Que s’est-il passé ?" hint="Du plus récent au plus ancien" />
-        <ul className="divide-y divide-white/[0.07]">
+        <CardHeader title="Chronologie" hint="Du plus récent au plus ancien" />
+        <ul className="divide-y divide-zinc-300">
           {mouvements.map((m) => (
-            <li key={m.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-              <span className="text-sm text-white">{libelleMouvement(m.eventName)}</span>
-              {m.assetAmountAtomic !== null ? (
-                <span className="text-sm font-semibold text-accent-300 tabular-nums">
-                  {montantUsdc(m.assetAmountAtomic)}
-                </span>
-              ) : null}
-              {adresseCourte(m.investorAddress) !== null ? (
-                <span className="font-mono text-xs text-zinc-400">{adresseCourte(m.investorAddress)}</span>
-              ) : null}
-              <span className="ml-auto text-xs text-zinc-400">{dateLisible(m.occurredAt)}</span>
+            <li
+              key={m.id}
+              className="grid gap-x-4 gap-y-1 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-baseline"
+            >
+              <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-sm text-black">{libelleMouvement(m.eventName)}</span>
+                {m.assetAmountAtomic !== null ? (
+                  <span className="text-sm font-medium text-black tabular-nums">
+                    {montantUsdc(m.assetAmountAtomic)}
+                  </span>
+                ) : null}
+                {adresseCourte(m.investorAddress) !== null ? (
+                  <span className="font-mono text-xs text-zinc-600">{adresseCourte(m.investorAddress)}</span>
+                ) : null}
+              </div>
+              <span className="text-xs text-zinc-600 sm:text-right">{dateLisible(m.occurredAt)}</span>
             </li>
           ))}
         </ul>

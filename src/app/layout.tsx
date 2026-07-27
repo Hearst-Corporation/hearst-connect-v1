@@ -1,5 +1,5 @@
-import '@/styles/tailwind.css'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
+import '@/styles/tailwind.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -13,18 +13,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="fr"
-      // Le script de thème ajoute `light`/`dark` sur cet élément avant
-      // l'hydratation : l'écart de className avec le HTML serveur est voulu.
-      suppressHydrationWarning
-      className="text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white"
-    >
+    <html lang="fr" suppressHydrationWarning className="bg-surface-page text-zinc-950 antialiased">
       <head>
         {/* Applique le thème mémorisé avant la première peinture (pas de flash). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </head>
       <body>{children}</body>
     </html>

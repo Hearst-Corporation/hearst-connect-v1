@@ -26,10 +26,11 @@ import {
  * retarde la lecture sans rien apprendre, et il piège les captures d'écran.
  */
 
-const OR = '#c6a94e'
-const BLEU = '#60a5fa'
-const GRILLE = '#2e3c59'
-const AXE = '#94a3b8'
+const PRIMARY = 'var(--color-zinc-950)'
+const SECONDARY = 'var(--color-zinc-500)'
+const ACCENT = 'var(--color-accent-500)'
+const GRILLE = 'var(--color-zinc-300)'
+const AXE = 'var(--color-zinc-600)'
 
 function Bulle({
   active,
@@ -44,10 +45,10 @@ function Bulle({
 }>) {
   if (active !== true || payload === undefined || payload.length === 0) return null
   return (
-    <div className="rounded-lg border border-white/10 bg-surface-raised px-3 py-2 text-xs shadow-lg">
-      <p className="font-medium text-white">{label}</p>
+    <div className="text-metadata shadow-panel border border-zinc-300 bg-white px-3 py-2">
+      <p className="font-medium text-black">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} className="mt-0.5 text-zinc-300 tabular-nums">
+        <p key={p.name} className="mt-0.5 text-zinc-700 tabular-nums">
           {p.name} : {typeof p.value === 'number' ? `${p.value.toLocaleString('fr-FR')} ${suffixe}` : '—'}
         </p>
       ))}
@@ -62,7 +63,7 @@ export type PointCourbe = { readonly mois: number; readonly taux: number }
 /** « Comment la rémunération évolue-t-elle sur la durée du produit ? » */
 export function VendingCurveChart({ points }: Readonly<{ points: readonly PointCourbe[] }>) {
   return (
-    <div className="px-2 py-4">
+    <div className="py-6">
       <table className="sr-only">
         <caption>Taux de rémunération par mois, en pourcentage</caption>
         <thead>
@@ -85,9 +86,9 @@ export function VendingCurveChart({ points }: Readonly<{ points: readonly PointC
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={[...points]} margin={{ top: 6, right: 10, bottom: 4, left: -18 }}>
             <defs>
-              <linearGradient id="degradeOr" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={OR} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={OR} stopOpacity={0.02} />
+              <linearGradient id="degradePrimaire" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={PRIMARY} stopOpacity={0.01} />
               </linearGradient>
             </defs>
             <CartesianGrid stroke={GRILLE} strokeDasharray="2 4" vertical={false} />
@@ -106,10 +107,10 @@ export function VendingCurveChart({ points }: Readonly<{ points: readonly PointC
               type="linear"
               dataKey="taux"
               name="Taux"
-              stroke={OR}
+              stroke={PRIMARY}
               strokeWidth={2}
-              fill="url(#degradeOr)"
-              dot={{ r: 3, fill: OR, strokeWidth: 0 }}
+              fill="url(#degradePrimaire)"
+              dot={{ r: 3, fill: PRIMARY, strokeWidth: 0 }}
               isAnimationActive={false}
             />
           </AreaChart>
@@ -125,13 +126,13 @@ export type PosteBitcoin = { readonly poste: string; readonly montant: number; r
 
 function BarrePoste(props: BarShapeProps) {
   const payload = props.payload as PosteBitcoin | undefined
-  return <Rectangle {...props} fill={payload?.accent ? OR : BLEU} />
+  return <Rectangle {...props} fill={payload?.accent ? ACCENT : SECONDARY} />
 }
 
 /** « Combien dort en réserve, combien travaille en exposition ? » */
 export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly PosteBitcoin[] }>) {
   return (
-    <div className="px-2 py-4">
+    <div className="py-6">
       <table className="sr-only">
         <caption>Répartition entre réserve et exposition, en dollars</caption>
         <thead>
@@ -169,12 +170,12 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
               axisLine={false}
               width={96}
             />
-            <Tooltip content={<Bulle suffixe="$" />} cursor={{ fill: '#ffffff0a' }} />
+            <Tooltip content={<Bulle suffixe="$" />} cursor={{ fill: 'var(--color-zinc-100)' }} />
             <Bar
               dataKey="montant"
               name="Montant"
               shape={BarrePoste}
-              radius={[0, 3, 3, 0]}
+              radius={0}
               maxBarSize={22}
               isAnimationActive={false}
             />

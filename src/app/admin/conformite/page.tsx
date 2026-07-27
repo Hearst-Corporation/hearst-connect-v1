@@ -1,4 +1,4 @@
-import { Card, SourceAttendue } from '@/components/admin/cockpit'
+import { SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import type { Metadata } from 'next'
 
@@ -29,29 +29,37 @@ const SEGMENTS = [
 
 export default function Page() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Conformité"
         description="La file d’instruction des dossiers de connaissance client. Un dossier s’ouvre dans un panneau, sans quitter la file."
       />
 
-      {/* Le parcours d'un dossier, lisible même sans données. */}
-      <Card as="nav" className="px-2 py-2">
-        <ul className="flex flex-wrap gap-1">
-          {SEGMENTS.map((s) => (
-            <li key={s.cle}>
-              <span
-                title={s.aide}
-                aria-disabled="true"
-                className="inline-flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-400"
-              >
-                {s.libelle}
-                <span className="text-xs text-zinc-400">—</span>
-              </span>
+      {/* Le parcours éditorial d'un dossier, lisible même sans données. */}
+      <section aria-labelledby="parcours-conformite" className="bg-surface-page">
+        <div className="max-w-3xl">
+          <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">Cycle d’instruction</p>
+          <h2
+            id="parcours-conformite"
+            className="mt-4 text-3xl leading-tight font-normal tracking-tight text-black sm:text-4xl"
+          >
+            Cinq moments, d’une pièce reçue à une décision journalisée.
+          </h2>
+        </div>
+
+        <ol className="mt-10 border-t border-zinc-300">
+          {SEGMENTS.map((segment, index) => (
+            <li
+              key={segment.cle}
+              className="grid gap-4 border-b border-zinc-300 py-6 sm:grid-cols-[4rem_minmax(0,1fr)_minmax(16rem,1fr)] sm:items-baseline"
+            >
+              <span className="text-xs text-zinc-500 tabular-nums">{String(index + 1).padStart(2, '0')}</span>
+              <h3 className="text-xl font-normal text-black">{segment.libelle}</h3>
+              <p className="text-sm leading-6 text-zinc-600">{segment.aide}</p>
             </li>
           ))}
-        </ul>
-      </Card>
+        </ol>
+      </section>
 
       <SourceAttendue
         quoi="Aucun dossier n’est transmis pour le moment"

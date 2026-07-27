@@ -60,7 +60,7 @@ export default async function Page() {
       : (Number(sats) / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 4 })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Minage"
         description="Ce que la flotte produit, ce qu’elle coûte, et si elle tourne."
@@ -75,7 +75,7 @@ export default async function Page() {
         />
       ) : (
         <>
-          <Card className="p-6">
+          <Card className="p-6 sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
               <HeroFigure
                 valeur={
@@ -96,16 +96,16 @@ export default async function Page() {
 
           <Card>
             <CardHeader title="La flotte tourne-t-elle ?" hint="État d’exploitation déclaré par le contrat" />
-            <ul className="divide-y divide-white/[0.07]">
-              <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                <span className="w-24 shrink-0 text-zinc-400">Flotte</span>
-                <span className="text-white">
+            <ul className="divide-hairline divide-y">
+              <li className="flex items-baseline gap-3 px-5 py-4 text-sm">
+                <span className="w-24 shrink-0 text-zinc-600">Flotte</span>
+                <span className="text-zinc-950">
                   {texteBooleen(exploitation?.fleetActive, 'En fonctionnement', 'À l’arrêt')}
                 </span>
               </li>
-              <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                <span className="w-24 shrink-0 text-zinc-400">Bridage</span>
-                <span className="text-white">
+              <li className="flex items-baseline gap-3 px-5 py-4 text-sm">
+                <span className="w-24 shrink-0 text-zinc-600">Bridage</span>
+                <span className="text-zinc-950">
                   {texteBooleen(exploitation?.curtailed, 'Actif — la production est volontairement réduite', 'Inactif')}
                 </span>
               </li>
@@ -121,7 +121,7 @@ export default async function Page() {
               explication:
                 'Le service ne transmet qu’un relevé instantané, sans historique. Une courbe exigerait une série conservée dans le temps : elle n’existe pas encore.',
             }}
-            hauteur="h-44"
+            hauteur="h-56"
           />
         </>
       )}

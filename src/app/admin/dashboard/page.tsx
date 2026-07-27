@@ -29,8 +29,7 @@ export const dynamic = 'force-dynamic'
 
 type Resolu = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
 
-const estResolu = (v: unknown): v is Resolu =>
-  typeof v === 'object' && v !== null && 'status' in v && 'value' in v
+const estResolu = (v: unknown): v is Resolu => typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
 /** Le nom métier de chaque surface. Une clé inconnue garde sa clé. */
 const NOM_SURFACE: Record<string, string> = {
@@ -74,15 +73,15 @@ const FAMILLE_EXPLICATION: Record<Famille, string> = {
 }
 
 const FAMILLE_POINT: Record<Famille, string> = {
-  servie: 'bg-success-500',
-  partielle: 'bg-warning-500',
-  absente: 'bg-zinc-600',
+  servie: 'bg-zinc-950',
+  partielle: 'bg-zinc-500',
+  absente: 'bg-zinc-300',
 }
 
 const FAMILLE_TEXTE: Record<Famille, string> = {
-  servie: 'text-success-400',
-  partielle: 'text-warning-400',
-  absente: 'text-zinc-400',
+  servie: 'text-zinc-950',
+  partielle: 'text-zinc-600',
+  absente: 'text-zinc-500',
 }
 
 /** Le classement suit l'état déclaré par le service, sans le réinterpréter. */
@@ -94,7 +93,12 @@ function familleDe(statut: string): Famille {
 
 const ORDRE: readonly Famille[] = ['servie', 'partielle', 'absente']
 
-type Surface = { readonly cle: string; readonly nom: string; readonly famille: Famille; readonly motif: string | undefined }
+type Surface = {
+  readonly cle: string
+  readonly nom: string
+  readonly famille: Famille
+  readonly motif: string | undefined
+}
 
 function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
   const servies = surfaces.filter((s) => s.famille === 'servie')
@@ -103,7 +107,7 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
 
   return (
     <>
-      <Card className="p-6">
+      <Card className="p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <HeroFigure valeur={`${servies.length}`} libelle="Surfaces servies" unite={`sur ${surfaces.length}`} />
           <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -121,7 +125,7 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
 
         {/* Une seule barre, trois segments : la proportion se saisit d'un
             coup d'œil, sans lire trois nombres puis les comparer. */}
-        <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-surface-sunken">
+        <div className="mt-8 flex h-1 gap-px overflow-hidden bg-zinc-100">
           {ORDRE.map((famille) => {
             const nombre = surfaces.filter((s) => s.famille === famille).length
             if (nombre === 0) return null
@@ -134,9 +138,9 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
             )
           })}
         </div>
-        <p className="mt-3 text-xs text-zinc-500">
-          L’état d’ensemble annoncé par le service se lit au pire des champs : une seule surface incomplète
-          abaisse l’ensemble. C’est voulu — il vaut mieux une alerte de trop qu’un écran faussement rassurant.
+        <p className="mt-4 max-w-3xl text-xs leading-5 text-zinc-600">
+          L’état d’ensemble annoncé par le service se lit au pire des champs : une seule surface incomplète abaisse
+          l’ensemble. C’est voulu — il vaut mieux une alerte de trop qu’un écran faussement rassurant.
         </p>
       </Card>
 
@@ -146,14 +150,11 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
         return (
           <Card key={famille}>
             <CardHeader title={`${FAMILLE_TITRE[famille]} — ${lot.length}`} hint={FAMILLE_EXPLICATION[famille]} />
-            <ul className="divide-y divide-white/[0.07]">
+            <ul className="divide-hairline divide-y">
               {lot.map((surface) => (
                 <li key={surface.cle} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-                  <span
-                    aria-hidden="true"
-                    className={clsx('size-1.5 shrink-0 self-center rounded-full', FAMILLE_POINT[famille])}
-                  />
-                  <span className="text-sm text-white">{surface.nom}</span>
+                  <span aria-hidden="true" className={clsx('h-px w-4 shrink-0 self-center', FAMILLE_POINT[famille])} />
+                  <span className="text-sm text-zinc-950">{surface.nom}</span>
                   {surface.motif === undefined ? null : (
                     <span className={clsx('ml-auto text-xs', FAMILLE_TEXTE[famille])}>{surface.motif}</span>
                   )}
@@ -209,7 +210,7 @@ export default async function Page() {
           }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Couverture des données"
         description="Sur quoi le produit peut s’appuyer aujourd’hui, surface par surface, et pourquoi le reste attend encore sa source."

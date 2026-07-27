@@ -24,22 +24,22 @@ export function ExplorerRow({ endpoint, curl }: Readonly<{ endpoint: BackendEndp
   const authLabel = authLabelFor(endpoint.auth)
 
   return (
-    <div className="border-b border-white/5 px-4 py-3 last:border-b-0">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-zinc-300">{endpoint.method}</span>
-        <span className="font-mono text-xs break-all text-white">{endpoint.path}</span>
-        <span className="text-xs text-zinc-500">{endpoint.category}</span>
+    <div className="border-hairline border-b px-5 py-5">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span className="text-xs font-medium tracking-[0.12em] text-zinc-950 uppercase">{endpoint.method}</span>
+        <span className="font-mono text-xs break-all text-zinc-950">{endpoint.path}</span>
+        <span className="text-xs text-zinc-600">{endpoint.category}</span>
         <span className="text-xs text-zinc-500">· {authLabel}</span>
 
         <form action={formAction} className="ml-auto">
           <input type="hidden" name="endpointId" value={endpoint.id} />
           {endpoint.method === 'POST' ? (
-            <span className="text-xs text-zinc-500">action Keeper — exécutable depuis la page Keeper</span>
+            <span className="text-xs text-zinc-500">Action Keeper — exécutable depuis la page Keeper</span>
           ) : (
             <button
               type="submit"
               disabled={pending}
-              className="rounded border border-white/15 px-2 py-1 text-xs text-zinc-300 hover:bg-white/5 hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent"
+              className="focus-visible:outline-accent-400 border border-zinc-950 bg-zinc-950 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-35"
             >
               {pending ? 'Appel…' : 'Appeler'}
             </button>
@@ -47,28 +47,34 @@ export function ExplorerRow({ endpoint, curl }: Readonly<{ endpoint: BackendEndp
         </form>
       </div>
 
-      <p className="mt-1 text-xs text-zinc-500">{endpoint.summary}</p>
+      <p className="mt-2 max-w-3xl text-sm text-zinc-600">{endpoint.summary}</p>
 
       {outcome ? (
-        <div className="mt-3 rounded bg-cockpit-inset p-3">
+        <div className="border-hairline mt-5 border-t bg-zinc-50 p-5">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={outcome.status} />
-            {outcome.metaStatus ? <span className="text-xs text-zinc-400">enveloppe : {outcome.metaStatus}</span> : null}
+            {outcome.metaStatus ? (
+              <span className="text-xs text-zinc-600">Enveloppe : {outcome.metaStatus}</span>
+            ) : null}
           </div>
-          {outcome.reason ? <p className="mt-2 text-xs text-zinc-400">{outcome.reason}</p> : null}
+          {outcome.reason ? <p className="mt-2 text-xs text-zinc-600">{outcome.reason}</p> : null}
           <div className="mt-2">
             <RequestMetadata trace={outcome.trace} />
           </div>
           <details className="mt-2">
-            <summary className="cursor-pointer text-xs text-zinc-400 hover:text-white">JSON brut</summary>
-            <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-zinc-300">{outcome.rawJson}</pre>
+            <summary className="cursor-pointer text-xs text-zinc-600 hover:text-zinc-950">JSON brut</summary>
+            <pre className="border-hairline mt-2 max-h-72 overflow-auto border bg-white p-4 font-mono text-xs text-zinc-800">
+              {outcome.rawJson}
+            </pre>
           </details>
         </div>
       ) : null}
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-300">cURL (jeton expurgé)</summary>
-        <pre className="mt-1 overflow-x-auto rounded bg-cockpit-inset p-2 font-mono text-xs text-zinc-400">{curl}</pre>
+        <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-950">cURL (jeton expurgé)</summary>
+        <pre className="border-hairline mt-2 overflow-x-auto border bg-zinc-50 p-4 font-sans text-xs text-zinc-700">
+          {curl}
+        </pre>
       </details>
     </div>
   )

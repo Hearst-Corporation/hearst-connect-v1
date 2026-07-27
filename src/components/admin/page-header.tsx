@@ -12,16 +12,13 @@ export function PageHeader({
   const endpoints = BACKEND_ENDPOINTS.filter((endpoint) => endpointIds.includes(endpoint.id))
 
   return (
-    <header className="border-b border-white/10 pb-5">
-      <h1 className="text-xl font-semibold text-white">{title}</h1>
-      <p className="mt-1.5 max-w-3xl text-sm text-zinc-400">{description}</p>
+    <header className="grid gap-6 border-b border-zinc-300 pb-8 md:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.6fr)] md:items-end md:pb-10">
+      <h1 className="text-headline text-black">{title}</h1>
+      <p className="text-body max-w-xl text-zinc-600 md:justify-self-end">{description}</p>
       {endpoints.length > 0 ? (
-        <ul className="mt-3 flex flex-wrap gap-2">
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 md:col-span-2">
           {endpoints.map((endpoint) => (
-            <li
-              key={endpoint.id}
-              className="rounded border border-white/10 bg-cockpit-inset px-2 py-0.5 font-mono text-xs text-zinc-400"
-            >
+            <li key={endpoint.id} className="text-metadata border-t border-zinc-300 pt-2 font-mono text-zinc-600">
               {endpoint.method} {endpoint.path}
             </li>
           ))}

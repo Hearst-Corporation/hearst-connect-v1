@@ -20,65 +20,76 @@
 /*
  * Design system — Hearst Connect
  * ------------------------------------------------------------------
- * Ce workspace déclare SA propre palette. Rien n'est hérité d'un autre
- * projet (doctrine Hearst §5bis / §6 — vérifié par `npm run check:catalyst`).
- *
- * ── Un seul accent : OR HEARST ────────────────────────────────────────────
- * `accent-*` porte l'identité du produit. Il ne dit JAMAIS un état : un
- * élément or est de marque ou primaire, jamais « réussi ». Les quatre gammes
- * sémantiques ci-dessous disent les états, et aucune n'emprunte l'accent —
- * c'est précisément le défaut que cette palette corrige (l'ancien
- * `hearst-accent` et `hearst-ok` partageaient le même vert #a7fb90, si bien
- * qu'on ne pouvait pas distinguer la marque d'un succès).
- *
- * ── Le neutre est bleuté, et c'est `zinc` qui le porte ────────────────────
- * Catalyst est bâti de bout en bout sur l'échelle `zinc`. Tailwind v4 compile
- * `bg-zinc-900` en `var(--color-zinc-900)` : redéclarer l'échelle re-teinte
- * donc le kit vendoré en bleu nuit SANS ouvrir un seul de ses fichiers. C'est
- * la seule façon d'obtenir « anthracite bleuté » sans violer la zone no-touch.
- * Les valeurs sont celles de `slate` (le neutre bleuté officiel de Tailwind),
- * sauf `zinc-950` remonté de #020617 à #050A16 — un bleu nuit qui reste une
- * couleur plutôt qu'un noir.
+ * Relevé normatif : hearstcorporation.io, 28 juillet 2026.
+ * Le site charge une fonte grotesque propriétaire puis Arial. La fonte trial n'est pas
+ * distribuable avec ce produit : Arial, son fallback officiel et légal, est
+ * donc la fonte applicative. Les valeurs de marque observées sont le noir,
+ * le blanc, le blanc minéral #FCFDFC et le vert #A7FB90.
  */
 
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-sans--font-feature-settings: 'cv11';
+  --font-sans: Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* ── Neutre bleu nuit — l'échelle que Catalyst consomme ─────────────────── */
-  --color-zinc-50: #f8fafc;
-  --color-zinc-100: #f1f5f9;
-  --color-zinc-200: #e2e8f0;
-  --color-zinc-300: #cbd5e1;
-  --color-zinc-400: #94a3b8;
-  --color-zinc-500: #64748b;
-  --color-zinc-600: #475569;
-  --color-zinc-700: #334155;
-  --color-zinc-800: #1e293b;
-  --color-zinc-900: #0f172a;
-  --color-zinc-950: #050a16;
+  /* Hiérarchie éditoriale explicite. */
+  --text-display: clamp(3.25rem, 7vw, 6rem);
+  --text-display--line-height: 0.96;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 400;
+  --text-headline: clamp(2.5rem, 5vw, 4.75rem);
+  --text-headline--line-height: 1;
+  --text-headline--letter-spacing: -0.035em;
+  --text-headline--font-weight: 400;
+  --text-section-title: clamp(1.75rem, 3vw, 3rem);
+  --text-section-title--line-height: 1.08;
+  --text-section-title--letter-spacing: -0.025em;
+  --text-section-title--font-weight: 400;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25;
+  --text-metadata: 0.75rem;
+  --text-metadata--line-height: 1.35;
+  --text-numeric-display: clamp(3rem, 7vw, 6.5rem);
+  --text-numeric-display--line-height: 0.9;
+  --text-numeric-display--letter-spacing: -0.045em;
+  --text-numeric-display--font-weight: 400;
 
-  /* ── Surfaces nommées — alias lisibles des mêmes valeurs ────────────────── */
-  --color-surface-page: #050a16; /* bleu nuit très sombre — fond de page      */
-  --color-surface-panel: #0f172a; /* anthracite bleuté — surface principale   */
-  --color-surface-sunken: #0a1120; /* creux — zone repliée, charge utile brute */
-  --color-surface-raised: #1e293b; /* bleu-gris sombre — surface secondaire   */
-  --color-hairline: #2e3c59; /* filet décoratif                                */
-  --color-border-control: #63769a; /* bordure de contrôle — tient le 3:1      */
+  /* Neutres minéraux consommés également par Catalyst. */
+  --color-zinc-50: #fcfdfc;
+  --color-zinc-100: #f4f5f3;
+  --color-zinc-200: #e5e6e3;
+  --color-zinc-300: #d0d2ce;
+  --color-zinc-400: #a2a49f;
+  --color-zinc-500: #7f7f7f;
+  --color-zinc-600: #62645f;
+  --color-zinc-700: #40423e;
+  --color-zinc-800: #252724;
+  --color-zinc-900: #151615;
+  --color-zinc-950: #000000;
 
-  /* ── Accent : OR HEARST (H≈45°, laiton profond) ─────────────────────────── */
-  --color-accent-50: #fbf7ec;
-  --color-accent-100: #f5edd3;
-  --color-accent-200: #e9dba6;
-  --color-accent-300: #d9c376;
-  --color-accent-400: #c6a94e; /* référence sur fond sombre                   */
-  --color-accent-500: #ac8f35; /* référence sur fond clair (vitrine)          */
-  --color-accent-600: #8c722a;
-  --color-accent-700: #6c5824;
-  --color-accent-800: #4d3f1d;
-  --color-accent-900: #332a16;
-  --color-accent-950: #1c170c;
-  --color-accent-ink: #17120a; /* premier plan SOMBRE posé sur l'or           */
+  --color-surface-page: #fcfdfc;
+  --color-surface-panel: #ffffff;
+  --color-surface-subtle: #f4f5f3;
+  --color-surface-inverse: #000000;
+  --color-surface-code: #151615;
+  --color-hairline: #d0d2ce;
+  --color-hairline-inverse: #40423e;
+  --color-border-control: #7f7f7f;
+
+  /* Accent de marque réellement observé sur le site officiel. */
+  --color-accent-50: #f4fff1;
+  --color-accent-100: #e6ffdf;
+  --color-accent-200: #d0ffc4;
+  --color-accent-300: #b9fda7;
+  --color-accent-400: #a7fb90;
+  --color-accent-500: #73de56;
+  --color-accent-600: #50b936;
+  --color-accent-700: #3b8c29;
+  --color-accent-800: #2f6e24;
+  --color-accent-900: #285b21;
+  --color-accent-950: #0d3310;
+  --color-accent-ink: #000000;
 
   /* ── États — quatre gammes, aucune n'est l'accent ───────────────────────── */
   --color-success-50: #ecfdf5;
@@ -90,12 +101,6 @@
   --color-success-950: #052e23;
   --color-success-ink: #022c22;
 
-  /*
-   * `warning` est ORANGE et non ambre, à dessein. L'ambre (H≈38°) et l'or
-   * (H≈45°) sont voisins : sur une pastille de six pixels, la teinte domine la
-   * saturation et l'on ne distingue plus un avertissement d'un élément de
-   * marque. L'orange (H≈25°) s'en sépare franchement.
-   */
   --color-warning-50: #fff7ed;
   --color-warning-300: #fdba74;
   --color-warning-400: #fb923c;
@@ -123,23 +128,36 @@
   --color-info-950: #0b1b33;
   --color-info-ink: #0a1b33;
 
-  /*
-   * ── Alias de compatibilité ───────────────────────────────────────────────
-   * Les anciens noms survivent le temps de la migration et pointent vers les
-   * nouvelles valeurs : les composants existants basculent sans être touchés,
-   * et aucun écran ne casse entre deux lots. Ils disparaîtront quand le
-   * dernier appelant aura été repris.
-   */
-  --color-cockpit-deep: #050a16;
-  --color-cockpit-page: #050a16;
-  --color-cockpit-card: #0f172a;
-  --color-cockpit-inset: #0a1120;
-  --color-cockpit-raised: #1e293b;
-  --color-hearst-accent: #c6a94e;
-  --color-hearst-accent-light: #d9c376;
-  --color-hearst-ink: #17120a;
-  --color-hearst-ok: #34d399;
-  --color-hearst-warn: #fb923c;
-  --color-hearst-bad: #f87171;
-  --color-hearst-info: #60a5fa;
+  --radius-panel: 0px;
+  --radius-control: 2px;
+  --shadow-panel: 0 1px 0 rgb(0 0 0 / 0.08);
+}
+
+@layer base {
+  body {
+    background: var(--color-surface-page);
+    color: var(--color-zinc-950);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-accent-400);
+    color: var(--color-accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 }

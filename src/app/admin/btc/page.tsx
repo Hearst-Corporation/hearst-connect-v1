@@ -39,7 +39,12 @@ type Evenement = {
 
 type Btc = {
   readonly reserve?: Resolu<{ balanceUsdc: string | null; balanceBtc: string | null }>
-  readonly exposure?: Resolu<{ pouch: string | null; valueUsdc: string | null; targetBps: number | null; actualBps: number | null }>
+  readonly exposure?: Resolu<{
+    pouch: string | null
+    valueUsdc: string | null
+    targetBps: number | null
+    actualBps: number | null
+  }>
   readonly btcProduced?: Resolu<{ totalSats: string | null; lastReportTime: string | null }>
   readonly takeProfitTiers?: Resolu<unknown>
   readonly events?: Resolu<readonly Evenement[]>
@@ -103,17 +108,17 @@ function partLisible(bps: number | null | undefined): string {
 
 /** La gravité décide de la couleur ET du mot : un daltonien lit le même état. */
 const GRAVITE: Record<string, { readonly mot: string; readonly point: string; readonly texte: string }> = {
-  critical: { mot: 'Critique', point: 'bg-danger-500', texte: 'text-danger-400' },
-  error: { mot: 'Anomalie', point: 'bg-danger-500', texte: 'text-danger-400' },
-  warning: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400' },
-  warn: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400' },
-  info: { mot: 'Pour information', point: 'bg-info-500', texte: 'text-info-400' },
-  notice: { mot: 'Pour information', point: 'bg-info-500', texte: 'text-info-400' },
+  critical: { mot: 'Critique', point: 'bg-zinc-950', texte: 'text-zinc-950' },
+  error: { mot: 'Anomalie', point: 'bg-zinc-950', texte: 'text-zinc-950' },
+  warning: { mot: 'À surveiller', point: 'bg-zinc-600', texte: 'text-zinc-700' },
+  warn: { mot: 'À surveiller', point: 'bg-zinc-600', texte: 'text-zinc-700' },
+  info: { mot: 'Pour information', point: 'bg-zinc-300', texte: 'text-zinc-600' },
+  notice: { mot: 'Pour information', point: 'bg-zinc-300', texte: 'text-zinc-600' },
 }
 
 function graviteLisible(brut: string | null | undefined) {
-  if (typeof brut !== 'string') return { mot: 'Non qualifié', point: 'bg-zinc-600', texte: 'text-zinc-400' }
-  return GRAVITE[brut.toLowerCase()] ?? { mot: 'Non qualifié', point: 'bg-zinc-600', texte: 'text-zinc-400' }
+  if (typeof brut !== 'string') return { mot: 'Non qualifié', point: 'bg-zinc-300', texte: 'text-zinc-500' }
+  return GRAVITE[brut.toLowerCase()] ?? { mot: 'Non qualifié', point: 'bg-zinc-300', texte: 'text-zinc-500' }
 }
 
 /**
@@ -138,7 +143,10 @@ function nomLisible(brut: string | null | undefined): string {
   return decoupe === '' ? 'Événement sans intitulé' : decoupe
 }
 
-function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: readonly Evenement[]; statutLive: boolean }>) {
+function CeQuiSestPasse({
+  evenements,
+  statutLive,
+}: Readonly<{ evenements: readonly Evenement[]; statutLive: boolean }>) {
   if (evenements.length === 0) {
     return statutLive ? (
       <CalmState message="Aucun mouvement bitcoin n’a été enregistré. Rien ne demande d’attention." />
@@ -151,16 +159,16 @@ function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: reado
         title="Que s’est-il passé récemment ?"
         hint="Les mouvements et alertes remontés par le service, du plus récent au plus ancien"
       />
-      <ul className="divide-y divide-white/[0.07]">
+      <ul className="divide-hairline divide-y">
         {evenements.map((e, index) => {
           const gravite = graviteLisible(e.severity)
           return (
             <li
               key={`${e.name ?? 'evenement'}-${e.occurredAt ?? String(index)}`}
-              className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm"
+              className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-4 text-sm"
             >
-              <span aria-hidden="true" className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)} />
-              <span className="min-w-0 flex-1 text-white">{nomLisible(e.name)}</span>
+              <span aria-hidden="true" className={clsx('h-px w-4 shrink-0', gravite.point)} />
+              <span className="min-w-0 flex-1 text-zinc-950">{nomLisible(e.name)}</span>
               {e.category === null || e.category === undefined || e.category === '' ? null : (
                 <span className="text-xs text-zinc-500">{nomLisible(e.category)}</span>
               )}
@@ -201,7 +209,7 @@ export default async function Page() {
   const listeEvenements = evenements ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Bitcoin"
         description="Ce que le fonds a produit en bitcoin, comment son argent se partage entre réserve et exposition, et ce qui s’est passé récemment."
@@ -217,7 +225,7 @@ export default async function Page() {
       ) : (
         <>
           {/* ── Ce que le fonds a produit ─────────────────────────────────── */}
-          <Card className="p-6">
+          <Card className="p-6 sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
               <HeroFigure valeur={bitcoinProduit} libelle="Bitcoin produit à ce jour" unite="BTC" />
               <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -242,7 +250,7 @@ export default async function Page() {
                       'Ni la réserve ni la valeur exposée n’ont pu être lues sur la chaîne. Rien n’est tracé plutôt qu’une répartition à zéro.',
                   }
             }
-            hauteur="h-44"
+            hauteur="h-56"
           >
             <ReserveExpositionChart postes={postes} />
           </ChartFrame>
@@ -254,22 +262,22 @@ export default async function Page() {
                 title="La part exposée respecte-t-elle sa cible ?"
                 hint="Comparaison entre la part visée par le contrat et celle constatée sur la chaîne"
               />
-              <ul className="divide-y divide-white/[0.07]">
+              <ul className="divide-hairline divide-y">
                 <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                  <span className="w-40 shrink-0 text-zinc-400">Poche exposée</span>
-                  <span className="text-white">
+                  <span className="w-40 shrink-0 text-zinc-600">Poche exposée</span>
+                  <span className="text-zinc-950">
                     {exposition.pouch === null || exposition.pouch === undefined || exposition.pouch === ''
                       ? 'Non communiquée'
                       : exposition.pouch}
                   </span>
                 </li>
                 <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                  <span className="w-40 shrink-0 text-zinc-400">Part visée</span>
-                  <span className="text-white tabular-nums">{partLisible(exposition.targetBps)}</span>
+                  <span className="w-40 shrink-0 text-zinc-600">Part visée</span>
+                  <span className="text-zinc-950 tabular-nums">{partLisible(exposition.targetBps)}</span>
                 </li>
                 <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                  <span className="w-40 shrink-0 text-zinc-400">Part constatée</span>
-                  <span className="text-white tabular-nums">{partLisible(exposition.actualBps)}</span>
+                  <span className="w-40 shrink-0 text-zinc-600">Part constatée</span>
+                  <span className="text-zinc-950 tabular-nums">{partLisible(exposition.actualBps)}</span>
                 </li>
               </ul>
             </Card>
@@ -279,7 +287,7 @@ export default async function Page() {
           <CeQuiSestPasse evenements={listeEvenements} statutLive={b.events?.status === 'LIVE'} />
 
           {/* ── Cadres en attente de leur source ──────────────────────────── */}
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-8 lg:grid-cols-2">
             <ChartFrame
               question="D’où vient le rendement du bitcoin ?"
               unite="en pourcentage du total"
@@ -288,7 +296,7 @@ export default async function Page() {
                 b.attribution,
                 'La décomposition du rendement n’est pas encore calculée sur ce déploiement.',
               )}
-              hauteur="h-40"
+              hauteur="h-52"
             />
             <ChartFrame
               question="À quelle cadence le bitcoin est-il produit ?"
@@ -298,17 +306,14 @@ export default async function Page() {
                 b.production,
                 'Le service ne transmet qu’un cumul, sans historique. Une courbe exigerait une série conservée dans le temps.',
               )}
-              hauteur="h-40"
+              hauteur="h-52"
             />
             <ChartFrame
               question="Où les bitcoins sont-ils conservés ?"
               unite="en bitcoin, par lieu de conservation"
               provenance="registre de conservation"
-              etat={etatDe(
-                b.custody,
-                'La répartition des avoirs par lieu de conservation n’est pas encore transmise.',
-              )}
-              hauteur="h-40"
+              etat={etatDe(b.custody, 'La répartition des avoirs par lieu de conservation n’est pas encore transmise.')}
+              hauteur="h-52"
             />
             <ChartFrame
               question="À quels prix les bénéfices sont-ils pris ?"
@@ -318,7 +323,7 @@ export default async function Page() {
                 b.takeProfitTiers,
                 'Les paliers de prise de bénéfice ne sont pas encore ouverts sur le contrat déployé.',
               )}
-              hauteur="h-40"
+              hauteur="h-52"
             />
           </div>
         </>

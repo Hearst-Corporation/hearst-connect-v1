@@ -33,7 +33,7 @@ const SURFACES_PRODUIT = [
  * un champ précis, et c'est pourquoi elles ne sont pas refondues. Elles ne
  * réclament l'attention de personne au quotidien.
  */
-const VUES_BRUTES = [
+const VUES_DIAGNOSTIC = [
   { href: '/admin/mining', libelle: 'Minage', aide: 'Réponse brute des trois routes' },
   { href: '/admin/btc', libelle: 'Bitcoin', aide: 'Réponse brute' },
   { href: '/admin/product', libelle: 'Fiche produit', aide: 'Termes contractuels, réponse brute' },
@@ -42,7 +42,7 @@ const VUES_BRUTES = [
   { href: '/admin/profile', libelle: 'Profil', aide: 'Identité du compte connecté' },
 ] as const
 
-const SURFACES_TECHNIQUES = [
+const INFRASTRUCTURE_TECHNIQUE = [
   { href: '/admin/runtime', libelle: 'État détaillé du service', aide: 'Base, chaîne, relevé des mouvements' },
   { href: '/admin/api-explorer', libelle: 'Explorateur de routes', aide: 'Appel unitaire de chaque route du registre' },
   { href: '/admin/keeper', libelle: 'Actions de maintenance', aide: 'Désarmées par défaut' },
@@ -50,18 +50,18 @@ const SURFACES_TECHNIQUES = [
 
 function ListeLiens({ items }: Readonly<{ items: readonly { href: string; libelle: string; aide: string }[] }>) {
   return (
-    <ul className="divide-y divide-white/[0.07]">
+    <ul className="divide-y divide-zinc-300">
       {items.map((s) => (
         <li key={s.href}>
           <Link
             href={s.href}
-            className="flex items-baseline justify-between gap-4 px-5 py-3 transition hover:bg-white/[0.04] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-400"
+            className="group flex items-baseline justify-between gap-6 px-5 py-5 transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
           >
             <span className="min-w-0">
-              <span className="block truncate text-sm text-zinc-200">{s.libelle}</span>
-              <span className="block truncate text-xs text-zinc-400">{s.aide}</span>
+              <span className="block text-base font-normal text-black">{s.libelle}</span>
+              <span className="mt-1 block text-sm leading-5 text-zinc-600">{s.aide}</span>
             </span>
-            <span aria-hidden="true" className="shrink-0 text-zinc-400">
+            <span aria-hidden="true" className="shrink-0 text-zinc-600 transition-transform group-hover:translate-x-1">
               →
             </span>
           </Link>
@@ -75,68 +75,94 @@ export default async function Page() {
   const session = await requireSession()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <PageHeader
         title="Administration"
         description="L’équipe, les traces d’activité, les réglages — et les outils techniques, disponibles sans être imposés."
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <section aria-labelledby="gouvernance" className="space-y-5">
+        <div className="border-t border-zinc-300 pt-5">
+          <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">01</p>
+          <h2 id="gouvernance" className="mt-3 text-3xl font-normal tracking-tight text-black">
+            Gouvernance
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
+            Identités habilitées, décisions administratives et attribution des responsabilités.
+          </p>
+        </div>
+
         <Card>
-          <CardHeader title="Équipe" hint="Qui accède à cette console" />
-          <div className="px-5 py-4">
-            <p className="text-sm text-white">{session.name}</p>
-            <p className="text-xs text-zinc-400">{session.email}</p>
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-accent-400/10 px-2 py-0.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30 ring-inset">
-              Propriétaire
-            </p>
-            <p className="mt-4 text-xs text-zinc-400">
-              Un seul compte propriétaire est déclaré aujourd’hui. L’ajout de membres, les rôles distincts et les
-              délégations attendent leur source.
-            </p>
+          <CardHeader title="Accès et décisions" hint="La gouvernance actuellement vérifiable" />
+          <div className="grid divide-y divide-zinc-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+            <div className="px-5 py-6">
+              <p className="text-xs tracking-[0.14em] text-zinc-600 uppercase">Compte propriétaire</p>
+              <p className="mt-5 text-lg font-normal text-black">{session.name}</p>
+              <p className="mt-1 text-sm text-zinc-600">{session.email}</p>
+              <p className="mt-6 border-t border-zinc-300 pt-4 text-sm leading-6 text-zinc-600">
+                Un seul compte propriétaire est déclaré aujourd’hui. L’ajout de membres, les rôles distincts et les
+                délégations attendent leur source.
+              </p>
+            </div>
+            <div className="px-5 py-6">
+              <p className="text-xs tracking-[0.14em] text-zinc-600 uppercase">Journal des décisions</p>
+              <p className="mt-5 max-w-xl text-sm leading-6 text-zinc-600">
+                Le journal d’administration existe en base mais n’est pas encore transmis. Aucune ligne n’est inventée
+                ici : tant qu’il n’est pas lisible, cette zone reste vide.
+              </p>
+            </div>
           </div>
         </Card>
 
-        <Card>
-          <CardHeader title="Journal des décisions" hint="Qui a fait quoi, et quand" />
-          <div className="px-5 py-4">
-            <p className="text-sm text-zinc-400">
-              Le journal d’administration existe en base mais n’est pas encore transmis. Aucune ligne n’est inventée
-              ici : tant qu’il n’est pas lisible, cette zone reste vide.
-            </p>
-          </div>
-        </Card>
-      </div>
+        <SourceAttendue
+          quoi="Rôles, permissions et délégations attendent leur source"
+          detail="Le modèle de données ne connaît aujourd’hui que deux rôles, propriétaire et investisseur. Une équipe d’opérations et une équipe de conformité ont pourtant besoin de droits distincts."
+          requis={[
+            'Des rôles distincts pour la conformité et pour les opérations, avec leurs permissions',
+            'La lecture du journal d’administration, rendue en phrases lisibles',
+            'La double authentification et la gestion des sessions actives',
+          ]}
+        />
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <section aria-labelledby="produit" className="space-y-5">
+        <div className="border-t border-zinc-300 pt-5">
+          <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">02</p>
+          <h2 id="produit" className="mt-3 text-3xl font-normal tracking-tight text-black">
+            Produit
+          </h2>
+        </div>
         <Card>
-          <CardHeader title="Surfaces produit" hint="Le portefeuille, le minage, le bitcoin" />
+          <CardHeader title="Surfaces produit" hint="Le portefeuille, le minage et le bitcoin" />
           <ListeLiens items={SURFACES_PRODUIT} />
         </Card>
+      </section>
 
+      <section aria-labelledby="infrastructure" className="space-y-5">
+        <div className="border-t border-zinc-300 pt-5">
+          <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">03</p>
+          <h2 id="infrastructure" className="mt-3 text-3xl font-normal tracking-tight text-black">
+            Infrastructure technique
+          </h2>
+        </div>
         <Card>
-          <CardHeader title="Outils techniques" hint="Le sous-sol — utile, jamais au premier plan" />
-          <ListeLiens items={SURFACES_TECHNIQUES} />
+          <CardHeader title="Outils techniques" hint="Disponibles sans occuper le premier plan" />
+          <ListeLiens items={INFRASTRUCTURE_TECHNIQUE} />
         </Card>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader
-          title="Vues brutes"
-          hint="La réponse du service, sans mise en forme — pour vérifier un champ précis"
-        />
-        <ListeLiens items={VUES_BRUTES} />
-      </Card>
-
-      <SourceAttendue
-        quoi="Rôles, permissions et délégations attendent leur source"
-        detail="Le modèle de données ne connaît aujourd’hui que deux rôles, propriétaire et investisseur. Une équipe d’opérations et une équipe de conformité ont pourtant besoin de droits distincts."
-        requis={[
-          'Des rôles distincts pour la conformité et pour les opérations, avec leurs permissions',
-          'La lecture du journal d’administration, rendue en phrases lisibles',
-          'La double authentification et la gestion des sessions actives',
-        ]}
-      />
+      <section aria-labelledby="diagnostic" className="space-y-5">
+        <div className="border-t border-zinc-300 pt-5">
+          <p className="text-xs tracking-[0.18em] text-zinc-600 uppercase">04</p>
+          <h2 id="diagnostic" className="mt-3 text-3xl font-normal tracking-tight text-black">
+            Vues de diagnostic
+          </h2>
+        </div>
+        <Card>
+          <CardHeader title="Réponses brutes" hint="Pour vérifier un champ précis, sans mise en forme" />
+          <ListeLiens items={VUES_DIAGNOSTIC} />
+        </Card>
+      </section>
     </div>
   )
 }

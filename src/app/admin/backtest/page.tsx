@@ -36,7 +36,7 @@ export default async function Page() {
   const aucune = executions === null || executions === undefined || executions.length === 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Rétro-tests"
         description="Ce que la stratégie du fonds aurait produit sur des périodes passées. Tout est calculé par le service : rien n’est projeté, extrapolé ni lissé ici."
@@ -62,7 +62,7 @@ export default async function Page() {
                   ? 'Aucun rétro-test n’a encore été exécuté. Tant qu’il n’y en a pas, aucune courbe n’est tracée : une performance historique inventée se lirait comme une promesse de rendement.'
                   : `Aucune courbe n’est tracée : ${motif}. Une performance historique inventée se lirait comme une promesse de rendement.`,
             }}
-            hauteur="h-64"
+            hauteur="h-72"
           />
 
           {aucune ? (
@@ -81,9 +81,9 @@ export default async function Page() {
                 title="Quels rétro-tests ont été exécutés ?"
                 hint={`${executions.length} exécution${executions.length > 1 ? 's' : ''} conservée${executions.length > 1 ? 's' : ''}`}
               />
-              <ul className="divide-y divide-white/[0.07]">
+              <ul className="divide-hairline divide-y">
                 {executions.map((execution, rang) => (
-                  <li key={execution.id ?? String(rang)} className="px-5 py-3.5 text-sm text-white">
+                  <li key={execution.id ?? String(rang)} className="px-5 py-4 text-sm text-zinc-950">
                     {execution.label === null || execution.label === undefined || execution.label === ''
                       ? 'Exécution sans intitulé'
                       : execution.label}

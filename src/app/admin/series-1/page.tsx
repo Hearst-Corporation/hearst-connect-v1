@@ -88,7 +88,7 @@ export default async function Page() {
   const mouvements = bloc?.value
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="Série 1"
         description="Tout ce que la chaîne a enregistré pour ce fonds, du plus récent au plus ancien. Chaque ligne vient du service ; rien n’est agrégé ni estimé ici."
@@ -121,7 +121,7 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
 
   return (
     <>
-      <Card className="p-6">
+      <Card className="p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <HeroFigure valeur={mouvements.length.toLocaleString('fr-FR')} libelle="Mouvements enregistrés" />
           <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -135,7 +135,7 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
         </div>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader
             title="De quoi ce journal est-il fait ?"
@@ -145,14 +145,11 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
             {repartition.map(([nom, nombre]) => (
               <li key={nom}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate text-xs text-zinc-300">{nom}</span>
+                  <span className="min-w-0 truncate text-xs text-zinc-700">{nom}</span>
                   <span className="shrink-0 text-xs text-zinc-500 tabular-nums">{nombre}</span>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
-                  <div
-                    className="h-full rounded-full bg-accent-400"
-                    style={{ width: `${Math.round((nombre / maximum) * 100)}%` }}
-                  />
+                <div className="mt-2 h-1 overflow-hidden bg-zinc-100">
+                  <div className="bg-accent-400 h-full" style={{ width: `${Math.round((nombre / maximum) * 100)}%` }} />
                 </div>
               </li>
             ))}
@@ -161,7 +158,7 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
 
         <Card className="lg:col-span-2">
           <CardHeader title="Que s’est-il passé ?" hint="Du plus récent au plus ancien" />
-          <ol className="divide-y divide-white/[0.07]">
+          <ol className="divide-hairline divide-y">
             {mouvements.map((m) => (
               <LigneMouvement key={m.id} mouvement={m} />
             ))}
@@ -184,9 +181,9 @@ function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
   return (
     <li className="px-5 py-3.5">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-sm text-white">{phraseMouvement(mouvement.eventName)}</span>
+        <span className="text-sm text-zinc-950">{phraseMouvement(mouvement.eventName)}</span>
         {estFinancier(mouvement) ? (
-          <span className="text-sm font-semibold text-accent-300 tabular-nums">
+          <span className="text-sm font-medium text-zinc-950 tabular-nums">
             {montantUsdc(mouvement.assetAmountAtomic)}
           </span>
         ) : null}
@@ -194,10 +191,10 @@ function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
           {ilYA(mouvement.occurredAt)}
         </span>
       </div>
-      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-zinc-500">
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-zinc-600">
         {investisseur !== null ? (
           <span>
-            investisseur <span className="font-mono text-zinc-400">{investisseur}</span>
+            investisseur <span className="font-mono text-zinc-700">{investisseur}</span>
           </span>
         ) : null}
         {bloc === null || bloc === undefined || bloc === '' ? null : (

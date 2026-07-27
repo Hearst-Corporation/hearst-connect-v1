@@ -37,10 +37,10 @@ type Runtime = {
 type Ton = 'sain' | 'attention' | 'critique' | 'neutre'
 
 const POINT: Record<Ton, string> = {
-  sain: 'bg-success-500',
-  attention: 'bg-warning-500',
-  critique: 'bg-danger-500',
-  neutre: 'bg-zinc-600',
+  sain: 'bg-zinc-950',
+  attention: 'bg-zinc-600',
+  critique: 'bg-zinc-950',
+  neutre: 'bg-zinc-300',
 }
 
 /** Chaque état machine connu reçoit une phrase. Un inconnu reste neutre. */
@@ -83,13 +83,17 @@ function precisionErreurs(erreurs: number | undefined): string | undefined {
   return 'aucune erreur'
 }
 
-function Ligne({ libelle, etat, precision }: Readonly<{ libelle: string; etat: ReturnType<typeof lireEtat>; precision?: string }>) {
+function Ligne({
+  libelle,
+  etat,
+  precision,
+}: Readonly<{ libelle: string; etat: ReturnType<typeof lireEtat>; precision?: string }>) {
   return (
     <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-      <span aria-hidden="true" className={clsx('size-1.5 shrink-0 self-center rounded-full', POINT[etat.ton])} />
-      <span className="text-sm text-zinc-400">{libelle}</span>
-      <span className="text-sm text-white">{etat.texte}</span>
-      {precision !== undefined ? <span className="ml-auto text-xs text-zinc-400 tabular-nums">{precision}</span> : null}
+      <span aria-hidden="true" className={clsx('h-px w-4 shrink-0 self-center', POINT[etat.ton])} />
+      <span className="text-sm text-zinc-600">{libelle}</span>
+      <span className="text-sm text-zinc-950">{etat.texte}</span>
+      {precision !== undefined ? <span className="ml-auto text-xs text-zinc-600 tabular-nums">{precision}</span> : null}
     </li>
   )
 }
@@ -110,7 +114,7 @@ function SanteService({ r }: Readonly<{ r: Runtime | null }>) {
 
 function EtatIndisponible() {
   return (
-    <p className="px-5 py-6 text-sm text-danger-400">
+    <p className="px-6 py-10 text-sm text-zinc-700 sm:px-8">
       Le service n’a pas répondu à la demande d’état. Aucun état n’est supposé.
     </p>
   )
@@ -127,15 +131,23 @@ function ListeEtats({ r }: Readonly<{ r: Runtime }>) {
   const bloc = planificateur?.lastIndexedBlock
 
   return (
-    <ul className="divide-y divide-white/[0.07]">
-      <Ligne libelle="Base de données" etat={base} precision={latence === null || latence === undefined ? undefined : `${latence} ms`} />
+    <ul className="divide-hairline divide-y">
+      <Ligne
+        libelle="Base de données"
+        etat={base}
+        precision={latence === null || latence === undefined ? undefined : `${latence} ms`}
+      />
       <Ligne libelle="Contrat" etat={contrat} />
       <Ligne
         libelle="Relevé des mouvements"
         etat={releve}
         precision={bloc === null || bloc === undefined ? undefined : `bloc ${bloc.toLocaleString('fr-FR')}`}
       />
-      <Ligne libelle="Planificateur" etat={etatPlanificateur(planificateur?.status)} precision={precisionErreurs(erreurs)} />
+      <Ligne
+        libelle="Planificateur"
+        etat={etatPlanificateur(planificateur?.status)}
+        precision={precisionErreurs(erreurs)}
+      />
     </ul>
   )
 }
@@ -145,7 +157,7 @@ export default async function RuntimePage() {
   const r = reponse.ok ? reponse.data : null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 sm:space-y-10">
       <PageHeader
         title="État du service"
         description="Ce que le service dit de lui-même, traduit. Une valeur inconnue reste inconnue : elle n’est jamais rendue comme un zéro."
@@ -157,7 +169,7 @@ export default async function RuntimePage() {
       {/* La réponse brute reste consultable : c'est le sous-sol, et on y descend
           volontairement plutôt que d'y être déposé. */}
       <EndpointSection endpointId="runtime" title="Réponse détaillée du service" />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
         <EndpointSection endpointId="health" title="Sonde de vivacité" />
         <EndpointSection endpointId="ready" title="Sonde de disponibilité" />
       </div>

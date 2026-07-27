@@ -1,6 +1,6 @@
 'use client'
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
  * « L'argent est-il placé là où il devrait l'être ? »
@@ -24,8 +24,8 @@ export type PocheAllocation = {
   readonly reel: number | null
 }
 
-const OR = '#c6a94e'
-const BLEU = '#60a5fa'
+const TARGET = 'var(--color-zinc-400)'
+const ACTUAL = 'var(--color-zinc-950)'
 
 function InfoBulle({
   active,
@@ -34,10 +34,10 @@ function InfoBulle({
 }: Readonly<{ active?: boolean; payload?: readonly { name?: string; value?: number }[]; label?: string }>) {
   if (active !== true || payload === undefined || payload.length === 0) return null
   return (
-    <div className="rounded-lg border border-white/10 bg-surface-raised px-3 py-2 text-xs shadow-lg">
-      <p className="font-medium text-white">{label}</p>
+    <div className="text-metadata shadow-panel border border-zinc-300 bg-white px-3 py-2">
+      <p className="font-medium text-black">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} className="mt-0.5 text-zinc-300 tabular-nums">
+        <p key={p.name} className="mt-0.5 text-zinc-700 tabular-nums">
           {p.name} : {typeof p.value === 'number' ? `${p.value.toFixed(1)} %` : '—'}
         </p>
       ))}
@@ -50,14 +50,14 @@ export function AllocationChart({ poches }: Readonly<{ poches: readonly PocheAll
 
   if (lisibles.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500">
+      <p className="text-label py-10 text-center text-zinc-600">
         Aucun solde de poche n’a pu être lu sur la chaîne. Rien n’est tracé plutôt qu’une répartition à zéro.
       </p>
     )
   }
 
   return (
-    <div className="px-2 py-4">
+    <div className="py-6">
       {/* Le tableau sous le graphique n'est pas un doublon : c'est la seule
           version lisible par un lecteur d'écran, et la seule utilisable au
           clavier. Il est masqué à l'œil, jamais à l'assistance. */}
@@ -81,39 +81,39 @@ export function AllocationChart({ poches }: Readonly<{ poches: readonly PocheAll
         </tbody>
       </table>
 
-      <div aria-hidden="true" className="h-56 w-full">
+      <div aria-hidden="true" className="text-metadata mb-4 flex flex-wrap gap-5 text-zinc-600">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-px w-5 bg-zinc-400" />
+          Visée
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-1 w-5 bg-black" />
+          Constatée
+        </span>
+      </div>
+      <div aria-hidden="true" className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={[...lisibles]} margin={{ top: 4, right: 8, bottom: 4, left: -16 }} barGap={2}>
-            <CartesianGrid stroke="#2e3c59" strokeDasharray="2 4" vertical={false} />
-            <XAxis dataKey="poche" tick={{ fill: '#94a3b8', fontSize: 11 }} tickLine={false} axisLine={false} />
+            <CartesianGrid stroke="var(--color-zinc-300)" vertical={false} />
+            <XAxis
+              dataKey="poche"
+              tick={{ fill: 'var(--color-zinc-600)', fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis
-              tick={{ fill: '#94a3b8', fontSize: 11 }}
+              tick={{ fill: 'var(--color-zinc-600)', fontSize: 11 }}
               tickLine={false}
               axisLine={false}
               unit=" %"
               width={52}
             />
-            <Tooltip content={<InfoBulle />} cursor={{ fill: '#ffffff0a' }} />
-            <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} iconType="circle" iconSize={7} />
+            <Tooltip content={<InfoBulle />} cursor={{ fill: 'var(--color-zinc-100)' }} />
             {/* Animation coupée : une barre qui pousse depuis zéro n'apprend
                 rien à une équipe d'opérations, retarde la lecture, et laisse
                 une capture d'écran sur un graphique vide. */}
-            <Bar
-              dataKey="cible"
-              name="Visée"
-              fill={BLEU}
-              radius={[3, 3, 0, 0]}
-              maxBarSize={26}
-              isAnimationActive={false}
-            />
-            <Bar
-              dataKey="reel"
-              name="Constatée"
-              fill={OR}
-              radius={[3, 3, 0, 0]}
-              maxBarSize={26}
-              isAnimationActive={false}
-            />
+            <Bar dataKey="cible" name="Visée" fill={TARGET} radius={0} maxBarSize={26} isAnimationActive={false} />
+            <Bar dataKey="reel" name="Constatée" fill={ACTUAL} radius={0} maxBarSize={26} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -1,10 +1,4 @@
-import {
-  DataProvenance,
-  EmptyState,
-  ResolvedValue,
-  StatusBadge,
-  UnavailableState,
-} from '@/components/admin/truthful'
+import { DataProvenance, EmptyState, ResolvedValue, StatusBadge, UnavailableState } from '@/components/admin/truthful'
 import { resolved } from '@/lib/resolved'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
@@ -43,7 +37,7 @@ describe('étiquetage des provenances non live', () => {
     const { container } = render(<DataProvenance provenance="fixture" />)
     expect(container.textContent).toMatch(/Fixture backend/)
     // Marquage voyant : la fixture ne se fond pas dans le texte neutre.
-    expect(container.querySelector('.text-hearst-warn')).not.toBeNull()
+    expect(container.querySelector('.text-warning-700')).not.toBeNull()
   })
 })
 
