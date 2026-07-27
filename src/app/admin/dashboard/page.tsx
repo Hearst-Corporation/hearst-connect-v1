@@ -167,6 +167,31 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
   )
 }
 
+function CorpsCouverture({
+  agregat,
+  surfaces,
+}: Readonly<{ agregat: Record<string, unknown> | null; surfaces: readonly Surface[] }>) {
+  if (agregat === null) {
+    return (
+      <SourceAttendue
+        quoi="L’état des surfaces n’a pas pu être lu"
+        detail="Le service n’a pas répondu. Aucune couverture n’est supposée : afficher « tout va bien » sans réponse serait le pire des mensonges sur cet écran."
+        requis={['Une réponse du service']}
+      />
+    )
+  }
+  if (surfaces.length === 0) {
+    return (
+      <SourceAttendue
+        quoi="Le service n’a décrit aucune surface"
+        detail="La réponse est arrivée, mais elle ne contient aucune surface exploitable. Rien n’est déduit de ce silence."
+        requis={['Une réponse décrivant l’état de chaque surface']}
+      />
+    )
+  }
+  return <CouvertureDonnees surfaces={surfaces} />
+}
+
 export default async function Page() {
   const reponse = await callBackend<Record<string, unknown>>('dashboard')
   const agregat = reponse.ok ? reponse.data : null
@@ -191,21 +216,7 @@ export default async function Page() {
         endpointIds={['dashboard']}
       />
 
-      {agregat === null ? (
-        <SourceAttendue
-          quoi="L’état des surfaces n’a pas pu être lu"
-          detail="Le service n’a pas répondu. Aucune couverture n’est supposée : afficher « tout va bien » sans réponse serait le pire des mensonges sur cet écran."
-          requis={['Une réponse du service']}
-        />
-      ) : surfaces.length === 0 ? (
-        <SourceAttendue
-          quoi="Le service n’a décrit aucune surface"
-          detail="La réponse est arrivée, mais elle ne contient aucune surface exploitable. Rien n’est déduit de ce silence."
-          requis={['Une réponse décrivant l’état de chaque surface']}
-        />
-      ) : (
-        <CouvertureDonnees surfaces={surfaces} />
-      )}
+      <CorpsCouverture agregat={agregat} surfaces={surfaces} />
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
       <EndpointSection endpointId="dashboard" title="Réponse détaillée du service" />
