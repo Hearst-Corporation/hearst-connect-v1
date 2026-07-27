@@ -75,13 +75,12 @@ export function backendUrl(): string | null {
   return raw.replace(/\/+$/, '')
 }
 
-/** Clé de signature du pont serveur → backend. `null` si absente ou trop courte. */
-export function sessionSigningKey(): string | null {
-  const raw = process.env.SESSION_SIGNING_KEY?.trim()
-  return raw && raw.length >= MIN_SECRET_LENGTH ? raw : null
-}
-
-/** Secret de la session frontend. Ne sert JAMAIS à parler au backend. */
+/**
+ * Secret de protection du cookie de session frontend.
+ *
+ * Il ne sert JAMAIS à parler au backend : depuis la bascule sur
+ * l'authentification backend, ce frontend ne signe plus aucun jeton d'API.
+ */
 export function authSecret(): string | null {
   const raw = process.env.AUTH_SECRET?.trim()
   return raw && raw.length >= MIN_SECRET_LENGTH ? raw : null
@@ -93,17 +92,22 @@ export function authSecret(): string | null {
  */
 export function environmentReport(): EnvVarReport[] {
   return [
-    readUrl('HEARST_API_URL', 'Base du backend Hearst Connect.'),
-    readSecret('AUTH_SECRET', 'Signature de la session frontend, uniquement.'),
-    readSecret('SESSION_SIGNING_KEY', 'Pont serveur → backend. Doit être identique côté Railway.'),
+    readUrl('HEARST_API_URL', 'Base du backend Hearst Connect — autorité d’authentification.'),
+    readSecret('AUTH_SECRET', 'Protection du cookie de session frontend, uniquement.'),
   ]
 }
 
 export type ConfigHealth = {
   /** Les sondes publiques sont appelables. */
   publicReady: boolean
-  /** Les routes authentifiées sont appelables. */
-  authenticatedReady: boolean
+  /**
+   * La connexion est possible : le backend, autorité d'authentification, est
+   * adressable, et le cookie de session peut être scellé.
+   *
+   * Ce n'est PAS « une session existe » : la présence d'une session se lit dans
+   * la session elle-même, pas dans la configuration.
+   */
+  loginReady: boolean
   report: EnvVarReport[]
 }
 
@@ -119,7 +123,7 @@ export function checkConfiguration(): ConfigHealth {
 
   return {
     publicReady: ok('HEARST_API_URL'),
-    authenticatedReady: ok('HEARST_API_URL') && ok('SESSION_SIGNING_KEY'),
+    loginReady: ok('HEARST_API_URL') && ok('AUTH_SECRET'),
     report,
   }
 }
