@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/admin/page-header'
 import { BACKEND_ENDPOINTS, type EndpointCategory } from '@/lib/backend/endpoints'
+import { backendUrl } from '@/lib/env'
 import type { Metadata } from 'next'
 import { ExplorerRow } from './explorer-row'
 
@@ -15,7 +16,7 @@ const CATEGORY_TITLES: Record<EndpointCategory, string> = {
 
 /** cURL d'exemple, jeton systématiquement expurgé. */
 function curlFor(method: string, path: string, auth: string): string {
-  const base = process.env.CONNECT_BACKEND_URL?.trim() || '$CONNECT_BACKEND_URL'
+  const base = backendUrl() ?? '$HEARST_API_URL'
   const lines = [`curl -X ${method} '${base}${path}'`, `  -H 'Accept: application/json'`, `  -H 'X-Request-Id: <uuid>'`]
   if (auth !== 'public') lines.push(`  -H 'Authorization: Bearer <REDACTED>'`)
   return lines.join(' \\\n')

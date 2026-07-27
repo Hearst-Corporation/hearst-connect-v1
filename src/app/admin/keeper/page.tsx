@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge } from '@/components/admin/truthful'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
+import { backendUrl, sessionSigningKey } from '@/lib/env'
 import { toBackendRole } from '@/lib/backend/token'
 import { requireSession } from '@/lib/auth'
 import type { Metadata } from 'next'
@@ -15,13 +16,13 @@ export default async function KeeperPage() {
 
   // Prérequis connus AVANT tout appel : sans eux les actions restent inertes.
   const isAdmin = toBackendRole(session.role) === 'admin'
-  const backendConfigured = Boolean(process.env.CONNECT_BACKEND_URL?.trim())
-  const signingConfigured = Boolean(process.env.SESSION_SIGNING_KEY?.trim())
+  const backendConfigured = Boolean(backendUrl())
+  const signingConfigured = Boolean(sessionSigningKey())
 
   const disabledReason = !isAdmin
     ? `Le rôle ${session.role} n’ouvre pas droit aux actions Keeper.`
     : !backendConfigured
-      ? 'CONNECT_BACKEND_URL n’est pas défini : aucune requête ne peut être émise.'
+      ? 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
       : !signingConfigured
         ? 'SESSION_SIGNING_KEY n’est pas définie : aucun jeton authentifié ne peut être frappé.'
         : null
