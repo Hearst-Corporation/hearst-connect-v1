@@ -42,4 +42,24 @@
   --color-accent-800: #1e40af;
   --color-accent-900: #1e3a8a;
   --color-accent-950: #172554;
+
+  /*
+   * Console d'administration — palette Hearst approuvée (HC-ADMIN-001).
+   * Cockpit dense sur surfaces noires, vert Hearst réservé à la marque, aux
+   * actions primaires, à la navigation active et aux états opérationnels
+   * confirmés. Ces tokens ne s'appliquent qu'aux routes /admin ; la vitrine et
+   * l'authentification gardent l'accent bleu ci-dessus.
+   */
+  --color-cockpit-deep: #060708;
+  --color-cockpit-page: #18181b;
+  --color-cockpit-card: #000000;
+  --color-cockpit-inset: #15191c;
+  --color-cockpit-raised: #292a2d;
+  --color-hearst-accent: #a7fb90;
+  --color-hearst-accent-light: #cffdc2;
+  --color-hearst-ink: #06140a;
+  --color-hearst-ok: #a7fb90;
+  --color-hearst-warn: #f9a03f;
+  --color-hearst-bad: #ba3f1d;
+  --color-hearst-info: #60a5fa;
 }
