@@ -4,6 +4,7 @@
 // « With call to action » (elements-headers/06), palette du projet.
 
 import { Logo } from '@/components/logo'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -36,6 +37,7 @@ export function SiteHeader() {
           ))}
         </div>
         <div className="flex flex-1 items-center justify-end gap-x-6">
+          <ThemeToggle className="max-lg:hidden" />
           <Link href="/login" className="hidden text-sm/6 font-semibold text-zinc-900 lg:block dark:text-white">
             Se connecter
           </Link>
@@ -46,7 +48,8 @@ export function SiteHeader() {
             Demander un accès
           </Link>
         </div>
-        <div className="flex lg:hidden">
+        <div className="flex items-center gap-x-1 lg:hidden">
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}

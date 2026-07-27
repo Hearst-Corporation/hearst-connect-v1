@@ -24,7 +24,9 @@ export function Hero() {
           <div className="relative rounded-full px-3 py-1 text-sm/6 text-zinc-600 ring-1 ring-zinc-900/10 hover:ring-zinc-900/20 dark:text-zinc-400 dark:ring-white/10 dark:hover:ring-white/20">
             Journal d’audit temps réel sur tous les espaces.{' '}
             <a href="#securite" className="font-semibold text-accent-600 dark:text-accent-400">
+              {/* Surface de clic hors flux : aucun espace ne doit la suivre. */}
               <span aria-hidden="true" className="absolute inset-0" />
+              {''}
               En savoir plus <span aria-hidden="true">&rarr;</span>
             </a>
           </div>

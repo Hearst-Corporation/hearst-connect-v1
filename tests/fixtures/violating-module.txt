@@ -1,0 +1,5 @@
+// Échantillon volontairement fautif, en .txt pour n'être ni compilé ni scanné
+// par le gate. Il sert à prouver que la règle DECLARED_FIXTURE mord vraiment :
+// un gate qui ne casse jamais ne démontre rien.
+const mockData = [{ id: 'x', amount: 42 }]
+export default mockData

@@ -1,7 +1,9 @@
 # Scripts de post-installation autorisés (binaires natifs légitimes) :
 # - sharp         : optimisation d'images de next/image en production
 # - unrs-resolver : résolveur natif utilisé par eslint-import-resolver
+# - esbuild       : binaire natif de vitest
 allowBuilds:
+  esbuild: true
   sharp: true
   unrs-resolver: true
 

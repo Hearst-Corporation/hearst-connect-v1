@@ -63,6 +63,17 @@ export async function requireSession(): Promise<SessionUser> {
   return session
 }
 
+/**
+ * Autorise-t-on la connexion directe sans mot de passe ?
+ *
+ * Uniquement hors production. `next build` fige `NODE_ENV` à 'production' :
+ * sur un déploiement Vercel, cette fonction renvoie toujours `false`, quelles
+ * que soient les variables d'environnement du projet.
+ */
+export function isDevBypassAllowed(): boolean {
+  return process.env.NODE_ENV !== 'production'
+}
+
 export const roleLabel: Record<SessionUser['role'], string> = {
   OWNER: 'Propriétaire',
   ADMIN: 'Administrateur',
