@@ -219,6 +219,21 @@ export async function callBackend<T = unknown>(
     body = null
   }
 
+  return buildResult<T>(endpoint, response, body, path, serverRequestId, callTrace)
+}
+
+/**
+ * Traduit une réponse HTTP déjà reçue en `BackendResult`. Isolé de
+ * `callBackend` pour garder sa complexité cognitive sous le seuil autorisé.
+ */
+function buildResult<T>(
+  endpoint: BackendEndpoint,
+  response: Response,
+  body: unknown,
+  path: string,
+  serverRequestId: string,
+  callTrace: CallTrace,
+): BackendResult<T> {
   if (!response.ok) {
     return {
       ok: false,

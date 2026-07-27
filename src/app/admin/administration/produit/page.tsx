@@ -63,8 +63,7 @@ const MOTIF: Record<string, string> = {
 function explication(bloc: Resolu<unknown> | undefined, defaut: string): string {
   const brut = bloc?.reason
   if (typeof brut !== 'string' || brut === '') return defaut
-  const lisible = MOTIF[brut]
-  return lisible === undefined ? defaut : lisible
+  return MOTIF[brut] ?? defaut
 }
 
 /** Décide l'état d'un cadre à partir du statut réel renvoyé par le service. */
@@ -86,6 +85,22 @@ function usdc(atomique: string | null | undefined, decimales = 0): string {
   return `${(n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
 }
 
+function etatCourbe(
+  points: readonly PointCourbe[],
+  courbeParametree: boolean,
+  vendingCurve: Resolu<unknown> | undefined,
+): EtatSerie {
+  if (points.length === 0) {
+    return etatDe(vendingCurve, 'Les termes du produit ne sont pas encore transmis.')
+  }
+  if (courbeParametree) return { type: 'tracee' }
+  return {
+    type: 'attendue',
+    explication:
+      'Les cinq échéances du produit sont bien définies, mais aucun taux n’y est encore inscrit. La courbe s’affichera dès qu’ils le seront.',
+  }
+}
+
 export default async function Page() {
   const [mining, btc, factsheet, backtest] = await Promise.all([
     callBackend<Mining>('mining'),
@@ -100,8 +115,9 @@ export default async function Page() {
 
   const hashrate = m?.hashrate?.value
   const sats = b?.btcProduced?.value?.totalSats
+  const satsNombre = sats === undefined || sats === null ? null : Number(sats)
   const bitcoinProduit =
-    sats === undefined || sats === null ? '—' : (Number(sats) / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 4 })
+    satsNombre === null ? '—' : (satsNombre / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 4 })
 
   // Réserve et exposition — deux montants réels, comparables sur une même échelle.
   const reserveUsdc = b?.reserve?.value?.balanceUsdc
@@ -136,23 +152,14 @@ export default async function Page() {
       <Card className="p-6">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <HeroFigure
-            valeur={
-              hashrate === null || hashrate === undefined
-                ? '—'
-                : Number(hashrate.reportedHashrateTh).toLocaleString('fr-FR')
-            }
+            valeur={hashrate ? Number(hashrate.reportedHashrateTh).toLocaleString('fr-FR') : '—'}
             libelle="Puissance de calcul déclarée"
             unite="TH/s"
           />
           <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
             <SideFact libelle="Bitcoin produit" valeur={`${bitcoinProduit} BTC`} />
             <SideFact libelle="Coût mensuel d’électricité" valeur={usdc(m?.electricity?.value?.monthlyCost)} />
-            <SideFact
-              libelle="Plafond du fonds"
-              valeur={
-                f?.tvlCap?.value === null || f?.tvlCap?.value === undefined ? '—' : usdc(String(f.tvlCap.value))
-              }
-            />
+            <SideFact libelle="Plafond du fonds" valeur={f?.tvlCap?.value ? usdc(String(f.tvlCap.value)) : '—'} />
           </dl>
         </div>
       </Card>
@@ -177,17 +184,7 @@ export default async function Page() {
           question="Comment la rémunération évolue-t-elle sur la durée ?"
           unite="en pourcentage, par mois"
           provenance="termes du produit"
-          etat={
-            points.length === 0
-              ? etatDe(f?.vendingCurve, 'Les termes du produit ne sont pas encore transmis.')
-              : courbeParametree
-                ? { type: 'tracee' }
-                : {
-                    type: 'attendue',
-                    explication:
-                      'Les cinq échéances du produit sont bien définies, mais aucun taux n’y est encore inscrit. La courbe s’affichera dès qu’ils le seront.',
-                  }
-          }
+          etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
         >
           <VendingCurveChart points={points} />
         </ChartFrame>

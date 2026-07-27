@@ -6,11 +6,12 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
+  Rectangle,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  type BarShapeProps,
 } from 'recharts'
 
 /**
@@ -122,6 +123,11 @@ export function VendingCurveChart({ points }: Readonly<{ points: readonly PointC
 
 export type PosteBitcoin = { readonly poste: string; readonly montant: number; readonly accent: boolean }
 
+function BarrePoste(props: BarShapeProps) {
+  const payload = props.payload as PosteBitcoin | undefined
+  return <Rectangle {...props} fill={payload?.accent ? OR : BLEU} />
+}
+
 /** « Combien dort en réserve, combien travaille en exposition ? » */
 export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly PosteBitcoin[] }>) {
   return (
@@ -164,11 +170,14 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
               width={96}
             />
             <Tooltip content={<Bulle suffixe="$" />} cursor={{ fill: '#ffffff0a' }} />
-            <Bar dataKey="montant" name="Montant" radius={[0, 3, 3, 0]} maxBarSize={22} isAnimationActive={false}>
-              {postes.map((p) => (
-                <Cell key={p.poste} fill={p.accent ? OR : BLEU} />
-              ))}
-            </Bar>
+            <Bar
+              dataKey="montant"
+              name="Montant"
+              shape={BarrePoste}
+              radius={[0, 3, 3, 0]}
+              maxBarSize={22}
+              isAnimationActive={false}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

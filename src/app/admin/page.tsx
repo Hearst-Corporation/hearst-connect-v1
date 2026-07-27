@@ -60,6 +60,37 @@ const estResolu = (v: unknown): v is Resolu<unknown> =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
 
+function CeQuiVousAttend({
+  incompletes,
+  surfaces,
+  motif,
+  serviceIndisponible,
+}: Readonly<{
+  incompletes: readonly Resolu<unknown>[]
+  surfaces: readonly Resolu<unknown>[]
+  motif: string | undefined
+  serviceIndisponible: boolean
+}>) {
+  if (incompletes.length === 0 && !serviceIndisponible) {
+    return <CalmState message="Rien ne demande votre attention. Toutes les surfaces du produit répondent." />
+  }
+  if (incompletes.length === 0) return null
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <VerdictCard
+        titre="Surfaces sans donnée"
+        compte={String(incompletes.length)}
+        unite={`sur ${surfaces.length}`}
+        contexte="Ces surfaces répondent, mais sans valeur exploitable."
+        casUrgent={motif === undefined ? undefined : `Le plus souvent, ${motif}.`}
+        ton="attention"
+        href="/admin/dashboard"
+        actionLabel="Examiner le détail"
+      />
+    </div>
+  )
+}
+
 export default async function Page() {
   const [dashboard, evenements, disponibilite] = await Promise.all([
     callBackend<Dashboard>('dashboard'),
@@ -113,22 +144,12 @@ export default async function Page() {
           Ce qui vous attend
         </h2>
 
-        {incompletes.length === 0 && !serviceIndisponible ? (
-          <CalmState message="Rien ne demande votre attention. Toutes les surfaces du produit répondent." />
-        ) : incompletes.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <VerdictCard
-              titre="Surfaces sans donnée"
-              compte={String(incompletes.length)}
-              unite={`sur ${surfaces.length}`}
-              contexte="Ces surfaces répondent, mais sans valeur exploitable."
-              casUrgent={motif === undefined ? undefined : `Le plus souvent, ${motif}.`}
-              ton="attention"
-              href="/admin/dashboard"
-              actionLabel="Examiner le détail"
-            />
-          </div>
-        ) : null}
+        <CeQuiVousAttend
+          incompletes={incompletes}
+          surfaces={surfaces}
+          motif={motif}
+          serviceIndisponible={serviceIndisponible}
+        />
 
         <SourceAttendue
           quoi="Les files de travail ne sont pas encore ouvertes"
@@ -158,10 +179,7 @@ export default async function Page() {
               <HeroFigure valeur={montantUsdc(capacite?.totalAssets, 0)} libelle="Encours du portefeuille" unite="USDC" />
               <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
                 <SideFact libelle="Plafond utilisé" valeur={pourcentage(capacite?.utilizationBps)} />
-                <SideFact
-                  libelle="Valeur d’une part"
-                  valeur={perf?.navPerShare === null || perf?.navPerShare === undefined ? '—' : perf.navPerShare}
-                />
+                <SideFact libelle="Valeur d’une part" valeur={perf?.navPerShare ?? '—'} />
                 <SideFact libelle="Rendement depuis l’origine" valeur={pourcentage(perf?.totalReturnBps)} />
                 {/*
                  * « Mois d'électricité couverts » a été RETIRÉ d'ici.

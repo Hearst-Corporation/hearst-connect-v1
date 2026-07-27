@@ -94,6 +94,79 @@ function familleDe(statut: string): Famille {
 
 const ORDRE: readonly Famille[] = ['servie', 'partielle', 'absente']
 
+type Surface = { readonly cle: string; readonly nom: string; readonly famille: Famille; readonly motif: string | undefined }
+
+function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
+  const servies = surfaces.filter((s) => s.famille === 'servie')
+  const partielles = surfaces.filter((s) => s.famille === 'partielle')
+  const absentes = surfaces.filter((s) => s.famille === 'absente')
+
+  return (
+    <>
+      <Card className="p-6">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+          <HeroFigure valeur={`${servies.length}`} libelle="Surfaces servies" unite={`sur ${surfaces.length}`} />
+          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+            <SideFact
+              libelle="Partiellement servies"
+              valeur={partielles.length === 0 ? 'aucune' : String(partielles.length)}
+            />
+            <SideFact
+              libelle="Pas encore ouvertes"
+              valeur={absentes.length === 0 ? 'aucune' : String(absentes.length)}
+            />
+            <SideFact libelle="Couverture" valeur={`${Math.round((servies.length / surfaces.length) * 100)} %`} />
+          </dl>
+        </div>
+
+        {/* Une seule barre, trois segments : la proportion se saisit d'un
+            coup d'œil, sans lire trois nombres puis les comparer. */}
+        <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-surface-sunken">
+          {ORDRE.map((famille) => {
+            const nombre = surfaces.filter((s) => s.famille === famille).length
+            if (nombre === 0) return null
+            return (
+              <div
+                key={famille}
+                className={clsx('h-full', FAMILLE_POINT[famille])}
+                style={{ width: `${(nombre / surfaces.length) * 100}%` }}
+              />
+            )
+          })}
+        </div>
+        <p className="mt-3 text-xs text-zinc-500">
+          L’état d’ensemble annoncé par le service se lit au pire des champs : une seule surface incomplète
+          abaisse l’ensemble. C’est voulu — il vaut mieux une alerte de trop qu’un écran faussement rassurant.
+        </p>
+      </Card>
+
+      {ORDRE.map((famille) => {
+        const lot = surfaces.filter((s) => s.famille === famille)
+        if (lot.length === 0) return null
+        return (
+          <Card key={famille}>
+            <CardHeader title={`${FAMILLE_TITRE[famille]} — ${lot.length}`} hint={FAMILLE_EXPLICATION[famille]} />
+            <ul className="divide-y divide-white/[0.07]">
+              {lot.map((surface) => (
+                <li key={surface.cle} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
+                  <span
+                    aria-hidden="true"
+                    className={clsx('size-1.5 shrink-0 self-center rounded-full', FAMILLE_POINT[famille])}
+                  />
+                  <span className="text-sm text-white">{surface.nom}</span>
+                  {surface.motif === undefined ? null : (
+                    <span className={clsx('ml-auto text-xs', FAMILLE_TEXTE[famille])}>{surface.motif}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )
+      })}
+    </>
+  )
+}
+
 export default async function Page() {
   const reponse = await callBackend<Record<string, unknown>>('dashboard')
   const agregat = reponse.ok ? reponse.data : null
@@ -109,10 +182,6 @@ export default async function Page() {
             famille: familleDe(resolu.status),
             motif: motifLisible(resolu.reason),
           }))
-
-  const servies = surfaces.filter((s) => s.famille === 'servie')
-  const partielles = surfaces.filter((s) => s.famille === 'partielle')
-  const absentes = surfaces.filter((s) => s.famille === 'absente')
 
   return (
     <div className="space-y-6">
@@ -135,78 +204,7 @@ export default async function Page() {
           requis={['Une réponse décrivant l’état de chaque surface']}
         />
       ) : (
-        <>
-          <Card className="p-6">
-            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-              <HeroFigure
-                valeur={`${servies.length}`}
-                libelle="Surfaces servies"
-                unite={`sur ${surfaces.length}`}
-              />
-              <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-                <SideFact
-                  libelle="Partiellement servies"
-                  valeur={partielles.length === 0 ? 'aucune' : String(partielles.length)}
-                />
-                <SideFact
-                  libelle="Pas encore ouvertes"
-                  valeur={absentes.length === 0 ? 'aucune' : String(absentes.length)}
-                />
-                <SideFact
-                  libelle="Couverture"
-                  valeur={`${Math.round((servies.length / surfaces.length) * 100)} %`}
-                />
-              </dl>
-            </div>
-
-            {/* Une seule barre, trois segments : la proportion se saisit d'un
-                coup d'œil, sans lire trois nombres puis les comparer. */}
-            <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-surface-sunken">
-              {ORDRE.map((famille) => {
-                const nombre = surfaces.filter((s) => s.famille === famille).length
-                if (nombre === 0) return null
-                return (
-                  <div
-                    key={famille}
-                    className={clsx('h-full', FAMILLE_POINT[famille])}
-                    style={{ width: `${(nombre / surfaces.length) * 100}%` }}
-                  />
-                )
-              })}
-            </div>
-            <p className="mt-3 text-xs text-zinc-500">
-              L’état d’ensemble annoncé par le service se lit au pire des champs : une seule surface incomplète
-              abaisse l’ensemble. C’est voulu — il vaut mieux une alerte de trop qu’un écran faussement rassurant.
-            </p>
-          </Card>
-
-          {ORDRE.map((famille) => {
-            const lot = surfaces.filter((s) => s.famille === famille)
-            if (lot.length === 0) return null
-            return (
-              <Card key={famille}>
-                <CardHeader
-                  title={`${FAMILLE_TITRE[famille]} — ${lot.length}`}
-                  hint={FAMILLE_EXPLICATION[famille]}
-                />
-                <ul className="divide-y divide-white/[0.07]">
-                  {lot.map((surface) => (
-                    <li key={surface.cle} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-                      <span
-                        aria-hidden="true"
-                        className={clsx('size-1.5 shrink-0 self-center rounded-full', FAMILLE_POINT[famille])}
-                      />
-                      <span className="text-sm text-white">{surface.nom}</span>
-                      {surface.motif === undefined ? null : (
-                        <span className={clsx('ml-auto text-xs', FAMILLE_TEXTE[famille])}>{surface.motif}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            )
-          })}
-        </>
+        <CouvertureDonnees surfaces={surfaces} />
       )}
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}

@@ -39,6 +39,12 @@ function dateLisible(iso: string | null | undefined): string {
   return new Date(t).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+function texteBooleen(valeur: boolean | null | undefined, siVrai: string, siFaux: string): string {
+  if (valeur === true) return siVrai
+  if (valeur === false) return siFaux
+  return 'Non communiqué'
+}
+
 export default async function Page() {
   const reponse = await callBackend<Mining>('mining')
   const m = reponse.ok ? reponse.data : null
@@ -94,21 +100,13 @@ export default async function Page() {
               <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
                 <span className="w-24 shrink-0 text-zinc-400">Flotte</span>
                 <span className="text-white">
-                  {exploitation?.fleetActive === true
-                    ? 'En fonctionnement'
-                    : exploitation?.fleetActive === false
-                      ? 'À l’arrêt'
-                      : 'Non communiqué'}
+                  {texteBooleen(exploitation?.fleetActive, 'En fonctionnement', 'À l’arrêt')}
                 </span>
               </li>
               <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
                 <span className="w-24 shrink-0 text-zinc-400">Bridage</span>
                 <span className="text-white">
-                  {exploitation?.curtailed === true
-                    ? 'Actif — la production est volontairement réduite'
-                    : exploitation?.curtailed === false
-                      ? 'Inactif'
-                      : 'Non communiqué'}
+                  {texteBooleen(exploitation?.curtailed, 'Actif — la production est volontairement réduite', 'Inactif')}
                 </span>
               </li>
             </ul>
