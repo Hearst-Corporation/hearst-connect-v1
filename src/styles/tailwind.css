@@ -1,6 +1,23 @@
 @import 'tailwindcss';
 
 /*
+ * Thème sombre : préférence système par défaut, surchargeable par une classe
+ * explicite `.light` / `.dark` sur <html> (posée par le bouton de bascule).
+ * La branche `@media` reste active sans JavaScript — le site suit alors l'OS,
+ * comme avant l'ajout du sélecteur.
+ */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not(.light, .light *)) {
+      @slot;
+    }
+  }
+}
+
+/*
  * Design system — Hearst Connect
  * ------------------------------------------------------------------
  * Ce workspace déclare SA propre palette. Rien n'est hérité d'un autre

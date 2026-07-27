@@ -23,7 +23,9 @@ import {
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
 import { Mark } from '@/components/logo'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { logout } from '@/lib/actions'
+import { toggleTheme } from '@/lib/theme'
 import type { Workspace } from '@/lib/demo-data'
 import type { SessionUser } from '@/lib/session'
 import {
@@ -39,11 +41,13 @@ import {
   HomeIcon,
   LifebuoyIcon,
   LinkIcon,
+  MoonIcon,
+  SunIcon,
   UsersIcon,
 } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
-function AccountDropdownMenu({ anchor }: { anchor: 'top start' | 'bottom end' }) {
+function AccountDropdownMenu({ anchor }: Readonly<{ anchor: 'top start' | 'bottom end' }>) {
   return (
     <DropdownMenu className="min-w-64" anchor={anchor}>
       <DropdownItem href="/dashboard/parametres">
@@ -71,11 +75,11 @@ export function ApplicationLayout({
   user,
   workspaces,
   children,
-}: {
+}: Readonly<{
   user: SessionUser
   workspaces: Workspace[]
   children: React.ReactNode
-}) {
+}>) {
   const pathname = usePathname()
   const initials = user.name.slice(0, 2).toUpperCase()
 
@@ -85,6 +89,7 @@ export function ApplicationLayout({
         <Navbar>
           <NavbarSpacer />
           <NavbarSection>
+            <ThemeToggle />
             <Dropdown>
               <DropdownButton as={NavbarItem}>
                 <Avatar initials={initials} className="bg-accent-600 text-white" square />
@@ -149,6 +154,14 @@ export function ApplicationLayout({
             <SidebarSpacer />
 
             <SidebarSection>
+              <SidebarItem onClick={toggleTheme}>
+                <MoonIcon className="dark:hidden" />
+                <SunIcon className="hidden dark:block" />
+                <SidebarLabel>
+                  <span className="dark:hidden">Thème sombre</span>
+                  <span className="hidden dark:inline">Thème clair</span>
+                </SidebarLabel>
+              </SidebarItem>
               <SidebarItem href="mailto:connect@hearstcorporation.io">
                 <LifebuoyIcon />
                 <SidebarLabel>Support</SidebarLabel>
