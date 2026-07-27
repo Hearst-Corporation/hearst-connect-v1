@@ -54,7 +54,10 @@ const DEFAULT_TIMEOUT_MS = 10_000
 
 function baseUrl(): string | null {
   const raw = process.env.HEARST_API_URL?.trim()
-  return raw ? raw.replace(/\/+$/, '') : null
+  if (!raw) return null
+  let end = raw.length
+  while (end > 0 && raw[end - 1] === '/') end -= 1
+  return raw.slice(0, end)
 }
 
 function isProblem(body: unknown): body is Problem {

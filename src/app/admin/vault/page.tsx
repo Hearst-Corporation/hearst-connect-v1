@@ -58,7 +58,9 @@ function ecartLisible(driftBps: number | null): { texte: string; ton: string } {
   if (driftBps === null || !Number.isFinite(driftBps)) return { texte: '—', ton: 'text-zinc-400' }
   const pts = driftBps / 100
   const ampleur = Math.abs(pts)
-  const ton = ampleur >= 5 ? 'text-warning-400' : ampleur >= 1 ? 'text-zinc-300' : 'text-success-400'
+  let ton = 'text-success-400'
+  if (ampleur >= 5) ton = 'text-warning-400'
+  else if (ampleur >= 1) ton = 'text-zinc-300'
   const signe = pts > 0 ? '+' : ''
   return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
 }

@@ -1,4 +1,4 @@
-import { callBackend } from '@/lib/backend/client'
+import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { endpointById } from '@/lib/backend/endpoints'
 import {
   EmptyState,
@@ -8,6 +8,36 @@ import {
   RequestMetadata,
   UnavailableState,
 } from './truthful'
+
+function EndpointBody({
+  result,
+  isEmpty,
+  children,
+}: Readonly<{
+  result: BackendResult<unknown>
+  isEmpty: boolean
+  children?: (data: unknown) => React.ReactNode
+}>) {
+  if (!result.ok) {
+    return (
+      <>
+        <UnavailableState state={result.state} />
+        <ProblemState problem={result.problem} keeper={result.keeper} />
+      </>
+    )
+  }
+
+  if (isEmpty) {
+    return <EmptyState reason="Le backend a répondu sans contenu pour cette ressource." />
+  }
+
+  return (
+    <>
+      {children ? children(result.data) : null}
+      <RawJsonPanel data={result.data} />
+    </>
+  )
+}
 
 /**
  * Section de page adossée à UN endpoint du registre.
@@ -57,19 +87,9 @@ export async function EndpointSection({
       ) : null}
 
       <div className="mt-4">
-        {!result.ok ? (
-          <>
-            <UnavailableState state={result.state} />
-            <ProblemState problem={result.problem} keeper={result.keeper} />
-          </>
-        ) : isEmpty ? (
-          <EmptyState reason="Le backend a répondu sans contenu pour cette ressource." />
-        ) : (
-          <>
-            {children ? children(result.data) : null}
-            <RawJsonPanel data={result.data} />
-          </>
-        )}
+        <EndpointBody result={result} isEmpty={isEmpty}>
+          {children}
+        </EndpointBody>
       </div>
 
       <div className="mt-4 border-t border-white/5 pt-3">

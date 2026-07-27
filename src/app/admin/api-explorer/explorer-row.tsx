@@ -12,11 +12,16 @@ import { useActionState } from 'react'
  * qu'aucun appel n'a eu lieu, la colonne « dernier appel » reste vide — aucun
  * exemple statique ne se fait passer pour une réponse exécutée.
  */
+function authLabelFor(auth: BackendEndpoint['auth']): string {
+  if (auth === 'public') return 'publique'
+  if (auth === 'admin') return 'admin requis'
+  return 'session requise'
+}
+
 export function ExplorerRow({ endpoint, curl }: Readonly<{ endpoint: BackendEndpoint; curl: string }>) {
   const [outcome, formAction, pending] = useActionState<ProbeOutcome | null, FormData>(probeEndpoint, null)
 
-  const authLabel =
-    endpoint.auth === 'public' ? 'publique' : endpoint.auth === 'admin' ? 'admin requis' : 'session requise'
+  const authLabel = authLabelFor(endpoint.auth)
 
   return (
     <div className="border-b border-white/5 px-4 py-3 last:border-b-0">

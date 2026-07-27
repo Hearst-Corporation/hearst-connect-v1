@@ -12,6 +12,82 @@ import { useActionState } from 'react'
  * d'appel. Tant que le backend n'a pas répondu, rien n'est présenté comme
  * exécuté, et aucun hash de transaction n'est jamais affiché.
  */
+function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }>) {
+  return (
+    <>
+      {needsMetrics ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-xs text-zinc-400">hashrateTh — entier ≥ 0</span>
+            <input
+              name="hashrateTh"
+              type="number"
+              min={0}
+              step={1}
+              required
+              className="mt-1 w-full rounded border border-white/10 bg-cockpit-inset px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs text-zinc-400">btcEarnedSats — entier ≥ 0</span>
+            <input
+              name="btcEarnedSats"
+              type="number"
+              min={0}
+              step={1}
+              required
+              className="mt-1 w-full rounded border border-white/10 bg-cockpit-inset px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent"
+            />
+          </label>
+        </div>
+      ) : null}
+
+      <label className="block">
+        <span className="text-xs text-zinc-400">
+          Saisir <span className="font-mono text-hearst-warn">CONFIRMER</span> pour émettre la requête
+        </span>
+        <input
+          name="confirm"
+          type="text"
+          autoComplete="off"
+          placeholder="CONFIRMER"
+          className="mt-1 w-full rounded border border-white/10 bg-cockpit-inset px-2 py-1.5 font-mono text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent sm:max-w-xs"
+        />
+      </label>
+    </>
+  )
+}
+
+function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
+  if (outcome.validationError) {
+    return (
+      <div className="mt-4 border-t border-white/5 pt-4">
+        <p className="text-xs text-hearst-warn">{outcome.validationError}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-4 border-t border-white/5 pt-4">
+      {/* Le statut affiché est celui du corps de réponse, jamais « réussi »
+          déduit d'un HTTP 2xx. */}
+      <p className="text-xs text-zinc-400">
+        Réponse backend :{' '}
+        <span className="font-mono text-white">{outcome.result?.status ?? outcome.stateReason ?? '—'}</span>
+      </p>
+      {outcome.result?.reason ? (
+        <p className="mt-1 font-mono text-xs text-zinc-400">reason : {outcome.result.reason}</p>
+      ) : null}
+      <ProblemState problem={outcome.problem} keeper={outcome.result} />
+      {outcome.trace ? (
+        <div className="mt-3">
+          <RequestMetadata trace={outcome.trace} />
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export function KeeperForm({ endpoint, disabled, disabledReason }: Readonly<{ endpoint: BackendEndpoint; disabled: boolean; disabledReason: string | null }>) {
   const [outcome, formAction, pending] = useActionState<KeeperOutcome | null, FormData>(runKeeperAction, null)
   const needsMetrics = endpoint.id === 'keeper-mining-report'
@@ -41,47 +117,7 @@ export function KeeperForm({ endpoint, disabled, disabledReason }: Readonly<{ en
       ) : (
         <form action={formAction} className="mt-4 space-y-3">
           <input type="hidden" name="endpointId" value={endpoint.id} />
-
-          {needsMetrics ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-xs text-zinc-400">hashrateTh — entier ≥ 0</span>
-                <input
-                  name="hashrateTh"
-                  type="number"
-                  min={0}
-                  step={1}
-                  required
-                  className="mt-1 w-full rounded border border-white/10 bg-cockpit-inset px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-zinc-400">btcEarnedSats — entier ≥ 0</span>
-                <input
-                  name="btcEarnedSats"
-                  type="number"
-                  min={0}
-                  step={1}
-                  required
-                  className="mt-1 w-full rounded border border-white/10 bg-cockpit-inset px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent"
-                />
-              </label>
-            </div>
-          ) : null}
-
-          <label className="block">
-            <span className="text-xs text-zinc-400">
-              Saisir <span className="font-mono text-hearst-warn">CONFIRMER</span> pour émettre la requête
-            </span>
-            <input
-              name="confirm"
-              type="text"
-              autoComplete="off"
-              placeholder="CONFIRMER"
-              className="mt-1 w-full rounded border border-white/10 bg-cockpit-inset px-2 py-1.5 font-mono text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hearst-accent sm:max-w-xs"
-            />
-          </label>
-
+          <KeeperActionFields needsMetrics={needsMetrics} />
           <button
             type="submit"
             disabled={pending}
@@ -92,31 +128,7 @@ export function KeeperForm({ endpoint, disabled, disabledReason }: Readonly<{ en
         </form>
       )}
 
-      {outcome ? (
-        <div className="mt-4 border-t border-white/5 pt-4">
-          {outcome.validationError ? (
-            <p className="text-xs text-hearst-warn">{outcome.validationError}</p>
-          ) : (
-            <>
-              {/* Le statut affiché est celui du corps de réponse, jamais « réussi »
-                  déduit d'un HTTP 2xx. */}
-              <p className="text-xs text-zinc-400">
-                Réponse backend :{' '}
-                <span className="font-mono text-white">{outcome.result?.status ?? outcome.stateReason ?? '—'}</span>
-              </p>
-              {outcome.result?.reason ? (
-                <p className="mt-1 font-mono text-xs text-zinc-400">reason : {outcome.result.reason}</p>
-              ) : null}
-              <ProblemState problem={outcome.problem} keeper={outcome.result} />
-              {outcome.trace ? (
-                <div className="mt-3">
-                  <RequestMetadata trace={outcome.trace} />
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
-      ) : null}
+      {outcome ? <KeeperOutcomePanel outcome={outcome} /> : null}
     </section>
   )
 }
