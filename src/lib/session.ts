@@ -5,23 +5,28 @@ import { cookies } from 'next/headers'
  * Session serveur — cookie httpOnly signé HMAC-SHA256.
  *
  * Aucun secret n'est écrit dans le code : `AUTH_SECRET` vient de
- * l'environnement (doctrine Hearst §2.1). Le cookie ne contient que
- * l'identité publique de l'utilisateur, jamais son mot de passe.
+ * l'environnement (doctrine Hearst §2.1). Le cookie porte l'identité de
+ * l'utilisateur ET le jeton porteur émis par le backend — c'est pourquoi il
+ * reste strictement httpOnly : il n'est jamais lisible en JavaScript, jamais
+ * sérialisé vers un composant client, jamais rendu dans le HTML.
+ *
+ * L'expiration du cookie est ALIGNÉE sur celle du jeton backend : une session
+ * frontend ne survit pas au jeton qu'elle transporte.
  */
 
 export const SESSION_COOKIE = 'hearst_session'
 
-/** 7 jours, en secondes. */
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7
-
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER'
 
+/**
+ * Identité de session, sûre à passer à un composant client.
+ * Elle ne contient AUCUN jeton.
+ */
 export type SessionUser = {
   /**
    * Identifiant canonique de l'utilisateur, tel qu'il figure dans
-   * l'enregistrement authentifié — c'est lui que le backend attend comme
-   * `userId`. Un e-mail n'est PAS un identifiant : le confondre exposerait un
-   * compte au périmètre d'un autre.
+   * l'enregistrement authentifié du backend. Un e-mail n'est PAS un
+   * identifiant : le confondre exposerait un compte au périmètre d'un autre.
    */
   userId: string
   email: string
@@ -29,8 +34,19 @@ export type SessionUser = {
   role: Role
 }
 
-type SessionPayload = SessionUser & {
-  /** Expiration, en secondes epoch. */
+/**
+ * Session complète, côté serveur uniquement.
+ * `backendToken` ne franchit jamais la frontière serveur → client.
+ */
+export type Session = SessionUser & {
+  /** Jeton porteur émis par le backend, valeur BRUTE (sans « Bearer »). */
+  backendToken: string
+  /** Expiration du jeton backend, en secondes epoch. */
+  expiresAt: number
+}
+
+type SessionPayload = Session & {
+  /** Expiration du cookie, en secondes epoch. Égale à `expiresAt`. */
   exp: number
 }
 
@@ -52,13 +68,13 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(left, right)
 }
 
-export function createToken(user: SessionUser): string {
-  const payload: SessionPayload = { ...user, exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE }
+export function createToken(session: Session): string {
+  const payload: SessionPayload = { ...session, exp: session.expiresAt }
   const data = encode(JSON.stringify(payload))
   return `${data}.${sign(data)}`
 }
 
-export function verifyToken(token: string | undefined): SessionUser | null {
+export function verifyToken(token: string | undefined): Session | null {
   if (!token) return null
 
   const [data, signature] = token.split('.')
@@ -72,22 +88,46 @@ export function verifyToken(token: string | undefined): SessionUser | null {
     return null
   }
 
-  if (typeof payload.exp !== 'number' || payload.exp * 1000 < Date.now()) return null
+  if (typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now()) return null
+  if (typeof payload.expiresAt !== 'number' || payload.expiresAt * 1000 <= Date.now()) return null
   if (!payload.userId || !payload.email || !payload.name || !payload.role) return null
+  if (typeof payload.backendToken !== 'string' || payload.backendToken.length === 0) return null
 
-  return { userId: payload.userId, email: payload.email, name: payload.name, role: payload.role }
+  return {
+    userId: payload.userId,
+    email: payload.email,
+    name: payload.name,
+    role: payload.role,
+    backendToken: payload.backendToken,
+    expiresAt: payload.expiresAt,
+  }
 }
 
-/** Pose le cookie de session. À n'appeler que depuis une Server Action ou un Route Handler. */
-export async function startSession(user: SessionUser): Promise<void> {
+/** Identité seule — c'est la SEULE forme qu'un composant client peut recevoir. */
+export function publicUser(session: Session): SessionUser {
+  return { userId: session.userId, email: session.email, name: session.name, role: session.role }
+}
+
+/**
+ * Pose le cookie de session. À n'appeler que depuis une Server Action ou un
+ * Route Handler.
+ *
+ * `maxAge` est calculé depuis l'expiration du jeton backend : le cookie meurt
+ * avec lui. Une expiration déjà passée ne pose aucun cookie.
+ */
+export async function startSession(session: Session): Promise<boolean> {
+  const maxAge = session.expiresAt - Math.floor(Date.now() / 1000)
+  if (maxAge <= 0) return false
+
   const store = await cookies()
-  store.set(SESSION_COOKIE, createToken(user), {
+  store.set(SESSION_COOKIE, createToken(session), {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: SESSION_MAX_AGE,
+    maxAge,
   })
+  return true
 }
 
 export async function endSession(): Promise<void> {
@@ -96,7 +136,7 @@ export async function endSession(): Promise<void> {
 }
 
 /** Session courante, ou `null` si absente / expirée / signature invalide. */
-export async function getSession(): Promise<SessionUser | null> {
+export async function getSession(): Promise<Session | null> {
   const store = await cookies()
   return verifyToken(store.get(SESSION_COOKIE)?.value)
 }

@@ -1,8 +1,8 @@
 import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge } from '@/components/admin/truthful'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
-import { backendUrl, sessionSigningKey } from '@/lib/env'
-import { toBackendRole } from '@/lib/backend/token'
+import { backendUrl } from '@/lib/env'
+import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import type { Metadata } from 'next'
 import { KeeperForm } from './keeper-form'
@@ -17,15 +17,15 @@ export default async function KeeperPage() {
   // Prérequis connus AVANT tout appel : sans eux les actions restent inertes.
   const isAdmin = toBackendRole(session.role) === 'admin'
   const backendConfigured = Boolean(backendUrl())
-  const signingConfigured = Boolean(sessionSigningKey())
+  // Le jeton porteur vient du backend et vit dans le cookie de session.
+  // `requireSession` a déjà écarté toute session expirée : arrivé ici, le jeton
+  // est valide — on ne réévalue pas l'horloge pendant le rendu.
 
   const disabledReason = !isAdmin
     ? `Le rôle ${session.role} n’ouvre pas droit aux actions Keeper.`
     : !backendConfigured
       ? 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
-      : !signingConfigured
-        ? 'SESSION_SIGNING_KEY n’est pas définie : aucun jeton authentifié ne peut être frappé.'
-        : null
+      : null
 
   return (
     <div className="space-y-6">

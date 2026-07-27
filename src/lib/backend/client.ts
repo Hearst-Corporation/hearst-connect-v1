@@ -3,8 +3,8 @@ import 'server-only'
 import { backendUrl } from '@/lib/env'
 import { getSession } from '@/lib/session'
 import { resolved, type Resolved } from '@/lib/resolved'
+import { authorizationHeader, toBackendRole } from './auth'
 import { BACKEND_ENDPOINTS, resolvePath, type BackendEndpoint } from './endpoints'
-import { mintBackendToken } from './token'
 
 /**
  * Client unique du backend Hearst Connect. Serveur uniquement.
@@ -116,7 +116,8 @@ export async function callBackend<T = unknown>(
     }
   }
 
-  // Jeton frappé par appel, uniquement pour les routes qui l'exigent.
+  // Jeton porteur émis par le backend, lu dans la session serveur. Il n'est
+  // ni fabriqué ni dérivé ici : le frontend ne signe plus rien.
   let authorization: string | null = null
   if (endpoint.auth !== 'public') {
     const session = await getSession()
@@ -130,16 +131,21 @@ export async function callBackend<T = unknown>(
       }
     }
 
-    const minted = mintBackendToken(session)
-    if (!minted.ok) {
-      const state =
-        minted.reason === 'not_configured'
-          ? resolved.notConfigured<never>(minted.detail, { route: path })
-          : resolved.permissionDenied<never>(minted.detail, { route: path })
-      return { ok: false, problem: null, keeper: null, trace: trace(endpoint, path, startedAt, {}), state }
+    const backendRole = toBackendRole(session.role)
+    if (!backendRole) {
+      return {
+        ok: false,
+        problem: null,
+        keeper: null,
+        trace: trace(endpoint, path, startedAt, {}),
+        state: resolved.permissionDenied(
+          `Le rôle ${session.role} n'ouvre pas d'accès au backend.`,
+          { route: path },
+        ),
+      }
     }
 
-    if (endpoint.auth === 'admin' && minted.role !== 'admin') {
+    if (endpoint.auth === 'admin' && backendRole !== 'admin') {
       return {
         ok: false,
         problem: null,
@@ -149,7 +155,9 @@ export async function callBackend<T = unknown>(
       }
     }
 
-    authorization = `Bearer ${minted.token}`
+    // Composition unique de l'en-tête : `authorizationHeader` retire tout
+    // préfixe « Bearer » déjà présent dans la valeur stockée.
+    authorization = authorizationHeader(session.backendToken)
   }
 
   const requestId = crypto.randomUUID()
