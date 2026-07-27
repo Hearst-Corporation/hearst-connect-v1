@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { backendUrl } from '@/lib/env'
 import { getSession } from '@/lib/session'
 import { resolved, type Resolved } from '@/lib/resolved'
 import { BACKEND_ENDPOINTS, resolvePath, type BackendEndpoint } from './endpoints'
@@ -55,11 +56,11 @@ export type BackendResult<T> =
 
 const DEFAULT_TIMEOUT_MS = 10_000
 
-/** Pas de repli implicite vers la production : une URL absente est un état. */
-function baseUrl(): string | null {
-  const raw = process.env.CONNECT_BACKEND_URL?.trim()
-  return raw ? raw.replace(/\/+$/, '') : null
-}
+/**
+ * Base du backend, lue par le canon `@/lib/env`. Pas de repli implicite vers
+ * la production : une URL absente est un état, jamais une valeur par défaut.
+ */
+const baseUrl = backendUrl
 
 const isProblem = (body: unknown): body is Problem =>
   typeof body === 'object' && body !== null && 'code' in body && 'detail' in body && 'requestId' in body
@@ -109,7 +110,7 @@ export async function callBackend<T = unknown>(
       keeper: null,
       trace: trace(endpoint, path, startedAt, {}),
       state: resolved.notConfigured(
-        "CONNECT_BACKEND_URL n'est pas défini sur ce déploiement : aucune requête n'est émise.",
+        "HEARST_API_URL n'est pas défini sur ce déploiement : aucune requête n'est émise.",
         { route: path },
       ),
     }
