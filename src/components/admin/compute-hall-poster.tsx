@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 
 /**
- * Baies isométriques au trait — signature visuelle du Management Cockpit Qatar.
- * Server Component, `currentColor`, zéro dépendance.
+ * Line-drawn isometric server racks — the console's visual signature.
+ * Server Component, `currentColor`, zero dependencies.
  */
 
 const COS30 = 0.8660254

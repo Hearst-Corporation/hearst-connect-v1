@@ -4,8 +4,8 @@ import { chartTheme } from '@/lib/chart-theme'
 import { Bar, BarChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis, type BarShapeProps } from 'recharts'
 
 /**
- * Répartition horizontale — types de mouvements ou poches stratégiques.
- * Données réelles uniquement ; pas de série inventée.
+ * Horizontal distribution — movement types or strategic pockets.
+ * Real data only; no invented series.
  */
 
 export type BarreRepartition = {
@@ -13,7 +13,7 @@ export type BarreRepartition = {
   readonly valeur: number
 }
 
-const COULEURS = [
+const COLORS = [
   chartTheme.series.primary,
   chartTheme.series.reference,
   chartTheme.series.positive,
@@ -22,9 +22,9 @@ const COULEURS = [
   chartTheme.series.secondary,
 ]
 
-type BarreAvecCouleur = BarreRepartition & { readonly fill: string }
+type BarWithColor = BarreRepartition & { readonly fill: string }
 
-function InfoBulle({
+function ChartTooltip({
   active,
   payload,
   label,
@@ -38,38 +38,42 @@ function InfoBulle({
   )
 }
 
-function BarreCouleur(props: BarShapeProps) {
-  const payload = props.payload as BarreAvecCouleur | undefined
+function ColoredBar(props: BarShapeProps) {
+  const payload = props.payload as BarWithColor | undefined
   return <Rectangle {...props} fill={payload?.fill ?? chartTheme.series.primary} />
 }
 
 export function DistributionBarChart({ barres, unit = '' }: Readonly<{ barres: readonly BarreRepartition[]; unit?: string }>) {
   if (barres.length === 0) {
-    return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">Aucune donnée à représenter.</p>
-    )
+    return <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No data to display.</p>
   }
 
-  const data: BarreAvecCouleur[] = [...barres]
+  const data: BarWithColor[] = [...barres]
     .sort((a, b) => b.valeur - a.valeur)
-    .map((b, i) => ({ ...b, fill: COULEURS[i % COULEURS.length]! }))
+    .map((b, i) => ({ ...b, fill: COLORS[i % COLORS.length]! }))
 
   return (
     <div className="px-2 py-4">
-      <div aria-hidden="true" className="h-[220px] w-full sm:h-[260px]">
+      <div aria-hidden="true" className={`${chartTheme.height.medium} w-full`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
-            <XAxis type="number" tick={{ fill: chartTheme.tick, fontSize: 11 }} tickLine={false} axisLine={false} unit={unit} />
+          <BarChart data={data} layout="vertical" margin={chartTheme.margin}>
+            <XAxis
+              type="number"
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
+              tickLine={false}
+              axisLine={false}
+              unit={unit}
+            />
             <YAxis
               type="category"
               dataKey="nom"
               width={120}
-              tick={{ fill: chartTheme.tick, fontSize: 11 }}
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
             />
-            <Tooltip content={<InfoBulle />} cursor={{ fill: chartTheme.cursor }} />
-            <Bar dataKey="valeur" shape={BarreCouleur} radius={[0, 3, 3, 0]} maxBarSize={18} isAnimationActive={false} />
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor }} />
+            <Bar dataKey="valeur" shape={ColoredBar} radius={[0, 3, 3, 0]} maxBarSize={18} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

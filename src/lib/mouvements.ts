@@ -1,74 +1,76 @@
+import { formatAddress, formatCurrency, formatDateTime, formatRelativeTime } from '@/lib/format'
+
 /**
- * Vocabulaire des mouvements de la chaîne, dit en français.
+ * Chain movement vocabulary, in English.
  *
- * Le service nomme ses mouvements en anglais technique (`MonthlyElecCostUpdated`).
- * Personne dans une console métier n'a à lire ça. Ce module tient le
- * dictionnaire — court nom pour une liste, phrase complète pour un fil
- * chronologique — et les quelques formatages qui vont avec.
+ * The service names its movements in technical English (`MonthlyElecCostUpdated`).
+ * No one in a business console should have to read that. This module holds
+ * the dictionary — a short name for a list, a full sentence for a
+ * chronological feed — plus the handful of formatters that go with it.
  *
- * Deux règles gouvernent les formateurs : une valeur absente rend « — », jamais
- * un zéro ; un nom de mouvement inconnu n'est pas inventé, il est rendu tel
- * quel plutôt que traduit approximativement.
+ * Two rules govern the formatters: a missing value renders '—', never a
+ * zero; an unknown movement name is not invented, it's rendered as-is
+ * rather than approximately translated.
  */
 
-/** Nom court : pour une colonne, une barre de répartition, une puce. */
+/** Short name: for a column, a distribution bar, a chip. */
 export const LIBELLE_MOUVEMENT: Record<string, string> = {
-  Deposit: 'Dépôt',
-  Redeem: 'Rachat',
-  StrategyAdded: 'Stratégie ajoutée',
-  StrategyRemoved: 'Stratégie retirée',
-  Rebalance: 'Rééquilibrage',
-  VaultSwapped: 'Échange de portefeuille',
-  ElectricityPaid: 'Électricité réglée',
-  ElecPayeeUpdated: 'Bénéficiaire électricité modifié',
-  MonthlyElecCostUpdated: 'Coût mensuel d’électricité mis à jour',
-  MiningMetricsReported: 'Relevé de minage transmis',
-  CurtailmentTriggered: 'Bridage déclenché',
-  CurtailmentLifted: 'Bridage levé',
-  TakeProfitExecuted: 'Prise de bénéfice exécutée',
-  MonthlyEngineRun: 'Cycle mensuel exécuté',
+  Deposit: 'Deposit',
+  Redeem: 'Redemption',
+  StrategyAdded: 'Strategy added',
+  StrategyRemoved: 'Strategy removed',
+  Rebalance: 'Rebalance',
+  VaultSwapped: 'Vault swap',
+  ElectricityPaid: 'Electricity paid',
+  ElecPayeeUpdated: 'Electricity payee updated',
+  MonthlyElecCostUpdated: 'Monthly electricity cost updated',
+  MiningMetricsReported: 'Mining metrics reported',
+  CurtailmentTriggered: 'Curtailment triggered',
+  CurtailmentLifted: 'Curtailment lifted',
+  TakeProfitExecuted: 'Take-profit executed',
+  MonthlyEngineRun: 'Monthly cycle run',
 }
 
-/** Phrase complète : pour un fil d'événements qui se lit comme un récit. */
+/** Full sentence: for an event feed that reads like a narrative. */
 export const PHRASE_MOUVEMENT: Record<string, string> = {
-  Deposit: 'Un dépôt a été enregistré',
-  Redeem: 'Un rachat a été enregistré',
-  StrategyAdded: 'Une stratégie a été ajoutée au portefeuille',
-  StrategyRemoved: 'Une stratégie a été retirée du portefeuille',
-  Rebalance: 'Le portefeuille a été rééquilibré',
-  VaultSwapped: 'Un échange a été réalisé dans le portefeuille',
-  ElectricityPaid: 'L’électricité a été réglée',
-  ElecPayeeUpdated: 'Le bénéficiaire de l’électricité a été modifié',
-  MonthlyElecCostUpdated: 'Le coût mensuel d’électricité a été mis à jour',
-  MiningMetricsReported: 'Un relevé de minage a été transmis',
-  CurtailmentTriggered: 'Le bridage de la flotte a été déclenché',
-  CurtailmentLifted: 'Le bridage de la flotte a été levé',
-  TakeProfitExecuted: 'Une prise de bénéfice a été exécutée',
-  MonthlyEngineRun: 'Le cycle mensuel a été exécuté',
+  Deposit: 'A deposit was recorded',
+  Redeem: 'A redemption was recorded',
+  StrategyAdded: 'A strategy was added to the vault',
+  StrategyRemoved: 'A strategy was removed from the vault',
+  Rebalance: 'The vault was rebalanced',
+  VaultSwapped: 'A swap was executed in the vault',
+  ElectricityPaid: 'Electricity was paid',
+  ElecPayeeUpdated: 'The electricity payee was updated',
+  MonthlyElecCostUpdated: 'The monthly electricity cost was updated',
+  MiningMetricsReported: 'Mining metrics were reported',
+  CurtailmentTriggered: 'Fleet curtailment was triggered',
+  CurtailmentLifted: 'Fleet curtailment was lifted',
+  TakeProfitExecuted: 'A take-profit was executed',
+  MonthlyEngineRun: 'The monthly cycle was run',
 }
 
 export const libelleMouvement = (nom: string): string => LIBELLE_MOUVEMENT[nom] ?? nom
 export const phraseMouvement = (nom: string): string => PHRASE_MOUVEMENT[nom] ?? libelleMouvement(nom)
 
 /**
- * Les motifs machine du service, dits en français.
+ * The service's machine reason codes, in English.
  *
- * Un motif inconnu rend `undefined` : mieux vaut ne rien dire que de laisser
- * fuir un code technique dans une console métier.
+ * An unknown reason renders `undefined`: better to say nothing than to leak
+ * a technical code into a business console.
  */
 export const MOTIF_LISIBLE: Record<string, string> = {
-  no_investor_record: 'aucun dossier investisseur n’est rattaché à ce compte',
-  engine_not_initialised: 'le moteur de minage n’a pas encore été initialisé',
-  dynavault_not_deployed: 'cette fonctionnalité n’est pas encore ouverte',
-  // Le contrat est joignable mais n’expose aucune lecture de cette donnée :
-  // c’est une capacité absente de la source, pas un déploiement en attente.
-  not_exposed_by_contract: 'le contrat n’expose aucune lecture de cette donnée',
-  no_custody_provider_integrated: 'aucun dépositaire n’est encore intégré',
-  no_events_indexed: 'aucun mouvement n’a encore été relevé',
-  no_runs_recorded: 'aucun rétro-test n’a encore été exécuté',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
-  not_available: 'la donnée n’est pas disponible',
+  no_investor_record: 'no investor record is attached to this account',
+  engine_not_initialised: 'the mining engine has not been initialized yet',
+  dynavault_not_deployed: 'this feature is not open yet',
+  // The contract is reachable but exposes no read for this data: it's a
+  // capability missing from the source, not a pending deployment.
+  not_exposed_by_contract: 'the contract exposes no read for this data',
+  no_custody_provider_integrated: 'no custody provider is integrated yet',
+  no_events_indexed: 'no movement has been indexed yet',
+  no_runs_recorded: 'no backtest has been run yet',
+  db_error: 'the database did not respond',
+  rpc_error: 'the chain did not respond',
+  not_available: 'the data is not available',
 }
 
 export function motifLisible(motif: string | null | undefined): string | undefined {
@@ -76,39 +78,11 @@ export function motifLisible(motif: string | null | undefined): string | undefin
   return MOTIF_LISIBLE[motif]
 }
 
-/** USDC à six décimales. Une valeur absente rend un tiret, jamais un zéro. */
+/** USDC at six decimals — a thin wrapper over the shared formatter. */
 export function montantUsdc(atomique: string | null | undefined, decimales = 2): string {
-  if (atomique === null || atomique === undefined || atomique === '') return '—'
-  const brut = Number(atomique)
-  if (!Number.isFinite(brut)) return '—'
-  return `${(brut / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
+  return formatCurrency(atomique, { decimals: decimales })
 }
 
-export function dateLisible(iso: string | null | undefined): string {
-  if (iso === null || iso === undefined) return 'date inconnue'
-  const t = Date.parse(iso)
-  if (Number.isNaN(t)) return 'date inconnue'
-  return new Date(t).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
-}
-
-/** Ancienneté relative — « il y a 3 h ». Une date illisible rend un tiret. */
-export function ilYA(iso: string | null | undefined): string {
-  if (iso === null || iso === undefined) return '—'
-  const t = Date.parse(iso)
-  if (Number.isNaN(t)) return '—'
-  const minutes = Math.round((Date.now() - t) / 60_000)
-  if (minutes < 1) return 'à l’instant'
-  if (minutes < 60) return `il y a ${minutes} min`
-  const heures = Math.round(minutes / 60)
-  if (heures < 24) return `il y a ${heures} h`
-  const jours = Math.round(heures / 24)
-  if (jours < 31) return `il y a ${jours} j`
-  return `il y a ${Math.round(jours / 30)} mois`
-}
-
-/** Adresse de chaîne tronquée. Une absence rend `null` : à l'appelant de taire. */
-export function adresseCourte(adresse: string | null | undefined): string | null {
-  if (adresse === null || adresse === undefined || adresse === '') return null
-  if (adresse.length < 12) return adresse
-  return `${adresse.slice(0, 6)}…${adresse.slice(-4)}`
-}
+export const dateLisible = formatDateTime
+export const ilYA = formatRelativeTime
+export const adresseCourte = formatAddress

@@ -1,6 +1,7 @@
 'use client'
 
 import { chartTheme } from '@/lib/chart-theme'
+import { formatNumber } from '@/lib/format'
 import {
   Bar,
   BarChart,
@@ -14,30 +15,30 @@ import {
 } from 'recharts'
 
 /**
- * « De combien chaque poche s'écarte-t-elle de sa cible ? »
+ * "How far off target is each pocket?"
  *
- * Le tableau d'écarts, juste en dessous, donne les chiffres exacts. Ce
- * graphique ne les répète pas : il donne la seule chose qu'une colonne de
- * nombres ne donne pas — le SENS et l'AMPLEUR relative de l'écart, lus d'un
- * coup d'œil sur un axe centré sur zéro. Chiffres au tableau, forme au
- * graphique : chacun son travail.
+ * The deviation table right below gives the exact figures. This chart
+ * doesn't repeat them: it gives the one thing a column of numbers can't —
+ * the SIGN and relative MAGNITUDE of the deviation, read at a glance on a
+ * zero-centered axis. Numbers in the table, shape in the chart: each does
+ * its own job.
  *
- * ── Pourquoi un axe symétrique à borne minimale ────────────────────────────
- * Un axe auto-ajusté rendrait un écart de 0,68 point aussi spectaculaire qu'un
- * écart de 15 points : la barre remplirait le cadre dans les deux cas. Sur un
- * produit financier, ce cadrage se lit comme une alerte là où il n'y en a pas.
- * L'axe est donc symétrique (un écart de +2 et un écart de -2 ont exactement la
- * même longueur) et borné à ±3 points au minimum, pour que les petits écarts
- * RESSEMBLENT à de petits écarts.
+ * ── Why a symmetric axis with a minimum bound ──────────────────────────────
+ * An auto-scaled axis would render a 0.68-point deviation as dramatically as
+ * a 15-point one: the bar would fill the frame either way. On a financial
+ * product, that framing reads as an alarm where there isn't one. So the axis
+ * is symmetric (a +2 deviation and a -2 deviation have exactly the same
+ * length) and bounded to at least ±3 points, so small deviations LOOK like
+ * small deviations.
  *
- * ── Pourquoi une bande de tolérance dessinée ───────────────────────────────
- * La bande grise ±1 point matérialise le seuil déjà utilisé par la lecture
- * d'écart de cette page. Sans elle, le lecteur n'a aucun moyen de savoir à
- * partir de quand une barre mérite son attention.
+ * ── Why a drawn tolerance band ──────────────────────────────────────────────
+ * The gray ±1-point band marks the threshold this page's deviation reading
+ * already uses. Without it, the reader has no way to know at what point a
+ * bar deserves attention.
  *
- * La couleur ne porte jamais seule l'information : chaque poche est accompagnée
- * de son mot d'état (`mot`), rendu dans l'infobulle et dans le tableau lisible
- * par un lecteur d'écran.
+ * Color never carries the information alone: every pocket is paired with its
+ * status word (`mot`), rendered in the tooltip and in the screen-reader
+ * table.
  */
 
 export type NiveauEcart = 'conforme' | 'modere' | 'a-corriger'
@@ -45,42 +46,42 @@ export type NiveauEcart = 'conforme' | 'modere' | 'a-corriger'
 export type EcartPoche = {
   readonly poche: string
   readonly label: string
-  /** Écart signé, en points de pourcentage : constatée moins cible. */
+  /** Signed deviation, in percentage points: actual minus target. */
   readonly ecart: number
   readonly niveau: NiveauEcart
-  /** Le mot qui dit l'état — la teinte ne fait que le redoubler. */
+  /** The word that states the status — color only reinforces it. */
   readonly mot: string
 }
 
-const COULEUR: Record<NiveauEcart, string> = {
+const LEVEL_COLOR: Record<NiveauEcart, string> = {
   conforme: chartTheme.series.positive,
   modere: chartTheme.series.secondary,
   'a-corriger': chartTheme.series.warning,
 }
 
-/** Sous ce seuil, l'écart est dans la tolérance : la bande le montre. */
+/** Below this threshold, the deviation is within tolerance: the band shows it. */
 const TOLERANCE_PT = 1
 
-/** Aucun axe plus resserré que ±3 pt : voir la note de cadrage ci-dessus. */
-const BORNE_MINIMALE_PT = 3
+/** No axis narrower than ±3 pt: see the framing note above. */
+const MIN_BOUND_PT = 3
 
-function pointsLisibles(valeur: number): string {
-  const signe = valeur > 0 ? '+' : ''
-  return `${signe}${valeur.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`
+function formatDeviationPoints(value: number): string {
+  const sign = value > 0 ? '+' : ''
+  return `${sign}${formatNumber(value, { maximumFractionDigits: 2 })} pt`
 }
 
-function InfoBulle({
+function DeviationTooltip({
   active,
   payload,
 }: Readonly<{ active?: boolean; payload?: readonly { payload?: EcartPoche }[] }>) {
   if (active !== true || payload === undefined || payload.length === 0) return null
-  const poche = payload[0]?.payload
-  if (poche === undefined) return null
+  const pocket = payload[0]?.payload
+  if (pocket === undefined) return null
   return (
     <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
-      <p className="font-medium text-zinc-950 dark:text-white">{poche.label}</p>
-      <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">{pointsLisibles(poche.ecart)}</p>
-      <p className="mt-0.5 text-zinc-500 dark:text-zinc-400">{poche.mot}</p>
+      <p className="font-medium text-zinc-950 dark:text-white">{pocket.label}</p>
+      <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">{formatDeviationPoints(pocket.ecart)}</p>
+      <p className="mt-0.5 text-zinc-500 dark:text-zinc-400">{pocket.mot}</p>
     </div>
   )
 }
@@ -89,47 +90,55 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
   if (ecarts.length === 0) {
     return (
       <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-        Aucun écart n’a pu être lu sur la chaîne. Rien n’est tracé plutôt qu’une barre à zéro, qui se lirait
-        « poche parfaitement alignée ».
+        No deviation could be read from the chain. Nothing is drawn rather than a bar at zero, which would read
+        as “pocket perfectly on target.”
       </p>
     )
   }
 
-  const amplitude = Math.max(...ecarts.map((e) => Math.abs(e.ecart)))
-  const borne = Math.max(BORNE_MINIMALE_PT, Math.ceil(amplitude))
-  // Une ligne par poche, jamais moins haut qu'un cadre lisible.
-  const hauteur = Math.max(150, ecarts.length * 52 + 44)
+  const magnitude = Math.max(...ecarts.map((e) => Math.abs(e.ecart)))
+  const bound = Math.max(MIN_BOUND_PT, Math.ceil(magnitude))
+  // One row per pocket, never shorter than a readable frame.
+  const height = Math.max(150, ecarts.length * 52 + 44)
 
   return (
     <div className="px-2 py-4">
-      {/* Le tableau n'est pas un doublon du graphique : c'est sa seule version
-          lisible au clavier et par un lecteur d'écran. Masqué à l'œil, jamais
-          à l'assistance. */}
+      {/* The table isn't a duplicate of the chart: it's the chart's only
+          keyboard- and screen-reader-accessible version. Hidden from sight,
+          never from assistive tech. */}
       <table className="sr-only">
-        <caption>Écart entre allocation constatée et allocation visée, par poche, en points de pourcentage</caption>
+        <caption>Deviation between actual and target allocation, by pocket, in percentage points</caption>
         <thead>
           <tr>
-            <th scope="col">Poche</th>
-            <th scope="col">Écart</th>
-            <th scope="col">État</th>
+            <th scope="col">Pocket</th>
+            <th scope="col">Deviation</th>
+            <th scope="col">Status</th>
           </tr>
         </thead>
         <tbody>
           {ecarts.map((e) => (
             <tr key={e.poche}>
               <th scope="row">{e.label}</th>
-              <td>{pointsLisibles(e.ecart)}</td>
+              <td>{formatDeviationPoints(e.ecart)}</td>
               <td>{e.mot}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div aria-hidden="true" className="w-full" style={{ height: hauteur }}>
+      <div aria-hidden="true" className="w-full" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={[...ecarts]} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
-            {/* La bande de tolérance est dessinée AVANT les barres : elle est un
-                fond de lecture, pas une série. */}
+          <BarChart
+            data={[...ecarts]}
+            layout="vertical"
+            // Tighter top/bottom than the shared default: with a dynamic
+            // per-row height, that room is better spent on bar rows. Left
+            // stays at 0 because the YAxis already reserves label space via
+            // its own `width`.
+            margin={{ ...chartTheme.margin, top: 4, bottom: 4, left: 0 }}
+          >
+            {/* The tolerance band is drawn BEFORE the bars: it's reading
+                chrome, not a data series. */}
             <ReferenceArea
               x1={-TOLERANCE_PT}
               x2={TOLERANCE_PT}
@@ -139,8 +148,8 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
             />
             <XAxis
               type="number"
-              domain={[-borne, borne]}
-              tick={{ fill: chartTheme.tick, fontSize: 11 }}
+              domain={[-bound, bound]}
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
               unit=" pt"
@@ -148,19 +157,19 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
             <YAxis
               type="category"
               dataKey="label"
-              tick={{ fill: chartTheme.tick, fontSize: 11 }}
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
               width={80}
             />
             <ReferenceLine x={0} stroke={chartTheme.tick} strokeOpacity={0.45} />
-            <Tooltip content={<InfoBulle />} cursor={{ fill: chartTheme.cursor }} />
-            {/* Animation coupée, comme partout dans la console : une barre qui
-                pousse depuis zéro retarde la lecture et laisse une capture
-                d'écran sur un graphique vide. */}
+            <Tooltip content={<DeviationTooltip />} cursor={{ fill: chartTheme.cursor }} />
+            {/* Animation off, as everywhere in the console: a bar growing
+                from zero delays reading and leaves a screenshot caught on an
+                empty chart. */}
             <Bar dataKey="ecart" radius={2} maxBarSize={22} isAnimationActive={false}>
               {ecarts.map((e) => (
-                <Cell key={e.poche} fill={COULEUR[e.niveau]} />
+                <Cell key={e.poche} fill={LEVEL_COLOR[e.niveau]} />
               ))}
             </Bar>
           </BarChart>
@@ -168,8 +177,8 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
       </div>
 
       <p className="mt-2 px-3 text-xs text-zinc-500 dark:text-zinc-400">
-        Bande grise : tolérance de ±{TOLERANCE_PT} point. À droite de zéro, la poche est en avance sur sa cible ;
-        à gauche, elle est en retard.
+        Gray band: ±{TOLERANCE_PT}-point tolerance. Right of zero, the pocket is ahead of its target; left of
+        zero, it&apos;s behind.
       </p>
     </div>
   )
