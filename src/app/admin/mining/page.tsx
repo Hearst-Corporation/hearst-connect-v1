@@ -1,7 +1,7 @@
 import { MiningProductionChart, type MoisProduit } from '@/components/admin/charts/mining-production-chart'
 import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { PageHeader } from '@/components/admin/page-header'
 import { callBackend } from '@/lib/backend/client'
 import { adresseCourte, dateLisible, ilYA, libelleMouvement, montantUsdc } from '@/lib/mouvements'
@@ -295,17 +295,17 @@ export default async function Page() {
       />
 
       {minage === null ? (
-        <CockpitSection>
+        <AdminSection>
           <SourceAttendue
             quoi="L’état du minage n’a pas pu être lu"
             detail="Le service n’a pas répondu. Aucune valeur n’est supposée."
             requis={['Une réponse du service']}
           />
-        </CockpitSection>
+        </AdminSection>
       ) : (
         <>
           {/* ── 01 · L'équation économique ─────────────────────────────────── */}
-          <CockpitSection
+          <AdminSection
             index="01"
             title="Production contre facture"
             description="La seule question du minage : le bitcoin produit sur un mois paie-t-il l’électricité de ce mois."
@@ -364,10 +364,10 @@ export default async function Page() {
               }}
               hauteur="h-44"
             />
-          </CockpitSection>
+          </AdminSection>
 
           {/* ── 02 · La flotte ─────────────────────────────────────────────── */}
-          <CockpitSection
+          <AdminSection
             index="02"
             title="La flotte"
             description="Ce que le contrat déclare de la puissance installée et de son régime de marche."
@@ -427,10 +427,10 @@ export default async function Page() {
               )}
               hauteur="h-44"
             />
-          </CockpitSection>
+          </AdminSection>
 
           {/* ── 03 · Électricité ───────────────────────────────────────────── */}
-          <CockpitSection
+          <AdminSection
             index="03"
             title="Électricité"
             description="Le poste de coût du minage : ce qui est dû, ce qui a été réglé, et à qui."
@@ -474,7 +474,7 @@ export default async function Page() {
               />
               <Attestations mouvements={attestations} />
             </Card>
-          </CockpitSection>
+          </AdminSection>
         </>
       )}
     </div>

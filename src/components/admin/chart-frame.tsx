@@ -1,24 +1,19 @@
+import { AdminLabel } from '@/components/admin/typography'
+import { RequirementList } from '@/components/admin/surface'
+import { chartTheme } from '@/lib/chart-theme'
 import clsx from 'clsx'
 import { Card, CardHeader } from './cockpit'
 
 /**
- * Cadre commun à tous les graphiques du produit.
+ * Common frame for every chart in the product.
  *
- * Un graphique n'est pas une image : c'est une affirmation sur des données. Ce
- * cadre impose donc, pour chacun, ce sans quoi l'affirmation n'est pas
- * vérifiable — la question posée en titre, l'unité, la provenance, et l'état
- * de la donnée au moment du rendu.
+ * A chart is not an image — it's a claim about data. This frame requires,
+ * for every chart, what makes the claim verifiable: the question asked in
+ * the title, the unit, the provenance, and the state of the data at render
+ * time.
  *
- * ── Pourquoi un état vide DESSINÉ, et non un graphique masqué ──────────────
- * Plusieurs surfaces du produit ne sont pas encore alimentées. La tentation
- * serait de ne rien afficher, ou pire, de tracer une série d'exemple. Les deux
- * trompent : la première laisse croire que la vue n'existe pas, la seconde
- * qu'elle est renseignée.
- *
- * Le cadre reste donc visible — titre, unité, axes conceptuels — avec, à la
- * place de la série, une phrase qui dit précisément ce qu'on attend. Le jour
- * où l'endpoint répond, il n'y a rien à redessiner : la série remplace la
- * phrase, et la mise en page ne bouge pas.
+ * An unavailable chart shows its title, its source state, and a concise
+ * message — never a fake set of axes pretending data exists.
  */
 
 export type EtatSerie =
@@ -34,22 +29,28 @@ const TON_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
 }
 
 const LIBELLE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
-  vide: 'Aucune donnée sur la période',
-  attendue: 'En attente de la source',
-  indisponible: 'Donnée indisponible',
+  vide: 'No data for this period',
+  attendue: 'Waiting on the source',
+  indisponible: 'Data unavailable',
 }
 
 export function ChartFrame({
   question,
   unite,
   etat,
-  hauteur = 'h-56',
+  hauteur = chartTheme.height.medium,
+  expectedSource,
+  onRetry,
+  retryLabel = 'Retry',
   children,
 }: Readonly<{
   question: string
   unite: string
   etat: EtatSerie
   hauteur?: string
+  expectedSource?: readonly string[]
+  onRetry?: () => void
+  retryLabel?: string
   children?: React.ReactNode
 }>) {
   return (
@@ -59,21 +60,24 @@ export function ChartFrame({
       {etat.type === 'tracee' ? (
         children
       ) : (
-        <div
-          className={clsx(
-            hauteur,
-            'flex flex-col items-center justify-center gap-2 px-6 text-center',
-          )}
-        >
-          {/* Un axe fantôme : il montre que la vue EXISTE et attend sa série,
-              au lieu de laisser un vide qu'on prendrait pour une page cassée. */}
-          <div aria-hidden="true" className="mb-1 w-full max-w-sm space-y-3 opacity-40">
-            <div className="h-px w-full bg-hairline" />
-            <div className="h-px w-full bg-hairline" />
-            <div className="h-px w-full bg-hairline" />
-          </div>
+        <div className={clsx(hauteur, 'flex flex-col items-center justify-center gap-3 px-6 py-8 text-center')}>
           <p className={clsx('text-sm font-medium', TON_ETAT[etat.type])}>{LIBELLE_ETAT[etat.type]}</p>
           <p className="max-w-sm text-xs text-zinc-500 dark:text-zinc-400">{etat.explication}</p>
+          {expectedSource?.length ? (
+            <div className="mt-1 w-full max-w-sm rounded-lg bg-zinc-50 px-4 py-3 text-left ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
+              <AdminLabel>Expected source</AdminLabel>
+              <RequirementList requis={expectedSource as string[]} />
+            </div>
+          ) : null}
+          {onRetry ? (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-1 text-xs font-medium text-accent-600 underline underline-offset-4 hover:text-accent-700 dark:text-accent-400"
+            >
+              {retryLabel}
+            </button>
+          ) : null}
         </div>
       )}
     </Card>

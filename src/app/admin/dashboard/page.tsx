@@ -1,6 +1,6 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import clsx from 'clsx'
@@ -215,12 +215,12 @@ export default async function Page() {
         description="Sur quoi le produit peut s’appuyer aujourd’hui, surface par surface, et pourquoi le reste attend encore sa source."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       <CorpsCouverture agregat={agregat} surfaces={surfaces} />
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

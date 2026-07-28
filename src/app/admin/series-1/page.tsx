@@ -1,6 +1,6 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import {
   adresseCourte,
@@ -94,13 +94,13 @@ export default async function Page() {
         description="Tout ce que la chaîne a enregistré pour ce fonds, du plus récent au plus ancien. Chaque ligne vient du service ; rien n’est agrégé ni estimé ici."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
 
       {/* Le sous-sol : la réponse détaillée reste consultable pour qui veut
           vérifier un champ, jamais imposée à qui vient lire le journal. */}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

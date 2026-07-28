@@ -9,7 +9,8 @@ import {
   type PocheDerive,
 } from '@/components/admin/charts/accueil-derive-chart'
 import { AccueilVueEnsemble, type VerdictAccueil } from '@/components/admin/charts/accueil-vue-ensemble'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { ExceptionBanner, CalmState } from '@/components/admin/cockpit'
 import { DistributionBarChart, type BarreRepartition } from '@/components/admin/distribution-chart'
 import { PageHeader } from '@/components/admin/page-header'
@@ -416,8 +417,8 @@ export default async function Page() {
     : 'Series 1 · snapshot live'
 
   return (
-    <>
-      <PageHeader title="Hearst Connect — Portefeuille Series 1" meta={metaSnapshot} />
+    <AdminPage>
+      <PageHeader title="Hearst Connect — Portefeuille Series 1" description={metaSnapshot} />
 
       {serviceIndisponible ? (
         <ExceptionBanner
@@ -427,7 +428,7 @@ export default async function Page() {
         />
       ) : null}
 
-      <CockpitSection>
+      <AdminSection>
         <AccueilVueEnsemble
           encours={montantUsdc(capacite?.totalAssets, 0)}
           encoursLegende="Actifs mesurés sur la chaîne, libellés en USDC"
@@ -514,9 +515,9 @@ export default async function Page() {
             </ul>
           </div>
         ) : null}
-      </CockpitSection>
+      </AdminSection>
 
-      <CockpitSection
+      <AdminSection
         index="02"
         title="Activité récente"
         description={
@@ -574,7 +575,7 @@ export default async function Page() {
             )}
           </div>
         </div>
-      </CockpitSection>
+      </AdminSection>
 
       {/* Les raccourcis ferment la page : on navigue APRÈS avoir lu l'état,
           pas avant. Ils ne sont plus le contenu principal de l'accueil. */}
@@ -599,6 +600,6 @@ export default async function Page() {
           icon={Cog6ToothIcon}
         />
       </nav>
-    </>
+    </AdminPage>
   )
 }

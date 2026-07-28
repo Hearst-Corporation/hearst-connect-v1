@@ -53,7 +53,7 @@ export type EcartPoche = {
 }
 
 const COULEUR: Record<NiveauEcart, string> = {
-  conforme: chartTheme.series.success,
+  conforme: chartTheme.series.positive,
   modere: chartTheme.series.secondary,
   'a-corriger': chartTheme.series.warning,
 }

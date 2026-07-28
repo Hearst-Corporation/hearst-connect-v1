@@ -1,7 +1,7 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, HeroFigure, SideFact } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import {
   ReserveExpositionChart,
   VendingCurveChart,
@@ -125,7 +125,7 @@ export default async function Page() {
         description="Ce que le fonds produit, où son argent se trouve, et comment sa rémunération évolue. Six anciennes vues réunies ici."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       {/* ── Ce que le fonds produit ─────────────────────────────────────── */}
       <Card className="p-6">
@@ -191,7 +191,7 @@ export default async function Page() {
           hauteur="h-40"
         />
       </div>
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }
