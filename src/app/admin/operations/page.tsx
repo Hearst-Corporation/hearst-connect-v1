@@ -416,7 +416,7 @@ function CadreDerive({
   derives,
   etat,
 }: Readonly<{ derives: readonly DerivePoche[]; etat: EtatSerie }>) {
-  const seule = derives[0]
+  const seule = derives.at(0)
 
   if (etat.type === 'tracee' && !plottableAsChart(derives.length) && seule !== undefined) {
     return (
@@ -623,7 +623,7 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
 function RepartitionParType({ cumuls }: Readonly<{ cumuls: readonly CumulType[] }>) {
   const question = 'Which types make up the ledger?'
   const unite = 'movements, by type'
-  const majeur = cumuls[0]
+  const majeur = cumuls.at(0)
 
   if (!plottableAsChart(cumuls.length)) {
     if (majeur === undefined) return null
@@ -652,8 +652,8 @@ function EnTeteRegistre({
   mouvements,
   cumuls,
 }: Readonly<{ mouvements: readonly MouvementIndexe[]; cumuls: readonly CumulType[] }>) {
-  const dernier = mouvements[0]?.occurredAt ?? null
-  const premier = mouvements[mouvements.length - 1]?.occurredAt ?? null
+  const dernier = mouvements.at(0)?.occurredAt ?? null
+  const premier = mouvements.at(-1)?.occurredAt ?? null
   const avecMontant = cumuls.filter((c) => c.montantAtomique !== null)
 
   return (

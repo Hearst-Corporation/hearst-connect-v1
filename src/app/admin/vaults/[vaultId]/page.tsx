@@ -41,6 +41,7 @@ import {
   type SourceHealth,
   type Strategy,
   type Vault,
+  type VaultId,
 } from '@/lib/vaults/model'
 import { loadVault } from '@/lib/vaults/registry'
 import clsx from 'clsx'
@@ -427,6 +428,45 @@ function AllocationTable({ vault, strategies }: Readonly<{ vault: Vault; strateg
   )
 }
 
+/* ── 2 · Allocation section wrapper ─────────────────────────────────────── */
+
+function AllocationSection({
+  vault,
+  strategies,
+}: Readonly<{ vault: Vault; strategies: Availability<readonly Strategy[]> }>) {
+  let contenu: React.ReactNode
+  if (isAvailable(strategies)) {
+    if (strategies.value.length === 0) {
+      contenu = (
+        <AbsenceCard
+          title="This vault declares no strategy pocket."
+          sentence="The service answered and returned an empty pocket list. That is an unallocated vault, not a reading that failed."
+          availability={strategies}
+        />
+      )
+    } else {
+      contenu = <AllocationTable vault={vault} strategies={strategies.value} />
+    }
+  } else {
+    contenu = (
+      <AbsenceCard
+        title="The allocation could not be read."
+        sentence="No pocket was returned for this vault, so nothing is listed. An unread allocation is not an empty one, and no share is shown as zero."
+        availability={strategies}
+      />
+    )
+  }
+
+  return (
+    <AdminSection
+      title="Allocation"
+      description="Where the vault's capital is placed, pocket by pocket, against the shares the contract targets."
+    >
+      {contenu}
+    </AdminSection>
+  )
+}
+
 /* ── 4 · Rebalancing ──────────────────────────────────────────────────────── */
 
 /**
@@ -461,35 +501,42 @@ function lastRebalanceReading(vault: Vault): Availability<string> {
 function PendingActionTile({ vault }: Readonly<{ vault: Vault }>) {
   const breaches = requiresRebalancing(vault)
 
+  let contenu: React.ReactNode
+  if (!isAvailable(breaches)) {
+    contenu = (
+      <>
+        <SourceAvailabilityBadge availability={breaches} />
+        <AdminCaption className="mt-1">
+          No drift reading, so no action is recommended either way.
+        </AdminCaption>
+      </>
+    )
+  } else if (breaches.value) {
+    contenu = (
+      <>
+        <FactValue warn>Rebalance review</FactValue>
+        <p className="mt-1">
+          <Link href={entityHref('keeper', vault.id)} className={INLINE_LINK}>
+            Open Keeper
+          </Link>
+        </p>
+      </>
+    )
+  } else {
+    contenu = (
+      <>
+        <FactValue>None</FactValue>
+        <AdminCaption className="mt-1">
+          Every pocket that reported sits inside the ±{THRESHOLD_POINTS} pt threshold.
+        </AdminCaption>
+      </>
+    )
+  }
+
   return (
     <AdminSurface className="p-4">
       <dl>
-        <FactShell label="Pending action">
-          {!isAvailable(breaches) ? (
-            <>
-              <SourceAvailabilityBadge availability={breaches} />
-              <AdminCaption className="mt-1">
-                No drift reading, so no action is recommended either way.
-              </AdminCaption>
-            </>
-          ) : breaches.value ? (
-            <>
-              <FactValue warn>Rebalance review</FactValue>
-              <p className="mt-1">
-                <Link href={entityHref('keeper', vault.id)} className={INLINE_LINK}>
-                  Open Keeper
-                </Link>
-              </p>
-            </>
-          ) : (
-            <>
-              <FactValue>None</FactValue>
-              <AdminCaption className="mt-1">
-                Every pocket that reported sits inside the ±{THRESHOLD_POINTS} pt threshold.
-              </AdminCaption>
-            </>
-          )}
-        </FactShell>
+        <FactShell label="Pending action">{contenu}</FactShell>
       </dl>
     </AdminSurface>
   )
@@ -655,7 +702,7 @@ export default async function Page({ params }: PageProps) {
   const session = await requireSession()
   // Next decodes the route segment already; `entityHref` encodes it on the way
   // out, so the identifier that arrives here is the one the model produced.
-  const { registry, vault } = await loadVault(vaultId, session.name)
+  const { registry, vault } = await loadVault(vaultId as VaultId, session.name)
 
   if (vault === null) notFound()
 
@@ -714,28 +761,7 @@ export default async function Page({ params }: PageProps) {
       </AdminSection>
 
       {/* 2 · Allocation */}
-      <AdminSection
-        title="Allocation"
-        description="Where the vault's capital is placed, pocket by pocket, against the shares the contract targets."
-      >
-        {isAvailable(strategies) ? (
-          strategies.value.length === 0 ? (
-            <AbsenceCard
-              title="This vault declares no strategy pocket."
-              sentence="The service answered and returned an empty pocket list. That is an unallocated vault, not a reading that failed."
-              availability={strategies}
-            />
-          ) : (
-            <AllocationTable vault={vault} strategies={strategies.value} />
-          )
-        ) : (
-          <AbsenceCard
-            title="The allocation could not be read."
-            sentence="No pocket was returned for this vault, so nothing is listed. An unread allocation is not an empty one, and no share is shown as zero."
-            availability={strategies}
-          />
-        )}
-      </AdminSection>
+      <AllocationSection vault={vault} strategies={strategies} />
 
       {/* 3 · Deployments */}
       <AdminSection

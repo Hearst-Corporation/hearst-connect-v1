@@ -163,10 +163,7 @@ function TransactionCell({ movement }: Readonly<{ movement: Movement }>) {
   const short = formatHash(movement.txHash)
   if (short === null) return <Absent title="The event carries no transaction hash." />
 
-  const url = explorerTxUrl(
-    movement.chainId === null ? undefined : movement.chainId,
-    movement.txHash,
-  )
+  const url = explorerTxUrl(movement.chainId ?? undefined, movement.txHash)
 
   if (url === null) {
     return (

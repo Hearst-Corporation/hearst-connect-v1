@@ -137,18 +137,31 @@ export function combine<A extends Availability<unknown>, B extends Availability<
  * The encoding is URL-safe and round-trips, because it is also the route
  * segment of `/admin/vaults/[vaultId]`.
  */
-export type VaultId = string
-export type ClientId = string
-export type StrategyId = string
-export type MovementId = string
-export type DeploymentId = string
-export type KeeperActionId = string
-export type ComplianceReviewId = string
+declare const vaultIdBrand: unique symbol
+export type VaultId = string & { readonly [vaultIdBrand]: true }
+
+declare const clientIdBrand: unique symbol
+export type ClientId = string & { readonly [clientIdBrand]: true }
+
+declare const strategyIdBrand: unique symbol
+export type StrategyId = string & { readonly [strategyIdBrand]: true }
+
+declare const movementIdBrand: unique symbol
+export type MovementId = string & { readonly [movementIdBrand]: true }
+
+declare const deploymentIdBrand: unique symbol
+export type DeploymentId = string & { readonly [deploymentIdBrand]: true }
+
+declare const keeperActionIdBrand: unique symbol
+export type KeeperActionId = string & { readonly [keeperActionIdBrand]: true }
+
+declare const complianceReviewIdBrand: unique symbol
+export type ComplianceReviewId = string & { readonly [complianceReviewIdBrand]: true }
 
 export function vaultId(chainId: number | null | undefined, contractAddress: string | null | undefined): VaultId | null {
   if (contractAddress === null || contractAddress === undefined || contractAddress === '') return null
   const chain = typeof chainId === 'number' && Number.isFinite(chainId) ? chainId : 'unknown'
-  return `${chain}-${contractAddress.toLowerCase()}`
+  return `${chain}-${contractAddress.toLowerCase()}` as VaultId
 }
 
 export function parseVaultId(raw: string): { chainId: number | null; contractAddress: string } | null {
@@ -163,12 +176,12 @@ export function parseVaultId(raw: string): { chainId: number | null; contractAdd
 
 /** A strategy belongs to a vault: its pocket key is only unique within one. */
 export function strategyId(vault: VaultId, pocket: string): StrategyId {
-  return `${vault}:${pocket}`
+  return `${vault}:${pocket}` as StrategyId
 }
 
 /** The indexer's own event id — already stable and unique. */
 export function movementId(raw: string): MovementId {
-  return raw
+  return raw as MovementId
 }
 
 /* ── Entities ─────────────────────────────────────────────────────────────── */

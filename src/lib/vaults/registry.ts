@@ -14,8 +14,6 @@ import {
   type AdminRegistry,
   type Availability,
   type ClientException,
-  type ClientRef,
-  type Deployment,
   type Movement,
   type Provenance,
   type RebalancingRow,
@@ -214,6 +212,57 @@ function pocketAssetsAccordants(
 
 /* ── Strategies ───────────────────────────────────────────────────────────── */
 
+function readPocketKey(poche: PocheWire): string | null {
+  const pocket = poche.pocket
+  if (typeof pocket !== 'string' || pocket === '') return null
+  return pocket
+}
+
+function readTargetBps(poche: PocheWire): number | null {
+  const target = poche.targetBps
+  if (typeof target !== 'number' || !Number.isFinite(target)) return null
+  return target
+}
+
+function readActualBps(poche: PocheWire): number | null {
+  const actual = poche.actualBps
+  if (typeof actual !== 'number' || !Number.isFinite(actual)) return null
+  return actual
+}
+
+function readDriftBps(poche: PocheWire): number | null {
+  const drift = poche.driftBps
+  if (typeof drift !== 'number' || !Number.isFinite(drift)) return null
+  return drift
+}
+
+function buildStrategy(vault: VaultId, poche: PocheWire, rwa: PocheWire | undefined, totalAssets: string | null): Strategy | null {
+  const pocket = readPocketKey(poche)
+  if (pocket === null) return null
+
+  const target = readTargetBps(poche)
+  if (target === null) return null
+
+  const actual = readActualBps(poche)
+  const drift = readDriftBps(poche)
+  const label = typeof poche.label === 'string' && poche.label !== '' ? poche.label : pocket
+  const adapter = typeof poche.adapter === 'string' && poche.adapter !== '' ? poche.adapter : null
+
+  return {
+    id: strategyId(vault, pocket),
+    vaultId: vault,
+    pocket,
+    label,
+    targetBps: target,
+    actualBps: actual,
+    driftBps: drift,
+    enabled: poche.enabled !== false,
+    isIdle: poche.isIdle === true,
+    adapter,
+    assetsAtomic: pocketAssetsAccordants(rwa?.pocketAssets, poche.actualBps, totalAssets),
+  }
+}
+
 function construireStrategies(
   vault: VaultId,
   poches: readonly PocheWire[],
@@ -221,26 +270,10 @@ function construireStrategies(
   totalAssets: string | null,
 ): readonly Strategy[] {
   const sorties: Strategy[] = []
-  for (const p of poches) {
-    const pocket = p.pocket
-    if (typeof pocket !== 'string' || pocket === '') continue
-    const target = p.targetBps
-    if (typeof target !== 'number' || !Number.isFinite(target)) continue
-
-    const rwa = rwaParPoche.get(pocket)
-    sorties.push({
-      id: strategyId(vault, pocket),
-      vaultId: vault,
-      pocket,
-      label: typeof p.label === 'string' && p.label !== '' ? p.label : pocket,
-      targetBps: target,
-      actualBps: typeof p.actualBps === 'number' && Number.isFinite(p.actualBps) ? p.actualBps : null,
-      driftBps: typeof p.driftBps === 'number' && Number.isFinite(p.driftBps) ? p.driftBps : null,
-      enabled: p.enabled !== false,
-      isIdle: p.isIdle === true,
-      adapter: typeof p.adapter === 'string' && p.adapter !== '' ? p.adapter : null,
-      assetsAtomic: pocketAssetsAccordants(rwa?.pocketAssets, p.actualBps, totalAssets),
-    })
+  for (const poche of poches) {
+    const strategy = buildStrategy(vault, poche, rwaParPoche.get(poche.pocket ?? ''), totalAssets)
+    if (strategy === null) continue
+    sorties.push(strategy)
   }
   return sorties
 }
@@ -286,33 +319,39 @@ function statutVault(runtime: RuntimeBloc | undefined, snapshotLu: boolean): Vau
 
 /* ── Movements ────────────────────────────────────────────────────────────── */
 
+function buildMovement(mouvement: MouvementWire, vaultParContrat: Map<string, VaultId>): Movement | null {
+  const id = mouvement.id
+  const nom = mouvement.eventName
+  if (typeof id !== 'string' || id === '' || typeof nom !== 'string' || nom === '') return null
+
+  const contrat = typeof mouvement.contractAddress === 'string' ? mouvement.contractAddress.toLowerCase() : null
+  return {
+    id: movementId(id),
+    vaultId: contrat === null ? null : (vaultParContrat.get(contrat) ?? null),
+    eventName: nom,
+    blockNumber: mouvement.blockNumber ?? null,
+    txHash: mouvement.txHash ?? null,
+    chainId: typeof mouvement.chainId === 'number' ? mouvement.chainId : null,
+    investorAddress: mouvement.investorAddress ?? null,
+    assetAmountAtomic: mouvement.assetAmountAtomic ?? null,
+    shareAmountAtomic: mouvement.shareAmountAtomic ?? null,
+    occurredAt: mouvement.occurredAt ?? null,
+    indexedAt: mouvement.indexedAt ?? null,
+    // The ledger carries no pocket on any event type it currently emits.
+    // Guessing one from the event name would be a fabricated relationship.
+    strategyId: unavailable({ status: 'NOT_EXPOSED', reason: 'ledger_carries_no_pocket' }),
+  }
+}
+
 function construireMouvements(
   bruts: readonly MouvementWire[],
   vaultParContrat: Map<string, VaultId>,
 ): readonly Movement[] {
   const sorties: Movement[] = []
   for (const m of bruts) {
-    const id = m.id
-    const nom = m.eventName
-    if (typeof id !== 'string' || id === '' || typeof nom !== 'string' || nom === '') continue
-
-    const contrat = typeof m.contractAddress === 'string' ? m.contractAddress.toLowerCase() : null
-    sorties.push({
-      id: movementId(id),
-      vaultId: contrat === null ? null : (vaultParContrat.get(contrat) ?? null),
-      eventName: nom,
-      blockNumber: m.blockNumber ?? null,
-      txHash: m.txHash ?? null,
-      chainId: typeof m.chainId === 'number' ? m.chainId : null,
-      investorAddress: m.investorAddress ?? null,
-      assetAmountAtomic: m.assetAmountAtomic ?? null,
-      shareAmountAtomic: m.shareAmountAtomic ?? null,
-      occurredAt: m.occurredAt ?? null,
-      indexedAt: m.indexedAt ?? null,
-      // The ledger carries no pocket on any event type it currently emits.
-      // Guessing one from the event name would be a fabricated relationship.
-      strategyId: unavailable({ status: 'NOT_EXPOSED', reason: 'ledger_carries_no_pocket' }),
-    })
+    const movement = buildMovement(m, vaultParContrat)
+    if (movement === null) continue
+    sorties.push(movement)
   }
   return sorties
 }
@@ -400,131 +439,235 @@ function exceptionsClients(
   )
 }
 
+/* ── Source health ────────────────────────────────────────────────────────── */
+
+function sourceHealth(
+  endpointId: string,
+  label: string,
+  ok: boolean,
+  detail: string | null,
+  asOf: string | null,
+): SourceHealth {
+  return { endpointId, label, status: ok ? 'LIVE' : 'UNAVAILABLE', detail, asOf }
+}
+
+/* ── Vault assembly ───────────────────────────────────────────────────────── */
+
+function readVaultId(vaultData: VaultReponse | null): VaultId | null {
+  if (vaultData === null) return null
+  const runtime = vaultData.runtime
+  return vaultId(runtime?.chainId, runtime?.contractAddress)
+}
+
+function buildRwaMap(rwaBloc: Availability<readonly PocheWire[]>): Map<string, PocheWire> {
+  const rwaParPoche = new Map<string, PocheWire>()
+  if (!isAvailable(rwaBloc)) return rwaParPoche
+  for (const p of rwaBloc.value) {
+    if (typeof p.pocket === 'string') rwaParPoche.set(p.pocket, p)
+  }
+  return rwaParPoche
+}
+
+function buildVaultStrategies(
+  vaultId: VaultId,
+  strategiesBloc: Availability<readonly PocheWire[]>,
+  rwaBloc: Availability<readonly PocheWire[]>,
+  totalAssets: string | null,
+): Availability<readonly Strategy[]> {
+  return mapAvailability(strategiesBloc, (poches) => construireStrategies(vaultId, poches, buildRwaMap(rwaBloc), totalAssets))
+}
+
+function buildVaultRecord(
+  vaultId: VaultId,
+  vaultData: VaultReponse,
+  snapshot: Availability<{
+    asset?: string | null
+    assetDecimals?: number | null
+    totalAssets?: string | null
+    totalShares?: string | null
+    navPerShare?: string | null
+  }>,
+  capacity: Availability<{
+    tvlCap?: string | null
+    totalAssets?: string | null
+    availableCapacity?: string | null
+    utilizationBps?: number | null
+  }>,
+  strategies: Availability<readonly Strategy[]>,
+  rebalancingBloc: Availability<{ lastRebalanceAt?: string | null; driftBps?: number | null }>,
+): Vault {
+  const runtime = vaultData.runtime
+  const contractAddress = runtime?.contractAddress as string
+  const listeStrategies = isAvailable(strategies) ? strategies.value : []
+  const derniereActivite = isAvailable(snapshot) ? snapshot.asOf : null
+
+  return {
+    id: vaultId,
+    // The contract publishes no name. Deriving one from the chain and the
+    // address is a description of the object, not an invented label.
+    label: `Series 1 · ${contractAddress.slice(0, 6)}…${contractAddress.slice(-4)}`,
+    chainId: typeof runtime?.chainId === 'number' ? runtime.chainId : null,
+    contractAddress,
+    status: statutVault(runtime, isAvailable(snapshot)),
+    asset: combine(field(snapshot, 'asset'), field(snapshot, 'assetDecimals'), (symbol, decimals) => ({
+      symbol,
+      decimals,
+    })),
+    totalAssetsAtomic: field(snapshot, 'totalAssets'),
+    tvlCapAtomic: field(capacity, 'tvlCap'),
+    capacityRemainingAtomic: field(capacity, 'availableCapacity'),
+    utilizationBps: field(capacity, 'utilizationBps'),
+    navPerShare: field(snapshot, 'navPerShare'),
+    strategies,
+    deployedBps: isAvailable(strategies) ? partDeployeeBps(listeStrategies) : strategies,
+    worstDriftBps: isAvailable(strategies) ? pireDeriveBps(listeStrategies) : strategies,
+    rebalancing: mapAvailability(rebalancingBloc, (r) => ({
+      lastRebalanceAt: r.lastRebalanceAt ?? null,
+      driftBps: typeof r.driftBps === 'number' ? r.driftBps : null,
+    })),
+    // No client directory exists: the vault's owner is not "none", it is
+    // not readable. Those are different facts.
+    client: unavailable({ endpoint: '/api/v1/clients', status: 'NOT_EXPOSED', reason: 'no_client_directory_endpoint' }),
+    lastActivityAt:
+      derniereActivite === null
+        ? unavailable({ status: 'EMPTY', reason: 'no_snapshot_timestamp' })
+        : available(derniereActivite, { provenance: 'live' }),
+  }
+}
+
 /* ── Loader ───────────────────────────────────────────────────────────────── */
 
-export async function loadAdminRegistry(
-  compteLabel: string,
-  opts: { movementLimit?: number } = {},
-): Promise<AdminRegistry> {
+type BackendResponses = Readonly<{
+  vaultRes: Awaited<ReturnType<typeof callBackend<VaultReponse>>>
+  strategiesRes: Awaited<ReturnType<typeof callBackend<StrategiesReponse>>>
+  rwaRes: Awaited<ReturnType<typeof callBackend<RwaReponse>>>
+  rebalRes: Awaited<ReturnType<typeof callBackend<RebalancingReponse>>>
+  eventsRes: Awaited<ReturnType<typeof callBackend<EvenementsReponse>>>
+  dashboardRes: Awaited<ReturnType<typeof callBackend<DashboardReponse>>>
+}>
+
+async function fetchRegistryResponses(
+  movementLimit: number,
+): Promise<BackendResponses> {
   const [vaultRes, strategiesRes, rwaRes, rebalRes, eventsRes, dashboardRes] = await Promise.all([
     callBackend<VaultReponse>('vault'),
     callBackend<StrategiesReponse>('vault-strategies'),
     callBackend<RwaReponse>('rwa-vault'),
     callBackend<RebalancingReponse>('rebalancing-status'),
-    callBackend<EvenementsReponse>('series1-events', { params: { limit: opts.movementLimit ?? 25 } }),
+    callBackend<EvenementsReponse>('series1-events', { params: { limit: movementLimit } }),
     callBackend<DashboardReponse>('dashboard'),
   ])
+  return { vaultRes, strategiesRes, rwaRes, rebalRes, eventsRes, dashboardRes }
+}
 
-  const sources: SourceHealth[] = []
-  const noter = (endpointId: string, label: string, ok: boolean, detail: string | null, asOf: string | null) =>
-    sources.push({
-      endpointId,
-      label,
-      status: ok ? 'LIVE' : 'UNAVAILABLE',
-      detail,
-      asOf,
-    })
-
-  /* — The vault — */
+function buildVaults(
+  responses: BackendResponses,
+  sources: SourceHealth[],
+): { vaults: Availability<readonly Vault[]>; vaultParContrat: Map<string, VaultId> } {
+  const { vaultRes, strategiesRes, rwaRes, rebalRes } = responses
   const vaultData = vaultRes.ok ? vaultRes.data : null
   const runtime = vaultData?.runtime
-  const id = vaultId(runtime?.chainId, runtime?.contractAddress)
+  const id = readVaultId(vaultData)
 
   const snapshot = fromResolu(vaultData?.snapshot, '/api/v1/vault')
   const capacity = fromResolu(vaultData?.capacity, '/api/v1/vault')
-  noter('vault', 'Vault', vaultRes.ok && isAvailable(snapshot), vaultRes.ok ? null : 'No response', isAvailable(snapshot) ? snapshot.asOf : null)
+  sources.push(
+    sourceHealth(
+      'vault',
+      'Vault',
+      vaultRes.ok && isAvailable(snapshot),
+      vaultRes.ok ? null : 'No response',
+      isAvailable(snapshot) ? snapshot.asOf : null,
+    ),
+  )
 
-  let vaults: Availability<readonly Vault[]>
   const vaultParContrat = new Map<string, VaultId>()
-
   if (id === null) {
-    vaults = unavailable({
-      endpoint: '/api/v1/vault',
-      reason: vaultRes.ok ? 'no_contract_address_reported' : 'service_did_not_respond',
-    })
-  } else {
-    const contrat = (runtime?.contractAddress as string).toLowerCase()
-    vaultParContrat.set(contrat, id)
-
-    const totalAssets = isAvailable(snapshot) ? (snapshot.value.totalAssets ?? null) : null
-
-    const strategiesBloc = fromResolu(strategiesRes.ok ? strategiesRes.data.strategies : undefined, '/api/v1/vault/strategies')
-    noter('vault-strategies', 'Strategies', isAvailable(strategiesBloc), null, isAvailable(strategiesBloc) ? strategiesBloc.asOf : null)
-
-    const rwaBloc = fromResolu(rwaRes.ok ? rwaRes.data.pockets : undefined, '/api/v1/rwa-vault')
-    const rwaParPoche = new Map<string, PocheWire>()
-    if (isAvailable(rwaBloc)) {
-      for (const p of rwaBloc.value) if (typeof p.pocket === 'string') rwaParPoche.set(p.pocket, p)
+    return {
+      vaults: unavailable({
+        endpoint: '/api/v1/vault',
+        reason: vaultRes.ok ? 'no_contract_address_reported' : 'service_did_not_respond',
+      }),
+      vaultParContrat,
     }
-    noter('rwa-vault', 'RWA pockets', isAvailable(rwaBloc), null, isAvailable(rwaBloc) ? rwaBloc.asOf : null)
+  }
 
-    const strategies: Availability<readonly Strategy[]> = mapAvailability(strategiesBloc, (poches) =>
-      construireStrategies(id, poches, rwaParPoche, totalAssets),
-    )
+  const contractAddress = (runtime?.contractAddress as string).toLowerCase()
+  vaultParContrat.set(contractAddress, id)
+  const totalAssets = isAvailable(snapshot) ? (snapshot.value.totalAssets ?? null) : null
 
-    const rebalancingBloc = fromResolu(
-      rebalRes.ok ? rebalRes.data.rebalancing : undefined,
-      '/api/v1/rebalancing/status',
-    )
-    noter(
+  const strategiesBloc = fromResolu(strategiesRes.ok ? strategiesRes.data.strategies : undefined, '/api/v1/vault/strategies')
+  sources.push(
+    sourceHealth(
+      'vault-strategies',
+      'Strategies',
+      isAvailable(strategiesBloc),
+      null,
+      isAvailable(strategiesBloc) ? strategiesBloc.asOf : null,
+    ),
+  )
+
+  const rwaBloc = fromResolu(rwaRes.ok ? rwaRes.data.pockets : undefined, '/api/v1/rwa-vault')
+  sources.push(
+    sourceHealth('rwa-vault', 'RWA pockets', isAvailable(rwaBloc), null, isAvailable(rwaBloc) ? rwaBloc.asOf : null),
+  )
+
+  const rebalancingBloc = fromResolu(
+    rebalRes.ok ? rebalRes.data.rebalancing : undefined,
+    '/api/v1/rebalancing/status',
+  )
+  sources.push(
+    sourceHealth(
       'rebalancing-status',
       'Rebalancing',
       isAvailable(rebalancingBloc),
       rebalRes.ok ? (rebalRes.data.rebalancing?.reason ?? null) : 'No response',
       null,
-    )
-
-    const listeStrategies = isAvailable(strategies) ? strategies.value : []
-    const derniereActivite = isAvailable(snapshot) ? snapshot.asOf : null
-
-    const vault: Vault = {
-      id,
-      // The contract publishes no name. Deriving one from the chain and the
-      // address is a description of the object, not an invented label.
-      label: `Series 1 · ${(runtime?.contractAddress as string).slice(0, 6)}…${(runtime?.contractAddress as string).slice(-4)}`,
-      chainId: typeof runtime?.chainId === 'number' ? runtime.chainId : null,
-      contractAddress: runtime?.contractAddress as string,
-      status: statutVault(runtime, isAvailable(snapshot)),
-      asset: combine(field(snapshot, 'asset'), field(snapshot, 'assetDecimals'), (symbol, decimals) => ({
-        symbol,
-        decimals,
-      })),
-      totalAssetsAtomic: field(snapshot, 'totalAssets'),
-      tvlCapAtomic: field(capacity, 'tvlCap'),
-      capacityRemainingAtomic: field(capacity, 'availableCapacity'),
-      utilizationBps: field(capacity, 'utilizationBps'),
-      navPerShare: field(snapshot, 'navPerShare'),
-      strategies,
-      deployedBps: isAvailable(strategies) ? partDeployeeBps(listeStrategies) : strategies,
-      worstDriftBps: isAvailable(strategies) ? pireDeriveBps(listeStrategies) : strategies,
-      rebalancing: mapAvailability(rebalancingBloc, (r) => ({
-        lastRebalanceAt: r.lastRebalanceAt ?? null,
-        driftBps: typeof r.driftBps === 'number' ? r.driftBps : null,
-      })),
-      // No client directory exists: the vault's owner is not "none", it is
-      // not readable. Those are different facts.
-      client: unavailable({ endpoint: '/api/v1/clients', status: 'NOT_EXPOSED', reason: 'no_client_directory_endpoint' }),
-      lastActivityAt:
-        derniereActivite === null
-          ? unavailable({ status: 'EMPTY', reason: 'no_snapshot_timestamp' })
-          : available(derniereActivite, { provenance: 'live' }),
-    }
-
-    vaults = available([vault], { provenance: 'chain', asOf: derniereActivite })
-  }
-
-  /* — Movements — */
-  const eventsBloc = fromResolu(eventsRes.ok ? eventsRes.data.events : undefined, '/api/v1/series1/events')
-  noter('series1-events', 'Ledger', isAvailable(eventsBloc), null, isAvailable(eventsBloc) ? eventsBloc.asOf : null)
-  const movements: Availability<readonly Movement[]> = mapAvailability(eventsBloc, (bruts) =>
-    construireMouvements(bruts, vaultParContrat),
+    ),
   )
 
-  /* — Identity, and the one exception it supports — */
+  const strategies = buildVaultStrategies(id, strategiesBloc, rwaBloc, totalAssets)
+  const vault = buildVaultRecord(id, vaultData as VaultReponse, snapshot, capacity, strategies, rebalancingBloc)
+  const vaults = available([vault], { provenance: 'chain', asOf: vault.lastActivityAt.kind === 'available' ? vault.lastActivityAt.value : null })
+
+  return { vaults, vaultParContrat }
+}
+
+function buildMovements(
+  eventsRes: BackendResponses['eventsRes'],
+  vaultParContrat: Map<string, VaultId>,
+  sources: SourceHealth[],
+): Availability<readonly Movement[]> {
+  const eventsBloc = fromResolu(eventsRes.ok ? eventsRes.data.events : undefined, '/api/v1/series1/events')
+  sources.push(
+    sourceHealth('series1-events', 'Ledger', isAvailable(eventsBloc), null, isAvailable(eventsBloc) ? eventsBloc.asOf : null),
+  )
+  return mapAvailability(eventsBloc, (bruts) => construireMouvements(bruts, vaultParContrat))
+}
+
+function buildClientExceptions(
+  dashboardRes: BackendResponses['dashboardRes'],
+  compteLabel: string,
+  sources: SourceHealth[],
+): Availability<readonly ClientException[]> {
   const identityBloc = fromResolu(dashboardRes.ok ? dashboardRes.data.identity : undefined, '/api/v1/dashboard')
   const identityReason = dashboardRes.ok ? (dashboardRes.data.identity?.reason ?? null) : null
-  noter('dashboard', 'Investor record', isAvailable(identityBloc), identityReason, null)
+  sources.push(
+    sourceHealth('dashboard', 'Investor record', isAvailable(identityBloc), identityReason, null),
+  )
+  return exceptionsClients(identityBloc, identityReason, compteLabel)
+}
 
+export async function loadAdminRegistry(
+  compteLabel: string,
+  opts: { movementLimit?: number } = {},
+): Promise<AdminRegistry> {
+  const responses = await fetchRegistryResponses(opts.movementLimit ?? 25)
+  const sources: SourceHealth[] = []
+
+  const { vaults, vaultParContrat } = buildVaults(responses, sources)
+  const movements = buildMovements(responses.eventsRes, vaultParContrat, sources)
+  const clientExceptions = buildClientExceptions(responses.dashboardRes, compteLabel, sources)
   const listeVaults = isAvailable(vaults) ? vaults.value : []
 
   return {
@@ -536,7 +679,7 @@ export async function loadAdminRegistry(
       status: 'NOT_EXPOSED',
       reason: 'no_client_directory_endpoint',
     }),
-    clientExceptions: exceptionsClients(identityBloc, identityReason, compteLabel),
+    clientExceptions,
     deployments: unavailable({
       endpoint: '/api/v1/deployments',
       status: 'NOT_EXPOSED',
@@ -558,4 +701,4 @@ export async function loadVault(
   return { registry, vault: liste.find((v) => v.id === id) ?? null }
 }
 
-export type { Deployment, ClientRef }
+export type { ClientRef, Deployment } from '@/lib/vaults/model'

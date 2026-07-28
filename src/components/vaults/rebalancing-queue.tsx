@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 
 import { AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
-import { AdminBody, AdminSurfaceTitle } from '@/components/admin/typography'
+import { AdminSurfaceTitle } from '@/components/admin/typography'
 import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatDateTime, formatNumber, formatPercent } from '@/lib/format'
@@ -211,6 +211,7 @@ const COLUMNS: readonly AdminTableColumn<RebalancingRow>[] = [
           {row.breached ? (
             <span className="inline-flex items-center gap-1.5 rounded-md bg-warning-400/15 px-2 py-0.5 text-xs font-medium text-warning-400 ring-1 ring-warning-400/30 ring-inset">
               <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+              {' '}
               Above threshold
             </span>
           ) : (

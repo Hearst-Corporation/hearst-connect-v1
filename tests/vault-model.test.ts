@@ -28,7 +28,7 @@ import { describe, expect, it } from 'vitest'
 
 /** A vault with every reading present, as the service actually returns one. */
 function vaultLisible(overrides: Partial<Vault> = {}): Vault {
-  const id = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa') as string
+  const id = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')!
   return {
     id,
     label: 'Series 1',
@@ -85,8 +85,8 @@ describe('availability is not nullability', () => {
 
 describe('identifiers are stable and scoped', () => {
   it('identifies a vault by chain and contract, not by label', () => {
-    const a = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')
-    const b = vaultId(1, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')
+    const a = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')!
+    const b = vaultId(1, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')!
     expect(a).not.toBe(b)
     // Case is normalised, so the same vault never gets two identities.
     expect(vaultId(31337, '0X66DF4FFD1312604CD0C8567D79EBEE259D1FFABA')).toBe(a)
@@ -98,7 +98,7 @@ describe('identifiers are stable and scoped', () => {
   })
 
   it('round-trips through the route segment', () => {
-    const id = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa') as string
+    const id = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')!
     const parsed = parseVaultId(id)
     expect(parsed?.chainId).toBe(31337)
     expect(parsed?.contractAddress).toBe('0x66df4ffd1312604cd0c8567d79ebee259d1ffaba')
@@ -106,8 +106,8 @@ describe('identifiers are stable and scoped', () => {
   })
 
   it('scopes a pocket to its vault', () => {
-    const one = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa') as string
-    const two = vaultId(1, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa') as string
+    const one = vaultId(31337, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')!
+    const two = vaultId(1, '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa')!
     // "S0" on two different vaults is two different strategies.
     expect(strategyId(one, 'S0')).not.toBe(strategyId(two, 'S0'))
   })

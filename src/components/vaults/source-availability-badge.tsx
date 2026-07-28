@@ -1,5 +1,5 @@
 import { formatDateTime, formatRelativeTime } from '@/lib/format'
-import { isAvailable, type Availability, type Provenance } from '@/lib/vaults/model'
+import { isAvailable, type Availability, type Provenance, type Unavailable } from '@/lib/vaults/model'
 import clsx from 'clsx'
 
 /**
@@ -108,88 +108,144 @@ function Dot({ filled, className }: Readonly<{ filled: boolean; className?: stri
   )
 }
 
-export function SourceAvailabilityBadge({
+/* ── Availability resolution ───────────────────────────────────────────────── */
+
+type AvailabilityState = 'available' | 'stale' | 'unavailable'
+
+function resolveAvailabilityState<T>(availability: Availability<T>): AvailabilityState {
+  if (!isAvailable(availability)) return 'unavailable'
+  return availability.stale ? 'stale' : 'available'
+}
+
+function resolveAvailabilityLabel<T>(availability: Availability<T>, compact: boolean): string {
+  if (!isAvailable(availability)) return 'Unavailable'
+  return compact ? PROVENANCE_LABEL[availability.provenance].short : PROVENANCE_LABEL[availability.provenance].long
+}
+
+function resolveAvailabilityDetail<T>(availability: Availability<T>, compact: boolean): string | null {
+  if (!isAvailable(availability)) {
+    if (compact) return availability.endpoint ?? readReason(availability.reason)?.text ?? null
+    return null
+  }
+
+  const freshness = availability.asOf === null ? null : formatRelativeTime(availability.asOf)
+  if (compact) {
+    return [freshness, availability.stale ? 'stale' : null]
+      .filter((part): part is string => part !== null)
+      .join(' · ')
+  }
+
+  if (freshness === null) return availability.stale ? 'stale' : null
+  return [`as of ${freshness}`, availability.stale ? 'stale' : null]
+    .filter((part): part is string => part !== null)
+    .join(' · ')
+}
+
+function resolveAvailabilityTitle<T>(availability: Availability<T>): string | undefined {
+  if (!isAvailable(availability)) {
+    const reason = readReason(availability.reason)
+    return ['Unavailable', reason === null ? null : reason.text, availability.endpoint]
+      .filter((part): part is string => part !== null)
+      .join(' · ')
+  }
+
+  const exact = availability.asOf === null ? null : formatDateTime(availability.asOf)
+  return [PROVENANCE_LABEL[availability.provenance].long, exact === null ? null : `as of ${exact}`, availability.stale ? 'stale' : null]
+    .filter((part): part is string => part !== null)
+    .join(' · ')
+}
+
+function resolveAvailabilityVariant(state: AvailabilityState): {
+  chip: string
+  dot: string | undefined
+} {
+  if (state === 'stale') {
+    return {
+      chip: 'bg-warning-500/10 text-warning-600 ring-warning-500/30 dark:text-warning-400',
+      dot: undefined,
+    }
+  }
+  if (state === 'available') {
+    return {
+      chip: 'bg-white/5 text-zinc-600 ring-zinc-950/10 dark:text-zinc-300 dark:ring-console-line-strong',
+      dot: 'text-accent-600 dark:text-accent-400',
+    }
+  }
+  return {
+    chip: 'bg-white/5 text-zinc-600 ring-zinc-950/10 dark:text-zinc-300 dark:ring-console-line-strong',
+    dot: undefined,
+  }
+}
+
+function resolveAvailabilityLink(availability: Availability<unknown>): string | null {
+  return availability.kind === 'unavailable' ? availability.endpoint : null
+}
+
+/* ── Rendering ────────────────────────────────────────────────────────────── */
+
+function AvailableBadge({
   availability,
   compact,
-}: Readonly<{ availability: Availability<unknown>; compact?: boolean }>) {
-  if (isAvailable(availability)) {
-    const provenance = PROVENANCE_LABEL[availability.provenance]
-    const asOf = availability.asOf
-    const freshness = asOf === null ? null : formatRelativeTime(asOf)
-    // The exact instant stays reachable on hover; the badge itself shows the
-    // relative form, which is what a reader actually compares against "now".
-    const exact = asOf === null ? null : formatDateTime(asOf)
+}: Readonly<{ availability: Availability<unknown>; compact: boolean }>) {
+  const state = resolveAvailabilityState(availability)
+  const label = resolveAvailabilityLabel(availability, compact)
+  const detail = resolveAvailabilityDetail(availability, compact)
+  const title = resolveAvailabilityTitle(availability)
+  const { chip, dot } = resolveAvailabilityVariant(state)
 
-    if (compact === true) {
-      return (
-        <span
-          className={clsx(
-            'inline-flex min-w-0 max-w-full items-center gap-1.5 whitespace-nowrap text-xs',
-            availability.stale ? 'text-warning-600 dark:text-warning-400' : 'text-zinc-500 dark:text-zinc-400',
-          )}
-          title={[provenance.long, exact === null ? null : `as of ${exact}`, availability.stale ? 'stale' : null]
-            .filter((part) => part !== null)
-            .join(' · ')}
-        >
-          <Dot filled className={availability.stale ? undefined : 'text-accent-600 dark:text-accent-400'} />
-          <span className="truncate">
-            {[provenance.short, freshness, availability.stale ? 'stale' : null]
-              .filter((part) => part !== null)
-              .join(' · ')}
-          </span>
-        </span>
-      )
-    }
-
+  if (compact) {
     return (
       <span
         className={clsx(
-          CHIP,
-          availability.stale
-            ? 'bg-warning-500/10 text-warning-600 ring-warning-500/30 dark:text-warning-400'
-            : 'bg-white/5 text-zinc-600 ring-zinc-950/10 dark:text-zinc-300 dark:ring-console-line-strong',
+          'inline-flex min-w-0 max-w-full items-center gap-1.5 whitespace-nowrap text-xs',
+          state === 'stale' ? 'text-warning-600 dark:text-warning-400' : 'text-zinc-500 dark:text-zinc-400',
         )}
-        title={exact === null ? undefined : `as of ${exact}`}
+        title={title}
       >
-        <Dot filled className={availability.stale ? undefined : 'text-accent-600 dark:text-accent-400'} />
+        <Dot filled className={dot} />
         <span className="truncate">
-          {[provenance.long, freshness === null ? null : `as of ${freshness}`, availability.stale ? 'stale' : null]
-            .filter((part) => part !== null)
-            .join(' · ')}
+          {[label, detail].filter((part): part is string => part !== null && part !== '').join(' · ')}
         </span>
       </span>
     )
   }
 
+  return (
+    <span className={clsx(CHIP, chip)} title={title}>
+      <Dot filled className={dot} />
+      <span className="truncate">
+        {[label, detail].filter((part): part is string => part !== null && part !== '').join(' · ')}
+      </span>
+    </span>
+  )
+}
+
+function UnavailableBadge({
+  availability,
+  compact,
+}: Readonly<{ availability: Unavailable; compact: boolean }>) {
+  const title = resolveAvailabilityTitle(availability)
+  const detail = resolveAvailabilityDetail(availability, compact)
   const reason = readReason(availability.reason)
-  const endpoint = availability.endpoint
+  const link = resolveAvailabilityLink(availability)
 
-  // The full statement, always available on hover, whichever size renders.
-  const full = ['Unavailable', reason === null ? null : reason.text, endpoint]
-    .filter((part) => part !== null)
-    .join(' · ')
-
-  if (compact === true) {
-    // One line, inside a table cell. The endpoint is preferred over the reason
-    // when there is one: it is shorter, and it is the thing an admin can act
-    // on. The reason is never lost — it is in the title, in full.
-    const detail = endpoint !== null ? endpoint : reason?.text
+  if (compact) {
     return (
       <span
         className="inline-flex min-w-0 max-w-full items-center gap-1.5 whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400"
-        title={full}
+        title={title}
       >
         <Dot filled={false} />
         <span className="shrink-0 font-medium text-zinc-600 dark:text-zinc-300">Unavailable</span>
-        {detail === undefined || detail === null ? null : (
-          <span className={clsx('truncate', endpoint !== null && 'font-mono text-[0.6875rem]')}>{detail}</span>
+        {detail === null ? null : (
+          <span className={clsx('truncate', link !== null && 'font-mono text-[0.6875rem]')}>{detail}</span>
         )}
       </span>
     )
   }
 
   return (
-    <span className="inline-flex min-w-0 max-w-full flex-col items-start gap-1" title={full}>
+    <span className="inline-flex min-w-0 max-w-full flex-col items-start gap-1" title={title}>
       <span
         className={clsx(
           CHIP,
@@ -209,11 +265,24 @@ export function SourceAvailabilityBadge({
           {reason.text}
         </span>
       )}
-      {endpoint === null ? null : (
+      {link === null ? null : (
         <span className="max-w-full truncate font-mono text-[0.6875rem]/4 text-zinc-500 dark:text-zinc-500">
-          {endpoint}
+          {link}
         </span>
       )}
     </span>
   )
+}
+
+export function SourceAvailabilityBadge({
+  availability,
+  compact,
+}: Readonly<{ availability: Availability<unknown>; compact?: boolean }>) {
+  const isCompact = compact === true
+
+  if (isAvailable(availability)) {
+    return <AvailableBadge availability={availability} compact={isCompact} />
+  }
+
+  return <UnavailableBadge availability={availability} compact={isCompact} />
 }

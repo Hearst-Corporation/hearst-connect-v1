@@ -67,14 +67,17 @@ function ValueBar({ percent }: Readonly<{ percent: number | null }>) {
 export function VaultValueBreakdown({ vaults }: Readonly<{ vaults: Availability<readonly Vault[]> }>) {
   const list = valueOf(vaults)
 
+function texteAbsence(list: readonly Vault[] | null): string {
+  if (list === null) return 'The vault reading did not resolve.'
+  return 'The service answered without a vault.'
+}
+
   if (list === null || list.length === 0) {
     return (
       <AdminSurface className="flex h-full flex-col">
         <AdminEmptyState
           title="No vault value."
-          description={
-            list === null ? 'The vault reading did not resolve.' : 'The service answered without a vault.'
-          }
+          description={texteAbsence(list)}
         >
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <SourceAvailabilityBadge availability={vaults} />
@@ -99,7 +102,11 @@ export function VaultValueBreakdown({ vaults }: Readonly<{ vaults: Availability<
   }
 
   // Highest value first — the ordering IS part of the reading.
-  const ranked = [...measured].sort((a, b) => (a.atomic < b.atomic ? 1 : a.atomic > b.atomic ? -1 : 0))
+  const ranked = [...measured].sort((a, b) => {
+    if (a.atomic < b.atomic) return 1
+    if (a.atomic > b.atomic) return -1
+    return 0
+  })
   const total = ranked.reduce((sum, entry) => sum + entry.atomic, ZERO)
 
   // Every vault answered, and none of them with a value: the honest report is
