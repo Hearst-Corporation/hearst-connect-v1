@@ -1,23 +1,33 @@
 import { surfaceRaised } from '@/components/admin/surface'
+import { AdminCaption, AdminSurfaceTitle } from '@/components/admin/typography'
 import { motifLisible } from '@/lib/mouvements'
 import clsx from 'clsx'
 
 /**
- * Les alertes du service, affichées.
+ * The service's alerts, rendered.
  *
- * Le champ `alerts` du dashboard est LIVE depuis toujours et n'était rendu
- * nulle part : une console d'administration qui garde ses alertes pour elle
- * rate sa fonction première. Elles sont donc posées haut, juste sous le
- * bandeau d'exception runtime, avant tout chiffre.
+ * The dashboard's `alerts` field has always been LIVE and was rendered
+ * nowhere: an admin console that keeps its alerts to itself misses its
+ * primary function. They are therefore placed high, right under the runtime
+ * exception banner, before any figure.
  *
- * Deux règles de rendu :
+ * Two rendering rules:
  *
- * 1. La gravité est écrite EN TOUTES LETTRES à côté de la pastille. Un lecteur
- *    qui ne distingue pas l'ambre du rouge lit le même verdict. C'est la même
- *    convention que `GRAVITE` (page BTC) et `TONE_LABEL` (cockpit).
- * 2. Le texte affiché est traduit quand le code d'alerte figure au dictionnaire
- *    partagé, et rendu TEL QUEL sinon. Traduire au jugé un message qu'on ne
- *    connaît pas reviendrait à réécrire ce que dit le service.
+ * 1. Severity is spelled OUT IN WORDS next to the dot. A reader who can't
+ *    tell amber from red reads the same verdict. Same convention as
+ *    `GRAVITE` (BTC page) and `TONE_LABEL` (cockpit).
+ * 2. The displayed text is translated when the alert code is in the shared
+ *    dictionary, and rendered AS-IS otherwise. Guessing a translation for a
+ *    message we don't recognize would amount to rewriting what the service
+ *    is saying.
+ *
+ * ── Size ──────────────────────────────────────────────────────────────────
+ * The card is proportional to what it holds. Two informational alerts used
+ * to occupy a full-width band with a bordered uppercase header and a colored
+ * rule down the side of every row — three framing devices around two lines
+ * of text, which read as an incident when nothing was wrong. Severity is now
+ * carried entirely by the dot and the word beside it, so the card is exactly
+ * as tall as its sentences.
  */
 
 export type AlerteBackend = {
@@ -26,88 +36,90 @@ export type AlerteBackend = {
   readonly message?: string | null
 }
 
-type Gravite = {
+type Severity = {
   readonly mot: string
   readonly point: string
   readonly texte: string
-  readonly bordure: string
 }
 
-const GRAVITE: Record<string, Gravite> = {
-  critical: { mot: 'Critique', point: 'bg-danger-500', texte: 'text-danger-400', bordure: 'border-danger-500/50' },
-  error: { mot: 'Anomalie', point: 'bg-danger-500', texte: 'text-danger-400', bordure: 'border-danger-500/50' },
-  warning: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400', bordure: 'border-warning-500/40' },
-  warn: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400', bordure: 'border-warning-500/40' },
-  info: { mot: 'Pour information', point: 'bg-info-500', texte: 'text-info-400', bordure: 'border-info-500/30' },
-  notice: { mot: 'Pour information', point: 'bg-info-500', texte: 'text-info-400', bordure: 'border-info-500/30' },
+/**
+ * Danger / warning are semantic colors and are spent only where the service
+ * genuinely reports that state.
+ *
+ * `info` and `notice` are NEUTRAL, not blue. The console's palette has three
+ * semantic tones — positive, warning, critical — and a fourth hue for "nothing
+ * to do about this" made informational alerts compete for attention with the
+ * ones that need a decision. Grey says "read it, then move on" better than
+ * blue does, and it keeps the page down to one accent plus the tones that
+ * genuinely mean something. An unqualified severity stays grey too: an alert
+ * we can't rank does not get promoted to an alarm by the UI.
+ */
+const SEVERITY: Record<string, Severity> = {
+  critical: { mot: 'Critical', point: 'bg-danger-500', texte: 'text-danger-600 dark:text-danger-400' },
+  error: { mot: 'Anomaly', point: 'bg-danger-500', texte: 'text-danger-600 dark:text-danger-400' },
+  warning: { mot: 'Watch closely', point: 'bg-warning-500', texte: 'text-warning-600 dark:text-warning-400' },
+  warn: { mot: 'Watch closely', point: 'bg-warning-500', texte: 'text-warning-600 dark:text-warning-400' },
+  info: { mot: 'Informational', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
+  notice: { mot: 'Informational', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
 }
 
-const NON_QUALIFIEE: Gravite = {
-  mot: 'Non qualifiée',
-  point: 'bg-zinc-600',
-  texte: 'text-zinc-400',
-  bordure: 'border-white/10',
+const UNQUALIFIED: Severity = {
+  mot: 'Unqualified',
+  point: 'bg-zinc-400 dark:bg-zinc-600',
+  texte: 'text-zinc-500 dark:text-zinc-400',
 }
 
-function graviteLisible(brut: string | null | undefined): Gravite {
-  if (typeof brut !== 'string' || brut === '') return NON_QUALIFIEE
-  return GRAVITE[brut.toLowerCase()] ?? NON_QUALIFIEE
+function severityInfo(raw: string | null | undefined): Severity {
+  if (typeof raw !== 'string' || raw === '') return UNQUALIFIED
+  return SEVERITY[raw.toLowerCase()] ?? UNQUALIFIED
 }
 
-/** Codes d'alerte connus, dits en français. Un code inconnu garde son message. */
-const TEXTE_ALERTE: Record<string, string> = {
-  no_position: 'aucune position active : rien n’est encore déployé pour ce compte',
+/** Known alert codes, spelled out. An unknown code keeps its raw message. */
+const ALERT_TEXT: Record<string, string> = {
+  no_position: 'no active position: nothing has been deployed yet for this account',
 }
 
-function texteAlerte(alerte: AlerteBackend): string {
+function alertText(alerte: AlerteBackend): string {
   const code = alerte.code
   if (typeof code === 'string' && code !== '') {
-    const local = TEXTE_ALERTE[code]
+    const local = ALERT_TEXT[code]
     if (local !== undefined) return local
-    const partage = motifLisible(code)
-    if (partage !== undefined) return partage
+    const shared = motifLisible(code)
+    if (shared !== undefined) return shared
   }
   if (typeof alerte.message === 'string' && alerte.message !== '') return alerte.message
-  return 'Alerte sans intitulé transmise par le service.'
+  return 'Unlabeled alert reported by the service.'
 }
 
-/** Une alerte sans code ni message reste identifiable dans une liste. */
-function cleAlerte(alerte: AlerteBackend, rang: number): string {
+/** An alert with neither code nor message stays identifiable in a list. */
+function alertKey(alerte: AlerteBackend, rank: number): string {
   const code = alerte.code
   if (typeof code === 'string' && code !== '') return code
-  return `alerte-${rang}`
+  return `alert-${rank}`
 }
 
 export function AccueilAlertes({ alertes }: Readonly<{ alertes: readonly AlerteBackend[] }>) {
   if (alertes.length === 0) return null
 
   return (
-    <section aria-label="Alertes du service" className={clsx(surfaceRaised, 'overflow-hidden')}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-950/5 px-5 py-3 dark:border-white/5">
-        <h2 className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase dark:text-zinc-400">
-          Alertes en cours
-        </h2>
-        <span className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">
-          {alertes.length} relevée{alertes.length > 1 ? 's' : ''} par le service
-        </span>
+    <section aria-label="Service alerts" className={clsx(surfaceRaised, 'p-5')}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <AdminSurfaceTitle>Active alerts</AdminSurfaceTitle>
+        <AdminCaption className="tabular-nums">{alertes.length} flagged by the service</AdminCaption>
       </div>
-      <ul>
-        {alertes.map((a, rang) => {
-          const g = graviteLisible(a.severity)
+      <ul className="mt-3 space-y-2">
+        {alertes.map((a, rank) => {
+          const g = severityInfo(a.severity)
           return (
             <li
-              key={cleAlerte(a, rang)}
-              className={clsx(
-                'flex flex-col gap-1.5 border-b border-l-2 px-5 py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:gap-4',
-                'border-b-zinc-950/5 dark:border-b-white/5',
-                g.bordure,
-              )}
+              key={alertKey(a, rank)}
+              className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-4"
             >
-              <span className={clsx('flex shrink-0 items-center gap-2 text-xs font-semibold sm:w-40', g.texte)}>
-                <span aria-hidden="true" className={clsx('size-2 shrink-0 rounded-full', g.point)} />
+              <span className={clsx('flex shrink-0 items-center gap-2 text-xs font-semibold sm:w-36', g.texte)}>
+                <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', g.point)} />
                 {g.mot}
               </span>
-              <p className="min-w-0 flex-1 text-sm text-zinc-700 dark:text-zinc-200">{texteAlerte(a)}</p>
+              <p className="min-w-0 flex-1 text-sm/6 text-zinc-700 dark:text-zinc-200">{alertText(a)}</p>
             </li>
           )
         })}

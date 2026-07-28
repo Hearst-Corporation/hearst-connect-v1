@@ -1,102 +1,122 @@
-import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
+import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Rétro-tests' }
+export const metadata: Metadata = { title: 'Backtests' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Rétro-tests — ce que la stratégie aurait produit sur le passé.
+ * Backtests — what the strategy would have produced in the past.
  *
- * Aucun rétro-test n'a encore été exécuté : le service le dit, et la page s'en
- * tient là. C'est la page où la tentation de tricher est la plus forte — une
- * courbe de performance historique se fabrique en trois lignes et se regarde
- * volontiers. Elle serait une invention pure, et une invention qui ressemble à
- * une promesse de rendement.
+ * No backtest has been run yet: the service says so, and the page leaves it
+ * at that. This is the page where the temptation to cheat is strongest — a
+ * historical performance curve can be faked in three lines and people like
+ * to look at it. It would be pure invention, and an invention that reads
+ * like a promise of return.
  *
- * On laisse donc le cadre du graphique visible et vide, avec la phrase qui dit
- * ce qu'on attend. Le jour où le service renvoie une série, elle prend la place
- * de la phrase sans que rien d'autre ne bouge.
+ * ── Why there is no empty chart frame any more ────────────────────────────
+ * The rejected version said the same absence twice: an empty chart frame
+ * ("waiting on the source") stacked on top of a requirements panel ("no
+ * backtest has been run"). Two large surfaces, one message, a full viewport
+ * spent on it. An absence is stated once. A chart canvas with no series in
+ * it is not honesty, it is scenery — so the frame is gone entirely, and the
+ * page renders ONE composed state: what is missing, why nothing is drawn,
+ * and the three things that have to exist before a curve can be.
+ *
+ * ── Two absences, not one ─────────────────────────────────────────────────
+ * "The service did not answer" and "the service answered and holds no run"
+ * are different truths, and collapsing them would let a real outage read as
+ * an empty product. They keep separate branches and separate wording.
+ *
+ * The day the service returns runs, the populated branch takes over and
+ * nothing else on the page moves.
  */
 
-type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
-type Execution = { readonly id?: string; readonly label?: string | null }
-type ReponseRetroTests = { readonly runs?: Resolu<readonly Execution[]> }
+type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type Run = { readonly id?: string; readonly label?: string | null }
+type BacktestResponse = { readonly runs?: Resolved<readonly Run[]> }
 
 export default async function Page() {
-  const reponse = await callBackend<ReponseRetroTests>('backtest-historical')
-  const bloc = reponse.ok ? reponse.data.runs : undefined
-  const executions = bloc?.value
-  const motif = motifLisible(bloc?.reason)
+  const response = await callBackend<BacktestResponse>('backtest-historical')
+  const block = response.ok ? response.data.runs : undefined
+  const runs = block?.value
+  const reason = motifLisible(block?.reason)
 
-  const aucune = executions === null || executions === undefined || executions.length === 0
+  const none = runs === null || runs === undefined || runs.length === 0
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Rétro-tests"
-        description="Ce que la stratégie du fonds aurait produit sur des périodes passées. Tout est calculé par le service : rien n’est projeté, extrapolé ni lissé ici."
+        title="Backtests"
+        description="What the fund's strategy would have produced over past periods. Everything is computed by the service: nothing here is projected, extrapolated, or smoothed."
       />
 
-      <CockpitSection>
-
-      {!reponse.ok ? (
-        <SourceAttendue
-          quoi="Les rétro-tests n’ont pas pu être lus"
-          detail="Le service n’a pas répondu à la demande. On ne conclut pas de ce silence qu’aucun rétro-test n’existe."
-          requis={['Une réponse du service']}
-        />
-      ) : (
-        <>
-          <ChartFrame
-            question="Qu’aurait produit la stratégie sur le passé ?"
-            unite="en valeur de part, par période"
-            etat={{
-              type: 'attendue',
-              explication:
-                motif === undefined
-                  ? 'Aucun rétro-test n’a encore été exécuté. Tant qu’il n’y en a pas, aucune courbe n’est tracée : une performance historique inventée se lirait comme une promesse de rendement.'
-                  : `Aucune courbe n’est tracée : ${motif}. Une performance historique inventée se lirait comme une promesse de rendement.`,
-            }}
-            hauteur="h-64"
-          />
-
-          {aucune ? (
+      {/* Every branch declares its span. A stated absence is a paragraph, not
+          a banner — seven columns is the measure it reads best at, and the
+          five remaining columns are deliberate whitespace. */}
+      {!response.ok ? (
+        <AdminGrid>
+          <AdminCol span={7} md={6}>
             <SourceAttendue
-              quoi="Aucun rétro-test exécuté à ce jour"
-              detail="Cette page est prête : dès qu’un premier rétro-test sera lancé, ses résultats s’afficheront ici sans autre intervention. En attendant, elle n’avance aucun chiffre."
-              requis={[
-                'Une période de référence choisie, avec sa date de début et de fin',
-                'L’historique de prix des actifs du portefeuille sur cette période',
-                'Une exécution du calcul par le service, conservée avec son horodatage',
-              ]}
+              quoi="Backtests could not be read"
+              detail="The service did not respond to the request. This silence is not read as proof that no backtest exists — it means the register could not be consulted at all."
+              requis={['A response from the service']}
             />
-          ) : (
+          </AdminCol>
+        </AdminGrid>
+      ) : none ? (
+        <AdminGrid>
+          <AdminCol span={7} md={6}>
+            <SourceAttendue
+              quoi="No backtest has been run to date"
+              detail={
+                reason === undefined
+                  ? 'The service answered, and its register holds no run. Nothing is plotted until a first backtest exists: an invented historical performance would read as a promise of return.'
+                  : `The service answered, and no run is available: ${reason}. Nothing is plotted in the meantime — an invented historical performance would read as a promise of return.`
+              }
+              requis={[
+                'A reference period, with a start and an end date',
+                'The price history of the portfolio assets over that period',
+                'One execution of the calculation by the service, kept with its timestamp',
+              ]}
+              action={
+                block === undefined ? undefined : (
+                  // The status slot carries what the service actually reported
+                  // about its register — a real field, not a reassurance.
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Register status returned by the service:{' '}
+                    <span className="font-mono text-zinc-700 dark:text-zinc-300">{block.status}</span>
+                  </p>
+                )
+              }
+            />
+          </AdminCol>
+        </AdminGrid>
+      ) : (
+        <AdminGrid>
+          <AdminCol span={8}>
             <Card>
               <CardHeader
-                title="Quels rétro-tests ont été exécutés ?"
-                hint={`${executions.length} exécution${executions.length > 1 ? 's' : ''} conservée${executions.length > 1 ? 's' : ''}`}
+                title="Which backtests have been run?"
+                hint={`${runs.length} run${runs.length > 1 ? 's' : ''} kept`}
               />
-              <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
-                {executions.map((execution, rang) => (
-                  <li key={execution.id ?? String(rang)} className="px-5 py-3.5 text-sm text-zinc-950 dark:text-white">
-                    {execution.label === null || execution.label === undefined || execution.label === ''
-                      ? 'Exécution sans intitulé'
-                      : execution.label}
+              <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                {runs.map((run, rank) => (
+                  <li key={run.id ?? String(rank)} className="px-5 py-3.5 text-sm text-zinc-950 sm:px-6 dark:text-white">
+                    {run.label === null || run.label === undefined || run.label === ''
+                      ? 'Unlabeled run'
+                      : run.label}
                   </li>
                 ))}
               </ul>
             </Card>
-          )}
-        </>
+          </AdminCol>
+        </AdminGrid>
       )}
-
-      {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
-      </CockpitSection>
-    </div>
+    </AdminPage>
   )
 }

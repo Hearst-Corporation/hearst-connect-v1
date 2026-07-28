@@ -1,20 +1,20 @@
 import 'server-only'
 
 /**
- * Canon des variables d'environnement serveur.
+ * Canon of server environment variables.
  *
- * Source unique : aucun autre module ne lit `process.env` pour ces clés. La
- * validation est explicite et fail-closed — une configuration absente ou
- * invalide produit un état nommé, jamais une valeur de repli ni une donnée
- * simulée.
+ * Single source: no other module reads `process.env` for these keys.
+ * Validation is explicit and fail-closed — a missing or invalid
+ * configuration produces a named state, never a fallback value or simulated
+ * data.
  *
- * `import 'server-only'` fait échouer le build si ce module atteint un bundle
- * client. Aucune de ces variables n'est préfixée `NEXT_PUBLIC_` : les secrets
- * ne sortent pas du serveur.
+ * `import 'server-only'` fails the build if this module reaches a client
+ * bundle. None of these variables is prefixed `NEXT_PUBLIC_`: secrets never
+ * leave the server.
  *
- * RÈGLE ABSOLUE : ce module ne journalise JAMAIS une valeur. Les diagnostics
- * exposent le NOM d'une variable et son état (présente / absente / invalide),
- * jamais son contenu.
+ * ABSOLUTE RULE: this module NEVER logs a value. Diagnostics expose the NAME
+ * of a variable and its state (present / missing / invalid), never its
+ * content.
  */
 
 export type EnvVarStatus = 'ok' | 'missing' | 'invalid'
@@ -22,26 +22,26 @@ export type EnvVarStatus = 'ok' | 'missing' | 'invalid'
 export type EnvVarReport = {
   name: string
   status: EnvVarStatus
-  /** Rôle de la variable, affichable dans l'UI. */
+  /** Role of the variable, displayable in the UI. */
   purpose: string
-  /** Ce qui manque ou ne va pas — sans jamais citer la valeur. */
+  /** What's missing or wrong — without ever citing the value. */
   detail: string | null
 }
 
-/** Longueur minimale d'un secret de signature, en caractères. */
+/** Minimum length of a signing secret, in characters. */
 const MIN_SECRET_LENGTH = 32
 
 function readSecret(name: string, purpose: string): EnvVarReport {
   const raw = process.env[name]
   if (!raw || raw.trim().length === 0) {
-    return { name, status: 'missing', purpose, detail: 'Variable absente.' }
+    return { name, status: 'missing', purpose, detail: 'Variable missing.' }
   }
   if (raw.trim().length < MIN_SECRET_LENGTH) {
     return {
       name,
       status: 'invalid',
       purpose,
-      detail: `Trop courte : ${MIN_SECRET_LENGTH} caractères minimum attendus.`,
+      detail: `Too short: ${MIN_SECRET_LENGTH} characters minimum expected.`,
     }
   }
   return { name, status: 'ok', purpose, detail: null }
@@ -50,20 +50,20 @@ function readSecret(name: string, purpose: string): EnvVarReport {
 function readUrl(name: string, purpose: string): EnvVarReport {
   const raw = process.env[name]?.trim()
   if (!raw) {
-    return { name, status: 'missing', purpose, detail: 'Variable absente.' }
+    return { name, status: 'missing', purpose, detail: 'Variable missing.' }
   }
   try {
     const url = new URL(raw)
     if (url.protocol !== 'https:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
-      return { name, status: 'invalid', purpose, detail: 'HTTPS exigé hors développement local.' }
+      return { name, status: 'invalid', purpose, detail: 'HTTPS required outside local development.' }
     }
   } catch {
-    return { name, status: 'invalid', purpose, detail: "Ce n'est pas une URL absolue valide." }
+    return { name, status: 'invalid', purpose, detail: 'Not a valid absolute URL.' }
   }
   return { name, status: 'ok', purpose, detail: null }
 }
 
-/** URL du backend, sans barre oblique finale. `null` si non configurée. */
+/** Backend URL, without a trailing slash. `null` if not configured. */
 export function backendUrl(): string | null {
   const raw = process.env.HEARST_API_URL?.trim()
   if (!raw) return null
@@ -78,10 +78,10 @@ export function backendUrl(): string | null {
 }
 
 /**
- * Secret de protection du cookie de session frontend.
+ * Secret protecting the frontend session cookie.
  *
- * Il ne sert JAMAIS à parler au backend : depuis la bascule sur
- * l'authentification backend, ce frontend ne signe plus aucun jeton d'API.
+ * It is NEVER used to talk to the backend: since the switch to backend
+ * authentication, this frontend no longer signs any API token.
  */
 export function authSecret(): string | null {
   const raw = process.env.AUTH_SECRET?.trim()
@@ -89,40 +89,40 @@ export function authSecret(): string | null {
 }
 
 /**
- * État complet de la configuration serveur, destiné à l'affichage.
- * Aucune valeur n'y figure — uniquement des noms et des statuts.
+ * Full server configuration state, meant for display.
+ * No value appears here — only names and statuses.
  *
- * Interne au canon : l'extérieur passe par `checkConfiguration()`, qui expose
- * ce rapport dans `ConfigHealth.report`. Garder une seule porte d'entrée évite
- * qu'un appelant se construise un jugement parallèle sur `publicReady` /
+ * Internal to the canon: the outside goes through `checkConfiguration()`,
+ * which exposes this report in `ConfigHealth.report`. Keeping a single entry
+ * point stops a caller from building a parallel judgment on `publicReady` /
  * `loginReady`.
  */
 function environmentReport(): EnvVarReport[] {
   return [
-    readUrl('HEARST_API_URL', 'Base du backend Hearst Connect — autorité d’authentification.'),
-    readSecret('AUTH_SECRET', 'Protection du cookie de session frontend, uniquement.'),
+    readUrl('HEARST_API_URL', 'Hearst Connect backend base — authentication authority.'),
+    readSecret('AUTH_SECRET', 'Frontend session cookie protection, only.'),
   ]
 }
 
 export type ConfigHealth = {
-  /** Les sondes publiques sont appelables. */
+  /** Public probes are callable. */
   publicReady: boolean
   /**
-   * La connexion est possible : le backend, autorité d'authentification, est
-   * adressable, et le cookie de session peut être scellé.
+   * Login is possible: the backend, authentication authority, is
+   * addressable, and the session cookie can be sealed.
    *
-   * Ce n'est PAS « une session existe » : la présence d'une session se lit dans
-   * la session elle-même, pas dans la configuration.
+   * This is NOT "a session exists": the presence of a session is read from
+   * the session itself, not from the configuration.
    */
   loginReady: boolean
   report: EnvVarReport[]
 }
 
 /**
- * Validation au démarrage d'un rendu serveur.
+ * Validation at the start of a server render.
  *
- * Ne lève pas : une console qui explose n'aide personne à diagnostiquer une
- * variable manquante. Elle renvoie un état que l'interface rend honnêtement.
+ * Does not throw: a crashing console doesn't help anyone diagnose a missing
+ * variable. It returns a state that the interface renders honestly.
  */
 export function checkConfiguration(): ConfigHealth {
   const report = environmentReport()
@@ -136,15 +136,15 @@ export function checkConfiguration(): ConfigHealth {
 }
 
 /**
- * Garde-fou de démarrage : signale les manques une seule fois, par leur NOM.
- * Aucune valeur, aucun fragment de secret n'est écrit dans les journaux.
+ * Startup guard: reports gaps once, by their NAME.
+ * No value, no fragment of a secret is ever written to the logs.
  *
- * Appelée depuis le `RootLayout` : tout rendu serveur passe par là. Le verrou
- * `announced` est en portée module — un worker journalise une fois, pas à
- * chaque requête.
+ * Called from `RootLayout`: every server render goes through it. The
+ * `announced` lock is module-scoped — a worker logs once, not on every
+ * request.
  *
- * Ne lève jamais : un garde-fou qui casse le rendu transforme une variable
- * oubliée en panne totale. En cas d'imprévu, on se tait plutôt que d'échouer.
+ * Never throws: a guard that breaks rendering turns a forgotten variable
+ * into a total outage. On the unexpected, it stays silent rather than fail.
  */
 let announced = false
 export function announceConfigurationOnce(): void {
@@ -155,16 +155,16 @@ export function announceConfigurationOnce(): void {
     const failing = environmentReport().filter((entry) => entry.status !== 'ok')
     if (failing.length === 0) return
 
-    // `name`, `detail` et `purpose` sont des littéraux du présent module : ils
-    // ne sont jamais construits à partir de `process.env`. Rien de ce qui suit
-    // ne peut donc contenir un fragment de valeur.
+    // `name`, `detail` and `purpose` are literals from this module: they are
+    // never built from `process.env`. So nothing that follows can contain a
+    // fragment of a value.
     const lines = failing.map(
-      (entry) => `  - ${entry.name} : ${entry.detail ?? entry.status} (${entry.purpose})`,
+      (entry) => `  - ${entry.name}: ${entry.detail ?? entry.status} (${entry.purpose})`,
     )
     console.warn(
-      `[hearst-connect] Configuration incomplète — les surfaces concernées afficheront « non configuré » :\n${lines.join('\n')}`,
+      `[hearst-connect] Incomplete configuration — affected surfaces will show "not configured":\n${lines.join('\n')}`,
     )
   } catch {
-    // Un diagnostic n'a pas le droit de faire tomber une page.
+    // A diagnostic has no right to bring a page down.
   }
 }

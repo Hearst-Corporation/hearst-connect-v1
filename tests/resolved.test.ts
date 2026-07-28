@@ -62,7 +62,7 @@ describe('traduction du Resolved backend', () => {
     const state = fromBackendResolved(field, ctx)
     expect(state.status).toBe('SIMULATED')
     expect(state.value).toBeNull()
-    expect(state.reason).toMatch(/simulée/i)
+    expect(state.reason).toMatch(/simulated/i)
   })
 
   it('un LIVE annoncé sans valeur est traité comme une erreur, pas comme un zéro', () => {

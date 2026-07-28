@@ -7,9 +7,9 @@ import { endSession, startSession } from './session'
 export type LoginState = { error: string | null }
 
 /**
- * Lit un champ texte du formulaire. `FormData.get` peut rendre un `File` : on ne
- * le stringifie pas (ça donnerait « [object File] », donc un identifiant fantôme
- * qui traverserait la validation) — un champ non textuel vaut champ vide.
+ * Reads a text field from the form. `FormData.get` can return a `File`: it is
+ * not stringified (that would give "[object File]", a ghost identifier that
+ * would sail through validation) — a non-text field counts as an empty field.
  */
 function textField(formData: FormData, name: string): string {
   const value = formData.get(name)
@@ -17,11 +17,11 @@ function textField(formData: FormData, name: string): string {
 }
 
 /**
- * Server Action du formulaire de connexion.
+ * Server Action for the login form.
  *
- * Tout se passe côté serveur : les identifiants partent vers le backend depuis
- * ici, et le jeton reçu est scellé dans le cookie de session. Aucun jeton n'est
- * renvoyé au client, ni dans l'état de l'action, ni dans un message d'erreur.
+ * Everything happens server side: credentials go to the backend from here,
+ * and the received token is sealed into the session cookie. No token is ever
+ * returned to the client, whether in the action state or in an error message.
  */
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
   const email = textField(formData, 'email')
@@ -38,31 +38,31 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
 
   const started = await startSession(result.session)
   if (!started) {
-    // Jeton déjà expiré à la réception : on ne pose pas un cookie mort-né.
+    // Token already expired on receipt: don't set a stillborn cookie.
     return { error: loginErrorMessage('malformed_response') }
   }
 
   redirect('/admin')
 }
 
-/** Server Action de déconnexion. */
+/** Server Action for logout. */
 export async function logout(): Promise<void> {
   await endSession()
   redirect('/login')
 }
 
 /**
- * Connexion rapide owner — DEV LOCAL UNIQUEMENT.
+ * Quick owner login — LOCAL DEV ONLY.
  *
- * Rejoue le même flux que `login` (authentification réelle contre le
- * backend), mais avec des identifiants lus depuis l'environnement serveur :
- * aucun secret ne transite par le client, contrairement à un formulaire
- * pré-rempli. Refuse systématiquement en production.
+ * Replays the same flow as `login` (real authentication against the
+ * backend), but with credentials read from the server environment: no secret
+ * transits through the client, unlike a pre-filled form. Always refuses in
+ * production.
  *
- * Volontairement DEV_QUICK_LOGIN_* et non ADRIEN_OWNER_* : le mot de passe
- * owner réel ne doit jamais être comparé dans ce dépôt (garde-fou vérifié par
- * tests/auth-doctrine.test.ts). Ce raccourci exige donc son propre couple
- * dédié au dev local, distinct du compte owner réel.
+ * Deliberately DEV_QUICK_LOGIN_* and not ADRIEN_OWNER_*: the real owner
+ * password must never be compared in this repo (guard verified by
+ * tests/auth-doctrine.test.ts). This shortcut therefore requires its own
+ * dedicated pair for local dev, distinct from the real owner account.
  */
 export async function quickLoginOwner(_prevState: LoginState): Promise<LoginState> {
   if (process.env.NODE_ENV === 'production') {
@@ -72,7 +72,7 @@ export async function quickLoginOwner(_prevState: LoginState): Promise<LoginStat
   const email = process.env.DEV_QUICK_LOGIN_EMAIL
   const password = process.env.DEV_QUICK_LOGIN_PASSWORD
   if (!email || !password) {
-    return { error: 'DEV_QUICK_LOGIN_EMAIL / DEV_QUICK_LOGIN_PASSWORD absents de .env.local.' }
+    return { error: 'DEV_QUICK_LOGIN_EMAIL / DEV_QUICK_LOGIN_PASSWORD missing from .env.local.' }
   }
 
   const result = await authenticate(email, password)
