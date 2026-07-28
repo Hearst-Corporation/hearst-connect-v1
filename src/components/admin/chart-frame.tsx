@@ -42,21 +42,19 @@ const LIBELLE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
 export function ChartFrame({
   question,
   unite,
-  provenance,
   etat,
   hauteur = 'h-56',
   children,
 }: Readonly<{
   question: string
   unite: string
-  provenance: string
   etat: EtatSerie
   hauteur?: string
   children?: React.ReactNode
 }>) {
   return (
     <Card className="flex flex-col">
-      <CardHeader title={question} hint={`${unite} · ${provenance}`} />
+      <CardHeader title={question} hint={unite} />
 
       {etat.type === 'tracee' ? (
         children

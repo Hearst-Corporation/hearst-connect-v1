@@ -1,5 +1,4 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
-import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
@@ -214,7 +213,6 @@ export default async function Page() {
       <PageHeader
         title="Couverture des données"
         description="Sur quoi le produit peut s’appuyer aujourd’hui, surface par surface, et pourquoi le reste attend encore sa source."
-        endpointIds={['dashboard']}
       />
 
       <CockpitSection>
@@ -223,8 +221,6 @@ export default async function Page() {
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
       </CockpitSection>
-
-      <EndpointSection endpointId="dashboard" title="Réponse détaillée du service" />
     </div>
   )
 }

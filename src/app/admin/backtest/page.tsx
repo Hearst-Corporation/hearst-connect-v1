@@ -1,6 +1,5 @@
 import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
-import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
@@ -41,7 +40,6 @@ export default async function Page() {
       <PageHeader
         title="Rétro-tests"
         description="Ce que la stratégie du fonds aurait produit sur des périodes passées. Tout est calculé par le service : rien n’est projeté, extrapolé ni lissé ici."
-        endpointIds={['backtest-historical']}
       />
 
       <CockpitSection>
@@ -57,7 +55,6 @@ export default async function Page() {
           <ChartFrame
             question="Qu’aurait produit la stratégie sur le passé ?"
             unite="en valeur de part, par période"
-            provenance="calcul du service"
             etat={{
               type: 'attendue',
               explication:
@@ -100,8 +97,6 @@ export default async function Page() {
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
       </CockpitSection>
-
-      <EndpointSection endpointId="backtest-historical" title="Réponse détaillée du service" />
     </div>
   )
 }

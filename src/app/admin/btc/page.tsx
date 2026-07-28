@@ -1,12 +1,13 @@
-import { ChartFrame } from '@/components/admin/chart-frame'
+import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
+import { ProductionMensuelleChart, type MoisProduction } from '@/components/admin/charts/btc-production-chart'
 import { CalmState, Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
-import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { CockpitSection } from '@/components/admin/cockpit-section'
 import { ReserveExpositionChart, type PosteBitcoin } from '@/components/admin/product-charts'
+import { AdminCaption, AdminH3 } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
-import { LIBELLE_MOUVEMENT } from '@/lib/mouvements'
-import { etatSerieDe } from '@/lib/serie-etat'
+import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
+import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
@@ -14,29 +15,64 @@ export const metadata: Metadata = { title: 'Bitcoin' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Bitcoin — ce qui a été produit, où l'argent dort, ce qui s'est passé.
+ * Bitcoin — ce qui a été produit, à quelle cadence, où l'argent dort, ce qui
+ * s'est passé.
  *
  * L'ancienne page déversait la réponse d'une route. Elle répondait donc à la
  * question « que renvoie le service ? », que personne ne se pose. Celle-ci en
- * pose trois : combien de bitcoin le fonds a produit, comment son argent se
- * partage entre réserve dormante et exposition au marché, et ce qui mérite
- * d'être su parmi les derniers événements.
+ * pose quatre : combien de bitcoin le fonds a produit, à quel rythme il le
+ * produit, comment son argent se partage entre réserve dormante et exposition
+ * au marché, et ce qui mérite d'être su parmi les derniers événements.
  *
- * Quatre mesures ne sont pas encore ouvertes sur le contrat déployé —
- * attribution du rendement, cadence de production, garde des avoirs, paliers
- * de prise de bénéfice. Leurs cadres restent posés, avec la phrase qui dit ce
- * qu'on attend : le jour où la source répond, la série remplace la phrase et
- * la mise en page ne bouge pas.
+ * ── Ce qui a changé, et pourquoi ──────────────────────────────────────────
+ * La cadence de production était l'un des cadres en attente : le service ne
+ * transmettait qu'un cumul. Il expose désormais un relevé mensuel, la série
+ * est donc tracée. Elle ne compte qu'un mois à ce jour : la page le DIT, au
+ * lieu de laisser une barre isolée passer pour une tendance.
+ *
+ * ── Ce qui reste vide, et pourquoi ce n'est pas la même chose ─────────────
+ * Trois vues restent sans donnée, et il faut distinguer deux silences très
+ * différents :
+ *   — attribution du rendement et paliers de prise de bénéfice : le contrat
+ *     déployé n'expose aucune lecture de ces valeurs (`not_exposed_by_contract`).
+ *     Ce n'est pas un retard de branchement, c'est une capacité absente de la
+ *     source ; un nouveau déploiement du backend n'y changerait rien.
+ *   — garde des avoirs : aucun dépositaire n'est intégré
+ *     (`no_custody_provider_integrated`).
+ * Et un troisième silence, encore différent : le registre des preuves répond,
+ * et il est vide. Une table lue et vide n'est pas une source manquante — la
+ * page le formule explicitement, sans quoi les deux se confondent à l'œil.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
+/**
+ * Forme réelle d'un événement `/api/v1/btc`, constatée sur le service.
+ *
+ * L'horodatage arrive sous `timestamp`, pas sous `occurredAt` — la version
+ * précédente lisait le mauvais champ et affichait donc « — » sur chaque ligne.
+ * Les deux noms sont acceptés ici : le second ne coûte rien et couvre une
+ * divergence entre routes.
+ */
 type Evenement = {
   readonly name?: string | null
   readonly category?: string | null
   readonly severity?: string | null
+  readonly timestamp?: string | null
   readonly occurredAt?: string | null
-  readonly detail?: string | null
+}
+
+/** Relevé mensuel de production, en satoshis entiers transmis en chaîne. */
+type MoisBrut = {
+  readonly period?: string | null
+  readonly satsEarned?: string | null
+  readonly cumulativeSatsEarned?: string | null
+}
+
+type Production = {
+  readonly monthly?: readonly MoisBrut[] | null
+  readonly cumulativeSatsEarned?: string | null
+  readonly cumulativeBtcEarned?: string | null
 }
 
 type Btc = {
@@ -46,8 +82,9 @@ type Btc = {
   readonly takeProfitTiers?: Resolu<unknown>
   readonly events?: Resolu<readonly Evenement[]>
   readonly attribution?: Resolu<unknown>
-  readonly production?: Resolu<unknown>
+  readonly production?: Resolu<Production>
   readonly custody?: Resolu<unknown>
+  readonly proofs?: Resolu<readonly unknown[]>
 }
 
 const etatDe = etatSerieDe
@@ -76,6 +113,91 @@ function dateLisible(iso: string | null | undefined): string {
 function partLisible(bps: number | null | undefined): string {
   if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
   return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
+}
+
+/* ── Satoshis ────────────────────────────────────────────────────────────── */
+
+const ENTIER_DECIMAL = /^\d+$/
+const PERIODE_MENSUELLE = /^(\d{4})-(\d{2})$/
+
+/**
+ * Satoshis → BTC, au satoshi près.
+ *
+ * Le service transmet un entier de satoshis en chaîne. Le diviser en virgule
+ * flottante ferait dériver le huitième chiffre — exactement là où se lit un
+ * montant en bitcoin. La conversion se fait donc sur la chaîne : partie
+ * entière et huit décimales sortent telles quelles, sans arithmétique.
+ * Une chaîne qui n'est pas un entier décimal rend `null` : illisible se dit,
+ * ne se devine pas.
+ */
+function btcExactDepuisSats(sats: string | null | undefined): string | null {
+  if (typeof sats !== 'string' || !ENTIER_DECIMAL.test(sats)) return null
+  const rembourre = sats.padStart(9, '0')
+  const entiere = Number(rembourre.slice(0, -8))
+  return `${entiere.toLocaleString('fr-FR')},${rembourre.slice(-8)}`
+}
+
+/**
+ * La même valeur en nombre, pour l'ÉCHELLE du graphique uniquement — jamais
+ * pour un chiffre affiché, qui vient toujours de la chaîne d'origine.
+ * L'émission totale de bitcoin plafonne à 2,1 × 10^15 satoshis, sous les 2^53
+ * que `Number` représente exactement : la position d'une barre est juste.
+ */
+function btcNombreDepuisSats(sats: string | null | undefined): number | null {
+  if (typeof sats !== 'string' || !ENTIER_DECIMAL.test(sats)) return null
+  return Number(sats) / 100_000_000
+}
+
+/** « 2026-07 » → « juil. 2026 ». Une période non reconnue est rendue telle quelle. */
+function moisLisible(periode: string): string {
+  const parts = PERIODE_MENSUELLE.exec(periode)
+  if (parts === null) return periode
+  const date = new Date(Date.UTC(Number(parts[1]), Number(parts[2]) - 1, 1))
+  if (Number.isNaN(date.getTime())) return periode
+  return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+}
+
+/** Relevés bruts → mois exploitables. Un mois illisible est écarté, pas comblé. */
+function moisExploitables(production: Production | null | undefined): MoisProduction[] {
+  const releves = production?.monthly
+  if (!Array.isArray(releves)) return []
+
+  const retenus: MoisProduction[] = []
+  for (const brut of releves) {
+    const periode = brut?.period
+    const btc = btcNombreDepuisSats(brut?.satsEarned)
+    const exact = btcExactDepuisSats(brut?.satsEarned)
+    if (typeof periode !== 'string' || periode === '' || btc === null || exact === null) continue
+    retenus.push({
+      periode,
+      libelle: moisLisible(periode),
+      btc,
+      btcExact: exact,
+      cumulExact: btcExactDepuisSats(brut?.cumulativeSatsEarned),
+    })
+  }
+  // Le service rend les mois du plus ancien au plus récent ; on le garantit
+  // plutôt que de le supposer, sans quoi l'axe raconterait le temps à l'envers.
+  return retenus.sort((a, b) => a.periode.localeCompare(b.periode))
+}
+
+/**
+ * Trois silences distincts, trois états distincts.
+ *
+ * « LIVE mais aucun mois » n'est pas « source absente » : dans le premier cas
+ * la table a répondu, dans le second personne n'a répondu. Les confondre
+ * reviendrait à annoncer une panne là où il n'y a qu'une absence d'historique.
+ */
+function etatProductionDe(bloc: ChampResolu | undefined, moisRetenus: number): EtatSerie {
+  if (moisRetenus > 0) return { type: 'tracee' }
+  if (bloc?.status === 'LIVE') {
+    return {
+      type: 'vide',
+      explication:
+        'Les relevés de production ont bien été consultés : aucun mois exploitable n’y figure encore. La série apparaîtra au premier relevé.',
+    }
+  }
+  return etatDe(bloc, 'Les relevés mensuels de production ne sont pas encore transmis par le service.')
 }
 
 /** La gravité décide de la couleur ET du mot : un daltonien lit le même état. */
@@ -133,7 +255,7 @@ function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: reado
           const gravite = graviteLisible(e.severity)
           return (
             <li
-              key={`${e.name ?? 'evenement'}-${e.occurredAt ?? String(index)}`}
+              key={`${e.name ?? 'evenement'}-${e.timestamp ?? e.occurredAt ?? String(index)}`}
               className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm"
             >
               <span aria-hidden="true" className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)} />
@@ -142,11 +264,61 @@ function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: reado
                 <span className="text-xs text-zinc-500">{nomLisible(e.category)}</span>
               )}
               <span className={clsx('text-xs font-medium', gravite.texte)}>{gravite.mot}</span>
-              <span className="text-xs text-zinc-500 tabular-nums">{dateLisible(e.occurredAt)}</span>
+              {/* Le service porte aussi un `amount` sur certains mouvements. Il
+                  n'est PAS rendu ici : le contrat ne dit pas dans quelle unité
+                  il est libellé, et afficher « 60 000 $ » sur un montant qui
+                  pourrait être en satoshis serait une invention à trois ordres
+                  de grandeur près. Le montant reste consultable dans la
+                  réponse brute, en bas de page. */}
+              <span className="text-xs text-zinc-500 tabular-nums">{dateLisible(e.timestamp ?? e.occurredAt)}</span>
             </li>
           )
         })}
       </ul>
+    </Card>
+  )
+}
+
+/* ── Registre des preuves ────────────────────────────────────────────────── */
+
+/**
+ * Le silence le plus facile à mal lire.
+ *
+ * `proofs` répond LIVE avec un tableau vide. « La table a été consultée et
+ * elle est vide » et « aucune source ne répond » se ressemblent à l'écran et
+ * n'ont rien à voir : la première est un fait sur le produit, la seconde un
+ * incident. La phrase les sépare explicitement.
+ */
+function phrasePreuves(bloc: Resolu<readonly unknown[]>): string {
+  if (bloc.status !== 'LIVE' || bloc.value === null) {
+    const motif = motifLisible(bloc.reason)
+    if (motif === undefined) return 'Le registre des preuves n’a pas pu être consulté.'
+    return `Le registre des preuves n’a pas pu être consulté : ${motif}.`
+  }
+  if (bloc.value.length === 0) {
+    return 'Le registre a été consulté et il est vide : aucune preuve n’a encore été publiée. Ce n’est pas une source manquante — la table répond, elle n’a simplement rien à montrer pour l’instant.'
+  }
+  const nombre = bloc.value.length
+  const accord = nombre > 1 ? 'preuves sont enregistrées' : 'preuve est enregistrée'
+  return `${nombre} ${accord} au registre.`
+}
+
+function PreuvesPubliees({ bloc }: Readonly<{ bloc: Resolu<readonly unknown[]> | undefined }>) {
+  if (bloc === undefined) return null
+
+  return (
+    <Card>
+      <CardHeader
+        title="Quelles preuves de production ont été publiées ?"
+        hint="Registre des preuves rattachées au bitcoin produit"
+      />
+      <div className="px-5 py-4 sm:px-6">
+        <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-300">{phrasePreuves(bloc)}</p>
+        {/* Aucun tableau de colonnes n'est dessiné tant que le registre est
+            vide : la forme d'une preuve n'a jamais été observée, et inventer
+            des en-têtes reviendrait à publier un schéma que personne n'a
+            constaté. Le jour où une preuve existe, ses champs se lisent. */}
+      </div>
     </Card>
   )
 }
@@ -177,12 +349,17 @@ export default async function Page() {
   const evenements = b?.events?.value
   const listeEvenements = evenements ?? []
 
+  // Cadence de production : le service expose désormais un relevé mensuel.
+  // Chaque mois est une quantité mesurée ; aucun n'est comblé ni interpolé.
+  const production = b?.production?.value
+  const moisProduction = moisExploitables(production)
+  const cumulProduction = btcExactDepuisSats(production?.cumulativeSatsEarned)
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Bitcoin"
         description="Ce que le fonds a produit en bitcoin, comment son argent se partage entre réserve et exposition, et ce qui s’est passé récemment."
-        endpointIds={['btc']}
       />
 
       <CockpitSection>
@@ -207,11 +384,20 @@ export default async function Page() {
             </div>
           </Card>
 
+          {/* ── À quelle cadence le bitcoin est produit ────────────────────── */}
+          <ChartFrame
+            question="À quelle cadence le bitcoin est-il produit ?"
+            unite="en bitcoin, par mois relevé"
+            etat={etatProductionDe(b.production, moisProduction.length)}
+            hauteur="h-40"
+          >
+            <ProductionMensuelleChart mois={moisProduction} cumulBtc={cumulProduction} />
+          </ChartFrame>
+
           {/* ── Où l'argent se trouve ─────────────────────────────────────── */}
           <ChartFrame
             question="Où l’argent se trouve-t-il ?"
             unite="en dollars"
-            provenance="lu sur la chaîne"
             etat={
               postes.length > 0
                 ? { type: 'tracee' }
@@ -257,46 +443,42 @@ export default async function Page() {
           {/* ── Ce qui s'est passé ────────────────────────────────────────── */}
           <CeQuiSestPasse evenements={listeEvenements} statutLive={b.events?.status === 'LIVE'} />
 
-          {/* ── Cadres en attente de leur source ──────────────────────────── */}
-          <div className="grid gap-4 lg:grid-cols-2">
+          {/* ── Ce que la source n'expose pas ─────────────────────────────── */}
+          <PreuvesPubliees bloc={b.proofs} />
+
+          {/* Sans cette introduction, « En attente de la source » se lirait
+              comme « ça arrive bientôt ». Ces trois lectures n'arrivent pas :
+              elles n'existent pas dans le contrat déployé. Le dire une fois en
+              tête de bloc évite de le répéter dans chaque cadre. */}
+          <div className="space-y-1 pt-2">
+            <AdminH3 as="h2">Ce que la source n’expose pas</AdminH3>
+            <AdminCaption>
+              Ces trois vues sont dessinées et prêtes. Elles restent sans série non par incident, mais parce que la
+              lecture correspondante n’existe pas dans la source : le motif exact est rappelé sous chacune. Le jour où
+              le contrat l’expose, la série remplace la phrase et la mise en page ne bouge pas.
+            </AdminCaption>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <ChartFrame
               question="D’où vient le rendement du bitcoin ?"
               unite="en pourcentage du total"
-              provenance="décomposition du rendement"
-              etat={etatDe(
-                b.attribution,
-                'La décomposition du rendement n’est pas encore calculée sur ce déploiement.',
-              )}
-              hauteur="h-40"
-            />
-            <ChartFrame
-              question="À quelle cadence le bitcoin est-il produit ?"
-              unite="en bitcoin, par période"
-              provenance="relevés de production"
-              etat={etatDe(
-                b.production,
-                'Le service ne transmet qu’un cumul, sans historique. Une courbe exigerait une série conservée dans le temps.',
-              )}
+              etat={etatDe(b.attribution, 'Le contrat n’expose aucune décomposition du rendement bitcoin.')}
               hauteur="h-40"
             />
             <ChartFrame
               question="Où les bitcoins sont-ils conservés ?"
               unite="en bitcoin, par lieu de conservation"
-              provenance="registre de conservation"
               etat={etatDe(
                 b.custody,
-                'La répartition des avoirs par lieu de conservation n’est pas encore transmise.',
+                'Aucun dépositaire n’est intégré : aucun lieu de conservation n’est déclaré à ce jour.',
               )}
               hauteur="h-40"
             />
             <ChartFrame
               question="À quels prix les bénéfices sont-ils pris ?"
               unite="en dollars, par palier"
-              provenance="termes du produit"
-              etat={etatDe(
-                b.takeProfitTiers,
-                'Les paliers de prise de bénéfice ne sont pas encore ouverts sur le contrat déployé.',
-              )}
+              etat={etatDe(b.takeProfitTiers, 'Le contrat n’expose aucun palier de prise de bénéfice.')}
               hauteur="h-40"
             />
           </div>
@@ -306,8 +488,6 @@ export default async function Page() {
       {/* La réponse brute reste consultable en bas de page, pour qui veut
           vérifier un champ que la lecture métier n'expose pas. */}
       </CockpitSection>
-
-      <EndpointSection endpointId="btc" title="La réponse complète du service" />
     </div>
   )
 }

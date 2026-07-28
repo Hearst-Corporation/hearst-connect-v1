@@ -40,3 +40,6 @@ storybook-static
 
 # couverture vitest (lcov pour Sonar)
 /coverage/
+
+# captures playwright locales
+.playwright-mcp/

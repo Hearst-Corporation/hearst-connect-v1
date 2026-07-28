@@ -77,7 +77,10 @@ export function AdminKpiSurface({
         <dl
           className={clsx(
             'grid grid-cols-2 gap-px bg-zinc-950/5 dark:bg-white/5',
-            hero ? 'lg:col-span-8 lg:grid-cols-3' : 'lg:grid-cols-4',
+            // Sans `hero`, la liste occupe TOUTE la largeur : sans ce col-span
+            // elle héritait d'une seule des 12 colonnes du parent et s'écrasait
+            // en colonnes illisibles.
+            hero ? 'lg:col-span-8 lg:grid-cols-3' : 'lg:col-span-12 lg:grid-cols-4',
           )}
         >
           {items.map((item) => (

@@ -123,7 +123,6 @@ export default async function Page() {
       <PageHeader
         title="Produit"
         description="Ce que le fonds produit, où son argent se trouve, et comment sa rémunération évolue. Six anciennes vues réunies ici."
-        endpointIds={['mining', 'btc', 'product-factsheet', 'backtest-historical']}
       />
 
       <CockpitSection>
@@ -149,7 +148,6 @@ export default async function Page() {
         <ChartFrame
           question="Où l’argent du fonds se trouve-t-il ?"
           unite="en dollars"
-          provenance="lu sur la chaîne"
           etat={
             postes.length > 0
               ? { type: 'tracee' }
@@ -163,7 +161,6 @@ export default async function Page() {
         <ChartFrame
           question="Comment la rémunération évolue-t-elle sur la durée ?"
           unite="en pourcentage, par mois"
-          provenance="termes du produit"
           etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
         >
           <VendingCurveChart points={points} />
@@ -175,7 +172,6 @@ export default async function Page() {
         <ChartFrame
           question="Comment la performance se compare-t-elle à l’historique ?"
           unite="en pourcentage"
-          provenance="rétro-test"
           etat={etatDe(
             backtest.ok ? backtest.data.runs : undefined,
             'Aucun rétro-test n’a encore été exécuté sur ce déploiement.',
@@ -185,14 +181,12 @@ export default async function Page() {
         <ChartFrame
           question="D’où vient le rendement ?"
           unite="en pourcentage du total"
-          provenance="attribution"
           etat={etatDe(b?.attribution, 'La décomposition du rendement n’est pas encore calculée.')}
           hauteur="h-40"
         />
         <ChartFrame
           question="Comment la flotte se comporte-t-elle dans le temps ?"
           unite="en TH/s"
-          provenance="télémétrie"
           etat={etatDe(m?.operationalTelemetry, 'La télémétrie d’exploitation n’est pas encore transmise.')}
           hauteur="h-40"
         />

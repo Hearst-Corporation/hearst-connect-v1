@@ -34,7 +34,6 @@ export default async function KeeperPage() {
       <PageHeader
         title="Keeper"
         description="Actions d’administration du backend. Rien ne part sans confirmation explicite, aucune réussite n’est supposée, et la réponse du backend est rendue telle quelle."
-        endpointIds={keeperEndpoints.map((endpoint) => endpoint.id)}
       />
 
       <CockpitSection title="Périmètre" description="Ces routes enregistrent une demande — elles ne signent rien">

@@ -1,5 +1,4 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
-import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
@@ -93,7 +92,6 @@ export default async function Page() {
       <PageHeader
         title="Série 1"
         description="Tout ce que la chaîne a enregistré pour ce fonds, du plus récent au plus ancien. Chaque ligne vient du service ; rien n’est agrégé ni estimé ici."
-        endpointIds={['series1-events']}
       />
 
       <CockpitSection>
@@ -103,8 +101,6 @@ export default async function Page() {
       {/* Le sous-sol : la réponse détaillée reste consultable pour qui veut
           vérifier un champ, jamais imposée à qui vient lire le journal. */}
       </CockpitSection>
-
-      <EndpointSection endpointId="series1-events" title="Réponse détaillée du service" />
     </div>
   )
 }
