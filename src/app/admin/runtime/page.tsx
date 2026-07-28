@@ -73,36 +73,56 @@ function libelleEtat(brut: string | undefined): string {
   }
 }
 
-export default async function RuntimePage() {
-  const [runtime, health, ready] = await Promise.all([
-    callBackend<Runtime>('runtime'),
-    callBackend<Record<string, unknown>>('health'),
-    callBackend<{ ready?: boolean; db?: string }>('ready'),
-  ])
+function detailLatence(ms: number | null | undefined): string | undefined {
+  if (ms === null || ms === undefined) return undefined
+  return `${ms} ms`
+}
 
-  const r = runtime.ok ? runtime.data : null
+function detailBloc(bloc: number | null | undefined): string | undefined {
+  if (bloc === null || bloc === undefined) return undefined
+  return `bloc ${bloc.toLocaleString('fr-FR')}`
+}
+
+function detailErreurs(n: number | undefined): string {
+  if (n !== undefined && n > 0) return `${n} erreur(s)`
+  return 'aucune erreur'
+}
+
+function intervalleMs(ms: number | null | undefined): string | null {
+  if (ms === null || ms === undefined) return null
+  return `${ms} ms`
+}
+
+function buildMatrix(input: {
+  healthOk: boolean
+  readyOk: boolean
+  readyDb: string | undefined
+  runtime: Runtime | null
+}): StatusMatrixRow[] {
+  const { healthOk, readyOk, readyDb, runtime: r } = input
   const scheduler = r?.indexerScheduler
+  const readyLive = readyOk
 
-  const matrix: StatusMatrixRow[] = [
+  return [
     {
       id: 'health',
       label: 'Vivacité (health)',
-      status: health.ok ? 'LIVE' : 'UNAVAILABLE',
-      detail: health.ok ? 'HTTP 200' : 'Pas de réponse',
-      ton: health.ok ? 'sain' : 'critique',
+      status: healthOk ? 'LIVE' : 'UNAVAILABLE',
+      detail: healthOk ? 'HTTP 200' : 'Pas de réponse',
+      ton: healthOk ? 'sain' : 'critique',
     },
     {
       id: 'ready',
       label: 'Disponibilité (ready)',
-      status: ready.ok && ready.data.ready === true ? 'LIVE' : 'UNAVAILABLE',
-      detail: ready.ok ? (ready.data.db ?? undefined) : undefined,
-      ton: ready.ok && ready.data.ready === true ? 'sain' : 'critique',
+      status: readyLive ? 'LIVE' : 'UNAVAILABLE',
+      detail: readyOk ? readyDb : undefined,
+      ton: readyLive ? 'sain' : 'critique',
     },
     {
       id: 'db',
       label: 'Base de données',
       status: statutFromBrut(r?.databaseStatus),
-      detail: r?.db?.latencyMs !== null && r?.db?.latencyMs !== undefined ? `${r.db.latencyMs} ms` : undefined,
+      detail: detailLatence(r?.db?.latencyMs),
       ton: tonEtat(r?.databaseStatus),
     },
     {
@@ -116,23 +136,36 @@ export default async function RuntimePage() {
       id: 'indexer',
       label: 'Indexeur',
       status: statutFromBrut(r?.indexerStatus),
-      detail:
-        scheduler?.lastIndexedBlock !== null && scheduler?.lastIndexedBlock !== undefined
-          ? `bloc ${scheduler.lastIndexedBlock.toLocaleString('fr-FR')}`
-          : undefined,
+      detail: detailBloc(scheduler?.lastIndexedBlock),
       ton: tonEtat(r?.indexerStatus),
     },
     {
       id: 'scheduler',
       label: 'Planificateur',
       status: statutFromBrut(scheduler?.status),
-      detail:
-        scheduler?.consecutiveErrors !== undefined && scheduler.consecutiveErrors > 0
-          ? `${scheduler.consecutiveErrors} erreur(s)`
-          : 'aucune erreur',
+      detail: detailErreurs(scheduler?.consecutiveErrors),
       ton: tonEtat(scheduler?.status),
     },
   ]
+}
+
+export default async function RuntimePage() {
+  const [runtime, health, ready] = await Promise.all([
+    callBackend<Runtime>('runtime'),
+    callBackend<Record<string, unknown>>('health'),
+    callBackend<{ ready?: boolean; db?: string }>('ready'),
+  ])
+
+  const r = runtime.ok ? runtime.data : null
+  const scheduler = r?.indexerScheduler
+  const readyOk = ready.ok && ready.data.ready === true
+
+  const matrix = buildMatrix({
+    healthOk: health.ok,
+    readyOk,
+    readyDb: ready.ok ? ready.data.db : undefined,
+    runtime: r,
+  })
 
   return (
     <div className="space-y-6">
@@ -153,14 +186,7 @@ export default async function RuntimePage() {
           <AdminMetric label="Version" value={r?.version ?? null} />
           <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="SHA du déploiement" />
           <AdminMetric label="Chaîne" value={r?.chainId ?? null} hint="chainId" />
-          <AdminMetric
-            label="Intervalle indexeur"
-            value={
-              scheduler?.intervalMs !== null && scheduler?.intervalMs !== undefined
-                ? `${scheduler.intervalMs} ms`
-                : null
-            }
-          />
+          <AdminMetric label="Intervalle indexeur" value={intervalleMs(scheduler?.intervalMs)} />
         </div>
       </AdminSection>
 

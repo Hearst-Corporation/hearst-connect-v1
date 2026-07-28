@@ -5,6 +5,7 @@ import {
   AdminSourceAttendue,
   AdminSurface,
   AdminTable,
+  type AdminTableColumn,
 } from '@/components/admin/surfaces'
 import type { Metadata } from 'next'
 
@@ -21,6 +22,20 @@ const SEGMENTS = [
 
 const COLONNES_DOSSIER = ['Référence', 'Organisation', 'Segment', 'Ancienneté', 'Échéance', 'Risque', 'Analyste'] as const
 
+type LigneVide = Record<string, never>
+
+function cellVide(_row: LigneVide) {
+  return <span className="text-brand-muted">—</span>
+}
+
+const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_DOSSIER.map((header) => ({
+  key: header,
+  header,
+  cell: cellVide,
+}))
+
+const FILTER_ITEMS = SEGMENTS.map((s) => ({ id: s.id, label: s.label, title: s.aide }))
+
 export default function Page() {
   return (
     <div className="space-y-6">
@@ -30,10 +45,7 @@ export default function Page() {
       />
 
       <AdminSection title="Segments" description="Parcours d’un dossier de connaissance client">
-        <AdminFilterBar
-          ariaLabel="Segments de conformité"
-          items={SEGMENTS.map((s) => ({ id: s.id, label: s.label, title: s.aide }))}
-        />
+        <AdminFilterBar ariaLabel="Segments de conformité" items={FILTER_ITEMS} />
       </AdminSection>
 
       <AdminSection title="File de travail" description="Dossiers transmis par le backend — vide pour l’instant">
@@ -49,11 +61,7 @@ export default function Page() {
                 </p>
               </div>
             }
-            columns={COLONNES_DOSSIER.map((header) => ({
-              key: header,
-              header,
-              cell: () => <span className="text-brand-muted">—</span>,
-            }))}
+            columns={COLONNES}
           />
         </AdminSurface>
       </AdminSection>

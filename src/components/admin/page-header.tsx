@@ -1,39 +1,26 @@
-import { BACKEND_ENDPOINTS } from '@/lib/backend/endpoints'
-import { AdminBody, AdminCaption, AdminH1, adminTypography } from '@/components/admin/typography'
-import clsx from 'clsx'
-
 /**
- * En-tête de page admin : titre H1, contexte, endpoints consultés.
+ * En-tête page cockpit — structure HTML Qatar (h1 + méta snapshot, sans description).
  */
 export function PageHeader({
   title,
-  description,
-  endpointIds = [],
-}: Readonly<{ title: string; description: string; endpointIds?: string[] }>) {
-  const endpoints = BACKEND_ENDPOINTS.filter((endpoint) => endpointIds.includes(endpoint.id))
-
+  meta,
+}: Readonly<{
+  title: string
+  meta?: string
+  /** Conservé pour compatibilité — non affiché (forme Qatar). */
+  description?: string
+  endpointIds?: string[]
+}>) {
   return (
-    <header className="border-b border-white/5 pb-6">
-      <AdminH1>{title}</AdminH1>
-      <AdminBody className="mt-2 max-w-3xl">{description}</AdminBody>
-      {endpoints.length > 0 ? (
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {endpoints.map((endpoint) => (
-            <li
-              key={endpoint.id}
-              className={clsx(
-                'rounded-md border border-white/10 bg-brand-surface-raised px-2.5 py-1',
-                adminTypography.endpoint,
-              )}
-            >
-              {endpoint.method} {endpoint.path}
-            </li>
-          ))}
-        </ul>
+    <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+      <div className="min-w-0">
+        <h1 className="truncate text-xl/7 font-semibold tracking-tight text-zinc-950 dark:text-white">{title}</h1>
+      </div>
+      {meta ? (
+        <div className="flex min-w-0 items-center gap-3">
+          <p className="text-xs text-balance text-zinc-500 dark:text-zinc-400">{meta}</p>
+        </div>
       ) : null}
-      {endpoints.length > 0 ? (
-        <AdminCaption className="mt-2">Sources consultées par cette page</AdminCaption>
-      ) : null}
-    </header>
+    </div>
   )
 }

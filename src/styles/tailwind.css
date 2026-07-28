@@ -127,3 +127,51 @@
   --color-hearst-bad: #f87171;
   --color-hearst-info: #0082f3;
 }
+
+/*
+ * Cockpit admin — couleurs HTML Qatar (zinc Tailwind canon) + accent mint Hearst.
+ * Scoped : ne pas retinter zinc navy sur la console.
+ */
+.cockpit-theme {
+  --color-zinc-50: #fafafa;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  /* Accent vert mint — conservé sur la console */
+  --color-accent-300: #a7fb90;
+  --color-accent-400: #a7fb90;
+  --color-accent-500: #85c873;
+  --color-accent-600: #73de56;
+  --color-accent-700: #5cb842;
+  --color-accent-ink: #000000;
+}
+
+/* Bande décorative cockpit (Qatar MHTML) */
+.cockpit-band {
+  mask-image: linear-gradient(to left, rgb(0 0 0) 0%, transparent 88%);
+}
+
+.dc-cockpit-band {
+  mask-image:
+    linear-gradient(to left, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 38%, rgba(0, 0, 0, 0) 100%),
+    linear-gradient(to top, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 25%, rgba(0, 0, 0, 0) 92%);
+  mask-composite: intersect;
+}
+
+.dc-cockpit-band > svg {
+  flex: 0 0 auto;
+  width: auto;
+  height: 200%;
+  margin-left: auto;
+  transform: translate(10%, 30%);
+}

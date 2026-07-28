@@ -60,10 +60,10 @@ export function AdminLabel({ children, className }: TypoProps) {
 
 /** Conteneur page admin — espacement vertical uniforme. */
 export function AdminPage({ children, className }: TypoProps) {
-  return <div className={clsx(className, 'space-y-10')}>{children}</div>
+  return <div className={clsx(className, 'space-y-8')}>{children}</div>
 }
 
-/** En-tête de carte / surface — padding et filet alignés. */
+/** En-tête de carte cockpit (figcaption Qatar). */
 export function AdminSurfaceHeader({
   title,
   description,
@@ -79,12 +79,15 @@ export function AdminSurfaceHeader({
     <div
       className={clsx(
         className,
-        'flex items-start justify-between gap-4 border-b border-white/5 px-5 py-4 sm:px-6 sm:py-5',
+        'mb-5 border-b border-zinc-950/5 pb-4 dark:border-white/5',
+        action && 'flex flex-wrap items-start justify-between gap-3',
       )}
     >
-      <div className="min-w-0">
-        <AdminH3>{title}</AdminH3>
-        {description ? <AdminCaption className="mt-1">{description}</AdminCaption> : null}
+      <div>
+        <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h3>
+        {description ? (
+          <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
+        ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
