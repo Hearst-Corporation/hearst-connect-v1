@@ -183,7 +183,7 @@ const COLONNES: readonly AdminTableColumn<Surface>[] = [
     header: 'What the service says',
     /* An unmapped reason code renders as an absence, never as a technical
        string leaked into a business console. */
-    cell: (s) => <span className="text-zinc-500 dark:text-zinc-400">{s.reason === undefined ? '—' : s.reason}</span>,
+    cell: (s) => <span className="text-zinc-500 dark:text-zinc-400">{s.reason ?? '—'}</span>,
   },
 ]
 

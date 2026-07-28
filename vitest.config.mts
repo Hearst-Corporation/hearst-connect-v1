@@ -35,6 +35,8 @@ export default defineConfig({
         'src/lib/resolved.ts',
         'src/lib/serie-etat.ts',
         'src/lib/session.ts',
+        'src/lib/vaults/model.ts',
+        'src/lib/vaults/registry.ts',
         'src/lib/backend/auth.ts',
         'src/lib/backend/endpoints.ts',
         'src/lib/backend/http-failure.ts',
