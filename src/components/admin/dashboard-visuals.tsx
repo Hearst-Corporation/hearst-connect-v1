@@ -93,6 +93,7 @@ export function DashboardTrendChart({
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
+        {/* The Y-axis is hidden; the negative left margin removes Recharts' reserved axis gutter so the plot fills the frame. */}
         <AreaChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: -20 }}>
           <defs>
             <linearGradient id="dashboard-trend-fill" x1="0" y1="0" x2="0" y2="1">
@@ -263,6 +264,7 @@ export function DashboardBarChart({
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
+        {/* The Y-axis is hidden; the negative left margin removes Recharts' reserved axis gutter so the plot fills the frame. */}
         <BarChart data={bars} margin={{ top: 8, right: 0, bottom: 0, left: -16 }}>
           <XAxis
             dataKey="label"
