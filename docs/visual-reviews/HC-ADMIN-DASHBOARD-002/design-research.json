@@ -1,0 +1,54 @@
+{
+  "mission": "HC-ADMIN-DASHBOARD-002-design-research",
+  "agents": 4,
+  "note": "Limite workspace 4 workers — recherche complétée par lead",
+  "paletteSource": "https://www.hearstcorporation.io/ CSS Webflow hearst-01aa38",
+  "paletteApplied": {
+    "brand-background": "#020611",
+    "brand-surface": "#000000",
+    "brand-accent": "#a7fb90",
+    "brand-muted": "#b2b2b2"
+  },
+  "references": [
+    {
+      "url": "https://tailwindui.com/components/application-ui/data-display/stats",
+      "borrow": "KPI shared borders grid"
+    },
+    {
+      "url": "https://fortress-shadcn.dashboardpack.com/",
+      "borrow": "Dense institutional dark admin"
+    },
+    {
+      "url": "https://docs.luxor.tech/platform/energy/energy-dashboard",
+      "borrow": "Mining ops chart palette"
+    },
+    {
+      "url": "https://www.bloomberg.com/ux/2021/10/14/designing-the-terminal-for-color-accessibility/",
+      "borrow": "Accent ≠ status colors"
+    },
+    {
+      "url": "https://catalyst.tailwindui.com/docs/description-list",
+      "borrow": "Description list + divider patterns"
+    },
+    {
+      "url": "https://colorarchive.org/guides/fintech-dark-mode-colors/",
+      "borrow": "Dark fintech chart desaturation"
+    },
+    {
+      "url": "https://www.behance.net/gallery/241194843/WindFarm-Renewable-Energy-Dashboard-UXUI-Design",
+      "borrow": "Infra energy ops dashboard"
+    },
+    {
+      "url": "https://docs.mdk.tether.io/ui/react/foundation/operations/",
+      "borrow": "Mining metrics cards"
+    },
+    {
+      "url": "https://preline.co/blocks/data-display/kpi-cards/",
+      "borrow": "Divided KPI cards"
+    },
+    {
+      "url": "https://tosea.ai/templates/gi2_d1b09_investor_en",
+      "borrow": "Navy + gold institutional charts (référence secondaire)"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import '@/styles/tailwind.css'
+import { fontSatoshi } from '@/lib/fonts'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import type { Metadata } from 'next'
 
@@ -18,13 +19,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       // Le script de thème ajoute `light`/`dark` sur cet élément avant
       // l'hydratation : l'écart de className avec le HTML serveur est voulu.
       suppressHydrationWarning
-      className="text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white"
+      className={`${fontSatoshi.variable} font-sans text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white`}
     >
       <head>
         {/* Applique le thème mémorisé avant la première peinture (pas de flash). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </head>
       <body>{children}</body>
     </html>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Mark } from '@/components/logo'
+import { adminTypography } from '@/components/admin/typography'
 import { logout } from '@/lib/actions'
 import type { SessionUser } from '@/lib/session'
 import { Dialog, DialogPanel } from '@headlessui/react'
@@ -63,19 +64,19 @@ function NavLinks({ pathname, onNavigate }: Readonly<{ pathname: string; onNavig
                 aria-current={active ? 'page' : undefined}
                 className={clsx(
                   'flex items-start gap-3 rounded-lg border-l-2 px-3 py-2.5 transition',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400',
+                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent',
                   active
-                    ? 'border-accent-400 bg-white/[0.06] text-white'
-                    : 'border-transparent text-zinc-400 hover:bg-white/[0.04] hover:text-white',
+                    ? 'border-brand-accent bg-white/[0.06] text-brand-foreground'
+                    : 'border-transparent text-brand-muted hover:bg-white/[0.04] hover:text-brand-foreground',
                 )}
               >
                 <item.icon
                   aria-hidden="true"
-                  className={clsx('mt-0.5 size-5 shrink-0', active ? 'text-accent-400' : 'text-zinc-500')}
+                  className={clsx('mt-0.5 size-5 shrink-0', active ? 'text-brand-accent' : 'text-brand-muted')}
                 />
                 <span className="min-w-0">
-                  <span className={clsx('block text-sm', active && 'font-semibold')}>{item.label}</span>
-                  <span className="block truncate text-xs text-zinc-500">{item.hint}</span>
+                  <span className={clsx('block', adminTypography.navLabel, active && 'font-semibold')}>{item.label}</span>
+                  <span className={clsx('block truncate', adminTypography.navHint)}>{item.hint}</span>
                 </span>
               </Link>
             </li>
@@ -121,20 +122,20 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
       <div className="flex items-center gap-2.5 px-5 py-4">
         <Mark className="size-7" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">Hearst Connect</p>
-          <p className="truncate text-xs text-zinc-500">Console d’administration</p>
+          <p className={clsx('truncate', adminTypography.navLabel)}>Hearst Connect</p>
+          <p className={clsx('truncate', adminTypography.navHint)}>Console d’administration</p>
         </div>
       </div>
       <GlobalSearch />
       <NavLinks pathname={pathname} onNavigate={() => setDrawerOpen(false)} />
       <div className="border-t border-white/10 px-5 py-4">
-        <p className="truncate text-sm text-white">{user.name}</p>
-        <p className="truncate text-xs text-zinc-500">{user.email}</p>
-        <p className="mt-1 text-xs text-zinc-600">rôle {user.role}</p>
+        <p className={clsx('truncate', adminTypography.navLabel)}>{user.name}</p>
+        <p className={clsx('truncate', adminTypography.navHint)}>{user.email}</p>
+        <p className={clsx('mt-1', adminTypography.navHint)}>rôle {user.role}</p>
         <form action={logout} className="mt-3">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs text-zinc-400 ring-1 ring-white/10 hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs text-brand-muted ring-1 ring-white/10 hover:bg-white/5 hover:text-brand-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent"
           >
             <ArrowRightStartOnRectangleIcon aria-hidden="true" className="size-4" />
             Se déconnecter
@@ -145,16 +146,16 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
   )
 
   return (
-    <div className="min-h-dvh bg-surface-page text-zinc-200">
+    <div className="min-h-dvh bg-brand-background text-zinc-200">
       {/* Barre latérale — écrans larges */}
-      <div className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-white/10 bg-surface-panel lg:flex">
+      <div className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-brand-border/50 bg-brand-surface lg:flex">
         {sidebar}
       </div>
 
       {/* Tiroir — mobile */}
       <Dialog open={drawerOpen} onClose={setDrawerOpen} className="lg:hidden">
         <div className="fixed inset-0 z-40 bg-black/70" aria-hidden="true" />
-        <DialogPanel className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-surface-panel">
+        <DialogPanel className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-brand-border/50 bg-brand-surface">
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
@@ -169,17 +170,17 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
 
       <div className="lg:pl-64">
         {/* Barre supérieure — mobile */}
-        <header className="flex items-center gap-3 border-b border-white/10 bg-surface-panel px-4 py-3 lg:hidden">
+        <header className="flex items-center gap-3 border-b border-brand-border/50 bg-brand-surface px-4 py-3 lg:hidden">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="rounded-md p-1.5 text-zinc-300 ring-1 ring-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+            className="rounded-md p-1.5 text-brand-muted ring-1 ring-white/10 hover:text-brand-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent"
           >
             <span className="sr-only">Ouvrir la navigation</span>
             <Bars3Icon aria-hidden="true" className="size-5" />
           </button>
           <Mark className="size-6" />
-          <span className="text-sm font-semibold text-white">Hearst Connect</span>
+          <span className={adminTypography.navLabel}>Hearst Connect</span>
         </header>
 
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">{children}</main>

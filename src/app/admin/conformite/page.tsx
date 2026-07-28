@@ -1,66 +1,71 @@
-import { Card, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
+import {
+  AdminFilterBar,
+  AdminSection,
+  AdminSourceAttendue,
+  AdminSurface,
+  AdminTable,
+} from '@/components/admin/surfaces'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Conformité' }
 export const dynamic = 'force-dynamic'
 
-/**
- * Conformité — une file de traitement, pas un tableau de bord.
- *
- * Les segments sont volontairement des filtres, et non les colonnes d'un
- * kanban : cinq colonnes de cartes deviennent illisibles au-delà d'une
- * cinquantaine de dossiers et ne tiennent pas sur un téléphone, alors qu'une
- * file segmentée pagine, se trie et se traite en lot.
- *
- * Les segments sont affichés dès maintenant, sans compte : ils décrivent le
- * parcours d'un dossier, qui ne dépend pas de la présence de données. Aucun
- * nombre n'est avancé tant que le service n'en transmet pas — un « 0 » ici
- * signifierait « aucun dossier à traiter », ce que personne ne peut affirmer.
- */
-
 const SEGMENTS = [
-  { cle: 'a-verifier', libelle: 'À vérifier', aide: 'Dossier reçu, instruction non commencée' },
-  { cle: 'en-attente', libelle: 'En attente', aide: 'Un document ou une réponse est attendu du client' },
-  { cle: 'risque-eleve', libelle: 'Risque élevé', aide: 'Signal sanctions, PEP ou média défavorable' },
-  { cle: 'a-renouveler', libelle: 'À renouveler', aide: 'Vérification arrivée à échéance' },
-  { cle: 'termine', libelle: 'Terminé', aide: 'Décision rendue et journalisée' },
+  { id: 'a-verifier', label: 'À vérifier', aide: 'Dossier reçu, instruction non commencée' },
+  { id: 'en-attente', label: 'En attente', aide: 'Document ou réponse attendue du client' },
+  { id: 'risque-eleve', label: 'Risque élevé', aide: 'Signal sanctions, PEP ou média défavorable' },
+  { id: 'a-renouveler', label: 'À renouveler', aide: 'Vérification arrivée à échéance' },
+  { id: 'termine', label: 'Terminé', aide: 'Décision rendue et journalisée' },
 ] as const
+
+const COLONNES_DOSSIER = ['Référence', 'Organisation', 'Segment', 'Ancienneté', 'Échéance', 'Risque', 'Analyste'] as const
 
 export default function Page() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Conformité"
-        description="La file d’instruction des dossiers de connaissance client. Un dossier s’ouvre dans un panneau, sans quitter la file."
+        description="File d’instruction KYC/KYB. Segments du parcours dossier — compteurs vides tant qu’aucune source n’est branchée."
       />
 
-      {/* Le parcours d'un dossier, lisible même sans données. */}
-      <Card as="nav" className="px-2 py-2">
-        <ul className="flex flex-wrap gap-1">
-          {SEGMENTS.map((s) => (
-            <li key={s.cle}>
-              <span
-                title={s.aide}
-                aria-disabled="true"
-                className="inline-flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-400"
-              >
-                {s.libelle}
-                <span className="text-xs text-zinc-400">—</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <AdminSection title="Segments" description="Parcours d’un dossier de connaissance client">
+        <AdminFilterBar
+          ariaLabel="Segments de conformité"
+          items={SEGMENTS.map((s) => ({ id: s.id, label: s.label, title: s.aide }))}
+        />
+      </AdminSection>
 
-      <SourceAttendue
-        quoi="Aucun dossier n’est transmis pour le moment"
-        detail="Le service n’expose pas encore les dossiers de connaissance client. Les segments ci-dessus décrivent le parcours réel d’un dossier ; leurs compteurs resteront vides tant qu’aucune donnée ne sera disponible, plutôt que d’afficher un zéro qui signifierait « rien à traiter »."
+      <AdminSection title="File de travail" description="Dossiers transmis par le backend — vide pour l’instant">
+        <AdminSurface>
+          <AdminTable
+            rows={[]}
+            keyFn={() => ''}
+            empty={
+              <div className="px-6 py-10 text-center">
+                <p className="text-sm font-semibold text-brand-foreground">Aucun dossier transmis</p>
+                <p className="mx-auto mt-2 max-w-xl text-sm text-brand-muted">
+                  Les segments ci-dessus décrivent le parcours réel. Aucun zéro n’est affiché — cela signifierait « rien à traiter ».
+                </p>
+              </div>
+            }
+            columns={COLONNES_DOSSIER.map((header) => ({
+              key: header,
+              header,
+              cell: () => <span className="text-brand-muted">—</span>,
+            }))}
+          />
+        </AdminSurface>
+      </AdminSection>
+
+      <AdminSourceAttendue
+        quoi="Endpoints KYC/KYB en attente"
+        detail="Le détail dossier (UBO, sanctions, PEP, historique) s’ouvrira dans un panneau latéral à l’arrivée de la source."
         requis={[
-          'Une lecture des dossiers en cours, avec leur état, leur ancienneté et leur échéance',
-          'Le détail d’un dossier : bénéficiaires effectifs, pièces reçues, contrôles sanctions et personnes politiquement exposées',
-          'Les gestes de décision — approuver, escalader, rejeter, demander une pièce — avec écriture au journal',
-          'L’assignation à un analyste : ni responsable ni échéance n’existent aujourd’hui dans le modèle de données',
+          'Lecture des dossiers avec état, ancienneté et échéance',
+          'Détail : bénéficiaires effectifs, pièces, contrôles sanctions et PEP',
+          'Actions de décision uniquement si exposées par le backend',
+          'Assignation analyste et journal des décisions',
         ]}
       />
     </div>

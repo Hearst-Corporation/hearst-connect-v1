@@ -1,8 +1,9 @@
 import { BACKEND_ENDPOINTS } from '@/lib/backend/endpoints'
+import { AdminBody, AdminCaption, AdminH1, adminTypography } from '@/components/admin/typography'
+import clsx from 'clsx'
 
 /**
- * En-tête de page admin : titre, contexte, et les endpoints réellement
- * consultés par la page — la provenance est annoncée avant la donnée.
+ * En-tête de page admin : titre H1, contexte, endpoints consultés.
  */
 export function PageHeader({
   title,
@@ -12,20 +13,26 @@ export function PageHeader({
   const endpoints = BACKEND_ENDPOINTS.filter((endpoint) => endpointIds.includes(endpoint.id))
 
   return (
-    <header className="border-b border-white/10 pb-5">
-      <h1 className="text-xl font-semibold text-white">{title}</h1>
-      <p className="mt-1.5 max-w-3xl text-sm text-zinc-400">{description}</p>
+    <header className="border-b border-white/5 pb-6">
+      <AdminH1>{title}</AdminH1>
+      <AdminBody className="mt-2 max-w-3xl">{description}</AdminBody>
       {endpoints.length > 0 ? (
-        <ul className="mt-3 flex flex-wrap gap-2">
+        <ul className="mt-4 flex flex-wrap gap-2">
           {endpoints.map((endpoint) => (
             <li
               key={endpoint.id}
-              className="rounded border border-white/10 bg-cockpit-inset px-2 py-0.5 font-mono text-xs text-zinc-400"
+              className={clsx(
+                'rounded-md border border-white/10 bg-brand-surface-raised px-2.5 py-1',
+                adminTypography.endpoint,
+              )}
             >
               {endpoint.method} {endpoint.path}
             </li>
           ))}
         </ul>
+      ) : null}
+      {endpoints.length > 0 ? (
+        <AdminCaption className="mt-2">Sources consultées par cette page</AdminCaption>
       ) : null}
     </header>
   )

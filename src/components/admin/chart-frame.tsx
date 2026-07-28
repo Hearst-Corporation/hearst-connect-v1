@@ -28,8 +28,8 @@ export type EtatSerie =
   | { readonly type: 'indisponible'; readonly explication: string }
 
 const TON_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
-  vide: 'text-zinc-400',
-  attendue: 'text-zinc-400',
+  vide: 'text-brand-muted',
+  attendue: 'text-brand-muted',
   indisponible: 'text-danger-400',
 }
 

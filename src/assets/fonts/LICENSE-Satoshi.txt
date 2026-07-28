@@ -1,0 +1,5 @@
+Satoshi — Indian Type Foundry / Fontshare
+https://www.fontshare.com/fonts/satoshi
+
+Free for personal and commercial use via Fontshare.
+Vendored as Satoshi-Variable.woff2 for self-hosting in Hearst Connect.
