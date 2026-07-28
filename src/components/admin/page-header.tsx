@@ -11,13 +11,19 @@ import { AdminPageDescription, AdminPageTitle } from '@/components/admin/typogra
 export function PageHeader({
   title,
   description,
+  compact = false,
 }: Readonly<{
   title: string
   description?: string
+  compact?: boolean
 }>) {
   return (
-    <div className="space-y-1.5">
-      <AdminPageTitle>{title}</AdminPageTitle>
+    <div className={compact ? 'space-y-1' : 'space-y-1.5'}>
+      {compact ? (
+        <AdminPageTitle className="text-xl/7 sm:text-2xl/8">{title}</AdminPageTitle>
+      ) : (
+        <AdminPageTitle>{title}</AdminPageTitle>
+      )}
       {description ? <AdminPageDescription className="max-w-3xl text-balance">{description}</AdminPageDescription> : null}
     </div>
   )

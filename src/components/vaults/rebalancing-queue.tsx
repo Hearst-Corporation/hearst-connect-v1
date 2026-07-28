@@ -234,7 +234,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
   if (!isAvailable(rows)) {
     return (
       <AdminSurface className="flex h-full flex-col">
-        <div className="px-5 py-5 sm:px-6">
+        <div className="px-4 py-4 sm:px-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <AdminSurfaceTitle className="text-sm/5">Rebalancing</AdminSurfaceTitle>
             <SourceAvailabilityBadge availability={rows} compact />
@@ -258,7 +258,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
   if (list.length === 0) {
     return (
       <AdminSurface className="flex h-full flex-col">
-        <div className="px-5 py-5 sm:px-6">
+        <div className="px-4 py-4 sm:px-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <AdminSurfaceTitle className="text-sm/5">Rebalancing</AdminSurfaceTitle>
             <span className="text-xs text-zinc-500 dark:text-zinc-400">No pockets</span>
@@ -284,25 +284,25 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
 
   return (
     <AdminSurface className="flex h-full flex-col">
-      <div className="px-5 pt-5 pb-4 sm:px-6">
+      <div className="px-4 pt-4 pb-3 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <AdminSurfaceTitle className="text-sm/5">Rebalancing</AdminSurfaceTitle>
           <SourceAvailabilityBadge availability={rows} compact />
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <div className="rounded-xl bg-zinc-50/70 px-3 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+        <div className="mt-3 grid grid-cols-3 gap-2.5">
+          <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
             <p className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">Status</p>
             <p className={clsx('mt-1 text-sm font-medium', breached.length > 0 ? 'text-warning-400' : 'text-zinc-950 dark:text-white')}>
               {summary}
             </p>
           </div>
-          <div className="rounded-xl bg-zinc-50/70 px-3 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+          <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
             <p className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">Readable</p>
             <p className="mt-1 text-sm font-medium tabular-nums text-zinc-950 dark:text-white">
               {formatNumber(readable.length)}/{formatNumber(list.length)}
             </p>
           </div>
-          <div className="rounded-xl bg-zinc-50/70 px-3 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+          <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
             <p className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">Threshold</p>
             <p className="mt-1 text-sm font-medium tabular-nums text-zinc-950 dark:text-white">±{THRESHOLD_POINTS} pt</p>
           </div>

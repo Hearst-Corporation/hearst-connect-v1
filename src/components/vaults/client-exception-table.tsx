@@ -218,7 +218,7 @@ export function ClientExceptionTable({
 }: Readonly<{ exceptions: Availability<readonly ClientException[]> }>) {
   if (!isAvailable(exceptions)) {
     return (
-      <AdminSurface className="flex h-full flex-col p-6">
+      <AdminSurface className="flex h-full flex-col p-4">
         <Heading exceptions={exceptions} />
         <AdminBody className="mt-2 max-w-prose">{absenceSentence(exceptions)}</AdminBody>
         {/*
@@ -240,7 +240,7 @@ export function ClientExceptionTable({
     // Only reachable once a client directory exists. Until then the branch
     // above runs, and this sentence is never printed over an absent source.
     return (
-      <AdminSurface className="flex h-full flex-col p-6">
+      <AdminSurface className="flex h-full flex-col p-4">
         <Heading exceptions={exceptions} />
         <AdminBody className="mt-2 max-w-prose">
           No client exceptions detected. The service enumerated its clients and none of them is in an
@@ -252,7 +252,7 @@ export function ClientExceptionTable({
 
   return (
     <AdminSurface className="h-full">
-      <div className="px-5 pt-5 pb-3 sm:px-6">
+      <div className="px-4 pt-4 pb-3 sm:px-5">
         <Heading exceptions={exceptions} />
       </div>
       <AdminTable

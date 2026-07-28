@@ -49,7 +49,7 @@ type Measured = Readonly<{ vault: Vault; atomic: bigint }>
  */
 function ValueBar({ percent }: Readonly<{ percent: number | null }>) {
   return (
-    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-console-inset">
+    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-console-inset">
       {percent === null ? null : (
         <div
           className="h-full rounded-full bg-accent-500 dark:bg-accent-400"
@@ -132,7 +132,7 @@ export function VaultValueBreakdown({ vaults }: Readonly<{ vaults: Availability<
 
   return (
     <AdminSurface className="flex h-full flex-col">
-      <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-5 pb-4 sm:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 pb-3 sm:px-5">
         <div>
           <AdminSurfaceTitle className="text-sm/5">Value by vault</AdminSurfaceTitle>
         </div>
@@ -156,7 +156,7 @@ export function VaultValueBreakdown({ vaults }: Readonly<{ vaults: Availability<
               than wrapping its contents; badges sit under that anchor and
               stay part of the click target.
             */
-            <li key={vault.id} className="relative px-5 py-3.5 hover:bg-zinc-950/3 sm:px-6 dark:hover:bg-white/3">
+            <li key={vault.id} className="relative px-4 py-2.5 hover:bg-zinc-950/3 sm:px-5 dark:hover:bg-white/3">
               <Link
                 href={entityHref('vault', vault.id)}
                 className="absolute inset-0 rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-400"
@@ -185,7 +185,7 @@ export function VaultValueBreakdown({ vaults }: Readonly<{ vaults: Availability<
       </ul>
 
       {unmeasured.length > 0 ? (
-        <div className="space-y-2 px-5 pt-4 pb-5 sm:px-6">
+        <div className="space-y-2 px-4 pt-3 pb-4 sm:px-5">
           <AdminCaption>Excluded from total: {formatNumber(unmeasured.length)} unread vaults.</AdminCaption>
           <ul className="space-y-1.5">
             {unmeasured.map((vault) => (

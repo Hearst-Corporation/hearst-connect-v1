@@ -15,13 +15,10 @@ import { DeploymentQueue } from '@/components/vaults/deployment-queue'
 import { MovementLedger } from '@/components/vaults/movement-ledger'
 import { RebalancingQueue } from '@/components/vaults/rebalancing-queue'
 import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
-import { entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultValueBreakdown } from '@/components/vaults/vault-value-breakdown'
 import { requireSession } from '@/lib/auth'
-import { formatCurrency, formatNumber, formatRelativeTime } from '@/lib/format'
-import { sectionContentGap } from '@/lib/layout-tokens'
+import { formatCurrency, formatNumber } from '@/lib/format'
 import { libelleMouvement } from '@/lib/mouvements'
-import type { ResolvedStatus } from '@/lib/resolved'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import {
   available,
@@ -30,15 +27,12 @@ import {
   idleAtomic,
   isAvailable,
   mapAvailability,
-  requiresRebalancing,
   unavailable,
   type Availability,
   type Movement,
-  type SourceHealth,
   type Vault,
 } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import clsx from 'clsx'
 
 /**
@@ -54,11 +48,10 @@ import clsx from 'clsx'
  * what has drifted.
  *
  * So the page is now the operating model in one screen, read top to bottom:
- *   1. the eight figures that describe the estate;
+ *   1. the four headline figures that describe the estate;
  *   2. the vaults themselves, and where their value sits;
  *   3. what is queued — allocation drift, then deployments;
- *   4. what is blocked — client exceptions — beside what actually happened;
- *   5. which services answered, at the foot of the page.
+ *   4. what is blocked — client exceptions — beside what actually happened.
  *
  * Allocation is deliberately shown ONCE, in the rebalancing queue. The old
  * page plotted it three times (target-vs-actual bars, a drift chart, a pockets
@@ -153,27 +146,6 @@ function asMoney(
   )
 }
 
-/**
- * How many vaults sit at or beyond the console's rebalancing threshold.
- *
- * One vault whose drift could not be read makes the whole count unknowable:
- * "two vaults need rebalancing" would quietly mean "two that we could see",
- * which is a different sentence.
- */
-function countRequiringRebalancing(vaults: Availability<readonly Vault[]>): Availability<number> {
-  if (!isAvailable(vaults)) return vaults
-  if (vaults.value.length === 0) {
-    return unavailable({ endpoint: '/api/v1/vault', status: 'EMPTY', reason: 'no_vault_allocation_readable' })
-  }
-  let count = 0
-  for (const vault of vaults.value) {
-    const breached = requiresRebalancing(vault)
-    if (!isAvailable(breached)) return breached
-    if (breached.value) count += 1
-  }
-  return available(count, { provenance: vaults.provenance, asOf: vaults.asOf, stale: vaults.stale })
-}
-
 /* ── The KPI strip ────────────────────────────────────────────────────────── */
 
 type OverviewKpi = Readonly<{
@@ -193,11 +165,11 @@ type OverviewKpi = Readonly<{
  */
 function KpiTile({ kpi }: Readonly<{ kpi: OverviewKpi }>) {
   return (
-    <div className="flex h-full min-w-0 flex-col rounded-2xl bg-white/95 px-3 py-2 ring-1 ring-zinc-950/8 dark:bg-white/3 dark:ring-white/6">
+    <div className="flex h-full min-w-0 flex-col rounded-xl bg-white/95 px-3 py-1.5 ring-1 ring-zinc-950/8 dark:bg-white/3 dark:ring-white/6">
       <AdminLabel>{kpi.label}</AdminLabel>
-      <p className="mt-1.5 flex min-h-7 items-center">
+      <p className="mt-1 flex min-h-6 items-center">
         {isAvailable(kpi.value) ? (
-          <span className={clsx(adminTypography.numericStandard, 'text-[1.125rem]/6 wrap-break-word')}>{kpi.value.value}</span>
+          <span className={clsx(adminTypography.numericStandard, 'text-[1rem]/6 wrap-break-word')}>{kpi.value.value}</span>
         ) : (
           <SourceAvailabilityBadge availability={kpi.value} compact />
         )}
@@ -206,100 +178,13 @@ function KpiTile({ kpi }: Readonly<{ kpi: OverviewKpi }>) {
   )
 }
 
-/* ── Source health ────────────────────────────────────────────────────────── */
-
-/**
- * How a source answered, in words.
- *
- * Written out exhaustively rather than defaulted: an unmapped status silently
- * rendering "Unknown" would be this file inventing a description of a state
- * the service actually named.
- */
-const SOURCE_STATE: Record<ResolvedStatus | 'NOT_EXPOSED', string> = {
-  LIVE: 'Answering',
-  STALE: 'Answering · stale',
-  PARTIAL: 'Answering in part',
-  EMPTY: 'Answered with no value',
-  NOT_CONFIGURED: 'Not configured',
-  UNAVAILABLE: 'Not answering',
-  NOT_SUPPORTED: 'Not supported',
-  PERMISSION_DENIED: 'Permission denied',
-  SIMULATED: 'Simulated',
-  ERROR: 'Error',
-  NOT_EXPOSED: 'Not exposed',
-}
-
-/**
- * The service strip that closes the page.
- *
- * No colour beyond the accent dot on a source that answered. An endpoint that
- * does not exist is not an incident — painting the estate's normal state red
- * would teach the reader to ignore red on the day something genuinely fails.
- *
- * The `detail` a source carries is the service's OWN machine reason. It is
- * printed verbatim, in mono, rather than paraphrased: inventing a friendly
- * sentence for a code this console has never seen would be putting words in
- * the service's mouth.
- */
-function SourceStrip({ sources }: Readonly<{ sources: readonly SourceHealth[] }>) {
-  return (
-    <AdminSurface className="h-full">
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 pt-5 sm:px-6">
-        <AdminSurfaceTitle>Sources</AdminSurfaceTitle>
-        <Link
-          href={entityHref('source', 'overview')}
-          className="text-xs text-accent-600 underline-offset-4 hover:underline dark:text-accent-400"
-        >
-          Data coverage
-        </Link>
-      </div>
-      {sources.length === 0 ? (
-        <div className="px-5 pt-3 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">No source reported.</div>
-      ) : (
-        <div className="grid gap-3 px-5 pt-3 pb-5 sm:grid-cols-2 sm:px-6">
-          {sources.map((source) => (
-            <div
-              key={source.endpointId}
-              className="min-w-0 rounded-2xl bg-zinc-50/70 px-3 py-2.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5"
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className={clsx(
-                    'size-1.5 shrink-0 rounded-full',
-                    source.status === 'LIVE'
-                      ? 'bg-accent-600 dark:bg-accent-400'
-                      : 'ring-1 ring-zinc-400 dark:ring-zinc-500',
-                  )}
-                />
-                <span className="min-w-0 flex-1 truncate text-sm text-zinc-700 dark:text-zinc-300">
-                  {source.label}
-                </span>
-                <span className="shrink-0 text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
-                  {SOURCE_STATE[source.status]}
-                </span>
-              </div>
-              {source.detail === null && source.asOf === null ? null : (
-                <p className="mt-1 truncate text-[0.6875rem]/4 text-zinc-500 dark:text-zinc-500">
-                  {source.detail === null ? null : <span className="font-mono">{source.detail}</span>}
-                  {source.detail !== null && source.asOf !== null ? ' · ' : null}
-                  {source.asOf === null ? null : formatRelativeTime(source.asOf)}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </AdminSurface>
-  )
-}
-
 function movementTypeBars(movements: Availability<readonly { eventName: string }[]>): readonly DashboardBarPoint[] {
   if (!isAvailable(movements)) return []
   const counts = new Map<string, number>()
   for (const movement of movements.value) {
     const label = libelleMouvement(movement.eventName)
-    counts.set(label, (counts.get(label) ?? 0) + 1)
+    const previous = counts.get(label)
+    counts.set(label, (previous === undefined ? 0 : previous) + 1)
   }
   return [...counts.entries()]
     .map(([label, value]) => ({ label, value }))
@@ -425,25 +310,25 @@ export default async function Page() {
     { id: 'sources', label: 'Live sources', value: liveSources },
   ]
   return (
-    <AdminPage>
-      <PageHeader title="Home" />
+    <AdminPage className="space-y-5">
+      <PageHeader title="Home" compact />
 
-      <div className={sectionContentGap}>
-        <AdminMetricGrid count={kpis.length}>
+      <div className="space-y-5">
+        <AdminMetricGrid count={kpis.length} className="gap-3">
           {kpis.map((kpi) => (
             <KpiTile key={kpi.id} kpi={kpi} />
           ))}
         </AdminMetricGrid>
 
-        <AdminGrid className="items-stretch">
+        <AdminGrid className="items-stretch gap-4">
           <AdminCol span={7}>
             <AdminSurface className="h-full">
-              <div className="flex flex-wrap items-start justify-between gap-4 px-5 pt-5 sm:px-6">
+              <div className="flex flex-wrap items-start justify-between gap-4 px-4 pt-4 sm:px-5">
                 <div className="min-w-0">
                   <AdminLabel>Estate value</AdminLabel>
-                  <div className="mt-2 flex min-h-12 items-center">
+                  <div className="mt-1.5 flex min-h-10 items-center">
                     {isAvailable(totalValueLocked) ? (
-                      <span className={clsx(adminTypography.numericHero, 'text-[1.6rem]/7 sm:text-[2.2rem]/8')}>
+                      <span className={clsx(adminTypography.numericHero, 'text-[1.25rem]/6 sm:text-[1.5rem]/7')}>
                         {totalValueLocked.value}
                       </span>
                     ) : (
@@ -453,8 +338,8 @@ export default async function Page() {
                 </div>
                 <SourceAvailabilityBadge availability={registry.movements} compact />
               </div>
-              <div className="px-5 pt-4 pb-5 sm:px-6">
-                <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="px-4 pt-3 pb-4 sm:px-5">
+                <div className="mb-2 flex items-center justify-between gap-3">
                   <AdminSurfaceTitle className="text-sm/5">Recent activity</AdminSurfaceTitle>
                   <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
                     {isAvailable(recentMovements) ? recentMovements.value : 'Unavailable'}
@@ -467,10 +352,10 @@ export default async function Page() {
 
           <AdminCol span={5}>
             <AdminSurface className="h-full">
-              <div className="px-5 pt-5 sm:px-6">
+              <div className="px-4 pt-4 sm:px-5">
                 <AdminSurfaceTitle className="text-sm/5">Capital</AdminSurfaceTitle>
               </div>
-              <div className="grid gap-4 px-5 pt-4 pb-5 sm:grid-cols-2 sm:px-6">
+              <div className="grid h-full grid-cols-1 items-center gap-3 px-4 pt-3 pb-4 sm:grid-cols-2 sm:px-5">
                 <DashboardCapitalDonut
                   deployedBps={isAvailable(deploymentRatioRaw) ? deploymentRatioRaw.value : null}
                   deployedLabel={isAvailable(deployedCapital) ? deployedCapital.value : null}
@@ -487,14 +372,14 @@ export default async function Page() {
           </AdminCol>
         </AdminGrid>
 
-        <AdminGrid className="items-stretch">
+        <AdminGrid className="items-stretch gap-4">
           <AdminCol span={6}>
             <AdminSurface className="h-full">
-              <div className="flex items-center justify-between gap-3 px-5 pt-5 sm:px-6">
+              <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
                 <AdminSurfaceTitle className="text-sm/5">Movement types</AdminSurfaceTitle>
                 <SourceAvailabilityBadge availability={registry.movements} compact />
               </div>
-              <div className="px-5 pt-4 pb-5 sm:px-6">
+              <div className="px-4 pt-2 pb-4 sm:px-5">
                 <DashboardBarChart bars={movementVisual} availability={registry.movements} />
               </div>
             </AdminSurface>
@@ -505,7 +390,7 @@ export default async function Page() {
           </AdminCol>
         </AdminGrid>
 
-        <AdminGrid className="items-stretch">
+        <AdminGrid className="items-stretch gap-4">
           <AdminCol span={6}>
             <ClientExceptionTable exceptions={registry.clientExceptions} />
           </AdminCol>

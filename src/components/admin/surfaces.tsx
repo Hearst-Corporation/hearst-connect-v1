@@ -245,7 +245,7 @@ export function AdminEmptyState({
   children,
 }: Readonly<{ title: string; description?: string; children?: React.ReactNode }>) {
   return (
-    <div className="px-5 py-6 sm:px-6">
+    <div className="px-4 py-5 sm:px-5">
       <AdminSurfaceTitle as="p">{title}</AdminSurfaceTitle>
       {description ? <AdminBody className="mt-1.5 max-w-prose">{description}</AdminBody> : null}
       {children}
