@@ -1,4 +1,12 @@
 import { RequirementList, surfaceRaised } from '@/components/admin/surface'
+import {
+  Table as CatalystTable,
+  TableBody as CatalystTableBody,
+  TableCell as CatalystTableCell,
+  TableHead as CatalystTableHead,
+  TableHeader as CatalystTableHeader,
+  TableRow as CatalystTableRow,
+} from '@/components/catalyst/table'
 import { sectionContentGap } from '@/lib/layout-tokens'
 import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, AdminSurfaceTitle, adminTypography } from '@/components/admin/typography'
 import {
@@ -32,7 +40,14 @@ export function AdminSurface({
   padding?: boolean
 }>) {
   return (
-    <Tag className={clsx(className, surfaceRaised, padding && 'p-6')}>
+    <Tag
+      className={clsx(
+        className,
+        surfaceRaised,
+        'overflow-hidden transition-[box-shadow,background-color,border-color] duration-200',
+        padding && 'p-6',
+      )}
+    >
       {children}
     </Tag>
   )
@@ -123,7 +138,7 @@ export function AdminMetric({
       <AdminLabel>{label}</AdminLabel>
       <p className="mt-1.5 flex items-baseline gap-2">
         {displayable ? (
-          <span className={clsx(adminTypography.numericStandard, 'break-words')}>
+          <span className={clsx(adminTypography.numericStandard, 'wrap-break-word')}>
             {typeof value === 'number' ? formatNumber(value) : value}
             {unit ? <span className="ml-1 text-sm/6 font-medium text-zinc-500 dark:text-zinc-400">{unit}</span> : null}
           </span>
@@ -170,33 +185,35 @@ export function AdminTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-950/10 dark:border-console-line text-xs text-zinc-500 dark:text-zinc-400">
-            {columns.map((col) => (
-              <th key={col.key} scope="col" className={clsx(col.className, 'px-4 py-3 font-medium')}>
-                {col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-          {rows.map((row) => (
-            <tr key={keyFn(row)} className="hover:bg-white/[0.03]">
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  className={clsx(col.className, 'px-4 py-3', col.mono && 'font-mono text-xs text-zinc-500 dark:text-zinc-400')}
-                >
-                  {col.cell(row)}
-                </td>
-              ))}
-            </tr>
+    <CatalystTable
+      dense
+      grid
+      className="[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-word"
+    >
+      <CatalystTableHead>
+        <CatalystTableRow>
+          {columns.map((col) => (
+            <CatalystTableHeader key={col.key} scope="col" className={clsx(col.className, 'font-medium')}>
+              {col.header}
+            </CatalystTableHeader>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </CatalystTableRow>
+      </CatalystTableHead>
+      <CatalystTableBody>
+        {rows.map((row) => (
+          <CatalystTableRow key={keyFn(row)}>
+            {columns.map((col) => (
+              <CatalystTableCell
+                key={col.key}
+                className={clsx(col.className, col.mono && 'font-mono text-xs text-zinc-500 dark:text-zinc-400')}
+              >
+                {col.cell(row)}
+              </CatalystTableCell>
+            ))}
+          </CatalystTableRow>
+        ))}
+      </CatalystTableBody>
+    </CatalystTable>
   )
 }
 

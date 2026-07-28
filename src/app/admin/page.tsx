@@ -1,707 +1,523 @@
-import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
-import { CapacityBar } from '@/components/admin/capacity-bar'
-import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { AccueilAlertes, type AlerteBackend } from '@/components/admin/charts/accueil-alertes'
-import {
-  AccueilDeriveChart,
-  SEUIL_DERIVE_ATTENTION_BPS,
-  SEUIL_DERIVE_CRITIQUE_BPS,
-  type PocheDerive,
-} from '@/components/admin/charts/accueil-derive-chart'
-import type { VerdictAccueil } from '@/components/admin/charts/accueil-vue-ensemble'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
-import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
-import { AdminLabel, AdminPage } from '@/components/admin/typography'
-import { Card, CardHeader, ExceptionBanner, CalmState, HeroFigure } from '@/components/admin/cockpit'
-import { DistributionBarChart, type BarreRepartition } from '@/components/admin/distribution-chart'
 import { PageHeader } from '@/components/admin/page-header'
-import { PocketProgress, PocketProgressLegend } from '@/components/admin/pocket-progress'
-import { callBackend } from '@/lib/backend/client'
-import { formatNumber, formatPercent } from '@/lib/format'
+import {
+  DashboardBarChart,
+  DashboardCapitalDonut,
+  DashboardProgressRadial,
+  DashboardTrendChart,
+  type DashboardBarPoint,
+  type DashboardTrendPoint,
+} from '@/components/admin/dashboard-visuals'
+import { AdminSurface } from '@/components/admin/surfaces'
+import { AdminLabel, AdminPage, AdminSurfaceTitle, adminTypography } from '@/components/admin/typography'
+import { ClientExceptionTable } from '@/components/vaults/client-exception-table'
+import { DeploymentQueue } from '@/components/vaults/deployment-queue'
+import { MovementLedger } from '@/components/vaults/movement-ledger'
+import { RebalancingQueue } from '@/components/vaults/rebalancing-queue'
+import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import { entityHref } from '@/components/vaults/vault-entity-link'
+import { VaultValueBreakdown } from '@/components/vaults/vault-value-breakdown'
+import { requireSession } from '@/lib/auth'
+import { formatCurrency, formatNumber, formatRelativeTime } from '@/lib/format'
 import { sectionContentGap } from '@/lib/layout-tokens'
-import { ilYA, libelleMouvement, montantUsdc, phraseMouvement } from '@/lib/mouvements'
-import { etatSerieDe } from '@/lib/serie-etat'
+import { libelleMouvement } from '@/lib/mouvements'
+import type { ResolvedStatus } from '@/lib/resolved'
+import { loadAdminRegistry } from '@/lib/vaults/registry'
+import {
+  available,
+  combine,
+  deployedAtomic,
+  idleAtomic,
+  isAvailable,
+  mapAvailability,
+  requiresRebalancing,
+  unavailable,
+  type Availability,
+  type Movement,
+  type SourceHealth,
+  type Vault,
+} from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import clsx from 'clsx'
 
 /**
- * Home — the command post.
+ * Administration overview — the control surface of the console.
  *
- * The screen answers a single question, in this order: "is anything wrong?",
- * then "where do we stand?", then "what happened?".
+ * ── What this page is, and what it stopped being ──────────────────────────
+ * It used to be an investor-facing portfolio report: a hero figure for
+ * portfolio assets, an allocation chart, a pockets list, subscription and
+ * minimum-ticket tiles, a shortcut row. That is a description of ONE product
+ * to the person who bought it. An administrator does not open the console to
+ * read the product's performance; they open it to find out what needs a
+ * decision — which vaults exist, which clients are stuck, what is queued, and
+ * what has drifted.
  *
- * Composition, on the 12-column application grid:
- *   1. exceptions and ALERTS first — the service emits them, they cannot
- *      stay below the fold;
- *   2. the overview — the primary metric (portfolio assets, and the share of
- *      the cap they consume) on six columns, the three operational verdicts
- *      on the other six, then the supporting measures as balanced tiles;
- *   3. allocation — where the money sits against target on eight columns,
- *      which pocket has drifted on the remaining four, then the pocket list;
- *   4. recent activity — the shape of the feed beside the feed itself.
+ * So the page is now the operating model in one screen, read top to bottom:
+ *   1. the eight figures that describe the estate;
+ *   2. the vaults themselves, and where their value sits;
+ *   3. what is queued — allocation drift, then deployments;
+ *   4. what is blocked — client exceptions — beside what actually happened;
+ *   5. which services answered, at the foot of the page.
  *
- * What the visual review changed here, and why:
+ * Allocation is deliberately shown ONCE, in the rebalancing queue. The old
+ * page plotted it three times (target-vs-actual bars, a drift chart, a pockets
+ * list) and none of the three was a decision. The vault detail page owns the
+ * pocket-by-pocket reading.
  *
- * — The supporting measures were a single slab of hairline-gutter cells.
- *   Eight cells sharing one background read as a spreadsheet, not as eight
- *   measures. They are tiles in `AdminMetricGrid` now, and the real child
- *   count is passed so the last row is never left half empty.
- *
- * — The overview was one full-width surface nesting a hero, a cap bar and
- *   three verdicts in internal grids — a card holding cards. It is now two
- *   declared columns of the page grid: nothing stretches to "whatever is
- *   left", and no surface sits inside another surface.
- *
- * — Recent activity was a 2/3 split in which the chart card stretched to the
- *   movement list's height and left a large empty region under the bars. The
- *   row is balanced (6/6) and aligned to the top, so each card ends where its
- *   content ends.
- *
- * — The four shortcut links that closed the page are gone. The sidebar now
- *   carries five destinations and Administration owns the secondary ones;
- *   four more links at the bottom of Home was a second navigation competing
- *   with the first.
- *
- * — Charts go through `ChartFrame`. A frame that declares the unit, the
- *   source and the STATE of the series beats a mute figure: when the source
- *   is missing, the frame stays in place and says why, instead of
- *   disappearing or plotting a zero.
- *
- * The reading thresholds (drift, electricity coverage) are conventions of
- * this console: the contract exposes no tolerance. They are announced as
- * such on screen, never presented as a product rule.
+ * ── Why so much of it reads "Unavailable" ─────────────────────────────────
+ * The service exposes one vault, its strategies and its ledger. There is no
+ * client directory, no deployment ledger and no compliance endpoint — those
+ * routes answer 404, and `rebalancing/status` answers with its own reason.
+ * Every figure here is therefore an `Availability`: a reading, or a named
+ * absence carrying the route that would answer it. There is no third state,
+ * and in particular a count nobody can make is never rendered as zero.
  */
 
-// Next.js does not apply a layout's title.template to a page sharing the
-// same route segment as that layout (only to nested descendants) — so the
-// admin index route composes the title explicitly rather than relying on
-// admin/layout.tsx's template.
-export const metadata: Metadata = { title: { absolute: 'Home · Hearst Connect Administration' } }
+// Next.js does not apply a layout's title.template to a page sharing the same
+// route segment as that layout (only to nested descendants) — so the admin
+// index composes its title explicitly rather than relying on admin/layout.tsx.
+export const metadata: Metadata = { title: { absolute: 'Administration overview · Hearst Connect' } }
 export const dynamic = 'force-dynamic'
 
-type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+/** The overview reads a short ledger window; the operations log owns the long one. */
+const MOVEMENT_WINDOW = 12
+const MOVEMENT_ROWS = 8
 
-type Pocket = {
-  readonly pocket: string
-  readonly label?: string | null
-  readonly targetBps: number
-  readonly actualBps: number | null
-  readonly driftBps?: number | null
-}
+const ZERO = BigInt(0)
+const BPS = BigInt(10000)
 
-type Dashboard = {
-  readonly capacity?: Resolved<{
-    tvlCap: string
-    totalAssets: string
-    availableCapacity: string
-    utilizationBps: number | null
-  }>
-  readonly performance?: Resolved<{ navPerShare: string | null; totalReturnBps: number | null }>
-  readonly strategies?: Resolved<readonly Pocket[]>
-  readonly allocation?: Resolved<{ pockets: readonly Pocket[]; targetTotalBps?: number | null }>
-  readonly alerts?: Resolved<readonly AlerteBackend[]>
-  readonly rebalancing?: Resolved<{
-    lastRebalanceAt: string | null
-    driftBps: number | null
-    pending: unknown
-  }>
-  readonly reserve?: Resolved<{
-    reserveUsdc: string | null
-    reserveBps: number | null
-    electricityCoveredMonths: number | null
-  }>
-  readonly subscription?: Resolved<{
-    subscriptionOpen: boolean | null
-    minimumDepositAtomic: string | null
-    whitelistRequired: boolean | null
-  }>
-}
-
-type Movement = {
-  readonly id: string
-  readonly eventName: string
-  readonly assetAmountAtomic: string | null
-  readonly occurredAt: string | null
-}
-
-type EventsResponse = { readonly events?: Resolved<readonly Movement[]> }
-
-/* ── Formatting ──────────────────────────────────────────────────────────── */
-
-/** A drift is expressed in POINTS, with its sign: "+2.15 pt" is deliberate. */
-function formatDriftPoints(bps: number | null | undefined): string {
-  if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
-  const value = bps / 100
-  const sign = value > 0 ? '+' : ''
-  return `${sign}${formatNumber(value, { maximumFractionDigits: 2 })} pt`
-}
-
-/* ── Pockets ─────────────────────────────────────────────────────────────── */
+/* ── Totals across the estate ─────────────────────────────────────────────── */
 
 /**
- * `allocation.pockets` carries the label and the drift already computed by
- * the service; `strategies` carries only target and actual. We read the
- * former when it answers, and fall back to the latter without inventing
- * anything.
+ * The denomination every money figure on the strip is expressed in.
+ *
+ * Atomic units cannot be turned into money without knowing their decimals: the
+ * same integer is $1.18M at six decimals and $1.18 at twelve. And a total
+ * across vaults only means something if they share one denomination — adding
+ * USDC to a different asset would produce a number in no currency at all.
  */
-function readPockets(d: Dashboard | null): readonly Pocket[] {
-  const fromAllocation = d?.allocation?.value?.pockets
-  if (fromAllocation !== undefined && fromAllocation !== null && fromAllocation.length > 0) return fromAllocation
-  const fromStrategies = d?.strategies?.value
-  if (fromStrategies !== undefined && fromStrategies !== null) return fromStrategies
-  return []
-}
-
-function pocketLabel(p: Pocket): string {
-  return typeof p.label === 'string' && p.label !== '' ? p.label : p.pocket
-}
-
-function allocationBars(pockets: readonly Pocket[]): PocheAllocation[] {
-  return pockets.map((p) => ({
-    poche: p.pocket,
-    cible: p.targetBps / 100,
-    reel: p.actualBps === null ? null : p.actualBps / 100,
-  }))
-}
-
-/**
- * Drift comes from the service when it provides it. Otherwise, it's derived
- * from the actual/target pair — a subtraction, not an invention. A pocket
- * whose actual value isn't readable is EXCLUDED: a zero drift would read as
- * "aligned".
- */
-function driftBars(pockets: readonly Pocket[]): PocheDerive[] {
-  const read: PocheDerive[] = []
-  for (const p of pockets) {
-    const provided = p.driftBps
-    if (typeof provided === 'number' && Number.isFinite(provided)) {
-      read.push({ poche: p.pocket, libelle: pocketLabel(p), deriveBps: provided })
+function denomination(vaults: Availability<readonly Vault[]>): Availability<{ symbol: string; decimals: number }> {
+  if (!isAvailable(vaults)) return vaults
+  let found: { symbol: string; decimals: number } | null = null
+  for (const vault of vaults.value) {
+    if (!isAvailable(vault.asset)) return vault.asset
+    if (found === null) {
+      found = vault.asset.value
       continue
     }
-    if (p.actualBps !== null && Number.isFinite(p.actualBps)) {
-      read.push({ poche: p.pocket, libelle: pocketLabel(p), deriveBps: p.actualBps - p.targetBps })
+    if (found.symbol !== vault.asset.value.symbol || found.decimals !== vault.asset.value.decimals) {
+      return unavailable({ status: 'PARTIAL', reason: 'vaults_use_different_denominations' })
     }
   }
-  return read
-}
-
-/* ── Verdicts ────────────────────────────────────────────────────────────── */
-
-function driftVerdict(
-  rebalancing: Dashboard['rebalancing'],
-  worstPocketBps: number | null,
-): VerdictAccueil {
-  const block = rebalancing?.value
-  const overall = block?.driftBps
-  const measure = typeof overall === 'number' && Number.isFinite(overall) ? overall : worstPocketBps
-  const last = block?.lastRebalanceAt
-  const detail =
-    typeof last === 'string' && last !== ''
-      ? `Last rebalance ${ilYA(last)}`
-      : 'No rebalance timestamped yet'
-
-  if (measure === null || !Number.isFinite(measure)) {
-    return {
-      id: 'drift',
-      libelle: 'Allocation drift',
-      valeur: '—',
-      mot: 'Not measured',
-      ton: 'neutre',
-      detail: 'The service does not return a rebalancing gap',
-    }
-  }
-
-  const magnitude = Math.abs(measure)
-  let mot = 'Aligned'
-  let ton: VerdictAccueil['ton'] = 'sain'
-  if (magnitude >= SEUIL_DERIVE_CRITIQUE_BPS) {
-    mot = 'Action required'
-    ton = 'critique'
-  } else if (magnitude >= SEUIL_DERIVE_ATTENTION_BPS) {
-    mot = 'Watch closely'
-    ton = 'attention'
-  }
-
-  return { id: 'drift', libelle: 'Allocation drift', valeur: formatDriftPoints(measure), mot, ton, detail }
+  if (found === null) return unavailable({ endpoint: '/api/v1/vault', status: 'EMPTY', reason: 'no_vault_to_total' })
+  return available(found, { provenance: 'chain', asOf: vaults.asOf })
 }
 
 /**
- * The reserve covers the farm's electricity for N months. It's the
- * operational survival measure of the product: below six months, the
- * subject is no longer financial, it's industrial. The threshold is a
- * convention of this console, announced in the displayed detail.
- */
-const ELECTRICITY_COMFORTABLE_MONTHS = 12
-const ELECTRICITY_CRITICAL_MONTHS = 6
-
-function electricityVerdict(reserve: Dashboard['reserve']): VerdictAccueil {
-  const months = reserve?.value?.electricityCoveredMonths
-  if (typeof months !== 'number' || !Number.isFinite(months)) {
-    return {
-      id: 'electricity',
-      libelle: 'Electricity covered',
-      valeur: '—',
-      mot: 'Not measured',
-      ton: 'neutre',
-      detail: 'The service does not return coverage',
-    }
-  }
-
-  let mot = 'Comfortable coverage'
-  let ton: VerdictAccueil['ton'] = 'sain'
-  if (months < ELECTRICITY_CRITICAL_MONTHS) {
-    mot = 'Action required'
-    ton = 'critique'
-  } else if (months < ELECTRICITY_COMFORTABLE_MONTHS) {
-    mot = 'Watch closely'
-    ton = 'attention'
-  }
-
-  return {
-    id: 'electricity',
-    libelle: 'Electricity covered',
-    valeur: `${formatNumber(months)} months`,
-    mot,
-    ton,
-    detail: `Reserve ${montantUsdc(reserve?.value?.reserveUsdc, 0)} · reading threshold ${ELECTRICITY_COMFORTABLE_MONTHS} months`,
-  }
-}
-
-function serviceVerdict(unavailable: boolean, lastMovement: Movement | undefined): VerdictAccueil {
-  if (unavailable) {
-    return {
-      id: 'service',
-      libelle: 'Service availability',
-      valeur: 'Unavailable',
-      mot: 'Action required',
-      ton: 'critique',
-      detail: 'The availability probe is not responding',
-    }
-  }
-  const timestamp = lastMovement?.occurredAt
-  return {
-    id: 'service',
-    libelle: 'Service availability',
-    valeur: 'Operational',
-    mot: 'Nothing to report',
-    ton: 'sain',
-    detail:
-      typeof timestamp === 'string' && timestamp !== ''
-        ? `Last movement indexed ${ilYA(timestamp)}`
-        : 'No movement indexed recently',
-  }
-}
-
-/**
- * A verdict's tone colors the WORD, never replaces it.
+ * Sums one atomic reading over every vault, or reports why the total cannot be
+ * stated.
  *
- * These are the only semantic colors on this page, and they are spent on the
- * one thing that genuinely carries a state: an operational verdict. Ordinary
- * measures and ordinary series stay mint and neutral — if "watch closely"
- * amber were also the color of a routine pocket, it would stop meaning
- * anything the day a pocket really slips.
+ * A single unreadable vault makes the TOTAL unreadable. Summing the others
+ * would publish a figure that is smaller than the truth and looks exactly like
+ * a complete one — the most expensive kind of wrong number, because nothing on
+ * screen would betray it.
+ *
+ * An empty register is an absence too: a sum over nothing is arithmetically
+ * zero but is not a measurement of anything.
  */
-const VERDICT_TONE: Record<VerdictAccueil['ton'], string> = {
-  neutre: 'text-zinc-500 dark:text-zinc-400',
-  sain: 'text-success-600 dark:text-success-400',
-  attention: 'text-warning-600 dark:text-warning-400',
-  critique: 'text-danger-600 dark:text-danger-400',
+function sumAcrossVaults(
+  vaults: Availability<readonly Vault[]>,
+  read: (vault: Vault) => Availability<bigint>,
+): Availability<bigint> {
+  if (!isAvailable(vaults)) return vaults
+  if (vaults.value.length === 0) {
+    return unavailable({ endpoint: '/api/v1/vault', status: 'EMPTY', reason: 'no_vault_to_total' })
+  }
+  let total = ZERO
+  for (const vault of vaults.value) {
+    const part = read(vault)
+    if (!isAvailable(part)) return part
+    total += part.value
+  }
+  return available(total, { provenance: vaults.provenance, asOf: vaults.asOf, stale: vaults.stale })
 }
 
-function VerdictRow({ verdict }: Readonly<{ verdict: VerdictAccueil }>) {
-  return (
-    // Deliberately `flex-nowrap`: allowed to wrap, the value and its word
-    // dropped onto a second line and landed under the detail instead of
-    // beside the label — the row stopped reading as "subject / answer". The
-    // detail truncates instead, which is the sentence that loses the least.
-    <li className="flex items-baseline justify-between gap-x-4 px-5 py-3.5 sm:px-6">
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-zinc-700 dark:text-zinc-200">{verdict.libelle}</p>
-        {verdict.detail ? (
-          <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400" title={verdict.detail}>
-            {verdict.detail}
-          </p>
-        ) : null}
-      </div>
-      <div className="shrink-0 text-right">
-        <p className="text-lg font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white">
-          {verdict.valeur}
-        </p>
-        <span
-          className={clsx(
-            'mt-0.5 flex items-center justify-end gap-1.5 text-xs font-medium',
-            VERDICT_TONE[verdict.ton],
-          )}
-        >
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
-          {verdict.mot}
-        </span>
-      </div>
-    </li>
+/** An atomic total, rendered as money only once its denomination is known too. */
+function asMoney(
+  total: Availability<bigint>,
+  asset: Availability<{ symbol: string; decimals: number }>,
+): Availability<string> {
+  return combine(total, asset, (raw, denom) =>
+    formatCurrency(raw.toString(), { decimals: 0, fromAtomic: 10 ** denom.decimals }),
   )
 }
 
-/* ── Supporting measures ─────────────────────────────────────────────────── */
-
-type SupportingMeasure = {
-  readonly id: string
-  readonly label: string
-  readonly value: string | null
-  readonly hint: string
-}
-
-function supportingMeasures(input: {
-  d: Dashboard | null
-  pocketCount: number
-  lastMovement: Movement | undefined
-}): SupportingMeasure[] {
-  const { d, pocketCount, lastMovement } = input
-  const capacity = d?.capacity?.value
-  const perf = d?.performance?.value
-  const subscription = d?.subscription?.value
-
-  return [
-    {
-      id: 'capacity',
-      label: 'Available capacity',
-      value: montantUsdc(capacity?.availableCapacity, 0),
-      hint: 'Remaining subscribable',
-    },
-    { id: 'cap', label: 'TVL cap', value: montantUsdc(capacity?.tvlCap, 0), hint: 'Contractual cap' },
-    { id: 'nav', label: 'Share value', value: perf?.navPerShare ?? null, hint: 'navPerShare, in USDC' },
-    {
-      id: 'performance',
-      label: 'Performance',
-      value: formatPercent(perf?.totalReturnBps, { fromBps: true, maximumFractionDigits: 2 }),
-      hint: 'Total return since inception',
-    },
-    {
-      id: 'utilization',
-      label: 'Utilization rate',
-      value: formatPercent(capacity?.utilizationBps, { fromBps: true, maximumFractionDigits: 2 }),
-      hint: 'Share of the cap committed',
-    },
-    {
-      id: 'pockets',
-      label: 'Strategic pockets',
-      value: pocketCount > 0 ? String(pocketCount) : null,
-      hint: 'Strategies readable on-chain',
-    },
-    {
-      id: 'subscription',
-      label: 'Subscription',
-      value: subscriptionLabel(subscription?.subscriptionOpen),
-      hint:
-        subscription?.whitelistRequired === true ? 'Whitelist required' : 'Minimum ticket opposite',
-    },
-    {
-      id: 'ticket',
-      label: 'Minimum ticket',
-      value: montantUsdc(subscription?.minimumDepositAtomic, 0),
-      hint: lastMovement?.occurredAt ? `Last mvt · ${ilYA(lastMovement.occurredAt)}` : 'Initial deposit',
-    },
-  ]
-}
-
-function subscriptionLabel(open: boolean | null | undefined): string | null {
-  if (open === true) return 'Open'
-  if (open === false) return 'Closed'
-  return null
-}
-
-/* ── Movement distribution ──────────────────────────────────────────────── */
-
 /**
- * Real count of indexed event types — no category is added "to look nice":
- * a type absent from the feed is absent from the chart.
+ * How many vaults sit at or beyond the console's rebalancing threshold.
+ *
+ * One vault whose drift could not be read makes the whole count unknowable:
+ * "two vaults need rebalancing" would quietly mean "two that we could see",
+ * which is a different sentence.
  */
-function distributionByType(movements: readonly Movement[]): BarreRepartition[] {
-  const counts = new Map<string, number>()
-  for (const m of movements) {
-    const seen = counts.get(m.eventName)
-    counts.set(m.eventName, seen === undefined ? 1 : seen + 1)
+function countRequiringRebalancing(vaults: Availability<readonly Vault[]>): Availability<number> {
+  if (!isAvailable(vaults)) return vaults
+  if (vaults.value.length === 0) {
+    return unavailable({ endpoint: '/api/v1/vault', status: 'EMPTY', reason: 'no_vault_allocation_readable' })
   }
-  return [...counts.entries()].map(([name, value]) => ({ nom: libelleMouvement(name), valeur: value }))
+  let count = 0
+  for (const vault of vaults.value) {
+    const breached = requiresRebalancing(vault)
+    if (!isAvailable(breached)) return breached
+    if (breached.value) count += 1
+  }
+  return available(count, { provenance: vaults.provenance, asOf: vaults.asOf, stale: vaults.stale })
 }
 
-/* ── Frame states ────────────────────────────────────────────────────────── */
+/* ── The KPI strip ────────────────────────────────────────────────────────── */
+
+type OverviewKpi = Readonly<{
+  id: string
+  label: string
+  value: Availability<string>
+}>
 
 /**
- * A LIVE but empty series is not a plotted series: the frame must say "no
- * data for the period" instead of displaying a bare chart.
+ * One figure of the strip.
+ *
+ * The two states are rendered by two different mechanisms on purpose. A
+ * reading is a large tabular number; an absence is the word "Unavailable" with
+ * the route that would answer it, in the same badge every table on this
+ * console uses. Neither can be mistaken for the other, and neither can be
+ * mistaken for a zero.
  */
-function seriesState(block: Resolved<unknown> | undefined, length: number, fallback: string, empty: string): EtatSerie {
-  const state = etatSerieDe(block, fallback)
-  if (state.type === 'tracee' && length === 0) return { type: 'vide', explication: empty }
-  return state
+function KpiTile({ kpi }: Readonly<{ kpi: OverviewKpi }>) {
+  return (
+    <div className="flex h-full min-w-0 flex-col rounded-2xl bg-white/95 px-3 py-2 ring-1 ring-zinc-950/8 dark:bg-white/3 dark:ring-white/6">
+      <AdminLabel>{kpi.label}</AdminLabel>
+      <p className="mt-1.5 flex min-h-7 items-center">
+        {isAvailable(kpi.value) ? (
+          <span className={clsx(adminTypography.numericStandard, 'text-[1.125rem]/6 wrap-break-word')}>{kpi.value.value}</span>
+        ) : (
+          <SourceAvailabilityBadge availability={kpi.value} compact />
+        )}
+      </p>
+    </div>
+  )
 }
 
-/* ── Page ────────────────────────────────────────────────────────────────── */
+/* ── Source health ────────────────────────────────────────────────────────── */
+
+/**
+ * How a source answered, in words.
+ *
+ * Written out exhaustively rather than defaulted: an unmapped status silently
+ * rendering "Unknown" would be this file inventing a description of a state
+ * the service actually named.
+ */
+const SOURCE_STATE: Record<ResolvedStatus | 'NOT_EXPOSED', string> = {
+  LIVE: 'Answering',
+  STALE: 'Answering · stale',
+  PARTIAL: 'Answering in part',
+  EMPTY: 'Answered with no value',
+  NOT_CONFIGURED: 'Not configured',
+  UNAVAILABLE: 'Not answering',
+  NOT_SUPPORTED: 'Not supported',
+  PERMISSION_DENIED: 'Permission denied',
+  SIMULATED: 'Simulated',
+  ERROR: 'Error',
+  NOT_EXPOSED: 'Not exposed',
+}
+
+/**
+ * The service strip that closes the page.
+ *
+ * No colour beyond the accent dot on a source that answered. An endpoint that
+ * does not exist is not an incident — painting the estate's normal state red
+ * would teach the reader to ignore red on the day something genuinely fails.
+ *
+ * The `detail` a source carries is the service's OWN machine reason. It is
+ * printed verbatim, in mono, rather than paraphrased: inventing a friendly
+ * sentence for a code this console has never seen would be putting words in
+ * the service's mouth.
+ */
+function SourceStrip({ sources }: Readonly<{ sources: readonly SourceHealth[] }>) {
+  return (
+    <AdminSurface className="h-full">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 pt-5 sm:px-6">
+        <AdminSurfaceTitle>Sources</AdminSurfaceTitle>
+        <Link
+          href={entityHref('source', 'overview')}
+          className="text-xs text-accent-600 underline-offset-4 hover:underline dark:text-accent-400"
+        >
+          Data coverage
+        </Link>
+      </div>
+      {sources.length === 0 ? (
+        <div className="px-5 pt-3 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">No source reported.</div>
+      ) : (
+        <div className="grid gap-3 px-5 pt-3 pb-5 sm:grid-cols-2 sm:px-6">
+          {sources.map((source) => (
+            <div
+              key={source.endpointId}
+              className="min-w-0 rounded-2xl bg-zinc-50/70 px-3 py-2.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className={clsx(
+                    'size-1.5 shrink-0 rounded-full',
+                    source.status === 'LIVE'
+                      ? 'bg-accent-600 dark:bg-accent-400'
+                      : 'ring-1 ring-zinc-400 dark:ring-zinc-500',
+                  )}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm text-zinc-700 dark:text-zinc-300">
+                  {source.label}
+                </span>
+                <span className="shrink-0 text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
+                  {SOURCE_STATE[source.status]}
+                </span>
+              </div>
+              {source.detail === null && source.asOf === null ? null : (
+                <p className="mt-1 truncate text-[0.6875rem]/4 text-zinc-500 dark:text-zinc-500">
+                  {source.detail === null ? null : <span className="font-mono">{source.detail}</span>}
+                  {source.detail !== null && source.asOf !== null ? ' · ' : null}
+                  {source.asOf === null ? null : formatRelativeTime(source.asOf)}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </AdminSurface>
+  )
+}
+
+function movementTypeBars(movements: Availability<readonly { eventName: string }[]>): readonly DashboardBarPoint[] {
+  if (!isAvailable(movements)) return []
+  const counts = new Map<string, number>()
+  for (const movement of movements.value) {
+    const label = libelleMouvement(movement.eventName)
+    counts.set(label, (counts.get(label) ?? 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value)
+}
+
+function recentActivityTrend(
+  movements: Availability<readonly Movement[]>,
+  asset: Availability<{ symbol: string; decimals: number }>,
+): Availability<readonly DashboardTrendPoint[]> {
+  if (!isAvailable(movements)) return movements
+
+  const moneyPoints =
+    isAvailable(asset)
+      ? movements.value
+          .filter((movement) => movement.occurredAt !== null && movement.assetAmountAtomic !== null)
+          .slice()
+          .sort((a, b) => Date.parse(a.occurredAt ?? '') - Date.parse(b.occurredAt ?? ''))
+          .slice(-8)
+          .map((movement) => {
+            const raw = Number(movement.assetAmountAtomic)
+            if (!Number.isFinite(raw)) return null
+            const occurredAt = movement.occurredAt as string
+            return {
+              label: new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(occurredAt)),
+              value: raw / 10 ** asset.value.decimals,
+              detail: new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(occurredAt)),
+            }
+          })
+          .filter((point): point is DashboardTrendPoint => point !== null)
+      : []
+
+  if (moneyPoints.length >= 2) {
+    return available(moneyPoints, {
+      provenance: movements.provenance,
+      asOf: movements.asOf,
+      stale: movements.stale,
+    })
+  }
+
+  const buckets = new Map<string, { order: number; label: string; value: number; detail: string }>()
+  for (const movement of movements.value) {
+    if (movement.occurredAt === null) continue
+    const timestamp = Date.parse(movement.occurredAt)
+    if (Number.isNaN(timestamp)) continue
+    const bucket = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(timestamp))
+    const current = buckets.get(bucket)
+    if (current === undefined) {
+      buckets.set(bucket, {
+        order: timestamp,
+        label: bucket,
+        value: 1,
+        detail: bucket,
+      })
+      continue
+    }
+    current.value += 1
+  }
+
+  const countPoints = [...buckets.values()].sort((a, b) => a.order - b.order)
+  if (countPoints.length >= 2) {
+    return available(countPoints, {
+      provenance: movements.provenance,
+      asOf: movements.asOf,
+      stale: movements.stale,
+    })
+  }
+
+  return unavailable({ endpoint: '/api/v1/series1/events', status: 'PARTIAL', reason: 'not_enough_ordered_points' })
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
-  const [dashboard, events, availability] = await Promise.all([
-    callBackend<Dashboard>('dashboard'),
-    callBackend<EventsResponse>('series1-events', { params: { limit: 12 } }),
-    callBackend<{ ready?: boolean }>('ready'),
-  ])
+  const session = await requireSession()
+  // ONE read for the whole page. Every surface below is a view onto the same
+  // registry, so two cards can never disagree about the same vault.
+  const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
 
-  const serviceUnavailable = !availability.ok || availability.data.ready !== true
-  const d = dashboard.ok ? dashboard.data : null
-  const capacity = d?.capacity?.value
-  const movements = events.ok ? events.data.events?.value : null
-  const movementList = movements === null || movements === undefined ? [] : movements
-  const lastMovement = movementList[0]
-  const recentMovements = movementList.slice(0, 8)
+  const vaults = registry.vaults
+  const asset = denomination(vaults)
 
-  const pockets = readPockets(d)
-  const allocationBarData = allocationBars(pockets)
-  const driftBarData = driftBars(pockets)
-  const distribution = distributionByType(movementList)
+  const activeVaults = mapAvailability(vaults, (list) =>
+    formatNumber(list.filter((vault) => vault.status === 'ACTIVE').length),
+  )
 
-  // The overall verdict keeps the most-drifted pocket, not the average: an
-  // average offsets an over-allocated pocket against an under-allocated one
-  // and would read "aligned" on a portfolio that isn't.
-  const worstPocketBps =
-    driftBarData.length > 0
-      ? driftBarData.reduce((worst, p) => (Math.abs(p.deriveBps) > Math.abs(worst) ? p.deriveBps : worst), 0)
-      : null
+  const totalValueLocked = asMoney(
+    sumAcrossVaults(vaults, (vault) => mapAvailability(vault.totalAssetsAtomic, (raw) => BigInt(raw))),
+    asset,
+  )
+  const deployedCapitalAtomic = sumAcrossVaults(vaults, deployedAtomic)
+  const availableCapitalAtomic = sumAcrossVaults(vaults, idleAtomic)
+  const deployedCapital = asMoney(deployedCapitalAtomic, asset)
+  const availableCapital = asMoney(availableCapitalAtomic, asset)
+  const deploymentRatioRaw = combine(deployedCapitalAtomic, availableCapitalAtomic, (deployed, idle) => {
+    const total = deployed + idle
+    if (total === ZERO) return 0
+    return Number((deployed * BPS) / total)
+  })
+  const deploymentRatio = mapAvailability(
+    deploymentRatioRaw,
+    (bps) => `${formatNumber(bps / 100, { maximumFractionDigits: 1 })}%`,
+  )
+  const breachedPockets = mapAvailability(registry.rebalancing, (rows) =>
+    formatNumber(rows.filter((row) => row.breached).length),
+  )
+  const recentMovements = mapAvailability(registry.movements, (rows) => formatNumber(rows.length))
+  const liveSources = available(
+    `${formatNumber(registry.sources.filter((source) => source.status === 'LIVE').length)}/${formatNumber(registry.sources.length)}`,
+  )
+  const recentTrend = recentActivityTrend(registry.movements, asset)
+  const movementVisual = movementTypeBars(registry.movements)
 
-  const alerts = d?.alerts?.value
-  const alertList = alerts === null || alerts === undefined ? [] : alerts
-
-  const verdicts: VerdictAccueil[] = [
-    driftVerdict(d?.rebalancing, worstPocketBps),
-    electricityVerdict(d?.reserve),
-    serviceVerdict(serviceUnavailable, lastMovement),
+  const kpis: readonly OverviewKpi[] = [
+    { id: 'vaults-active', label: 'Active vaults', value: activeVaults },
+    { id: 'rebalance', label: 'Above threshold', value: breachedPockets },
+    { id: 'movements', label: 'Recent movements', value: recentMovements },
+    { id: 'sources', label: 'Live sources', value: liveSources },
   ]
-
-  const measures = supportingMeasures({ d, pocketCount: pockets.length, lastMovement })
-
-  const metaSnapshot = lastMovement?.occurredAt
-    ? `Series 1 · snapshot ${ilYA(lastMovement.occurredAt)}`
-    : 'Series 1 · snapshot live'
-
   return (
     <AdminPage>
-      <PageHeader title="Hearst Connect — Series 1 Portfolio" description={metaSnapshot} />
+      <PageHeader title="Home" />
 
-      {serviceUnavailable ? (
-        <ExceptionBanner
-          message="The service is not responding or is not ready."
-          href="/admin/runtime"
-          actionLabel="Service status"
-        />
-      ) : null}
-
-      {/* Alerts come before the measures: a console that makes you read eight
-          numbers before flagging an incident has its priorities backwards. */}
-      <AccueilAlertes alertes={alertList} />
-
-      {/*
-        Overview — the page's lede, and deliberately without a section
-        heading: the H1 is two lines above, and a rule plus an "Overview" H2
-        would be a second title for the same thing.
-      */}
       <div className={sectionContentGap}>
-        <AdminGrid>
-          {/* The primary metric takes half the grid. Portfolio assets and the
-              share of the cap they consume are one reading, not two, so they
-              share one card — the figure, then what it leaves available. */}
-          <AdminCol span={6} md={4}>
-            <Card className="flex h-full flex-col p-6">
-              {/* No unit passed to `HeroFigure`: `montantUsdc` already renders
-                  the symbol, adding one would produce "$1,177,859 USDC". */}
-              <HeroFigure valeur={montantUsdc(capacity?.totalAssets, 0)} libelle="Portfolio assets" />
-              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                On-chain assets, denominated in USDC
-              </p>
-              <div className="mt-6 border-t border-zinc-950/5 pt-5 dark:border-console-line">
-                <AdminLabel>Subscription cap consumed</AdminLabel>
-                <div className="mt-3">
-                  <CapacityBar
-                    utiliseBps={capacity?.utilizationBps ?? null}
-                    disponible={montantUsdc(capacity?.availableCapacity, 0)}
-                    total={montantUsdc(capacity?.tvlCap, 0)}
-                  />
-                </div>
-              </div>
-            </Card>
-          </AdminCol>
-
-          {/* The three operational verdicts take the other half. One card,
-              three rows — they used to be three cells of the same slab as the
-              hero, where they read as more of the same measurement. */}
-          <AdminCol span={6} md={4}>
-            <Card className="h-full">
-              <CardHeader title="Operational verdicts" hint="What needs a decision today, if anything" />
-              <ul className="divide-y divide-zinc-950/5 pb-2 dark:divide-console-line-soft">
-                {verdicts.map((v) => (
-                  <VerdictRow key={v.id} verdict={v} />
-                ))}
-              </ul>
-            </Card>
-          </AdminCol>
-        </AdminGrid>
-
-        {/* Supporting measures. `count` is the real number of children, so the
-            last row is full whatever the service returns. */}
-        <AdminMetricGrid count={measures.length}>
-          {measures.map((m) => (
-            <AdminMetric key={m.id} label={m.label} value={m.value} hint={m.hint} />
+        <AdminMetricGrid count={kpis.length}>
+          {kpis.map((kpi) => (
+            <KpiTile key={kpi.id} kpi={kpi} />
           ))}
         </AdminMetricGrid>
-      </div>
 
-      <AdminSection
-        index="01"
-        title="Allocation"
-        description="Where the money sits against its target, and which pocket has moved away from it."
-      >
-        {/* 8/4: the target-vs-actual reading is the subject and gets the wide
-            column; the signed drift is the detail that explains it. */}
-        <AdminGrid>
-          <AdminCol span={8}>
-            <ChartFrame
-              question="Is the money allocated where it should be?"
-              unite="Share of portfolio, in %"
-              etat={seriesState(
-                d?.allocation ?? d?.strategies,
-                allocationBarData.length,
-                'strategic pockets are not yet readable',
-                'the service returns an allocation with no pockets',
-              )}
-            >
-              <AllocationChart poches={allocationBarData} />
-            </ChartFrame>
-          </AdminCol>
-          <AdminCol span={4}>
-            <ChartFrame
-              question="Which pocket has drifted from its target?"
-              unite="Signed gap, in points"
-              etat={seriesState(
-                d?.allocation ?? d?.strategies,
-                driftBarData.length,
-                'the service does not return an allocation gap',
-                'no pocket exposes a readable gap',
-              )}
-            >
-              <AccueilDeriveChart poches={driftBarData} />
-            </ChartFrame>
-          </AdminCol>
-        </AdminGrid>
-
-        {pockets.length > 0 ? (
-          <Card className="overflow-hidden">
-            {/* The legend rides in the header's action slot — it used to sit
-                under a bordered strip inside this card, which was a frame
-                inside a frame. No row is tinted: an accent on the first
-                pocket claimed an importance the data never gave it. */}
-            <CardHeader
-              title="Pockets"
-              hint="Target and actual allocation, pocket by pocket"
-              action={<PocketProgressLegend />}
-            />
-            <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-              {pockets.map((p) => (
-                <li key={p.pocket}>
-                  <Link
-                    href="/admin/vault"
-                    className="flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-zinc-950/[0.02] sm:flex-row sm:items-center sm:gap-6 sm:px-6 dark:hover:bg-white/[0.02]"
-                  >
-                    <div className="w-full min-w-0 sm:w-52">
-                      <p className="truncate text-sm font-semibold text-zinc-950 dark:text-white">
-                        {pocketLabel(p)}
-                      </p>
-                      <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                        Pocket {p.pocket} · drift {formatDriftPoints(p.driftBps)}
-                      </p>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <PocketProgress
-                        name={p.pocket}
-                        cible={p.targetBps / 100}
-                        reel={p.actualBps === null ? null : p.actualBps / 100}
-                        showName={false}
-                      />
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ) : null}
-      </AdminSection>
-
-      <AdminSection
-        index="02"
-        title="Recent activity"
-        description={
-          lastMovement
-            ? `${phraseMouvement(lastMovement.eventName)} · ${lastMovement.occurredAt ? ilYA(lastMovement.occurredAt) : '—'}`
-            : 'Series 1 indexed movements'
-        }
-        actions={
-          <Link
-            href="/admin/operations"
-            className="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400"
-          >
-            Log →
-          </Link>
-        }
-      >
-        {/*
-          Balanced 6/6, and `items-start`.
-
-          The previous 2/3 split stretched the chart card to the movement
-          list's height, leaving a large empty region under a handful of bars.
-          A distribution over three or four event types and a list of eight
-          movements have no reason to be the same height — so each card stops
-          where its content stops, and the ragged edge between them is
-          whitespace rather than an empty box.
-        */}
-        <AdminGrid className="items-start">
-          <AdminCol span={6} md={4}>
-            <ChartFrame
-              question="What does recent activity consist of?"
-              unite="Number of indexed events"
-              etat={seriesState(
-                events.ok ? events.data.events : undefined,
-                distribution.length,
-                'movements are not yet indexed',
-                'no movement recorded for the period',
-              )}
-            >
-              <DistributionBarChart barres={distribution} />
-            </ChartFrame>
-          </AdminCol>
-
-          <AdminCol span={6} md={4}>
-            {recentMovements.length === 0 ? (
-              <CalmState message="No movement recorded recently." />
-            ) : (
-              <Card className="overflow-hidden">
-                <CardHeader title="Movements" hint="Most recent indexed events" />
-                <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                  {recentMovements.map((m) => (
-                    <li key={m.id} className="flex items-center justify-between gap-3 px-5 py-3 sm:px-6">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">
-                          {phraseMouvement(m.eventName)}
-                        </p>
-                        <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{ilYA(m.occurredAt)}</p>
-                      </div>
-                      <span className="shrink-0 text-sm font-semibold tabular-nums text-accent-600 dark:text-accent-400">
-                        {m.assetAmountAtomic !== null ? montantUsdc(m.assetAmountAtomic, 2) : '—'}
+        <AdminGrid className="items-stretch">
+          <AdminCol span={7}>
+            <AdminSurface className="h-full">
+              <div className="flex flex-wrap items-start justify-between gap-4 px-5 pt-5 sm:px-6">
+                <div className="min-w-0">
+                  <AdminLabel>Estate value</AdminLabel>
+                  <div className="mt-2 flex min-h-12 items-center">
+                    {isAvailable(totalValueLocked) ? (
+                      <span className={clsx(adminTypography.numericHero, 'text-[1.6rem]/7 sm:text-[2.2rem]/8')}>
+                        {totalValueLocked.value}
                       </span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            )}
+                    ) : (
+                      <SourceAvailabilityBadge availability={totalValueLocked} />
+                    )}
+                  </div>
+                </div>
+                <SourceAvailabilityBadge availability={registry.movements} compact />
+              </div>
+              <div className="px-5 pt-4 pb-5 sm:px-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <AdminSurfaceTitle className="text-sm/5">Recent activity</AdminSurfaceTitle>
+                  <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+                    {isAvailable(recentMovements) ? recentMovements.value : 'Unavailable'}
+                  </span>
+                </div>
+                <DashboardTrendChart points={isAvailable(recentTrend) ? recentTrend.value : []} availability={recentTrend} />
+              </div>
+            </AdminSurface>
+          </AdminCol>
+
+          <AdminCol span={5}>
+            <AdminSurface className="h-full">
+              <div className="px-5 pt-5 sm:px-6">
+                <AdminSurfaceTitle className="text-sm/5">Capital</AdminSurfaceTitle>
+              </div>
+              <div className="grid gap-4 px-5 pt-4 pb-5 sm:grid-cols-2 sm:px-6">
+                <DashboardCapitalDonut
+                  deployedBps={isAvailable(deploymentRatioRaw) ? deploymentRatioRaw.value : null}
+                  deployedLabel={isAvailable(deployedCapital) ? deployedCapital.value : null}
+                  idleLabel={isAvailable(availableCapital) ? availableCapital.value : null}
+                  availability={deploymentRatioRaw}
+                />
+                <DashboardProgressRadial
+                  ratioBps={isAvailable(deploymentRatioRaw) ? deploymentRatioRaw.value : null}
+                  ratioLabel={isAvailable(deploymentRatio) ? deploymentRatio.value : null}
+                  availability={deploymentRatioRaw}
+                />
+              </div>
+            </AdminSurface>
           </AdminCol>
         </AdminGrid>
-      </AdminSection>
+
+        <AdminGrid className="items-stretch">
+          <AdminCol span={6}>
+            <AdminSurface className="h-full">
+              <div className="flex items-center justify-between gap-3 px-5 pt-5 sm:px-6">
+                <AdminSurfaceTitle className="text-sm/5">Movement types</AdminSurfaceTitle>
+                <SourceAvailabilityBadge availability={registry.movements} compact />
+              </div>
+              <div className="px-5 pt-4 pb-5 sm:px-6">
+                <DashboardBarChart bars={movementVisual} availability={registry.movements} />
+              </div>
+            </AdminSurface>
+          </AdminCol>
+
+          <AdminCol span={6}>
+            <VaultValueBreakdown vaults={vaults} />
+          </AdminCol>
+        </AdminGrid>
+
+        <AdminGrid className="items-stretch">
+          <AdminCol span={6}>
+            <ClientExceptionTable exceptions={registry.clientExceptions} />
+          </AdminCol>
+          <AdminCol span={6}>
+            <DeploymentQueue deployments={registry.deployments} vaults={vaults} />
+          </AdminCol>
+        </AdminGrid>
+
+        <RebalancingQueue rows={registry.rebalancing} />
+
+        <MovementLedger movements={registry.movements} vaults={vaults} limit={MOVEMENT_ROWS} />
+      </div>
     </AdminPage>
   )
 }
