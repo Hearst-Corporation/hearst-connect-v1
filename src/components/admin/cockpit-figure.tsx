@@ -1,8 +1,20 @@
 import { surfaceRaised } from '@/components/admin/surface'
+import { AdminSurfaceTitle } from '@/components/admin/typography'
 import clsx from 'clsx'
 
 /**
- * Chart panel — figure/figcaption pattern (ChartSurface).
+ * Chart panel — figure/figcaption pattern.
+ *
+ * Two things the visual review made non-negotiable, both fixed here:
+ *
+ * 1. **No bordered caption inside a bordered panel.** The figcaption used to
+ *    carry its own bottom rule, which drew a second frame inside the card for
+ *    no information gained. Space separates the caption from the plot now,
+ *    exactly like `AdminSurfaceHeader` and `CardHeader`.
+ * 2. **The panel is as tall as its content.** It used to be `h-full` with a
+ *    vertically centered body, so a two-row chart inflated to whatever height
+ *    its tallest neighbour happened to have and floated in the middle of it.
+ *    Height comes from the child — see `chartHeight()` in `lib/chart-theme`.
  */
 export function CockpitFigure({
   title,
@@ -16,27 +28,23 @@ export function CockpitFigure({
   action?: React.ReactNode
   children: React.ReactNode
   className?: string
-  /** @deprecated — height is handled by the child. */
-  chartHeight?: string
 }>) {
   const hasCaption = Boolean(title || description || action)
 
   return (
-    <figure className={clsx(surfaceRaised, 'flex h-full flex-col p-6', className)}>
+    <figure className={clsx(surfaceRaised, 'p-6', className)}>
       {hasCaption ? (
-        <figcaption className="mb-5 border-b border-zinc-950/5 pb-4 dark:border-white/5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              {title ? <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h3> : null}
-              {description ? (
-                <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
-              ) : null}
-            </div>
-            {action ? <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div> : null}
+        <figcaption className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            {title ? <AdminSurfaceTitle>{title}</AdminSurfaceTitle> : null}
+            {description ? (
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
+            ) : null}
           </div>
+          {action ? <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div> : null}
         </figcaption>
       ) : null}
-      <div className="flex min-h-0 flex-1 flex-col justify-center">{children}</div>
+      <div className="min-w-0">{children}</div>
     </figure>
   )
 }

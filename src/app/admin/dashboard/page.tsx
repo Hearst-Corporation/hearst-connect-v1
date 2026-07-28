@@ -1,7 +1,8 @@
-import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { Card, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { AdminTableSplit } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { AdminPage } from '@/components/admin/typography'
-import { AdminSection } from '@/components/admin/surfaces'
+import { AdminSection, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
+import { AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import clsx from 'clsx'
@@ -17,16 +18,22 @@ export const dynamic = 'force-dynamic'
  * surfaces, each with its own status. This is THE question this page
  * answers: what can we rely on today, and what's missing elsewhere, and why.
  *
- * Two choices govern it:
+ * Three choices govern it:
  *
- * 1. We don't show the raw payload up front. A screen of JSON teaches
- *    nothing to someone who has to decide; it stays available further down
- *    the page.
+ * 1. We don't show the raw payload. A screen of JSON teaches nothing to
+ *    someone who has to decide.
  *
  * 2. We don't requalify any status. The service computes the overall status
  *    worst-field-first: a single degraded surface pulls down the whole. This
  *    is documented behavior — we explain it rather than fix it. A frontend
  *    that "improves" an upstream status lies to its reader.
+ *
+ * 3. Eighteen surfaces are ONE list, not three framed panels. The rejected
+ *    version put each status tier in its own card, so the reader compared
+ *    boxes instead of rows, and a tier holding two surfaces got the same
+ *    frame as a tier holding twelve. The surfaces now share a single table
+ *    ordered by tier, with the meaning of each tier — and how many surfaces
+ *    it holds — in a deliberate secondary column beside it.
  */
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
@@ -75,16 +82,21 @@ const TIER_EXPLANATION: Record<CoverageTier, string> = {
   notOpened: 'These surfaces are not yet open. Nothing is expected from them for now.',
 }
 
+/**
+ * Colour here is a claim about state, which is exactly what these three tiers
+ * are — so the semantic palette is spent where it means something. An
+ * ordinary dataset would get the mint ramp instead.
+ */
 const TIER_DOT: Record<CoverageTier, string> = {
   served: 'bg-success-500',
   partial: 'bg-warning-500',
-  notOpened: 'bg-zinc-600',
+  notOpened: 'bg-zinc-500',
 }
 
 const TIER_TEXT: Record<CoverageTier, string> = {
   served: 'text-success-400',
   partial: 'text-warning-400',
-  notOpened: 'text-zinc-400',
+  notOpened: 'text-zinc-500 dark:text-zinc-400',
 }
 
 /** The ranking follows the status declared by the service, without reinterpreting it. */
@@ -98,74 +110,105 @@ const TIER_ORDER: readonly CoverageTier[] = ['served', 'partial', 'notOpened']
 
 type Surface = { readonly key: string; readonly name: string; readonly tier: CoverageTier; readonly reason: string | undefined }
 
-function DataCoverage({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
-  const served = surfaces.filter((s) => s.tier === 'served')
-  const partial = surfaces.filter((s) => s.tier === 'partial')
-  const notOpened = surfaces.filter((s) => s.tier === 'notOpened')
+const countIn = (surfaces: readonly Surface[], tier: CoverageTier): number =>
+  surfaces.filter((s) => s.tier === tier).length
+
+/* ── The headline band ───────────────────────────────────────────────────── */
+
+/**
+ * One band, sized to what it holds: the figure that answers the page's
+ * question, the two counts that qualify it, and a proportion bar that only
+ * needs the full width because it IS the full width.
+ */
+function CoverageBand({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
+  const served = countIn(surfaces, 'served')
+  const partial = countIn(surfaces, 'partial')
+  const notOpened = countIn(surfaces, 'notOpened')
 
   return (
-    <>
-      <Card className="p-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-          <HeroFigure valeur={`${served.length}`} libelle="Surfaces served" unite={`of ${surfaces.length}`} />
-          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <SideFact
-              libelle="Partially served"
-              valeur={partial.length === 0 ? 'none' : String(partial.length)}
-            />
-            <SideFact
-              libelle="Not yet open"
-              valeur={notOpened.length === 0 ? 'none' : String(notOpened.length)}
-            />
-            <SideFact libelle="Coverage" valeur={`${Math.round((served.length / surfaces.length) * 100)}%`} />
-          </dl>
+    <Card className="p-6">
+      <div className="grid items-end gap-x-10 gap-y-6 sm:grid-cols-2">
+        <HeroFigure valeur={`${served}`} libelle="Surfaces served" unite={`of ${surfaces.length}`} />
+        <div className="grid grid-cols-3 gap-x-6">
+          <SideFact libelle="Partially served" valeur={partial === 0 ? 'none' : String(partial)} />
+          <SideFact libelle="Not yet open" valeur={notOpened === 0 ? 'none' : String(notOpened)} />
+          <SideFact libelle="Coverage" valeur={`${Math.round((served / surfaces.length) * 100)}%`} />
         </div>
+      </div>
 
-        {/* One bar, three segments: the proportion is grasped at a glance,
-            without reading three numbers and comparing them. */}
-        <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-          {TIER_ORDER.map((tier) => {
-            const count = surfaces.filter((s) => s.tier === tier).length
-            if (count === 0) return null
-            return (
-              <div
-                key={tier}
-                className={clsx('h-full', TIER_DOT[tier])}
-                style={{ width: `${(count / surfaces.length) * 100}%` }}
-              />
-            )
-          })}
-        </div>
-        <p className="mt-3 text-xs text-zinc-500">
-          The overall status announced by the service reads worst-field-first: a single incomplete surface pulls
-          down the whole. This is intentional — better one alert too many than a falsely reassuring screen.
-        </p>
-      </Card>
+      {/* One bar, three segments: the proportion is grasped at a glance,
+          without reading three numbers and comparing them. */}
+      <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+        {TIER_ORDER.map((tier) => {
+          const count = countIn(surfaces, tier)
+          if (count === 0) return null
+          return (
+            <div
+              key={tier}
+              className={clsx('h-full', TIER_DOT[tier])}
+              style={{ width: `${(count / surfaces.length) * 100}%` }}
+            />
+          )
+        })}
+      </div>
+      <p className="mt-3 max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+        The overall status announced by the service reads worst-field-first: a single incomplete surface pulls
+        down the whole. This is intentional — better one alert too many than a falsely reassuring screen.
+      </p>
+    </Card>
+  )
+}
 
-      {TIER_ORDER.map((tier) => {
-        const items = surfaces.filter((s) => s.tier === tier)
-        if (items.length === 0) return null
-        return (
-          <Card key={tier}>
-            <CardHeader title={`${TIER_TITLE[tier]} — ${items.length}`} hint={TIER_EXPLANATION[tier]} />
-            <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
-              {items.map((surface) => (
-                <li key={surface.key} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-                  <span
-                    aria-hidden="true"
-                    className={clsx('size-1.5 shrink-0 self-center rounded-full', TIER_DOT[tier])}
-                  />
-                  <span className="text-sm text-white">{surface.name}</span>
-                  {surface.reason === undefined ? null : (
-                    <span className={clsx('ml-auto text-xs', TIER_TEXT[tier])}>{surface.reason}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )
-      })}
-    </>
+/* ── The list ────────────────────────────────────────────────────────────── */
+
+const COLONNES: readonly AdminTableColumn<Surface>[] = [
+  {
+    key: 'surface',
+    header: 'Surface',
+    cell: (s) => <span className="text-zinc-950 dark:text-white">{s.name}</span>,
+  },
+  {
+    key: 'tier',
+    header: 'Status',
+    className: 'w-44',
+    cell: (s) => (
+      <span className={clsx('inline-flex items-center gap-2 whitespace-nowrap', TIER_TEXT[s.tier])}>
+        <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[s.tier])} />
+        {TIER_TITLE[s.tier]}
+      </span>
+    ),
+  },
+  {
+    key: 'reason',
+    header: 'What the service says',
+    /* An unmapped reason code renders as an absence, never as a technical
+       string leaked into a business console. */
+    cell: (s) => <span className="text-zinc-500 dark:text-zinc-400">{s.reason === undefined ? '—' : s.reason}</span>,
+  },
+]
+
+/** The key to the table, in the secondary column — one entry per tier. */
+function TierLegend({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
+  return (
+    <Card className="p-5">
+      <AdminSurfaceTitle as="p">What each status means</AdminSurfaceTitle>
+      <dl className="mt-4 space-y-4">
+        {TIER_ORDER.map((tier) => (
+          <div key={tier}>
+            <dt className="flex items-baseline gap-2">
+              <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[tier])} />
+              <span className="text-sm font-medium text-zinc-950 dark:text-white">{TIER_TITLE[tier]}</span>
+              <span className="ml-auto text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
+                {countIn(surfaces, tier)}
+              </span>
+            </dt>
+            <dd className="mt-1 pl-3.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              {TIER_EXPLANATION[tier]}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Card>
   )
 }
 
@@ -191,7 +234,30 @@ function CoverageBody({
       />
     )
   }
-  return <DataCoverage surfaces={surfaces} />
+
+  // Served first, then what is still waiting: the order carries the ranking,
+  // so no second grouping mechanism is needed on top of it.
+  const ordonnees = TIER_ORDER.flatMap((tier) => surfaces.filter((s) => s.tier === tier))
+
+  return (
+    <>
+      <CoverageBand surfaces={surfaces} />
+
+      <AdminSection
+        title="Surface by surface"
+        description="Every surface the service described, ranked by the status it declares. Nothing is requalified on the way to this screen."
+      >
+        <AdminTableSplit
+          main={
+            <Card className="overflow-hidden">
+              <AdminTable columns={COLONNES} rows={ordonnees} keyFn={(s) => s.key} />
+            </Card>
+          }
+          aside={<TierLegend surfaces={surfaces} />}
+        />
+      </AdminSection>
+    </>
+  )
 }
 
 export default async function Page() {
@@ -217,11 +283,7 @@ export default async function Page() {
         description="What the product can rely on today, surface by surface, and why the rest is still waiting on its source."
       />
 
-      <AdminSection>
-        <CoverageBody aggregate={aggregate} surfaces={surfaces} />
-
-        {/* The basement: the detailed response for whoever wants to verify a field. */}
-      </AdminSection>
+      <CoverageBody aggregate={aggregate} surfaces={surfaces} />
     </AdminPage>
   )
 }

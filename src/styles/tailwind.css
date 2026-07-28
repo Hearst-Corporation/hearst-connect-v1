@@ -62,6 +62,35 @@
   --color-hairline: #191919;
   --color-border-control: #758696;
 
+  /* ── Console surfaces — the approved neutral-graphite system ───────────────
+   * Source of truth: "Hearst Adapted Design System" (neutral-lighter variant).
+   *
+   * Five planes, from the outside in: the application black, the graphite
+   * shell the page sits on, the charcoal card, its lighter top edge, and the
+   * inset a card can sink a block into. They are NEUTRAL — no blue undertone
+   * anywhere in the ramp; the earlier console inherited Tailwind's zinc, which
+   * is cooled by a blue cast, and the console before that was outright navy.
+   *
+   * Cards are LIGHTER than the shell they sit on. That inversion is the whole
+   * legibility gain: content floats forward instead of being cut out of the
+   * background.
+   */
+  --color-console-app: #101010;
+  --color-console-shell: #232323;
+  --color-console-card: #2a2a2a;
+  --color-console-card-top: #303030;
+  --color-console-inset: #202020;
+  --color-console-section: rgba(34, 34, 34, 0.82);
+
+  /* Separators. Three weights, all pure white at low alpha — a tinted border
+   * is the fastest way to smuggle a colour cast back into a neutral system. */
+  --color-console-line-soft: rgba(255, 255, 255, 0.08);
+  --color-console-line: rgba(255, 255, 255, 0.13);
+  --color-console-line-strong: rgba(255, 255, 255, 0.18);
+
+  /* The accent, at the one opacity the system uses for accent-tinted fills. */
+  --color-accent-soft: rgba(167, 251, 144, 0.12);
+
   /* ── Accent: HEARST MINT (hearstcorporation.io --mint-green) ───────────────
    * Monotone ramp (constant hue H≈107.1° — the brand mint), WCAG luminance
    * strictly decreasing from 50 → 950. No duplicates.
@@ -150,27 +179,58 @@
 }
 
 /*
- * Admin console — canonical Tailwind zinc + Hearst mint accent.
- * Scoped: keeps the marketing/login navy zinc remap out of the console.
+ * Admin console — the approved neutral-graphite system.
+ *
+ * ── Why the zinc ramp is redeclared here ──────────────────────────────────
+ * The console is built on Catalyst, and Catalyst speaks zinc: every kit file
+ * and most of our own surfaces reference `zinc-*`. Rather than rewrite those
+ * hundreds of class names, the console redefines what zinc MEANS inside it.
+ *
+ * It used to mean canonical Tailwind zinc. Tailwind's zinc is not neutral —
+ * it carries a blue cast (zinc-600 is #52525b, visibly cool). Stacked across
+ * a whole console it reads as the dark-blue cockpit the review rejected. The
+ * ramp below is true neutral graphite: equal channels, no undertone.
+ *
+ * The steps are anchored on the approved tokens, so a `zinc-*` class and a
+ * `console-*` token land on the same colour rather than fighting each other:
+ *
+ *   zinc-950  #101010  application black   (--bg-app)
+ *   zinc-900  #2a2a2a  card                (--bg-card)
+ *   zinc-800  #303030  card top / raised   (--bg-card-top)
+ *   zinc-500  #8b8b8b  faint text          (--text-faint)
+ *   zinc-400  #b3b3b3  muted text          (--text-muted)
+ *   zinc-300  #dedede  body text           (--text-body)
+ *
+ * Note zinc-900 is LIGHTER than zinc-950 by a wide margin here: cards sit
+ * forward of the shell in this system, they are not holes cut into it.
  */
 .cockpit-theme {
   --color-zinc-50: #fafafa;
-  --color-zinc-100: #f4f4f5;
-  --color-zinc-200: #e4e4e7;
-  --color-zinc-300: #d4d4d8;
-  --color-zinc-400: #a1a1aa;
-  --color-zinc-500: #71717a;
-  --color-zinc-600: #52525b;
-  --color-zinc-700: #3f3f46;
-  --color-zinc-800: #27272a;
-  --color-zinc-900: #18181b;
-  --color-zinc-950: #09090b;
+  --color-zinc-100: #f2f2f2;
+  --color-zinc-200: #e8e8e8;
+  --color-zinc-300: #dedede;
+  --color-zinc-400: #b3b3b3;
+  --color-zinc-500: #8b8b8b;
+  --color-zinc-600: #6b6b6b;
+  --color-zinc-700: #3d3d3d;
+  --color-zinc-800: #303030;
+  --color-zinc-900: #2a2a2a;
+  --color-zinc-950: #101010;
   --color-black: #000000;
   --color-white: #ffffff;
 
-  /* The mint accent is NOT redeclared here: it's inherited as-is from the
-   * global @theme. This class only carries what genuinely differs — the
-   * canonical Tailwind zinc, replacing the marketing surface's navy remap. */
+  /*
+   * The accent is the brand mint #a7fb90 — the approved system's `--accent`,
+   * exactly. The global ramp puts that hex at step 300; inside the console it
+   * is step 400, because 400 is the step every accent surface in this app
+   * already reaches for. Step 300 keeps its role as the lighter hover lift,
+   * so `bg-accent-400 hover:bg-accent-300` still reads as a lift.
+   *
+   * Nothing else about the ramp changes, and the accent stays the ONLY hue in
+   * the console besides the three semantic tones.
+   */
+  --color-accent-300: #c1fcb1;
+  --color-accent-400: #a7fb90;
 }
 
 /* Decorative console band — two-axis mask. */

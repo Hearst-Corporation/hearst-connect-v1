@@ -1,4 +1,5 @@
 import { EndpointSection } from '@/components/admin/endpoint-section'
+import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
 import {
   AdminMetric,
@@ -176,27 +177,83 @@ export default async function RuntimePage() {
         description="Status matrix, deployment metrics, and raw probe responses."
       />
 
+      {/*
+        The matrix is a single full-width list card and is therefore the section's
+        direct child: wrapping one surface in a one-column grid would be an empty
+        container around another surface. Its own card title is gone too — the
+        section's H2 already names it, and an H3 repeating it inside the card was
+        a second header for one piece of content.
+      */}
       <AdminSection title="Status Matrix" description="Dependencies and operational probes">
-        <AdminStatusMatrix title="Services and Dependencies" rows={matrix} />
+        <AdminStatusMatrix rows={matrix} />
       </AdminSection>
 
-      <AdminSection title="Deployment" description="Version and environment — runtime">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <AdminMetric label="Environment" value={r?.environment ?? null} />
-          <AdminMetric label="Uptime" value={formatUptime(r?.uptimeSeconds)} />
-          <AdminMetric label="Version" value={r?.version ?? null} />
-          <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="Deployment SHA" />
-          <AdminMetric label="Chain" value={r?.chainId ?? null} hint="chainId" />
-          <AdminMetric label="Indexer Interval" value={intervalDetail(scheduler?.intervalMs)} />
-        </div>
+      {/*
+        Deployment facts: six peers, no headline among them, so they compose as a
+        balanced 3 × 2 block rather than the old `sm:grid-cols-2 lg:grid-cols-4`,
+        which put four on the first row and marooned two on the left of an empty
+        one.
+
+        `AdminMetricGrid count={6}` would give `lg:grid-cols-6`; at 1440 that is
+        roughly 165px per tile, too thin for a commit SHA or an environment name
+        at the standard numeric size. Explicit spans on the 12-column grid give a
+        full last row at every breakpoint: 3 across at lg (span 4), 2 at md
+        (md 4 of 8), 1 at base — 6, 6 and 6 tiles with nothing stranded.
+
+        Order is by meaning, one row per idea: deployment identity, then running
+        state. Every tile carries exactly one caption — the runtime field it
+        reads — so the tiles in a row are the same height and the caption doubles
+        as provenance on a page whose job is technical verification.
+      */}
+      <AdminSection
+        title="Deployment"
+        description="Version, environment, and scheduler settings as reported by the runtime probe"
+      >
+        <AdminGrid>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Environment" value={r?.environment ?? null} hint="environment" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Version" value={r?.version ?? null} hint="version" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="commitSha" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Uptime" value={formatUptime(r?.uptimeSeconds)} hint="uptimeSeconds" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Chain" value={r?.chainId ?? null} hint="chainId" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric
+              label="Indexer Interval"
+              value={intervalDetail(scheduler?.intervalMs)}
+              hint="indexerScheduler.intervalMs"
+            />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
 
+      {/*
+        Raw payloads. The runtime probe carries the whole deployment picture and
+        takes the full 12 columns; health and ready are one-line orchestrator
+        answers and pair off at 6 each, so the row closes exactly. Declared spans
+        rather than a bare `lg:grid-cols-2`, which left the runtime block and the
+        pair on two unrelated grids.
+      */}
       <AdminSection title="Raw Responses" description="Full payload for technical verification">
-        <EndpointSection endpointId="runtime" title="Runtime" />
-        <div className="grid gap-4 lg:grid-cols-2">
-          <EndpointSection endpointId="health" title="Health" />
-          <EndpointSection endpointId="ready" title="Ready" />
-        </div>
+        <AdminGrid>
+          <AdminCol span={12}>
+            <EndpointSection endpointId="runtime" title="Runtime" />
+          </AdminCol>
+          <AdminCol span={6} md={4}>
+            <EndpointSection endpointId="health" title="Health" />
+          </AdminCol>
+          <AdminCol span={6} md={4}>
+            <EndpointSection endpointId="ready" title="Ready" />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
     </AdminPage>
   )

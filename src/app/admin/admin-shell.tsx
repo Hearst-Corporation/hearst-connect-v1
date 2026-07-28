@@ -50,19 +50,14 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
       </SidebarHeader>
 
       <SidebarBody>
-        {/* A single list: every page is one click away, no section title or
-            group to expand. The rule marks the break, not a heading. */}
+        {/* Five primary destinations. Everything else is reached from
+            Administration, which lights up while you are on one of them. */}
         <SidebarSection>
           {ADMIN_NAV.map((entree) => (
-            <div key={entree.href}>
-              {entree.separateurAvant ? (
-                <hr aria-hidden="true" className="my-2 border-t border-zinc-950/5 dark:border-white/5" />
-              ) : null}
-              <SidebarItem href={entree.href} current={entree.href === actif}>
-                <entree.icone data-slot="icon" />
-                <SidebarLabel>{entree.libelle}</SidebarLabel>
-              </SidebarItem>
-            </div>
+            <SidebarItem key={entree.href} href={entree.href} current={entree.href === actif}>
+              <entree.icone data-slot="icon" />
+              <SidebarLabel>{entree.libelle}</SidebarLabel>
+            </SidebarItem>
           ))}
         </SidebarSection>
       </SidebarBody>
@@ -105,7 +100,7 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
   return (
     <div className="cockpit-theme dark contents">
       <CockpitSidebarLayout navbar={navbar} sidebar={sidebar}>
-        <div className="w-full">{children}</div>
+        {children}
       </CockpitSidebarLayout>
     </div>
   )

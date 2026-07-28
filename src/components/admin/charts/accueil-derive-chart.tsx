@@ -1,8 +1,19 @@
 'use client'
 
-import { chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/lib/chart-theme'
 import { formatNumber } from '@/lib/format'
-import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
 /**
  * "Has the portfolio drifted from its target, and on which side?"
@@ -17,14 +28,36 @@ import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis
  * basis points.
  *
  * The backend exposes NO contractual rebalancing tolerance. The threshold
- * below is therefore a READING threshold, presented as such and announced
- * in the chart frame: it colors, it does not claim to be a contract rule.
+ * below is therefore a READING threshold, presented as such and named in the
+ * chart's own legend: it colors, it does not claim to be a contract rule.
+ *
+ * ── Why exactly two tones, and why one of them may be semantic ────────────
+ * A colour is allowed to be alarming here only because the bar it paints
+ * genuinely crossed the threshold this component states. So there are two
+ * tones and no third: below the threshold a bar carries no verdict and takes
+ * the ordinary data mint (`chartTheme.dataSeries.brandPrimary`); at or above
+ * it, the bar takes `chartTheme.semantic.warning`, the token reserved for
+ * exactly that claim. Nothing else on the canvas borrows a semantic colour —
+ * the zero reference, the ticks and the grid come from the neutral data
+ * tokens, and no hex is written by hand.
+ *
+ * ── Why the canvas is short, and why the numbers are on the bars ──────────
+ * Height is derived from the number of pockets (`chartHeight('rows', n)`)
+ * rather than fixed: three pockets get three rows of canvas instead of
+ * floating in a box sized for twelve. And each bar carries its own value, so
+ * the chart reads without hovering — the tooltip adds the pocket's full
+ * name, it is not where the number lives.
  */
 
 /** Gap from which a pocket is flagged. Reading threshold, not a contract. */
 export const SEUIL_DERIVE_ATTENTION_BPS = 200
 /** Beyond this, the gap stops being an observation and becomes a decision. */
 export const SEUIL_DERIVE_CRITIQUE_BPS = 500
+
+/** No verdict: the ordinary measurement colour. */
+const TON_DANS_PLAGE = chartTheme.dataSeries.brandPrimary
+/** A verdict, and the only one this chart is entitled to make. */
+const TON_SIGNALE = chartTheme.semantic.warning
 
 export type PocheDerive = {
   readonly poche: string
@@ -44,6 +77,43 @@ function formatPoints(points: number): string {
   return `${sign}${formatNumber(points, { maximumFractionDigits: 2 })} pt`
 }
 
+/**
+ * Signed, and without the unit: the unit is stated once, in the frame around
+ * the chart. Repeating "pt" on every tick and every bar turns the canvas into
+ * a wall of suffixes.
+ */
+function formatPointsCompact(points: number): string {
+  return formatNumber(points, { maximumFractionDigits: 1, signDisplay: 'exceptZero' })
+}
+
+/**
+ * Direct value labels, in two passes.
+ *
+ * Recharts positions a whole label list at once, but a diverging bar wants
+ * its label at the OUTER end — right of a positive bar, left of a negative
+ * one. So two lists are rendered, and each accessor returns `null` for the
+ * sign it doesn't own; recharts draws nothing for a null label.
+ */
+type ValeurEtiquette = Readonly<{ value: unknown }>
+
+function pointsDe(entry: ValeurEtiquette): number | null {
+  const brut = entry.value
+  if (typeof brut !== 'number' || !Number.isFinite(brut)) return null
+  return brut
+}
+
+function etiquetteVersLaDroite(entry: ValeurEtiquette): string | null {
+  const points = pointsDe(entry)
+  if (points === null || points < 0) return null
+  return formatPointsCompact(points)
+}
+
+function etiquetteVersLaGauche(entry: ValeurEtiquette): string | null {
+  const points = pointsDe(entry)
+  if (points === null || points >= 0) return null
+  return formatPointsCompact(points)
+}
+
 function ChartTooltip({
   active,
   payload,
@@ -52,7 +122,7 @@ function ChartTooltip({
   const barre = payload[0]?.payload
   if (barre === undefined) return null
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
       <p className="font-medium text-zinc-950 dark:text-white">{barre.libelle}</p>
       <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">
         {formatPoints(barre.points)} {barre.points < 0 ? 'below target' : 'above target'}
@@ -64,7 +134,10 @@ function ChartTooltip({
 export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly PocheDerive[] }>) {
   if (poches.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+      // Left-aligned and sized to its sentence, exactly like the empty state
+      // `ChartFrame` renders around it: two absences that look different are
+      // read as two different problems.
+      <p className="px-5 pb-5 text-xs leading-relaxed text-zinc-500 sm:px-6 dark:text-zinc-400">
         No readable drift. Nothing is plotted rather than a bar at zero, which would read as “pocket perfectly
         aligned.”
       </p>
@@ -79,12 +152,19 @@ export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly Poche
   }))
 
   // Axis symmetric around zero: without it, a single pocket in negative
-  // drift would occupy the full width and look catastrophic.
+  // drift would occupy the full width and look catastrophic. The 1.35 factor
+  // is not decoration — it is the room the direct value labels need at the
+  // outer end of the longest bar, inside the plot area.
   const amplitude = Math.max(1, ...barres.map((b) => Math.abs(b.points)))
-  const borne = Math.ceil(amplitude * 1.25 * 10) / 10
+  const borne = Math.ceil(amplitude * 13.5) / 10
+
+  // Ticks imposed, never left to the library: on its own recharts picks a
+  // "round" step that skips zero, and zero is precisely the reference the
+  // reader is looking for.
+  const graduations = [-borne, -borne / 2, 0, borne / 2, borne]
 
   return (
-    <div className="px-2 py-4">
+    <div className="px-5 pb-5 sm:px-6">
       {/* Only version readable by screen reader and keyboard. Wrapped in a
           div, not applied to the table itself: a <table> ignores
           width/max-width and sizes to its content regardless, so the
@@ -111,61 +191,81 @@ export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly Poche
         </table>
       </div>
 
-      <div aria-hidden="true" className={`${chartTheme.height.small} w-full`}>
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', barres.length) }}>
         <ResponsiveContainer width="100%" height="100%">
-          {/* Tighter than the shared base margin: this is a compact,
-              single-row-per-pocket list, and the narrow category axis
-              (width=40) already reserves its own space. */}
-          <BarChart data={barres} layout="vertical" margin={{ ...chartTheme.margin, top: 4, right: 12, bottom: 4, left: 4 }}>
+          {/* Base margin from the shared token, with the vertical padding
+              tightened and the left edge given up entirely: the category axis
+              reserves its own width, so a left margin on top of it would only
+              push the bars away from their labels. */}
+          <BarChart data={barres} layout="vertical" margin={{ ...chartTheme.margin, top: 4, bottom: 4, left: 0 }}>
+            {/* Vertical rules only, at the ticks, and faint: they situate a
+                value, they are not part of the data. */}
+            <CartesianGrid
+              stroke={chartTheme.grid}
+              strokeOpacity={chartTheme.gridOpacity}
+              strokeDasharray="2 4"
+              horizontal={false}
+            />
             <XAxis
               type="number"
               domain={[-borne, borne]}
+              ticks={graduations}
+              tickFormatter={formatPointsCompact}
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
-              unit=" pt"
             />
+            {/* The short pocket code, not its full label: this chart lives in
+                the narrow column of the home screen, and a wrapped or clipped
+                name would cost more width than it returns. The full name is
+                in the tooltip and in the table above. */}
             <YAxis
               type="category"
               dataKey="poche"
-              width={40}
+              width={44}
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
             />
-            <ReferenceLine x={0} stroke={chartTheme.series.reference} strokeWidth={1} />
+            <ReferenceLine x={0} stroke={chartTheme.dataSeries.dataReference} strokeWidth={1} />
             <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor }} />
             {/* Animation disabled, as everywhere in the console: a bar that
                 grows from zero delays reading without teaching anything. */}
-            <Bar dataKey="points" radius={2} maxBarSize={18} isAnimationActive={false}>
+            <Bar dataKey="points" radius={2} maxBarSize={16} isAnimationActive={false}>
               {barres.map((b) => (
-                <Cell
-                  key={b.poche}
-                  fill={b.attention ? chartTheme.series.warning : chartTheme.series.primary}
-                />
+                <Cell key={b.poche} fill={b.attention ? TON_SIGNALE : TON_DANS_PLAGE} />
               ))}
+              <LabelList
+                position="right"
+                offset={6}
+                fill={chartTheme.tick}
+                fontSize={chartTheme.axisFontSize}
+                valueAccessor={etiquetteVersLaDroite}
+              />
+              <LabelList
+                position="left"
+                offset={6}
+                fill={chartTheme.tick}
+                fontSize={chartTheme.axisFontSize}
+                valueAccessor={etiquetteVersLaGauche}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Color never carries the information alone: the legend names the
-          threshold, and the table above gives the reading pocket by pocket. */}
-      <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-3 text-[11px] text-zinc-500 dark:text-zinc-400">
+      {/* Colour never carries the information alone: the legend names the
+          threshold that earns the second tone, and the table above gives the
+          reading pocket by pocket. Left-aligned on the card's text column, so
+          it reads as a footnote to the chart rather than a caption centred
+          under a picture. */}
+      <ul className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
         <li className="flex items-center gap-1.5">
-          <span
-            aria-hidden="true"
-            className="size-2 shrink-0 rounded-full"
-            style={{ background: chartTheme.series.primary }}
-          />
+          <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: TON_DANS_PLAGE }} />
           Within reading range
         </li>
         <li className="flex items-center gap-1.5">
-          <span
-            aria-hidden="true"
-            className="size-2 shrink-0 rounded-full"
-            style={{ background: chartTheme.series.warning }}
-          />
+          <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: TON_SIGNALE }} />
           Flagged — gap of at least {SEUIL_DERIVE_ATTENTION_BPS / 100} pt
         </li>
       </ul>

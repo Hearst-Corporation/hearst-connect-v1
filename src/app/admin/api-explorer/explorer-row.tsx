@@ -16,7 +16,7 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
     <button
       type="button"
       onClick={() => navigator.clipboard.writeText(text)}
-      className="rounded border border-zinc-950/10 dark:border-white/10 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+      className="rounded border border-zinc-950/10 dark:border-console-line px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
     >
       Copy
     </button>
@@ -47,7 +47,7 @@ export function ExplorerRow({
   const blockedLabel = unrunnableLabel(endpoint.method, pathParams)
 
   return (
-    <div className="border-b border-zinc-950/5 dark:border-white/5 px-4 py-3 last:border-b-0">
+    <div className="border-b border-zinc-950/5 dark:border-console-line-soft px-4 py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-zinc-950 dark:text-white">{endpoint.method}</span>
         <span className="font-mono text-xs break-all text-zinc-950 dark:text-white">{endpoint.path}</span>
@@ -62,7 +62,7 @@ export function ExplorerRow({
             <button
               type="submit"
               disabled={pending}
-              className="rounded border border-zinc-950/10 dark:border-white/10 px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+              className="rounded border border-zinc-950/10 dark:border-console-line px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
             >
               {pending ? 'Calling…' : 'Run'}
             </button>
@@ -92,7 +92,7 @@ export function ExplorerRow({
 
       <details className="mt-2">
         <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (token redacted)</summary>
-        <pre className="mt-1 overflow-x-auto rounded bg-zinc-50/80 dark:bg-zinc-950/50 p-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{curl}</pre>
+        <pre className="mt-1 overflow-x-auto rounded bg-zinc-50/80 dark:bg-console-inset p-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{curl}</pre>
       </details>
 
       {isKeeper ? (

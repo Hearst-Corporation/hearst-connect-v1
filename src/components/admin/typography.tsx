@@ -1,26 +1,35 @@
+import { pageMaxWidth, pageSectionGap } from '@/lib/layout-tokens'
 import clsx from 'clsx'
 
 /**
  * Admin typography — canonical scale.
  *
- * text-{size}/{line-height}, mobile-first, Catalyst-aligned.
+ * The rejected version made an H1 look like an ordinary card title: page
+ * title 24px, section title 18px, surface title 14px — three steps crammed
+ * into a 10px range, so nothing anchored the page. The scale below opens
+ * those steps up:
  *
- * Document order: H1 page title / H2 section title / H3 surface title / H4 subsection-in-surface.
- * `display` is an opt-in class for rare full-bleed headlines — it is not part of the routine
- * heading flow and must never be the only thing standing between two H1s on a page.
+ *   H1 page title    30 → 36px   the page anchor, unmistakable
+ *   H2 section title 20px        clearly a level below, never a card title
+ *   H3 surface title 16px        the title of one card
+ *   body             14px        prose
+ *   caption / label  12 / 11px   visibly secondary, never mistaken for a title
+ *
+ * `display` stays an opt-in class for rare full-bleed headlines; it is not
+ * part of the routine heading flow.
  */
 
 export const adminTypography = {
-  display: 'text-3xl/9 font-semibold tracking-tight text-zinc-950 dark:text-white',
-  pageTitle: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 dark:text-white',
-  sectionTitle: 'text-lg/7 font-semibold tracking-tight text-zinc-950 dark:text-white',
-  surfaceTitle: 'text-sm/6 font-semibold text-zinc-950 dark:text-white',
+  display: 'text-4xl/11 font-semibold tracking-tight text-zinc-950 dark:text-white',
+  pageTitle: 'text-3xl/9 font-semibold tracking-tight text-zinc-950 sm:text-4xl/10 dark:text-white',
+  sectionTitle: 'text-xl/7 font-semibold tracking-tight text-zinc-950 dark:text-white',
+  surfaceTitle: 'text-base/6 font-semibold text-zinc-950 dark:text-white',
   bodyLarge: 'text-base/7 text-zinc-500 dark:text-zinc-400',
   body: 'text-sm/6 text-zinc-500 dark:text-zinc-400',
   caption: 'text-xs/5 text-zinc-500 dark:text-zinc-400',
-  label: 'text-xs/5 font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
+  label: 'text-[0.6875rem]/4 font-medium uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400',
   numericHero: 'text-4xl/10 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-5xl/10 dark:text-white',
-  numericStandard: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-3xl/8 dark:text-white',
+  numericStandard: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white',
   mono: 'font-mono text-xs/5 text-zinc-500 dark:text-zinc-400',
 } as const
 
@@ -82,12 +91,23 @@ export function AdminNumericValue({
   return <Tag className={clsx(adminTypography.numericStandard, className)}>{children}</Tag>
 }
 
-/** Admin page container — owns the page's vertical rhythm. Nothing else may add page-level space-y. */
+/**
+ * Admin page container — owns the readable measure and the page's vertical
+ * rhythm. Nothing else may add page-level `space-y`, and nothing else may
+ * declare a competing `max-w`: identical margins on every route depend on
+ * this component being the only owner.
+ */
 export function AdminPage({ children, className }: TypoProps) {
-  return <div className={clsx('mx-auto w-full max-w-[1600px] space-y-8', className)}>{children}</div>
+  return <div className={clsx('mx-auto w-full', pageMaxWidth, pageSectionGap, className)}>{children}</div>
 }
 
-/** Card/panel header — title, optional description, optional trailing action. */
+/**
+ * Card/panel header — title, optional description, optional trailing action.
+ *
+ * The bordered rule is gone: a bordered header inside a bordered panel was
+ * one of the nested frames the visual review rejected. Space separates the
+ * header from the body now.
+ */
 export function AdminSurfaceHeader({
   title,
   description,
@@ -103,11 +123,11 @@ export function AdminSurfaceHeader({
     <div
       className={clsx(
         className,
-        'mb-5 border-b border-zinc-950/5 pb-4 dark:border-white/5',
+        'mb-4',
         action && 'flex flex-wrap items-start justify-between gap-3',
       )}
     >
-      <div>
+      <div className="min-w-0">
         <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         {description ? (
           <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>

@@ -1,8 +1,10 @@
-import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { Card, CardHeader, HeroFigure, SourceAttendue } from '@/components/admin/cockpit'
+import { AdminCol, AdminGrid, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { AdminSection } from '@/components/admin/surfaces'
+import { AdminMetric } from '@/components/admin/surfaces'
 import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
+import { formatNumber } from '@/lib/format'
 import {
   adresseCourte,
   dateLisible,
@@ -29,6 +31,17 @@ export const dynamic = 'force-dynamic'
  * happened", and the breakdown by type, which answers "what is this log made
  * of". No total is computed here: adding a deposit to a mining statement
  * would produce a number that means nothing.
+ *
+ * ── Composition ────────────────────────────────────────────────────────────
+ * The screen is opened from the Administration index, not from the sidebar,
+ * so the H1 and its description have to introduce the log on their own.
+ *
+ * Under the title, two declared blocks on the 12-column grid: the count of
+ * movements as the primary measure on 5 columns with its three supporting
+ * measures balanced across the remaining 7, then the feed on 8 columns with
+ * the breakdown by type in the secondary column. The feed is the long
+ * content on this page, so it takes the main span; the breakdown is a
+ * summary of it and belongs beside it, not above it.
  */
 
 type Mouvement = {
@@ -63,6 +76,11 @@ function JournalVide({ motif }: Readonly<{ motif: string | undefined }>) {
   )
 }
 
+/**
+ * One absence, stated once. An unread log and an empty log are two different
+ * facts, so they get two different sentences — but never two stacked states
+ * saying the same thing.
+ */
 function CorpsJournal({
   reponseOk,
   mouvements,
@@ -92,16 +110,10 @@ export default async function Page() {
     <AdminPage>
       <PageHeader
         title="Series 1 Log"
-        description="Everything the chain has recorded for this fund, most recent to oldest. Every line comes from the service; nothing here is aggregated or estimated."
+        description="Every movement the chain has recorded for the Series 1 fund, most recent to oldest. Each line comes straight from the service — nothing here is aggregated, estimated, or totalled across movement types."
       />
 
-      <AdminSection>
-
       <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
-
-      {/* Below the fold: the detailed response stays available for anyone who
-          wants to verify a field, never forced on whoever comes to read the log. */}
-      </AdminSection>
     </AdminPage>
   )
 }
@@ -121,55 +133,71 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
   const financiers = mouvements.filter(estFinancier)
   const dernier = mouvements[0]
 
+  // `ilYA` already renders '—' when the chain gave no timestamp; handing the
+  // tile a null instead lets it style the absence like every other one.
+  const dernierIlYA = ilYA(dernier.occurredAt)
+
   return (
     <>
-      <Card className="p-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-          <HeroFigure valeur={mouvements.length.toLocaleString('en-US')} libelle="Movements recorded" />
-          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <SideFact libelle="Distinct types" valeur={String(repartition.length)} />
-            <SideFact
-              libelle="With an amount"
-              valeur={financiers.length === 0 ? 'none' : String(financiers.length)}
+      {/* The count of movements is the page's primary measure and keeps the
+          wide span; the three facts that qualify it are equal tiles, and
+          `count` keeps their row full rather than stranding one on the left. */}
+      <AdminGrid>
+        <AdminCol span={5}>
+          <Card className="h-full p-6">
+            <HeroFigure valeur={formatNumber(mouvements.length)} libelle="Movements recorded" />
+          </Card>
+        </AdminCol>
+        <AdminCol span={7}>
+          <AdminMetricGrid count={3} className="h-full">
+            <AdminMetric label="Distinct types" value={repartition.length} />
+            <AdminMetric
+              label="With an amount"
+              value={financiers.length === 0 ? 'none' : formatNumber(financiers.length)}
             />
-            <SideFact libelle="Last movement" valeur={ilYA(dernier.occurredAt)} />
-          </dl>
-        </div>
-      </Card>
+            <AdminMetric label="Last movement" value={dernierIlYA === '—' ? null : dernierIlYA} />
+          </AdminMetricGrid>
+        </AdminCol>
+      </AdminGrid>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <CardHeader
-            title="What is this log made of?"
-            hint={`${mouvements.length} movement${mouvements.length > 1 ? 's' : ''} across ${repartition.length} type${repartition.length > 1 ? 's' : ''}`}
-          />
-          <ul className="space-y-3 px-5 py-4">
-            {repartition.map(([nom, nombre]) => (
-              <li key={nom}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate text-xs text-zinc-600 dark:text-zinc-300">{nom}</span>
-                  <span className="shrink-0 text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{nombre}</span>
-                </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                  <div
-                    className="h-full rounded-full bg-accent-400"
-                    style={{ width: `${Math.round((nombre / maximum) * 100)}%` }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader title="What happened?" hint="Most recent first" />
-          <ol className="divide-y divide-zinc-950/5 dark:divide-white/5">
-            {mouvements.map((m) => (
-              <LigneMouvement key={m.id} mouvement={m} />
-            ))}
-          </ol>
-        </Card>
-      </div>
+      <AdminTableSplit
+        main={
+          <Card>
+            <CardHeader title="What happened?" hint="Most recent first" />
+            <ol className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+              {mouvements.map((m) => (
+                <LigneMouvement key={m.id} mouvement={m} />
+              ))}
+            </ol>
+          </Card>
+        }
+        aside={
+          <Card>
+            <CardHeader
+              title="What is this log made of?"
+              hint={`${mouvements.length} movement${mouvements.length > 1 ? 's' : ''} across ${repartition.length} type${repartition.length > 1 ? 's' : ''}`}
+            />
+            <ul className="space-y-3 px-5 pb-5 sm:px-6">
+              {repartition.map(([nom, nombre]) => (
+                <li key={nom}>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 truncate text-xs text-zinc-600 dark:text-zinc-300">{nom}</span>
+                    <span className="shrink-0 text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{nombre}</span>
+                  </div>
+                  {/* Mint, not a semantic hue: a movement type is ordinary
+                      data and says nothing about health. */}
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                    <div
+                      className="h-full rounded-full bg-accent-400"
+                      style={{ width: `${Math.round((nombre / maximum) * 100)}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        }
+      />
     </>
   )
 }
@@ -184,22 +212,25 @@ function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
   const bloc = mouvement.blockNumber
 
   return (
-    <li className="px-5 py-3.5">
+    <li className="px-5 py-3.5 sm:px-6">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-sm text-white">{phraseMouvement(mouvement.eventName)}</span>
+        <span className="text-sm text-zinc-950 dark:text-white">{phraseMouvement(mouvement.eventName)}</span>
         {estFinancier(mouvement) ? (
-          <span className="text-sm font-semibold text-accent-300 tabular-nums">
+          <span className="text-sm font-semibold text-accent-600 tabular-nums dark:text-accent-300">
             {montantUsdc(mouvement.assetAmountAtomic)}
           </span>
         ) : null}
-        <span className="ml-auto shrink-0 text-xs text-zinc-500" title={dateLisible(mouvement.occurredAt)}>
+        <span
+          className="ml-auto shrink-0 text-xs text-zinc-500 dark:text-zinc-400"
+          title={dateLisible(mouvement.occurredAt)}
+        >
           {ilYA(mouvement.occurredAt)}
         </span>
       </div>
-      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-zinc-500">
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-zinc-500 dark:text-zinc-400">
         {investisseur !== null ? (
           <span>
-            investor <span className="font-mono text-zinc-400">{investisseur}</span>
+            investor <span className="font-mono text-zinc-600 dark:text-zinc-400">{investisseur}</span>
           </span>
         ) : null}
         {bloc === null || bloc === undefined || bloc === '' ? null : (

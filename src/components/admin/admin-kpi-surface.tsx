@@ -1,11 +1,27 @@
+import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { ComputeHallPoster } from '@/components/admin/compute-hall-poster'
-import { Panel } from '@/components/admin/surface'
 import { formatNumber } from '@/lib/format'
 import type { ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
- * Hierarchical KPI band — HeroKpiBand structure.
+ * The dashboard-overview measure band.
+ *
+ * ── What was wrong ────────────────────────────────────────────────────────
+ * It rendered as one wide slab: a 12-column internal grid whose cells were
+ * separated by 1px background bleed. Eight measures came out as a spreadsheet
+ * — same weight, same size, no reading order — and the slab spanned the full
+ * page whatever it contained.
+ *
+ * ── What it is now ────────────────────────────────────────────────────────
+ * The recipe the review asked for: a primary metric holding 5 of 12 columns,
+ * the supporting metrics in a balanced grid across the remaining 7. Without a
+ * primary metric the supporting grid takes the full width — still balanced,
+ * because `AdminMetricGrid` picks a column count that leaves no orphan in the
+ * last row.
+ *
+ * Each measure is its own tile with a real gutter between them, so size and
+ * spacing carry the hierarchy instead of a hairline.
  */
 
 export type AdminKpiItem = {
@@ -30,12 +46,41 @@ function displayValue(item: AdminKpiItem): string {
   return value
 }
 
+/**
+ * Tone is a CLAIM about the value, so only `success` / `warning` / `danger`
+ * colour anything — `accent` and `default` stay neutral. A measure that is
+ * merely large is not a good measure.
+ */
 const TONE_VALUE: Record<NonNullable<AdminKpiItem['tone']>, string> = {
   default: 'text-zinc-950 dark:text-white',
   success: 'text-success-600 dark:text-success-400',
   warning: 'text-warning-600 dark:text-warning-400',
   danger: 'text-danger-600 dark:text-danger-400',
   accent: 'text-zinc-950 dark:text-white',
+}
+
+const TILE = 'rounded-xl bg-white p-4 ring-1 ring-zinc-950/10 dark:bg-console-card dark:ring-console-line'
+
+function KpiTile({ item }: Readonly<{ item: AdminKpiItem }>) {
+  return (
+    <div className={clsx(TILE, 'min-w-0')}>
+      <dt className="text-[0.6875rem]/4 font-medium tracking-[0.08em] text-zinc-500 uppercase dark:text-zinc-400">
+        {item.label}
+      </dt>
+      <dd
+        className={clsx(
+          'mt-1.5 text-2xl/8 font-semibold tracking-tight tabular-nums break-words',
+          TONE_VALUE[item.tone ?? 'default'],
+        )}
+        title={item.status ?? undefined}
+      >
+        {displayValue(item)}
+      </dd>
+      {item.hint ? (
+        <dd className="mt-1 truncate text-xs/5 text-zinc-500 dark:text-zinc-400">{item.hint}</dd>
+      ) : null}
+    </div>
+  )
 }
 
 export function AdminKpiSurface({
@@ -47,62 +92,50 @@ export function AdminKpiSurface({
   items: readonly AdminKpiItem[]
   className?: string
 }>) {
+  const supporting = (
+    <AdminMetricGrid as="dl" count={items.length}>
+      {items.map((item) => (
+        <KpiTile key={item.id} item={item} />
+      ))}
+    </AdminMetricGrid>
+  )
+
+  if (hero === undefined) return <div className={className}>{supporting}</div>
+
   return (
-    <Panel inset="none" className={clsx(className, 'relative isolate overflow-hidden')}>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="dc-cockpit-band absolute inset-y-0 right-0 hidden w-2/5 items-end overflow-hidden lg:flex">
-          <ComputeHallPoster
-            bays={5}
-            className="text-accent-700 opacity-[0.12] dark:text-accent-400 dark:opacity-[0.18]"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-px bg-zinc-950/5 lg:grid-cols-12 dark:bg-white/5">
-        {hero ? (
-          <div className="bg-white px-6 py-7 lg:col-span-4 dark:bg-zinc-900">
-            <dt className="text-xs font-medium uppercase tracking-[0.12em] text-accent-600 dark:text-accent-400">
+    <AdminGrid className={className}>
+      <AdminCol span={5}>
+        {/* The decorative compute-hall band rides on the primary metric only:
+            behind a grid of small tiles it read as noise in an empty region. */}
+        <div className={clsx(TILE, 'relative isolate h-full overflow-hidden px-6 py-6')}>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+            <div className="dc-cockpit-band absolute inset-y-0 right-0 hidden w-3/5 items-end overflow-hidden sm:flex">
+              <ComputeHallPoster
+                bays={5}
+                className="text-accent-700 opacity-[0.12] dark:text-accent-400 dark:opacity-[0.18]"
+              />
+            </div>
+          </div>
+          <dl>
+            <dt className="text-[0.6875rem]/4 font-medium tracking-[0.08em] text-accent-600 uppercase dark:text-accent-400">
               {hero.label}
             </dt>
             <dd
               className={clsx(
-                'mt-3 text-nowrap text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl xl:text-6xl',
+                'mt-2 text-nowrap text-4xl/10 font-semibold tracking-tight tabular-nums sm:text-5xl/12',
                 TONE_VALUE[hero.tone ?? 'accent'],
               )}
               title={hero.status ?? undefined}
             >
               {displayValue(hero)}
             </dd>
-            {hero.hint ? <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{hero.hint}</p> : null}
-          </div>
-        ) : null}
-        <dl
-          className={clsx(
-            'grid grid-cols-2 gap-px bg-zinc-950/5 dark:bg-white/5',
-            // Without `hero`, the list occupies the FULL width: without this
-            // col-span it inherited just one of the parent's 12 columns and
-            // collapsed into unreadable columns.
-            hero ? 'lg:col-span-8 lg:grid-cols-3' : 'lg:col-span-12 lg:grid-cols-4',
-          )}
-        >
-          {items.map((item) => (
-            <div key={item.id} className="bg-white px-4 py-4 dark:bg-zinc-900">
-              <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{item.label}</dt>
-              <dd
-                className={clsx(
-                  'mt-1 text-2xl font-semibold tracking-tight tabular-nums',
-                  TONE_VALUE[item.tone ?? 'default'],
-                )}
-                title={item.status ?? undefined}
-              >
-                {displayValue(item)}
-              </dd>
-              {item.hint ? (
-                <p className="mt-0.5 text-[10px] leading-tight text-zinc-400 dark:text-zinc-500">{item.hint}</p>
-              ) : null}
-            </div>
-          ))}
-        </dl>
-      </div>
-    </Panel>
+            {hero.hint ? (
+              <dd className="mt-2 text-xs/5 text-zinc-500 dark:text-zinc-400">{hero.hint}</dd>
+            ) : null}
+          </dl>
+        </div>
+      </AdminCol>
+      <AdminCol span={7}>{supporting}</AdminCol>
+    </AdminGrid>
   )
 }

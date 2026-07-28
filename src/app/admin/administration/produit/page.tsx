@@ -1,7 +1,9 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { Card, HeroFigure, SideFact } from '@/components/admin/cockpit'
+import { Card, HeroFigure } from '@/components/admin/cockpit'
+import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { AdminSection } from '@/components/admin/surfaces'
+import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
+import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminPage } from '@/components/admin/typography'
 import {
   ReserveExpositionChart,
@@ -14,11 +16,11 @@ import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSerieDe } from '@/lib/serie-etat'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Product' }
+export const metadata: Metadata = { title: 'Consolidated product view' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Product — one surface for six former pages.
+ * Consolidated product view — one surface for six former pages.
  *
  * `Vault`, `Mining`, `BTC`, `Product`, `Backtest` and `Series 1` used to be
  * six navigation entries that each dumped the raw response of their route.
@@ -32,6 +34,18 @@ export const dynamic = 'force-dynamic'
  * the route responds there's nothing left to redraw. No series is fabricated
  * in the meantime — a test forbids it, and reading it as a real measurement
  * would be worse than showing nothing.
+ *
+ * ── Composition ────────────────────────────────────────────────────────────
+ * The screen is opened from the Administration index rather than the
+ * sidebar, so its H1 and description have to say what it consolidates
+ * without the menu around them doing that work.
+ *
+ * Every frame declares a span instead of stretching to whatever the row has
+ * left, and none of them declares a height any more: a plotted chart sizes
+ * itself from its own data, and an empty state is as tall as its sentence.
+ * The three frames still waiting on a source are grouped under one heading
+ * that explains the wait once, instead of three unexplained empty boxes
+ * scattered through the page.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
@@ -57,6 +71,15 @@ type Factsheet = {
 type Backtest = { readonly runs?: Resolu<unknown> }
 
 const etatDe = etatSerieDe
+
+/**
+ * The shared formatters already render an absence as '—'. A measure tile
+ * styles its own absence, so it wants a null rather than that dash: this
+ * turns one into the other without ever turning it into a zero.
+ */
+function ouRien(texte: string): string | null {
+  return texte === '—' ? null : texte
+}
 
 function etatCourbe(
   points: readonly PointCourbe[],
@@ -89,7 +112,10 @@ export default async function Page() {
   const hashrate = m?.hashrate?.value
   const sats = b?.btcProduced?.value?.totalSats
   const satsNombre = sats === undefined || sats === null ? null : Number(sats)
-  const bitcoinProduit = satsNombre === null ? '—' : formatNumber(satsNombre / 100_000_000, { maximumFractionDigits: 4 })
+  const bitcoinProduit =
+    satsNombre === null || !Number.isFinite(satsNombre)
+      ? null
+      : formatNumber(satsNombre / 100_000_000, { maximumFractionDigits: 4 })
 
   // Reserve and exposure — two real amounts, comparable on the same scale.
   const reserveUsdc = b?.reserve?.value?.balanceUsdc
@@ -101,6 +127,10 @@ export default async function Page() {
   if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
     postes.push({ poste: 'Exposure', montant: Number(expositionUsdc) / 1_000_000, accent: true })
   }
+  // Two amounts make a comparison; one makes a bar floating against an axis
+  // that promises a second one. When only a single position is readable, the
+  // honest rendering is the amount itself.
+  const seulPoste = postes.length === 1 ? postes[0] : undefined
 
   // Reward curve. The service returns five real points, all at zero on this
   // deployment: the curve isn't parameterized yet. Drawing a flat line would
@@ -112,85 +142,120 @@ export default async function Page() {
       : courbeBrute.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
   const courbeParametree = points.some((p) => p.taux !== 0)
 
+  const plafond = f?.tvlCap?.value
+
   return (
     <AdminPage>
       <PageHeader
-        title="Product"
-        description="What the fund produces, where its money sits, and how its reward evolves. Six former views brought together here."
+        title="Consolidated product view"
+        description="Production, reserve and reward terms for the fund on a single screen — what used to be six separate portfolio and production pages, each showing one route's raw response."
       />
 
-      <AdminSection>
-
-      {/* ── What the fund produces ──────────────────────────────────────── */}
-      <Card className="p-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-          <HeroFigure
-            valeur={hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—'}
-            libelle="Reported hashrate"
-            unite="TH/s"
-          />
-          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <SideFact libelle="Bitcoin produced" valeur={`${bitcoinProduit} BTC`} />
-            <SideFact
-              libelle="Monthly electricity cost"
-              valeur={formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })}
+      {/* ── What the fund produces ──────────────────────────────────────────
+          The hashrate is the measure this page leads with, so it takes five
+          columns; the three figures that qualify it are equal tiles across
+          the remaining seven, and `count` keeps their row full. */}
+      <AdminGrid>
+        <AdminCol span={5}>
+          <Card className="h-full p-6">
+            <HeroFigure
+              valeur={hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—'}
+              libelle="Reported hashrate"
+              unite="TH/s"
             />
-            <SideFact
-              libelle="Fund cap"
-              valeur={f?.tvlCap?.value ? formatCurrency(f.tvlCap.value, { decimals: 0 }) : '—'}
+          </Card>
+        </AdminCol>
+        <AdminCol span={7}>
+          <AdminMetricGrid count={3} className="h-full">
+            <AdminMetric label="Bitcoin produced" value={bitcoinProduit} unit="BTC" />
+            <AdminMetric
+              label="Monthly electricity cost"
+              value={ouRien(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 }))}
             />
-          </dl>
-        </div>
-      </Card>
+            <AdminMetric
+              label="Fund cap"
+              value={plafond ? ouRien(formatCurrency(plafond, { decimals: 0 })) : null}
+            />
+          </AdminMetricGrid>
+        </AdminCol>
+      </AdminGrid>
 
-      {/* ── Charts ──────────────────────────────────────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ChartFrame
-          question="Where does the fund's money sit?"
-          unite="in dollars"
-          etat={
-            postes.length > 0
-              ? { type: 'tracee' }
-              : { type: 'attendue', explication: 'Neither the reserve nor the exposure could be read on-chain.' }
-          }
-          hauteur="h-44"
-        >
-          <ReserveExpositionChart postes={postes} />
-        </ChartFrame>
+      {/* ── Where the money sits, and what it pays ─────────────────────── */}
+      <AdminSection
+        title="Reserve and reward"
+        description="The two readings the product is actually measured on today: how its capital is split, and what the contract pays over its maturities."
+      >
+        <AdminGrid>
+          <AdminCol span={6}>
+            <ChartFrame
+              question="Where does the fund's money sit?"
+              unite="in dollars"
+              etat={
+                postes.length > 0
+                  ? { type: 'tracee' }
+                  : { type: 'attendue', explication: 'Neither the reserve nor the exposure could be read on-chain.' }
+              }
+            >
+              {seulPoste === undefined ? (
+                <ReserveExpositionChart postes={postes} />
+              ) : (
+                /* `periode` labels what the single value covers — here the
+                   position it belongs to, since a balance covers no period. */
+                <SingleObservation
+                  valeur={formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
+                  periode={seulPoste.poste}
+                  contexte="The other position could not be read on-chain."
+                  note="Only one of the two positions is readable — reserve and exposure cannot be compared yet."
+                />
+              )}
+            </ChartFrame>
+          </AdminCol>
 
-        <ChartFrame
-          question="How does the reward evolve over time?"
-          unite="in percent, per month"
-          etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
-        >
-          <VendingCurveChart points={points} />
-        </ChartFrame>
-      </div>
+          <AdminCol span={6}>
+            <ChartFrame
+              question="How does the reward evolve over time?"
+              unite="in percent, per month"
+              etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
+            >
+              <VendingCurveChart points={points} />
+            </ChartFrame>
+          </AdminCol>
+        </AdminGrid>
+      </AdminSection>
 
       {/* ── Frames waiting on their source ─────────────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <ChartFrame
-          question="How does performance compare to history?"
-          unite="in percent"
-          etat={etatDe(
-            backtest.ok ? backtest.data.runs : undefined,
-            'No backtest has been run on this deployment yet.',
-          )}
-          hauteur="h-40"
-        />
-        <ChartFrame
-          question="Where does the yield come from?"
-          unite="as a percentage of total"
-          etat={etatDe(b?.attribution, 'The yield breakdown has not been calculated yet.')}
-          hauteur="h-40"
-        />
-        <ChartFrame
-          question="How does the fleet perform over time?"
-          unite="in TH/s"
-          etat={etatDe(m?.operationalTelemetry, 'Operational telemetry has not been transmitted yet.')}
-          hauteur="h-40"
-        />
-      </div>
+      <AdminSection
+        title="Not measurable yet"
+        description="Three views whose question, axis and unit are already decided. None of them draws anything until the service supplies its series — a placeholder curve would read as a measurement."
+      >
+        {/* Three equal thirds. Each frame states its own reason for waiting;
+            the heading above states, once, why they are grouped. */}
+        <AdminGrid>
+          <AdminCol span={4}>
+            <ChartFrame
+              question="How does performance compare to history?"
+              unite="in percent"
+              etat={etatDe(
+                backtest.ok ? backtest.data.runs : undefined,
+                'No backtest has been run on this deployment yet.',
+              )}
+            />
+          </AdminCol>
+          <AdminCol span={4}>
+            <ChartFrame
+              question="Where does the yield come from?"
+              unite="as a percentage of total"
+              etat={etatDe(b?.attribution, 'The yield breakdown has not been calculated yet.')}
+            />
+          </AdminCol>
+          <AdminCol span={4}>
+            <ChartFrame
+              question="How does the fleet perform over time?"
+              unite="in TH/s"
+              etat={etatDe(m?.operationalTelemetry, 'Operational telemetry has not been transmitted yet.')}
+            />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
     </AdminPage>
   )

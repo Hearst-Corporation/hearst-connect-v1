@@ -1,4 +1,5 @@
-import { RequirementList, surfaceRaised, surfaceSunken } from '@/components/admin/surface'
+import { RequirementList, surfaceRaised } from '@/components/admin/surface'
+import { sectionContentGap } from '@/lib/layout-tokens'
 import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, AdminSurfaceTitle, adminTypography } from '@/components/admin/typography'
 import {
   ProblemState,
@@ -59,13 +60,13 @@ export function AdminSection({
   const hasHeader = Boolean(title || actions || description)
 
   return (
-    <section id={id} className={clsx(className, hasHeader && 'border-t border-zinc-950/10 pt-8 dark:border-white/10')}>
+    <section id={id} className={clsx(className, hasHeader && 'border-t border-zinc-950/10 pt-8 dark:border-console-line')}>
       {hasHeader ? (
         <>
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
             <div className="flex items-baseline gap-3">
               {index ? (
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-zinc-200/80 text-xs font-semibold tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-zinc-200/80 text-[0.6875rem] font-semibold tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                   {index}
                 </span>
               ) : null}
@@ -73,10 +74,19 @@ export function AdminSection({
             </div>
             {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
           </div>
-          {description ? <AdminBody className="mt-2 max-w-3xl">{description}</AdminBody> : null}
+          {description ? <AdminBody className="mt-1.5 max-w-3xl">{description}</AdminBody> : null}
         </>
       ) : null}
-      <div className={clsx(hasHeader && 'mt-5', surfaceSunken, 'space-y-6 p-6')}>{children}</div>
+      {/*
+        A section is NOT a card.
+
+        It used to wrap its children in a sunken, ringed, padded panel — so
+        every card on the page sat inside a second box that carried no
+        information of its own, and the whole console read as boxes inside
+        boxes. A section separates with a rule above and space below; the
+        cards inside it are the only surfaces.
+      */}
+      <div className={clsx(hasHeader && 'mt-6', sectionContentGap)}>{children}</div>
     </section>
   )
 }
@@ -102,11 +112,18 @@ export function AdminMetric({
     value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
 
   return (
-    <div className={clsx(className, 'min-w-0 rounded-lg bg-zinc-50/80 dark:bg-zinc-950/40 px-4 py-3.5 ring-1 ring-white/10')}>
+    <div
+      className={clsx(
+        className,
+        // A tile is its own surface now that a section is no longer a card:
+        // one ring, one background, no second frame around it.
+        'min-w-0 rounded-xl bg-white p-4 ring-1 ring-zinc-950/10 dark:bg-console-card dark:ring-console-line',
+      )}
+    >
       <AdminLabel>{label}</AdminLabel>
       <p className="mt-1.5 flex items-baseline gap-2">
         {displayable ? (
-          <span className={adminTypography.numericStandard}>
+          <span className={clsx(adminTypography.numericStandard, 'break-words')}>
             {typeof value === 'number' ? formatNumber(value) : value}
             {unit ? <span className="ml-1 text-sm/6 font-medium text-zinc-500 dark:text-zinc-400">{unit}</span> : null}
           </span>
@@ -114,7 +131,7 @@ export function AdminMetric({
           <span className={clsx(adminTypography.numericStandard, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'No value'}>—</span>
         )}
       </p>
-      {hint ? <AdminCaption className="mt-1.5">{hint}</AdminCaption> : null}
+      {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
     </div>
   )
 }
@@ -156,7 +173,7 @@ export function AdminTable<T>({
     <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-950/10 dark:border-white/10 text-xs text-zinc-500 dark:text-zinc-400">
+          <tr className="border-b border-zinc-950/10 dark:border-console-line text-xs text-zinc-500 dark:text-zinc-400">
             {columns.map((col) => (
               <th key={col.key} scope="col" className={clsx(col.className, 'px-4 py-3 font-medium')}>
                 {col.header}
@@ -164,7 +181,7 @@ export function AdminTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-950/5 dark:divide-white/5">
+        <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
           {rows.map((row) => (
             <tr key={keyFn(row)} className="hover:bg-white/[0.03]">
               {columns.map((col) => (
@@ -200,15 +217,20 @@ export function AdminStatus({
 
 /* ── States ───────────────────────────────────────────────────────────────── */
 
+/**
+ * One concise absence. Left-aligned and sized to its sentence: a centered
+ * block with 40px of vertical padding announced an outage, when all it had
+ * to say was "nothing here yet".
+ */
 export function AdminEmptyState({
   title,
   description,
   children,
 }: Readonly<{ title: string; description?: string; children?: React.ReactNode }>) {
   return (
-    <div className="px-6 py-10 text-center">
+    <div className="px-5 py-6 sm:px-6">
       <AdminSurfaceTitle as="p">{title}</AdminSurfaceTitle>
-      {description ? <AdminBody className="mt-2">{description}</AdminBody> : null}
+      {description ? <AdminBody className="mt-1.5 max-w-prose">{description}</AdminBody> : null}
       {children}
     </div>
   )
@@ -241,16 +263,20 @@ export function AdminLoadingState({ message = 'Loading…' }: Readonly<{ message
   )
 }
 
+/**
+ * Same state as `SourceAttendue`, in the surfaces vocabulary. One card, one
+ * list — the ringed inner box that used to hold the requirements is gone.
+ */
 export function AdminSourceAttendue({
   quoi,
   detail,
   requis,
 }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
   return (
-    <div className={clsx(surfaceRaised, 'px-5 py-6 sm:px-6')}>
+    <div className={clsx(surfaceRaised, 'p-6')}>
       <AdminSurfaceTitle as="p">{quoi}</AdminSurfaceTitle>
-      <AdminBody className="mt-2">{detail}</AdminBody>
-      <div className="mt-5 rounded-lg bg-zinc-50 px-4 py-3 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
+      <AdminBody className="mt-1.5 max-w-prose">{detail}</AdminBody>
+      <div className="mt-4 max-w-prose">
         <AdminLabel>Expected source</AdminLabel>
         <RequirementList requis={requis} />
       </div>
@@ -268,7 +294,7 @@ export function AdminToolbar({
     <div
       className={clsx(
         className,
-        'flex flex-wrap items-center gap-3 rounded-lg bg-zinc-50/80 dark:bg-zinc-950/40 px-4 py-3 ring-1 ring-zinc-950/10 dark:ring-white/10',
+        'flex flex-wrap items-center gap-3 rounded-lg bg-zinc-50/80 dark:bg-console-inset px-4 py-3 ring-1 ring-zinc-950/10 dark:ring-console-line',
       )}
     >
       {children}
@@ -373,13 +399,13 @@ export function AdminStatusMatrix({ rows, title }: Readonly<{ rows: readonly Sta
   return (
     <AdminSurface>
       {title ? (
-        <div className="border-b border-white/5 px-5 py-4 sm:px-6 sm:py-5">
+        <div className="px-5 pt-5 pb-3 sm:px-6">
           <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         </div>
       ) : null}
-      <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
+      <ul className="divide-y divide-zinc-950/5 pb-1 dark:divide-console-line-soft">
         {rows.map((row) => (
-          <li key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5 sm:px-6">
+          <li key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 sm:px-6">
             <span
               aria-hidden="true"
               className={clsx('size-1.5 shrink-0 rounded-full', MATRIX_DOT[row.ton ?? 'neutre'])}
@@ -414,7 +440,7 @@ export function AdminProbeResult({
   keeper?: KeeperActionResult | null
 }>) {
   return (
-    <div className="rounded-lg bg-zinc-50/80 dark:bg-zinc-950/50 p-3 ring-1 ring-zinc-950/10 dark:ring-white/10">
+    <div className="rounded-lg bg-zinc-50/80 dark:bg-console-inset p-3 ring-1 ring-zinc-950/10 dark:ring-console-line">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>

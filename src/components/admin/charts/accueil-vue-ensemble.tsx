@@ -1,6 +1,8 @@
 import { CapacityBar } from '@/components/admin/capacity-bar'
 import { HeroFigure } from '@/components/admin/cockpit'
+import { AdminGrid, AdminCol, AdminMetricGrid } from '@/components/admin/grid'
 import { surfaceRaised } from '@/components/admin/surface'
+import { AdminCaption, AdminLabel } from '@/components/admin/typography'
 import clsx from 'clsx'
 
 /**
@@ -17,11 +19,24 @@ import clsx from 'clsx'
  * the same number a second time: two representations of the same figure on
  * the same screen isn't useful redundancy, it's noise.
  *
+ * ── Composition ───────────────────────────────────────────────────────────
+ * ONE card. The previous version drew hairline gutters between its cells and
+ * then hung the verdicts in a second bordered strip underneath, so a single
+ * surface read as four stacked frames. Now the card holds a real 12-column
+ * row — the portfolio figure claims 5 columns, the capacity bar the
+ * remaining 7, neither of them "whatever is left" — and the verdicts sit
+ * below it as a balanced group separated by one hairline and some space.
+ *
  * Verdicts are never a color alone: each one carries a WORD.
  */
 
 export type TonVerdict = 'neutre' | 'sain' | 'attention' | 'critique'
 
+/**
+ * Success / warning / danger are spent here deliberately: a verdict is a
+ * claim about state, which is exactly what these colors are reserved for.
+ * `neutre` stays grey — an unqualified verdict is not an alarm.
+ */
 const TON_TEXTE: Record<TonVerdict, string> = {
   neutre: 'text-zinc-500 dark:text-zinc-400',
   sain: 'text-success-600 dark:text-success-400',
@@ -39,23 +54,33 @@ export type VerdictAccueil = {
   readonly detail?: string
 }
 
+/**
+ * One verdict. No surface of its own: it lives inside the overview card, and
+ * a ringed tile inside a ringed card is the frame-in-frame the review
+ * rejected. Space and alignment do the grouping.
+ */
 function Verdict({ verdict }: Readonly<{ verdict: VerdictAccueil }>) {
   return (
-    <div className="min-w-0 px-5 py-4">
+    <li className="min-w-0">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{verdict.libelle}</p>
-        <span className={clsx('flex shrink-0 items-center gap-1.5 text-[11px] font-medium', TON_TEXTE[verdict.ton])}>
+        <AdminLabel className="truncate">{verdict.libelle}</AdminLabel>
+        <span
+          className={clsx(
+            'flex shrink-0 items-center gap-1.5 text-[0.6875rem]/4 font-medium',
+            TON_TEXTE[verdict.ton],
+          )}
+        >
           <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
           {verdict.mot}
         </span>
       </div>
-      <p className="mt-1 truncate text-xl font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white">
+      {/* Deliberately a step below the hero figure: this is a supporting
+          reading, not the headline number. */}
+      <p className="mt-1.5 truncate text-xl/7 font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white">
         {verdict.valeur}
       </p>
-      {verdict.detail ? (
-        <p className="mt-0.5 truncate text-[11px] text-zinc-500 dark:text-zinc-400">{verdict.detail}</p>
-      ) : null}
-    </div>
+      {verdict.detail ? <AdminCaption className="mt-0.5 truncate">{verdict.detail}</AdminCaption> : null}
+    </li>
   )
 }
 
@@ -75,29 +100,31 @@ export function AccueilVueEnsemble({
   verdicts: readonly VerdictAccueil[]
 }>) {
   return (
-    <section aria-label="Portfolio overview" className={clsx(surfaceRaised, 'overflow-hidden')}>
-      <div className="grid grid-cols-1 gap-px bg-zinc-950/5 lg:grid-cols-12 dark:bg-white/5">
-        <div className="bg-white px-5 py-6 sm:px-6 lg:col-span-5 dark:bg-zinc-900">
+    <section aria-label="Portfolio overview" className={clsx(surfaceRaised, 'p-6')}>
+      <AdminGrid>
+        <AdminCol span={5} md={4}>
           {/* No unit passed to `HeroFigure`: `montantUsdc` already renders
               the symbol, adding one would produce "$1,177,859 USDC". */}
           <HeroFigure valeur={encours} libelle="Portfolio assets" />
-          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{encoursLegende}</p>
-        </div>
-        <div className="bg-white px-5 py-6 sm:px-6 lg:col-span-7 dark:bg-zinc-900">
-          <p className="mb-3 text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-            Subscription cap consumed
-          </p>
-          <CapacityBar utiliseBps={utiliseBps} disponible={disponible} total={plafond} />
-        </div>
-      </div>
+          <AdminCaption className="mt-2">{encoursLegende}</AdminCaption>
+        </AdminCol>
+        <AdminCol span={7} md={4}>
+          <AdminLabel>Subscription cap consumed</AdminLabel>
+          <div className="mt-3">
+            <CapacityBar utiliseBps={utiliseBps} disponible={disponible} total={plafond} />
+          </div>
+        </AdminCol>
+      </AdminGrid>
 
       {verdicts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-px border-t border-zinc-950/5 bg-zinc-950/5 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/5 dark:bg-white/5">
-          {verdicts.map((v) => (
-            <div key={v.id} className="bg-white dark:bg-zinc-900">
-              <Verdict verdict={v} />
-            </div>
-          ))}
+        <div className="mt-6 border-t border-zinc-950/5 pt-5 dark:border-console-line-soft">
+          {/* `AdminMetricGrid` is told how many verdicts there are so the last
+              row is never two items stranded on the left of an empty one. */}
+          <AdminMetricGrid as="ul" count={verdicts.length}>
+            {verdicts.map((v) => (
+              <Verdict key={v.id} verdict={v} />
+            ))}
+          </AdminMetricGrid>
         </div>
       ) : null}
     </section>
