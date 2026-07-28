@@ -33,7 +33,7 @@ const COLONNES_ATTENDUES = [
 type LigneVide = Record<string, never>
 
 function cellVide(_row: LigneVide) {
-  return <span className="text-brand-muted">—</span>
+  return <span className="text-zinc-500 dark:text-zinc-400">—</span>
 }
 
 const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_ATTENDUES.map((header) => ({
@@ -44,20 +44,21 @@ const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_ATTENDUES.map(
 
 export default function Page() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Clients"
         description="Organisations, personnes et portefeuilles — annuaire en attente de source backend."
       />
 
-      <AdminToolbar>
-        <span className="text-sm text-brand-muted">Recherche — inactive</span>
-        <span className="text-xs text-brand-muted">·</span>
-        <span className="text-sm text-brand-muted">Filtres — en attente de source</span>
-        <span className="ml-auto text-xs text-brand-muted">Tri et pagination disponibles à l’arrivée de la source</span>
-      </AdminToolbar>
-
-      <AdminSection title="Annuaire" description="Table prête — aucune donnée simulée">
+      <AdminSection title="Annuaire" description="Table prête — aucune donnée simulée" index="01">
+        <AdminToolbar>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">Recherche — inactive</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">·</span>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">Filtres — en attente de source</span>
+          <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
+            Tri et pagination disponibles à l’arrivée de la source
+          </span>
+        </AdminToolbar>
         <AdminSurface>
           <AdminTable
             rows={[]}
@@ -73,15 +74,17 @@ export default function Page() {
         </AdminSurface>
       </AdminSection>
 
-      <AdminSourceAttendue
-        quoi="Endpoints attendus"
-        detail="Organisations et investisseurs ne sont pas encore exposés en HTTP."
-        requis={[
-          'Entité Organisation dans le modèle de données',
-          'GET annuaire avec encours, conformité et risque',
-          'Rattachement personnes, portefeuilles et souscriptions',
-        ]}
-      />
+      <AdminSection title="Sources" description="Ce que le service doit encore exposer" index="02">
+        <AdminSourceAttendue
+          quoi="Endpoints attendus"
+          detail="Organisations et investisseurs ne sont pas encore exposés en HTTP."
+          requis={[
+            'Entité Organisation dans le modèle de données',
+            'GET annuaire avec encours, conformité et risque',
+            'Rattachement personnes, portefeuilles et souscriptions',
+          ]}
+        />
+      </AdminSection>
     </div>
   )
 }

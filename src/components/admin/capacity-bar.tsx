@@ -55,19 +55,19 @@ export function CapacityBar({
       <div
         role="img"
         aria-label={`Plafond utilisé à ${pourcent.toFixed(2)} pour cent`}
-        className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-surface-sunken"
+        className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
       >
         <div className={clsx('h-full rounded-full', barreTon)} style={{ width: `${largeur}%` }} />
       </div>
 
       <dl className="mt-3 flex flex-wrap justify-between gap-x-6 gap-y-1 text-xs">
         <div className="flex gap-1.5">
-          <dt className="text-zinc-500">Encore disponible</dt>
-          <dd className="text-zinc-300 tabular-nums">{disponible}</dd>
+          <dt className="text-zinc-500 dark:text-zinc-400">Encore disponible</dt>
+          <dd className="text-zinc-700 tabular-nums dark:text-zinc-300">{disponible}</dd>
         </div>
         <div className="flex gap-1.5">
-          <dt className="text-zinc-500">Plafond</dt>
-          <dd className="text-zinc-300 tabular-nums">{total}</dd>
+          <dt className="text-zinc-500 dark:text-zinc-400">Plafond</dt>
+          <dd className="text-zinc-700 tabular-nums dark:text-zinc-300">{total}</dd>
         </div>
       </dl>
     </div>

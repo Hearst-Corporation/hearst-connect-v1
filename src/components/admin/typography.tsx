@@ -11,17 +11,17 @@ import clsx from 'clsx'
  */
 
 export const adminTypography = {
-  h1: 'text-2xl/8 font-semibold tracking-tight text-brand-foreground',
-  h2: 'text-base/7 font-semibold tracking-tight text-brand-foreground sm:text-sm/6',
-  h3: 'text-sm/6 font-semibold text-brand-foreground',
-  body: 'text-sm/6 text-brand-muted',
-  caption: 'text-xs/5 text-brand-muted',
-  label: 'text-xs/5 font-medium uppercase tracking-wide text-brand-muted',
-  kpiHero: 'text-4xl/10 font-semibold tracking-tight tabular-nums sm:text-5xl/10',
-  kpiValue: 'text-2xl/8 font-semibold tracking-tight tabular-nums sm:text-3xl/8',
-  endpoint: 'font-mono text-xs/5 text-brand-muted',
-  navLabel: 'text-sm/6 font-medium text-brand-foreground',
-  navHint: 'text-xs/5 text-brand-muted',
+  h1: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 dark:text-white',
+  h2: 'text-base/7 font-semibold tracking-tight text-zinc-950 sm:text-sm/6 dark:text-white',
+  h3: 'text-sm/6 font-semibold text-zinc-950 dark:text-white',
+  body: 'text-sm/6 text-zinc-500 dark:text-zinc-400',
+  caption: 'text-xs/5 text-zinc-500 dark:text-zinc-400',
+  label: 'text-xs/5 font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
+  kpiHero: 'text-4xl/10 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-5xl/10 dark:text-white',
+  kpiValue: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-3xl/8 dark:text-white',
+  endpoint: 'font-mono text-xs/5 text-zinc-500 dark:text-zinc-400',
+  navLabel: 'text-sm/6 font-medium text-zinc-950 dark:text-white',
+  navHint: 'text-xs/5 text-zinc-500 dark:text-zinc-400',
 } as const
 
 type TypoProps = Readonly<{ children: React.ReactNode; className?: string }>

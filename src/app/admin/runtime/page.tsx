@@ -168,7 +168,7 @@ export default async function RuntimePage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Runtime et infrastructure"
         description="Matrice d’état, métriques de déploiement et réponses brutes des sondes."

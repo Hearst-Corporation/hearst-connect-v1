@@ -25,7 +25,7 @@ const COLONNES_DOSSIER = ['Référence', 'Organisation', 'Segment', 'Ancienneté
 type LigneVide = Record<string, never>
 
 function cellVide(_row: LigneVide) {
-  return <span className="text-brand-muted">—</span>
+  return <span className="text-zinc-500 dark:text-zinc-400">—</span>
 }
 
 const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_DOSSIER.map((header) => ({
@@ -38,7 +38,7 @@ const FILTER_ITEMS = SEGMENTS.map((s) => ({ id: s.id, label: s.label, title: s.a
 
 export default function Page() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Conformité"
         description="File d’instruction KYC/KYB. Segments du parcours dossier — compteurs vides tant qu’aucune source n’est branchée."
@@ -55,8 +55,8 @@ export default function Page() {
             keyFn={() => ''}
             empty={
               <div className="px-6 py-10 text-center">
-                <p className="text-sm font-semibold text-brand-foreground">Aucun dossier transmis</p>
-                <p className="mx-auto mt-2 max-w-xl text-sm text-brand-muted">
+                <p className="text-sm font-semibold text-zinc-950 dark:text-white">Aucun dossier transmis</p>
+                <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">
                   Les segments ci-dessus décrivent le parcours réel. Aucun zéro n’est affiché — cela signifierait « rien à traiter ».
                 </p>
               </div>
@@ -66,16 +66,18 @@ export default function Page() {
         </AdminSurface>
       </AdminSection>
 
-      <AdminSourceAttendue
-        quoi="Endpoints KYC/KYB en attente"
-        detail="Le détail dossier (UBO, sanctions, PEP, historique) s’ouvrira dans un panneau latéral à l’arrivée de la source."
-        requis={[
-          'Lecture des dossiers avec état, ancienneté et échéance',
-          'Détail : bénéficiaires effectifs, pièces, contrôles sanctions et PEP',
-          'Actions de décision uniquement si exposées par le backend',
-          'Assignation analyste et journal des décisions',
-        ]}
-      />
+      <AdminSection title="Sources" description="Endpoints KYC/KYB en attente">
+        <AdminSourceAttendue
+          quoi="Endpoints KYC/KYB en attente"
+          detail="Le détail dossier (UBO, sanctions, PEP, historique) s’ouvrira dans un panneau latéral à l’arrivée de la source."
+          requis={[
+            'Lecture des dossiers avec état, ancienneté et échéance',
+            'Détail : bénéficiaires effectifs, pièces, contrôles sanctions et PEP',
+            'Actions de décision uniquement si exposées par le backend',
+            'Assignation analyste et journal des décisions',
+          ]}
+        />
+      </AdminSection>
     </div>
   )
 }

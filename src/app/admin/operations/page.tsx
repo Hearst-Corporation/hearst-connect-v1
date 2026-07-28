@@ -58,12 +58,12 @@ function barresParType(mouvements: readonly MouvementIndexe[] | null) {
 }
 
 function cellType(m: MouvementIndexe) {
-  return <span className="text-brand-foreground">{libelleMouvement(m.eventName)}</span>
+  return <span className="text-zinc-950 dark:text-white">{libelleMouvement(m.eventName)}</span>
 }
 
 function cellMontant(m: MouvementIndexe) {
   return (
-    <span className="font-semibold text-brand-accent tabular-nums">
+    <span className="font-semibold text-accent-600 dark:text-accent-400 tabular-nums">
       {m.assetAmountAtomic !== null ? montantUsdc(m.assetAmountAtomic) : '—'}
     </span>
   )
@@ -78,7 +78,7 @@ function cellBloc(m: MouvementIndexe) {
 }
 
 function cellDate(m: MouvementIndexe) {
-  return <span className="text-brand-muted">{dateLisible(m.occurredAt)}</span>
+  return <span className="text-zinc-500 dark:text-zinc-400">{dateLisible(m.occurredAt)}</span>
 }
 
 function renderTxHash(chainId: number | undefined, txHash: string) {
@@ -87,7 +87,7 @@ function renderTxHash(chainId: number | undefined, txHash: string) {
   if (!court) return '—'
   if (!url) return court
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="text-brand-accent hover:underline">
+    <a href={url} target="_blank" rel="noopener noreferrer" className="text-accent-600 dark:text-accent-400 hover:underline">
       {court}
     </a>
   )
@@ -163,16 +163,16 @@ function SectionRebalancing({ rebalancing }: Readonly<{ rebalancing: BackendResu
   return (
     <AdminSurface className="px-5 py-4">
       <AdminStatus status={statusFromMeta(rebalancing.meta)} />
-      {rebalancing.meta?.reason ? <p className="mt-2 text-xs text-brand-muted">{rebalancing.meta.reason}</p> : null}
+      {rebalancing.meta?.reason ? <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{rebalancing.meta.reason}</p> : null}
       <details className="mt-3">
-        <summary className="cursor-pointer text-xs text-brand-muted hover:text-brand-foreground">
+        <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">
           Réponse enveloppée
         </summary>
-        <pre className="mt-2 max-h-48 overflow-auto font-mono text-xs text-brand-muted">
+        <pre className="mt-2 max-h-48 overflow-auto font-mono text-xs text-zinc-500 dark:text-zinc-400">
           {JSON.stringify(rebalancing.data, null, 2)}
         </pre>
       </details>
-      <Link href="/admin/keeper" className="mt-3 inline-block text-sm text-brand-accent hover:underline">
+      <Link href="/admin/keeper" className="mt-3 inline-block text-sm text-accent-600 dark:text-accent-400 hover:underline">
         Actions keeper (rééquilibrage) →
       </Link>
     </AdminSurface>
@@ -191,7 +191,7 @@ export default async function Page() {
   const barres = barresParType(mouvements)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Opérations"
         description="Validations en attente, rééquilibrage et registre des mouvements on-chain."

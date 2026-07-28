@@ -157,10 +157,12 @@ export function HeroFigure({
 }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
   return (
     <div>
-      <p className="text-xs tracking-wide text-zinc-400 uppercase">{libelle}</p>
+      <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">{libelle}</p>
       <p className="mt-1.5 flex items-baseline gap-2">
-        <span className="text-4xl font-semibold tracking-tight text-white tabular-nums sm:text-5xl">{valeur}</span>
-        {unite ? <span className="text-base text-zinc-400">{unite}</span> : null}
+        <span className="text-4xl font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-5xl dark:text-white">
+          {valeur}
+        </span>
+        {unite ? <span className="text-base text-zinc-500 dark:text-zinc-400">{unite}</span> : null}
       </p>
     </div>
   )
@@ -170,8 +172,8 @@ export function HeroFigure({
 export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
   return (
     <div className="min-w-0">
-      <p className="truncate text-xs text-zinc-400">{libelle}</p>
-      <p className="mt-0.5 truncate text-sm text-zinc-200 tabular-nums">{valeur}</p>
+      <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{libelle}</p>
+      <p className="mt-0.5 truncate text-sm text-zinc-700 tabular-nums dark:text-zinc-200">{valeur}</p>
     </div>
   )
 }
@@ -194,13 +196,13 @@ export function SourceAttendue({
 }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
   return (
     <Card className="px-6 py-10 text-center">
-      <p className="text-sm font-semibold text-white">{quoi}</p>
-      <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">{detail}</p>
-      <div className="mx-auto mt-6 max-w-md rounded-lg bg-surface-sunken px-4 py-3 text-left">
-        <p className="text-xs tracking-wide text-zinc-400 uppercase">Ce qu’il manque</p>
+      <p className="text-sm font-semibold text-zinc-950 dark:text-white">{quoi}</p>
+      <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">{detail}</p>
+      <div className="mx-auto mt-6 max-w-md rounded-lg bg-zinc-50 px-4 py-3 text-left ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
+        <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Ce qu’il manque</p>
         <ul className="mt-2 space-y-1">
           {requis.map((r) => (
-            <li key={r} className="flex gap-2 text-sm text-zinc-300">
+            <li key={r} className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300">
               <span aria-hidden="true" className="text-zinc-400">
                 ·
               </span>
@@ -219,7 +221,7 @@ export function CalmState({ message }: Readonly<{ message: string }>) {
   return (
     <Card className="flex items-center gap-3 px-5 py-6">
       <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-success-500" />
-      <p className="text-sm text-zinc-300">{message}</p>
+      <p className="text-sm text-zinc-600 dark:text-zinc-300">{message}</p>
     </Card>
   )
 }

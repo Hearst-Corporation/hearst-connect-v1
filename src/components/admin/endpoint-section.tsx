@@ -1,5 +1,7 @@
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { endpointById } from '@/lib/backend/endpoints'
+import { CockpitSection } from '@/components/admin/cockpit-section'
+import { surfaceRaised } from '@/components/admin/surface'
 import {
   EmptyState,
   EnvelopeMetaLine,
@@ -69,32 +71,26 @@ export async function EndpointSection({
       (typeof result.data === 'object' && result.data !== null && Object.keys(result.data).length === 0))
 
   return (
-    <section className="rounded-xl border border-white/10 bg-cockpit-card p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold text-white">{title ?? endpoint.summary}</h2>
-          <p className="mt-0.5 font-mono text-xs text-zinc-500">
-            {endpoint.method} {result.trace.path}
+    <CockpitSection
+      title={title ?? endpoint.summary}
+      description={`${endpoint.method} ${result.trace.path}`}
+      actions={result.ok ? <EnvelopeMetaLine meta={result.meta} /> : undefined}
+    >
+      <div className={`${surfaceRaised} p-5`}>
+        {endpoint.caveat ? (
+          <p className="mb-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300">
+            {endpoint.caveat}
           </p>
-        </div>
-        {result.ok ? <EnvelopeMetaLine meta={result.meta} /> : null}
-      </div>
+        ) : null}
 
-      {endpoint.caveat ? (
-        <p className="mt-3 rounded border border-hearst-warn/25 bg-hearst-warn/5 px-3 py-2 text-xs text-hearst-warn">
-          {endpoint.caveat}
-        </p>
-      ) : null}
-
-      <div className="mt-4">
         <EndpointBody result={result} isEmpty={isEmpty}>
           {children}
         </EndpointBody>
-      </div>
 
-      <div className="mt-4 border-t border-white/5 pt-3">
-        <RequestMetadata trace={result.trace} />
+        <div className="mt-4 border-t border-zinc-950/5 pt-3 dark:border-white/5">
+          <RequestMetadata trace={result.trace} />
+        </div>
       </div>
-    </section>
+    </CockpitSection>
   )
 }

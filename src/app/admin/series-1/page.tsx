@@ -1,6 +1,7 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
 import {
   adresseCourte,
@@ -88,17 +89,21 @@ export default async function Page() {
   const mouvements = bloc?.value
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Série 1"
         description="Tout ce que la chaîne a enregistré pour ce fonds, du plus récent au plus ancien. Chaque ligne vient du service ; rien n’est agrégé ni estimé ici."
         endpointIds={['series1-events']}
       />
 
+      <CockpitSection>
+
       <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
 
       {/* Le sous-sol : la réponse détaillée reste consultable pour qui veut
           vérifier un champ, jamais imposée à qui vient lire le journal. */}
+      </CockpitSection>
+
       <EndpointSection endpointId="series1-events" title="Réponse détaillée du service" />
     </div>
   )
@@ -145,10 +150,10 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
             {repartition.map(([nom, nombre]) => (
               <li key={nom}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate text-xs text-zinc-300">{nom}</span>
-                  <span className="shrink-0 text-xs text-zinc-500 tabular-nums">{nombre}</span>
+                  <span className="min-w-0 truncate text-xs text-zinc-600 dark:text-zinc-300">{nom}</span>
+                  <span className="shrink-0 text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{nombre}</span>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                   <div
                     className="h-full rounded-full bg-accent-400"
                     style={{ width: `${Math.round((nombre / maximum) * 100)}%` }}
@@ -161,7 +166,7 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
 
         <Card className="lg:col-span-2">
           <CardHeader title="Que s’est-il passé ?" hint="Du plus récent au plus ancien" />
-          <ol className="divide-y divide-white/[0.07]">
+          <ol className="divide-y divide-zinc-950/5 dark:divide-white/5">
             {mouvements.map((m) => (
               <LigneMouvement key={m.id} mouvement={m} />
             ))}

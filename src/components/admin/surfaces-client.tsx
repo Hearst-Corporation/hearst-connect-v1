@@ -22,7 +22,7 @@ export function AdminDetailPanel({
     <>
       <div className="fixed inset-0 z-40 bg-black/60" aria-hidden="true" onClick={onClose} />
       <aside
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-brand-border bg-brand-surface shadow-2xl"
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-zinc-950/10 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-2xl"
         aria-label={title}
       >
         <header className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-4 sm:px-6">
@@ -30,7 +30,7 @@ export function AdminDetailPanel({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-2 py-1 text-sm text-brand-muted hover:text-brand-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent"
+            className="rounded-md px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
           >
             Fermer
           </button>
@@ -57,7 +57,7 @@ export function AdminFilterBarInteractive({
   ariaLabel?: string
 }>) {
   return (
-    <nav className="rounded-xl border border-brand-border/60 bg-brand-surface px-2 py-2" aria-label={ariaLabel}>
+    <nav className="rounded-xl border border-zinc-950/10 dark:border-white/10 bg-white dark:bg-zinc-900 px-2 py-2" aria-label={ariaLabel}>
       <ul className="flex flex-wrap gap-1">
         {items.map((item) => (
           <li key={item.id}>
@@ -67,17 +67,17 @@ export function AdminFilterBarInteractive({
               title={item.title}
               className={clsx(
                 'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition',
-                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
                 item.active
-                  ? 'bg-brand-accent/15 text-brand-accent ring-1 ring-brand-accent/30'
-                  : 'text-brand-muted hover:bg-white/[0.04] hover:text-brand-foreground',
+                  ? 'bg-accent-500/15 text-accent-600 dark:text-accent-400 ring-1 ring-accent-500/30'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-950 dark:hover:text-white',
               )}
             >
               {item.label}
               {item.count !== null && item.count !== undefined ? (
-                <span className="text-xs tabular-nums text-brand-muted">{item.count}</span>
+                <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{item.count}</span>
               ) : (
-                <span className="text-xs text-brand-muted">—</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">—</span>
               )}
             </button>
           </li>

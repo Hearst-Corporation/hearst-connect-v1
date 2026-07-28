@@ -1,6 +1,7 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, HeroFigure, SideFact } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import {
   ReserveExpositionChart,
   VendingCurveChart,
@@ -118,12 +119,14 @@ export default async function Page() {
   const courbeParametree = points.some((p) => p.taux !== 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Produit"
         description="Ce que le fonds produit, où son argent se trouve, et comment sa rémunération évolue. Six anciennes vues réunies ici."
         endpointIds={['mining', 'btc', 'product-factsheet', 'backtest-historical']}
       />
+
+      <CockpitSection>
 
       {/* ── Ce que le fonds produit ─────────────────────────────────────── */}
       <Card className="p-6">
@@ -194,6 +197,7 @@ export default async function Page() {
           hauteur="h-40"
         />
       </div>
+      </CockpitSection>
     </div>
   )
 }

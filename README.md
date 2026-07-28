@@ -54,17 +54,20 @@ src/
 ├── components/
 │   ├── catalyst/               kit officiel, NON modifié
 │   ├── marketing/              blocs vitrine Tailwind Plus
-│   └── admin/                  design system admin (surfaces, charts, truthful)
+│   └── admin/                  design system cockpit (surfaces, sections, charts)
 ├── lib/
 │   ├── backend/                callBackend, registre endpoints, keeper
 │   ├── session.ts              cookie session signé
 │   └── fonts.ts                Satoshi Variable (règle absolue — une seule famille)
-└── styles/tailwind.css         tokens brand-*, accent or, états sémantiques
+└── styles/tailwind.css         tokens zinc + accent (Catalyst), états sémantiques
 ```
 
 ## Console d'administration
 
 Navigation principale (5 sections) : **Accueil · Clients · Conformité · Opérations · Administration**.
+
+Chrome UI unifié (registre Qatar / Hearst Cockpit) sur toutes les pages admin :
+`PageHeader` · `CockpitSection` / `AdminSection` (bandeau sunken) · `Panel` / `AdminSurface` / `Card` (cartes raised) · typo zinc + accent.
 
 - **Accueil** : agrégat `dashboard`, mouvements `series1-events`, sondes `ready`/`runtime`
 - **Clients / Conformité** : structures prêtes (table, filtres) — aucune donnée inventée

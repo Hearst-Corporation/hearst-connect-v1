@@ -2,6 +2,7 @@ import { ChartFrame } from '@/components/admin/chart-frame'
 import { CalmState, Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { ReserveExpositionChart, type PosteBitcoin } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
 import { LIBELLE_MOUVEMENT } from '@/lib/mouvements'
@@ -127,7 +128,7 @@ function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: reado
         title="Que s’est-il passé récemment ?"
         hint="Les mouvements et alertes remontés par le service, du plus récent au plus ancien"
       />
-      <ul className="divide-y divide-white/[0.07]">
+      <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
         {evenements.map((e, index) => {
           const gravite = graviteLisible(e.severity)
           return (
@@ -177,12 +178,14 @@ export default async function Page() {
   const listeEvenements = evenements ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Bitcoin"
         description="Ce que le fonds a produit en bitcoin, comment son argent se partage entre réserve et exposition, et ce qui s’est passé récemment."
         endpointIds={['btc']}
       />
+
+      <CockpitSection>
 
       {b === null ? (
         <SourceAttendue
@@ -230,22 +233,22 @@ export default async function Page() {
                 title="La part exposée respecte-t-elle sa cible ?"
                 hint="Comparaison entre la part visée par le contrat et celle constatée sur la chaîne"
               />
-              <ul className="divide-y divide-white/[0.07]">
+              <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
                 <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                  <span className="w-40 shrink-0 text-zinc-400">Poche exposée</span>
-                  <span className="text-white">
+                  <span className="w-40 shrink-0 text-zinc-500 dark:text-zinc-400">Poche exposée</span>
+                  <span className="text-zinc-950 dark:text-white">
                     {exposition.pouch === null || exposition.pouch === undefined || exposition.pouch === ''
                       ? 'Non communiquée'
                       : exposition.pouch}
                   </span>
                 </li>
                 <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                  <span className="w-40 shrink-0 text-zinc-400">Part visée</span>
-                  <span className="text-white tabular-nums">{partLisible(exposition.targetBps)}</span>
+                  <span className="w-40 shrink-0 text-zinc-500 dark:text-zinc-400">Part visée</span>
+                  <span className="text-zinc-950 tabular-nums dark:text-white">{partLisible(exposition.targetBps)}</span>
                 </li>
                 <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                  <span className="w-40 shrink-0 text-zinc-400">Part constatée</span>
-                  <span className="text-white tabular-nums">{partLisible(exposition.actualBps)}</span>
+                  <span className="w-40 shrink-0 text-zinc-500 dark:text-zinc-400">Part constatée</span>
+                  <span className="text-zinc-950 tabular-nums dark:text-white">{partLisible(exposition.actualBps)}</span>
                 </li>
               </ul>
             </Card>
@@ -302,6 +305,8 @@ export default async function Page() {
 
       {/* La réponse brute reste consultable en bas de page, pour qui veut
           vérifier un champ que la lecture métier n'expose pas. */}
+      </CockpitSection>
+
       <EndpointSection endpointId="btc" title="La réponse complète du service" />
     </div>
   )
