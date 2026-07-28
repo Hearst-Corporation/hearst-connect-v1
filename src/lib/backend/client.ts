@@ -5,6 +5,7 @@ import { getSession } from '@/lib/session'
 import { resolved, type Resolved } from '@/lib/resolved'
 import { authorizationHeader, toBackendRole } from './auth'
 import { BACKEND_ENDPOINTS, resolvePath, type BackendEndpoint } from './endpoints'
+import { stateForHttpFailure } from './http-failure'
 
 /**
  * Client unique du backend Hearst Connect. Serveur uniquement.
@@ -240,7 +241,9 @@ function buildResult<T>(
       problem: isProblem(body) ? body : null,
       keeper: isKeeperResult(body) ? body : null,
       trace: callTrace,
-      state: stateForFailure(response.status, body, path, serverRequestId),
+      state: stateForHttpFailure(response.status, body, path, serverRequestId, {
+        sessionAbsente: 'Session absente, malformée ou expirée.',
+      }),
     }
   }
 
@@ -262,46 +265,6 @@ function buildResult<T>(
   }
 
   return { ok: true, data: body.data as T, meta: body.meta, trace: callTrace }
-}
-
-/**
- * Traduit un échec HTTP en état nommé.
- *
- * Le statut HTTP prime sur le corps : le backend documente qu'un 403 est servi
- * avec un corps `Problems.unauthorized(...)` annonçant `401`. Lire `code`
- * confondrait « non authentifié » et « droits insuffisants ».
- */
-function stateForFailure(
-  httpStatus: number,
-  body: unknown,
-  route: string,
-  requestId: string,
-): Resolved<never> {
-  const provenance = { route, requestId: isProblem(body) ? body.requestId : requestId }
-  const detail = isProblem(body) ? body.detail : null
-
-  // 501 keeper : KeeperActionResult sans `code`, le motif est dans `reason`.
-  if (httpStatus === 501) {
-    const reason = isKeeperResult(body) ? body.reason : 'not_supported_by_contract'
-    return resolved.notSupported(detail ?? `Non implémenté par le backend (${reason}).`, provenance)
-  }
-
-  switch (httpStatus) {
-    case 401:
-      return resolved.permissionDenied(detail ?? 'Session absente, malformée ou expirée.', provenance)
-    case 403:
-      return resolved.permissionDenied(detail ?? 'Droits insuffisants : rôle administrateur requis.', provenance)
-    case 429:
-      return resolved.unavailable(detail ?? 'Quota de requêtes dépassé.', provenance)
-    case 503:
-      return isProblem(body) && body.code === 'NOT_CONFIGURED'
-        ? resolved.notConfigured(detail ?? 'Source non configurée côté backend.', provenance)
-        : resolved.unavailable(detail ?? 'Backend temporairement indisponible.', provenance)
-    case 504:
-      return resolved.unavailable(detail ?? 'Délai dépassé côté passerelle.', provenance)
-    default:
-      return resolved.error(detail ?? `Erreur backend (HTTP ${httpStatus}).`, provenance)
-  }
 }
 
 /** Statut d'enveloppe backend → statut d'affichage, sans requalification. */

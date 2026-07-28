@@ -16,6 +16,8 @@
     "quality:dup": "jscpd src --threshold 100 --reporters consoleFull",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "sonar": "npm run test:coverage && docker run --rm -v \"$(pwd)\":/usr/src -e SONAR_TOKEN -e SONAR_HOST_URL=http://100.88.191.49:9010 sonarsource/sonar-scanner-cli",
     "check:mocks": "node scripts/check-no-mocks.mjs"
   },
   "dependencies": {
@@ -37,6 +39,7 @@
     "@types/node": "^25.6.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@vitest/coverage-v8": "^3.2.7",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.6",
     "jscpd": "^5.0.14",

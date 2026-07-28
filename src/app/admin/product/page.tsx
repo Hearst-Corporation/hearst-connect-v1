@@ -5,6 +5,7 @@ import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
+import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
@@ -48,29 +49,13 @@ type Factsheet = {
   readonly vendingCurve?: Resolu<readonly { month: number; bps: number }[]>
 }
 
-const MOTIF: Record<string, string> = {
+const MOTIF_FICHE = {
+  ...MOTIF_SERIE,
   dynavault_not_deployed: 'ces termes ne sont pas encore ouverts sur le contrat déployé',
-  not_available: 'la source n’est pas encore branchée',
-  not_configured: 'la source n’est pas encore paramétrée',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
-}
-
-function explication(bloc: Resolu<unknown> | undefined, defaut: string): string {
-  const brut = bloc?.reason
-  if (typeof brut !== 'string' || brut === '') return defaut
-  return MOTIF[brut] ?? defaut
 }
 
 function etatDe(bloc: Resolu<unknown> | undefined, defaut: string): EtatSerie {
-  if (bloc === undefined) return { type: 'attendue', explication: defaut }
-  if (bloc.status === 'UNAVAILABLE' || bloc.status === 'ERROR') {
-    return { type: 'indisponible', explication: explication(bloc, defaut) }
-  }
-  if (bloc.status !== 'LIVE' || bloc.value === null) {
-    return { type: 'attendue', explication: explication(bloc, defaut) }
-  }
-  return { type: 'tracee' }
+  return etatSerieDe(bloc, defaut, MOTIF_FICHE)
 }
 
 function usdc(atomique: string | number | null | undefined, decimales = 0): string {

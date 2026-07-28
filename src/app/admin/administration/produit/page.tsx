@@ -8,6 +8,7 @@ import {
   type PosteBitcoin,
 } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
+import { etatSerieDe } from '@/lib/serie-etat'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Produit' }
@@ -52,31 +53,7 @@ type Factsheet = {
 
 type Backtest = { readonly runs?: Resolu<unknown> }
 
-const MOTIF: Record<string, string> = {
-  dynavault_not_deployed: 'cette mesure n’est pas encore ouverte sur le contrat déployé',
-  not_available: 'la source n’est pas encore branchée',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
-}
-
-/** Traduit un motif machine, ou reste muet plutôt que de le laisser fuir. */
-function explication(bloc: Resolu<unknown> | undefined, defaut: string): string {
-  const brut = bloc?.reason
-  if (typeof brut !== 'string' || brut === '') return defaut
-  return MOTIF[brut] ?? defaut
-}
-
-/** Décide l'état d'un cadre à partir du statut réel renvoyé par le service. */
-function etatDe(bloc: Resolu<unknown> | undefined, defaut: string): EtatSerie {
-  if (bloc === undefined) return { type: 'attendue', explication: defaut }
-  if (bloc.status === 'UNAVAILABLE' || bloc.status === 'ERROR') {
-    return { type: 'indisponible', explication: explication(bloc, defaut) }
-  }
-  if (bloc.status !== 'LIVE' || bloc.value === null) {
-    return { type: 'attendue', explication: explication(bloc, defaut) }
-  }
-  return { type: 'tracee' }
-}
+const etatDe = etatSerieDe
 
 function usdc(atomique: string | null | undefined, decimales = 0): string {
   if (atomique === null || atomique === undefined || atomique === '') return '—'

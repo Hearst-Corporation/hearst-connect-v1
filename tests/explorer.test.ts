@@ -9,6 +9,7 @@ describe('explorer URLs', () => {
 
   it('génère un lien Base Sepolia', () => {
     expect(explorerTxUrl(84532, '0xabc')).toBe('https://sepolia.basescan.org/tx/0xabc')
+    expect(explorerAddressUrl(84532, '0xdead')).toBe('https://sepolia.basescan.org/address/0xdead')
   })
 
   it('refuse hash ou adresse absents', () => {
@@ -18,5 +19,6 @@ describe('explorer URLs', () => {
 
   it('refuse chaîne non reconnue', () => {
     expect(explorerTxUrl(1, '0xabc')).toBeNull()
+    expect(explorerAddressUrl(1, '0xdead')).toBeNull()
   })
 })
