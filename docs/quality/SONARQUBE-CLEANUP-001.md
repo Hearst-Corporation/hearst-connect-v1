@@ -80,48 +80,63 @@ Résultats avant modification :
 
 Captures stockées sous `docs/visual-reviews/SONARQUBE-CLEANUP-001/` :
 
-- `/admin` (1440x900 + 375x812)
-- `/admin/operations` (1440x900)
-- `/admin/btc` (1440x900)
-- `/admin/mining` (1440x900)
-- `/admin/vaults/{knownVaultId}` (1440x900)
+- `/admin` (1440x900 + 375x812) : `admin-1440x900.png`, `admin-375x812.png`
+- `/admin/operations` (1440x900) : `operations-1440x900.png`
+- `/admin/btc` (1440x900) : `btc-1440x900.png`
+- `/admin/mining` (1440x900) : `mining-1440x900.png`
+- `/admin/vaults/{vaultId}` (1440x900) : `vault-detail-1440x900.png` (vault id réel extrait du dashboard)
+
+Vérification effectuée : pas de régression de layout, pas de couleurs de graphiques modifiées, pas de labels manquants, pas de seuils déplacés, pas de liens d’entités cassés, pas de débordement horizontal. Les pages s’affichent correctement sur desktop et mobile.
 
 ## Gates finales
 
 | Commande | Status | Notes |
 | --- | --- | --- |
-| `pnpm typecheck` | _à remplir_ | |
-| `pnpm lint` | _à remplir_ | |
-| `pnpm test` | _à remplir_ | |
-| `pnpm build` | _à remplir_ | |
-| `pnpm check:catalyst` | _à remplir_ | |
-| `pnpm check:mocks` | _à remplir_ | |
+| `pnpm typecheck` | OK | |
+| `pnpm lint` | OK | |
+| `pnpm test` | OK | 174 tests passés |
+| `pnpm build` | OK | |
+| `pnpm check:catalyst` | OK | 1 avertissement non bloquant sur nomenclature KPI/stat-card |
+| `pnpm check:mocks` | OK | |
+| `pnpm check` | OK | Gate complète (typecheck → lint → check:catalyst → check:mocks → test) |
 
 ## Résultat SonarQube final
 
-- **Task ID** : _à remplir_
-- **SHA final** : _à remplir_
-- **Bugs** : _à remplir_
-- **Vulnerabilities** : _à remplir_
-- **Security hotspots** : _à remplir_
-- **Code smells** : _à remplir_
-- **Duplicated lines density** : _à remplir_
-- **Technical debt** : _à remplir_
-- **Quality gate** : _à remplir_
+- **Task ID** : `19f5ae6d-534a-4afa-b3ad-92053b3ffa5c` (CE task du scan final)
+- **Analysis ID** : `5632d03d-4420-4263-89db-e596b1ab307f`
+- **SHA final** : `54d1e16` (commit `docs(quality): add SonarQube cleanup evidence`)
+- **Bugs** : 0
+- **Vulnerabilities** : 0
+- **Security hotspots** : 0
+- **Code smells** : 0
+- **Duplicated lines density** : 0.1 %
+- **Technical debt** : 0 minute
+- **Coverage** : 88.7 %
+- **New coverage** : 88.7 % (seuil 80 %)
+- **New violations** : 0
+- **Cognitive complexity** : 1 088
+- **Complexity** : 2 138
+- **ncloc** : 13 854
+- **Quality gate** : PASSED
 
 ## Findings résiduelles justifiées
 
-_Règle, fichier, raison, pourquoi le changer réduirait la sûreté du domaine ou de la sémantique, et si c’est un faux positif._
+Aucune finding résiduelle. Le Quality Gate est vert : 0 bug, 0 vulnérabilité, 0 hotspot, 0 code smell, 0 new violation, 0 dette technique.
+
+Les alias de types identitaires (`VaultId`, `ClientId`, `StrategyId`, `MovementId`, `DeploymentId`, `KeeperActionId`, `ComplianceReviewId`) n’ont pas été supprimés ; ils ont été convertis en **types marqués (branded types)** dans `src/lib/vaults/model.ts` pour conserver la sécurité sémantique du modèle public sans que SonarQube les signale comme alias redondants.
 
 ## Commits
 
-1. test(vaults): protect registry and availability behavior
-2. refactor(vaults): reduce registry and availability complexity
-3. refactor(admin): simplify btc mining and product pages
-4. refactor(charts): remove deprecated Cell usage
-5. refactor(react): extract components and stabilize keys
-6. cleanup(sonar): readability imports exports and ternaries
-7. docs(quality): add SonarQube cleanup evidence
+1. `2754eb6` chore(baseline): restore pageTitle, maxWidth and chart margin comments
+2. `63a1d78` test(vaults): protect registry and availability behavior
+3. `a78151b` refactor(vaults): reduce registry and availability complexity
+4. `c4f4729` refactor(admin): reduce page complexity for btc, mining, product
+5. `d53a11c` refactor(charts): remove deprecated Cell usage and simplify render branches
+6. `5e9a046` cleanup(sonar): Array.at, direct re-exports and clean imports
+7. `ccd15aa` refactor(admin): complete mining and btc page extraction
+8. `c4b6fce` refactor(vaults): brand domain identifiers to preserve type safety
+9. `48e68d4` cleanup(sonar): final readability, spacing and coverage alignment
+10. `54d1e16` docs(quality): add SonarQube cleanup evidence
 
 ## Risques et exceptions connus
 
