@@ -1,16 +1,17 @@
+import { formatNumber } from '@/lib/format'
 import type { CallTrace, EnvelopeMeta, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
- * Composants d'affichage véridique de la console d'administration.
+ * Truthful-rendering components for the admin console.
  *
- * Règle unique : ce qui est rendu vient du backend, ou porte un nom d'état.
- * Aucun de ces composants ne fabrique de valeur, n'arrondit une absence à zéro
- * ni ne requalifie un statut. `SIMULATED` n'existe que si le backend l'a dit.
+ * One rule: what renders comes from the backend, or carries a named state.
+ * None of these components fabricate a value, round an absence to zero, or
+ * requalify a status. `SIMULATED` only exists if the backend said so.
  */
 
-/* ── Badge de statut ─────────────────────────────────────────────────────── */
+/* ── Status badge ────────────────────────────────────────────────────────── */
 
 type BadgeTone = 'ok' | 'warn' | 'bad' | 'info' | 'neutral'
 
@@ -32,14 +33,14 @@ const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
   LIVE: 'Live',
   SNAPSHOT: 'Snapshot',
   STALE: 'Stale',
-  PARTIAL: 'Partiel',
-  EMPTY: 'Vide',
-  SIMULATED: 'Simulation backend',
-  NOT_CONFIGURED: 'Non configuré',
-  UNAVAILABLE: 'Indisponible',
-  NOT_SUPPORTED: 'Non supporté',
-  PERMISSION_DENIED: 'Accès refusé',
-  ERROR: 'Erreur',
+  PARTIAL: 'Partial',
+  EMPTY: 'Empty',
+  SIMULATED: 'Backend simulation',
+  NOT_CONFIGURED: 'Not configured',
+  UNAVAILABLE: 'Unavailable',
+  NOT_SUPPORTED: 'Not supported',
+  PERMISSION_DENIED: 'Access denied',
+  ERROR: 'Error',
 }
 
 const TONE_CLASS: Record<BadgeTone, string> = {
@@ -62,21 +63,21 @@ export function StatusBadge({
         TONE_CLASS[STATUS_TONE[status]],
       )}
     >
-      {/* Le point n'est pas la seule marque : le libellé porte l'information. */}
+      {/* The dot isn't the only marker: the label carries the information. */}
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
       {STATUS_LABEL[status]}
     </span>
   )
 }
 
-/* ── Provenance et fraîcheur ─────────────────────────────────────────────── */
+/* ── Provenance and freshness ────────────────────────────────────────────── */
 
 const PROVENANCE_LABEL: Record<string, string> = {
-  live: 'Source live',
-  db: 'Base de données',
-  indexed: 'Indexé',
-  manual: 'Source manuelle',
-  fixture: 'Fixture backend — source non live',
+  live: 'Live source',
+  db: 'Database',
+  indexed: 'Indexed',
+  manual: 'Manual source',
+  fixture: 'Backend fixture — not a live source',
 }
 
 export function DataProvenance({
@@ -109,18 +110,18 @@ export function FreshnessIndicator({
   if (!asOf && ageSeconds === null) return null
   return (
     <span className={clsx('text-xs', stale ? 'text-hearst-warn' : 'text-zinc-500')}>
-      {asOf ? `au ${asOf}` : null}
-      {typeof ageSeconds === 'number' ? ` · ${ageSeconds} s` : null}
-      {stale ? ' · fraîcheur insuffisante' : null}
+      {asOf ? `as of ${asOf}` : null}
+      {typeof ageSeconds === 'number' ? ` · ${ageSeconds}s` : null}
+      {stale ? ' · insufficient freshness' : null}
     </span>
   )
 }
 
-/* ── Valeur résolue ──────────────────────────────────────────────────────── */
+/* ── Resolved value ───────────────────────────────────────────────────────── */
 
 /**
- * Rend une valeur backend, ou son état. Une valeur absente s'affiche « — » :
- * jamais 0, jamais 0 %, jamais une estimation.
+ * Renders a backend value, or its state. A missing value shows '—': never
+ * 0, never 0%, never an estimate.
  */
 export function ResolvedValue({
   value,
@@ -133,7 +134,7 @@ export function ResolvedValue({
 
   if (!displayable) {
     return (
-      <span className={clsx(className, 'text-zinc-500')} title={status ? STATUS_LABEL[status] : 'Aucune valeur reçue'}>
+      <span className={clsx(className, 'text-zinc-500')} title={status ? STATUS_LABEL[status] : 'No value received'}>
         —
       </span>
     )
@@ -141,18 +142,18 @@ export function ResolvedValue({
 
   return (
     <span className={clsx(className, 'tabular-nums text-white')}>
-      {typeof value === 'number' ? value.toLocaleString('fr-FR') : value}
+      {typeof value === 'number' ? formatNumber(value) : value}
       {unit ? <span className="ml-1 text-zinc-500">{unit}</span> : null}
     </span>
   )
 }
 
-/* ── Métadonnées d'appel ─────────────────────────────────────────────────── */
+/* ── Call metadata ────────────────────────────────────────────────────────── */
 
 export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
   const bits = [
-    trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'aucune réponse',
-    `${trace.durationMs} ms`,
+    trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'no response',
+    `${trace.durationMs}ms`,
     trace.requestId ? `req ${trace.requestId}` : null,
     trace.rateLimitRemaining !== null ? `quota ${trace.rateLimitRemaining}` : null,
   ].filter(Boolean)
@@ -172,7 +173,7 @@ export function EnvelopeMetaLine({ meta }: Readonly<{ meta: EnvelopeMeta | null 
   )
 }
 
-/* ── États sans donnée ───────────────────────────────────────────────────── */
+/* ── No-data states ──────────────────────────────────────────────────────── */
 
 function StateShell({
   status,
@@ -191,7 +192,7 @@ function StateShell({
 }
 
 export function EmptyState({ reason }: Readonly<{ reason?: string | null }>) {
-  return <StateShell status="EMPTY" title="Réponse vide" reason={reason ?? 'Le backend a répondu sans aucun élément.'} />
+  return <StateShell status="EMPTY" title="Empty response" reason={reason ?? 'The backend responded with no items.'} />
 }
 
 export function UnavailableState({ state, children }: Readonly<{ state: Resolved<unknown>; children?: React.ReactNode }>) {
@@ -208,7 +209,7 @@ export function UnavailableState({ state, children }: Readonly<{ state: Resolved
   )
 }
 
-/** Rend un `Problem` backend tel quel — le code machine fait foi. */
+/** Renders a backend `Problem` as-is — the machine code is authoritative. */
 export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | null; keeper?: KeeperActionResult | null }>) {
   if (!problem && !keeper) return null
 
@@ -242,8 +243,8 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
   )
 }
 
-/** JSON brut replié — la preuve technique reste consultable, jamais imposée. */
-export function RawJsonPanel({ label = 'Réponse brute', data }: Readonly<{ label?: string; data: unknown }>) {
+/** Collapsed raw JSON — the technical evidence stays available, never forced. */
+export function RawJsonPanel({ label = 'Raw response', data }: Readonly<{ label?: string; data: unknown }>) {
   return (
     <details className="mt-4 rounded-lg bg-cockpit-inset">
       <summary className="cursor-pointer px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white">{label}</summary>
