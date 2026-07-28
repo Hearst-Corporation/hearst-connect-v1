@@ -1,4 +1,5 @@
-import { formatAddress, formatCurrency, formatDateTime, formatRelativeTime } from '@/lib/format'
+import { formatCurrency } from '@/lib/format'
+export { formatAddress as adresseCourte, formatDateTime as dateLisible, formatRelativeTime as ilYA } from '@/lib/format'
 
 /**
  * Chain movement vocabulary, in English.
@@ -83,6 +84,3 @@ export function montantUsdc(atomique: string | null | undefined, decimales = 2):
   return formatCurrency(atomique, { decimals: decimales })
 }
 
-export const dateLisible = formatDateTime
-export const ilYA = formatRelativeTime
-export const adresseCourte = formatAddress

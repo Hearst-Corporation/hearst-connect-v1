@@ -14,8 +14,6 @@ import {
   type AdminRegistry,
   type Availability,
   type ClientException,
-  type ClientRef,
-  type Deployment,
   type Movement,
   type Provenance,
   type RebalancingRow,
@@ -703,4 +701,4 @@ export async function loadVault(
   return { registry, vault: liste.find((v) => v.id === id) ?? null }
 }
 
-export type { Deployment, ClientRef }
+export type { ClientRef, Deployment } from '@/lib/vaults/model'
