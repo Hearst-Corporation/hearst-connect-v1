@@ -1,5 +1,4 @@
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
-import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
@@ -101,7 +100,6 @@ export default async function Page() {
       <PageHeader
         title="Votre compte"
         description="Le compte qui ouvre cette console, et le dossier investisseur qui lui est rattaché — s’il en existe un."
-        endpointIds={['profile']}
       />
 
       <CockpitSection>
@@ -133,8 +131,6 @@ export default async function Page() {
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
       </CockpitSection>
-
-      <EndpointSection endpointId="profile" title="Réponse détaillée du service" />
     </div>
   )
 }

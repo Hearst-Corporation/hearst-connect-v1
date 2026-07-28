@@ -1,7 +1,6 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
-import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { CockpitSection } from '@/components/admin/cockpit-section'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
@@ -146,7 +145,6 @@ export default async function Page() {
       <PageHeader
         title="Fiche produit"
         description="Les conditions auxquelles on souscrit : dépôt minimum, durée, plafond du fonds, rémunération attendue et répartition visée de l’argent."
-        endpointIds={['product-factsheet']}
       />
 
       <CockpitSection>
@@ -177,7 +175,6 @@ export default async function Page() {
           <ChartFrame
             question="Comment la rémunération évolue-t-elle sur la durée ?"
             unite="en pourcentage, par mois"
-            provenance="termes du produit"
             etat={etatCourbe(points, courbeParametree, f.vendingCurve)}
           >
             <VendingCurveChart points={points} />
@@ -187,7 +184,6 @@ export default async function Page() {
           <ChartFrame
             question="Où l’argent est-il censé être placé ?"
             unite="en pourcentage du portefeuille"
-            provenance="termes du produit"
             etat={
               repartition.length > 0
                 ? { type: 'tracee' }
@@ -253,8 +249,6 @@ export default async function Page() {
       {/* La réponse brute reste consultable en bas de page, pour qui veut
           vérifier un champ que la lecture métier n'expose pas. */}
       </CockpitSection>
-
-      <EndpointSection endpointId="product-factsheet" title="La réponse complète du service" />
     </div>
   )
 }

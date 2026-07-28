@@ -26,10 +26,13 @@ import {
  * retarde la lecture sans rien apprendre, et il piège les captures d'écran.
  */
 
-const OR = '#c6a94e'
-const BLEU = '#60a5fa'
-const GRILLE = '#2e3c59'
-const AXE = '#94a3b8'
+// Palette du produit, lue dans les tokens : un seul accent (mint Hearst),
+// le reste sur l'échelle neutre. Les valeurs or/bleu codées en dur venaient
+// d'un thème antérieur et ne résolvaient contre aucun token déclaré.
+const ACCENT = 'var(--color-accent-500)'
+const NEUTRE = 'var(--color-zinc-500)'
+const GRILLE = 'var(--color-zinc-700)'
+const AXE = 'var(--color-zinc-400)'
 
 function Bulle({
   active,
@@ -85,9 +88,9 @@ export function VendingCurveChart({ points }: Readonly<{ points: readonly PointC
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={[...points]} margin={{ top: 6, right: 10, bottom: 4, left: -18 }}>
             <defs>
-              <linearGradient id="degradeOr" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={OR} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={OR} stopOpacity={0.02} />
+              <linearGradient id="degradeAccent" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={ACCENT} stopOpacity={0.35} />
+                <stop offset="100%" stopColor={ACCENT} stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid stroke={GRILLE} strokeDasharray="2 4" vertical={false} />
@@ -106,10 +109,10 @@ export function VendingCurveChart({ points }: Readonly<{ points: readonly PointC
               type="linear"
               dataKey="taux"
               name="Taux"
-              stroke={OR}
+              stroke={ACCENT}
               strokeWidth={2}
-              fill="url(#degradeOr)"
-              dot={{ r: 3, fill: OR, strokeWidth: 0 }}
+              fill="url(#degradeAccent)"
+              dot={{ r: 3, fill: ACCENT, strokeWidth: 0 }}
               isAnimationActive={false}
             />
           </AreaChart>
@@ -125,7 +128,7 @@ export type PosteBitcoin = { readonly poste: string; readonly montant: number; r
 
 function BarrePoste(props: BarShapeProps) {
   const payload = props.payload as PosteBitcoin | undefined
-  return <Rectangle {...props} fill={payload?.accent ? OR : BLEU} />
+  return <Rectangle {...props} fill={payload?.accent ? ACCENT : NEUTRE} />
 }
 
 /** « Combien dort en réserve, combien travaille en exposition ? » */

@@ -172,7 +172,6 @@ export default async function RuntimePage() {
       <PageHeader
         title="Runtime et infrastructure"
         description="Matrice d’état, métriques de déploiement et réponses brutes des sondes."
-        endpointIds={['health', 'ready', 'runtime']}
       />
 
       <AdminSection title="Matrice d’état" description="Dépendances et sondes opérationnelles">
