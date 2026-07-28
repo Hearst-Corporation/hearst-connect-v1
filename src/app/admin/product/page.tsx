@@ -2,7 +2,7 @@ import { AllocationChart, type PocheAllocation } from '@/components/admin/alloca
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
@@ -147,7 +147,7 @@ export default async function Page() {
         description="Les conditions auxquelles on souscrit : dépôt minimum, durée, plafond du fonds, rémunération attendue et répartition visée de l’argent."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       {f === null ? (
         <SourceAttendue
@@ -248,7 +248,7 @@ export default async function Page() {
 
       {/* La réponse brute reste consultable en bas de page, pour qui veut
           vérifier un champ que la lecture métier n'expose pas. */}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

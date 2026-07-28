@@ -1,4 +1,4 @@
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge } from '@/components/admin/truthful'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
@@ -36,7 +36,7 @@ export default async function KeeperPage() {
         description="Actions d’administration du backend. Rien ne part sans confirmation explicite, aucune réussite n’est supposée, et la réponse du backend est rendue telle quelle."
       />
 
-      <CockpitSection title="Périmètre" description="Ces routes enregistrent une demande — elles ne signent rien">
+      <AdminSection title="Périmètre" description="Ces routes enregistrent une demande — elles ne signent rien">
         <div className="rounded-xl bg-amber-500/5 p-5 ring-1 ring-amber-500/30 sm:p-6 dark:bg-amber-500/10">
           <div className="flex items-center gap-2">
             <StatusBadge status="NOT_SUPPORTED" />
@@ -60,9 +60,9 @@ export default async function KeeperPage() {
             Actions inertes : {disabledReason}
           </p>
         ) : null}
-      </CockpitSection>
+      </AdminSection>
 
-      <CockpitSection title="Actions" description="Confirmation explicite requise avant tout appel">
+      <AdminSection title="Actions" description="Confirmation explicite requise avant tout appel">
         {keeperEndpoints.map((endpoint) => (
           <KeeperForm
             key={endpoint.id}
@@ -71,7 +71,7 @@ export default async function KeeperPage() {
             disabledReason={disabledReason}
           />
         ))}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

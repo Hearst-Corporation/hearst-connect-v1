@@ -2,9 +2,9 @@ import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { ProductionMensuelleChart, type MoisProduction } from '@/components/admin/charts/btc-production-chart'
 import { CalmState, Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { ReserveExpositionChart, type PosteBitcoin } from '@/components/admin/product-charts'
-import { AdminCaption, AdminH3 } from '@/components/admin/typography'
+import { AdminCaption, AdminSectionTitle } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
 import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
@@ -362,7 +362,7 @@ export default async function Page() {
         description="Ce que le fonds a produit en bitcoin, comment son argent se partage entre réserve et exposition, et ce qui s’est passé récemment."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       {b === null ? (
         <SourceAttendue
@@ -451,7 +451,7 @@ export default async function Page() {
               elles n'existent pas dans le contrat déployé. Le dire une fois en
               tête de bloc évite de le répéter dans chaque cadre. */}
           <div className="space-y-1 pt-2">
-            <AdminH3 as="h2">Ce que la source n’expose pas</AdminH3>
+            <AdminSectionTitle as="h2">Ce que la source n’expose pas</AdminSectionTitle>
             <AdminCaption>
               Ces trois vues sont dessinées et prêtes. Elles restent sans série non par incident, mais parce que la
               lecture correspondante n’existe pas dans la source : le motif exact est rappelé sous chacune. Le jour où
@@ -487,7 +487,7 @@ export default async function Page() {
 
       {/* La réponse brute reste consultable en bas de page, pour qui veut
           vérifier un champ que la lecture métier n'expose pas. */}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import type { Metadata } from 'next'
@@ -42,7 +42,7 @@ export default async function Page() {
         description="Ce que la stratégie du fonds aurait produit sur des périodes passées. Tout est calculé par le service : rien n’est projeté, extrapolé ni lissé ici."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       {!reponse.ok ? (
         <SourceAttendue
@@ -96,7 +96,7 @@ export default async function Page() {
       )}
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { endpointById } from '@/lib/backend/endpoints'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { surfaceRaised } from '@/components/admin/surface'
 import {
   EmptyState,
@@ -71,7 +71,7 @@ export async function EndpointSection({
       (typeof result.data === 'object' && result.data !== null && Object.keys(result.data).length === 0))
 
   return (
-    <CockpitSection
+    <AdminSection
       title={title ?? endpoint.summary}
       description={`${endpoint.method} ${result.trace.path}`}
       actions={result.ok ? <EnvelopeMetaLine meta={result.meta} /> : undefined}
@@ -91,6 +91,6 @@ export async function EndpointSection({
           <RequestMetadata trace={result.trace} />
         </div>
       </div>
-    </CockpitSection>
+    </AdminSection>
   )
 }

@@ -2,7 +2,7 @@ import { AllocationChart, type PocheAllocation } from '@/components/admin/alloca
 import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { UtilizationChart } from '@/components/admin/utilization-chart'
 import { VaultEcartChart, type EcartPoche, type NiveauEcart } from '@/components/admin/vault-ecart-chart'
 import { callBackend } from '@/lib/backend/client'
@@ -269,7 +269,7 @@ export default async function Page() {
         description="L’encours du fonds, la marge avant son plafond, et la conformité de sa répartition aux cibles du contrat."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       {v === null ? (
         <SourceAttendue
@@ -369,7 +369,7 @@ export default async function Page() {
           {actives.length > 0 ? <EcartsTable actives={actives} /> : null}
         </>
       )}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

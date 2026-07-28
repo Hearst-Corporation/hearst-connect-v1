@@ -1,4 +1,3 @@
-import { CockpitSection } from '@/components/admin/cockpit-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminBody, AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
 import { AdminSection, AdminSourceAttendue, AdminSurface } from '@/components/admin/surfaces'
@@ -73,7 +72,7 @@ export default async function Page() {
     <AdminPage>
       <PageHeader title="Administration" description="Le compte connecté, le journal des décisions et les écrans secondaires." />
 
-      <CockpitSection title="Équipe" description="Session locale et journal d’administration">
+      <AdminSection title="Équipe" description="Session locale et journal d’administration">
         <div className="grid gap-4 lg:grid-cols-2">
           <AdminSurface>
             <AdminSurfaceHeader title="Équipe et accès" description="Session locale · un propriétaire déclaré" />
@@ -95,7 +94,7 @@ export default async function Page() {
             </div>
           </AdminSurface>
         </div>
-      </CockpitSection>
+      </AdminSection>
 
       <AdminSection title="Écrans secondaires" description="Hors navigation principale — ils ne servent pas au quotidien">
         <AdminSurface>

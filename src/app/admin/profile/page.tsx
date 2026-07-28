@@ -1,6 +1,6 @@
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
@@ -102,7 +102,7 @@ export default async function Page() {
         description="Le compte qui ouvre cette console, et le dossier investisseur qui lui est rattaché — s’il en existe un."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
       {/* ── A. Le compte connecté : la seule certitude de cette page ────── */}
       <Card>
@@ -130,7 +130,7 @@ export default async function Page() {
       </section>
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
-      </CockpitSection>
+      </AdminSection>
     </div>
   )
 }

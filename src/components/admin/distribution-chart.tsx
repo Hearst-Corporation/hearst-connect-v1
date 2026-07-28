@@ -16,9 +16,9 @@ export type BarreRepartition = {
 const COULEURS = [
   chartTheme.series.primary,
   chartTheme.series.reference,
-  chartTheme.series.success,
+  chartTheme.series.positive,
   chartTheme.series.warning,
-  chartTheme.series.danger,
+  chartTheme.series.negative,
   chartTheme.series.secondary,
 ]
 
