@@ -1,3 +1,4 @@
+import { stateForHttpFailure } from './backend/http-failure'
 import { resolved, type Resolved } from './resolved'
 
 /**
@@ -157,42 +158,8 @@ export async function apiGet<T>(
   return { ok: true, data: body.data, meta: body.meta, requestId: serverRequestId, rateLimitRemaining }
 }
 
-/**
- * Traduit une réponse non-2xx en état nommé.
- *
- * Le statut HTTP prime sur le corps : le backend documente qu'un 403 est servi
- * avec un corps construit par `Problems.unauthorized(...)` — s'en remettre à
- * `code` confondrait « non authentifié » et « droits insuffisants ».
- */
 function failureFor(httpStatus: number, body: unknown, route: string, requestId: string): Resolved<never> {
-  const provenance = { route, requestId: isProblem(body) ? body.requestId : requestId }
-  const detail = isProblem(body) ? body.detail : null
-
-  // Les trois routes Keeper en 501 répondent un KeeperActionResult, sans `code`.
-  if (httpStatus === 501) {
-    const reason =
-      typeof body === 'object' && body !== null && 'reason' in body
-        ? String((body as KeeperActionResult).reason)
-        : 'not_supported_by_contract'
-    return resolved.notSupported(detail ?? `Non implémenté par le backend (${reason}).`, provenance)
-  }
-
-  switch (httpStatus) {
-    case 401:
-      return resolved.permissionDenied(detail ?? 'Session absente ou expirée.', provenance)
-    case 403:
-      return resolved.permissionDenied(detail ?? 'Droits insuffisants : rôle administrateur requis.', provenance)
-    case 429:
-      return resolved.unavailable(detail ?? 'Quota de requêtes dépassé.', provenance)
-    case 503:
-      return isProblem(body) && body.code === 'NOT_CONFIGURED'
-        ? resolved.notConfigured(detail ?? 'Source non configurée côté backend.', provenance)
-        : resolved.unavailable(detail ?? 'Backend temporairement indisponible.', provenance)
-    case 504:
-      return resolved.unavailable(detail ?? 'Délai dépassé côté passerelle.', provenance)
-    default:
-      return resolved.error(detail ?? `Erreur backend (HTTP ${httpStatus}).`, provenance)
-  }
+  return stateForHttpFailure(httpStatus, body, route, requestId)
 }
 
 /**

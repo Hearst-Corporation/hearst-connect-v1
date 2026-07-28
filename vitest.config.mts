@@ -24,5 +24,21 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['tests/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: 'coverage',
+      include: [
+        'src/lib/auth.ts',
+        'src/lib/explorer.ts',
+        'src/lib/fonts.ts',
+        'src/lib/resolved.ts',
+        'src/lib/serie-etat.ts',
+        'src/lib/session.ts',
+        'src/lib/backend/auth.ts',
+        'src/lib/backend/endpoints.ts',
+        'src/lib/backend/http-failure.ts',
+      ],
+    },
   },
 })

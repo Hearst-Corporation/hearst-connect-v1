@@ -37,3 +37,6 @@ storybook-static
 
 # sonar (artefacts de scan local)
 .scannerwork/
+
+# couverture vitest (lcov pour Sonar)
+/coverage/
