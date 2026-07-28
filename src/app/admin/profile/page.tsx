@@ -1,6 +1,7 @@
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
@@ -77,7 +78,7 @@ function DossierInvestisseur({
   return (
     <Card>
       <CardHeader title="Ce que le service sait de vous" hint="Transmis par le service, sans retouche" />
-      <dl className="divide-y divide-white/[0.07]">
+      <dl className="divide-y divide-zinc-950/5 dark:divide-white/5">
         <Ligne libelle="Nom du dossier" valeur={identite.displayName} />
         <Ligne libelle="Adresse e-mail" valeur={identite.email} />
         <Ligne libelle="Portefeuille" valeur={identite.walletAddress} mono />
@@ -96,12 +97,14 @@ export default async function Page() {
   const motif = motifLisible(bloc?.reason)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Votre compte"
         description="Le compte qui ouvre cette console, et le dossier investisseur qui lui est rattaché — s’il en existe un."
         endpointIds={['profile']}
       />
+
+      <CockpitSection>
 
       {/* ── A. Le compte connecté : la seule certitude de cette page ────── */}
       <Card>
@@ -111,7 +114,7 @@ export default async function Page() {
             Aucune session valide n’a été trouvée. Reconnectez-vous pour afficher votre compte.
           </p>
         ) : (
-          <dl className="divide-y divide-white/[0.07]">
+          <dl className="divide-y divide-zinc-950/5 dark:divide-white/5">
             <Ligne libelle="Nom" valeur={session.name} />
             <Ligne libelle="Adresse e-mail" valeur={session.email} />
             <Ligne libelle="Rôle" valeur={LIBELLE_ROLE[session.role]} />
@@ -121,7 +124,7 @@ export default async function Page() {
 
       {/* ── B. Le dossier investisseur : présent, ou honnêtement absent ─── */}
       <section aria-labelledby="dossier" className="space-y-3">
-        <h2 id="dossier" className="text-sm font-semibold text-white">
+        <h2 id="dossier" className="text-sm font-semibold text-zinc-950 dark:text-white">
           Dossier investisseur
         </h2>
 
@@ -129,6 +132,8 @@ export default async function Page() {
       </section>
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
+      </CockpitSection>
+
       <EndpointSection endpointId="profile" title="Réponse détaillée du service" />
     </div>
   )
@@ -143,8 +148,14 @@ function Ligne({
   const affiche = valeur === null || valeur === undefined || valeur === '' ? '—' : valeur
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-      <dt className="w-40 shrink-0 text-sm text-zinc-400">{libelle}</dt>
-      <dd className={mono ? 'min-w-0 truncate font-mono text-sm text-zinc-200' : 'min-w-0 text-sm text-white'}>
+      <dt className="w-40 shrink-0 text-sm text-zinc-500 dark:text-zinc-400">{libelle}</dt>
+      <dd
+        className={
+          mono
+            ? 'min-w-0 truncate font-mono text-sm text-zinc-700 dark:text-zinc-200'
+            : 'min-w-0 text-sm text-zinc-950 dark:text-white'
+        }
+      >
         {affiche}
       </dd>
     </div>

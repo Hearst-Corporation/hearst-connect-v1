@@ -1,4 +1,6 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
+import { CockpitSection } from '@/components/admin/cockpit-section'
+import { surfaceRaised } from '@/components/admin/surface'
 import { AdminBody, AdminCaption, AdminH3, AdminLabel, adminTypography } from '@/components/admin/typography'
 import {
   ProblemState,
@@ -12,8 +14,7 @@ import clsx from 'clsx'
 
 /**
  * Design system des surfaces d'administration Hearst Connect.
- *
- * Composants réutilisables pour cartes, métriques, tableaux, graphiques et états.
+ * Chrome Qatar : bandeau sunken (AdminSection) + cartes raised (AdminSurface).
  * Toute donnée affichée doit provenir du backend ; ces composants ne fabriquent rien.
  */
 
@@ -31,13 +32,7 @@ export function AdminSurface({
   padding?: boolean
 }>) {
   return (
-    <Tag
-      className={clsx(
-        className,
-        'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:shadow-none dark:ring-white/10',
-        padding && 'p-5',
-      )}
-    >
+    <Tag className={clsx(className, surfaceRaised, padding && 'p-5')}>
       {children}
     </Tag>
   )
@@ -52,6 +47,7 @@ export function AdminSection({
   children,
   id,
   className,
+  index,
 }: Readonly<{
   title: string
   description?: string
@@ -59,20 +55,19 @@ export function AdminSection({
   children: React.ReactNode
   id?: string
   className?: string
+  index?: string
 }>) {
   return (
-    <section id={id} className={clsx(className, 'space-y-4')}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h2>
-          {description ? (
-            <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
-          ) : null}
-        </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
-      </div>
+    <CockpitSection
+      id={id}
+      index={index}
+      title={title}
+      description={description}
+      actions={action}
+      className={className}
+    >
       {children}
-    </section>
+    </CockpitSection>
   )
 }
 
@@ -97,16 +92,16 @@ export function AdminMetric({
     value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
 
   return (
-    <div className={clsx(className, 'min-w-0 rounded-lg bg-brand-background/40 px-4 py-3.5 ring-1 ring-white/10')}>
+    <div className={clsx(className, 'min-w-0 rounded-lg bg-zinc-50/80 dark:bg-zinc-950/40 px-4 py-3.5 ring-1 ring-white/10')}>
       <AdminLabel>{label}</AdminLabel>
       <p className="mt-1.5 flex items-baseline gap-2">
         {displayable ? (
           <span className={adminTypography.kpiValue}>
             {typeof value === 'number' ? value.toLocaleString('fr-FR') : value}
-            {unit ? <span className="ml-1 text-sm/6 font-medium text-brand-muted">{unit}</span> : null}
+            {unit ? <span className="ml-1 text-sm/6 font-medium text-zinc-500 dark:text-zinc-400">{unit}</span> : null}
           </span>
         ) : (
-          <span className={clsx(adminTypography.kpiValue, 'text-brand-muted')} title={status ?? 'Aucune valeur'}>—</span>
+          <span className={clsx(adminTypography.kpiValue, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'Aucune valeur'}>—</span>
         )}
       </p>
       {hint ? <AdminCaption className="mt-1.5">{hint}</AdminCaption> : null}
@@ -167,7 +162,7 @@ export function AdminTable<T>({
     <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-brand-border/40 text-xs text-brand-muted">
+          <tr className="border-b border-zinc-950/10 dark:border-white/10 text-xs text-zinc-500 dark:text-zinc-400">
             {columns.map((col) => (
               <th key={col.key} scope="col" className={clsx(col.className, 'px-5 py-3 font-medium')}>
                 {col.header}
@@ -175,13 +170,13 @@ export function AdminTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-brand-border/30">
+        <tbody className="divide-y divide-zinc-950/5 dark:divide-white/5">
           {rows.map((row) => (
             <tr key={keyFn(row)} className="hover:bg-white/[0.03]">
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={clsx(col.className, 'px-5 py-3.5', col.mono && 'font-mono text-xs text-brand-muted')}
+                  className={clsx(col.className, 'px-5 py-3.5', col.mono && 'font-mono text-xs text-zinc-500 dark:text-zinc-400')}
                 >
                   {col.cell(row)}
                 </td>
@@ -204,7 +199,7 @@ export function AdminStatus({
   return (
     <span className={clsx(className, 'inline-flex items-center gap-2')}>
       <StatusBadge status={status} />
-      {label ? <span className="text-xs text-brand-muted">{label}</span> : null}
+      {label ? <span className="text-xs text-zinc-500 dark:text-zinc-400">{label}</span> : null}
     </span>
   )
 }
@@ -217,11 +212,11 @@ export function AdminEmptyState({
   children,
 }: Readonly<{ title: string; description?: string; children?: React.ReactNode }>) {
   return (
-    <AdminSurface className="px-6 py-10 text-center">
+    <div className="px-6 py-10 text-center">
       <p className={adminTypography.h3}>{title}</p>
       {description ? <AdminBody className="mt-2">{description}</AdminBody> : null}
       {children}
-    </AdminSurface>
+    </div>
   )
 }
 
@@ -233,7 +228,7 @@ export function AdminErrorState({
   return (
     <AdminSurface>
       <UnavailableState state={state}>
-        {title ? <p className="mt-2 text-sm font-medium text-brand-foreground">{title}</p> : null}
+        {title ? <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-white">{title}</p> : null}
         {children}
       </UnavailableState>
     </AdminSurface>
@@ -245,9 +240,9 @@ export function AdminLoadingState({ message = 'Chargement…' }: Readonly<{ mess
     <AdminSurface className="flex items-center gap-3 px-5 py-8">
       <span
         aria-hidden="true"
-        className="size-4 animate-pulse rounded-full bg-brand-accent/60"
+        className="size-4 animate-pulse rounded-full bg-accent-500/60"
       />
-      <p className="text-sm text-brand-muted">{message}</p>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">{message}</p>
     </AdminSurface>
   )
 }
@@ -258,19 +253,23 @@ export function AdminSourceAttendue({
   requis,
 }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
   return (
-    <AdminEmptyState title={quoi} description={detail}>
-      <div className="mx-auto mt-6 max-w-md rounded-lg bg-brand-background/60 px-4 py-3 text-left ring-1 ring-brand-border/40">
-        <p className="text-xs tracking-wide text-brand-muted uppercase">Source attendue</p>
+    <div className={clsx(surfaceRaised, 'px-5 py-6 sm:px-6')}>
+      <p className={adminTypography.h3}>{quoi}</p>
+      <AdminBody className="mt-2">{detail}</AdminBody>
+      <div className="mt-5 rounded-lg bg-zinc-50 px-4 py-3 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
+        <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Source attendue</p>
         <ul className="mt-2 space-y-1">
           {requis.map((r) => (
-            <li key={r} className="flex gap-2 text-sm text-brand-foreground/90">
-              <span aria-hidden="true" className="text-brand-muted">·</span>
+            <li key={r} className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+              <span aria-hidden="true" className="text-zinc-400">
+                ·
+              </span>
               {r}
             </li>
           ))}
         </ul>
       </div>
-    </AdminEmptyState>
+    </div>
   )
 }
 
@@ -284,7 +283,7 @@ export function AdminToolbar({
     <div
       className={clsx(
         className,
-        'flex flex-wrap items-center gap-3 rounded-lg bg-brand-background/50 px-4 py-3 ring-1 ring-brand-border/40',
+        'flex flex-wrap items-center gap-3 rounded-lg bg-zinc-50/80 dark:bg-zinc-950/40 px-4 py-3 ring-1 ring-zinc-950/10 dark:ring-white/10',
       )}
     >
       {children}
@@ -320,11 +319,11 @@ export function AdminFilterBar({
               aria-disabled="true"
               className={clsx(
                 'inline-flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm',
-                item.active ? 'bg-brand-accent/15 text-brand-accent' : 'text-brand-muted',
+                item.active ? 'bg-accent-500/15 text-accent-600 dark:text-accent-400' : 'text-zinc-500 dark:text-zinc-400',
               )}
             >
               {item.label}
-              <span className="text-xs text-brand-muted">—</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">—</span>
             </span>
           </li>
         ))}
@@ -358,7 +357,7 @@ export function AdminActionPanel({
       {description ? <AdminBody className="mt-2">{description}</AdminBody> : null}
       {children}
       {confirmLabel ? (
-        <p className="mt-4 text-xs text-brand-muted">
+        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
           Action sensible — confirmation requise :{' '}
           <span className={clsx(danger && 'text-danger-400', 'font-mono')}>{confirmLabel}</span>
         </p>
@@ -432,18 +431,18 @@ export function AdminProbeResult({
   keeper?: KeeperActionResult | null
 }>) {
   return (
-    <div className="rounded-lg bg-brand-background/60 p-3 ring-1 ring-brand-border/40">
+    <div className="rounded-lg bg-zinc-50/80 dark:bg-zinc-950/50 p-3 ring-1 ring-zinc-950/10 dark:ring-white/10">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>
-      {reason ? <p className="mt-2 text-xs text-brand-muted">{reason}</p> : null}
+      {reason ? <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{reason}</p> : null}
       <div className="mt-2">
         <RequestMetadata trace={trace} />
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-brand-muted hover:text-brand-foreground">JSON brut</summary>
-          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-brand-foreground/80">{rawJson}</pre>
+          <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">JSON brut</summary>
+          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-zinc-950 dark:text-white/80">{rawJson}</pre>
         </details>
       ) : null}
       <ProblemState problem={problem ?? null} keeper={keeper ?? null} />

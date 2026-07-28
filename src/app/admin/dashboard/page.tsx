@@ -1,6 +1,7 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import clsx from 'clsx'
@@ -121,7 +122,7 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
 
         {/* Une seule barre, trois segments : la proportion se saisit d'un
             coup d'œil, sans lire trois nombres puis les comparer. */}
-        <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-surface-sunken">
+        <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
           {ORDRE.map((famille) => {
             const nombre = surfaces.filter((s) => s.famille === famille).length
             if (nombre === 0) return null
@@ -146,7 +147,7 @@ function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[]
         return (
           <Card key={famille}>
             <CardHeader title={`${FAMILLE_TITRE[famille]} — ${lot.length}`} hint={FAMILLE_EXPLICATION[famille]} />
-            <ul className="divide-y divide-white/[0.07]">
+            <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
               {lot.map((surface) => (
                 <li key={surface.cle} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
                   <span
@@ -209,16 +210,20 @@ export default async function Page() {
           }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Couverture des données"
         description="Sur quoi le produit peut s’appuyer aujourd’hui, surface par surface, et pourquoi le reste attend encore sa source."
         endpointIds={['dashboard']}
       />
 
+      <CockpitSection>
+
       <CorpsCouverture agregat={agregat} surfaces={surfaces} />
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
+      </CockpitSection>
+
       <EndpointSection endpointId="dashboard" title="Réponse détaillée du service" />
     </div>
   )

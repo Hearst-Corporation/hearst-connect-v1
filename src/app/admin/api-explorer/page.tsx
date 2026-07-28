@@ -53,7 +53,7 @@ function curlFor(method: string, path: string, auth: string): string {
 
 export default function ApiExplorerPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="API Explorer"
         description={`Registre des ${BACKEND_ENDPOINTS.length} endpoints. Lectures et actions classées — aucun secret affiché.`}

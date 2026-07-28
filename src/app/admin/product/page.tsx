@@ -3,6 +3,7 @@ import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
@@ -141,12 +142,14 @@ export default async function Page() {
   const courbeParametree = points.some((p) => p.taux !== 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Fiche produit"
         description="Les conditions auxquelles on souscrit : dépôt minimum, durée, plafond du fonds, rémunération attendue et répartition visée de l’argent."
         endpointIds={['product-factsheet']}
       />
+
+      <CockpitSection>
 
       {f === null ? (
         <SourceAttendue
@@ -218,7 +221,7 @@ export default async function Page() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/[0.07]">
+                  <tbody className="divide-y divide-zinc-950/5 dark:divide-white/5">
                     {lisibles.map((p, index) => {
                       const cible = Number(p.targetBps)
                       const reel =
@@ -249,6 +252,8 @@ export default async function Page() {
 
       {/* La réponse brute reste consultable en bas de page, pour qui veut
           vérifier un champ que la lecture métier n'expose pas. */}
+      </CockpitSection>
+
       <EndpointSection endpointId="product-factsheet" title="La réponse complète du service" />
     </div>
   )

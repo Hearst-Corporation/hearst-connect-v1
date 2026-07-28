@@ -1,6 +1,7 @@
 import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
 import type { Metadata } from 'next'
 
@@ -60,12 +61,14 @@ export default async function Page() {
       : (Number(sats) / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 4 })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Minage"
         description="Ce que la flotte produit, ce qu’elle coûte, et si elle tourne."
         endpointIds={['mining', 'mining-onchain', 'mining-electricity']}
       />
+
+      <CockpitSection>
 
       {m === null ? (
         <SourceAttendue
@@ -96,16 +99,16 @@ export default async function Page() {
 
           <Card>
             <CardHeader title="La flotte tourne-t-elle ?" hint="État d’exploitation déclaré par le contrat" />
-            <ul className="divide-y divide-white/[0.07]">
+            <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
               <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                <span className="w-24 shrink-0 text-zinc-400">Flotte</span>
-                <span className="text-white">
+                <span className="w-24 shrink-0 text-zinc-500 dark:text-zinc-400">Flotte</span>
+                <span className="text-zinc-950 dark:text-white">
                   {texteBooleen(exploitation?.fleetActive, 'En fonctionnement', 'À l’arrêt')}
                 </span>
               </li>
               <li className="flex items-baseline gap-3 px-5 py-3.5 text-sm">
-                <span className="w-24 shrink-0 text-zinc-400">Bridage</span>
-                <span className="text-white">
+                <span className="w-24 shrink-0 text-zinc-500 dark:text-zinc-400">Bridage</span>
+                <span className="text-zinc-950 dark:text-white">
                   {texteBooleen(exploitation?.curtailed, 'Actif — la production est volontairement réduite', 'Inactif')}
                 </span>
               </li>
@@ -125,6 +128,7 @@ export default async function Page() {
           />
         </>
       )}
+      </CockpitSection>
     </div>
   )
 }

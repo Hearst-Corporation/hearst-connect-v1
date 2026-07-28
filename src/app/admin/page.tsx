@@ -1,15 +1,24 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
 import { AdminKpiSurface, type AdminKpiItem } from '@/components/admin/admin-kpi-surface'
 import { CockpitFigure } from '@/components/admin/cockpit-figure'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { ExceptionBanner, CalmState } from '@/components/admin/cockpit'
-import { DistributionBarChart } from '@/components/admin/distribution-chart'
 import { PageHeader } from '@/components/admin/page-header'
+import { PocketProgress, PocketProgressLegend } from '@/components/admin/pocket-progress'
+import { ShortcutRow } from '@/components/admin/shortcut-row'
+import { Panel, PanelHeading, surfaceRaised } from '@/components/admin/surface'
 import { UtilizationChart } from '@/components/admin/utilization-chart'
-import { AdminChart, AdminSection, AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
-import { ilYA, libelleMouvement, montantUsdc, phraseMouvement } from '@/lib/mouvements'
+import { ilYA, montantUsdc, phraseMouvement } from '@/lib/mouvements'
+import {
+  ArrowsRightLeftIcon,
+  CircleStackIcon,
+  Cog6ToothIcon,
+  ServerStackIcon,
+} from '@heroicons/react/20/solid'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import clsx from 'clsx'
 
 export const metadata: Metadata = { title: 'Accueil' }
 export const dynamic = 'force-dynamic'
@@ -35,7 +44,6 @@ type Mouvement = {
 }
 
 type Evenements = { readonly events?: Resolu<readonly Mouvement[]> }
-
 type Strategy = { pocket: string; targetBps: number; actualBps: number | null }
 
 function pourcentage(bps: number | null | undefined): string {
@@ -52,39 +60,19 @@ function pochesDepuisStrategies(strategies: readonly Strategy[] | null | undefin
   }))
 }
 
-function barresDepuisMouvements(mouvements: readonly Mouvement[] | null | undefined) {
-  const repartition = new Map<string, number>()
-  if (!mouvements) return [] as { nom: string; valeur: number }[]
-  for (const m of mouvements) {
-    const nom = libelleMouvement(m.eventName)
-    const deja = repartition.get(nom)
-    repartition.set(nom, deja === undefined ? 1 : deja + 1)
-  }
-  return [...repartition.entries()].map(([nom, valeur]) => ({ nom, valeur }))
-}
-
-function barresDepuisStrategies(strategies: readonly Strategy[] | null | undefined) {
-  if (!strategies) return []
-  return strategies
-    .filter((s) => s.actualBps !== null)
-    .map((s) => ({
-      nom: s.pocket,
-      valeur: (s.actualBps as number) / 100,
-    }))
-}
-
 function tonePerformance(bps: number | null | undefined): AdminKpiItem['tone'] {
   if (bps !== null && bps !== undefined && bps > 0) return 'success'
   return 'default'
 }
 
 function kpiSecondaires(input: {
-  capacite: { availableCapacity: string; utilizationBps: number | null } | null | undefined
+  capacite: { availableCapacity: string; utilizationBps: number | null; tvlCap: string } | null | undefined
   perf: { navPerShare: string | null; totalReturnBps: number | null } | null | undefined
   serviceIndisponible: boolean
   dernierMouvement: Mouvement | undefined
+  nombrePoches: number
 }): AdminKpiItem[] {
-  const { capacite, perf, serviceIndisponible, dernierMouvement } = input
+  const { capacite, perf, serviceIndisponible, dernierMouvement, nombrePoches } = input
   return [
     {
       id: 'capacite',
@@ -97,6 +85,12 @@ function kpiSecondaires(input: {
       label: 'Taux d’utilisation',
       value: pourcentage(capacite?.utilizationBps),
       hint: 'of design capacity',
+    },
+    {
+      id: 'plafond',
+      label: 'Plafond TVL',
+      value: montantUsdc(capacite?.tvlCap, 0),
+      hint: 'Contractual cap',
     },
     {
       id: 'nav',
@@ -113,68 +107,16 @@ function kpiSecondaires(input: {
     },
     {
       id: 'service',
-      label: 'Service',
-      value: serviceIndisponible ? 'Indisponible' : 'Disponible',
-      tone: serviceIndisponible ? 'danger' : 'success',
-    },
-    {
-      id: 'mouvement',
-      label: 'Dernier mouvement',
-      value: dernierMouvement ? phraseMouvement(dernierMouvement.eventName) : null,
-      hint: dernierMouvement?.occurredAt ? ilYA(dernierMouvement.occurredAt) : undefined,
-      tone: 'default',
+      label: serviceIndisponible ? 'Service' : 'Poches',
+      value: serviceIndisponible ? 'Indisponible' : String(nombrePoches),
+      hint: serviceIndisponible
+        ? 'État runtime'
+        : dernierMouvement?.occurredAt
+          ? `Dernier mvt · ${ilYA(dernierMouvement.occurredAt)}`
+          : 'Stratégies lisibles',
+      tone: serviceIndisponible ? 'danger' : 'default',
     },
   ]
-}
-
-function descriptionActivite(dernier: Mouvement | undefined): string {
-  if (!dernier) return 'Mouvements indexés Series 1'
-  const quand = dernier.occurredAt ? ilYA(dernier.occurredAt) : '—'
-  return `${phraseMouvement(dernier.eventName)} · ${quand}`
-}
-
-function cellType(m: Mouvement) {
-  return <span className="text-zinc-950 dark:text-white">{phraseMouvement(m.eventName)}</span>
-}
-
-function cellMontant(m: Mouvement) {
-  return (
-    <span className="font-semibold text-accent-600 tabular-nums dark:text-accent-400">
-      {m.assetAmountAtomic !== null ? montantUsdc(m.assetAmountAtomic, 2) : '—'}
-    </span>
-  )
-}
-
-function cellDate(m: Mouvement) {
-  return <span className="text-zinc-500 dark:text-zinc-400">{ilYA(m.occurredAt)}</span>
-}
-
-const COLONNES_MOUVEMENTS: readonly AdminTableColumn<Mouvement>[] = [
-  { key: 'type', header: 'Type', cell: cellType },
-  { key: 'montant', header: 'Montant', cell: cellMontant },
-  { key: 'date', header: 'Date', cell: cellDate },
-]
-
-function ActiviteRecente({ mouvements }: Readonly<{ mouvements: readonly Mouvement[] | null | undefined }>) {
-  const dernier = mouvements?.[0]
-  const vide = mouvements === null || mouvements === undefined || mouvements.length === 0
-
-  return (
-    <AdminSection title="Activité récente" description={descriptionActivite(dernier)}>
-      {vide ? (
-        <CalmState message="Aucun mouvement relevé récemment." />
-      ) : (
-        <AdminSurface>
-          <AdminTable rows={mouvements} keyFn={(m) => m.id} columns={COLONNES_MOUVEMENTS} />
-          <div className="border-t border-zinc-950/5 px-5 py-3 dark:border-white/5 sm:px-6">
-            <Link href="/admin/operations" className="text-sm text-accent-600 hover:underline dark:text-accent-400">
-              Registre complet →
-            </Link>
-          </div>
-        </AdminSurface>
-      )}
-    </AdminSection>
-  )
 }
 
 export default async function Page() {
@@ -186,17 +128,13 @@ export default async function Page() {
 
   const serviceIndisponible = !disponibilite.ok || disponibilite.data.ready !== true
   const d = dashboard.ok ? dashboard.data : null
-
   const capacite = d?.capacity?.value
   const perf = d?.performance?.value
   const strategies = d?.strategies?.value
   const mouvements = evenements.ok ? evenements.data.events?.value : null
   const dernierMouvement = mouvements?.[0]
-
   const poches = pochesDepuisStrategies(strategies)
-  const barresMouvements = barresDepuisMouvements(mouvements)
-  const repartitionStrategies = barresDepuisStrategies(strategies)
-  const nombreMouvements = mouvements?.length
+  const videMouvements = mouvements === null || mouvements === undefined || mouvements.length === 0
 
   const metaSnapshot = dernierMouvement?.occurredAt
     ? `Series 1 · snapshot ${ilYA(dernierMouvement.occurredAt)}`
@@ -214,74 +152,158 @@ export default async function Page() {
         />
       ) : null}
 
-      <AdminKpiSurface
-        hero={{
-          id: 'encours',
-          label: 'Encours du portefeuille',
-          value: montantUsdc(capacite?.totalAssets, 0),
-          hint: 'Encours total du fonds Series 1',
-          tone: 'accent',
-        }}
-        items={kpiSecondaires({ capacite, perf, serviceIndisponible, dernierMouvement })}
-      />
+      <CockpitSection>
+        <AdminKpiSurface
+          hero={{
+            id: 'encours',
+            label: 'Encours du portefeuille',
+            value: montantUsdc(capacite?.totalAssets, 0),
+            hint: 'When the fund’s on-chain assets are measured',
+            tone: 'accent',
+          }}
+          items={kpiSecondaires({
+            capacite,
+            perf,
+            serviceIndisponible,
+            dernierMouvement,
+            nombrePoches: poches.length,
+          })}
+        />
 
-      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          {poches.length > 0 ? (
+        <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-4">
+          <div className="lg:col-span-3">
+            {poches.length > 0 ? (
+              <CockpitFigure
+                title="Allocation cible vs réelle"
+                description="Cumulative target versus on-chain allocation, by strategy pocket."
+              >
+                <AllocationChart poches={poches} />
+              </CockpitFigure>
+            ) : (
+              <CockpitFigure
+                title="Allocation cible vs réelle"
+                description="Aucune poche stratégique lisible dans le dashboard."
+              >
+                <CalmState message="Les stratégies s’afficheront dès que le service les renverra." />
+              </CockpitFigure>
+            )}
+          </div>
+          <div className="lg:col-span-1">
             <CockpitFigure
-              title="Allocation cible vs réelle"
-              description="Pourcentage du portefeuille par poche — visée contractuelle et constatée on-chain."
+              title="Mix capacité"
+              action={
+                <Link
+                  href="/admin/vault"
+                  className="text-xs font-medium text-accent-600 hover:text-accent-700 dark:text-accent-400 dark:hover:text-accent-300"
+                >
+                  Vault →
+                </Link>
+              }
             >
-              <AllocationChart poches={poches} />
+              <UtilizationChart
+                tvlCap={capacite?.tvlCap}
+                totalAssets={capacite?.totalAssets}
+                availableCapacity={capacite?.availableCapacity}
+                utilizationBps={capacite?.utilizationBps}
+              />
             </CockpitFigure>
-          ) : (
-            <AdminChart
-              question="Allocation cible vs réelle"
-              unite="% du portefeuille"
-              provenance="dashboard"
-              etat={{ type: 'vide', explication: 'Aucune poche stratégique lisible.' }}
-            />
-          )}
+          </div>
         </div>
-        <div className="lg:col-span-1">
-          <CockpitFigure title="Mix capacité" description="Encours vs capacité disponible · plafond TVL">
-            <UtilizationChart
-              tvlCap={capacite?.tvlCap}
-              totalAssets={capacite?.totalAssets}
-              availableCapacity={capacite?.availableCapacity}
-              utilizationBps={capacite?.utilizationBps}
-            />
-          </CockpitFigure>
-        </div>
-      </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {barresMouvements.length > 0 ? (
-          <CockpitFigure
-            title="Distribution des mouvements"
-            description={
-              nombreMouvements !== undefined
-                ? `${nombreMouvements} derniers événements indexés`
-                : 'Événements récents'
-            }
-            chartHeight="h-[240px]"
-          >
-            <DistributionBarChart barres={barresMouvements} />
-          </CockpitFigure>
+        {poches.length > 0 ? (
+          <div className={clsx(surfaceRaised, 'mt-5 overflow-hidden')}>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-950/5 px-5 py-3 dark:border-white/5">
+              <h2 className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase dark:text-zinc-400">
+                Poches
+              </h2>
+              <PocketProgressLegend />
+            </div>
+            <ul>
+              {poches.map((p, i) => (
+                <li key={p.poche}>
+                  <Link
+                    href="/admin/vault"
+                    className={clsx(
+                      'flex flex-col gap-3 border-b border-zinc-950/5 px-5 py-4 transition-colors last:border-b-0 sm:flex-row sm:items-center sm:gap-6 dark:border-white/5',
+                      i === 0
+                        ? 'bg-accent-500/5'
+                        : 'hover:bg-zinc-950/[0.02] dark:hover:bg-white/[0.02]',
+                    )}
+                  >
+                    <div className="w-full min-w-0 sm:w-52">
+                      <p className="truncate text-sm font-semibold text-zinc-950 dark:text-white">{p.poche}</p>
+                      <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">Stratégie Series 1</p>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <PocketProgress name={p.poche} cible={p.cible} reel={p.reel} showName={false} />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
-        {repartitionStrategies.length > 0 ? (
-          <CockpitFigure
-            title="Répartition des stratégies"
-            description="Part constatée (actualBps) par poche"
-            chartHeight="h-[240px]"
-          >
-            <DistributionBarChart barres={repartitionStrategies} unit=" %" />
-          </CockpitFigure>
-        ) : null}
-      </div>
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ShortcutRow
+            href="/admin/operations"
+            title="Registre des opérations"
+            status="Mouvements on-chain"
+            icon={ArrowsRightLeftIcon}
+          />
+          <ShortcutRow
+            href="/admin/runtime"
+            title="État du service"
+            status={serviceIndisponible ? 'Indisponible' : 'Sondes runtime'}
+            icon={ServerStackIcon}
+          />
+          <ShortcutRow href="/admin/vault" title="Vault" status="Stratégies et rééquilibrage" icon={CircleStackIcon} />
+          <ShortcutRow
+            href="/admin/administration"
+            title="Administration"
+            status="Équipe, traces, réglages"
+            icon={Cog6ToothIcon}
+          />
+        </div>
+      </CockpitSection>
 
-      <ActiviteRecente mouvements={mouvements} />
+      <CockpitSection
+        index="02"
+        title="Activité récente"
+        description={
+          dernierMouvement
+            ? `${phraseMouvement(dernierMouvement.eventName)} · ${dernierMouvement.occurredAt ? ilYA(dernierMouvement.occurredAt) : '—'}`
+            : 'Mouvements indexés Series 1'
+        }
+        actions={
+          <Link href="/admin/operations" className="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">
+            Registre →
+          </Link>
+        }
+      >
+        {videMouvements ? (
+          <CalmState message="Aucun mouvement relevé récemment." />
+        ) : (
+          <Panel inset="none" className="overflow-hidden">
+            <PanelHeading title="Mouvements" />
+            <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
+              {mouvements!.slice(0, 8).map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">
+                      {phraseMouvement(m.eventName)}
+                    </p>
+                    <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{ilYA(m.occurredAt)}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-accent-600 dark:text-accent-400">
+                    {m.assetAmountAtomic !== null ? montantUsdc(m.assetAmountAtomic, 2) : '—'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        )}
+      </CockpitSection>
     </>
   )
 }

@@ -2,6 +2,7 @@ import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { PageHeader } from '@/components/admin/page-header'
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import type { Metadata } from 'next'
@@ -36,12 +37,14 @@ export default async function Page() {
   const aucune = executions === null || executions === undefined || executions.length === 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Rétro-tests"
         description="Ce que la stratégie du fonds aurait produit sur des périodes passées. Tout est calculé par le service : rien n’est projeté, extrapolé ni lissé ici."
         endpointIds={['backtest-historical']}
       />
+
+      <CockpitSection>
 
       {!reponse.ok ? (
         <SourceAttendue
@@ -81,9 +84,9 @@ export default async function Page() {
                 title="Quels rétro-tests ont été exécutés ?"
                 hint={`${executions.length} exécution${executions.length > 1 ? 's' : ''} conservée${executions.length > 1 ? 's' : ''}`}
               />
-              <ul className="divide-y divide-white/[0.07]">
+              <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
                 {executions.map((execution, rang) => (
-                  <li key={execution.id ?? String(rang)} className="px-5 py-3.5 text-sm text-white">
+                  <li key={execution.id ?? String(rang)} className="px-5 py-3.5 text-sm text-zinc-950 dark:text-white">
                     {execution.label === null || execution.label === undefined || execution.label === ''
                       ? 'Exécution sans intitulé'
                       : execution.label}
@@ -96,6 +99,8 @@ export default async function Page() {
       )}
 
       {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
+      </CockpitSection>
+
       <EndpointSection endpointId="backtest-historical" title="Réponse détaillée du service" />
     </div>
   )

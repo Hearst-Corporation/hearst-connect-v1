@@ -1,3 +1,4 @@
+import { CockpitSection } from '@/components/admin/cockpit-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminBody, AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
 import {
@@ -93,18 +94,18 @@ function ListeLiens({
 }: Readonly<{ items: readonly { href: string; libelle: string; aide: string }[] }>) {
   if (items.length === 0) return null
   return (
-    <ul className="divide-y divide-brand-border/30">
+    <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
       {items.map((s) => (
         <li key={s.href}>
           <Link
             href={s.href}
-            className="flex items-baseline justify-between gap-4 px-5 py-3 transition hover:bg-white/[0.04] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-accent"
+            className="flex items-baseline justify-between gap-4 px-5 py-3 transition hover:bg-white/[0.04] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-600"
           >
             <span className="min-w-0">
-              <span className="block truncate text-sm text-brand-foreground">{s.libelle}</span>
-              <span className="block truncate text-xs text-brand-muted">{s.aide}</span>
+              <span className="block truncate text-sm text-zinc-950 dark:text-white">{s.libelle}</span>
+              <span className="block truncate text-xs text-zinc-500 dark:text-zinc-400">{s.aide}</span>
             </span>
-            <span aria-hidden="true" className="shrink-0 text-brand-muted">→</span>
+            <span aria-hidden="true" className="shrink-0 text-zinc-500 dark:text-zinc-400">→</span>
           </Link>
         </li>
       ))}
@@ -122,27 +123,29 @@ export default async function Page() {
         description="Équipe, produit, infrastructure et outils techniques — organisés par sous-section."
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <AdminSurface>
-          <AdminSurfaceHeader title="Équipe et accès" description="Session locale · un propriétaire déclaré" />
-          <div className="px-5 py-4 sm:px-6">
-            <p className="text-sm/6 text-brand-foreground">{session.name}</p>
-            <AdminBody className="text-xs/5">{session.email}</AdminBody>
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-brand-accent/10 px-2 py-0.5 text-xs font-medium text-brand-accent ring-1 ring-brand-accent/30 ring-inset">
-              {session.role}
-            </p>
-          </div>
-        </AdminSurface>
+      <CockpitSection title="Équipe" description="Session locale et journal d’administration">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <AdminSurface>
+            <AdminSurfaceHeader title="Équipe et accès" description="Session locale · un propriétaire déclaré" />
+            <div className="px-5 py-4 sm:px-6">
+              <p className="text-sm/6 text-zinc-950 dark:text-white">{session.name}</p>
+              <AdminBody className="text-xs/5">{session.email}</AdminBody>
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-accent-500/10 px-2 py-0.5 text-xs font-medium text-accent-600 ring-1 ring-accent-500/30 ring-inset dark:text-accent-400">
+                {session.role}
+              </p>
+            </div>
+          </AdminSurface>
 
-        <AdminSurface>
-          <AdminSurfaceHeader title="Journal des décisions" description="Audit · source en attente" />
-          <div className="px-5 py-4 sm:px-6">
-            <AdminBody>
-              Le journal d’administration existe en base mais n’est pas encore transmis. Aucune ligne inventée.
-            </AdminBody>
-          </div>
-        </AdminSurface>
-      </div>
+          <AdminSurface>
+            <AdminSurfaceHeader title="Journal des décisions" description="Audit · source en attente" />
+            <div className="px-5 py-4 sm:px-6">
+              <AdminBody>
+                Le journal d’administration existe en base mais n’est pas encore transmis. Aucune ligne inventée.
+              </AdminBody>
+            </div>
+          </AdminSurface>
+        </div>
+      </CockpitSection>
 
       {SECTIONS.filter((s) => s.links.length > 0).map((section) => (
         <AdminSection key={section.id} title={section.title} description={section.description}>
@@ -152,15 +155,17 @@ export default async function Page() {
         </AdminSection>
       ))}
 
-      <AdminSourceAttendue
-        quoi="Rôles, permissions et smart contracts dédiés"
-        detail="Pas de surface smart contracts autonome : les lectures passent par vault, runtime et series-1. Pas d’action on-chain simulée."
-        requis={[
-          'Rôles conformité et opérations distincts',
-          'Journal d’administration lisible',
-          'Endpoints dédiés contrats si lecture owner/rôles/pause requise',
-        ]}
-      />
+      <AdminSection title="Sources" description="Rôles, permissions et contrats">
+        <AdminSourceAttendue
+          quoi="Rôles, permissions et smart contracts dédiés"
+          detail="Pas de surface smart contracts autonome : les lectures passent par vault, runtime et series-1. Pas d’action on-chain simulée."
+          requis={[
+            'Rôles conformité et opérations distincts',
+            'Journal d’administration lisible',
+            'Endpoints dédiés contrats si lecture owner/rôles/pause requise',
+          ]}
+        />
+      </AdminSection>
     </AdminPage>
   )
 }
