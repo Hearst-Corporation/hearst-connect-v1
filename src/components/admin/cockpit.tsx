@@ -33,13 +33,18 @@ export function Card({
   return <Tag className={clsx(className, surfaceRaised)}>{children}</Tag>
 }
 
+/**
+ * A card's title block. No bottom rule: a bordered header inside a bordered
+ * panel is a frame inside a frame, and the review counted every one of them.
+ * Space does the separating.
+ */
 export function CardHeader({
   title,
   hint,
   action,
 }: Readonly<{ title: string; hint?: string; action?: React.ReactNode }>) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-zinc-950/5 px-5 py-4 sm:px-6 dark:border-white/5">
+    <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-3 sm:px-6">
       <div className="min-w-0">
         <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         {hint ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{hint}</p> : null}
@@ -54,7 +59,7 @@ export function CardHeader({
 export type Tone = 'neutral' | 'attention' | 'critique' | 'sain'
 
 const TONE_RING: Record<Tone, string> = {
-  neutral: 'border-white/10',
+  neutral: 'border-console-line',
   sain: 'border-success-500/30',
   attention: 'border-warning-500/40',
   critique: 'border-danger-500/50',
@@ -113,7 +118,7 @@ export function VerdictCard({
       {contexte ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{contexte}</p> : null}
 
       {casUrgent ? (
-        <p className="mt-4 border-t border-zinc-950/5 pt-3 text-sm text-zinc-700 dark:border-white/5 dark:text-zinc-300">
+        <p className="mt-4 border-t border-zinc-950/5 pt-3 text-sm text-zinc-700 dark:border-console-line-soft dark:text-zinc-300">
           <span className="block text-xs text-zinc-500 dark:text-zinc-400">Most urgent</span>
           {casUrgent}
         </p>
@@ -198,15 +203,28 @@ export function SourceAttendue({
   quoi,
   detail,
   requis,
-}: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
+  action,
+}: Readonly<{
+  quoi: string
+  detail: string
+  requis: readonly string[]
+  action?: React.ReactNode
+}>) {
   return (
-    <Card className="px-6 py-10 text-center">
-      <p className="text-sm font-semibold text-zinc-950 dark:text-white">{quoi}</p>
-      <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">{detail}</p>
-      <div className="mx-auto mt-6 max-w-md rounded-lg bg-zinc-50 px-4 py-3 text-left ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
-        <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">What&apos;s missing</p>
-        <RequirementList requis={requis} />
-      </div>
+    <Card className="p-6">
+      <h3 className="text-base/6 font-semibold text-zinc-950 dark:text-white">{quoi}</h3>
+      <p className="mt-1.5 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">{detail}</p>
+      {requis.length > 0 ? (
+        <div className="mt-4 max-w-prose">
+          {/* No inner ringed box: the requirement list is part of this state,
+              not a second surface inside it. */}
+          <p className="text-[0.6875rem]/4 font-medium tracking-[0.08em] text-zinc-500 uppercase dark:text-zinc-400">
+            What&apos;s missing
+          </p>
+          <RequirementList requis={requis} />
+        </div>
+      ) : null}
+      {action ? <div className="mt-5">{action}</div> : null}
     </Card>
   )
 }

@@ -2,8 +2,10 @@ import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact } from '@/components/admin/cockpit'
 import { DerivePochesChart, type DerivePoche } from '@/components/admin/derive-poches-chart'
 import { DistributionBarChart } from '@/components/admin/distribution-chart'
+import { AdminChartSplit, AdminCol, AdminGrid, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
+import { SingleObservation } from '@/components/admin/single-observation'
+import { AdminBody, AdminCaption, AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
 import {
   AdminErrorState,
   AdminMetric,
@@ -15,6 +17,7 @@ import {
   type AdminTableColumn,
 } from '@/components/admin/surfaces'
 import { callBackend, type BackendResult } from '@/lib/backend/client'
+import { plottableAsChart } from '@/lib/chart-theme'
 import { explorerTxUrl } from '@/lib/explorer'
 import { formatNumber } from '@/lib/format'
 import {
@@ -48,6 +51,19 @@ export const dynamic = 'force-dynamic'
  *   02. What happened on the chain? — the ledger, as a feed and as a table.
  *   03. Is the ledger up to date? — the indexer's actual state.
  *   04. What's waiting on approval? — nothing, and here's why.
+ *
+ * ── How the four sections are composed ─────────────────────────────────────
+ * Every block on this page declares the columns it occupies; nothing is left
+ * to auto-placement. Section 01 is a full-width headline card over the
+ * canonical chart-and-interpretation split (8 / 4). Section 02 follows the
+ * table recipe: a full-width summary, then the narrative feed in the main
+ * column with the type breakdown in the deliberate secondary one, then the
+ * verifiable table at full width — a six-column table with hashes in it is
+ * the one block on the page that genuinely wants the whole measure. Section
+ * 03 puts its four measurements straight into a metric grid: each tile is its
+ * own surface now, so the panel that used to hold them was a frame inside a
+ * frame. Section 04 is deliberately eight columns wide, because three lines
+ * of text do not need twelve.
  *
  * ── Two sources for the same subject, on purpose ───────────────────────────
  * `GET /api/v1/rebalancing/status` is the DIRECT read of the contract: today
@@ -173,6 +189,15 @@ function ecartLisible(bps: number | null | undefined): string {
   return formatNumber(bps / 100, { maximumFractionDigits: 2 })
 }
 
+/** A drift only means something with its direction attached. */
+function ecartSigneLisible(points: number): string {
+  return formatNumber(points, { maximumFractionDigits: 2, signDisplay: 'always' })
+}
+
+function partLisible(points: number): string {
+  return formatNumber(points, { maximumFractionDigits: 2 })
+}
+
 /** String integer → BigInt. An unreadable value isn't counted. */
 function entierAtomique(valeur: string | null | undefined): bigint | null {
   if (valeur === null || valeur === undefined || valeur === '') return null
@@ -205,6 +230,20 @@ function cadenceLisible(intervalMs: number | null | undefined): string {
   if (typeof intervalMs !== 'number' || !Number.isFinite(intervalMs)) return '—'
   if (intervalMs < 60_000) return `every ${Math.round(intervalMs / 1000)}s`
   return `every ${Math.round(intervalMs / 60_000)}min`
+}
+
+/**
+ * The database's reachability, in three states rather than two.
+ *
+ * `reachable` absent is not `reachable: false`: the first says the runtime
+ * response carried nothing on the subject, the second is a service claiming
+ * its own database is down. Collapsing them announced an outage nobody
+ * measured.
+ */
+function baseDonneesLisible(reachable: boolean | null | undefined): string {
+  if (reachable === true) return 'Database: reachable'
+  if (reachable === false) return 'Database: unreachable'
+  return 'Database: not reported'
 }
 
 /**
@@ -335,13 +374,16 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
 
   return (
     <Card className="p-6">
-      <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+      {/* Two declared tracks. The figure used to sit in a flex row where both
+          it and the fact list asked for "whatever is left", so the gap between
+          them moved with every value. The hero keeps its measure now. */}
+      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
         <HeroFigure
           valeur={ecartLisible(mesure?.driftBps)}
           libelle="Observed drift from target allocation"
           unite="percentage points"
         />
-        <dl className="grid flex-1 grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
           <SideFact libelle="Last rebalance" valeur={dateLisible(mesure?.lastRebalanceAt)} />
           <SideFact libelle="Time since" valeur={ilYA(mesure?.lastRebalanceAt)} />
           {/* `pending: null`: the service reports no request. We say so
@@ -352,11 +394,48 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
           />
         </dl>
       </div>
-      <p className="mt-5 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-white/5 dark:text-zinc-400">
+      <p className="mt-5 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-console-line-soft dark:text-zinc-400">
         Indexed measurement · {statutAffichage(champ?.status)} — no trigger threshold is published by the
         service: the drift is given raw, the decision stays human.
       </p>
     </Card>
+  )
+}
+
+const QUESTION_DERIVE = 'Which pocket is drifting from its target?'
+const UNITE_DERIVE = 'in percentage points'
+
+/**
+ * The drift, plotted — or stated, when there is only one of it.
+ *
+ * A single pocket rendered into a bar chart is one bar alone in a plot area,
+ * which reads as a chart whose other series failed to load. `plottableAsChart`
+ * is the test; below it the honest rendering is the measurement itself.
+ */
+function CadreDerive({
+  derives,
+  etat,
+}: Readonly<{ derives: readonly DerivePoche[]; etat: EtatSerie }>) {
+  const seule = derives[0]
+
+  if (etat.type === 'tracee' && !plottableAsChart(derives.length) && seule !== undefined) {
+    return (
+      <ChartFrame question={QUESTION_DERIVE} unite={UNITE_DERIVE} etat={etat}>
+        <SingleObservation
+          valeur={ecartSigneLisible(seule.ecart)}
+          unite="points"
+          periode={seule.poche}
+          contexte={`Target ${partLisible(seule.cible)}% · observed ${partLisible(seule.constate)}%`}
+          note="Only one pocket reports both its target and its observed share — there is no distribution to plot yet."
+        />
+      </ChartFrame>
+    )
+  }
+
+  return (
+    <ChartFrame question={QUESTION_DERIVE} unite={UNITE_DERIVE} etat={etat}>
+      <DerivePochesChart poches={derives} />
+    </ChartFrame>
   )
 }
 
@@ -370,24 +449,24 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
   const lisible = champ?.status === 'LIVE' && champ.value !== null
 
   return (
-    <AdminSurface className="p-5 sm:p-6">
+    <AdminSurface padding>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <AdminStatus status={statutAffichage(champ?.status)} />
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Direct contract read</p>
       </div>
 
-      <p className="mt-3 max-w-2xl text-sm text-zinc-700 dark:text-zinc-300">
+      <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">
         {lisible
           ? 'The contract exposes a rebalancing state: see the detail below.'
           : 'The deployed contract exposes no rebalancing state. This is not a service outage: the read capability is absent from the source.'}
       </p>
-      {lisible ? null : (
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{phraseIndisponibilite(champ?.reason)}</p>
-      )}
+      {lisible ? null : <AdminCaption className="mt-1">{phraseIndisponibilite(champ?.reason)}</AdminCaption>}
 
       {/* These four facts used to be buried in raw JSON: they say which
-          contract was queried, and whether it actually carries code. */}
-      <dl className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 border-t border-zinc-950/5 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-white/5">
+          contract was queried, and whether it actually carries code. They
+          stack in one column because this panel is four grid columns wide —
+          the four-across row they used to sit in wrapped into ragged pairs. */}
+      <dl className="mt-5 space-y-3 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
         <SideFact libelle="Contract mode" valeur={contrat?.mode ?? '—'} />
         <SideFact libelle="Chain" valeur={chaineLisible(contrat?.chainId)} />
         <SideFact libelle="Contract queried" valeur={adresseCourte(contrat?.contractAddress) ?? '—'} />
@@ -512,18 +591,18 @@ function LigneFil({ mouvement }: Readonly<{ mouvement: MouvementIndexe }>) {
 function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly MouvementIndexe[] }>) {
   const groupes = grouperParJour(mouvements)
   return (
-    <Card className="flex flex-col">
+    <Card>
       <CardHeader
         title="What happened, and when?"
         hint={`The ${mouvements.length} most recent movements, newest first`}
       />
-      <div className="divide-y divide-zinc-950/5 dark:divide-white/5">
+      <div className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
         {groupes.map((groupe) => (
           <div key={groupe.jour}>
-            <p className="bg-zinc-50/80 px-5 py-2 text-xs font-medium text-zinc-500 first-letter:uppercase dark:bg-zinc-950/40 dark:text-zinc-400">
+            <p className="bg-zinc-50/80 px-5 py-2 text-xs font-medium text-zinc-500 first-letter:uppercase dark:bg-console-inset dark:text-zinc-400">
               {groupe.jour}
             </p>
-            <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
+            <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
               {groupe.mouvements.map((m) => (
                 <LigneFil key={m.id} mouvement={m} />
               ))}
@@ -532,6 +611,39 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
         ))}
       </div>
     </Card>
+  )
+}
+
+/**
+ * The shape of the ledger — or the single type it holds, when there is one.
+ *
+ * Same rule as the drift chart: one category is not a distribution, and a
+ * lone bar in a plot area reads as a chart with data missing.
+ */
+function RepartitionParType({ cumuls }: Readonly<{ cumuls: readonly CumulType[] }>) {
+  const question = 'Which types make up the ledger?'
+  const unite = 'movements, by type'
+  const majeur = cumuls[0]
+
+  if (!plottableAsChart(cumuls.length)) {
+    if (majeur === undefined) return null
+    return (
+      <ChartFrame question={question} unite={unite} etat={{ type: 'tracee' }}>
+        <SingleObservation
+          valeur={formatCount(majeur.nombre)}
+          unite="movements"
+          periode={majeur.nom}
+          contexte="Every movement recorded so far carries this type."
+          note="A single type has been recorded — there is no distribution to plot yet."
+        />
+      </ChartFrame>
+    )
+  }
+
+  return (
+    <ChartFrame question={question} unite={unite} etat={{ type: 'tracee' }}>
+      <DistributionBarChart barres={barresDe(cumuls)} />
+    </ChartFrame>
   )
 }
 
@@ -546,9 +658,12 @@ function EnTeteRegistre({
 
   return (
     <Card className="p-6">
-      <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+      {/* Declared tracks again: the count anchors a fixed measure on the left,
+          the facts fill the remaining one. These stay `SideFact`s rather than
+          metric tiles — a formatted date at tile size truncates. */}
+      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
         <HeroFigure valeur={formatCount(mouvements.length)} libelle="Movements recorded on chain" />
-        <dl className="grid flex-1 grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           <SideFact libelle="Distinct types" valeur={formatCount(cumuls.length)} />
           <SideFact libelle="First movement recorded" valeur={dateLisible(premier)} />
           <SideFact libelle="Last movement recorded" valeur={ilYA(dernier)} />
@@ -594,20 +709,17 @@ function RegistreMouvements({
     <>
       <EnTeteRegistre mouvements={recents} cumuls={cumuls} />
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <FilChronologique mouvements={fil} />
-        </div>
+      {/* The narrative in the main column, the shape of the ledger in the
+          deliberate secondary one. `items-start` so neither card is stretched
+          to the other's height with nothing to put in the extra space. */}
+      <AdminTableSplit
+        className="items-start"
+        main={<FilChronologique mouvements={fil} />}
+        aside={<RepartitionParType cumuls={cumuls} />}
+      />
 
-        <AdminSurface className="flex flex-col p-6 lg:col-span-2">
-          <AdminSurfaceHeader
-            title="Breakdown by type"
-            description={`${recents.length} movements, ${cumuls.length} distinct types`}
-          />
-          <DistributionBarChart barres={barresDe(cumuls)} />
-        </AdminSurface>
-      </div>
-
+      {/* Full measure, on purpose: six columns carrying addresses and
+          transaction hashes is the one block on this page that needs it. */}
       <AdminSurface>
         <AdminSurfaceHeader
           className="px-5 pt-5 sm:px-6"
@@ -625,7 +737,9 @@ function RegistreMouvements({
 /** The state carries a word as much as a color: the tint alone is never enough. */
 const ETAT_INDEXEUR: Record<string, { readonly mot: string; readonly point: string; readonly texte: string }> = {
   RUNNING: { mot: 'Running', point: 'bg-success-500', texte: 'text-success-400' },
-  IDLE: { mot: 'Idle', point: 'bg-info-500', texte: 'text-info-400' },
+  // Idle is not an incident and not a success — it stays neutral rather than
+  // spending a fourth hue on "nothing is happening, and that is fine".
+  IDLE: { mot: 'Idle', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
   DEGRADED: { mot: 'Degraded', point: 'bg-warning-500', texte: 'text-warning-400' },
   STOPPED: { mot: 'Stopped', point: 'bg-danger-500', texte: 'text-danger-400' },
   ERROR: { mot: 'Error', point: 'bg-danger-500', texte: 'text-danger-400' },
@@ -648,36 +762,33 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
   const etat = etatIndexeur(runtime.data.indexerStatus ?? runtime.data.indexer?.status)
 
   return (
-    <AdminSurface className="p-5 sm:p-6">
+    <>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span aria-hidden="true" className={clsx('size-2 shrink-0 rounded-full', etat.point)} />
         <p className={clsx('text-sm font-medium', etat.texte)}>Indexer: {etat.mot}</p>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          The ledger above is only as good as this sync.
-        </p>
+        <AdminBody>The ledger above is only as good as this sync.</AdminBody>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <AdminMetric
-          label="Last sync"
-          value={ilYA(derniereSynchro)}
-          hint={dateLisible(derniereSynchro)}
-        />
-        <AdminMetric label="Last indexed block" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
-        <AdminMetric label="Polling interval" value={cadenceLisible(planificateur?.intervalMs)} />
-        {/* An error counter measured at zero IS information; it doesn't come
-            from an absence collapsed into zero. */}
-        <AdminMetric
-          label="Consecutive errors"
-          value={formatCount(planificateur?.consecutiveErrors)}
-          hint={`Database: ${runtime.data.db?.reachable === true ? 'reachable' : 'unreachable'}`}
-        />
+      {/* No panel around the tiles. Each `AdminMetric` carries its own ring
+          and background now, so the surface that used to hold them was a
+          frame drawn inside a frame. Four measurements, four columns, no
+          orphan in the last row. */}
+      <div>
+        <AdminMetricGrid count={4}>
+          <AdminMetric label="Last sync" value={ilYA(derniereSynchro)} hint={dateLisible(derniereSynchro)} />
+          <AdminMetric label="Last indexed block" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
+          <AdminMetric label="Polling interval" value={cadenceLisible(planificateur?.intervalMs)} />
+          {/* An error counter measured at zero IS information; it doesn't come
+              from an absence collapsed into zero. */}
+          <AdminMetric
+            label="Consecutive errors"
+            value={formatCount(planificateur?.consecutiveErrors)}
+            hint={baseDonneesLisible(runtime.data.db?.reachable)}
+          />
+        </AdminMetricGrid>
+        <AdminCaption className="mt-3">{retardLisible(runtime.data.contract?.indexerLagBlocks)}</AdminCaption>
       </div>
-
-      <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-        {retardLisible(runtime.data.contract?.indexerLagBlocks)}
-      </p>
-    </AdminSurface>
+    </>
   )
 }
 
@@ -714,30 +825,31 @@ export default async function Page() {
       >
         <SyntheseDerive dashboard={dashboard} />
 
-        <ChartFrame
-          question="Which pocket is drifting from its target?"
-          unite="in percentage points"
-          etat={etatDerive}
-          hauteur="h-48"
-        >
-          <DerivePochesChart poches={derives} />
-        </ChartFrame>
-
-        <LectureOnChain rebalancing={rebalancing} />
+        {/* The canonical split: the measurement at eight columns, what the
+            contract will and won't say about it at four. They used to be
+            three cards stacked at full width, which gave the on-chain read
+            the same weight as the drift itself. */}
+        <AdminChartSplit
+          className="items-start"
+          chart={<CadreDerive derives={derives} etat={etatDerive} />}
+          aside={<LectureOnChain rebalancing={rebalancing} />}
+        />
       </AdminSection>
 
       <AdminSection
         index="02"
         title="Movement ledger"
         description="The indexed events of Series 1 — what actually happened on the chain."
-      >
-        <div className="flex items-center gap-2">
-          {/* The backend returns this status as a free-form field: we validate
-              it instead of forcing it, otherwise an "undefined" label would show. */}
-          {reponse.ok && reponse.data.events ? (
+        // The backend returns this status as a free-form field: we validate
+        // it instead of forcing it, otherwise an "undefined" label would show.
+        // It belongs in the section's action slot, not in a bare row of its
+        // own above the content.
+        actions={
+          reponse.ok && reponse.data.events ? (
             <AdminStatus status={statutAffichage(reponse.data.events.status)} />
-          ) : null}
-        </div>
+          ) : null
+        }
+      >
         <RegistreMouvements reponse={reponse} mouvements={mouvements} chainId={chainId} />
       </AdminSection>
 
@@ -752,21 +864,26 @@ export default async function Page() {
       {/* Placed at the end of the page, not the top: an empty queue opening
           the screen would make it look dead. The content itself doesn't
           change — the source still doesn't exist, and that's what needs to
-          be said. */}
+          be said. Eight columns rather than twelve: the card is sized to the
+          three lines it holds, and the rest is deliberate whitespace. */}
       <AdminSection
         index="04"
         title="Pending approval"
         description="Financial approvals — source pending"
       >
-        <AdminSourceAttendue
-          quoi="No approval queue open"
-          detail="DistributionApproval, VaultDeploymentApproval, and ProposalSignature exist in the database but are not yet exposed over HTTP."
-          requis={[
-            'Reading pending requests and received signatures',
-            'Approve/reject action with logging',
-            'Compliance check attached to each request',
-          ]}
-        />
+        <AdminGrid>
+          <AdminCol span={8}>
+            <AdminSourceAttendue
+              quoi="No approval queue open"
+              detail="DistributionApproval, VaultDeploymentApproval, and ProposalSignature exist in the database but are not yet exposed over HTTP."
+              requis={[
+                'Reading pending requests and received signatures',
+                'Approve/reject action with logging',
+                'Compliance check attached to each request',
+              ]}
+            />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
     </AdminPage>
   )

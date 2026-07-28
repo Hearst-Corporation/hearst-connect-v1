@@ -43,12 +43,21 @@ const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
   ERROR: 'Error',
 }
 
+/**
+ * Four tones, and only one of them is a hue you have to act on.
+ *
+ * `info` used to be blue. The approved system has no blue in it — the console
+ * is neutral graphite plus the brand mint plus three semantic tones, and a
+ * badge that means "this is fine, just so you know" has no business carrying
+ * a fourth hue. It reads as graphite now, exactly like `neutral`, because
+ * that is what it means.
+ */
 const TONE_CLASS: Record<BadgeTone, string> = {
   ok: 'bg-hearst-ok/15 text-hearst-ok ring-hearst-ok/30',
   warn: 'bg-hearst-warn/15 text-hearst-warn ring-hearst-warn/30',
   bad: 'bg-hearst-bad/20 text-hearst-bad ring-hearst-bad/40',
-  info: 'bg-hearst-info/15 text-hearst-info ring-hearst-info/30',
-  neutral: 'bg-white/5 text-zinc-400 ring-white/15',
+  info: 'bg-white/5 text-zinc-300 ring-console-line-strong',
+  neutral: 'bg-white/5 text-zinc-400 ring-console-line-strong',
 }
 
 export function StatusBadge({
@@ -182,7 +191,7 @@ function StateShell({
   children,
 }: Readonly<{ status: ResolvedStatus; title: string; reason?: string | null; children?: React.ReactNode }>) {
   return (
-    <div className="rounded-lg border border-dashed border-white/10 bg-cockpit-inset px-5 py-8 text-center">
+    <div className="rounded-lg border border-dashed border-console-line bg-cockpit-inset px-5 py-8 text-center">
       <StatusBadge status={status} />
       <p className="mt-3 text-sm font-medium text-white">{title}</p>
       {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">{reason}</p> : null}

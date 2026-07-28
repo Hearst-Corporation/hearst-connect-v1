@@ -15,7 +15,7 @@ import { useActionState } from 'react'
  */
 function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }>) {
   const fieldClass =
-    'mt-1 w-full rounded-lg bg-zinc-50 px-2 py-1.5 text-sm text-zinc-950 ring-1 ring-zinc-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:bg-zinc-950/50 dark:text-white dark:ring-white/10'
+    'mt-1 w-full rounded-lg bg-zinc-50 px-2 py-1.5 text-sm text-zinc-950 ring-1 ring-zinc-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:bg-console-inset dark:text-white dark:ring-console-line'
 
   return (
     <>
@@ -52,14 +52,14 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
 function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
   if (outcome.validationError) {
     return (
-      <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-white/5">
+      <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
         <p className="text-xs text-amber-600 dark:text-amber-400">{outcome.validationError}</p>
       </div>
     )
   }
 
   return (
-    <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-white/5">
+    <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
         Backend response:{' '}
         <span className="font-mono text-zinc-950 dark:text-white">
@@ -106,7 +106,7 @@ export function KeeperForm({
       ) : null}
 
       {disabled ? (
-        <p className="mt-4 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:text-zinc-400 dark:ring-white/5">
+        <p className="mt-4 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 ring-1 ring-zinc-950/5 dark:bg-console-inset dark:text-zinc-400 dark:ring-console-line-soft">
           {disabledReason}
         </p>
       ) : (

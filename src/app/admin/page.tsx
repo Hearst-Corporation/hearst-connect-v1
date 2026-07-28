@@ -1,5 +1,5 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
-import { AdminKpiSurface, type AdminKpiItem } from '@/components/admin/admin-kpi-surface'
+import { CapacityBar } from '@/components/admin/capacity-bar'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { AccueilAlertes, type AlerteBackend } from '@/components/admin/charts/accueil-alertes'
 import {
@@ -8,25 +8,19 @@ import {
   SEUIL_DERIVE_CRITIQUE_BPS,
   type PocheDerive,
 } from '@/components/admin/charts/accueil-derive-chart'
-import { AccueilVueEnsemble, type VerdictAccueil } from '@/components/admin/charts/accueil-vue-ensemble'
-import { AdminSection } from '@/components/admin/surfaces'
-import { AdminPage } from '@/components/admin/typography'
-import { ExceptionBanner, CalmState } from '@/components/admin/cockpit'
+import type { VerdictAccueil } from '@/components/admin/charts/accueil-vue-ensemble'
+import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
+import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
+import { AdminLabel, AdminPage } from '@/components/admin/typography'
+import { Card, CardHeader, ExceptionBanner, CalmState, HeroFigure } from '@/components/admin/cockpit'
 import { DistributionBarChart, type BarreRepartition } from '@/components/admin/distribution-chart'
 import { PageHeader } from '@/components/admin/page-header'
 import { PocketProgress, PocketProgressLegend } from '@/components/admin/pocket-progress'
-import { ShortcutRow } from '@/components/admin/shortcut-row'
-import { Panel, PanelHeading, surfaceRaised } from '@/components/admin/surface'
 import { callBackend } from '@/lib/backend/client'
 import { formatNumber, formatPercent } from '@/lib/format'
+import { sectionContentGap } from '@/lib/layout-tokens'
 import { ilYA, libelleMouvement, montantUsdc, phraseMouvement } from '@/lib/mouvements'
 import { etatSerieDe } from '@/lib/serie-etat'
-import {
-  ArrowsRightLeftIcon,
-  CircleStackIcon,
-  Cog6ToothIcon,
-  ServerStackIcon,
-} from '@heroicons/react/20/solid'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -34,28 +28,45 @@ import clsx from 'clsx'
 /**
  * Home — the command post.
  *
- * The screen answers a single question, in this order: "is everything fine,
- * or not?", then "where do things stand?", then "what happened?".
+ * The screen answers a single question, in this order: "is anything wrong?",
+ * then "where do we stand?", then "what happened?".
  *
- * Hence the composition:
+ * Composition, on the 12-column application grid:
  *   1. exceptions and ALERTS first — the service emits them, they cannot
  *      stay below the fold;
- *   2. the overview: assets under management, cap utilization, and three
- *      operational verdicts (drift, electricity coverage, availability);
- *   3. the detailed measures, then the charts that explain them;
- *   4. recent activity, and only at the end the shortcuts.
+ *   2. the overview — the primary metric (portfolio assets, and the share of
+ *      the cap they consume) on six columns, the three operational verdicts
+ *      on the other six, then the supporting measures as balanced tiles;
+ *   3. allocation — where the money sits against target on eight columns,
+ *      which pocket has drifted on the remaining four, then the pocket list;
+ *   4. recent activity — the shape of the feed beside the feed itself.
  *
- * Two deliberate departures from the previous version:
+ * What the visual review changed here, and why:
  *
- * — Charts move from `CockpitFigure` to `ChartFrame`. A frame that declares
- *   the unit, the source, and the STATE of the series beats a mute figure:
- *   when the source is missing, the frame stays in place and says why,
- *   instead of disappearing or plotting a zero.
+ * — The supporting measures were a single slab of hairline-gutter cells.
+ *   Eight cells sharing one background read as a spreadsheet, not as eight
+ *   measures. They are tiles in `AdminMetricGrid` now, and the real child
+ *   count is passed so the last row is never left half empty.
  *
- * — The "Capacity mix" donut gives way to the overview's cap bar. Both
- *   represented the same number; the freed slot now serves allocation
- *   DRIFT, which wasn't shown anywhere even though it's the only
- *   actionable measure in the block.
+ * — The overview was one full-width surface nesting a hero, a cap bar and
+ *   three verdicts in internal grids — a card holding cards. It is now two
+ *   declared columns of the page grid: nothing stretches to "whatever is
+ *   left", and no surface sits inside another surface.
+ *
+ * — Recent activity was a 2/3 split in which the chart card stretched to the
+ *   movement list's height and left a large empty region under the bars. The
+ *   row is balanced (6/6) and aligned to the top, so each card ends where its
+ *   content ends.
+ *
+ * — The four shortcut links that closed the page are gone. The sidebar now
+ *   carries five destinations and Administration owns the secondary ones;
+ *   four more links at the bottom of Home was a second navigation competing
+ *   with the first.
+ *
+ * — Charts go through `ChartFrame`. A frame that declares the unit, the
+ *   source and the STATE of the series beats a mute figure: when the source
+ *   is missing, the frame stays in place and says why, instead of
+ *   disappearing or plotting a zero.
  *
  * The reading thresholds (drift, electricity coverage) are conventions of
  * this console: the contract exposes no tolerance. They are announced as
@@ -282,18 +293,69 @@ function serviceVerdict(unavailable: boolean, lastMovement: Movement | undefined
   }
 }
 
-/* ── Secondary measures ──────────────────────────────────────────────────── */
-
-function performanceTone(bps: number | null | undefined): AdminKpiItem['tone'] {
-  if (bps !== null && bps !== undefined && bps > 0) return 'success'
-  return 'default'
+/**
+ * A verdict's tone colors the WORD, never replaces it.
+ *
+ * These are the only semantic colors on this page, and they are spent on the
+ * one thing that genuinely carries a state: an operational verdict. Ordinary
+ * measures and ordinary series stay mint and neutral — if "watch closely"
+ * amber were also the color of a routine pocket, it would stop meaning
+ * anything the day a pocket really slips.
+ */
+const VERDICT_TONE: Record<VerdictAccueil['ton'], string> = {
+  neutre: 'text-zinc-500 dark:text-zinc-400',
+  sain: 'text-success-600 dark:text-success-400',
+  attention: 'text-warning-600 dark:text-warning-400',
+  critique: 'text-danger-600 dark:text-danger-400',
 }
 
-function kpiItems(input: {
+function VerdictRow({ verdict }: Readonly<{ verdict: VerdictAccueil }>) {
+  return (
+    // Deliberately `flex-nowrap`: allowed to wrap, the value and its word
+    // dropped onto a second line and landed under the detail instead of
+    // beside the label — the row stopped reading as "subject / answer". The
+    // detail truncates instead, which is the sentence that loses the least.
+    <li className="flex items-baseline justify-between gap-x-4 px-5 py-3.5 sm:px-6">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm text-zinc-700 dark:text-zinc-200">{verdict.libelle}</p>
+        {verdict.detail ? (
+          <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400" title={verdict.detail}>
+            {verdict.detail}
+          </p>
+        ) : null}
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-lg font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white">
+          {verdict.valeur}
+        </p>
+        <span
+          className={clsx(
+            'mt-0.5 flex items-center justify-end gap-1.5 text-xs font-medium',
+            VERDICT_TONE[verdict.ton],
+          )}
+        >
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+          {verdict.mot}
+        </span>
+      </div>
+    </li>
+  )
+}
+
+/* ── Supporting measures ─────────────────────────────────────────────────── */
+
+type SupportingMeasure = {
+  readonly id: string
+  readonly label: string
+  readonly value: string | null
+  readonly hint: string
+}
+
+function supportingMeasures(input: {
   d: Dashboard | null
   pocketCount: number
   lastMovement: Movement | undefined
-}): AdminKpiItem[] {
+}): SupportingMeasure[] {
   const { d, pocketCount, lastMovement } = input
   const capacity = d?.capacity?.value
   const perf = d?.performance?.value
@@ -313,7 +375,6 @@ function kpiItems(input: {
       label: 'Performance',
       value: formatPercent(perf?.totalReturnBps, { fromBps: true, maximumFractionDigits: 2 }),
       hint: 'Total return since inception',
-      tone: performanceTone(perf?.totalReturnBps),
     },
     {
       id: 'utilization',
@@ -391,6 +452,7 @@ export default async function Page() {
   const movements = events.ok ? events.data.events?.value : null
   const movementList = movements === null || movements === undefined ? [] : movements
   const lastMovement = movementList[0]
+  const recentMovements = movementList.slice(0, 8)
 
   const pockets = readPockets(d)
   const allocationBarData = allocationBars(pockets)
@@ -414,6 +476,8 @@ export default async function Page() {
     serviceVerdict(serviceUnavailable, lastMovement),
   ]
 
+  const measures = supportingMeasures({ d, pocketCount: pockets.length, lastMovement })
+
   const metaSnapshot = lastMovement?.occurredAt
     ? `Series 1 · snapshot ${ilYA(lastMovement.occurredAt)}`
     : 'Series 1 · snapshot live'
@@ -430,25 +494,74 @@ export default async function Page() {
         />
       ) : null}
 
-      <AdminSection>
-        <AccueilVueEnsemble
-          encours={montantUsdc(capacity?.totalAssets, 0)}
-          encoursLegende="On-chain assets, denominated in USDC"
-          utiliseBps={capacity?.utilizationBps ?? null}
-          disponible={montantUsdc(capacity?.availableCapacity, 0)}
-          plafond={montantUsdc(capacity?.tvlCap, 0)}
-          verdicts={verdicts}
-        />
+      {/* Alerts come before the measures: a console that makes you read eight
+          numbers before flagging an incident has its priorities backwards. */}
+      <AccueilAlertes alertes={alertList} />
 
-        {/* Alerts come before the measures: a console that makes you read
-            eight numbers before flagging an incident has its priorities
-            backwards. */}
-        <AccueilAlertes alertes={alertList} />
+      {/*
+        Overview — the page's lede, and deliberately without a section
+        heading: the H1 is two lines above, and a rule plus an "Overview" H2
+        would be a second title for the same thing.
+      */}
+      <div className={sectionContentGap}>
+        <AdminGrid>
+          {/* The primary metric takes half the grid. Portfolio assets and the
+              share of the cap they consume are one reading, not two, so they
+              share one card — the figure, then what it leaves available. */}
+          <AdminCol span={6} md={4}>
+            <Card className="flex h-full flex-col p-6">
+              {/* No unit passed to `HeroFigure`: `montantUsdc` already renders
+                  the symbol, adding one would produce "$1,177,859 USDC". */}
+              <HeroFigure valeur={montantUsdc(capacity?.totalAssets, 0)} libelle="Portfolio assets" />
+              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                On-chain assets, denominated in USDC
+              </p>
+              <div className="mt-6 border-t border-zinc-950/5 pt-5 dark:border-console-line">
+                <AdminLabel>Subscription cap consumed</AdminLabel>
+                <div className="mt-3">
+                  <CapacityBar
+                    utiliseBps={capacity?.utilizationBps ?? null}
+                    disponible={montantUsdc(capacity?.availableCapacity, 0)}
+                    total={montantUsdc(capacity?.tvlCap, 0)}
+                  />
+                </div>
+              </div>
+            </Card>
+          </AdminCol>
 
-        <AdminKpiSurface items={kpiItems({ d, pocketCount: pockets.length, lastMovement })} />
+          {/* The three operational verdicts take the other half. One card,
+              three rows — they used to be three cells of the same slab as the
+              hero, where they read as more of the same measurement. */}
+          <AdminCol span={6} md={4}>
+            <Card className="h-full">
+              <CardHeader title="Operational verdicts" hint="What needs a decision today, if anything" />
+              <ul className="divide-y divide-zinc-950/5 pb-2 dark:divide-console-line-soft">
+                {verdicts.map((v) => (
+                  <VerdictRow key={v.id} verdict={v} />
+                ))}
+              </ul>
+            </Card>
+          </AdminCol>
+        </AdminGrid>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        {/* Supporting measures. `count` is the real number of children, so the
+            last row is full whatever the service returns. */}
+        <AdminMetricGrid count={measures.length}>
+          {measures.map((m) => (
+            <AdminMetric key={m.id} label={m.label} value={m.value} hint={m.hint} />
+          ))}
+        </AdminMetricGrid>
+      </div>
+
+      <AdminSection
+        index="01"
+        title="Allocation"
+        description="Where the money sits against its target, and which pocket has moved away from it."
+      >
+        {/* 8/4: the target-vs-actual reading is the subject and gets the wide
+            column; the signed drift is the detail that explains it. */}
+        <AdminGrid>
+          <AdminCol span={8}>
             <ChartFrame
               question="Is the money allocated where it should be?"
               unite="Share of portfolio, in %"
@@ -461,8 +574,8 @@ export default async function Page() {
             >
               <AllocationChart poches={allocationBarData} />
             </ChartFrame>
-          </div>
-          <div className="lg:col-span-1">
+          </AdminCol>
+          <AdminCol span={4}>
             <ChartFrame
               question="Which pocket has drifted from its target?"
               unite="Signed gap, in points"
@@ -475,26 +588,26 @@ export default async function Page() {
             >
               <AccueilDeriveChart poches={driftBarData} />
             </ChartFrame>
-          </div>
-        </div>
+          </AdminCol>
+        </AdminGrid>
 
         {pockets.length > 0 ? (
-          <div className={clsx(surfaceRaised, 'overflow-hidden')}>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-950/5 px-5 py-3 dark:border-white/5">
-              <h2 className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase dark:text-zinc-400">
-                Pockets
-              </h2>
-              <PocketProgressLegend />
-            </div>
-            <ul>
-              {pockets.map((p, i) => (
+          <Card className="overflow-hidden">
+            {/* The legend rides in the header's action slot — it used to sit
+                under a bordered strip inside this card, which was a frame
+                inside a frame. No row is tinted: an accent on the first
+                pocket claimed an importance the data never gave it. */}
+            <CardHeader
+              title="Pockets"
+              hint="Target and actual allocation, pocket by pocket"
+              action={<PocketProgressLegend />}
+            />
+            <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+              {pockets.map((p) => (
                 <li key={p.pocket}>
                   <Link
                     href="/admin/vault"
-                    className={clsx(
-                      'flex flex-col gap-3 border-b border-zinc-950/5 px-5 py-4 transition-colors last:border-b-0 sm:flex-row sm:items-center sm:gap-6 dark:border-white/5',
-                      i === 0 ? 'bg-accent-500/5' : 'hover:bg-zinc-950/[0.02] dark:hover:bg-white/[0.02]',
-                    )}
+                    className="flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-zinc-950/[0.02] sm:flex-row sm:items-center sm:gap-6 sm:px-6 dark:hover:bg-white/[0.02]"
                   >
                     <div className="w-full min-w-0 sm:w-52">
                       <p className="truncate text-sm font-semibold text-zinc-950 dark:text-white">
@@ -516,7 +629,7 @@ export default async function Page() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         ) : null}
       </AdminSection>
 
@@ -537,8 +650,18 @@ export default async function Page() {
           </Link>
         }
       >
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-2">
+        {/*
+          Balanced 6/6, and `items-start`.
+
+          The previous 2/3 split stretched the chart card to the movement
+          list's height, leaving a large empty region under a handful of bars.
+          A distribution over three or four event types and a list of eight
+          movements have no reason to be the same height — so each card stops
+          where its content stops, and the ragged edge between them is
+          whitespace rather than an empty box.
+        */}
+        <AdminGrid className="items-start">
+          <AdminCol span={6} md={4}>
             <ChartFrame
               question="What does recent activity consist of?"
               unite="Number of indexed events"
@@ -551,17 +674,17 @@ export default async function Page() {
             >
               <DistributionBarChart barres={distribution} />
             </ChartFrame>
-          </div>
+          </AdminCol>
 
-          <div className="lg:col-span-3">
-            {movementList.length === 0 ? (
+          <AdminCol span={6} md={4}>
+            {recentMovements.length === 0 ? (
               <CalmState message="No movement recorded recently." />
             ) : (
-              <Panel inset="none" className="overflow-hidden">
-                <PanelHeading title="Movements" />
-                <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
-                  {movementList.slice(0, 8).map((m) => (
-                    <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
+              <Card className="overflow-hidden">
+                <CardHeader title="Movements" hint="Most recent indexed events" />
+                <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                  {recentMovements.map((m) => (
+                    <li key={m.id} className="flex items-center justify-between gap-3 px-5 py-3 sm:px-6">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">
                           {phraseMouvement(m.eventName)}
@@ -574,35 +697,11 @@ export default async function Page() {
                     </li>
                   ))}
                 </ul>
-              </Panel>
+              </Card>
             )}
-          </div>
-        </div>
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
-
-      {/* Shortcuts close the page: you navigate AFTER reading the state, not
-          before. They're no longer the main content of Home. */}
-      <nav aria-label="Quick access" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <ShortcutRow
-          href="/admin/operations"
-          title="Operations log"
-          status="On-chain movements"
-          icon={ArrowsRightLeftIcon}
-        />
-        <ShortcutRow
-          href="/admin/runtime"
-          title="Service status"
-          status={serviceUnavailable ? 'Unavailable' : 'Runtime probes'}
-          icon={ServerStackIcon}
-        />
-        <ShortcutRow href="/admin/vault" title="Vault" status="Strategies and rebalancing" icon={CircleStackIcon} />
-        <ShortcutRow
-          href="/admin/administration"
-          title="Administration"
-          status="Team, audit trail, settings"
-          icon={Cog6ToothIcon}
-        />
-      </nav>
     </AdminPage>
   )
 }

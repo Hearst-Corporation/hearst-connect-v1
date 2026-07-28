@@ -1,15 +1,24 @@
 import clsx from 'clsx'
 
 /**
- * Surface grammar — Hearst Connect's institutional register.
- * Three planes: raised · sunken · hero.
+ * Surface grammar — the approved neutral-graphite system.
+ *
+ * A card is CHARCOAL ON GRAPHITE: `--bg-card` (#2a2a2a) sitting on the shell's
+ * `--bg-shell` (#232323), one hairline border, one restrained shadow. It is
+ * lighter than what it sits on, which is what makes the console legible — the
+ * previous build cut cards out of the background as darker holes, and every
+ * panel read as a recess.
+ *
+ * An inset is the opposite move, and the only one: `--bg-inset` (#202020) for
+ * a block that genuinely sinks into a card. Nothing in this file introduces a
+ * hue; the accent is applied deliberately, never as a surface tint.
  */
 
 export const surfaceRaised =
-  'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:shadow-none dark:ring-white/10'
+  'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-console-card dark:shadow-[0_10px_28px_rgba(0,0,0,0.24)] dark:ring-console-line'
 
 export const surfaceSunken =
-  'rounded-xl bg-zinc-50/80 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5'
+  'rounded-xl bg-zinc-50/80 ring-1 ring-zinc-950/5 dark:bg-console-inset dark:ring-console-line-soft'
 
 export function Panel({
   className,
@@ -57,10 +66,11 @@ export function RequirementList({ requis }: Readonly<{ requis: readonly string[]
   )
 }
 
+/** Panel title block — spacing, no rule: a bordered header inside a bordered panel is a frame too many. */
 export function PanelHeading({ title, action }: Readonly<{ title: string; action?: React.ReactNode }>) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-zinc-950/5 px-4 py-3 dark:border-white/5">
-      <h2 className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase dark:text-zinc-400">{title}</h2>
+    <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
+      <h3 className="text-base/6 font-semibold text-zinc-950 dark:text-white">{title}</h3>
       {action}
     </div>
   )

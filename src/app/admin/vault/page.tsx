@@ -1,6 +1,7 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
 import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { AdminCol, AdminGrid, AdminTableSplit } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
 import { AdminPage } from '@/components/admin/typography'
@@ -21,12 +22,27 @@ export const dynamic = 'force-dynamic'
  * questions: what's the current balance, what margin remains before the
  * cap, and is the money placed in line with the contract's targets.
  *
+ * ── Composition ────────────────────────────────────────────────────────────
+ * The screen is no longer reached from the sidebar — it is opened from the
+ * Administration index — so the H1 and its description have to say what this
+ * surface is on their own, without the menu around them doing that work.
+ *
+ * Below the title, three declared blocks on the 12-column grid:
+ *   1. Position — balance on 8 columns, deposit cap on 4. Neither card is
+ *      forced to the other's height: each is exactly as tall as what it
+ *      holds, and the row is top-aligned.
+ *   2. Allocation — the two charts share the row 6 / 6. They are the same
+ *      subject read two ways and carry the same weight, so neither gets the
+ *      dominant span.
+ *   3. The deviation table on 8 columns with the coverage summary beside it
+ *      on 4 — the canonical table-plus-summary split.
+ *
  * The gap between target and actual is the only column that triggers
  * action. It's therefore treated as such: signed, colored by magnitude, and
  * named in deviation points rather than basis points — nobody reads "315"
- * as "three points of deviation." It now has TWO readings that don't
- * overlap: the chart gives the direction and relative magnitude on a
- * zero-centered axis, the table gives the exact figures.
+ * as "three points of deviation." It has TWO readings that don't overlap:
+ * the chart gives the direction and relative magnitude on a zero-centered
+ * axis, the table gives the exact figures.
  *
  * ── What this page refuses to plot ─────────────────────────────────────────
  * 1. No per-pocket balance IN DOLLARS. The `rwa-vault` route does expose a
@@ -106,6 +122,12 @@ const NIVEAU_MOT: Record<NiveauEcart, string> = {
   'a-corriger': 'needs correction',
 }
 
+/**
+ * The three tones are a genuine claim about state — on target, drifting,
+ * out of tolerance — which is the one case where the semantic colours are
+ * spent legitimately. They deliberately match `VaultEcartChart`'s level
+ * colours so the bar and its table row never disagree.
+ */
 const NIVEAU_TON: Record<NiveauEcart, string> = {
   conforme: 'text-success-400',
   modere: 'text-zinc-300',
@@ -139,7 +161,7 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] text-sm">
           <thead>
-            <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-400">
+            <tr className="border-b border-zinc-950/10 text-left text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
               <th scope="col" className="px-5 py-2.5 font-medium">
                 Pocket
               </th>
@@ -157,16 +179,18 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-950/5 dark:divide-white/5">
+          <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
             {actives.map((s) => {
               const ecart = ecartLisible(s.driftBps)
               return (
                 <tr key={s.pocket}>
-                  <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
+                  <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-700 dark:text-zinc-200">
                     {s.label}
                   </th>
-                  <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">{pourcentBps(s.targetBps)}</td>
-                  <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">
+                  <td className="px-5 py-3 text-right text-zinc-500 tabular-nums dark:text-zinc-400">
+                    {pourcentBps(s.targetBps)}
+                  </td>
+                  <td className="px-5 py-3 text-right text-zinc-700 tabular-nums dark:text-zinc-200">
                     {s.actualBps === null ? '—' : pourcentBps(s.actualBps)}
                   </td>
                   <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
@@ -178,6 +202,36 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
             })}
           </tbody>
         </table>
+      </div>
+    </Card>
+  )
+}
+
+/* ── Coverage summary ────────────────────────────────────────────────────── */
+
+/**
+ * The table's column summary, given its own 4-column home beside it rather
+ * than left as a footnote under the allocation chart.
+ *
+ * Targets total 100%; actual pockets rarely do. The remainder is balance
+ * outside any active pocket — a fact, not a rounding artifact, and it is
+ * stated here rather than left to mental math.
+ */
+function CouvertureCard({
+  couvertureBps,
+  ciblesBps,
+}: Readonly<{ couvertureBps: number; ciblesBps: number }>) {
+  return (
+    <Card>
+      <CardHeader title="What the active pockets cover" hint="as a percentage of the vault balance" />
+      <div className="px-5 pb-5 sm:px-6">
+        <p className="text-sm/6 text-zinc-500 dark:text-zinc-400">
+          Active pockets cover {pourcentBps(couvertureBps)} of the balance, against targets totaling{' '}
+          {pourcentBps(ciblesBps)}.
+        </p>
+        <p className="mt-3 border-t border-zinc-950/5 pt-3 text-sm/6 text-zinc-700 dark:border-console-line-soft dark:text-zinc-300">
+          {pourcentBps(10_000 - couvertureBps)} of the balance is not attached to any active pocket.
+        </p>
       </div>
     </Card>
   )
@@ -206,7 +260,7 @@ function ControleCoherence({
   const coherent = ecart <= tolerance
 
   return (
-    <p className="mt-6 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-white/5 dark:text-zinc-400">
+    <p className="mt-6 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-console-line-soft dark:text-zinc-400">
       <span className="font-medium text-zinc-700 dark:text-zinc-300">Consistency check · </span>
       {formatNumber(parts)} shares × {formatCurrency(valeurPart, { decimals: 6, fromAtomic: 1 })}{' '}
       = {dollars(reconstitue)}, a {dollars(ecart, 2)} difference from the recorded balance.{' '}
@@ -265,10 +319,8 @@ export default async function Page() {
     <AdminPage>
       <PageHeader
         title="Vault"
-        description="The fund's assets under management, the margin before its cap, and how closely its allocation follows contract targets."
+        description="The vault contract's own state: the assets it holds, the room left before its deposit cap, and how far each strategic pocket sits from the allocation the contract targets."
       />
-
-      <AdminSection>
 
       {v === null ? (
         <SourceAttendue
@@ -278,97 +330,120 @@ export default async function Page() {
         />
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="p-6 lg:col-span-2">
-              <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-                <HeroFigure
-                  valeur={usdc(snap?.totalAssets)}
-                  libelle="Vault balance"
-                  unite={snap?.asset ?? undefined}
-                />
-                <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
-                  <SideFact libelle="Share value" valeur={snap?.navPerShare ?? '—'} />
-                  <SideFact
-                    libelle="Shares issued"
-                    valeur={nbParts === null ? '—' : formatNumber(nbParts)}
+          {/*
+            Position. The balance carries a sentence-long consistency check
+            and therefore gets the wide span; the cap is a single donut and
+            gets four columns. Neither card declares `h-full`: a card is as
+            tall as its content, and the row simply aligns at the top.
+          */}
+          <AdminGrid className="items-start">
+            <AdminCol span={8}>
+              <Card className="p-6">
+                <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+                  <HeroFigure
+                    valeur={usdc(snap?.totalAssets)}
+                    libelle="Vault balance"
+                    unite={snap?.asset ?? undefined}
                   />
-                </dl>
-              </div>
+                  {/* Two facts, two declared columns — the block no longer
+                      grows to fill whatever the hero figure leaves behind. */}
+                  <dl className="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <SideFact libelle="Share value" valeur={snap?.navPerShare ?? '—'} />
+                    <SideFact
+                      libelle="Shares issued"
+                      valeur={nbParts === null ? '—' : formatNumber(nbParts)}
+                    />
+                  </dl>
+                </div>
 
-              {controleLisible ? (
-                <ControleCoherence parts={nbParts} valeurPart={valeurPart} encours={encoursAtomique / 1_000_000} />
-              ) : null}
-            </Card>
+                {controleLisible ? (
+                  <ControleCoherence parts={nbParts} valeurPart={valeurPart} encours={encoursAtomique / 1_000_000} />
+                ) : null}
+              </Card>
+            </AdminCol>
 
             {/* The cap is no longer a flat gauge: the donut carries the cap
                 at its center, the utilization rate, and — crucially — BOTH
                 amounts: a percentage alone doesn't say how much room remains
                 to raise. Component already in service on the dashboard: the
                 same fact, read the same way, in two places. */}
-            <Card className="flex flex-col p-6">
-              <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Deposit cap</p>
-              <div className="mt-4 flex-1">
-                <UtilizationChart
-                  tvlCap={cap?.tvlCap}
-                  totalAssets={cap?.totalAssets}
-                  availableCapacity={cap?.availableCapacity}
-                  utilizationBps={cap?.utilizationBps === undefined ? null : cap.utilizationBps}
-                />
-              </div>
-              <p className="mt-4 border-t border-zinc-950/5 pt-3 text-xs text-zinc-500 dark:border-white/5 dark:text-zinc-400">
-                {cap === null || cap === undefined
-                  ? 'Capacity could not be read: no amount is shown rather than a zero.'
-                  : `${usdc(cap.availableCapacity)} of capacity remains before the ${usdc(cap.tvlCap)} cap.`}
-              </p>
-            </Card>
-          </div>
-
-          <ChartFrame
-            question="Is the money allocated where it should be?"
-            unite="as a percentage of the vault"
-            etat={
-              poches.length > 0
-                ? { type: 'tracee' }
-                : { type: 'attendue', explication: 'No active strategy could be read on-chain.' }
-            }
-          >
-            <>
-              <AllocationChart poches={poches} />
-              {/* Targets total 100%; actual pockets rarely do. The remainder
-                  is balance outside any active pocket — a fact, not a
-                  rounding artifact, and it's stated here rather than left to
-                  mental math. */}
-              {couvertureBps === null ? null : (
-                <p className="px-5 pb-5 text-xs text-zinc-500 dark:text-zinc-400">
-                  Active pockets cover {pourcentBps(couvertureBps)} of the balance, against targets totaling{' '}
-                  {pourcentBps(ciblesBps)}:{' '}
-                  <span className="text-zinc-700 dark:text-zinc-300">
-                    {pourcentBps(10_000 - couvertureBps)} of the balance is not attached to any active pocket.
-                  </span>
+            <AdminCol span={4}>
+              <Card className="p-6">
+                <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Deposit cap</p>
+                <div className="mt-4">
+                  <UtilizationChart
+                    tvlCap={cap?.tvlCap}
+                    totalAssets={cap?.totalAssets}
+                    availableCapacity={cap?.availableCapacity}
+                    utilizationBps={cap?.utilizationBps === undefined ? null : cap.utilizationBps}
+                  />
+                </div>
+                <p className="mt-4 border-t border-zinc-950/5 pt-3 text-xs text-zinc-500 dark:border-console-line-soft dark:text-zinc-400">
+                  {cap === null || cap === undefined
+                    ? 'Capacity could not be read: no amount is shown rather than a zero.'
+                    : `${usdc(cap.availableCapacity)} of capacity remains before the ${usdc(cap.tvlCap)} cap.`}
                 </p>
-              )}
-            </>
-          </ChartFrame>
+              </Card>
+            </AdminCol>
+          </AdminGrid>
 
-          <ChartFrame
-            question="How far does each pocket deviate from its target?"
-            unite="in percentage points, actual minus target"
-            etat={
-              ecarts.length > 0
-                ? { type: 'tracee' }
-                : {
-                    type: 'attendue',
-                    explication: 'No deviation could be read on-chain for the active pockets.',
-                  }
-            }
+          <AdminSection
+            title="Allocation against contract targets"
+            description="Where the balance actually sits, and by how much each pocket is ahead of or behind the share the contract assigns it."
           >
-            <VaultEcartChart ecarts={ecarts} />
-          </ChartFrame>
+            {/* Same subject, two readings of equal weight: shape on the left,
+                magnitude and sign on the right. Neither dominates, so the row
+                splits 6 / 6 instead of borrowing the 8 / 4 chart split. */}
+            <AdminGrid>
+              <AdminCol span={6}>
+                <ChartFrame
+                  question="Is the money allocated where it should be?"
+                  unite="as a percentage of the vault"
+                  etat={
+                    poches.length > 0
+                      ? { type: 'tracee' }
+                      : { type: 'attendue', explication: 'No active strategy could be read on-chain.' }
+                  }
+                >
+                  <AllocationChart poches={poches} />
+                </ChartFrame>
+              </AdminCol>
 
-          {actives.length > 0 ? <EcartsTable actives={actives} /> : null}
+              <AdminCol span={6}>
+                <ChartFrame
+                  question="How far does each pocket deviate from its target?"
+                  unite="in percentage points, actual minus target"
+                  etat={
+                    ecarts.length > 0
+                      ? { type: 'tracee' }
+                      : {
+                          type: 'attendue',
+                          explication: 'No deviation could be read on-chain for the active pockets.',
+                        }
+                  }
+                >
+                  <VaultEcartChart ecarts={ecarts} />
+                </ChartFrame>
+              </AdminCol>
+            </AdminGrid>
+
+            {/* The exact figures, with their column summary beside them. The
+                summary is dropped — not blanked — when the pockets can't all
+                be read, because a partial coverage figure would understate
+                what is actually allocated. */}
+            {actives.length > 0 ? (
+              <AdminTableSplit
+                main={<EcartsTable actives={actives} />}
+                aside={
+                  couvertureBps === null ? undefined : (
+                    <CouvertureCard couvertureBps={couvertureBps} ciblesBps={ciblesBps} />
+                  )
+                }
+              />
+            ) : null}
+          </AdminSection>
         </>
       )}
-      </AdminSection>
     </AdminPage>
   )
 }

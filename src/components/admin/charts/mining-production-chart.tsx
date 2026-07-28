@@ -1,6 +1,6 @@
 'use client'
 
-import { chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/lib/chart-theme'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -8,12 +8,24 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
  * "How much is the fleet producing, month over month?"
  *
  * The single real time series in the mining domain: contract-attested
- * bitcoin, aggregated by operating month. The service currently publishes
- * only one data point — the single bar is not a rendering defect, it is the
- * exact extent of the available history, and the caller spells that out
- * below the chart.
+ * bitcoin, aggregated by operating month. No projection, no smoothing, no
+ * interpolation — one bar is one month actually recorded.
  *
- * No projection, no smoothing: one bar = one month actually recorded.
+ * ── What this component now assumes ───────────────────────────────────────
+ * It draws a TREND, and a trend needs at least two ordered observations. The
+ * Mining page tests `plottableAsChart` before it gets here and renders
+ * `SingleObservation` when the service has published a single month — which
+ * is still the case on this deployment. The earlier claim that "a single bar
+ * is not a rendering defect" is what the visual review rejected: alone in a
+ * fixed 220px plot, one bar reads as a chart with missing data.
+ *
+ * So the canvas is sized from the real number of months
+ * (`chartHeight('columns', …)`, in pixels) instead of a fixed height class: a
+ * two-bar series no longer floats in a canvas built for a year of history.
+ *
+ * The zero-length guard below stays as the last line of defence, for a caller
+ * that skips the `plottableAsChart` test.
+ *
  * Period labels arrive already formatted, so this client component doesn't
  * have to redo the server's work.
  */
@@ -24,7 +36,13 @@ export type MoisProduit = {
   readonly btc: number
 }
 
-const MINT = chartTheme.series.primary
+/**
+ * The measurement's color, read from the ordinary-data role — never from the
+ * semantic group, since produced bitcoin carries no state. This is the SAME
+ * token as `btc-production-chart`: the two views measure the same thing, and
+ * the same thing must not change hue from one page to the next.
+ */
+const SERIE = chartTheme.dataSeries.brandPrimary
 
 function formatBtc(value: number): string {
   return formatNumber(value, { maximumFractionDigits: 8 })
@@ -38,7 +56,7 @@ function ChartTooltip({
   if (active !== true || payload === undefined || payload.length === 0) return null
   const value = payload[0]?.value
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
       <p className="font-medium text-zinc-950 dark:text-white">{label}</p>
       <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">
         {typeof value === 'number' ? `${formatBtc(value)} BTC` : '—'}
@@ -50,7 +68,7 @@ function ChartTooltip({
 export function MiningProductionChart({ mois }: Readonly<{ mois: readonly MoisProduit[] }>) {
   if (mois.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
         The service responds, and its production history does not contain any month yet. Nothing is plotted rather
         than a bar at zero.
       </p>
@@ -58,7 +76,7 @@ export function MiningProductionChart({ mois }: Readonly<{ mois: readonly MoisPr
   }
 
   return (
-    <div className="px-2 py-4">
+    <div className="px-3 pb-5 sm:px-4">
       {/* The table is not a duplicate: it's the only version readable by
           screen readers and keyboard users. Hidden visually, never from
           assistive tech. Wrapped in a div, not applied to the table itself:
@@ -85,7 +103,9 @@ export function MiningProductionChart({ mois }: Readonly<{ mois: readonly MoisPr
         </table>
       </div>
 
-      <div aria-hidden="true" className={`${chartTheme.height.medium} w-full`}>
+      {/* Height in pixels, derived from the month count: the canvas is never
+          taller than the series justifies. */}
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('columns', mois.length) }}>
         <ResponsiveContainer width="100%" height="100%">
           {/* left stays negative: it pulls the axis back against the width=64
               YAxis reserving its own space, which otherwise doubles up as blank margin. */}
@@ -110,9 +130,20 @@ export function MiningProductionChart({ mois }: Readonly<{ mois: readonly MoisPr
               tickFormatter={(v: number) => formatNumber(v, { maximumFractionDigits: 2 })}
             />
             <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor }} />
-            {/* Animation disabled, as everywhere in the console: a bar growing
-                from zero delays reading and trips up screenshots. */}
-            <Bar dataKey="btc" name="Bitcoin produced" fill={MINT} radius={[3, 3, 0, 0]} maxBarSize={56} isAnimationActive={false} />
+            {/* `maxBarSize` is what keeps a short series honest: without it
+                Recharts hands each band its full width, and two months read as
+                two slabs filling the frame rather than as two measurements.
+                Same value as `btc-production-chart`, for the same reason.
+                Animation is disabled, as everywhere in the console: a bar
+                growing from zero delays reading and trips up screenshots. */}
+            <Bar
+              dataKey="btc"
+              name="Bitcoin produced"
+              fill={SERIE}
+              radius={[3, 3, 0, 0]}
+              maxBarSize={48}
+              isAnimationActive={false}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

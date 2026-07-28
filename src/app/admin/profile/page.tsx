@@ -1,6 +1,8 @@
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
+import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
@@ -21,6 +23,13 @@ export const dynamic = 'force-dynamic'
  * answer for an admin account, not an outage. The page says so in those
  * words rather than showing an empty identity card, which would read like
  * a lost record.
+ *
+ * Composition: the two identities sit side by side on one row — 5 columns
+ * for the certainty, 7 for the question mark — because seeing them apart is
+ * the point of the page. Stacked full width they read as one long profile,
+ * which is exactly the confusion this screen exists to prevent. Neither
+ * block is a card inside a card: the section supplies the rule and the
+ * heading, each column supplies exactly one surface.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
@@ -76,8 +85,8 @@ function DossierInvestisseur({
 
   return (
     <Card>
-      <CardHeader title="What the service knows about you" hint="Passed through from the service, unedited" />
-      <dl className="divide-y divide-zinc-950/5 dark:divide-white/5">
+      <CardHeader title="Investor record" hint="Passed through from the service, unedited" />
+      <dl className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
         <Ligne libelle="Record name" valeur={identite.displayName} />
         <Ligne libelle="Email address" valeur={identite.email} />
         <Ligne libelle="Wallet" valeur={identite.walletAddress} mono />
@@ -96,42 +105,42 @@ export default async function Page() {
   const motif = motifLisible(bloc?.reason)
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
         title="Your Account"
         description="The account that opens this console, and the investor record attached to it — if one exists."
       />
 
-      <AdminSection>
+      <AdminSection
+        title="Identity"
+        description="Two things live here and they are not the same. The account is what signs you in; the investor record is what links a person to a position in the fund. One does not imply the other."
+      >
+        <AdminGrid>
+          {/* ── A. The signed-in account: the one certainty on this page ──── */}
+          <AdminCol span={5}>
+            <Card>
+              <CardHeader title="Signed in as" hint="Read from your session, not from the service" />
+              {session === null ? (
+                <p className="px-5 py-6 text-sm text-danger-400 sm:px-6">
+                  No valid session was found. Sign in again to view your account.
+                </p>
+              ) : (
+                <dl className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                  <Ligne libelle="Name" valeur={session.name} />
+                  <Ligne libelle="Email address" valeur={session.email} />
+                  <Ligne libelle="Role" valeur={LIBELLE_ROLE[session.role]} />
+                </dl>
+              )}
+            </Card>
+          </AdminCol>
 
-      {/* ── A. The signed-in account: the one certainty on this page ────── */}
-      <Card>
-        <CardHeader title="Signed in as" hint="Read from your session, not from the service" />
-        {session === null ? (
-          <p className="px-5 py-6 text-sm text-danger-400">
-            No valid session was found. Sign in again to view your account.
-          </p>
-        ) : (
-          <dl className="divide-y divide-zinc-950/5 dark:divide-white/5">
-            <Ligne libelle="Name" valeur={session.name} />
-            <Ligne libelle="Email address" valeur={session.email} />
-            <Ligne libelle="Role" valeur={LIBELLE_ROLE[session.role]} />
-          </dl>
-        )}
-      </Card>
-
-      {/* ── B. The investor record: present, or honestly absent ─── */}
-      <section aria-labelledby="dossier" className="space-y-3">
-        <h2 id="dossier" className="text-sm font-semibold text-zinc-950 dark:text-white">
-          Investor record
-        </h2>
-
-        <DossierInvestisseur ok={reponse.ok} identite={identite} motif={motif} />
-      </section>
-
-      {/* The basement: the detailed response for anyone who wants to verify a field. */}
+          {/* ── B. The investor record: present, or honestly absent ───────── */}
+          <AdminCol span={7}>
+            <DossierInvestisseur ok={reponse.ok} identite={identite} motif={motif} />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }
 
@@ -143,7 +152,7 @@ function Ligne({
 }: Readonly<{ libelle: string; valeur: string | null | undefined; mono?: boolean }>) {
   const affiche = valeur === null || valeur === undefined || valeur === '' ? '—' : valeur
   return (
-    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 sm:px-6">
       <dt className="w-40 shrink-0 text-sm text-zinc-500 dark:text-zinc-400">{libelle}</dt>
       <dd
         className={

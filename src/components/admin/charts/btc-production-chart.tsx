@@ -1,6 +1,6 @@
 'use client'
 
-import { chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/lib/chart-theme'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -14,13 +14,20 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
  * between the two dates — a claim nobody actually measured. Bars only assert
  * what was recorded.
  *
- * ── Why the same shape at 1, 2, or N months ───────────────────────────────
- * The temptation would be to switch rendering based on the point count. It's
- * the opposite that's needed: the bar is accurate from the first month on —
- * a single bar is one measured month, not an amputated trend — and it stays
- * accurate as the series grows. What changes is the CAPTION under the chart,
- * which names what is actually readable: one month permits no trend, two
- * months give a gap but not yet a trend, three or more read bar by bar.
+ * ── Why at least two months ───────────────────────────────────────────────
+ * This file used to argue that the same shape was right at 1, 2 or N months.
+ * The visual review disagreed, and it was right: a lone bar inside a plot
+ * area reads as a chart whose data failed to load, and the reader hunts for
+ * the missing series before concluding that the service has only ever
+ * published one month. The Bitcoin page now tests `plottableAsChart` and
+ * renders `SingleObservation` below two observations, so this chart is only
+ * ever asked to draw a real — if short — series.
+ *
+ * What still varies with the count is the CAPTION under the chart, which
+ * names what is actually readable: two months give a gap but not yet a
+ * trend, three or more read bar by bar. And the canvas height, which comes
+ * from `chartHeight('columns', …)` in pixels rather than a fixed class, so
+ * two bars are not stretched across a canvas built for a year of history.
  *
  * ── On the unit ────────────────────────────────────────────────────────────
  * The axis is in BTC, readable at a glance. The exact satoshi-level figure
@@ -41,6 +48,14 @@ export type MoisProduction = {
   readonly cumulExact: string | null
 }
 
+/**
+ * Produced bitcoin is an ordinary measurement — it carries no state — so it
+ * takes the ordinary-data role, never a semantic color. The same token as
+ * `mining-production-chart`: the two pages measure the same thing, and the
+ * same thing must not change hue between them.
+ */
+const SERIE = chartTheme.dataSeries.brandPrimary
+
 type TooltipPayloadRow = { readonly payload?: MoisProduction }
 
 function ChartTooltip({
@@ -51,7 +66,7 @@ function ChartTooltip({
   if (active !== true || mois === undefined) return null
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
       <p className="font-medium text-zinc-950 dark:text-white">{mois.libelle}</p>
       <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">Produced this month: {mois.btcExact} BTC</p>
       {mois.cumulExact === null ? null : (
@@ -65,7 +80,7 @@ function ChartTooltip({
 
 /**
  * What the caption is allowed to claim, based on how many months are recorded.
- * A reader who sees a single bar will spontaneously read a trend into it if
+ * A reader who sees a short series will spontaneously read a trend into it if
  * not told otherwise — this caption exists to correct that.
  */
 function readabilityNote(mois: readonly MoisProduction[]): string {
@@ -73,7 +88,11 @@ function readabilityNote(mois: readonly MoisProduction[]): string {
   const dernier = mois[mois.length - 1]
 
   if (mois.length === 1) {
-    return `Only one month has been recorded so far (${premier?.libelle ?? '—'}). The bar shows what was produced that month: no trend is measurable yet.`
+    // Unreachable through the Bitcoin page, which switches to
+    // `SingleObservation` below two observations. Kept — and made honest —
+    // rather than deleted, so a caller that skips that test still gets a true
+    // sentence instead of one that talks up a single bar as a chart.
+    return `Only one month is recorded (${premier?.libelle ?? '—'}). A single measurement is not a series: this chart expects at least two months, and the value on its own is the accurate way to show it.`
   }
   if (mois.length === 2) {
     return `Two months have been recorded. The gap between the two bars can be read, but two data points don't yet make a trend.`
@@ -92,14 +111,14 @@ export function ProductionMensuelleChart({
 }: Readonly<{ mois: readonly MoisProduction[]; cumulBtc: string | null }>) {
   if (mois.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
         No production month can be read from the data. Nothing is plotted rather than showing a bar at zero.
       </p>
     )
   }
 
   return (
-    <div className="px-2 py-4">
+    <div className="px-3 pb-5 sm:px-4">
       {/* The only version readable by screen readers and keyboard navigation.
           It carries the exact satoshi-level figure that the axis rounds.
           Wrapped in a div, not applied to the table itself: a <table>
@@ -127,7 +146,10 @@ export function ProductionMensuelleChart({
         </table>
       </div>
 
-      <div aria-hidden="true" className={`${chartTheme.height.medium} w-full`}>
+      {/* Height in pixels, derived from the month count. A short series gets a
+          short canvas — that is the whole fix to the "one thin bar floating in
+          a plot" defect. */}
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('columns', mois.length) }}>
         <ResponsiveContainer width="100%" height="100%">
           {/* `left` stays negative: the YAxis reserves 64px of its own width
               for the tick labels, and without this offset the plot area
@@ -154,14 +176,15 @@ export function ProductionMensuelleChart({
               tickFormatter={formatTick}
             />
             <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor }} />
-            {/* `maxBarSize` matters most in the first month: without it, a
-                single bar would occupy the full width and read as a total,
-                not as one point in a series. Animation is off, as everywhere
-                in the console: motion delays reading and traps screenshots. */}
+            {/* `maxBarSize` matters most on a two-month series: without it
+                Recharts hands each band its full width and the two bars read
+                as slabs filling the frame rather than as two measurements.
+                Animation is off, as everywhere in the console: motion delays
+                reading and traps screenshots. */}
             <Bar
               dataKey="btc"
               name="Produced that month"
-              fill={chartTheme.series.primaryFill}
+              fill={SERIE}
               radius={[3, 3, 0, 0]}
               maxBarSize={48}
               isAnimationActive={false}
@@ -170,7 +193,7 @@ export function ProductionMensuelleChart({
         </ResponsiveContainer>
       </div>
 
-      <p className="mt-3 px-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+      <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
         {readabilityNote(mois)}
         {cumulBtc === null ? null : (
           <>

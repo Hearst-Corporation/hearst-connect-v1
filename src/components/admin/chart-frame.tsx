@@ -1,6 +1,5 @@
 import { AdminLabel } from '@/components/admin/typography'
 import { RequirementList } from '@/components/admin/surface'
-import { chartTheme } from '@/lib/chart-theme'
 import clsx from 'clsx'
 import { Card, CardHeader } from './cockpit'
 
@@ -13,7 +12,9 @@ import { Card, CardHeader } from './cockpit'
  * time.
  *
  * An unavailable chart shows its title, its source state, and a concise
- * message — never a fake set of axes pretending data exists.
+ * message — never a fake set of axes pretending data exists, and never a
+ * viewport-tall box to say that nothing exists. The empty state is sized to
+ * its sentence (`hauteur` in px), not to a global chart height.
  */
 
 export type EtatSerie =
@@ -38,7 +39,7 @@ export function ChartFrame({
   question,
   unite,
   etat,
-  hauteur = chartTheme.height.medium,
+  hauteur,
   expectedSource,
   onRetry,
   retryLabel = 'Retry',
@@ -47,24 +48,34 @@ export function ChartFrame({
   question: string
   unite: string
   etat: EtatSerie
-  hauteur?: string
+  /**
+   * Minimum height of the EMPTY state, in px. A plotted chart sizes itself
+   * from its own data (see `chartHeight`), so this never applies to it.
+   * Default: enough for the sentence, and not one pixel more.
+   */
+  hauteur?: number
   expectedSource?: readonly string[]
   onRetry?: () => void
   retryLabel?: string
   children?: React.ReactNode
 }>) {
   return (
-    <Card className="flex flex-col">
+    <Card className="flex h-full flex-col">
       <CardHeader title={question} hint={unite} />
 
       {etat.type === 'tracee' ? (
         children
       ) : (
-        <div className={clsx(hauteur, 'flex flex-col items-center justify-center gap-3 px-6 py-8 text-center')}>
+        <div
+          className={clsx('flex flex-col items-start gap-2 px-5 pb-5 sm:px-6')}
+          style={hauteur === undefined ? undefined : { minHeight: hauteur }}
+        >
           <p className={clsx('text-sm font-medium', TON_ETAT[etat.type])}>{LIBELLE_ETAT[etat.type]}</p>
-          <p className="max-w-sm text-xs text-zinc-500 dark:text-zinc-400">{etat.explication}</p>
+          <p className="max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+            {etat.explication}
+          </p>
           {expectedSource?.length ? (
-            <div className="mt-1 w-full max-w-sm rounded-lg bg-zinc-50 px-4 py-3 text-left ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
+            <div className="mt-1 w-full max-w-sm">
               <AdminLabel>Expected source</AdminLabel>
               <RequirementList requis={expectedSource as string[]} />
             </div>
