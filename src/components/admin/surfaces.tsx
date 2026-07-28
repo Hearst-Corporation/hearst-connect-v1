@@ -1,7 +1,6 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { AdminBody, AdminCaption, AdminH2, AdminH3, AdminLabel, adminTypography } from '@/components/admin/typography'
+import { AdminBody, AdminCaption, AdminH3, AdminLabel, adminTypography } from '@/components/admin/typography'
 import {
-  EmptyState,
   ProblemState,
   RequestMetadata,
   StatusBadge,
@@ -35,7 +34,7 @@ export function AdminSurface({
     <Tag
       className={clsx(
         className,
-        'rounded-xl bg-brand-surface shadow-xs ring-1 ring-white/10',
+        'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:shadow-none dark:ring-white/10',
         padding && 'p-5',
       )}
     >
@@ -65,8 +64,10 @@ export function AdminSection({
     <section id={id} className={clsx(className, 'space-y-4')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <AdminH2>{title}</AdminH2>
-          {description ? <AdminBody className="mt-1">{description}</AdminBody> : null}
+          <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h2>
+          {description ? (
+            <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
+          ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
@@ -105,7 +106,7 @@ export function AdminMetric({
             {unit ? <span className="ml-1 text-sm/6 font-medium text-brand-muted">{unit}</span> : null}
           </span>
         ) : (
-          <span className={clsx(adminTypography.kpiValue, 'text-brand-muted')} title={status ? status : 'Aucune valeur'}>—</span>
+          <span className={clsx(adminTypography.kpiValue, 'text-brand-muted')} title={status ?? 'Aucune valeur'}>—</span>
         )}
       </p>
       {hint ? <AdminCaption className="mt-1.5">{hint}</AdminCaption> : null}
@@ -394,16 +395,18 @@ export function AdminStatusMatrix({ rows, title }: Readonly<{ rows: readonly Sta
           <AdminH3>{title}</AdminH3>
         </div>
       ) : null}
-      <ul className="divide-y divide-brand-border/30">
+      <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
         {rows.map((row) => (
-          <li key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5">
+          <li key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5 sm:px-6">
             <span
               aria-hidden="true"
               className={clsx('size-1.5 shrink-0 rounded-full', MATRIX_DOT[row.ton ?? 'neutre'])}
             />
-            <span className="text-sm text-brand-muted">{row.label}</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">{row.label}</span>
             <AdminStatus status={row.status} />
-            {row.detail ? <span className="ml-auto text-xs text-brand-muted tabular-nums">{row.detail}</span> : null}
+            {row.detail ? (
+              <span className="ml-auto text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{row.detail}</span>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -450,4 +453,4 @@ export function AdminProbeResult({
 
 /* ── Re-exports utiles ────────────────────────────────────────────────────── */
 
-export { EmptyState, ProblemState, StatusBadge, UnavailableState }
+export { EmptyState, ProblemState, StatusBadge, UnavailableState } from '@/components/admin/truthful'

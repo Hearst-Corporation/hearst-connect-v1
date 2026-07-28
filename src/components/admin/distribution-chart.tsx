@@ -1,7 +1,7 @@
 'use client'
 
 import { chartTheme } from '@/lib/chart-theme'
-import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis, type BarShapeProps } from 'recharts'
 
 /**
  * Répartition horizontale — types de mouvements ou poches stratégiques.
@@ -22,6 +22,8 @@ const COULEURS = [
   chartTheme.series.secondary,
 ]
 
+type BarreAvecCouleur = BarreRepartition & { readonly fill: string }
+
 function InfoBulle({
   active,
   payload,
@@ -29,25 +31,32 @@ function InfoBulle({
 }: Readonly<{ active?: boolean; payload?: readonly { value?: number }[]; label?: string }>) {
   if (active !== true || !payload?.length) return null
   return (
-        <div className="rounded-lg border border-brand-border bg-brand-surface-raised px-3 py-2 text-xs shadow-lg">
-      <p className="font-medium text-brand-foreground">{label}</p>
-      <p className="mt-0.5 text-brand-muted tabular-nums">{payload[0]?.value}</p>
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+      <p className="font-medium text-zinc-950 dark:text-white">{label}</p>
+      <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">{payload[0]?.value}</p>
     </div>
   )
+}
+
+function BarreCouleur(props: BarShapeProps) {
+  const payload = props.payload as BarreAvecCouleur | undefined
+  return <Rectangle {...props} fill={payload?.fill ?? chartTheme.series.primary} />
 }
 
 export function DistributionBarChart({ barres, unit = '' }: Readonly<{ barres: readonly BarreRepartition[]; unit?: string }>) {
   if (barres.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-brand-muted">Aucune donnée à représenter.</p>
+      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">Aucune donnée à représenter.</p>
     )
   }
 
-  const data = [...barres].sort((a, b) => b.valeur - a.valeur)
+  const data: BarreAvecCouleur[] = [...barres]
+    .sort((a, b) => b.valeur - a.valeur)
+    .map((b, i) => ({ ...b, fill: COULEURS[i % COULEURS.length]! }))
 
   return (
     <div className="px-2 py-4">
-      <div aria-hidden="true" className="h-48 w-full sm:h-56">
+      <div aria-hidden="true" className="h-[220px] w-full sm:h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
             <XAxis type="number" tick={{ fill: chartTheme.tick, fontSize: 11 }} tickLine={false} axisLine={false} unit={unit} />
@@ -60,11 +69,7 @@ export function DistributionBarChart({ barres, unit = '' }: Readonly<{ barres: r
               axisLine={false}
             />
             <Tooltip content={<InfoBulle />} cursor={{ fill: chartTheme.cursor }} />
-            <Bar dataKey="valeur" radius={[0, 3, 3, 0]} maxBarSize={18} isAnimationActive={false}>
-              {data.map((_, i) => (
-                <Cell key={i} fill={COULEURS[i % COULEURS.length]} />
-              ))}
-            </Bar>
+            <Bar dataKey="valeur" shape={BarreCouleur} radius={[0, 3, 3, 0]} maxBarSize={18} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

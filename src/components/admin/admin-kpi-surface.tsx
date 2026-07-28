@@ -1,14 +1,8 @@
-import { AdminCaption, AdminLabel, adminTypography } from '@/components/admin/typography'
-import { AdminSurface } from '@/components/admin/surfaces'
 import type { ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
- * Surface KPI — pattern Stats Tailwind Plus / Catalyst.
- *
- * Une seule carte : chiffre héros en tête, métriques secondaires en grille
- * avec séparateurs (gap-px), typographie Subheading + valeur 3xl.
- * Inspiré de Catalyst DescriptionList et des blocs Application UI « Stats ».
+ * Surface KPI — structure HTML identique au Management Cockpit Qatar (MHTML).
  */
 
 export type AdminKpiItem = {
@@ -33,12 +27,46 @@ function displayValue(item: AdminKpiItem): string {
   return value
 }
 
+const TONE_HERO: Record<NonNullable<AdminKpiItem['tone']>, string> = {
+  default: 'text-zinc-950 dark:text-white',
+  success: 'text-success-600 dark:text-success-400',
+  warning: 'text-warning-600 dark:text-warning-400',
+  danger: 'text-danger-600 dark:text-danger-400',
+  accent: 'text-zinc-950 dark:text-white',
+}
+
 const TONE_VALUE: Record<NonNullable<AdminKpiItem['tone']>, string> = {
-  default: 'text-brand-foreground',
-  success: 'text-success-400',
-  warning: 'text-warning-400',
-  danger: 'text-danger-400',
-  accent: 'text-brand-accent',
+  default: 'text-zinc-950 dark:text-white',
+  success: 'text-success-600 dark:text-success-400',
+  warning: 'text-warning-600 dark:text-warning-400',
+  danger: 'text-danger-600 dark:text-danger-400',
+  accent: 'text-zinc-950 dark:text-white',
+}
+
+function CockpitBandDecor() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+      <div className="dc-cockpit-band absolute inset-y-0 right-0 hidden w-2/5 items-end overflow-hidden lg:flex">
+        <svg
+          role="img"
+          aria-label="Schéma isométrique des baies du portefeuille"
+          viewBox="0 0 120 80"
+          className="dc-rack w-full text-accent-700 opacity-[0.12] dark:text-accent-400 dark:opacity-[0.18]"
+          fill="none"
+          stroke="currentColor"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        >
+          <path d="M10 70 V20 L35 10 L60 20 V70 Z" strokeWidth="1.5" />
+          <path d="M60 20 L85 30 L85 70 L60 70 Z" strokeWidth="1.5" />
+          <path d="M85 30 L110 40 L110 70 L85 70 Z" strokeWidth="1.5" />
+          <path d="M10 45 H110" strokeWidth="0.75" opacity="0.45" />
+          <path d="M10 55 H110" strokeWidth="0.75" opacity="0.45" />
+          <path d="M10 65 H110" strokeWidth="0.75" opacity="0.45" />
+        </svg>
+      </div>
+    </div>
+  )
 }
 
 export function AdminKpiSurface({
@@ -51,39 +79,57 @@ export function AdminKpiSurface({
   className?: string
 }>) {
   return (
-    <AdminSurface className={clsx(className, 'overflow-hidden p-0 ring-1 ring-white/10 shadow-xs')}>
-      {hero ? (
-        <div className="border-b border-white/5 bg-linear-to-br from-brand-accent/12 via-brand-surface to-brand-surface px-6 py-7 sm:px-8 sm:py-8">
-          <AdminLabel>{hero.label}</AdminLabel>
-          <p className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span
-              className={clsx(adminTypography.kpiHero, TONE_VALUE[hero.tone ?? 'default'])}
-              title={hero.status ?? undefined}
-            >
-              {displayValue(hero)}
-            </span>
-            {hero.unit && typeof hero.value === 'number' ? (
-              <span className="text-base/7 font-medium text-brand-muted">{hero.unit}</span>
+    <section className={clsx(className)}>
+      <div className="rounded-xl bg-zinc-50/80 p-5 ring-1 ring-zinc-950/5 sm:p-6 dark:bg-zinc-950/50 dark:ring-white/5">
+        <div className="relative isolate overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:shadow-none dark:ring-white/10">
+          <CockpitBandDecor />
+          <div className="grid grid-cols-1 gap-px bg-zinc-950/5 lg:grid-cols-12 dark:bg-white/5">
+            {hero ? (
+              <div className="bg-white px-6 py-7 lg:col-span-4 dark:bg-zinc-900">
+                <dt className="text-xs font-medium uppercase tracking-[0.12em] text-accent-600 dark:text-accent-400">
+                  {hero.label}
+                </dt>
+                <dd
+                  className={clsx(
+                    'mt-3 text-nowrap text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl xl:text-6xl',
+                    TONE_HERO[hero.tone ?? 'accent'],
+                  )}
+                  title={hero.status ?? undefined}
+                >
+                  {displayValue(hero)}
+                </dd>
+                {hero.hint ? (
+                  <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{hero.hint}</p>
+                ) : null}
+              </div>
             ) : null}
-          </p>
-          {hero.hint ? <AdminCaption className="mt-2">{hero.hint}</AdminCaption> : null}
-        </div>
-      ) : null}
-
-      <dl className="grid grid-cols-1 gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((item) => (
-          <div key={item.id} className="bg-brand-surface px-5 py-5 sm:px-6 sm:py-6">
-            <dt className={clsx('truncate', adminTypography.body, 'font-medium text-brand-muted')}>{item.label}</dt>
-            <dd
-              className={clsx('mt-2', adminTypography.kpiValue, TONE_VALUE[item.tone ?? 'default'])}
-              title={item.status ?? undefined}
+            <dl
+              className={clsx(
+                'grid grid-cols-2 gap-px bg-zinc-950/5 dark:bg-white/5',
+                hero ? 'lg:col-span-8 lg:grid-cols-3' : 'lg:grid-cols-4',
+              )}
             >
-              {displayValue(item)}
-            </dd>
-            {item.hint ? <dd className={clsx('mt-1.5', adminTypography.caption)}>{item.hint}</dd> : null}
+              {items.map((item) => (
+                <div key={item.id} className="bg-white px-4 py-4 dark:bg-zinc-900">
+                  <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{item.label}</dt>
+                  <dd
+                    className={clsx(
+                      'mt-1 text-2xl font-semibold tracking-tight tabular-nums',
+                      TONE_VALUE[item.tone ?? 'default'],
+                    )}
+                    title={item.status ?? undefined}
+                  >
+                    {displayValue(item)}
+                  </dd>
+                  {item.hint ? (
+                    <p className="mt-0.5 text-[10px] leading-tight text-zinc-400 dark:text-zinc-500">{item.hint}</p>
+                  ) : null}
+                </div>
+              ))}
+            </dl>
           </div>
-        ))}
-      </dl>
-    </AdminSurface>
+        </div>
+      </div>
+    </section>
   )
 }

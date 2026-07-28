@@ -6,6 +6,7 @@ import {
   AdminSurface,
   AdminTable,
   AdminToolbar,
+  type AdminTableColumn,
 } from '@/components/admin/surfaces'
 import type { Metadata } from 'next'
 
@@ -28,6 +29,18 @@ const COLONNES_ATTENDUES = [
   'Personnes liées',
   'Portefeuille',
 ] as const
+
+type LigneVide = Record<string, never>
+
+function cellVide(_row: LigneVide) {
+  return <span className="text-brand-muted">—</span>
+}
+
+const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_ATTENDUES.map((header) => ({
+  key: header,
+  header,
+  cell: cellVide,
+}))
 
 export default function Page() {
   return (
@@ -55,11 +68,7 @@ export default function Page() {
                 description="Le service ne transmet aucune organisation. Cette structure accueillera les données sans refonte graphique."
               />
             }
-            columns={COLONNES_ATTENDUES.map((header) => ({
-              key: header,
-              header,
-              cell: () => <span className="text-brand-muted">—</span>,
-            }))}
+            columns={COLONNES}
           />
         </AdminSurface>
       </AdminSection>

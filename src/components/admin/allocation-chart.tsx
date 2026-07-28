@@ -26,10 +26,10 @@ function InfoBulle({
 }: Readonly<{ active?: boolean; payload?: readonly { name?: string; value?: number }[]; label?: string }>) {
   if (active !== true || payload === undefined || payload.length === 0) return null
   return (
-    <div className="rounded-lg border border-brand-border bg-brand-surface-raised px-3 py-2 text-xs shadow-lg">
-      <p className="font-medium text-white">{label}</p>
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+      <p className="font-medium text-zinc-950 dark:text-white">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} className="mt-0.5 text-zinc-300 tabular-nums">
+        <p key={p.name} className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">
           {p.name} : {typeof p.value === 'number' ? `${p.value.toFixed(1)} %` : '—'}
         </p>
       ))}
@@ -73,10 +73,15 @@ export function AllocationChart({ poches }: Readonly<{ poches: readonly PocheAll
         </tbody>
       </table>
 
-      <div aria-hidden="true" className="h-56 w-full">
+      <div aria-hidden="true" className="h-[260px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={[...lisibles]} margin={{ top: 4, right: 8, bottom: 4, left: -16 }} barGap={2}>
-            <CartesianGrid stroke={chartTheme.grid} strokeDasharray="2 4" vertical={false} />
+            <CartesianGrid
+              stroke={chartTheme.grid}
+              strokeOpacity={chartTheme.gridOpacity}
+              strokeDasharray="2 4"
+              vertical={false}
+            />
             <XAxis dataKey="poche" tick={{ fill: chartTheme.tick, fontSize: 11 }} tickLine={false} axisLine={false} />
             <YAxis
               tick={{ fill: chartTheme.tick, fontSize: 11 }}

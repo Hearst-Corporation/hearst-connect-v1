@@ -1,4 +1,3 @@
-import { AdminCaption, AdminH3, adminTypography } from '@/components/admin/typography'
 import clsx from 'clsx'
 import Link from 'next/link'
 
@@ -25,7 +24,7 @@ export function Card({
   as: Tag = 'section',
 }: Readonly<{ children: React.ReactNode; className?: string; as?: 'section' | 'div' | 'article' | 'nav' }>) {
   return (
-    <Tag className={clsx(className, 'rounded-xl bg-brand-surface shadow-xs ring-1 ring-white/10')}>{children}</Tag>
+    <Tag className={clsx(className, 'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:shadow-none dark:ring-white/10')}>{children}</Tag>
   )
 }
 
@@ -35,10 +34,10 @@ export function CardHeader({
   action,
 }: Readonly<{ title: string; hint?: string; action?: React.ReactNode }>) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-white/5 px-5 py-4 sm:px-6 sm:py-5">
+    <div className="flex items-start justify-between gap-4 border-b border-zinc-950/5 px-5 py-4 sm:px-6 dark:border-white/5">
       <div className="min-w-0">
-        <AdminH3 as="h2">{title}</AdminH3>
-        {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
+        <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h2>
+        {hint ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{hint}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -95,7 +94,7 @@ export function VerdictCard({
   return (
     <Card as="article" className={clsx('flex flex-col p-5', TONE_RING[ton])}>
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-medium text-zinc-300">{titre}</h3>
+        <h3 className="text-sm font-medium text-zinc-950 dark:text-white">{titre}</h3>
         <span className={clsx('inline-flex items-center gap-1.5 text-xs font-medium', TONE_TEXT[ton])}>
           <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
           {TONE_LABEL[ton]}
@@ -103,21 +102,21 @@ export function VerdictCard({
       </div>
 
       <p className="mt-4 flex items-baseline gap-2">
-        <span className="text-4xl font-semibold tracking-tight text-white tabular-nums">{compte}</span>
-        {unite ? <span className="text-sm text-zinc-400">{unite}</span> : null}
+        <span className="text-4xl font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white">{compte}</span>
+        {unite ? <span className="text-sm text-zinc-500 dark:text-zinc-400">{unite}</span> : null}
       </p>
-      {contexte ? <p className="mt-1 text-xs text-zinc-400">{contexte}</p> : null}
+      {contexte ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{contexte}</p> : null}
 
       {casUrgent ? (
-        <p className="mt-4 border-t border-white/[0.07] pt-3 text-sm text-zinc-300">
-          <span className="block text-xs text-zinc-400">Le plus urgent</span>
+        <p className="mt-4 border-t border-zinc-950/5 pt-3 text-sm text-zinc-700 dark:border-white/5 dark:text-zinc-300">
+          <span className="block text-xs text-zinc-500 dark:text-zinc-400">Le plus urgent</span>
           {casUrgent}
         </p>
       ) : null}
 
       <Link
         href={href}
-        className="mt-5 inline-flex items-center justify-center rounded-lg bg-accent-400 px-3 py-2 text-sm font-semibold text-accent-ink transition hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+        className="mt-5 inline-flex items-center justify-center rounded-lg bg-accent-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-accent-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
       >
         {actionLabel}
       </Link>
