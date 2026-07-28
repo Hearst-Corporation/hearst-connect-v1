@@ -104,7 +104,7 @@ Vérification effectuée : pas de régression de layout, pas de couleurs de grap
 
 - **Task ID** : `19f5ae6d-534a-4afa-b3ad-92053b3ffa5c` (CE task du scan final)
 - **Analysis ID** : `5632d03d-4420-4263-89db-e596b1ab307f`
-- **SHA final** : `54d1e16` (commit `docs(quality): add SonarQube cleanup evidence`)
+- **SHA final analysé** : `21c1806` (état du code analysé par SonarQube ; le commit de documentation est appliqué par-dessus)
 - **Bugs** : 0
 - **Vulnerabilities** : 0
 - **Security hotspots** : 0
@@ -136,7 +136,7 @@ Les alias de types identitaires (`VaultId`, `ClientId`, `StrategyId`, `MovementI
 7. `ccd15aa` refactor(admin): complete mining and btc page extraction
 8. `c4b6fce` refactor(vaults): brand domain identifiers to preserve type safety
 9. `48e68d4` cleanup(sonar): final readability, spacing and coverage alignment
-10. `54d1e16` docs(quality): add SonarQube cleanup evidence
+10. `21c1806` docs(quality): add SonarQube cleanup evidence
 
 ## Risques et exceptions connus
 
