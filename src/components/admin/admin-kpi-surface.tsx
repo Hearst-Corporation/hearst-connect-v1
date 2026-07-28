@@ -78,9 +78,9 @@ export function AdminKpiSurface({
         <dl
           className={clsx(
             'grid grid-cols-2 gap-px bg-zinc-950/5 dark:bg-white/5',
-            // Sans `hero`, la liste occupe TOUTE la largeur : sans ce col-span
-            // elle héritait d'une seule des 12 colonnes du parent et s'écrasait
-            // en colonnes illisibles.
+            // Without `hero`, the list occupies the FULL width: without this
+            // col-span it inherited just one of the parent's 12 columns and
+            // collapsed into unreadable columns.
             hero ? 'lg:col-span-8 lg:grid-cols-3' : 'lg:col-span-12 lg:grid-cols-4',
           )}
         >

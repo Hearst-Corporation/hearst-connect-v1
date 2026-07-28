@@ -1,6 +1,7 @@
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import {
   adresseCourte,
@@ -13,21 +14,21 @@ import {
 } from '@/lib/mouvements'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Série 1' }
+export const metadata: Metadata = { title: 'Series 1 Log' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Série 1 — le journal du fonds, lu comme un récit.
+ * Series 1 Log — the fund's journal, read as a narrative.
  *
- * C'est la seule page du produit dont la source est pleinement alimentée : la
- * chaîne y dépose chaque mouvement, et le service les restitue tels quels. On
- * ne les résume donc pas en compteurs — on les raconte, du plus récent au plus
- * ancien, une phrase par mouvement.
+ * This is the only page in the product whose source is fully fed: the chain
+ * deposits every movement here, and the service returns them as-is. So they
+ * aren't summarized into counters — they're told, most recent to oldest, one
+ * sentence per movement.
  *
- * Deux lectures cohabitent : le fil chronologique, qui répond à « que s'est-il
- * passé », et la répartition par nature, qui répond à « de quoi ce journal est
- * fait ». Aucun total n'est calculé ici : additionner un dépôt et un relevé de
- * minage produirait un chiffre qui ne veut rien dire.
+ * Two readings coexist: the chronological feed, which answers "what
+ * happened", and the breakdown by type, which answers "what is this log made
+ * of". No total is computed here: adding a deposit to a mining statement
+ * would produce a number that means nothing.
  */
 
 type Mouvement = {
@@ -44,20 +45,20 @@ type Mouvement = {
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 type ReponseEvenements = { readonly events?: Resolu<readonly Mouvement[]> }
 
-/** Un mouvement porte-t-il un montant financier ? Un relevé technique, non. */
+/** Does a movement carry a financial amount? A technical statement doesn't. */
 const estFinancier = (m: Mouvement): boolean =>
   m.assetAmountAtomic !== null && m.assetAmountAtomic !== undefined && m.assetAmountAtomic !== ''
 
 function JournalVide({ motif }: Readonly<{ motif: string | undefined }>) {
   const suffixe =
     motif === undefined
-      ? 'la chaîne n’a encore rien déposé pour ce fonds. Ce n’est pas une panne.'
-      : `${motif}. Ce n’est pas une panne.`
+      ? 'the chain hasn’t deposited anything for this fund yet. This isn’t an outage.'
+      : `${motif}. This isn’t an outage.`
   return (
     <SourceAttendue
-      quoi="Aucun mouvement enregistré à ce jour"
-      detail={`Le journal est consulté et il est vide : ${suffixe}`}
-      requis={['Un premier mouvement enregistré sur la chaîne']}
+      quoi="No movement recorded to date"
+      detail={`The log was checked and it's empty: ${suffixe}`}
+      requis={['A first movement recorded on the chain']}
     />
   )
 }
@@ -70,9 +71,9 @@ function CorpsJournal({
   if (!reponseOk) {
     return (
       <SourceAttendue
-        quoi="Le journal des mouvements n’a pas pu être lu"
-        detail="Le service n’a pas répondu à la demande. Aucun mouvement n’est supposé : une liste vide se lirait à tort comme « il ne s’est rien passé »."
-        requis={['Une réponse du service']}
+        quoi="The movement log could not be read"
+        detail="The service did not respond to the request. No movement is assumed: an empty list would wrongly read as “nothing happened”."
+        requis={['A response from the service']}
       />
     )
   }
@@ -88,26 +89,26 @@ export default async function Page() {
   const mouvements = bloc?.value
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Série 1"
-        description="Tout ce que la chaîne a enregistré pour ce fonds, du plus récent au plus ancien. Chaque ligne vient du service ; rien n’est agrégé ni estimé ici."
+        title="Series 1 Log"
+        description="Everything the chain has recorded for this fund, most recent to oldest. Every line comes from the service; nothing here is aggregated or estimated."
       />
 
       <AdminSection>
 
       <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
 
-      {/* Le sous-sol : la réponse détaillée reste consultable pour qui veut
-          vérifier un champ, jamais imposée à qui vient lire le journal. */}
+      {/* Below the fold: the detailed response stays available for anyone who
+          wants to verify a field, never forced on whoever comes to read the log. */}
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }
 
 function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement[] }>) {
-  // Répartition par nature. Une barre horizontale se lit dès le premier
-  // élément, contrairement à une part de camembert sur six catégories.
+  // Breakdown by type. A horizontal bar reads from the first element on,
+  // unlike a pie slice among six categories.
   const parNature = new Map<string, number>()
   for (const m of mouvements) {
     const nom = libelleMouvement(m.eventName)
@@ -124,14 +125,14 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
     <>
       <Card className="p-6">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-          <HeroFigure valeur={mouvements.length.toLocaleString('fr-FR')} libelle="Mouvements enregistrés" />
+          <HeroFigure valeur={mouvements.length.toLocaleString('en-US')} libelle="Movements recorded" />
           <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <SideFact libelle="Natures distinctes" valeur={String(repartition.length)} />
+            <SideFact libelle="Distinct types" valeur={String(repartition.length)} />
             <SideFact
-              libelle="Portant un montant"
-              valeur={financiers.length === 0 ? 'aucun' : String(financiers.length)}
+              libelle="With an amount"
+              valeur={financiers.length === 0 ? 'none' : String(financiers.length)}
             />
-            <SideFact libelle="Dernier mouvement" valeur={ilYA(dernier.occurredAt)} />
+            <SideFact libelle="Last movement" valeur={ilYA(dernier.occurredAt)} />
           </dl>
         </div>
       </Card>
@@ -139,8 +140,8 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader
-            title="De quoi ce journal est-il fait ?"
-            hint={`${mouvements.length} mouvement${mouvements.length > 1 ? 's' : ''} répartis en ${repartition.length} nature${repartition.length > 1 ? 's' : ''}`}
+            title="What is this log made of?"
+            hint={`${mouvements.length} movement${mouvements.length > 1 ? 's' : ''} across ${repartition.length} type${repartition.length > 1 ? 's' : ''}`}
           />
           <ul className="space-y-3 px-5 py-4">
             {repartition.map(([nom, nombre]) => (
@@ -161,7 +162,7 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="Que s’est-il passé ?" hint="Du plus récent au plus ancien" />
+          <CardHeader title="What happened?" hint="Most recent first" />
           <ol className="divide-y divide-zinc-950/5 dark:divide-white/5">
             {mouvements.map((m) => (
               <LigneMouvement key={m.id} mouvement={m} />
@@ -174,9 +175,9 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
 }
 
 /**
- * Une ligne = une phrase. Le montant, l'investisseur et le numéro de bloc ne
- * s'affichent que si la chaîne les a fournis : un champ absent disparaît, il ne
- * laisse pas un tiret orphelin dans un récit.
+ * One line = one sentence. The amount, the investor, and the block number
+ * only show up if the chain supplied them: a missing field disappears, it
+ * doesn't leave an orphan dash in a narrative.
  */
 function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
   const investisseur = adresseCourte(mouvement.investorAddress)
@@ -198,11 +199,11 @@ function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
       <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-zinc-500">
         {investisseur !== null ? (
           <span>
-            investisseur <span className="font-mono text-zinc-400">{investisseur}</span>
+            investor <span className="font-mono text-zinc-400">{investisseur}</span>
           </span>
         ) : null}
         {bloc === null || bloc === undefined || bloc === '' ? null : (
-          <span className="tabular-nums">bloc {Number(bloc).toLocaleString('fr-FR')}</span>
+          <span className="tabular-nums">block {Number(bloc).toLocaleString('en-US')}</span>
         )}
         <span>{dateLisible(mouvement.occurredAt)}</span>
       </div>

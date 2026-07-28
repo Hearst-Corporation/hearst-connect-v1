@@ -1,5 +1,6 @@
 'use client'
 
+import { formatPercent } from '@/lib/format'
 import { motion } from 'motion/react'
 
 /**
@@ -12,15 +13,15 @@ export function PocketProgress({
   showName = true,
 }: Readonly<{
   name: string
-  /** Pourcentage cible (0–100). */
+  /** Target percentage (0–100). */
   cible: number
-  /** Pourcentage constaté, ou null si illisible. */
+  /** Actual percentage, or null if unreadable. */
   reel: number | null
   showName?: boolean
 }>) {
   const ciblePct = Math.min(100, Math.max(0, cible))
   const reelPct = reel === null ? 0 : Math.min(100, Math.max(0, reel))
-  const fmt = (n: number) => `${n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %`
+  const fmt = (n: number) => formatPercent(n, { maximumFractionDigits: 1 })
 
   return (
     <div className="space-y-1.5">
@@ -51,8 +52,8 @@ export function PocketProgress({
         />
       </div>
       <div className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400">
-        <span>Cible {fmt(cible)}</span>
-        <span>Constatée {reel === null ? 'non lisible' : fmt(reel)}</span>
+        <span>Target {fmt(cible)}</span>
+        <span>Actual {reel === null ? 'unreadable' : fmt(reel)}</span>
       </div>
     </div>
   )
@@ -63,11 +64,11 @@ export function PocketProgressLegend() {
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-zinc-500 dark:text-zinc-400">
       <span className="inline-flex items-center gap-1.5">
         <span className="h-2 w-4 rounded-full bg-zinc-500" aria-hidden />
-        Allocation cible
+        Target allocation
       </span>
       <span className="inline-flex items-center gap-1.5">
         <span className="h-1.5 w-4 rounded-full bg-accent-600 dark:bg-accent-500" aria-hidden />
-        Allocation constatée
+        Actual allocation
       </span>
     </div>
   )

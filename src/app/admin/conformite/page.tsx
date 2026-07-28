@@ -7,77 +7,78 @@ import {
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Conformité' }
+export const metadata: Metadata = { title: 'Compliance' }
 export const dynamic = 'force-dynamic'
 
 const SEGMENTS = [
-  { id: 'a-verifier', label: 'À vérifier', aide: 'Dossier reçu, instruction non commencée' },
-  { id: 'en-attente', label: 'En attente', aide: 'Document ou réponse attendue du client' },
-  { id: 'risque-eleve', label: 'Risque élevé', aide: 'Signal sanctions, PEP ou média défavorable' },
-  { id: 'a-renouveler', label: 'À renouveler', aide: 'Vérification arrivée à échéance' },
-  { id: 'termine', label: 'Terminé', aide: 'Décision rendue et journalisée' },
+  { id: 'a-verifier', label: 'To review', hint: 'Case received, review not started' },
+  { id: 'en-attente', label: 'Pending', hint: 'Document or response awaited from client' },
+  { id: 'risque-eleve', label: 'High risk', hint: 'Sanctions, PEP, or adverse media signal' },
+  { id: 'a-renouveler', label: 'Due for renewal', hint: 'Verification has reached its due date' },
+  { id: 'termine', label: 'Completed', hint: 'Decision rendered and logged' },
 ] as const
 
-const COLONNES_DOSSIER = ['Référence', 'Organisation', 'Segment', 'Ancienneté', 'Échéance', 'Risque', 'Analyste'] as const
+const CASE_COLUMNS = ['Reference', 'Organization', 'Segment', 'Age', 'Due date', 'Risk', 'Analyst'] as const
 
-type LigneVide = Record<string, never>
+type EmptyRow = Record<string, never>
 
-function cellVide(_row: LigneVide) {
+function emptyCell(_row: EmptyRow) {
   return <span className="text-zinc-500 dark:text-zinc-400">—</span>
 }
 
-const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_DOSSIER.map((header) => ({
+const COLUMNS: readonly AdminTableColumn<EmptyRow>[] = CASE_COLUMNS.map((header) => ({
   key: header,
   header,
-  cell: cellVide,
+  cell: emptyCell,
 }))
 
-const FILTER_ITEMS = SEGMENTS.map((s) => ({ id: s.id, label: s.label, title: s.aide }))
+const FILTER_ITEMS = SEGMENTS.map((s) => ({ id: s.id, label: s.label, title: s.hint }))
 
 export default function Page() {
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Conformité"
-        description="File d’instruction KYC/KYB. Segments du parcours dossier — compteurs vides tant qu’aucune source n’est branchée."
+        title="Compliance"
+        description="KYC/KYB review queue. Case journey segments — counters stay empty until a source is connected."
       />
 
-      <AdminSection title="Segments" description="Parcours d’un dossier de connaissance client">
-        <AdminFilterBar ariaLabel="Segments de conformité" items={FILTER_ITEMS} />
+      <AdminSection title="Segments" description="A KYC case's journey">
+        <AdminFilterBar ariaLabel="Compliance segments" items={FILTER_ITEMS} />
       </AdminSection>
 
-      <AdminSection title="File de travail" description="Dossiers transmis par le backend — vide pour l’instant">
+      <AdminSection title="Work queue" description="Cases submitted by the backend — currently empty">
         <AdminSurface>
           <AdminTable
             rows={[]}
             keyFn={() => ''}
             empty={
               <div className="px-6 py-10 text-center">
-                <p className="text-sm font-semibold text-zinc-950 dark:text-white">Aucun dossier transmis</p>
+                <p className="text-sm font-semibold text-zinc-950 dark:text-white">No cases submitted</p>
                 <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">
-                  Les segments ci-dessus décrivent le parcours réel. Aucun zéro n’est affiché — cela signifierait « rien à traiter ».
+                  The segments above describe the real journey. No zero is shown — that would imply there is nothing to process.
                 </p>
               </div>
             }
-            columns={COLONNES}
+            columns={COLUMNS}
           />
         </AdminSurface>
       </AdminSection>
 
-      <AdminSection title="Sources" description="Endpoints KYC/KYB en attente">
+      <AdminSection title="Sources" description="KYC/KYB endpoints pending">
         <AdminSourceAttendue
-          quoi="Endpoints KYC/KYB en attente"
-          detail="Le détail dossier (UBO, sanctions, PEP, historique) s’ouvrira dans un panneau latéral à l’arrivée de la source."
+          quoi="KYC/KYB endpoints pending"
+          detail="Case detail (UBO, sanctions, PEP, history) will open in a side panel once the source is connected."
           requis={[
-            'Lecture des dossiers avec état, ancienneté et échéance',
-            'Détail : bénéficiaires effectifs, pièces, contrôles sanctions et PEP',
-            'Actions de décision uniquement si exposées par le backend',
-            'Assignation analyste et journal des décisions',
+            'Reading cases with status, age, and due date',
+            'Detail: beneficial owners, documents, sanctions and PEP checks',
+            'Decision actions only if exposed by the backend',
+            'Analyst assignment and decision log',
           ]}
         />
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }
