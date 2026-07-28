@@ -325,7 +325,7 @@ function resumeMinage(
   }
 }
 
-/* ── Page ────────────────────────────────────────────────────────────────── */
+/* ── Page sections ───────────────────────────────────────────────────────── */
 
 /** Only these movements narrate the mining operation. Everything else lives elsewhere. */
 const MOUVEMENTS_MINAGE = new Set([
@@ -342,6 +342,252 @@ function attestationsMinage(mouvements: readonly Mouvement[]): readonly Mouvemen
     .filter((mouvement) => typeof mouvement.eventName === 'string' && MOUVEMENTS_MINAGE.has(mouvement.eventName))
     .slice(0, 8)
 }
+
+function hashrateLisible(releve: Releve | null | undefined): string {
+  if (typeof releve?.reportedHashrateTh !== 'string' || releve.reportedHashrateTh === '') return '—'
+  return formatNumber(Number(releve.reportedHashrateTh))
+}
+
+function prochaineEcheance(electricite: Electricite | null | undefined): string {
+  if (typeof electricite?.nextEligiblePayment !== 'string' || electricite.nextEligiblePayment === '') {
+    return 'No eligibility date disclosed'
+  }
+  return dateLisible(electricite.nextEligiblePayment)
+}
+
+function modeContrat(chaine: Chaine | null | undefined): string | null {
+  if (typeof chaine?.mode !== 'string' || chaine.mode === '') return null
+  return ` · mode ${chaine.mode}`
+}
+
+function ProductionSection({
+  resume,
+  production,
+}: Readonly<{ resume: ResumeMinage; production: Resolu<Production> | undefined }>) {
+  const titreMois = resume.dernierMois === undefined ? 'Month reported' : `Produced in ${resume.dernierMois.libelle}`
+  const singleMonth =
+    resume.dernierMois !== undefined && !plottableAsChart(resume.moisProduits.length) ? resume.dernierMois : null
+
+  return (
+    <AdminSection
+      index="01"
+      title="Production against bill"
+      description="Mining's only question: does the bitcoin produced in a month pay for that month's electricity."
+    >
+      <AdminGrid>
+        <AdminCol span={7}>
+          <Card className="flex h-full flex-col p-6">
+            <HeroFigure
+              valeur={dollarsLisibles(resume.seuil)}
+              libelle="Bitcoin price that covers the month"
+              unite="$ / BTC"
+            />
+            {/* Three facts, three columns — `AdminMetricGrid` picks a
+                column count that leaves no orphan on the last row, which
+                a hand-written `grid-cols-2` did not. */}
+            <AdminMetricGrid count={3} className="mt-6">
+              <SideFact libelle={titreMois} valeur={btcLisible(resume.dernierMois?.btc ?? null)} />
+              <SideFact libelle="Monthly bill" valeur={dollarsLisibles(resume.factureMensuelle)} />
+              <SideFact libelle="Total paid to date" valeur={dollarsLisibles(resume.totalRegle)} />
+            </AdminMetricGrid>
+          </Card>
+        </AdminCol>
+
+        {/* The limit of the calculation sits BESIDE the figure, in its own
+            column — not as a ruled footnote inside the same panel. A
+            threshold without its "we don't know whether it's cleared"
+            would read as a profitability verdict. */}
+        <AdminCol span={5}>
+          <Card className="flex h-full flex-col p-6">
+            <AdminSurfaceTitle>How this threshold is computed</AdminSurfaceTitle>
+            <p className="mt-2 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
+              It is the quotient of two measurements: the bitcoin attested by the contract for the month, and the
+              monthly electricity bill. The console stops there — the actual bitcoin price is not published by any
+              route of the service, so it does not say whether the threshold is cleared.
+            </p>
+          </Card>
+        </AdminCol>
+      </AdminGrid>
+
+      <ChartFrame
+        question="How much does the fleet produce, month after month?"
+        unite="in bitcoin, per month of operation"
+        etat={etatProduction(production, resume.moisProduits.length)}
+      >
+        {singleMonth === null ? (
+          <MiningProductionChart mois={resume.moisProduits} />
+        ) : (
+          <SingleObservation
+            valeur={formatNumber(singleMonth.btc, { maximumFractionDigits: 8 })}
+            unite="BTC"
+            periode={singleMonth.libelle}
+            contexte="Bitcoin attested by the contract for this month of operation."
+            note="One month of production has been reported so far — no trend can be measured yet. The series gains one month per operating cycle."
+          />
+        )}
+      </ChartFrame>
+    </AdminSection>
+  )
+}
+
+function FleetSection({ resume }: Readonly<{ resume: ResumeMinage }>) {
+  return (
+    <AdminSection
+      index="02"
+      title="The fleet"
+      description="What the contract declares about installed power and its operating regime."
+    >
+      <AdminGrid>
+        <AdminCol span={7}>
+          <Card className="flex h-full flex-col p-6">
+            <HeroFigure
+              valeur={hashrateLisible(resume.releve)}
+              libelle="Reported compute power"
+              unite="TH/s"
+            />
+            <AdminMetricGrid count={3} className="mt-6">
+              <SideFact libelle="Bitcoin produced since inception" valeur={btcLisible(resume.cumulBtc)} />
+              <SideFact libelle="Last reading" valeur={dateLisible(resume.releve?.lastReportTime)} />
+              <SideFact libelle="Reading age" valeur={ilYA(resume.releve?.lastReportTime)} />
+            </AdminMetricGrid>
+          </Card>
+        </AdminCol>
+
+        <AdminCol span={5}>
+          <Card className="flex h-full flex-col">
+            <CardHeader title="Is the fleet running?" hint="Operating regime declared by the contract" />
+            <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+              <LigneEtat
+                libelle="Fleet"
+                valeur={texteBooleen(resume.exploitation?.fleetActive, 'Running', 'Stopped')}
+                ton={tonBooleen(resume.exploitation?.fleetActive, 'sain', 'attention')}
+              />
+              <LigneEtat
+                libelle="Curtailment"
+                valeur={texteBooleen(
+                  resume.exploitation?.curtailed,
+                  'Active — production is voluntarily reduced',
+                  'Inactive',
+                )}
+                ton={tonBooleen(resume.exploitation?.curtailed, 'attention', 'sain')}
+              />
+            </ul>
+            {resume.adresseContrat === null ? null : (
+              <p className="border-t border-zinc-950/5 px-5 py-3 text-xs text-zinc-500 sm:px-6 dark:border-console-line-soft dark:text-zinc-400">
+                Declared by contract {resume.adresseContrat}
+                {modeContrat(resume.chaine)}
+              </p>
+            )}
+          </Card>
+        </AdminCol>
+      </AdminGrid>
+    </AdminSection>
+  )
+}
+
+function ElectricitySection({ resume }: Readonly<{ resume: ResumeMinage }>) {
+  return (
+    <AdminSection
+      index="03"
+      title="Electricity"
+      description="Mining's cost line: what's owed, what's been paid, and to whom."
+    >
+      <AdminGrid>
+        <AdminCol span={5}>
+          <Card className="flex h-full flex-col">
+            <CardHeader title="Where does the payment stand?" hint="Electricity line read from the contract" />
+            <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+              <LigneEtat libelle="Bill for the month" valeur={dollarsLisibles(resume.factureMensuelle)} ton="neutre" />
+              <LigneEtat libelle="Total paid" valeur={dollarsLisibles(resume.totalRegle)} ton="neutre" />
+              <LigneEtat libelle="Last payment" valeur={dateLisible(resume.electricite?.lastPayment)} ton="neutre" />
+              <LigneEtat
+                libelle="Payment open"
+                valeur={texteBooleen(
+                  resume.electricite?.canPay,
+                  'Yes — a payment can be triggered',
+                  'No — no payment is due right now',
+                )}
+                ton={tonBooleen(resume.electricite?.canPay, 'attention', 'sain')}
+              />
+              <LigneEtat
+                libelle="Next due date"
+                valeur={prochaineEcheance(resume.electricite)}
+                ton="neutre"
+              />
+              <LigneEtat
+                libelle="Payee"
+                valeur={adresseCourte(resume.electricite?.payee) ?? 'Not disclosed'}
+                ton="neutre"
+              />
+            </ul>
+          </Card>
+        </AdminCol>
+
+        <AdminCol span={7}>
+          <Card className="flex h-full flex-col">
+            <CardHeader
+              title="What the contract has attested"
+              hint="Mining readings and electricity movements, most recent first"
+            />
+            <Attestations mouvements={resume.attestations} />
+          </Card>
+        </AdminCol>
+      </AdminGrid>
+    </AdminSection>
+  )
+}
+
+function MissingSection({ telemetry }: Readonly<{ telemetry: Resolu<unknown> | undefined }>) {
+  return (
+    <AdminSection
+      index="04"
+      title="What the service publishes no answer for"
+      description="Both views are built and waiting on a read that does not exist over HTTP today. The exact reason is named under each one; the day the route appears, the series replaces the sentence and the layout does not move."
+    >
+      <AdminGrid>
+        <AdminCol span={6}>
+          <ChartFrame
+            question="Is mining profitable at the market price?"
+            unite="in dollars per terahash per day"
+            etat={{
+              type: 'attendue',
+              explication:
+                'The service does ingest these market readings, and no route publishes them: the mining aggregate returns only power, bitcoin, electricity, and operation. Without hashprice or the bitcoin price, the threshold above remains a threshold.',
+            }}
+          />
+        </AdminCol>
+        <AdminCol span={6}>
+          <ChartFrame
+            question="How does the fleet behave day to day?"
+            unite="in terahash per second, per reading"
+            etat={etatSerieDe(telemetry, 'Operational telemetry is not yet fed.', MOTIFS_MINAGE)}
+          />
+        </AdminCol>
+      </AdminGrid>
+    </AdminSection>
+  )
+}
+
+function MiningBody({
+  resume,
+  production,
+  telemetry,
+}: Readonly<{
+  resume: ResumeMinage
+  production: Resolu<Production> | undefined
+  telemetry: Resolu<unknown> | undefined
+}>) {
+  return (
+    <>
+      <ProductionSection resume={resume} production={production} />
+      <FleetSection resume={resume} />
+      <ElectricitySection resume={resume} />
+      <MissingSection telemetry={telemetry} />
+    </>
+  )
+}
+
+/* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
   // Three calls in parallel: the page only renders once all three have
@@ -364,10 +610,7 @@ export default async function Page() {
 
   return (
     <AdminPage>
-      <PageHeader
-        title="Mining"
-        description="Does what the fleet produces cover what it consumes?"
-      />
+      <PageHeader title="Mining" description="Does what the fleet produces cover what it consumes?" />
 
       {minage === null ? (
         // One card, stated once. Wrapping this single surface in a section
@@ -378,215 +621,7 @@ export default async function Page() {
           requis={['A response from the service']}
         />
       ) : (
-        <>
-          {/* ── 01 · The economic equation ───────────────────────────────────── */}
-          <AdminSection
-            index="01"
-            title="Production against bill"
-            description="Mining's only question: does the bitcoin produced in a month pay for that month's electricity."
-          >
-            <AdminGrid>
-              <AdminCol span={7}>
-                <Card className="flex h-full flex-col p-6">
-                  <HeroFigure
-                    valeur={dollarsLisibles(resume.seuil)}
-                    libelle="Bitcoin price that covers the month"
-                    unite="$ / BTC"
-                  />
-                  {/* Three facts, three columns — `AdminMetricGrid` picks a
-                      column count that leaves no orphan on the last row, which
-                      a hand-written `grid-cols-2` did not. */}
-                  <AdminMetricGrid count={3} className="mt-6">
-                    <SideFact
-                      libelle={resume.dernierMois === undefined ? 'Month reported' : `Produced in ${resume.dernierMois.libelle}`}
-                      valeur={btcLisible(resume.dernierMois?.btc ?? null)}
-                    />
-                    <SideFact libelle="Monthly bill" valeur={dollarsLisibles(resume.factureMensuelle)} />
-                    <SideFact libelle="Total paid to date" valeur={dollarsLisibles(resume.totalRegle)} />
-                  </AdminMetricGrid>
-                </Card>
-              </AdminCol>
-
-              {/* The limit of the calculation sits BESIDE the figure, in its own
-                  column — not as a ruled footnote inside the same panel. A
-                  threshold without its "we don't know whether it's cleared"
-                  would read as a profitability verdict. */}
-              <AdminCol span={5}>
-                <Card className="flex h-full flex-col p-6">
-                  <AdminSurfaceTitle>How this threshold is computed</AdminSurfaceTitle>
-                  <p className="mt-2 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
-                    It is the quotient of two measurements: the bitcoin attested by the contract for the month, and
-                    the monthly electricity bill. The console stops there — the actual bitcoin price is not published
-                    by any route of the service, so it does not say whether the threshold is cleared.
-                  </p>
-                </Card>
-              </AdminCol>
-            </AdminGrid>
-
-            <ChartFrame
-              question="How much does the fleet produce, month after month?"
-              unite="in bitcoin, per month of operation"
-              etat={etatProduction(production, resume.moisProduits.length)}
-            >
-              {resume.dernierMois !== undefined && !plottableAsChart(resume.moisProduits.length) ? (
-                <SingleObservation
-                  valeur={formatNumber(resume.dernierMois.btc, { maximumFractionDigits: 8 })}
-                  unite="BTC"
-                  periode={resume.dernierMois.libelle}
-                  contexte="Bitcoin attested by the contract for this month of operation."
-                  note="One month of production has been reported so far — no trend can be measured yet. The series gains one month per operating cycle."
-                />
-              ) : (
-                <MiningProductionChart mois={resume.moisProduits} />
-              )}
-            </ChartFrame>
-          </AdminSection>
-
-          {/* ── 02 · The fleet ────────────────────────────────────────────────── */}
-          <AdminSection
-            index="02"
-            title="The fleet"
-            description="What the contract declares about installed power and its operating regime."
-          >
-            <AdminGrid>
-              <AdminCol span={7}>
-                <Card className="flex h-full flex-col p-6">
-                  <HeroFigure
-                    valeur={
-                      typeof resume.releve?.reportedHashrateTh === 'string' && resume.releve.reportedHashrateTh !== ''
-                        ? formatNumber(Number(resume.releve.reportedHashrateTh))
-                        : '—'
-                    }
-                    libelle="Reported compute power"
-                    unite="TH/s"
-                  />
-                  <AdminMetricGrid count={3} className="mt-6">
-                    <SideFact libelle="Bitcoin produced since inception" valeur={btcLisible(resume.cumulBtc)} />
-                    <SideFact libelle="Last reading" valeur={dateLisible(resume.releve?.lastReportTime)} />
-                    <SideFact libelle="Reading age" valeur={ilYA(resume.releve?.lastReportTime)} />
-                  </AdminMetricGrid>
-                </Card>
-              </AdminCol>
-
-              <AdminCol span={5}>
-                <Card className="flex h-full flex-col">
-                  <CardHeader title="Is the fleet running?" hint="Operating regime declared by the contract" />
-                  <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                    <LigneEtat
-                      libelle="Fleet"
-                      valeur={texteBooleen(resume.exploitation?.fleetActive, 'Running', 'Stopped')}
-                      ton={tonBooleen(resume.exploitation?.fleetActive, 'sain', 'attention')}
-                    />
-                    <LigneEtat
-                      libelle="Curtailment"
-                      valeur={texteBooleen(
-                        resume.exploitation?.curtailed,
-                        'Active — production is voluntarily reduced',
-                        'Inactive',
-                      )}
-                      ton={tonBooleen(resume.exploitation?.curtailed, 'attention', 'sain')}
-                    />
-                  </ul>
-                  {resume.adresseContrat === null ? null : (
-                    <p className="border-t border-zinc-950/5 px-5 py-3 text-xs text-zinc-500 sm:px-6 dark:border-console-line-soft dark:text-zinc-400">
-                      Declared by contract {resume.adresseContrat}
-                      {typeof resume.chaine?.mode === 'string' && resume.chaine.mode !== '' ? ` · mode ${resume.chaine.mode}` : null}
-                    </p>
-                  )}
-                </Card>
-              </AdminCol>
-            </AdminGrid>
-          </AdminSection>
-
-          {/* ── 03 · Electricity ──────────────────────────────────────────────── */}
-          <AdminSection
-            index="03"
-            title="Electricity"
-            description="Mining's cost line: what's owed, what's been paid, and to whom."
-          >
-            <AdminGrid>
-              <AdminCol span={5}>
-                <Card className="flex h-full flex-col">
-                  <CardHeader title="Where does the payment stand?" hint="Electricity line read from the contract" />
-                  <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                    <LigneEtat libelle="Bill for the month" valeur={dollarsLisibles(resume.factureMensuelle)} ton="neutre" />
-                    <LigneEtat libelle="Total paid" valeur={dollarsLisibles(resume.totalRegle)} ton="neutre" />
-                    <LigneEtat libelle="Last payment" valeur={dateLisible(resume.electricite?.lastPayment)} ton="neutre" />
-                    <LigneEtat
-                      libelle="Payment open"
-                      valeur={texteBooleen(
-                        resume.electricite?.canPay,
-                        'Yes — a payment can be triggered',
-                        'No — no payment is due right now',
-                      )}
-                      ton={tonBooleen(resume.electricite?.canPay, 'attention', 'sain')}
-                    />
-                    <LigneEtat
-                      libelle="Next due date"
-                      valeur={
-                        typeof resume.electricite?.nextEligiblePayment === 'string' && resume.electricite.nextEligiblePayment !== ''
-                          ? dateLisible(resume.electricite.nextEligiblePayment)
-                          : 'No eligibility date disclosed'
-                      }
-                      ton="neutre"
-                    />
-                    <LigneEtat
-                      libelle="Payee"
-                      valeur={adresseCourte(resume.electricite?.payee) ?? 'Not disclosed'}
-                      ton="neutre"
-                    />
-                  </ul>
-                </Card>
-              </AdminCol>
-
-              <AdminCol span={7}>
-                <Card className="flex h-full flex-col">
-                  <CardHeader
-                    title="What the contract has attested"
-                    hint="Mining readings and electricity movements, most recent first"
-                  />
-                  <Attestations mouvements={resume.attestations} />
-                </Card>
-              </AdminCol>
-            </AdminGrid>
-          </AdminSection>
-
-          {/* ── 04 · What the service publishes no answer for ─────────────────
-              These two frames used to sit inside the sections above, where each
-              interrupted a run of real measurements with a paragraph about an
-              absence. Grouped here, the reason is given once and each frame is
-              only as tall as its own sentence. */}
-          <AdminSection
-            index="04"
-            title="What the service publishes no answer for"
-            description="Both views are built and waiting on a read that does not exist over HTTP today. The exact reason is named under each one; the day the route appears, the series replaces the sentence and the layout does not move."
-          >
-            <AdminGrid>
-              <AdminCol span={6}>
-                <ChartFrame
-                  question="Is mining profitable at the market price?"
-                  unite="in dollars per terahash per day"
-                  etat={{
-                    type: 'attendue',
-                    explication:
-                      'The service does ingest these market readings, and no route publishes them: the mining aggregate returns only power, bitcoin, electricity, and operation. Without hashprice or the bitcoin price, the threshold above remains a threshold.',
-                  }}
-                />
-              </AdminCol>
-              <AdminCol span={6}>
-                <ChartFrame
-                  question="How does the fleet behave day to day?"
-                  unite="in terahash per second, per reading"
-                  etat={etatSerieDe(
-                    minage.operationalTelemetry,
-                    'Operational telemetry is not yet fed.',
-                    MOTIFS_MINAGE,
-                  )}
-                />
-              </AdminCol>
-            </AdminGrid>
-          </AdminSection>
-        </>
+        <MiningBody resume={resume} production={production} telemetry={minage.operationalTelemetry} />
       )}
     </AdminPage>
   )

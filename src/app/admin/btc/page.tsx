@@ -423,7 +423,175 @@ function resolveMovementState(evenements: readonly Evenement[], fluxLisible: boo
   return <CeQuiSestPasse evenements={evenements} statutLive={b?.events?.status === 'LIVE'} />
 }
 
-/* ── Page ─────────────────────────────────────────────────────────────────── */
+/* ── Sections ───────────────────────────────────────────────────────────── */
+
+function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
+  const proofColumn = b.proofs === undefined ? 12 : 7
+  const singleMonth =
+    vue.dernierMois !== undefined && !plottableAsChart(vue.moisProduction.length) ? vue.dernierMois : null
+
+  return (
+    <AdminSection
+      title="What the fund has produced"
+      description="Bitcoin attested by the contract since inception, and the pace at which it accumulates."
+    >
+      <AdminGrid>
+        <AdminCol span={proofColumn}>
+          <Card className="flex h-full flex-col p-6">
+            <HeroFigure valeur={vue.bitcoinProduit} libelle="Bitcoin produced to date" unite="BTC" />
+            {/* Three facts, three columns — `AdminMetricGrid` picks a
+                column count that leaves no orphan on the last row, which
+                a hand-written `grid-cols-2` did not. */}
+            <AdminMetricGrid count={3} className="mt-6">
+              <SideFact libelle="Dormant reserve" valeur={formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 })} />
+              <SideFact libelle="Value exposed to the market" valeur={formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 })} />
+              <SideFact libelle="Last production report" valeur={formatDateTime(vue.produit?.lastReportTime)} />
+            </AdminMetricGrid>
+          </Card>
+        </AdminCol>
+
+        {b.proofs === undefined ? null : (
+          <AdminCol span={5}>
+            <PreuvesPubliees bloc={b.proofs} />
+          </AdminCol>
+        )}
+      </AdminGrid>
+
+      {/* One month is a measurement, not a pace: below two ordered
+          observations the frame shows the value itself rather than a
+          single bar adrift in a plot area. */}
+      <ChartFrame
+        question="At what pace is bitcoin being produced?"
+        unite="in bitcoin, per reported month"
+        etat={resolveProductionState(b, vue.moisProduction.length)}
+      >
+        {singleMonth === null ? (
+          <ProductionMensuelleChart mois={vue.moisProduction} cumulBtc={vue.cumulProduction} />
+        ) : (
+          <SingleObservation
+            valeur={singleMonth.btcExact}
+            unite="BTC"
+            periode={singleMonth.libelle}
+            contexte={vue.contexteObservation}
+            note="Only one month has been reported so far. A pace is the gap between two months, and there is no second month yet — the chart appears with the next report."
+          />
+        )}
+      </ChartFrame>
+    </AdminSection>
+  )
+}
+
+function ReserveSection({ vue }: Readonly<{ vue: VueBitcoin }>) {
+  const hasExposition = vue.exposition !== null && vue.exposition !== undefined
+  const pouch = vue.exposition?.pouch
+  const pouchLabel = pouch === null || pouch === undefined || pouch === '' ? 'Not reported' : pouch
+
+  return (
+    <AdminSection
+      title="Where the money sits"
+      description="The same two amounts read as a split: what sleeps in reserve, and what is exposed to the market."
+    >
+      <AdminGrid>
+        <AdminCol span={hasExposition ? 7 : 12}>
+          <ChartFrame
+            question="Where does the money sit?"
+            unite="in dollars"
+            etat={resolveReserveState(vue.postes)}
+          >
+            <ReserveExpositionChart postes={vue.postes} />
+          </ChartFrame>
+        </AdminCol>
+
+        {hasExposition ? (
+          <AdminCol span={5}>
+            <Card className="flex h-full flex-col">
+              <CardHeader
+                title="Does the exposed share respect its target?"
+                hint="Comparison between the share targeted by the contract and the one observed on-chain"
+              />
+              <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
+                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Exposed pouch</span>
+                  <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">{pouchLabel}</span>
+                </li>
+                <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
+                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Target share</span>
+                  <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
+                    {partLisible(vue.exposition?.targetBps)}
+                  </span>
+                </li>
+                <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
+                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Observed share</span>
+                  <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
+                    {partLisible(vue.exposition?.actualBps)}
+                  </span>
+                </li>
+              </ul>
+            </Card>
+          </AdminCol>
+        ) : null}
+      </AdminGrid>
+    </AdminSection>
+  )
+}
+
+function BitcoinBody({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
+  return (
+    <>
+      <ProductionSection vue={vue} b={b} />
+      <ReserveSection vue={vue} />
+
+      {/* ── What happened ──────────────────────────────────────────────── */}
+      {vue.fluxLisible ? (
+        <AdminSection
+          title="What happened recently"
+          description="Movements and alerts reported by the service, most recent first."
+        >
+          {resolveMovementState(vue.evenements, vue.fluxLisible, b)}
+        </AdminSection>
+      ) : null}
+
+      {/* ── What the source doesn't expose ────────────────────────────────
+          Without this introduction, "Waiting on the source" would read as
+          "coming soon". These three reads aren't coming: they don't exist
+          in the deployed contract. Saying it once in the section
+          description avoids repeating it under each frame. */}
+      <AdminSection
+        title="What the source doesn't expose"
+        description="These three views are built and ready. They remain without a series not due to an incident, but because the corresponding read doesn't exist in the source: the exact reason is noted under each one. The day the contract exposes it, the series replaces the sentence and the layout doesn't move."
+      >
+        <AdminGrid>
+          <AdminCol span={4}>
+            <ChartFrame
+              question="Where does the bitcoin yield come from?"
+              unite="as a percentage of total"
+              etat={etatDe(b.attribution, 'The contract exposes no breakdown of bitcoin yield.')}
+            />
+          </AdminCol>
+          <AdminCol span={4}>
+            <ChartFrame
+              question="Where is the bitcoin held?"
+              unite="in bitcoin, by custody location"
+              etat={etatDe(
+                b.custody,
+                'No custodian is integrated: no custody location has been declared to date.',
+              )}
+            />
+          </AdminCol>
+          <AdminCol span={4}>
+            <ChartFrame
+              question="At what prices are profits taken?"
+              unite="in dollars, per tier"
+              etat={etatDe(b.takeProfitTiers, 'The contract exposes no take-profit tiers.')}
+            />
+          </AdminCol>
+        </AdminGrid>
+      </AdminSection>
+    </>
+  )
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
   const reponse = await callBackend<Btc>('btc')
@@ -445,154 +613,7 @@ export default async function Page() {
           requis={['A response from the service']}
         />
       ) : (
-        <>
-          {/* ── What the fund has produced ────────────────────────────────── */}
-          <AdminSection
-            title="What the fund has produced"
-            description="Bitcoin attested by the contract since inception, and the pace at which it accumulates."
-          >
-            <AdminGrid>
-              <AdminCol span={b.proofs === undefined ? 12 : 7}>
-                <Card className="flex h-full flex-col p-6">
-                  <HeroFigure valeur={vue.bitcoinProduit} libelle="Bitcoin produced to date" unite="BTC" />
-                  {/* Three facts, three columns — `AdminMetricGrid` picks a
-                      column count that leaves no orphan on the last row, which
-                      a hand-written `grid-cols-2` did not. */}
-                  <AdminMetricGrid count={3} className="mt-6">
-                    <SideFact libelle="Dormant reserve" valeur={formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 })} />
-                    <SideFact libelle="Value exposed to the market" valeur={formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 })} />
-                    <SideFact libelle="Last production report" valeur={formatDateTime(vue.produit?.lastReportTime)} />
-                  </AdminMetricGrid>
-                </Card>
-              </AdminCol>
-
-              {b.proofs === undefined ? null : (
-                <AdminCol span={5}>
-                  <PreuvesPubliees bloc={b.proofs} />
-                </AdminCol>
-              )}
-            </AdminGrid>
-
-            {/* One month is a measurement, not a pace: below two ordered
-                observations the frame shows the value itself rather than a
-                single bar adrift in a plot area. */}
-            <ChartFrame
-              question="At what pace is bitcoin being produced?"
-              unite="in bitcoin, per reported month"
-              etat={resolveProductionState(b, vue.moisProduction.length)}
-            >
-              {vue.dernierMois !== undefined && !plottableAsChart(vue.moisProduction.length) ? (
-                <SingleObservation
-                  valeur={vue.dernierMois.btcExact}
-                  unite="BTC"
-                  periode={vue.dernierMois.libelle}
-                  contexte={vue.contexteObservation}
-                  note="Only one month has been reported so far. A pace is the gap between two months, and there is no second month yet — the chart appears with the next report."
-                />
-              ) : (
-                <ProductionMensuelleChart mois={vue.moisProduction} cumulBtc={vue.cumulProduction} />
-              )}
-            </ChartFrame>
-          </AdminSection>
-
-          {/* ── Where the money sits ──────────────────────────────────────── */}
-          <AdminSection
-            title="Where the money sits"
-            description="The same two amounts read as a split: what sleeps in reserve, and what is exposed to the market."
-          >
-            <AdminGrid>
-              <AdminCol span={vue.exposition === null || vue.exposition === undefined ? 12 : 7}>
-                <ChartFrame
-                  question="Where does the money sit?"
-                  unite="in dollars"
-                  etat={resolveReserveState(vue.postes)}
-                >
-                  <ReserveExpositionChart postes={vue.postes} />
-                </ChartFrame>
-              </AdminCol>
-
-              {vue.exposition === null || vue.exposition === undefined ? null : (
-                <AdminCol span={5}>
-                  <Card className="flex h-full flex-col">
-                    <CardHeader
-                      title="Does the exposed share respect its target?"
-                      hint="Comparison between the share targeted by the contract and the one observed on-chain"
-                    />
-                    <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                      <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                        <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Exposed pouch</span>
-                        <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">
-                          {vue.exposition.pouch === null || vue.exposition.pouch === undefined || vue.exposition.pouch === ''
-                            ? 'Not reported'
-                            : vue.exposition.pouch}
-                        </span>
-                      </li>
-                      <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                        <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Target share</span>
-                        <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
-                          {partLisible(vue.exposition.targetBps)}
-                        </span>
-                      </li>
-                      <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                        <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Observed share</span>
-                        <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
-                          {partLisible(vue.exposition.actualBps)}
-                        </span>
-                      </li>
-                    </ul>
-                  </Card>
-                </AdminCol>
-              )}
-            </AdminGrid>
-          </AdminSection>
-
-          {/* ── What happened ──────────────────────────────────────────────── */}
-          {vue.fluxLisible ? (
-            <AdminSection
-              title="What happened recently"
-              description="Movements and alerts reported by the service, most recent first."
-            >
-              {resolveMovementState(vue.evenements, vue.fluxLisible, b)}
-            </AdminSection>
-          ) : null}
-
-          {/* ── What the source doesn't expose ────────────────────────────────
-              Without this introduction, "Waiting on the source" would read as
-              "coming soon". These three reads aren't coming: they don't exist
-              in the deployed contract. Saying it once in the section
-              description avoids repeating it under each frame. */}
-          <AdminSection
-            title="What the source doesn't expose"
-            description="These three views are built and ready. They remain without a series not due to an incident, but because the corresponding read doesn't exist in the source: the exact reason is noted under each one. The day the contract exposes it, the series replaces the sentence and the layout doesn't move."
-          >
-            <AdminGrid>
-              <AdminCol span={4}>
-                <ChartFrame
-                  question="Where does the bitcoin yield come from?"
-                  unite="as a percentage of total"
-                  etat={etatDe(b.attribution, 'The contract exposes no breakdown of bitcoin yield.')}
-                />
-              </AdminCol>
-              <AdminCol span={4}>
-                <ChartFrame
-                  question="Where is the bitcoin held?"
-                  unite="in bitcoin, by custody location"
-                  etat={etatDe(
-                    b.custody,
-                    'No custodian is integrated: no custody location has been declared to date.',
-                  )}
-                />
-              </AdminCol>
-              <AdminCol span={4}>
-                <ChartFrame
-                  question="At what prices are profits taken?"
-                  unite="in dollars, per tier"
-                  etat={etatDe(b.takeProfitTiers, 'The contract exposes no take-profit tiers.')}
-                />
-              </AdminCol>
-            </AdminGrid>
-          </AdminSection>
-        </>
+        <BitcoinBody vue={vue} b={b} />
       )}
     </AdminPage>
   )
