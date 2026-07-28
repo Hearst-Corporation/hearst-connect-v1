@@ -38,6 +38,7 @@ export default defineConfig({
         'src/lib/backend/auth.ts',
         'src/lib/backend/endpoints.ts',
         'src/lib/backend/http-failure.ts',
+        'src/lib/backend/resolved-mapper.ts',
       ],
     },
   },

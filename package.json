@@ -10,7 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm run check:catalyst && npm run check:mocks && npm run test",
-    "check:catalyst": "node ~/catalyst-doctor.mjs .",
+    "check:catalyst": "node scripts/check-catalyst.mjs .",
     "lint:fast": "oxlint src",
     "quality:dead": "knip",
     "quality:dup": "jscpd src --threshold 100 --reporters consoleFull",

@@ -78,7 +78,7 @@ export function Pricing() {
         <div className="mt-16 flex justify-center">
           <fieldset aria-label="Périodicité de facturation">
             <div className="grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold inset-ring inset-ring-zinc-200 dark:inset-ring-white/10">
-              <label className="group relative rounded-full px-2.5 py-1 has-checked:bg-accent-600 dark:has-checked:bg-accent-500">
+              <label className="group relative rounded-full px-2.5 py-1 has-checked:bg-accent-400">
                 <input
                   defaultValue="monthly"
                   defaultChecked
@@ -88,7 +88,7 @@ export function Pricing() {
                 />
                 <span className="text-zinc-500 group-has-checked:text-white dark:text-zinc-400">Mensuel</span>
               </label>
-              <label className="group relative rounded-full px-2.5 py-1 has-checked:bg-accent-600 dark:has-checked:bg-accent-500">
+              <label className="group relative rounded-full px-2.5 py-1 has-checked:bg-accent-400">
                 <input
                   defaultValue="annually"
                   name="frequency"
@@ -136,7 +136,7 @@ export function Pricing() {
               <a
                 href={tier.href}
                 aria-describedby={`tier-${tier.id}`}
-                className="mt-6 block w-full rounded-md bg-accent-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-xs hover:bg-accent-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:bg-accent-500 dark:shadow-none dark:hover:bg-accent-400 dark:focus-visible:outline-accent-500"
+                className="mt-6 block w-full rounded-md bg-accent-400 px-3 py-2 text-center text-sm/6 font-semibold text-accent-ink shadow-xs hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:shadow-none dark:focus-visible:outline-accent-500"
               >
                 {tier.cta}
               </a>

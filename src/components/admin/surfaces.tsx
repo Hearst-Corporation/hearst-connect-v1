@@ -1,6 +1,5 @@
-import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { CockpitSection } from '@/components/admin/cockpit-section'
-import { surfaceRaised } from '@/components/admin/surface'
+import { RequirementList, surfaceRaised } from '@/components/admin/surface'
 import { AdminBody, AdminCaption, AdminH3, AdminLabel, adminTypography } from '@/components/admin/typography'
 import {
   ProblemState,
@@ -40,6 +39,12 @@ export function AdminSurface({
 
 /* ── AdminSection ─────────────────────────────────────────────────────────── */
 
+/**
+ * Adaptateur de nom vers `CockpitSection` — le seul écart est `action` (ici) vs
+ * `actions` (là-bas). Il ne peut donc pas devenir un simple ré-export tant que
+ * les 6 pages appelantes écrivent `action`. Aucune structure n'est réimplémentée :
+ * tout le rendu vit dans `CockpitSection`.
+ */
 export function AdminSection({
   title,
   description,
@@ -111,27 +116,12 @@ export function AdminMetric({
 
 /* ── AdminChart ───────────────────────────────────────────────────────────── */
 
-export function AdminChart({
-  question,
-  unite,
-  provenance,
-  etat,
-  children,
-  hauteur,
-}: Readonly<{
-  question: string
-  unite: string
-  provenance: string
-  etat: EtatSerie
-  children?: React.ReactNode
-  hauteur?: string
-}>) {
-  return (
-    <ChartFrame question={question} unite={unite} provenance={provenance} etat={etat} hauteur={hauteur}>
-      {children}
-    </ChartFrame>
-  )
-}
+/**
+ * Alias historique de `ChartFrame` : mêmes props, même rendu. Le wrapper qui
+ * recopiait la signature n'ajoutait rien et faisait diverger le défaut de
+ * `hauteur` ; un ré-export garde le nom public sans dupliquer le composant.
+ */
+export { ChartFrame as AdminChart } from '@/components/admin/chart-frame'
 
 /* ── AdminTable ─────────────────────────────────────────────────────────── */
 
@@ -258,16 +248,7 @@ export function AdminSourceAttendue({
       <AdminBody className="mt-2">{detail}</AdminBody>
       <div className="mt-5 rounded-lg bg-zinc-50 px-4 py-3 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
         <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Source attendue</p>
-        <ul className="mt-2 space-y-1">
-          {requis.map((r) => (
-            <li key={r} className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-              <span aria-hidden="true" className="text-zinc-400">
-                ·
-              </span>
-              {r}
-            </li>
-          ))}
-        </ul>
+        <RequirementList requis={requis} />
       </div>
     </div>
   )
@@ -331,8 +312,6 @@ export function AdminFilterBar({
     </AdminSurface>
   )
 }
-
-/* ── AdminDetailPanel → surfaces-client.tsx ───────────────────────────────── */
 
 /* ── AdminActionPanel ─────────────────────────────────────────────────────── */
 

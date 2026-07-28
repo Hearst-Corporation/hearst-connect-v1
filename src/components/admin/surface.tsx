@@ -34,6 +34,29 @@ export function Panel({
   )
 }
 
+/**
+ * Liste des éléments qu'une source doit encore fournir.
+ *
+ * Deux surfaces l'affichent avec des mises en page différentes (`SourceAttendue`
+ * centrée dans `cockpit.tsx`, `AdminSourceAttendue` alignée à gauche dans
+ * `surfaces.tsx`). Seule la liste elle-même était identique : elle vit ici, les
+ * deux habillages restent chez leurs propriétaires respectifs.
+ */
+export function RequirementList({ requis }: Readonly<{ requis: readonly string[] }>) {
+  return (
+    <ul className="mt-2 space-y-1">
+      {requis.map((r) => (
+        <li key={r} className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <span aria-hidden="true" className="text-zinc-400">
+            ·
+          </span>
+          {r}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function PanelHeading({ title, action }: Readonly<{ title: string; action?: React.ReactNode }>) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-zinc-950/5 px-4 py-3 dark:border-white/5">

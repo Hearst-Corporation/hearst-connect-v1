@@ -1,4 +1,5 @@
 import '@/styles/tailwind.css'
+import { announceConfigurationOnce } from '@/lib/env'
 import { fontSatoshi } from '@/lib/fonts'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import type { Metadata } from 'next'
@@ -13,6 +14,12 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Garde-fou de démarrage. Toute page passe par ce layout : c'est le premier
+  // point de rendu serveur commun à l'application. La fonction ne lève pas et
+  // ne journalise qu'une fois par worker (verrou en portée module) — le rendu
+  // n'est ni bloqué ni ralenti par une configuration incomplète.
+  announceConfigurationOnce()
+
   return (
     <html
       lang="fr"

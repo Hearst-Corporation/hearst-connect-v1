@@ -23,11 +23,28 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
   )
 }
 
-export function ExplorerRow({ endpoint, curl }: Readonly<{ endpoint: BackendEndpoint; curl: string }>) {
+/**
+ * Mention affichée à la place du bouton quand la ligne n'est pas exécutable.
+ * `null` quand la route se lit telle quelle.
+ */
+function unrunnableLabel(method: BackendEndpoint['method'], pathParams: readonly string[]): string | null {
+  if (method === 'POST') return 'action Keeper — page Keeper'
+  // Le caveat du registre dit déjà d'où vient la valeur : on annonce seulement
+  // qu'elle manque ici, sans la répéter.
+  if (pathParams.length > 0) return `paramètre ${pathParams.map((name) => `:${name}`).join(', ')} requis — non saisissable ici`
+  return null
+}
+
+export function ExplorerRow({
+  endpoint,
+  curl,
+  pathParams,
+}: Readonly<{ endpoint: BackendEndpoint; curl: string; pathParams: readonly string[] }>) {
   const [outcome, formAction, pending] = useActionState<ProbeOutcome | null, FormData>(probeEndpoint, null)
 
   const authLabel = authLabelFor(endpoint.auth)
   const isKeeper = endpoint.category === 'keeper'
+  const blockedLabel = unrunnableLabel(endpoint.method, pathParams)
 
   return (
     <div className="border-b border-zinc-950/5 dark:border-white/5 px-4 py-3 last:border-b-0">
@@ -39,8 +56,8 @@ export function ExplorerRow({ endpoint, curl }: Readonly<{ endpoint: BackendEndp
 
         <form action={formAction} className="ml-auto">
           <input type="hidden" name="endpointId" value={endpoint.id} />
-          {endpoint.method === 'POST' ? (
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">action Keeper — page Keeper</span>
+          {blockedLabel !== null ? (
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{blockedLabel}</span>
           ) : (
             <button
               type="submit"

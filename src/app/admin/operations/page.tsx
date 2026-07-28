@@ -18,6 +18,7 @@ import {
   libelleMouvement,
   montantUsdc,
 } from '@/lib/mouvements'
+import { statutAffichage } from '@/lib/statut-affichage'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -216,8 +217,10 @@ export default async function Page() {
 
       <AdminSection title="Registre des mouvements" description="Événements indexés Series 1">
         <div className="flex items-center gap-2">
+          {/* Le backend renvoie ce statut en champ libre : on le valide au lieu
+              de le forcer, sinon un libellé « undefined » s'affiche. */}
           {reponse.ok && reponse.data.events ? (
-            <AdminStatus status={reponse.data.events.status as never} />
+            <AdminStatus status={statutAffichage(reponse.data.events.status)} />
           ) : null}
         </div>
         <RegistreMouvements reponse={reponse} mouvements={mouvements} barres={barres} chainId={chainId} />

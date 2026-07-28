@@ -3,7 +3,18 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 
 const eslintConfig = defineConfig([
   ...nextVitals,
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  // Artefacts générés : jamais commités (cf. .gitignore), jamais écrits à la
+  // main — les linter revient à juger la sortie d'un outil. Le reporter lcov de
+  // @vitest/coverage-v8 pose notamment des `eslint-disable` dans son HTML.
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
+    'coverage/**',
+    '.scannerwork/**',
+    'storybook-static/**',
+  ]),
   {
     // Les blocs officiels Tailwind Plus utilisent <img> : c'est du code vendoré, tel quel.
     rules: {

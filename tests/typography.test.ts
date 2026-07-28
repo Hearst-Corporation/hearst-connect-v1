@@ -10,9 +10,37 @@ describe('admin typography', () => {
     expect(adminTypography.kpiValue).toContain('text-2xl/8')
   })
 
-  it('utilise les tokens brand pour le texte', () => {
-    expect(adminTypography.h1).toContain('text-brand-foreground')
-    expect(adminTypography.body).toContain('text-brand-muted')
-    expect(adminTypography.caption).toContain('text-brand-muted')
+  it('tient la console admin sur le neutre zinc, branche sombre comprise', () => {
+    // Titres et valeurs KPI : zinc-950 en clair, blanc en sombre.
+    const emphase = [
+      adminTypography.h1,
+      adminTypography.h2,
+      adminTypography.h3,
+      adminTypography.kpiHero,
+      adminTypography.kpiValue,
+      adminTypography.navLabel,
+    ]
+    for (const classes of emphase) {
+      expect(classes).toMatch(/(^|\s)text-zinc-950(\s|$)/)
+      expect(classes).toMatch(/(^|\s)dark:text-white(\s|$)/)
+    }
+
+    // Texte secondaire : zinc-500 en clair, zinc-400 en sombre.
+    const secondaire = [
+      adminTypography.body,
+      adminTypography.caption,
+      adminTypography.label,
+      adminTypography.endpoint,
+      adminTypography.navHint,
+    ]
+    for (const classes of secondaire) {
+      expect(classes).toMatch(/(^|\s)text-zinc-500(\s|$)/)
+      expect(classes).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
+    }
+
+    // Aucun token brand-* ne doit réapparaître dans l'échelle admin.
+    for (const classes of Object.values(adminTypography)) {
+      expect(classes).not.toMatch(/\bbrand-/)
+    }
   })
 })

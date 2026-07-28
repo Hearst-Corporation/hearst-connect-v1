@@ -72,7 +72,7 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-accent-600 text-sm font-bold text-white">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-accent-400 text-sm font-bold text-accent-ink">
             HC
           </span>
           <div className="min-w-0">
@@ -115,7 +115,7 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
   const navbar = (
     <Navbar>
       <NavbarSection>
-        <span className="flex size-7 items-center justify-center rounded-lg bg-accent-600 text-xs font-bold text-white">
+        <span className="flex size-7 items-center justify-center rounded-lg bg-accent-400 text-xs font-bold text-accent-ink">
           HC
         </span>
         <span className="text-sm font-semibold text-zinc-950 dark:text-white">Hearst Connect</span>
@@ -123,7 +123,7 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
       <NavbarSpacer />
       <NavbarSection>
         <NavbarItem>
-          <Avatar initials={initials(user.name)} alt={user.name} className="size-8 bg-accent-600 text-white" />
+          <Avatar initials={initials(user.name)} alt={user.name} className="size-8 bg-accent-400 text-accent-ink" />
         </NavbarItem>
       </NavbarSection>
     </Navbar>
