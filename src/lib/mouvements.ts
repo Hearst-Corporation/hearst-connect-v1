@@ -60,6 +60,10 @@ export const MOTIF_LISIBLE: Record<string, string> = {
   no_investor_record: 'aucun dossier investisseur n’est rattaché à ce compte',
   engine_not_initialised: 'le moteur de minage n’a pas encore été initialisé',
   dynavault_not_deployed: 'cette fonctionnalité n’est pas encore ouverte',
+  // Le contrat est joignable mais n’expose aucune lecture de cette donnée :
+  // c’est une capacité absente de la source, pas un déploiement en attente.
+  not_exposed_by_contract: 'le contrat n’expose aucune lecture de cette donnée',
+  no_custody_provider_integrated: 'aucun dépositaire n’est encore intégré',
   no_events_indexed: 'aucun mouvement n’a encore été relevé',
   no_runs_recorded: 'aucun rétro-test n’a encore été exécuté',
   db_error: 'la base de données n’a pas répondu',

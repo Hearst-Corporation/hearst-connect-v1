@@ -14,6 +14,10 @@ export type ChampResolu<T = unknown> = {
 /** Motifs machine → phrase, pour les cadres en attente de source. */
 export const MOTIF_SERIE: Record<string, string> = {
   dynavault_not_deployed: 'cette mesure n’est pas encore ouverte sur le contrat déployé',
+  // Le contrat répond, mais il n’expose aucune lecture de cette donnée : un
+  // déploiement n’y changera rien. À ne pas confondre avec le motif ci-dessus.
+  not_exposed_by_contract: 'le contrat n’expose aucune lecture de cette donnée',
+  no_custody_provider_integrated: 'aucun dépositaire n’est encore intégré',
   not_available: 'la source n’est pas encore branchée',
   not_configured: 'la source n’est pas encore paramétrée',
   db_error: 'la base de données n’a pas répondu',
