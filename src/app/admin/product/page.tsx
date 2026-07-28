@@ -3,125 +3,118 @@ import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
+import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Fiche produit' }
+export const metadata: Metadata = { title: 'Product Sheet' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Fiche produit — ce à quoi un souscripteur s'engage.
+ * Product Sheet — what a subscriber commits to.
  *
- * L'ancienne page déversait la réponse d'une route. Une fiche produit n'est
- * pourtant pas un objet technique : c'est un contrat. Trois questions la
- * résument — combien faut-il déposer et pour combien de temps, comment la
- * rémunération évolue au fil des mois, et où l'argent est censé être placé.
+ * The old page dumped a route's raw response. A product sheet isn't a
+ * technical object, though — it's a contract. Three questions summarize
+ * it: how much must be deposited and for how long, how the reward rate
+ * evolves over the months, and where the money is meant to be placed.
  *
- * ── Le piège de la courbe plate ────────────────────────────────────────────
- * Le service renvoie bien cinq échéances réelles, mais tous les taux y valent
- * zéro sur ce déploiement. Tracer cette ligne serait un mensonge de lecture :
- * elle se lirait « rémunération nulle mesurée » alors que la vérité est
- * « paramétrage absent ». La constante `courbeParametree` fait la différence,
- * et le cadre affiche alors ce qu'on attend plutôt qu'une courbe à plat.
+ * ── The flat-curve trap ─────────────────────────────────────────────────
+ * The service does return five real milestones, but every rate on this
+ * deployment is zero. Plotting that line would be a misleading read: it
+ * would say "zero reward measured" when the truth is "not configured yet".
+ * The `curveConfigured` flag makes the distinction, and the frame then
+ * shows what's expected instead of a flat curve.
  */
 
-type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
-type Poche = {
+type Pocket = {
   readonly pocket?: string | null
   readonly label?: string | null
   readonly targetBps?: number | null
   readonly actualBps?: number | null
 }
 
-type Termes = {
+type Terms = {
   readonly productDurationMonths?: number | null
   readonly minimumDepositUsdc?: string | null
-  readonly allocation?: { readonly pockets?: readonly Poche[] | null } | null
+  readonly allocation?: { readonly pockets?: readonly Pocket[] | null } | null
 }
 
 type Factsheet = {
-  readonly terms?: Resolu<Termes>
-  readonly tvlCap?: Resolu<string | number>
-  readonly vendingCurve?: Resolu<readonly { month: number; bps: number }[]>
+  readonly terms?: Resolved<Terms>
+  readonly tvlCap?: Resolved<string | number>
+  readonly vendingCurve?: Resolved<readonly { month: number; bps: number }[]>
 }
 
-const MOTIF_FICHE = {
+const PAGE_REASONS = {
   ...MOTIF_SERIE,
-  dynavault_not_deployed: 'ces termes ne sont pas encore ouverts sur le contrat déployé',
+  dynavault_not_deployed: 'these terms are not yet available on the deployed contract',
 }
 
-function etatDe(bloc: Resolu<unknown> | undefined, defaut: string): EtatSerie {
-  return etatSerieDe(bloc, defaut, MOTIF_FICHE)
-}
-
-function usdc(atomique: string | number | null | undefined, decimales = 0): string {
-  if (atomique === null || atomique === undefined || atomique === '') return '—'
-  const n = Number(atomique)
-  if (!Number.isFinite(n)) return '—'
-  return `${(n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
+function stateOf(block: Resolved<unknown> | undefined, fallback: string): EtatSerie {
+  return etatSerieDe(block, fallback, PAGE_REASONS)
 }
 
 /**
- * Une durée de zéro mois n'est pas une durée : c'est un terme non fixé. Le
- * produit ne se referme alors sur aucune échéance — il faut le dire, pas
- * afficher « 0 mois ».
+ * A duration of zero months isn't a duration: it's a term not yet set. The
+ * product then closes on no milestone at all — that has to be said, rather
+ * than displaying "0 months".
  */
-function dureeLisible(mois: number | null | undefined): string {
-  if (mois === null || mois === undefined || !Number.isFinite(mois)) return '—'
-  if (mois <= 0) return 'Sans échéance fixée'
-  return `${mois.toLocaleString('fr-FR')} mois`
+function readableDuration(months: number | null | undefined): string {
+  if (months === null || months === undefined || !Number.isFinite(months)) return '—'
+  if (months <= 0) return 'No fixed term'
+  return `${formatNumber(months)} months`
 }
 
-/** Un écart se lit signé, et son ampleur décide de sa couleur. */
-function ecartLisible(cible: number | null, reel: number | null): { texte: string; ton: string } {
-  if (cible === null || reel === null) return { texte: '—', ton: 'text-zinc-500' }
-  const pts = (reel - cible) / 100
-  const ampleur = Math.abs(pts)
-  let ton = 'text-success-400'
-  if (ampleur >= 5) ton = 'text-warning-400'
-  else if (ampleur >= 1) ton = 'text-zinc-300'
-  const signe = pts > 0 ? '+' : ''
-  return { texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`, ton }
+/** A variance reads signed, and its magnitude decides its color. */
+function readableVariance(target: number | null, actual: number | null): { text: string; tone: string } {
+  if (target === null || actual === null) return { text: '—', tone: 'text-zinc-500' }
+  const pts = (actual - target) / 100
+  const magnitude = Math.abs(pts)
+  let tone = 'text-success-400'
+  if (magnitude >= 5) tone = 'text-warning-400'
+  else if (magnitude >= 1) tone = 'text-zinc-300'
+  return { text: `${formatNumber(pts, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })} pt`, tone }
 }
 
-function partLisible(bps: number | null | undefined): string {
-  if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
-  return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
+function readableShare(bps: number | null | undefined): string {
+  return formatPercent(bps, { fromBps: true, maximumFractionDigits: 2 })
 }
 
-function etatCourbe(points: readonly PointCourbe[], courbeParametree: boolean, vendingCurve: Resolu<unknown> | undefined): EtatSerie {
+function curveState(points: readonly PointCourbe[], curveConfigured: boolean, vendingCurve: Resolved<unknown> | undefined): EtatSerie {
   if (points.length === 0) {
-    return etatDe(vendingCurve, 'Les termes de rémunération ne sont pas encore transmis.')
+    return stateOf(vendingCurve, 'The reward terms have not been transmitted yet.')
   }
-  if (courbeParametree) return { type: 'tracee' }
+  if (curveConfigured) return { type: 'tracee' }
   return {
     type: 'attendue',
     explication:
-      'Les cinq échéances du produit sont bien définies, mais aucun taux n’y est encore inscrit. La courbe s’affichera dès qu’ils le seront.',
+      'The product’s five milestones are defined, but no rate has been recorded for any of them yet. The curve will render as soon as they are.',
   }
 }
 
 export default async function Page() {
-  const reponse = await callBackend<Factsheet>('product-factsheet')
-  const f = reponse.ok ? reponse.data : null
+  const response = await callBackend<Factsheet>('product-factsheet')
+  const f = response.ok ? response.data : null
 
-  const termes = f?.terms?.value
-  const plafond = f?.tvlCap?.value
+  const terms = f?.terms?.value
+  const cap = f?.tvlCap?.value
 
-  // Répartition cible par poche. Une poche sans cible lisible est écartée
-  // plutôt que ramenée à zéro.
-  const pochesBrutes = termes?.allocation?.pockets
-  const poches = pochesBrutes ?? []
-  const lisibles = poches.filter((p) => p.targetBps !== null && p.targetBps !== undefined && Number.isFinite(p.targetBps))
+  // Target allocation by pocket. A pocket without a readable target is
+  // dropped rather than rounded down to zero.
+  const rawPockets = terms?.allocation?.pockets
+  const pockets = rawPockets ?? []
+  const readablePockets = pockets.filter((p) => p.targetBps !== null && p.targetBps !== undefined && Number.isFinite(p.targetBps))
 
-  const repartition: PocheAllocation[] = lisibles.map((p) => ({
+  const allocation: PocheAllocation[] = readablePockets.map((p) => ({
     poche:
       p.label === null || p.label === undefined || p.label === ''
-        ? (p.pocket ?? 'Poche sans nom')
+        ? (p.pocket ?? 'Unnamed pocket')
         : p.label,
     cible: Number(p.targetBps) / 100,
     reel:
@@ -130,111 +123,111 @@ export default async function Page() {
         : p.actualBps / 100,
   }))
 
-  // Courbe de rémunération. Cinq échéances réelles, tous les taux à zéro :
-  // la courbe n'est pas paramétrée. Tracer une ligne plate se lirait comme
-  // « rémunération nulle mesurée », ce qui est faux.
-  const courbeBrute = f?.vendingCurve?.value
+  // Reward curve. Five real milestones, every rate at zero: the curve
+  // isn't configured. Plotting a flat line would read as "zero reward
+  // measured", which would be false.
+  const rawCurve = f?.vendingCurve?.value
   const points: PointCourbe[] =
-    courbeBrute === null || courbeBrute === undefined
+    rawCurve === null || rawCurve === undefined
       ? []
-      : courbeBrute.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
-  const courbeParametree = points.some((p) => p.taux !== 0)
+      : rawCurve.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
+  const curveConfigured = points.some((p) => p.taux !== 0)
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Fiche produit"
-        description="Les conditions auxquelles on souscrit : dépôt minimum, durée, plafond du fonds, rémunération attendue et répartition visée de l’argent."
+        title="Product Sheet"
+        description="The terms an investor subscribes to: minimum deposit, duration, fund cap, expected reward rate, and the targeted allocation of the money."
       />
 
       <AdminSection>
 
       {f === null ? (
         <SourceAttendue
-          quoi="La fiche produit n’a pas pu être lue"
-          detail="Le service n’a pas répondu. Aucune condition n’est affichée plutôt qu’une condition périmée."
-          requis={['Une réponse du service']}
+          quoi="The product sheet could not be read"
+          detail="The service did not respond. No terms are shown rather than showing stale ones."
+          requis={['A response from the service']}
         />
       ) : (
         <>
-          {/* ── Les termes du produit ─────────────────────────────────────── */}
+          {/* ── Product terms ──────────────────────────────────────────────── */}
           <Card className="p-6">
             <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
               <HeroFigure
-                valeur={usdc(termes?.minimumDepositUsdc)}
-                libelle="Dépôt minimum pour souscrire"
+                valeur={formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 })}
+                libelle="Minimum deposit to subscribe"
               />
               <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
-                <SideFact libelle="Durée du produit" valeur={dureeLisible(termes?.productDurationMonths)} />
-                <SideFact libelle="Plafond du fonds" valeur={usdc(plafond)} />
+                <SideFact libelle="Product duration" valeur={readableDuration(terms?.productDurationMonths)} />
+                <SideFact libelle="Fund cap" valeur={formatCurrency(cap, { decimals: 0 })} />
               </dl>
             </div>
           </Card>
 
-          {/* ── La rémunération ───────────────────────────────────────────── */}
+          {/* ── Reward rate ─────────────────────────────────────────────────── */}
           <ChartFrame
-            question="Comment la rémunération évolue-t-elle sur la durée ?"
-            unite="en pourcentage, par mois"
-            etat={etatCourbe(points, courbeParametree, f.vendingCurve)}
+            question="How does the reward rate evolve over the product's duration?"
+            unite="in percent, per month"
+            etat={curveState(points, curveConfigured, f.vendingCurve)}
           >
             <VendingCurveChart points={points} />
           </ChartFrame>
 
-          {/* ── La répartition visée ──────────────────────────────────────── */}
+          {/* ── Target allocation ───────────────────────────────────────────── */}
           <ChartFrame
-            question="Où l’argent est-il censé être placé ?"
-            unite="en pourcentage du portefeuille"
+            question="Is the money placed where it should be?"
+            unite="in percent of the portfolio"
             etat={
-              repartition.length > 0
+              allocation.length > 0
                 ? { type: 'tracee' }
-                : etatDe(f.terms, 'Aucune répartition cible n’est encore inscrite dans les termes du produit.')
+                : stateOf(f.terms, 'No target allocation has been recorded in the product’s terms yet.')
             }
           >
-            <AllocationChart poches={repartition} />
+            <AllocationChart poches={allocation} />
           </ChartFrame>
 
-          {lisibles.length > 0 ? (
+          {readablePockets.length > 0 ? (
             <Card>
               <CardHeader
-                title="Quelle part revient à chaque poche ?"
-                hint="La part visée par le contrat, celle constatée sur la chaîne, et l’écart entre les deux"
+                title="What share does each pocket hold?"
+                hint="The share targeted by the contract, the share observed on-chain, and the gap between the two"
               />
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-sm">
                   <thead>
                     <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-500">
                       <th scope="col" className="px-5 py-2.5 font-medium">
-                        Poche
+                        Pocket
                       </th>
                       <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                        Visée
+                        Target
                       </th>
                       <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                        Constatée
+                        Actual
                       </th>
                       <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                        Écart
+                        Variance
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-950/5 dark:divide-white/5">
-                    {lisibles.map((p, index) => {
-                      const cible = Number(p.targetBps)
-                      const reel =
+                    {readablePockets.map((p, index) => {
+                      const target = Number(p.targetBps)
+                      const actual =
                         p.actualBps === null || p.actualBps === undefined || !Number.isFinite(p.actualBps)
                           ? null
                           : p.actualBps
-                      const ecart = ecartLisible(cible, reel)
+                      const variance = readableVariance(target, actual)
                       return (
                         <tr key={p.pocket ?? p.label ?? String(index)}>
                           <th scope="row" className="px-5 py-3 text-left font-normal text-zinc-200">
                             {p.label === null || p.label === undefined || p.label === ''
-                              ? (p.pocket ?? 'Poche sans nom')
+                              ? (p.pocket ?? 'Unnamed pocket')
                               : p.label}
                           </th>
-                          <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">{partLisible(cible)}</td>
-                          <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">{partLisible(reel)}</td>
-                          <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
+                          <td className="px-5 py-3 text-right text-zinc-400 tabular-nums">{readableShare(target)}</td>
+                          <td className="px-5 py-3 text-right text-zinc-200 tabular-nums">{readableShare(actual)}</td>
+                          <td className={clsx('px-5 py-3 text-right tabular-nums', variance.tone)}>{variance.text}</td>
                         </tr>
                       )
                     })}
@@ -246,9 +239,9 @@ export default async function Page() {
         </>
       )}
 
-      {/* La réponse brute reste consultable en bas de page, pour qui veut
-          vérifier un champ que la lecture métier n'expose pas. */}
+      {/* The raw response stays available at the bottom of the page, for
+          anyone who needs to check a field the business-level reading doesn't expose. */}
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }

@@ -1,4 +1,5 @@
 import { RequirementList, surfaceRaised } from '@/components/admin/surface'
+import { AdminSurfaceTitle } from '@/components/admin/typography'
 import clsx from 'clsx'
 import Link from 'next/link'
 
@@ -40,7 +41,7 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between gap-4 border-b border-zinc-950/5 px-5 py-4 sm:px-6 dark:border-white/5">
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h2>
+        <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         {hint ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{hint}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

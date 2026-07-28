@@ -2,91 +2,92 @@ import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Rétro-tests' }
+export const metadata: Metadata = { title: 'Backtests' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Rétro-tests — ce que la stratégie aurait produit sur le passé.
+ * Backtests — what the strategy would have produced in the past.
  *
- * Aucun rétro-test n'a encore été exécuté : le service le dit, et la page s'en
- * tient là. C'est la page où la tentation de tricher est la plus forte — une
- * courbe de performance historique se fabrique en trois lignes et se regarde
- * volontiers. Elle serait une invention pure, et une invention qui ressemble à
- * une promesse de rendement.
+ * No backtest has been run yet: the service says so, and the page leaves it
+ * at that. This is the page where the temptation to cheat is strongest — a
+ * historical performance curve can be faked in three lines and people like
+ * to look at it. It would be pure invention, and an invention that reads
+ * like a promise of return.
  *
- * On laisse donc le cadre du graphique visible et vide, avec la phrase qui dit
- * ce qu'on attend. Le jour où le service renvoie une série, elle prend la place
- * de la phrase sans que rien d'autre ne bouge.
+ * So the chart frame stays visible and empty, with a sentence saying what
+ * we expect. The day the service returns a series, it takes the place of
+ * the sentence without anything else moving.
  */
 
-type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
-type Execution = { readonly id?: string; readonly label?: string | null }
-type ReponseRetroTests = { readonly runs?: Resolu<readonly Execution[]> }
+type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type Run = { readonly id?: string; readonly label?: string | null }
+type BacktestResponse = { readonly runs?: Resolved<readonly Run[]> }
 
 export default async function Page() {
-  const reponse = await callBackend<ReponseRetroTests>('backtest-historical')
-  const bloc = reponse.ok ? reponse.data.runs : undefined
-  const executions = bloc?.value
-  const motif = motifLisible(bloc?.reason)
+  const response = await callBackend<BacktestResponse>('backtest-historical')
+  const block = response.ok ? response.data.runs : undefined
+  const runs = block?.value
+  const reason = motifLisible(block?.reason)
 
-  const aucune = executions === null || executions === undefined || executions.length === 0
+  const none = runs === null || runs === undefined || runs.length === 0
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Rétro-tests"
-        description="Ce que la stratégie du fonds aurait produit sur des périodes passées. Tout est calculé par le service : rien n’est projeté, extrapolé ni lissé ici."
+        title="Backtests"
+        description="What the fund's strategy would have produced over past periods. Everything is computed by the service: nothing here is projected, extrapolated, or smoothed."
       />
 
       <AdminSection>
 
-      {!reponse.ok ? (
+      {!response.ok ? (
         <SourceAttendue
-          quoi="Les rétro-tests n’ont pas pu être lus"
-          detail="Le service n’a pas répondu à la demande. On ne conclut pas de ce silence qu’aucun rétro-test n’existe."
-          requis={['Une réponse du service']}
+          quoi="Backtests could not be read"
+          detail="The service did not respond to the request. This silence is not read as proof that no backtest exists."
+          requis={['A response from the service']}
         />
       ) : (
         <>
           <ChartFrame
-            question="Qu’aurait produit la stratégie sur le passé ?"
-            unite="en valeur de part, par période"
+            question="What would the strategy have produced in the past?"
+            unite="in unit value, per period"
             etat={{
               type: 'attendue',
               explication:
-                motif === undefined
-                  ? 'Aucun rétro-test n’a encore été exécuté. Tant qu’il n’y en a pas, aucune courbe n’est tracée : une performance historique inventée se lirait comme une promesse de rendement.'
-                  : `Aucune courbe n’est tracée : ${motif}. Une performance historique inventée se lirait comme une promesse de rendement.`,
+                reason === undefined
+                  ? 'No backtest has been run yet. Until one exists, no curve is plotted: an invented historical performance would read as a promise of return.'
+                  : `No curve is plotted: ${reason}. An invented historical performance would read as a promise of return.`,
             }}
             hauteur="h-64"
           />
 
-          {aucune ? (
+          {none ? (
             <SourceAttendue
-              quoi="Aucun rétro-test exécuté à ce jour"
-              detail="Cette page est prête : dès qu’un premier rétro-test sera lancé, ses résultats s’afficheront ici sans autre intervention. En attendant, elle n’avance aucun chiffre."
+              quoi="No backtest has been run to date"
+              detail="This page is ready: as soon as a first backtest is run, its results will appear here without any further action. Until then, it shows no figures."
               requis={[
-                'Une période de référence choisie, avec sa date de début et de fin',
-                'L’historique de prix des actifs du portefeuille sur cette période',
-                'Une exécution du calcul par le service, conservée avec son horodatage',
+                'A reference period chosen, with a start and end date',
+                'The price history of the portfolio assets over that period',
+                'An execution of the calculation by the service, kept with its timestamp',
               ]}
             />
           ) : (
             <Card>
               <CardHeader
-                title="Quels rétro-tests ont été exécutés ?"
-                hint={`${executions.length} exécution${executions.length > 1 ? 's' : ''} conservée${executions.length > 1 ? 's' : ''}`}
+                title="Which backtests have been run?"
+                hint={`${runs.length} run${runs.length > 1 ? 's' : ''} kept`}
               />
               <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
-                {executions.map((execution, rang) => (
-                  <li key={execution.id ?? String(rang)} className="px-5 py-3.5 text-sm text-zinc-950 dark:text-white">
-                    {execution.label === null || execution.label === undefined || execution.label === ''
-                      ? 'Exécution sans intitulé'
-                      : execution.label}
+                {runs.map((run, rank) => (
+                  <li key={run.id ?? String(rank)} className="px-5 py-3.5 text-sm text-zinc-950 dark:text-white">
+                    {run.label === null || run.label === undefined || run.label === ''
+                      ? 'Unlabeled run'
+                      : run.label}
                   </li>
                 ))}
               </ul>
@@ -95,8 +96,8 @@ export default async function Page() {
         </>
       )}
 
-      {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
+      {/* The basement: the detailed response for anyone who wants to check a field. */}
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }

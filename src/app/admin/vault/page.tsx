@@ -3,41 +3,43 @@ import { ChartFrame } from '@/components/admin/chart-frame'
 import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { UtilizationChart } from '@/components/admin/utilization-chart'
 import { VaultEcartChart, type EcartPoche, type NiveauEcart } from '@/components/admin/vault-ecart-chart'
 import { callBackend } from '@/lib/backend/client'
+import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Portefeuille' }
+export const metadata: Metadata = { title: 'Vault' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Portefeuille — combien, jusqu'où, et réparti comment.
+ * Vault — how much, how much room, and allocated how.
  *
- * L'ancienne page alignait trois réponses brutes de routes. Celle-ci pose
- * trois questions : quel encours, quelle marge avant le plafond, et l'argent
- * est-il placé conformément aux cibles du contrat.
+ * The old page lined up three raw route responses. This one asks three
+ * questions: what's the current balance, what margin remains before the
+ * cap, and is the money placed in line with the contract's targets.
  *
- * L'écart entre cible et réel est la seule colonne qui déclenche une action.
- * Elle est donc traitée comme telle : signée, colorée par ampleur, et nommée
- * en points d'écart plutôt qu'en points de base — personne ne lit « 315 »
- * comme « trois points d'écart ». Elle a désormais DEUX lectures qui ne se
- * doublonnent pas : le graphique donne le sens et l'ampleur relative sur un
- * axe centré sur zéro, le tableau donne les chiffres exacts.
+ * The gap between target and actual is the only column that triggers
+ * action. It's therefore treated as such: signed, colored by magnitude, and
+ * named in deviation points rather than basis points — nobody reads "315"
+ * as "three points of deviation." It now has TWO readings that don't
+ * overlap: the chart gives the direction and relative magnitude on a
+ * zero-centered axis, the table gives the exact figures.
  *
- * ── Ce que cette page refuse de tracer ─────────────────────────────────────
- * 1. Aucun encours par poche EN DOLLARS. La route `rwa-vault` expose bien un
- *    `pocketAssets`, mais il contredit l'`actualBps` de `vault/strategies` sur
- *    deux poches sur trois (S1 : 460 $ lus contre ~332 000 $ impliqués par
- *    2820 bps). Tant que les deux lectures on-chain divergent, convertir des
- *    points de base en dollars reviendrait à choisir un chiffre — et à lui
- *    donner une précision qu'il n'a pas. La répartition reste donc en
- *    pourcentage, unité dans laquelle le backend est cohérent avec lui-même.
- * 2. Aucune courbe de valeur de part. `navPerShare` est un point, pas une
- *    série : le backend n'expose aucun historique de valeur liquidative. Une
- *    ligne tracée entre un seul point et l'origine se lirait comme une
- *    performance mesurée.
+ * ── What this page refuses to plot ─────────────────────────────────────────
+ * 1. No per-pocket balance IN DOLLARS. The `rwa-vault` route does expose a
+ *    `pocketAssets`, but it contradicts the `actualBps` from
+ *    `vault/strategies` on two pockets out of three (S1: $460 read against
+ *    the ~$332,000 implied by 2820 bps). As long as the two on-chain
+ *    readings diverge, converting basis points to dollars would mean
+ *    picking a figure — and giving it a precision it doesn't have. So the
+ *    allocation stays in percentage, the unit in which the backend is
+ *    internally consistent.
+ * 2. No share-value curve. `navPerShare` is a point, not a series: the
+ *    backend exposes no NAV-per-share history. A line drawn between a
+ *    single point and the origin would read as a measured performance.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
@@ -63,17 +65,14 @@ type Strategie = {
 
 type Strategies = { readonly strategies?: Resolu<readonly Strategie[]> }
 
-/** Montant atomique USDC (6 décimales, en chaîne) rendu en dollars. */
+/** Atomic USDC amount (6 decimals, as a string) rendered in dollars. */
 function usdc(atomique: string | null | undefined, decimales = 0): string {
-  if (atomique === null || atomique === undefined || atomique === '') return '—'
-  const n = Number(atomique)
-  if (!Number.isFinite(n)) return '—'
-  return `${(n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
+  return formatCurrency(atomique, { decimals: decimales })
 }
 
-/** Un nombre déjà exprimé en dollars, rendu avec son unité. */
+/** A number already expressed in dollars, rendered with its unit. */
 function dollars(montant: number, decimales = 0): string {
-  return `${montant.toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
+  return formatCurrency(montant, { decimals: decimales, fromAtomic: 1 })
 }
 
 function nombreOuNull(brut: string | null | undefined): number | null {
@@ -83,15 +82,15 @@ function nombreOuNull(brut: string | null | undefined): number | null {
 }
 
 function pourcentBps(bps: number, decimales = 2): string {
-  return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} %`
+  return formatPercent(bps, { fromBps: true, maximumFractionDigits: decimales })
 }
 
-/* ── Lecture de l'écart ──────────────────────────────────────────────────── */
+/* ── Reading the deviation ───────────────────────────────────────────────── */
 
 /**
- * Seuils historiques de cette page, désormais nommés une seule fois : sous un
- * point d'écart la poche est dans la tolérance, au-delà de cinq points elle
- * demande une correction. Le graphique et le tableau lisent la même règle.
+ * This page's historical thresholds, now named in a single place: under one
+ * deviation point the pocket is within tolerance, past five points it calls
+ * for a correction. The chart and the table read the same rule.
  */
 function niveauEcart(points: number): NiveauEcart {
   const ampleur = Math.abs(points)
@@ -100,11 +99,11 @@ function niveauEcart(points: number): NiveauEcart {
   return 'conforme'
 }
 
-/** La couleur ne dit jamais l'état toute seule : le mot l'accompagne partout. */
+/** Color never states the status alone: the word accompanies it everywhere. */
 const NIVEAU_MOT: Record<NiveauEcart, string> = {
-  conforme: 'dans la tolérance',
-  modere: 'écart modéré',
-  'a-corriger': 'à corriger',
+  conforme: 'within tolerance',
+  modere: 'moderate deviation',
+  'a-corriger': 'needs correction',
 }
 
 const NIVEAU_TON: Record<NiveauEcart, string> = {
@@ -113,48 +112,48 @@ const NIVEAU_TON: Record<NiveauEcart, string> = {
   'a-corriger': 'text-warning-400',
 }
 
-/** Un écart se lit signé, et son ampleur décide de sa couleur. */
+/** A deviation reads signed, and its magnitude decides its color. */
 function ecartLisible(driftBps: number | null): { texte: string; ton: string; mot: string } {
   if (driftBps === null || !Number.isFinite(driftBps)) {
-    return { texte: '—', ton: 'text-zinc-400', mot: 'non lisible' }
+    return { texte: '—', ton: 'text-zinc-400', mot: 'not readable' }
   }
   const pts = driftBps / 100
   const niveau = niveauEcart(pts)
   const signe = pts > 0 ? '+' : ''
   return {
-    texte: `${signe}${pts.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`,
+    texte: `${signe}${formatNumber(pts, { maximumFractionDigits: 2 })} pt`,
     ton: NIVEAU_TON[niveau],
     mot: NIVEAU_MOT[niveau],
   }
 }
 
-/* ── Tableau des écarts ──────────────────────────────────────────────────── */
+/* ── Deviation table ─────────────────────────────────────────────────────── */
 
 function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
   return (
     <Card>
       <CardHeader
-        title="Quelles poches s’écartent de leur cible ?"
-        hint="Un écart positif signale une poche en avance sur sa cible"
+        title="Which pockets deviate from their target?"
+        hint="A positive deviation signals a pocket ahead of its target"
       />
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] text-sm">
           <thead>
             <tr className="border-b border-white/[0.07] text-left text-xs text-zinc-400">
               <th scope="col" className="px-5 py-2.5 font-medium">
-                Poche
+                Pocket
               </th>
               <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                Visée
+                Target
               </th>
               <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                Constatée
+                Actual
               </th>
               <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                Écart
+                Deviation
               </th>
               <th scope="col" className="px-5 py-2.5 text-right font-medium">
-                État
+                Status
               </th>
             </tr>
           </thead>
@@ -171,8 +170,8 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
                     {s.actualBps === null ? '—' : pourcentBps(s.actualBps)}
                   </td>
                   <td className={clsx('px-5 py-3 text-right tabular-nums', ecart.ton)}>{ecart.texte}</td>
-                  {/* L'état est écrit, pas seulement teinté : un lecteur qui ne
-                      distingue pas les nuances lit la même information. */}
+                  {/* The status is written, not just tinted: a reader who
+                      can't distinguish the hues gets the same information. */}
                   <td className={clsx('px-5 py-3 text-right text-xs', ecart.ton)}>{ecart.mot}</td>
                 </tr>
               )
@@ -184,17 +183,17 @@ function EcartsTable({ actives }: Readonly<{ actives: readonly Strategie[] }>) {
   )
 }
 
-/* ── Contrôle de cohérence parts × valeur de part ────────────────────────── */
+/* ── Shares × share-value consistency check ──────────────────────────────── */
 
 /**
- * Le premier contrôle qu'un gérant fait sur un fonds : le nombre de parts
- * multiplié par la valeur de la part doit redonner l'encours. Les trois termes
- * sont servis LIVE par `vault` — il n'y a donc rien à inventer, seulement à
- * vérifier, et à dire de combien ça tombe à côté.
+ * The first check a fund manager runs: the number of shares multiplied by
+ * the share value should reproduce the balance. All three terms are served
+ * LIVE by `vault` — so there's nothing to invent, only to verify, and to say
+ * by how much it's off.
  *
- * La tolérance n'est pas choisie au doigt mouillé : la valeur de part est
- * publiée à six décimales, chaque part porte donc jusqu'à 0,5 × 10⁻⁶ $
- * d'arrondi. Au-delà de cette borne, l'écart n'est plus un arrondi.
+ * The tolerance isn't picked by feel: the share value is published to six
+ * decimals, so each share carries up to 0.5 × 10⁻⁶ $ of rounding. Beyond
+ * that bound, the gap is no longer a rounding artifact.
  */
 function ControleCoherence({
   parts,
@@ -208,13 +207,13 @@ function ControleCoherence({
 
   return (
     <p className="mt-6 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-white/5 dark:text-zinc-400">
-      <span className="font-medium text-zinc-700 dark:text-zinc-300">Contrôle de cohérence · </span>
-      {parts.toLocaleString('fr-FR')} parts × {valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 6 })} ${' '}
-      = {dollars(reconstitue)}, soit {dollars(ecart, 2)} d’écart avec l’encours lu.{' '}
+      <span className="font-medium text-zinc-700 dark:text-zinc-300">Consistency check · </span>
+      {formatNumber(parts)} shares × {formatCurrency(valeurPart, { decimals: 6, fromAtomic: 1 })}{' '}
+      = {dollars(reconstitue)}, a {dollars(ecart, 2)} difference from the recorded balance.{' '}
       <span className={coherent ? 'text-success-400' : 'text-warning-400'}>
         {coherent
-          ? `Cohérent : l’arrondi de la valeur de part explique jusqu’à ${dollars(tolerance, 2)}.`
-          : `À vérifier : l’écart dépasse les ${dollars(tolerance, 2)} imputables à l’arrondi.`}
+          ? `Consistent: share-value rounding accounts for up to ${dollars(tolerance, 2)}.`
+          : `Needs review: the gap exceeds the ${dollars(tolerance, 2)} attributable to rounding.`}
       </span>
     </p>
   )
@@ -241,8 +240,8 @@ export default async function Page() {
     reel: s.actualBps === null ? null : s.actualBps / 100,
   }))
 
-  // Seules les poches dont l'écart est réellement lu entrent dans le graphique :
-  // une poche sans écart lisible n'est pas une poche à écart nul.
+  // Only pockets whose deviation is actually readable enter the chart: a
+  // pocket without a readable deviation is not a pocket with zero deviation.
   const ecarts: EcartPoche[] = actives.flatMap((s) => {
     if (s.driftBps === null || !Number.isFinite(s.driftBps)) return []
     const points = s.driftBps / 100
@@ -250,9 +249,9 @@ export default async function Page() {
     return [{ poche: s.pocket, label: s.label, ecart: points, niveau, mot: NIVEAU_MOT[niveau] }]
   })
 
-  // Ce que les poches actives couvrent réellement de l'encours. Le complément
-  // n'est pas une erreur d'arrondi : c'est de l'argent qui n'est dans aucune
-  // poche active, et ça se dit.
+  // What the active pockets actually cover of the balance. The remainder
+  // isn't a rounding error: it's money that isn't in any active pocket, and
+  // it's stated as such.
   const reels = actives.map((s) => s.actualBps).filter((bps): bps is number => bps !== null)
   const couvertureBps = reels.length > 0 && reels.length === actives.length ? reels.reduce((a, b) => a + b, 0) : null
   const ciblesBps = actives.reduce((a, s) => a + s.targetBps, 0)
@@ -263,19 +262,19 @@ export default async function Page() {
   const controleLisible = nbParts !== null && valeurPart !== null && encoursAtomique !== null && nbParts > 0
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Portefeuille"
-        description="L’encours du fonds, la marge avant son plafond, et la conformité de sa répartition aux cibles du contrat."
+        title="Vault"
+        description="The fund's assets under management, the margin before its cap, and how closely its allocation follows contract targets."
       />
 
       <AdminSection>
 
       {v === null ? (
         <SourceAttendue
-          quoi="L’état du portefeuille n’a pas pu être lu"
-          detail="Le service n’a pas répondu. Aucune valeur n’est affichée plutôt qu’une valeur périmée."
-          requis={['Une réponse du service']}
+          quoi="Vault state could not be read"
+          detail="The service did not respond. No value is shown rather than a stale one."
+          requis={['A response from the service']}
         />
       ) : (
         <>
@@ -284,14 +283,14 @@ export default async function Page() {
               <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
                 <HeroFigure
                   valeur={usdc(snap?.totalAssets)}
-                  libelle="Encours du portefeuille"
+                  libelle="Vault balance"
                   unite={snap?.asset ?? undefined}
                 />
                 <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4">
-                  <SideFact libelle="Valeur d’une part" valeur={snap?.navPerShare ?? '—'} />
+                  <SideFact libelle="Share value" valeur={snap?.navPerShare ?? '—'} />
                   <SideFact
-                    libelle="Parts émises"
-                    valeur={nbParts === null ? '—' : nbParts.toLocaleString('fr-FR')}
+                    libelle="Shares issued"
+                    valeur={nbParts === null ? '—' : formatNumber(nbParts)}
                   />
                 </dl>
               </div>
@@ -301,13 +300,13 @@ export default async function Page() {
               ) : null}
             </Card>
 
-            {/* Le plafond n'est plus une jauge plate : le donut porte le plafond
-                en son centre, le taux d'utilisation, et surtout les DEUX
-                montants — un pourcentage seul ne dit pas combien il reste à
-                collecter. Composant déjà en service sur l'accueil : même
-                lecture du même fait, à deux endroits. */}
+            {/* The cap is no longer a flat gauge: the donut carries the cap
+                at its center, the utilization rate, and — crucially — BOTH
+                amounts: a percentage alone doesn't say how much room remains
+                to raise. Component already in service on the dashboard: the
+                same fact, read the same way, in two places. */}
             <Card className="flex flex-col p-6">
-              <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Plafond de collecte</p>
+              <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Deposit cap</p>
               <div className="mt-4 flex-1">
                 <UtilizationChart
                   tvlCap={cap?.tvlCap}
@@ -318,32 +317,33 @@ export default async function Page() {
               </div>
               <p className="mt-4 border-t border-zinc-950/5 pt-3 text-xs text-zinc-500 dark:border-white/5 dark:text-zinc-400">
                 {cap === null || cap === undefined
-                  ? 'La capacité n’a pas été lue : aucun montant n’est affiché plutôt qu’un zéro.'
-                  : `Il reste ${usdc(cap.availableCapacity)} de capacité avant le plafond de ${usdc(cap.tvlCap)}.`}
+                  ? 'Capacity could not be read: no amount is shown rather than a zero.'
+                  : `${usdc(cap.availableCapacity)} of capacity remains before the ${usdc(cap.tvlCap)} cap.`}
               </p>
             </Card>
           </div>
 
           <ChartFrame
-            question="L’argent est-il placé là où il devrait l’être ?"
-            unite="en pourcentage du portefeuille"
+            question="Is the money allocated where it should be?"
+            unite="as a percentage of the vault"
             etat={
               poches.length > 0
                 ? { type: 'tracee' }
-                : { type: 'attendue', explication: 'Aucune stratégie active n’a pu être lue sur la chaîne.' }
+                : { type: 'attendue', explication: 'No active strategy could be read on-chain.' }
             }
           >
             <>
               <AllocationChart poches={poches} />
-              {/* Les cibles totalisent 100 % ; les poches constatées, rarement.
-                  Le reliquat est de l'encours hors poche active — un fait, pas
-                  un arrondi, et il se lit ici plutôt que se calcule de tête. */}
+              {/* Targets total 100%; actual pockets rarely do. The remainder
+                  is balance outside any active pocket — a fact, not a
+                  rounding artifact, and it's stated here rather than left to
+                  mental math. */}
               {couvertureBps === null ? null : (
                 <p className="px-5 pb-5 text-xs text-zinc-500 dark:text-zinc-400">
-                  Les poches actives couvrent {pourcentBps(couvertureBps)} de l’encours, pour des cibles qui en
-                  totalisent {pourcentBps(ciblesBps)} :{' '}
+                  Active pockets cover {pourcentBps(couvertureBps)} of the balance, against targets totaling{' '}
+                  {pourcentBps(ciblesBps)}:{' '}
                   <span className="text-zinc-700 dark:text-zinc-300">
-                    {pourcentBps(10_000 - couvertureBps)} de l’encours n’est rattaché à aucune poche active.
+                    {pourcentBps(10_000 - couvertureBps)} of the balance is not attached to any active pocket.
                   </span>
                 </p>
               )}
@@ -351,15 +351,14 @@ export default async function Page() {
           </ChartFrame>
 
           <ChartFrame
-            question="De combien chaque poche s’écarte-t-elle de sa cible ?"
-            unite="en points de pourcentage, constatée moins cible"
+            question="How far does each pocket deviate from its target?"
+            unite="in percentage points, actual minus target"
             etat={
               ecarts.length > 0
                 ? { type: 'tracee' }
                 : {
                     type: 'attendue',
-                    explication:
-                      'Aucun écart n’a pu être lu sur la chaîne pour les poches actives.',
+                    explication: 'No deviation could be read on-chain for the active pockets.',
                   }
             }
           >
@@ -370,6 +369,6 @@ export default async function Page() {
         </>
       )}
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }

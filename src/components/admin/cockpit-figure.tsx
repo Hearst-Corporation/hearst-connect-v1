@@ -16,7 +16,7 @@ export function CockpitFigure({
   action?: React.ReactNode
   children: React.ReactNode
   className?: string
-  /** @deprecated — la hauteur est gérée par l’enfant. */
+  /** @deprecated — height is handled by the child. */
   chartHeight?: string
 }>) {
   const hasCaption = Boolean(title || description || action)

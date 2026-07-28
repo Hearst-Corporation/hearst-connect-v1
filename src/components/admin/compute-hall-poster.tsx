@@ -51,7 +51,7 @@ function bayPaths(index: number): { frame: string[]; units: string[] } {
 export function ComputeHallPoster({
   bays = 5,
   className,
-  title = 'Schéma isométrique des baies du portefeuille',
+  title = 'Isometric diagram of the vault server bays',
 }: {
   bays?: number
   className?: string
