@@ -8,13 +8,13 @@ import { BACKEND_ENDPOINTS, resolvePath, type BackendEndpoint } from './endpoint
 import { stateForHttpFailure } from './http-failure'
 
 /**
- * Client unique du backend Hearst Connect. Serveur uniquement.
+ * Single client for the Hearst Connect backend. Server only.
  *
- * Garanties, par construction :
- *   - aucun repli métier : une erreur devient un état nommé, jamais une valeur ;
- *   - aucune donnée d'un appel précédent n'est resservie ;
- *   - le jeton et la clé de signature ne quittent pas le serveur ;
- *   - les statuts et provenances du backend sont transmis tels quels.
+ * Guarantees, by construction:
+ *   - no business fallback: an error becomes a named state, never a value;
+ *   - no data from a previous call is ever re-served;
+ *   - the token and signing key never leave the server;
+ *   - the backend's statuses and provenances are passed through as-is.
  */
 
 export type EnvelopeStatus = 'LIVE' | 'SNAPSHOT' | 'STALE' | 'SIMULATED' | 'NOT_CONFIGURED' | 'UNAVAILABLE'
@@ -37,10 +37,10 @@ export type Problem = {
   requestId: string
 }
 
-/** Réponse des routes Keeper : ni enveloppe, ni champ `code`. */
+/** Response of Keeper routes: neither envelope nor `code` field. */
 export type KeeperActionResult = { status: string; reason: string; detail?: string }
 
-/** Trace d'appel, affichée par l'API Explorer. */
+/** Call trace, displayed by the API Explorer. */
 export type CallTrace = {
   method: string
   path: string
@@ -58,8 +58,8 @@ export type BackendResult<T> =
 const DEFAULT_TIMEOUT_MS = 10_000
 
 /**
- * Base du backend, lue par le canon `@/lib/env`. Pas de repli implicite vers
- * la production : une URL absente est un état, jamais une valeur par défaut.
+ * Backend base, read by the `@/lib/env` canon. No implicit fallback to
+ * production: a missing URL is a state, never a default value.
  */
 const baseUrl = backendUrl
 
@@ -90,9 +90,9 @@ type AuthorizationOutcome =
   | { ok: false; state: Resolved<never> }
 
 /**
- * Résout l'en-tête d'autorisation d'une route non publique, ou l'état nommé
- * qui explique pourquoi elle reste inaccessible. Isolé de `callBackend` pour
- * garder sa complexité cognitive sous le seuil autorisé.
+ * Resolves the authorization header of a non-public route, or the named
+ * state explaining why it remains inaccessible. Isolated from `callBackend`
+ * to keep its cognitive complexity under the allowed threshold.
  */
 async function resolveAuthorization(endpoint: BackendEndpoint, path: string): Promise<AuthorizationOutcome> {
   if (endpoint.auth === 'public') {
@@ -101,34 +101,34 @@ async function resolveAuthorization(endpoint: BackendEndpoint, path: string): Pr
 
   const session = await getSession()
   if (!session) {
-    return { ok: false, state: resolved.permissionDenied('Session frontend absente ou expirée.', { route: path }) }
+    return { ok: false, state: resolved.permissionDenied('Frontend session absent or expired.', { route: path }) }
   }
 
   const backendRole = toBackendRole(session.role)
   if (!backendRole) {
     return {
       ok: false,
-      state: resolved.permissionDenied(`Le rôle ${session.role} n'ouvre pas d'accès au backend.`, { route: path }),
+      state: resolved.permissionDenied(`Role ${session.role} does not open access to the backend.`, { route: path }),
     }
   }
 
   if (endpoint.auth === 'admin' && backendRole !== 'admin') {
     return {
       ok: false,
-      state: resolved.permissionDenied('Rôle administrateur requis par cette route.', { route: path }),
+      state: resolved.permissionDenied('Administrator role required by this route.', { route: path }),
     }
   }
 
-  // Composition unique de l'en-tête : `authorizationHeader` retire tout
-  // préfixe « Bearer » déjà présent dans la valeur stockée.
+  // Single composition point for the header: `authorizationHeader` strips
+  // any "Bearer" prefix already present in the stored value.
   return { ok: true, authorization: authorizationHeader(session.backendToken) }
 }
 
 /**
- * Appelle un endpoint du registre.
+ * Calls a registry endpoint.
  *
- * `body` n'est accepté que pour les routes POST du registre : on ne peut pas
- * fabriquer une route hors contrat depuis un composant.
+ * `body` is only accepted for POST routes in the registry: a component
+ * cannot fabricate an out-of-contract route.
  */
 export async function callBackend<T = unknown>(
   endpointId: string,
@@ -150,14 +150,14 @@ export async function callBackend<T = unknown>(
       keeper: null,
       trace: trace(endpoint, path, startedAt, {}),
       state: resolved.notConfigured(
-        "HEARST_API_URL n'est pas défini sur ce déploiement : aucune requête n'est émise.",
+        'HEARST_API_URL is not defined on this deployment: no request is sent.',
         { route: path },
       ),
     }
   }
 
-  // Jeton porteur émis par le backend, lu dans la session serveur. Il n'est
-  // ni fabriqué ni dérivé ici : le frontend ne signe plus rien.
+  // Bearer token issued by the backend, read from the server session. It is
+  // neither fabricated nor derived here: the frontend no longer signs anything.
   const authOutcome = await resolveAuthorization(endpoint, path)
   if (!authOutcome.ok) {
     return {
@@ -196,7 +196,7 @@ export async function callBackend<T = unknown>(
       keeper: null,
       trace: trace(endpoint, path, startedAt, { requestId }),
       state: resolved.unavailable(
-        aborted ? `Le backend n'a pas répondu dans le délai imparti.` : 'Backend injoignable.',
+        aborted ? `The backend did not respond within the allotted time.` : 'Backend unreachable.',
         { route: path, requestId },
       ),
     }
@@ -224,8 +224,9 @@ export async function callBackend<T = unknown>(
 }
 
 /**
- * Traduit une réponse HTTP déjà reçue en `BackendResult`. Isolé de
- * `callBackend` pour garder sa complexité cognitive sous le seuil autorisé.
+ * Translates an already-received HTTP response into a `BackendResult`.
+ * Isolated from `callBackend` to keep its cognitive complexity under the
+ * allowed threshold.
  */
 function buildResult<T>(
   endpoint: BackendEndpoint,
@@ -242,7 +243,7 @@ function buildResult<T>(
       keeper: isKeeperResult(body) ? body : null,
       trace: callTrace,
       state: stateForHttpFailure(response.status, body, path, serverRequestId, {
-        sessionAbsente: 'Session absente, malformée ou expirée.',
+        sessionAbsente: 'Session absent, malformed, or expired.',
       }),
     }
   }
@@ -257,7 +258,7 @@ function buildResult<T>(
       problem: null,
       keeper: null,
       trace: callTrace,
-      state: resolved.error('Réponse 2xx hors contrat : enveloppe { data, meta } absente.', {
+      state: resolved.error('2xx response out of contract: { data, meta } envelope missing.', {
         route: path,
         requestId: serverRequestId,
       }),
@@ -267,7 +268,7 @@ function buildResult<T>(
   return { ok: true, data: body.data as T, meta: body.meta, trace: callTrace }
 }
 
-/** Statut d'enveloppe backend → statut d'affichage, sans requalification. */
+/** Backend envelope status → display status, without requalification. */
 export function statusFromMeta(meta: EnvelopeMeta | null): Resolved<never>['status'] {
   if (!meta) return 'LIVE'
   switch (meta.status) {

@@ -1,16 +1,16 @@
 /**
- * Bascule de thème — côté navigateur uniquement.
+ * Theme toggle — browser side only.
  *
- * Trois états possibles sur <html> :
- *   - aucune classe : on suit la préférence système (cas par défaut) ;
- *   - `.light` / `.dark` : choix explicite de l'utilisateur, mémorisé.
+ * Three possible states on <html>:
+ *   - no class: follows the system preference (default case);
+ *   - `.light` / `.dark`: explicit user choice, remembered.
  *
- * Le variant `dark` de Tailwind (voir src/styles/tailwind.css) lit les deux.
+ * Tailwind's `dark` variant (see src/styles/tailwind.css) reads both.
  */
 
 export const THEME_STORAGE_KEY = 'theme'
 
-/** Le thème effectivement affiché en ce moment. */
+/** The theme actually displayed right now. */
 export function currentTheme(): 'light' | 'dark' {
   const root = document.documentElement
   if (root.classList.contains('dark')) return 'dark'
@@ -18,7 +18,7 @@ export function currentTheme(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-/** Passe au thème opposé et mémorise le choix. */
+/** Switches to the opposite theme and remembers the choice. */
 export function toggleTheme(): void {
   const next = currentTheme() === 'dark' ? 'light' : 'dark'
   const root = document.documentElement
@@ -29,14 +29,14 @@ export function toggleTheme(): void {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, next)
   } catch {
-    // Stockage indisponible (navigation privée stricte) : le choix ne survit
-    // pas au rechargement, la bascule fonctionne quand même sur la page.
+    // Storage unavailable (strict private browsing): the choice doesn't
+    // survive a reload, but the toggle still works on the page.
   }
 }
 
 /**
- * Script exécuté avant la première peinture, injecté dans le <head>.
- * Sans lui, une page mémorisée en sombre s'afficherait en clair le temps que
- * React s'hydrate — le fameux flash blanc.
+ * Script run before first paint, injected into the <head>.
+ * Without it, a page remembered as dark would flash light while React
+ * hydrates — the classic white flash.
  */
 export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='dark'||t==='light'){document.documentElement.classList.add(t)}}catch(e){}`
