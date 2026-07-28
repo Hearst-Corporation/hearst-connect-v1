@@ -41,6 +41,7 @@ import {
   type SourceHealth,
   type Strategy,
   type Vault,
+  type VaultId,
 } from '@/lib/vaults/model'
 import { loadVault } from '@/lib/vaults/registry'
 import clsx from 'clsx'
@@ -500,35 +501,42 @@ function lastRebalanceReading(vault: Vault): Availability<string> {
 function PendingActionTile({ vault }: Readonly<{ vault: Vault }>) {
   const breaches = requiresRebalancing(vault)
 
+  let contenu: React.ReactNode
+  if (!isAvailable(breaches)) {
+    contenu = (
+      <>
+        <SourceAvailabilityBadge availability={breaches} />
+        <AdminCaption className="mt-1">
+          No drift reading, so no action is recommended either way.
+        </AdminCaption>
+      </>
+    )
+  } else if (breaches.value) {
+    contenu = (
+      <>
+        <FactValue warn>Rebalance review</FactValue>
+        <p className="mt-1">
+          <Link href={entityHref('keeper', vault.id)} className={INLINE_LINK}>
+            Open Keeper
+          </Link>
+        </p>
+      </>
+    )
+  } else {
+    contenu = (
+      <>
+        <FactValue>None</FactValue>
+        <AdminCaption className="mt-1">
+          Every pocket that reported sits inside the ±{THRESHOLD_POINTS} pt threshold.
+        </AdminCaption>
+      </>
+    )
+  }
+
   return (
     <AdminSurface className="p-4">
       <dl>
-        <FactShell label="Pending action">
-          {!isAvailable(breaches) ? (
-            <>
-              <SourceAvailabilityBadge availability={breaches} />
-              <AdminCaption className="mt-1">
-                No drift reading, so no action is recommended either way.
-              </AdminCaption>
-            </>
-          ) : breaches.value ? (
-            <>
-              <FactValue warn>Rebalance review</FactValue>
-              <p className="mt-1">
-                <Link href={entityHref('keeper', vault.id)} className={INLINE_LINK}>
-                  Open Keeper
-                </Link>
-              </p>
-            </>
-          ) : (
-            <>
-              <FactValue>None</FactValue>
-              <AdminCaption className="mt-1">
-                Every pocket that reported sits inside the ±{THRESHOLD_POINTS} pt threshold.
-              </AdminCaption>
-            </>
-          )}
-        </FactShell>
+        <FactShell label="Pending action">{contenu}</FactShell>
       </dl>
     </AdminSurface>
   )
@@ -694,7 +702,7 @@ export default async function Page({ params }: PageProps) {
   const session = await requireSession()
   // Next decodes the route segment already; `entityHref` encodes it on the way
   // out, so the identifier that arrives here is the one the model produced.
-  const { registry, vault } = await loadVault(vaultId, session.name)
+  const { registry, vault } = await loadVault(vaultId as VaultId, session.name)
 
   if (vault === null) notFound()
 
