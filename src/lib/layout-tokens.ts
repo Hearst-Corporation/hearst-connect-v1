@@ -21,7 +21,7 @@
  * that a line of body text stays readable. The previous 1600px produced
  * columns nobody had content for.
  */
-export const pageMaxWidth = 'max-w-none'
+export const pageMaxWidth = 'max-w-[1280px]'
 
 /** Horizontal page inset. Identical left and right — owned by the shell, once. */
 export const pageInlinePadding = 'px-3 sm:px-4 lg:px-5'

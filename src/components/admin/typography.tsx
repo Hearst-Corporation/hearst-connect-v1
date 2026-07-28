@@ -21,7 +21,7 @@ import clsx from 'clsx'
 
 export const adminTypography = {
   display: 'text-4xl/11 font-semibold tracking-tight text-zinc-950 dark:text-white',
-  pageTitle: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 sm:text-3xl/9 dark:text-white',
+  pageTitle: 'text-3xl/9 font-semibold tracking-tight text-zinc-950 sm:text-4xl/10 dark:text-white',
   sectionTitle: 'text-xl/7 font-semibold tracking-tight text-zinc-950 dark:text-white',
   surfaceTitle: 'text-base/6 font-semibold text-zinc-950 dark:text-white',
   bodyLarge: 'text-base/7 text-zinc-500 dark:text-zinc-400',
