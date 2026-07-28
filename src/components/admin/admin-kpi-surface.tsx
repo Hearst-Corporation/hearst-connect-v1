@@ -1,10 +1,11 @@
 import { ComputeHallPoster } from '@/components/admin/compute-hall-poster'
 import { Panel } from '@/components/admin/surface'
+import { formatNumber } from '@/lib/format'
 import type { ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
- * Bande KPI hiérarchisée — structure HeroKpiBand du Management Cockpit Qatar.
+ * Hierarchical KPI band — HeroKpiBand structure.
  */
 
 export type AdminKpiItem = {
@@ -23,7 +24,7 @@ function displayValue(item: AdminKpiItem): string {
     value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
   if (!displayable) return '—'
   if (typeof value === 'number') {
-    const core = value.toLocaleString('fr-FR')
+    const core = formatNumber(value)
     return unit ? `${core} ${unit}` : core
   }
   return value

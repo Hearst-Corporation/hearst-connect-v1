@@ -3,8 +3,7 @@
 import { motion } from 'motion/react'
 
 /**
- * Double barre cible / constatée — même grammaire que SiteProgress Qatar,
- * appliquée aux poches stratégiques (bps → %).
+ * Target / actual double bar, applied to strategic pockets (bps → %).
  */
 export function PocketProgress({
   name,

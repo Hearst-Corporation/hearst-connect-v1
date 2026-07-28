@@ -2,7 +2,7 @@ import { surfaceRaised } from '@/components/admin/surface'
 import clsx from 'clsx'
 
 /**
- * Panneau graphique — figure/figcaption Qatar (ChartSurface).
+ * Chart panel — figure/figcaption pattern (ChartSurface).
  */
 export function CockpitFigure({
   title,
