@@ -1,4 +1,4 @@
-import { fromBackendResolved, type BackendResolved } from '@/lib/api-client'
+import { fromBackendResolved, type BackendResolved } from '@/lib/backend/resolved-mapper'
 import { formatCount, hasDisplayableValue, resolved } from '@/lib/resolved'
 import { describe, expect, it } from 'vitest'
 

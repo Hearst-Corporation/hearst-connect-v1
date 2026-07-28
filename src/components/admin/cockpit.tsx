@@ -1,3 +1,4 @@
+import { RequirementList, surfaceRaised } from '@/components/admin/surface'
 import clsx from 'clsx'
 import Link from 'next/link'
 
@@ -18,14 +19,17 @@ import Link from 'next/link'
 
 /* ── Surfaces ────────────────────────────────────────────────────────────── */
 
+/**
+ * Une seule grammaire de surface pour toute la console : `Card` ne recopie plus
+ * la chaîne de classes, elle consomme `surfaceRaised` (cf. `surface.tsx`).
+ * Un changement de plan raised se fait donc à un seul endroit.
+ */
 export function Card({
   children,
   className,
   as: Tag = 'section',
 }: Readonly<{ children: React.ReactNode; className?: string; as?: 'section' | 'div' | 'article' | 'nav' }>) {
-  return (
-    <Tag className={clsx(className, 'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:shadow-none dark:ring-white/10')}>{children}</Tag>
-  )
+  return <Tag className={clsx(className, surfaceRaised)}>{children}</Tag>
 }
 
 export function CardHeader({
@@ -116,7 +120,7 @@ export function VerdictCard({
 
       <Link
         href={href}
-        className="mt-5 inline-flex items-center justify-center rounded-lg bg-accent-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-accent-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+        className="mt-5 inline-flex items-center justify-center rounded-lg bg-accent-400 px-3 py-2 text-sm font-semibold text-accent-ink transition hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
       >
         {actionLabel}
       </Link>
@@ -200,16 +204,7 @@ export function SourceAttendue({
       <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">{detail}</p>
       <div className="mx-auto mt-6 max-w-md rounded-lg bg-zinc-50 px-4 py-3 text-left ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
         <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Ce qu’il manque</p>
-        <ul className="mt-2 space-y-1">
-          {requis.map((r) => (
-            <li key={r} className="flex gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-              <span aria-hidden="true" className="text-zinc-400">
-                ·
-              </span>
-              {r}
-            </li>
-          ))}
-        </ul>
+        <RequirementList requis={requis} />
       </div>
     </Card>
   )

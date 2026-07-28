@@ -41,7 +41,7 @@ export function Features() {
             {features.map((feature) => (
               <div key={feature.name} className="flex flex-col">
                 <dt className="text-base/7 font-semibold text-zinc-950 dark:text-white">
-                  <div className="mb-6 flex size-10 items-center justify-center rounded-lg bg-accent-600 dark:bg-accent-500">
+                  <div className="mb-6 flex size-10 items-center justify-center rounded-lg bg-accent-400">
                     <feature.icon aria-hidden="true" className="size-6 text-white" />
                   </div>
                   {feature.name}

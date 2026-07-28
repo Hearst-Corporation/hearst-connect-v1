@@ -44,6 +44,15 @@ const GROUPS: ExplorerGroup[] = [
   },
 ]
 
+/**
+ * Une route dont le chemin porte un paramètre `:nom` ne peut pas être appelée
+ * depuis l'Explorer : la valeur légitime vient d'une réponse backend, jamais
+ * d'une saisie. La lire ici évite de proposer un bouton qui ne peut aboutir.
+ */
+function pathParamsOf(path: string): string[] {
+  return [...path.matchAll(/:(\w+)/g)].map(([, name]) => name)
+}
+
 function curlFor(method: string, path: string, auth: string): string {
   const base = backendUrl() ?? '$HEARST_API_URL'
   const lines = [`curl -X ${method} '${base}${path}'`, `  -H 'Accept: application/json'`, `  -H 'X-Request-Id: <uuid>'`]
@@ -71,6 +80,7 @@ export default function ApiExplorerPage() {
                   key={endpoint.id}
                   endpoint={endpoint}
                   curl={curlFor(endpoint.method, endpoint.path, endpoint.auth)}
+                  pathParams={pathParamsOf(endpoint.path)}
                 />
               ))}
             </AdminSurface>

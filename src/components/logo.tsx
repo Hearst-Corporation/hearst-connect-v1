@@ -4,7 +4,7 @@ import clsx from 'clsx'
 export function Mark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" {...props} className={clsx(className, 'shrink-0')}>
-      <rect width="32" height="32" rx="8" className="fill-accent-600" />
+      <rect width="32" height="32" rx="8" className="fill-accent-400" />
       <path
         d="M10 9.5v13M22 9.5v13"
         stroke="white"

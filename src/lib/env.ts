@@ -91,8 +91,13 @@ export function authSecret(): string | null {
 /**
  * État complet de la configuration serveur, destiné à l'affichage.
  * Aucune valeur n'y figure — uniquement des noms et des statuts.
+ *
+ * Interne au canon : l'extérieur passe par `checkConfiguration()`, qui expose
+ * ce rapport dans `ConfigHealth.report`. Garder une seule porte d'entrée évite
+ * qu'un appelant se construise un jugement parallèle sur `publicReady` /
+ * `loginReady`.
  */
-export function environmentReport(): EnvVarReport[] {
+function environmentReport(): EnvVarReport[] {
   return [
     readUrl('HEARST_API_URL', 'Base du backend Hearst Connect — autorité d’authentification.'),
     readSecret('AUTH_SECRET', 'Protection du cookie de session frontend, uniquement.'),
@@ -133,17 +138,33 @@ export function checkConfiguration(): ConfigHealth {
 /**
  * Garde-fou de démarrage : signale les manques une seule fois, par leur NOM.
  * Aucune valeur, aucun fragment de secret n'est écrit dans les journaux.
+ *
+ * Appelée depuis le `RootLayout` : tout rendu serveur passe par là. Le verrou
+ * `announced` est en portée module — un worker journalise une fois, pas à
+ * chaque requête.
+ *
+ * Ne lève jamais : un garde-fou qui casse le rendu transforme une variable
+ * oubliée en panne totale. En cas d'imprévu, on se tait plutôt que d'échouer.
  */
 let announced = false
 export function announceConfigurationOnce(): void {
   if (announced) return
   announced = true
 
-  const failing = environmentReport().filter((entry) => entry.status !== 'ok')
-  if (failing.length === 0) return
+  try {
+    const failing = environmentReport().filter((entry) => entry.status !== 'ok')
+    if (failing.length === 0) return
 
-  const lines = failing.map((entry) => `  - ${entry.name} : ${entry.detail} (${entry.purpose})`)
-  console.warn(
-    `[hearst-connect] Configuration incomplète — les surfaces concernées afficheront « non configuré » :\n${lines.join('\n')}`,
-  )
+    // `name`, `detail` et `purpose` sont des littéraux du présent module : ils
+    // ne sont jamais construits à partir de `process.env`. Rien de ce qui suit
+    // ne peut donc contenir un fragment de valeur.
+    const lines = failing.map(
+      (entry) => `  - ${entry.name} : ${entry.detail ?? entry.status} (${entry.purpose})`,
+    )
+    console.warn(
+      `[hearst-connect] Configuration incomplète — les surfaces concernées afficheront « non configuré » :\n${lines.join('\n')}`,
+    )
+  } catch {
+    // Un diagnostic n'a pas le droit de faire tomber une page.
+  }
 }
