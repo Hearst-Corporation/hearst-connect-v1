@@ -2,8 +2,8 @@ import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, HeroFigure } from '@/components/admin/cockpit'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
 import { SingleObservation } from '@/components/admin/single-observation'
+import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
 import { AdminPage } from '@/components/admin/typography'
 import {
   ReserveExpositionChart,
@@ -81,6 +81,38 @@ function ouRien(texte: string): string | null {
   return texte === '—' ? null : texte
 }
 
+function bitcoinProduitDe(totalSats: string | null | undefined): string | null {
+  if (totalSats === undefined || totalSats === null) return null
+  const nombre = Number(totalSats)
+  if (!Number.isFinite(nombre)) return null
+  return formatNumber(nombre / 100_000_000, { maximumFractionDigits: 4 })
+}
+
+function postesReserveExposition(
+  reserveUsdc: string | null | undefined,
+  expositionUsdc: string | null | undefined,
+): PosteBitcoin[] {
+  const postes: PosteBitcoin[] = []
+  if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
+    postes.push({ poste: 'Reserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
+  }
+  if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
+    postes.push({ poste: 'Exposure', montant: Number(expositionUsdc) / 1_000_000, accent: true })
+  }
+  return postes
+}
+
+function pointsCourbeDe(
+  courbeBrute: readonly { month: number; bps: number }[] | null | undefined,
+): PointCourbe[] {
+  if (courbeBrute === null || courbeBrute === undefined) return []
+  return courbeBrute.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
+}
+
+function courbeParametreeDe(points: readonly PointCourbe[]): boolean {
+  return points.some((p) => p.taux !== 0)
+}
+
 function etatCourbe(
   points: readonly PointCourbe[],
   courbeParametree: boolean,
@@ -97,6 +129,23 @@ function etatCourbe(
   }
 }
 
+function ReserveChart({
+  postes,
+  seulPoste,
+}: Readonly<{ postes: readonly PosteBitcoin[]; seulPoste: PosteBitcoin | undefined }>) {
+  if (seulPoste !== undefined) {
+    return (
+      <SingleObservation
+        valeur={formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
+        periode={seulPoste.poste}
+        contexte="The other position could not be read on-chain."
+        note="Only one of the two positions is readable — reserve and exposure cannot be compared yet."
+      />
+    )
+  }
+  return <ReserveExpositionChart postes={postes} />
+}
+
 export default async function Page() {
   const [mining, btc, factsheet, backtest] = await Promise.all([
     callBackend<Mining>('mining'),
@@ -110,38 +159,13 @@ export default async function Page() {
   const f = factsheet.ok ? factsheet.data : null
 
   const hashrate = m?.hashrate?.value
-  const sats = b?.btcProduced?.value?.totalSats
-  const satsNombre = sats === undefined || sats === null ? null : Number(sats)
-  const bitcoinProduit =
-    satsNombre === null || !Number.isFinite(satsNombre)
-      ? null
-      : formatNumber(satsNombre / 100_000_000, { maximumFractionDigits: 4 })
+  const bitcoinProduit = bitcoinProduitDe(b?.btcProduced?.value?.totalSats)
 
-  // Reserve and exposure — two real amounts, comparable on the same scale.
-  const reserveUsdc = b?.reserve?.value?.balanceUsdc
-  const expositionUsdc = b?.exposure?.value?.valueUsdc
-  const postes: PosteBitcoin[] = []
-  if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
-    postes.push({ poste: 'Reserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
-  }
-  if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
-    postes.push({ poste: 'Exposure', montant: Number(expositionUsdc) / 1_000_000, accent: true })
-  }
-  // Two amounts make a comparison; one makes a bar floating against an axis
-  // that promises a second one. When only a single position is readable, the
-  // honest rendering is the amount itself.
+  const postes = postesReserveExposition(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
   const seulPoste = postes.length === 1 ? postes[0] : undefined
 
-  // Reward curve. The service returns five real points, all at zero on this
-  // deployment: the curve isn't parameterized yet. Drawing a flat line would
-  // read as "measured zero reward", which would be false.
-  const courbeBrute = f?.vendingCurve?.value
-  const points: PointCourbe[] =
-    courbeBrute === null || courbeBrute === undefined
-      ? []
-      : courbeBrute.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
-  const courbeParametree = points.some((p) => p.taux !== 0)
-
+  const points = pointsCourbeDe(f?.vendingCurve?.value)
+  const courbeParametree = courbeParametreeDe(points)
   const plafond = f?.tvlCap?.value
 
   return (
@@ -190,24 +214,9 @@ export default async function Page() {
             <ChartFrame
               question="Where does the fund's money sit?"
               unite="in dollars"
-              etat={
-                postes.length > 0
-                  ? { type: 'tracee' }
-                  : { type: 'attendue', explication: 'Neither the reserve nor the exposure could be read on-chain.' }
-              }
+              etat={postes.length > 0 ? { type: 'tracee' } : { type: 'attendue', explication: 'Neither the reserve nor the exposure could be read on-chain.' }}
             >
-              {seulPoste === undefined ? (
-                <ReserveExpositionChart postes={postes} />
-              ) : (
-                /* `periode` labels what the single value covers — here the
-                   position it belongs to, since a balance covers no period. */
-                <SingleObservation
-                  valeur={formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
-                  periode={seulPoste.poste}
-                  contexte="The other position could not be read on-chain."
-                  note="Only one of the two positions is readable — reserve and exposure cannot be compared yet."
-                />
-              )}
+              <ReserveChart postes={postes} seulPoste={seulPoste} />
             </ChartFrame>
           </AdminCol>
 
