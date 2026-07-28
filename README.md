@@ -39,39 +39,51 @@ la production utilise les variables d'environnement du fournisseur.
 ```
 src/
 ├── app/
-│   ├── layout.tsx              racine — police, métadonnées, thème sombre
-│   ├── not-found.tsx           404 (bloc officiel Tailwind Plus)
-│   ├── (marketing)/            vitrine publique : header, landing, footer
-│   ├── (auth)/                 connexion et demande d'accès (AuthLayout Catalyst)
-│   └── (app)/                  console protégée (SidebarLayout Catalyst)
-│       ├── layout.tsx          garde de session côté serveur
-│       ├── application-layout.tsx
-│       └── dashboard/          vue d'ensemble, journal, membres, connexions, paramètres
+│   ├── layout.tsx              racine — polices Hearst, métadonnées, thème
+│   ├── (marketing)/            vitrine publique
+│   ├── (auth)/                 connexion
+│   └── admin/                  console d'administration protégée
+│       ├── page.tsx            Accueil — dashboard agrégé
+│       ├── clients/            annuaire (source en attente)
+│       ├── conformite/         file KYC/KYB (source en attente)
+│       ├── operations/         mouvements + rééquilibrage
+│       ├── administration/     hub produit et outils techniques
+│       ├── runtime/            matrice d'état infrastructure
+│       ├── api-explorer/       registre des 26 endpoints
+│       └── keeper/             actions maintenance admin
 ├── components/
-│   ├── catalyst/               kit officiel, NON modifié (licence Tailwind Plus incluse)
-│   ├── marketing/              blocs officiels portés en TS, palette du projet
-│   ├── logo.tsx
-│   └── demo-notice.tsx
+│   ├── catalyst/               kit officiel, NON modifié
+│   ├── marketing/              blocs vitrine Tailwind Plus
+│   └── admin/                  design system admin (surfaces, charts, truthful)
 ├── lib/
-│   ├── session.ts              création / vérification du cookie signé
-│   ├── auth.ts                 annuaire (env) + garde `requireSession`
-│   ├── actions.ts              Server Actions login / logout
-│   └── demo-data.ts            données de DÉMONSTRATION du dashboard
-└── styles/tailwind.css         design system du projet (accent bleu, H≈217°)
+│   ├── backend/                callBackend, registre endpoints, keeper
+│   ├── session.ts              cookie session signé
+│   └── fonts.ts                Satoshi Variable (règle absolue — une seule famille)
+└── styles/tailwind.css         tokens brand-*, accent or, états sémantiques
 ```
+
+## Console d'administration
+
+Navigation principale (5 sections) : **Accueil · Clients · Conformité · Opérations · Administration**.
+
+- **Accueil** : agrégat `dashboard`, mouvements `series1-events`, sondes `ready`/`runtime`
+- **Clients / Conformité** : structures prêtes (table, filtres) — aucune donnée inventée
+- **Opérations** : registre on-chain + `rebalancing-status`
+- **Administration** : hub vers produit, runtime, API Explorer, Keeper
+- **26 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité
+
+Revue visuelle : `docs/visual-reviews/HC-ADMIN-DASHBOARD-002/`
 
 ## Ce qui est réel, ce qui ne l'est pas
 
-Le socle d'authentification est réel : session signée côté serveur, cookie httpOnly,
-garde serveur sur toutes les routes `(app)`, déconnexion effective.
+Le socle d'authentification est réel : session signée, cookie httpOnly, garde `/admin`.
 
-Le **contenu du dashboard** (journal d'accès, membres, connexions, interrupteurs de sécurité)
-vient de `src/lib/demo-data.ts` et est annoncé comme tel dans l'interface par le bandeau
-`DemoNotice`. Aucune de ces valeurs n'est une mesure réelle. Le branchement d'une source de
-données est le chantier suivant.
+Les **données métier admin** proviennent du backend Railway via `callBackend`. Absence de source =
+état nommé (`SourceAttendue`, `UnavailableState`) — jamais un zéro ni un exemple fictif
+(`npm run check:mocks`).
 
-L'inscription libre n'existe pas : `/register` renvoie vers l'équipe, conformément au modèle
-« accès sur invitation ».
+Organisations, dossiers KYC et files d'approbation : **pas encore exposés** par le backend.
+
 
 ## Commandes
 
@@ -84,9 +96,11 @@ npm run check:catalyst   # vérifie qu'aucun design system étranger n'a fui ici
 
 ## Design system
 
-Ce workspace déclare **sa propre** palette dans `src/styles/tailwind.css` : un accent unique
-(`accent-50` → `accent-950`, bleu H≈217°) posé sur l'échelle `zinc` de Catalyst. Rien n'est
-importé d'un autre projet — `npm run check:catalyst` le vérifie et échoue sinon.
+Palette dans `src/styles/tailwind.css` :
 
-Les composants de `src/components/catalyst/` sont le kit officiel **non modifié** : ils se
-mettent à jour en recopiant la version à jour du kit, sans réconciliation manuelle.
+- **Tokens produit** : `brand-background`, `brand-surface`, `brand-accent` (or Hearst H≈45°), etc.
+- **États** : `success`, `warning`, `danger`, `info`, `neutral` — distincts de la marque
+- **Polices** : **Satoshi Variable** seule (`src/assets/fonts/`, Fontshare) — interface, titres, mono
+- **Composants admin** : `src/components/admin/surfaces.tsx` (AdminSurface, AdminMetric, AdminTable…)
+
+Catalyst (`src/components/catalyst/`) : kit officiel **non modifié**. `npm run check:catalyst` vérifie l'absence de fuites de design system étranger.

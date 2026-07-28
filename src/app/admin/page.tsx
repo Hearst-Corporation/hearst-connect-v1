@@ -1,33 +1,25 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
-import {
-  CalmState,
-  Card,
-  CardHeader,
-  ExceptionBanner,
-  HeroFigure,
-  SideFact,
-  SourceAttendue,
-  VerdictCard,
-} from '@/components/admin/cockpit'
+import { AdminKpiSurface, type AdminKpiItem } from '@/components/admin/admin-kpi-surface'
+import { ExceptionBanner, CalmState } from '@/components/admin/cockpit'
+import { DistributionBarChart } from '@/components/admin/distribution-chart'
+import { AdminBody, AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
 import { PageHeader } from '@/components/admin/page-header'
+import {
+  AdminChart,
+  AdminSection,
+  AdminSourceAttendue,
+  AdminStatusMatrix,
+  AdminSurface,
+  AdminTable,
+  type StatusMatrixRow,
+} from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
-import { ilYA, montantUsdc, motifLisible, phraseMouvement } from '@/lib/mouvements'
+import { ilYA, libelleMouvement, montantUsdc, motifLisible, phraseMouvement } from '@/lib/mouvements'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Accueil' }
 export const dynamic = 'force-dynamic'
-
-/**
- * Accueil — le poste de commande.
- *
- * Il répond à trois questions, dans cet ordre : que dois-je traiter
- * maintenant, que se passe-t-il aujourd'hui, y a-t-il un blocage.
- *
- * Le silence est une réponse valide. Quand rien ne réclame d'attention, la
- * première zone se réduit à une ligne calme au lieu d'aligner des compteurs à
- * zéro : un mur de vert est aussi peu lisible qu'un mur de rouge, et il
- * apprend à ignorer l'écran.
- */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
@@ -47,9 +39,20 @@ type Mouvement = {
   readonly eventName: string
   readonly assetAmountAtomic: string | null
   readonly occurredAt: string | null
+  readonly txHash?: string
+  readonly blockNumber?: string
 }
 
 type Evenements = { readonly events?: Resolu<readonly Mouvement[]> }
+
+type Runtime = {
+  readonly databaseStatus?: string
+  readonly contractStatus?: string
+  readonly indexerStatus?: string
+  readonly environment?: string
+  readonly uptimeSeconds?: number
+  readonly chainId?: number
+}
 
 function pourcentage(bps: number | null | undefined): string {
   if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
@@ -59,59 +62,45 @@ function pourcentage(bps: number | null | undefined): string {
 const estResolu = (v: unknown): v is Resolu<unknown> =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
-
-function CeQuiVousAttend({
-  incompletes,
-  surfaces,
-  motif,
-  serviceIndisponible,
-}: Readonly<{
-  incompletes: readonly Resolu<unknown>[]
-  surfaces: readonly Resolu<unknown>[]
-  motif: string | undefined
-  serviceIndisponible: boolean
-}>) {
-  if (incompletes.length === 0 && !serviceIndisponible) {
-    return <CalmState message="Rien ne demande votre attention. Toutes les surfaces du produit répondent." />
-  }
-  if (incompletes.length === 0) return null
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      <VerdictCard
-        titre="Surfaces sans donnée"
-        compte={String(incompletes.length)}
-        unite={`sur ${surfaces.length}`}
-        contexte="Ces surfaces répondent, mais sans valeur exploitable."
-        casUrgent={motif === undefined ? undefined : `Le plus souvent, ${motif}.`}
-        ton="attention"
-        href="/admin/dashboard"
-        actionLabel="Examiner le détail"
-      />
-    </div>
-  )
+function statutService(ready: boolean, runtimeOk: boolean): StatusMatrixRow[] {
+  return [
+    {
+      id: 'ready',
+      label: 'Disponibilité',
+      status: ready ? 'LIVE' : 'UNAVAILABLE',
+      detail: ready ? 'Service joignable' : 'Non prêt',
+      ton: ready ? 'sain' : 'critique',
+    },
+    {
+      id: 'runtime',
+      label: 'État runtime',
+      status: runtimeOk ? 'LIVE' : 'UNAVAILABLE',
+      detail: runtimeOk ? 'Réponse reçue' : 'Pas de réponse',
+      ton: runtimeOk ? 'sain' : 'critique',
+    },
+  ]
 }
 
 export default async function Page() {
-  const [dashboard, evenements, disponibilite] = await Promise.all([
+  const [dashboard, evenements, disponibilite, runtime] = await Promise.all([
     callBackend<Dashboard>('dashboard'),
-    callBackend<Evenements>('series1-events', { params: { limit: 5 } }),
+    callBackend<Evenements>('series1-events', { params: { limit: 10 } }),
     callBackend<{ ready?: boolean }>('ready'),
+    callBackend<Runtime>('runtime'),
   ])
 
-  const serviceIndisponible = !disponibilite.ok
+  const serviceIndisponible = !disponibilite.ok || disponibilite.data.ready !== true
   const d = dashboard.ok ? dashboard.data : null
+  const r = runtime.ok ? runtime.data : null
 
-  // Combien de surfaces du produit ne livrent pas de valeur exploitable ?
-  // C'est le seul signal d'attention réellement mesurable aujourd'hui : les
-  // files de travail, elles, n'ont pas encore de source.
   const surfaces = d === null ? [] : Object.values(d).filter(estResolu)
   const incompletes = surfaces.filter((s) => s.status !== 'LIVE')
   const motif = incompletes.map((s) => motifLisible(s.reason)).find((m) => m !== undefined)
 
   const capacite = d?.capacity?.value
   const perf = d?.performance?.value
-
   const strategies = d?.strategies?.value
+
   const poches: PocheAllocation[] =
     strategies === null || strategies === undefined
       ? []
@@ -122,129 +111,268 @@ export default async function Page() {
         }))
 
   const mouvements = evenements.ok ? evenements.data.events?.value : null
+  const dernierMouvement = mouvements?.[0]
+
+  const repartitionMouvements = new Map<string, number>()
+  if (mouvements) {
+    for (const m of mouvements) {
+      const nom = libelleMouvement(m.eventName)
+      const deja = repartitionMouvements.get(nom)
+      repartitionMouvements.set(nom, deja === undefined ? 1 : deja + 1)
+    }
+  }
+  const barresMouvements = [...repartitionMouvements.entries()].map(([nom, valeur]) => ({ nom, valeur }))
+  const nombreMouvements = mouvements?.length
+
+  const repartitionStrategies = strategies
+    ? strategies
+        .filter((s) => s.actualBps !== null)
+        .map((s) => ({
+          nom: s.pocket,
+          valeur: (s.actualBps as number) / 100,
+        }))
+    : []
+
+  const matrixRows: StatusMatrixRow[] = [
+    ...statutService(disponibilite.ok && disponibilite.data.ready === true, runtime.ok),
+    {
+      id: 'db',
+      label: 'Base de données',
+      status: r?.databaseStatus === 'ready' ? 'LIVE' : r ? 'PARTIAL' : 'UNAVAILABLE',
+      ton: r?.databaseStatus === 'ready' ? 'sain' : 'attention',
+    },
+    {
+      id: 'indexer',
+      label: 'Indexeur',
+      status: r?.indexerStatus === 'RUNNING' ? 'LIVE' : r ? 'PARTIAL' : 'UNAVAILABLE',
+      ton: r?.indexerStatus === 'RUNNING' ? 'sain' : 'attention',
+    },
+    {
+      id: 'contract',
+      label: 'Contrat',
+      status: r?.contractStatus === 'CONFIGURED' ? 'LIVE' : r ? 'PARTIAL' : 'UNAVAILABLE',
+      ton: r?.contractStatus === 'CONFIGURED' ? 'sain' : 'attention',
+    },
+  ]
+
+  const surfacesDashboard: StatusMatrixRow[] = incompletes.map((s, i) => ({
+    id: `surface-${i}`,
+    label: 'Surface partielle',
+    status: s.status as never,
+    detail: motifLisible(s.reason) ?? s.reason ?? undefined,
+    ton: 'attention',
+  }))
+
+  const kpiSecondaires: AdminKpiItem[] = [
+    {
+      id: 'capacite',
+      label: 'Capacité disponible',
+      value: montantUsdc(capacite?.availableCapacity, 0),
+      hint: 'availableCapacity · dashboard',
+    },
+    {
+      id: 'utilisation',
+      label: 'Taux d’utilisation',
+      value: pourcentage(capacite?.utilizationBps),
+      hint: 'utilizationBps',
+    },
+    {
+      id: 'nav',
+      label: 'Valeur de part',
+      value: perf?.navPerShare ?? null,
+      hint: 'navPerShare · dashboard',
+    },
+    {
+      id: 'performance',
+      label: 'Performance',
+      value: pourcentage(perf?.totalReturnBps),
+      hint: 'totalReturnBps',
+      tone: perf?.totalReturnBps !== null && perf?.totalReturnBps !== undefined && perf.totalReturnBps > 0 ? 'success' : 'default',
+    },
+    {
+      id: 'service',
+      label: 'Service',
+      value: serviceIndisponible ? 'Indisponible' : 'Disponible',
+      hint: 'ready',
+      tone: serviceIndisponible ? 'danger' : 'success',
+    },
+    {
+      id: 'mouvement',
+      label: 'Dernier mouvement',
+      value: dernierMouvement ? phraseMouvement(dernierMouvement.eventName) : null,
+      hint: dernierMouvement?.occurredAt ? ilYA(dernierMouvement.occurredAt) : undefined,
+      tone: 'accent',
+    },
+    {
+      id: 'sources',
+      label: 'Sources dashboard',
+      value: d ? `${surfaces.length - incompletes.length}/${surfaces.length} live` : null,
+      hint: 'surfaces LIVE',
+    },
+  ]
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
         title="Accueil"
-        description="Ce qui vous attend, puis l’état du fonds. Toute valeur provient du service ; rien n’est calculé ici."
+        description="Vue consolidée du fonds, des mouvements récents et de l’état du service. Toute valeur provient du backend."
+        endpointIds={['dashboard', 'series1-events', 'ready', 'runtime']}
       />
 
       {serviceIndisponible ? (
         <ExceptionBanner
-          message="Le service ne répond pas. Les valeurs ci-dessous peuvent être incomplètes ou absentes."
-          href="/admin/administration"
+          message="Le service ne répond pas ou n’est pas prêt. Les valeurs ci-dessous peuvent être incomplètes."
+          href="/admin/runtime"
           actionLabel="Voir l’état détaillé"
         />
       ) : null}
 
-      {/* ── A. Ce qui vous attend ───────────────────────────────────────── */}
-      <section aria-labelledby="attente" className="space-y-4">
-        <h2 id="attente" className="text-sm font-semibold text-white">
-          Ce qui vous attend
-        </h2>
-
-        <CeQuiVousAttend
-          incompletes={incompletes}
-          surfaces={surfaces}
-          motif={motif}
-          serviceIndisponible={serviceIndisponible}
+      {/* Résumé principal */}
+      <AdminSection title="Résumé" description="Métriques du fonds et disponibilité du service">
+        <AdminKpiSurface
+          hero={{
+            id: 'encours',
+            label: 'Encours du portefeuille',
+            value: montantUsdc(capacite?.totalAssets, 0),
+            hint: 'totalAssets · GET /api/v1/dashboard',
+            tone: 'accent',
+          }}
+          items={kpiSecondaires}
         />
+      </AdminSection>
 
-        <SourceAttendue
-          quoi="Les files de travail ne sont pas encore ouvertes"
-          detail="Dossiers de conformité à instruire et virements à valider apparaîtront ici dès que le service les transmettra. Aucun compteur n’est avancé d’ici là : un zéro signifierait « rien à traiter », ce que personne ne peut affirmer aujourd’hui."
-          requis={[
-            'La lecture des dossiers de connaissance client en attente',
-            'La lecture des demandes de validation financière',
-          ]}
+      {/* Attention */}
+      <AdminSection title="Attention" description="Surfaces incomplètes et files en attente de source">
+        {incompletes.length === 0 && !serviceIndisponible ? (
+          <CalmState message="Rien ne demande votre attention sur les surfaces branchées." />
+        ) : null}
+        {incompletes.length > 0 ? (
+          <div>
+            <AdminStatusMatrix
+              title={`${incompletes.length} surface${incompletes.length > 1 ? 's' : ''} sans donnée exploitable`}
+              rows={surfacesDashboard}
+            />
+            {motif ? (
+              <AdminBody className="mt-3">
+                Motif le plus fréquent : {motif}.
+                <Link href="/admin/dashboard" className="ml-2 text-brand-accent hover:underline">
+                  Examiner le détail →
+                </Link>
+              </AdminBody>
+            ) : null}
+          </div>
+        ) : null}
+        <AdminSourceAttendue
+          quoi="Files de conformité et d’approbation — source en attente"
+          detail="Les compteurs restent vides tant qu’aucune route KYC ou approbation n’est exposée."
+          requis={['Lecture des dossiers de conformité', 'Lecture des demandes d’approbation financière']}
         />
-      </section>
+      </AdminSection>
 
-      {/* ── B. Le fonds aujourd'hui ─────────────────────────────────────── */}
-      <section aria-labelledby="fonds" className="space-y-3">
-        <h2 id="fonds" className="text-sm font-semibold text-white">
-          Le fonds aujourd’hui
-        </h2>
+      {/* Graphiques */}
+      <AdminSection title="Visualisations" description="Données instantanées — pas de série temporelle inventée">
+        <div className="grid gap-4 lg:grid-cols-2">
+          {poches.length > 0 ? (
+            <AdminSurface>
+              <AdminSurfaceHeader
+                title="Allocation cible vs réelle"
+                description="dashboard · strategies"
+              />
+              <AllocationChart poches={poches} />
+            </AdminSurface>
+          ) : (
+            <AdminChart
+              question="Allocation cible vs réelle"
+              unite="% du portefeuille"
+              provenance="GET /api/v1/dashboard"
+              etat={{ type: 'vide', explication: 'Aucune poche stratégique lisible dans le dashboard.' }}
+            />
+          )}
 
-        {d === null ? (
-          <SourceAttendue
-            quoi="L’état du fonds n’a pas pu être lu"
-            detail="Le service n’a pas répondu à la demande d’état du fonds. Aucune valeur n’est affichée plutôt qu’une valeur périmée."
-            requis={['Une réponse du service']}
-          />
-        ) : (
-          <Card className="p-6">
-            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-              <HeroFigure valeur={montantUsdc(capacite?.totalAssets, 0)} libelle="Encours du portefeuille" unite="USDC" />
-              <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-                <SideFact libelle="Plafond utilisé" valeur={pourcentage(capacite?.utilizationBps)} />
-                <SideFact libelle="Valeur d’une part" valeur={perf?.navPerShare ?? '—'} />
-                <SideFact libelle="Rendement depuis l’origine" valeur={pourcentage(perf?.totalReturnBps)} />
-                {/*
-                 * « Mois d'électricité couverts » a été RETIRÉ d'ici.
-                 *
-                 * Le service calcule cette durée en divisant `reserve.reserveUsdc`
-                 * par la facture mensuelle. Or ce champ vaut exactement
-                 * `capacity.totalAssets` — vérifié en production, au centime près.
-                 * Ce n'est donc pas une trésorerie dédiée à l'électricité : c'est
-                 * l'encours entier du fonds, argent des investisseurs compris.
-                 *
-                 * Le nombre était juste arithmétiquement et faux sémantiquement :
-                 * il laissait croire à une réserve d'exploitation qui n'existe pas.
-                 * Un chiffre exact qui affirme une chose fausse est plus dangereux
-                 * qu'une case vide, parce qu'on le cite en réunion.
-                 */}
-                <SideFact libelle="Capacité restante" valeur={montantUsdc(capacite?.availableCapacity, 0)} />
-              </dl>
-            </div>
-          </Card>
-        )}
-      </section>
+          {repartitionStrategies.length > 0 ? (
+            <AdminSurface>
+              <AdminSurfaceHeader title="Répartition des stratégies" description="actualBps par poche" />
+              <DistributionBarChart barres={repartitionStrategies} unit=" %" />
+            </AdminSurface>
+          ) : (
+            <AdminChart
+              question="Répartition des stratégies"
+              unite="% constaté"
+              provenance="GET /api/v1/dashboard"
+              etat={{ type: 'vide', explication: 'Aucun solde de poche constaté sur la chaîne.' }}
+            />
+          )}
 
-      {/* ── C. Où l'argent est placé ────────────────────────────────────── */}
-      {poches.length > 0 ? (
-        <Card>
-          <CardHeader
-            title="L’argent est-il placé là où il devrait l’être ?"
-            hint="Allocation visée et allocation constatée, en pourcentage du portefeuille"
-          />
-          <AllocationChart poches={poches} />
-        </Card>
-      ) : null}
+          {barresMouvements.length > 0 ? (
+            <AdminSurface>
+              <AdminSurfaceHeader
+                title="Distribution des mouvements"
+                description={
+                  nombreMouvements !== undefined ? `${nombreMouvements} derniers · series1-events` : 'series1-events'
+                }
+              />
+              <DistributionBarChart barres={barresMouvements} />
+            </AdminSurface>
+          ) : (
+            <AdminChart
+              question="Distribution des mouvements"
+              unite="occurrences"
+              provenance="GET /api/v1/series1/events"
+              etat={{ type: 'vide', explication: 'Aucun mouvement récent indexé.' }}
+            />
+          )}
 
-      {/* ── D. Fil du jour ──────────────────────────────────────────────── */}
-      <section aria-labelledby="fil" className="space-y-3">
-        <h2 id="fil" className="text-sm font-semibold text-white">
-          Fil du jour
-        </h2>
+          <AdminSurface>
+            <AdminStatusMatrix title="État des services" rows={matrixRows} />
+            {r?.environment ? (
+              <p className="border-t border-white/5 px-5 py-3 text-xs/5 text-brand-muted sm:px-6">
+                Environnement {r.environment}
+                {r.chainId ? ` · chaîne ${r.chainId}` : null}
+              </p>
+            ) : null}
+          </AdminSurface>
+        </div>
+      </AdminSection>
+
+      {/* Activité récente */}
+      <AdminSection title="Activité récente" description="Mouvements indexés Series 1">
         {mouvements === null || mouvements === undefined || mouvements.length === 0 ? (
-          <CalmState message="Aucun mouvement n’a été relevé récemment." />
+          <CalmState message="Aucun mouvement relevé récemment." />
         ) : (
-          <Card>
-            <ul className="divide-y divide-white/[0.07]">
-              {mouvements.map((m) => (
-                <li key={m.id} className="flex flex-wrap items-baseline gap-x-2 px-5 py-3 text-sm">
-                  <span className="text-zinc-200">{phraseMouvement(m.eventName)}</span>
-                  {m.assetAmountAtomic !== null ? (
-                    <span className="font-semibold text-accent-300 tabular-nums">{montantUsdc(m.assetAmountAtomic, 2)}</span>
-                  ) : null}
-                  <span className="ml-auto text-xs text-zinc-400">{ilYA(m.occurredAt)}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
+          <AdminSurface>
+            <AdminTable
+              rows={mouvements}
+              keyFn={(m) => m.id}
+              columns={[
+                {
+                  key: 'type',
+                  header: 'Type',
+                  cell: (m) => <span className="text-brand-foreground">{phraseMouvement(m.eventName)}</span>,
+                },
+                {
+                  key: 'montant',
+                  header: 'Montant',
+                  cell: (m) => (
+                    <span className="font-semibold text-brand-accent tabular-nums">
+                      {m.assetAmountAtomic !== null ? montantUsdc(m.assetAmountAtomic, 2) : '—'}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'date',
+                  header: 'Date',
+                  cell: (m) => <span className="text-brand-muted">{ilYA(m.occurredAt)}</span>,
+                },
+              ]}
+            />
+            <div className="border-t border-white/5 px-5 py-3 sm:px-6">
+              <Link href="/admin/operations" className="text-sm text-brand-accent hover:underline">
+                Voir le registre complet →
+              </Link>
+            </div>
+          </AdminSurface>
         )}
-      </section>
-
-      {/* ── E. État du service ──────────────────────────────────────────── */}
-      <p className="flex items-center gap-2 text-xs text-zinc-400">
-        <span
-          aria-hidden="true"
-          className={`size-1.5 rounded-full ${serviceIndisponible ? 'bg-danger-500' : 'bg-success-500'}`}
-        />
-        {serviceIndisponible ? 'Service indisponible' : 'Service disponible'}
-      </p>
-    </div>
+      </AdminSection>
+    </AdminPage>
   )
 }

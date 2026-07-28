@@ -1,3 +1,4 @@
+import { AdminCaption, AdminH3, adminTypography } from '@/components/admin/typography'
 import clsx from 'clsx'
 import Link from 'next/link'
 
@@ -24,7 +25,7 @@ export function Card({
   as: Tag = 'section',
 }: Readonly<{ children: React.ReactNode; className?: string; as?: 'section' | 'div' | 'article' | 'nav' }>) {
   return (
-    <Tag className={clsx(className, 'rounded-xl border border-white/10 bg-surface-panel')}>{children}</Tag>
+    <Tag className={clsx(className, 'rounded-xl bg-brand-surface shadow-xs ring-1 ring-white/10')}>{children}</Tag>
   )
 }
 
@@ -34,10 +35,10 @@ export function CardHeader({
   action,
 }: Readonly<{ title: string; hint?: string; action?: React.ReactNode }>) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-white/[0.07] px-5 py-4">
+    <div className="flex items-start justify-between gap-4 border-b border-white/5 px-5 py-4 sm:px-6 sm:py-5">
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-white">{title}</h2>
-        {hint ? <p className="mt-0.5 text-xs text-zinc-400">{hint}</p> : null}
+        <AdminH3 as="h2">{title}</AdminH3>
+        {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

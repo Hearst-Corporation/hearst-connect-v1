@@ -1,11 +1,14 @@
 @import 'tailwindcss';
 
 /*
- * Thème sombre : préférence système par défaut, surchargeable par une classe
- * explicite `.light` / `.dark` sur <html> (posée par le bouton de bascule).
- * La branche `@media` reste active sans JavaScript — le site suit alors l'OS,
- * comme avant l'ajout du sélecteur.
+ * Design system — Hearst Connect
+ * ------------------------------------------------------------------
+ * TYPO — règle absolue : Satoshi Variable uniquement (Fontshare, vendu localement).
+ * font-sans · font-display · font-mono → même famille (--font-satoshi).
+ *
+ * Aligné hearstcorporation.io : navy #020611, mint #A7FB90.
  */
+
 @custom-variant dark {
   &:where(.dark, .dark *) {
     @slot;
@@ -17,85 +20,72 @@
   }
 }
 
-/*
- * Design system — Hearst Connect
- * ------------------------------------------------------------------
- * Ce workspace déclare SA propre palette. Rien n'est hérité d'un autre
- * projet (doctrine Hearst §5bis / §6 — vérifié par `npm run check:catalyst`).
- *
- * ── Un seul accent : OR HEARST ────────────────────────────────────────────
- * `accent-*` porte l'identité du produit. Il ne dit JAMAIS un état : un
- * élément or est de marque ou primaire, jamais « réussi ». Les quatre gammes
- * sémantiques ci-dessous disent les états, et aucune n'emprunte l'accent —
- * c'est précisément le défaut que cette palette corrige (l'ancien
- * `hearst-accent` et `hearst-ok` partageaient le même vert #a7fb90, si bien
- * qu'on ne pouvait pas distinguer la marque d'un succès).
- *
- * ── Le neutre est bleuté, et c'est `zinc` qui le porte ────────────────────
- * Catalyst est bâti de bout en bout sur l'échelle `zinc`. Tailwind v4 compile
- * `bg-zinc-900` en `var(--color-zinc-900)` : redéclarer l'échelle re-teinte
- * donc le kit vendoré en bleu nuit SANS ouvrir un seul de ses fichiers. C'est
- * la seule façon d'obtenir « anthracite bleuté » sans violer la zone no-touch.
- * Les valeurs sont celles de `slate` (le neutre bleuté officiel de Tailwind),
- * sauf `zinc-950` remonté de #020617 à #050A16 — un bleu nuit qui reste une
- * couleur plutôt qu'un noir.
- */
-
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-sans--font-feature-settings: 'cv11';
+  /* ── Typographie — Satoshi Variable uniquement ───────────────────────────── */
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 
-  /* ── Neutre bleu nuit — l'échelle que Catalyst consomme ─────────────────── */
+  /* ── Tokens produit (scène Hearst corporate) ───────────────────────────── */
+  --color-brand-background: #020611;
+  --color-brand-surface: #000000;
+  --color-brand-surface-raised: #18183a;
+  --color-brand-foreground: #ffffff;
+  --color-brand-muted: #b2b2b2;
+  --color-brand-border: #191919;
+  --color-brand-accent: #a7fb90;
+  --color-brand-accent-foreground: #000000;
+
+  /* ── Neutre — zinc re-teinté navy Hearst ───────────────────────────────── */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-400: #b2b2b2;
+  --color-neutral-600: #7f7f7f;
+  --color-neutral-800: #191919;
+
   --color-zinc-50: #f8fafc;
   --color-zinc-100: #f1f5f9;
   --color-zinc-200: #e2e8f0;
   --color-zinc-300: #cbd5e1;
-  --color-zinc-400: #94a3b8;
-  --color-zinc-500: #64748b;
-  --color-zinc-600: #475569;
+  --color-zinc-400: #b2b2b2;
+  --color-zinc-500: #7f7f7f;
+  --color-zinc-600: #5d6c7b;
   --color-zinc-700: #334155;
-  --color-zinc-800: #1e293b;
-  --color-zinc-900: #0f172a;
-  --color-zinc-950: #050a16;
+  --color-zinc-800: #18183a;
+  --color-zinc-900: #0b0e17;
+  --color-zinc-950: #020611;
 
-  /* ── Surfaces nommées — alias lisibles des mêmes valeurs ────────────────── */
-  --color-surface-page: #050a16; /* bleu nuit très sombre — fond de page      */
-  --color-surface-panel: #0f172a; /* anthracite bleuté — surface principale   */
-  --color-surface-sunken: #0a1120; /* creux — zone repliée, charge utile brute */
-  --color-surface-raised: #1e293b; /* bleu-gris sombre — surface secondaire   */
-  --color-hairline: #2e3c59; /* filet décoratif                                */
-  --color-border-control: #63769a; /* bordure de contrôle — tient le 3:1      */
+  /* ── Surfaces nommées ──────────────────────────────────────────────────── */
+  --color-surface-page: #020611;
+  --color-surface-panel: #000000;
+  --color-surface-sunken: #0b0e17;
+  --color-surface-raised: #18183a;
+  --color-hairline: #191919;
+  --color-border-control: #758696;
 
-  /* ── Accent : OR HEARST (H≈45°, laiton profond) ─────────────────────────── */
-  --color-accent-50: #fbf7ec;
-  --color-accent-100: #f5edd3;
-  --color-accent-200: #e9dba6;
-  --color-accent-300: #d9c376;
-  --color-accent-400: #c6a94e; /* référence sur fond sombre                   */
-  --color-accent-500: #ac8f35; /* référence sur fond clair (vitrine)          */
-  --color-accent-600: #8c722a;
-  --color-accent-700: #6c5824;
-  --color-accent-800: #4d3f1d;
-  --color-accent-900: #332a16;
-  --color-accent-950: #1c170c;
-  --color-accent-ink: #17120a; /* premier plan SOMBRE posé sur l'or           */
+  /* ── Accent : MINT HEARST (hearstcorporation.io --mint-green) ──────────── */
+  --color-accent-50: #f0fdf4;
+  --color-accent-100: #dcfce7;
+  --color-accent-200: #c1fcb1;
+  --color-accent-300: #a7fb90;
+  --color-accent-400: #a7fb90;
+  --color-accent-500: #85c873;
+  --color-accent-600: #73de56;
+  --color-accent-700: #5cb842;
+  --color-accent-800: #3d8a2e;
+  --color-accent-900: #1f4d18;
+  --color-accent-950: #0a1f08;
+  --color-accent-ink: #000000;
 
-  /* ── États — quatre gammes, aucune n'est l'accent ───────────────────────── */
-  --color-success-50: #ecfdf5;
+  /* ── États — distincts du mint de marque ────────────────────────────────── */
+  --color-success-50: #ecfdf3;
   --color-success-300: #6ee7b7;
   --color-success-400: #34d399;
-  --color-success-500: #10b981;
+  --color-success-500: #027a48;
   --color-success-600: #059669;
   --color-success-700: #047857;
   --color-success-950: #052e23;
   --color-success-ink: #022c22;
 
-  /*
-   * `warning` est ORANGE et non ambre, à dessein. L'ambre (H≈38°) et l'or
-   * (H≈45°) sont voisins : sur une pastille de six pixels, la teinte domine la
-   * saturation et l'on ne distingue plus un avertissement d'un élément de
-   * marque. L'orange (H≈25°) s'en sépare franchement.
-   */
   --color-warning-50: #fff7ed;
   --color-warning-300: #fdba74;
   --color-warning-400: #fb923c;
@@ -110,36 +100,30 @@
   --color-danger-400: #f87171;
   --color-danger-500: #ef4444;
   --color-danger-600: #dc2626;
-  --color-danger-700: #b91c1c;
+  --color-danger-700: #b42318;
   --color-danger-950: #2c0a0a;
   --color-danger-ink: #2c0a0a;
 
   --color-info-50: #eff6ff;
   --color-info-300: #93c5fd;
   --color-info-400: #60a5fa;
-  --color-info-500: #3b82f6;
+  --color-info-500: #0082f3;
   --color-info-600: #2563eb;
   --color-info-700: #1d4ed8;
   --color-info-950: #0b1b33;
   --color-info-ink: #0a1b33;
 
-  /*
-   * ── Alias de compatibilité ───────────────────────────────────────────────
-   * Les anciens noms survivent le temps de la migration et pointent vers les
-   * nouvelles valeurs : les composants existants basculent sans être touchés,
-   * et aucun écran ne casse entre deux lots. Ils disparaîtront quand le
-   * dernier appelant aura été repris.
-   */
-  --color-cockpit-deep: #050a16;
-  --color-cockpit-page: #050a16;
-  --color-cockpit-card: #0f172a;
-  --color-cockpit-inset: #0a1120;
-  --color-cockpit-raised: #1e293b;
-  --color-hearst-accent: #c6a94e;
-  --color-hearst-accent-light: #d9c376;
-  --color-hearst-ink: #17120a;
+  /* ── Alias compatibilité ─────────────────────────────────────────────────── */
+  --color-cockpit-deep: #020611;
+  --color-cockpit-page: #020611;
+  --color-cockpit-card: #000000;
+  --color-cockpit-inset: #0b0e17;
+  --color-cockpit-raised: #18183a;
+  --color-hearst-accent: #a7fb90;
+  --color-hearst-accent-light: #c1fcb1;
+  --color-hearst-ink: #000000;
   --color-hearst-ok: #34d399;
   --color-hearst-warn: #fb923c;
   --color-hearst-bad: #f87171;
-  --color-hearst-info: #60a5fa;
+  --color-hearst-info: #0082f3;
 }

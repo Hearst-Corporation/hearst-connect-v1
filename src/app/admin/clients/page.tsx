@@ -1,38 +1,76 @@
-import { SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
+import {
+  AdminEmptyState,
+  AdminSection,
+  AdminSourceAttendue,
+  AdminSurface,
+  AdminTable,
+  AdminToolbar,
+} from '@/components/admin/surfaces'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Clients' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Clients — l'entrée par l'organisation.
- *
- * Cette page attend une source. Le service n'expose aucun annuaire : il
- * n'existe pas de route pour lire les organisations, et le modèle de données
- * lui-même n'a pas d'entité `Organization` — l'entité la plus proche,
- * `Investor`, est vide en production.
- *
- * On pourrait dessiner un tableau à colonnes vides. Ce serait indiscernable
- * d'un annuaire réel qui n'aurait pas encore de client, et indiscernable
- * aussi d'une panne. La page dit donc précisément ce qui manque, et ce qu'il
- * faudra pour l'ouvrir.
+ * Clients — structure prête pour l’annuaire organisations/investisseurs.
+ * Aucune ligne inventée tant que le backend n’expose pas la source.
  */
+
+const COLONNES_ATTENDUES = [
+  'Organisation',
+  'Type',
+  'Statut',
+  'Conformité',
+  'Risque',
+  'Encours',
+  'Dernière activité',
+  'Personnes liées',
+  'Portefeuille',
+] as const
+
 export default function Page() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Clients"
-        description="Les organisations, leurs personnes, leurs portefeuilles et leurs mouvements — réunis autour d’une seule fiche."
+        description="Organisations, personnes et portefeuilles — annuaire en attente de source backend."
       />
 
-      <SourceAttendue
-        quoi="L’annuaire des organisations n’est pas encore ouvert"
-        detail="Le service ne transmet aucune organisation aujourd’hui. Plutôt qu’un tableau vide — qu’on prendrait pour une panne ou pour un portefeuille sans client — cette page nomme ce qui manque."
+      <AdminToolbar>
+        <span className="text-sm text-brand-muted">Recherche — inactive</span>
+        <span className="text-xs text-brand-muted">·</span>
+        <span className="text-sm text-brand-muted">Filtres — en attente de source</span>
+        <span className="ml-auto text-xs text-brand-muted">Tri et pagination disponibles à l’arrivée de la source</span>
+      </AdminToolbar>
+
+      <AdminSection title="Annuaire" description="Table prête — aucune donnée simulée">
+        <AdminSurface>
+          <AdminTable
+            rows={[]}
+            keyFn={() => ''}
+            empty={
+              <AdminEmptyState
+                title="L’annuaire des organisations n’est pas encore ouvert"
+                description="Le service ne transmet aucune organisation. Cette structure accueillera les données sans refonte graphique."
+              />
+            }
+            columns={COLONNES_ATTENDUES.map((header) => ({
+              key: header,
+              header,
+              cell: () => <span className="text-brand-muted">—</span>,
+            }))}
+          />
+        </AdminSurface>
+      </AdminSection>
+
+      <AdminSourceAttendue
+        quoi="Endpoints attendus"
+        detail="Organisations et investisseurs ne sont pas encore exposés en HTTP."
         requis={[
-          'Une entité Organisation dans le modèle de données : elle n’existe pas encore, seul un enregistrement Investisseur s’en approche',
-          'Une lecture de l’annuaire, avec l’encours, l’état de conformité et le niveau de risque de chaque organisation',
-          'Le rattachement des personnes, des portefeuilles autorisés et des souscriptions à leur organisation',
+          'Entité Organisation dans le modèle de données',
+          'GET annuaire avec encours, conformité et risque',
+          'Rattachement personnes, portefeuilles et souscriptions',
         ]}
       />
     </div>
