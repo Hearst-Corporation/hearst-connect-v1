@@ -64,7 +64,7 @@ export function CockpitSidebarLayout({
   return (
     // The application plane: black neutral, and the sidebar sits directly on
     // it — the shell panel to its right is what lifts off it.
-    <div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-200/80 dark:bg-console-app dark:lg:bg-console-app">
+    <div className="relative isolate flex min-h-svh w-full overflow-x-hidden bg-white max-lg:flex-col lg:bg-zinc-200/80 dark:bg-console-app dark:lg:bg-console-app">
       <motion.div layoutScroll className="fixed inset-y-0 left-0 w-64 max-lg:hidden">
         {sidebar}
       </motion.div>
@@ -87,11 +87,11 @@ export function CockpitSidebarLayout({
           identical left and right margins on every route depend on a single
           owner. `AdminPage` centres the content inside it at the readable
           measure. */}
-      <main className="flex flex-1 flex-col pb-2.5 lg:min-w-0 lg:pt-2.5 lg:pr-2.5 lg:pl-64">
+      <main className="flex flex-1 flex-col lg:min-w-0 lg:pl-64">
         <div
           className={clsx(
-            'grow lg:rounded-2xl lg:bg-white lg:shadow-md lg:ring-1 lg:ring-zinc-950/[0.08]',
-            'dark:lg:bg-console-shell dark:lg:shadow-[0_16px_40px_rgba(0,0,0,0.34)] dark:lg:ring-console-line',
+            'grow w-full lg:bg-white',
+            'dark:lg:bg-console-shell',
             pageInlinePadding,
             pageBlockPadding,
           )}

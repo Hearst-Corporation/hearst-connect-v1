@@ -30,7 +30,10 @@ describe('primary navigation', () => {
 
   it('keeps every demoted destination reachable from Administration', () => {
     const demoted = [
-      '/admin/vault',
+      // `/admin/vault` (one screen bound to whichever contract answered) was
+      // replaced by the vault REGISTRY when the console moved to the vault
+      // operating model. The old path now redirects here.
+      '/admin/vaults',
       '/admin/series-1',
       '/admin/mining',
       '/admin/btc',

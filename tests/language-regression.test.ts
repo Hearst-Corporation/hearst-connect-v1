@@ -62,11 +62,26 @@ describe('no forbidden French UI phrases', () => {
 
 describe('single canonical page-heading component', () => {
   it('every admin route renders PageHeader exactly once (one H1 per page)', () => {
-    const offenders = PAGE_FILES.filter(({ code }) => {
-      const matches = code.match(/<PageHeader\b/g) ?? []
-      return matches.length !== 1
-    }).map((f) => `${f.path} (${(f.code.match(/<PageHeader\b/g) ?? []).length} usages)`)
+    // A route that only redirects renders no document, so it has no H1 to own.
+    // `/admin/vault` became one when the console moved to the vault registry:
+    // planting a <PageHeader> there to satisfy this grep would be dead JSX
+    // shipped to production for a test's benefit.
+    const rendersADocument = ({ code }: { code: string }) =>
+      !/^\s*redirect\(/m.test(code) || /<PageHeader\b/.test(code)
+
+    const offenders = PAGE_FILES.filter(rendersADocument)
+      .filter(({ code }) => (code.match(/<PageHeader\b/g) ?? []).length !== 1)
+      .map((f) => `${f.path} (${(f.code.match(/<PageHeader\b/g) ?? []).length} usages)`)
     expect(offenders).toEqual([])
+  })
+
+  it('a redirect-only route redirects and renders nothing else', () => {
+    // The exemption above is only safe while such a route really is a redirect
+    // and nothing more — otherwise it becomes a hole a whole page could hide in.
+    const redirects = PAGE_FILES.filter(({ code }) => /^\s*redirect\(/m.test(code))
+    for (const { path, code } of redirects) {
+      expect(code, `${path} redirects, so it must not also render JSX`).not.toMatch(/<[A-Z]/)
+    }
   })
 
   it('no admin file renders a raw <h1> outside the typography module', () => {

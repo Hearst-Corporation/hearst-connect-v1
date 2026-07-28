@@ -1,7 +1,7 @@
 import { AdminTableSplit } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
 import { RequirementList } from '@/components/admin/surface'
-import { AdminSection, AdminSurface } from '@/components/admin/surfaces'
+import { AdminSection, AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
 import { AdminBody, AdminLabel, AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
 import type { Metadata } from 'next'
 
@@ -32,8 +32,37 @@ const SEGMENTS = [
   { id: 'termine', label: 'Completed', hint: 'Decision rendered and logged' },
 ] as const
 
-/** The columns the work queue will carry once cases are exposed. */
-const CASE_COLUMNS = ['Reference', 'Organization', 'Segment', 'Age', 'Due date', 'Risk', 'Analyst'] as const
+type QueuePlaceholderRow = Readonly<{
+  reference: string
+  organization: string
+  segment: string
+  age: string
+  dueDate: string
+  risk: string
+  analyst: string
+}>
+
+const PLACEHOLDER_QUEUE_ROWS: readonly QueuePlaceholderRow[] = [
+  {
+    reference: 'Unavailable',
+    organization: 'No case exposed by service',
+    segment: '—',
+    age: '—',
+    dueDate: '—',
+    risk: '—',
+    analyst: '—',
+  },
+]
+
+const QUEUE_COLUMNS: readonly AdminTableColumn<QueuePlaceholderRow>[] = [
+  { key: 'reference', header: 'Reference', cell: (row) => row.reference },
+  { key: 'organization', header: 'Organization', cell: (row) => row.organization },
+  { key: 'segment', header: 'Segment', cell: (row) => row.segment },
+  { key: 'age', header: 'Age', cell: (row) => row.age },
+  { key: 'due-date', header: 'Due date', cell: (row) => row.dueDate },
+  { key: 'risk', header: 'Risk', cell: (row) => row.risk },
+  { key: 'analyst', header: 'Analyst', cell: (row) => row.analyst },
+]
 
 /** What the backend still owes this screen. */
 const MISSING_FROM_SOURCE = [
@@ -73,16 +102,9 @@ export default function Page() {
 
               <div className="mt-6">
                 <AdminLabel>Columns the queue will carry</AdminLabel>
-                <ul className="mt-2 flex flex-wrap gap-1.5">
-                  {CASE_COLUMNS.map((colonne) => (
-                    <li
-                      key={colonne}
-                      className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-                    >
-                      {colonne}
-                    </li>
-                  ))}
-                </ul>
+                <AdminSurface className="mt-2">
+                  <AdminTable rows={PLACEHOLDER_QUEUE_ROWS} keyFn={(row) => row.reference} columns={QUEUE_COLUMNS} />
+                </AdminSurface>
               </div>
             </AdminSurface>
           }

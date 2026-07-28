@@ -251,11 +251,8 @@ export default async function Page() {
                       title="What share does each pocket hold?"
                       hint="Targeted by the contract, observed on-chain, and the gap between the two"
                     />
-                    <div className="overflow-x-auto">
-                      {/* A narrower minimum than before: the table now lives in
-                          half the grid, so 26rem is what keeps the four columns
-                          adjacent instead of drifting apart. */}
-                      <table className="w-full min-w-[26rem] text-sm">
+                    <div className="overflow-x-hidden">
+                      <table className="w-full table-fixed text-sm">
                         <thead>
                           <tr className="border-b border-zinc-950/10 text-left text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
                             <th scope="col" className="px-4 py-2.5 font-medium">
