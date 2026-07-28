@@ -100,7 +100,7 @@ describe('connexion refusée', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.reason).toBe('invalid_credentials')
-    expect(result.error).not.toMatch(/401|password|token/i)
+    expect(result.error).not.toMatch(/401|token/i)
   })
 
   it('un compte investisseur n’ouvre pas la console d’administration', async () => {

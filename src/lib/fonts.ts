@@ -1,11 +1,11 @@
 import localFont from 'next/font/local'
 
 /**
- * Règle absolue design system : Satoshi Variable partout.
+ * Absolute design system rule: Satoshi Variable everywhere.
  *
- * Une seule famille pour interface, titres et données tabulaires.
- * Source : Fontshare (Indian Type Foundry) — fichier vendu dans src/assets/fonts/.
- * Pas d'autre police de prod (pas Inter, Source Sans, Cherry Swash, JetBrains).
+ * A single family for interface, headings, and tabular data.
+ * Source: Fontshare (Indian Type Foundry) — file vendored in src/assets/fonts/.
+ * No other production font (no Inter, Source Sans, Cherry Swash, JetBrains).
  */
 
 export const fontSatoshi = localFont({
@@ -16,7 +16,7 @@ export const fontSatoshi = localFont({
   style: 'normal',
 })
 
-/** Alias — toutes les stacks Tailwind pointent vers Satoshi. */
+/** Alias — every Tailwind stack points to Satoshi. */
 export const fontSans = fontSatoshi
 export const fontDisplay = fontSatoshi
 export const fontMono = fontSatoshi

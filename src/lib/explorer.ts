@@ -1,5 +1,5 @@
 /**
- * Liens vers les explorateurs de chaîne — dérivés du runtime quand disponible.
+ * Links to chain explorers — derived from runtime data when available.
  */
 
 export function explorerTxUrl(chainId: number | undefined, txHash: string | undefined): string | null {

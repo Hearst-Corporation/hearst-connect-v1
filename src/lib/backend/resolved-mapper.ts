@@ -1,20 +1,21 @@
 import { resolved, type Resolved } from '../resolved'
 
 /**
- * Traduction « `Resolved` backend → `Resolved` d'affichage ».
+ * "Backend `Resolved` → display `Resolved`" translation.
  *
- * Le backend sérialise ses champs sous une forme propre (statut, provenance,
- * fraîcheur) que l'UI ne consomme pas directement : elle parle le `Resolved`
- * de `src/lib/resolved.ts`. Ce module est le seul point de passage entre les
- * deux, à côté de `http-failure.ts` qui joue le même rôle pour les échecs HTTP.
+ * The backend serializes its fields in its own shape (status, provenance,
+ * freshness) that the UI doesn't consume directly: it speaks the `Resolved`
+ * of `src/lib/resolved.ts`. This module is the only crossing point between
+ * the two, alongside `http-failure.ts`, which plays the same role for HTTP
+ * failures.
  *
- * Interdits absolus, garantis par construction :
- *   - aucun fallback métier, aucune valeur par défaut ;
- *   - une valeur nulle annoncée « présente » devient un état d'erreur nommé,
- *     jamais un zéro.
+ * Absolute prohibitions, guaranteed by construction:
+ *   - no business fallback, no default value;
+ *   - a null value announced as "present" becomes a named error state,
+ *     never a zero.
  */
 
-/** `Resolved<T>` tel que le backend le sérialise (distinct du type d'affichage). */
+/** `Resolved<T>` as the backend serializes it (distinct from the display type). */
 export type BackendResolved<T> = {
   status: 'LIVE' | 'STALE' | 'PARTIAL' | 'UNAVAILABLE' | 'NOT_CONFIGURED' | 'NOT_SUPPORTED' | 'PERMISSION_DENIED'
   value: T | null
@@ -24,10 +25,10 @@ export type BackendResolved<T> = {
 }
 
 /**
- * Convertit un `Resolved` backend en `Resolved` d'affichage.
+ * Converts a backend `Resolved` into a display `Resolved`.
  *
- * Une donnée annoncée `provenance: "fixture"` par le backend est marquée
- * SIMULATED : elle ne doit jamais être présentée comme une mesure réelle.
+ * Data announced with `provenance: "fixture"` by the backend is marked
+ * SIMULATED: it must never be presented as a real measurement.
  */
 export function fromBackendResolved<T>(
   field: BackendResolved<T> | null | undefined,
@@ -36,14 +37,14 @@ export function fromBackendResolved<T>(
   const provenance = { ...context }
 
   if (!field) {
-    return resolved.notSupported('Champ absent de la réponse backend.', provenance)
+    return resolved.notSupported('Field missing from the backend response.', provenance)
   }
 
   if (field.provenance === 'fixture') {
     return {
       status: 'SIMULATED',
       value: null,
-      reason: 'Donnée simulée côté backend — non exploitable en production.',
+      reason: 'Simulated data on the backend — not usable in production.',
       provenance: { ...provenance, fetchedAt: field.freshness.asOf ?? context.fetchedAt },
     }
   }
@@ -54,24 +55,24 @@ export function fromBackendResolved<T>(
   switch (field.status) {
     case 'LIVE':
       return field.value === null
-        ? resolved.error('Statut LIVE annoncé avec une valeur nulle.', withFreshness)
+        ? resolved.error('LIVE status announced with a null value.', withFreshness)
         : resolved.live(field.value, withFreshness)
     case 'STALE':
       return field.value === null
-        ? resolved.error('Statut STALE annoncé avec une valeur nulle.', withFreshness)
-        : resolved.stale(field.value, reason ?? 'Fraîcheur insuffisante.', withFreshness)
+        ? resolved.error('STALE status announced with a null value.', withFreshness)
+        : resolved.stale(field.value, reason ?? 'Insufficient freshness.', withFreshness)
     case 'PARTIAL':
       return field.value === null
-        ? resolved.error('Statut PARTIAL annoncé avec une valeur nulle.', withFreshness)
-        : resolved.partial(field.value, reason ?? 'Réponse partielle.', withFreshness)
+        ? resolved.error('PARTIAL status announced with a null value.', withFreshness)
+        : resolved.partial(field.value, reason ?? 'Partial response.', withFreshness)
     case 'NOT_CONFIGURED':
-      return resolved.notConfigured(reason ?? 'Source non configurée.', withFreshness)
+      return resolved.notConfigured(reason ?? 'Source not configured.', withFreshness)
     case 'NOT_SUPPORTED':
-      return resolved.notSupported(reason ?? 'Non supporté par le contrat.', withFreshness)
+      return resolved.notSupported(reason ?? 'Not supported by the contract.', withFreshness)
     case 'PERMISSION_DENIED':
-      return resolved.permissionDenied(reason ?? 'Droits insuffisants.', withFreshness)
+      return resolved.permissionDenied(reason ?? 'Insufficient rights.', withFreshness)
     case 'UNAVAILABLE':
     default:
-      return resolved.unavailable(reason ?? 'Donnée indisponible.', withFreshness)
+      return resolved.unavailable(reason ?? 'Data unavailable.', withFreshness)
   }
 }
