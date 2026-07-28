@@ -60,24 +60,30 @@ export function MiningProductionChart({ mois }: Readonly<{ mois: readonly MoisPr
   return (
     <div className="px-2 py-4">
       {/* The table is not a duplicate: it's the only version readable by
-          screen readers and keyboard users. Hidden visually, never from assistive tech. */}
-      <table className="sr-only">
-        <caption>Bitcoin produced per operating month, as attested by the contract</caption>
-        <thead>
-          <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Bitcoin produced</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mois.map((m) => (
-            <tr key={m.libelle}>
-              <th scope="row">{m.libelle}</th>
-              <td>{formatBtc(m.btc)} BTC</td>
+          screen readers and keyboard users. Hidden visually, never from
+          assistive tech. Wrapped in a div, not applied to the table itself:
+          a <table> ignores width/max-width and sizes to its content
+          regardless, so the sr-only 1px clip only holds on a non-table
+          wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Bitcoin produced per operating month, as attested by the contract</caption>
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Bitcoin produced</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {mois.map((m) => (
+              <tr key={m.libelle}>
+                <th scope="row">{m.libelle}</th>
+                <td>{formatBtc(m.btc)} BTC</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className={`${chartTheme.height.medium} w-full`}>
         <ResponsiveContainer width="100%" height="100%">

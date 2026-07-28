@@ -68,23 +68,28 @@ export type PointCourbe = { readonly mois: number; readonly taux: number }
 export function VendingCurveChart({ points }: Readonly<{ points: readonly PointCourbe[] }>) {
   return (
     <div className="px-2 py-4">
-      <table className="sr-only">
-        <caption>Reward rate by month, as a percentage</caption>
-        <thead>
-          <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.mois}>
-              <th scope="row">Month {p.mois}</th>
-              <td>{p.taux.toFixed(2)} %</td>
+      {/* Wrapped in a div, not applied to the table itself: a <table> ignores
+          width/max-width and sizes to its content regardless, so the sr-only
+          1px clip only holds on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Reward rate by month, as a percentage</caption>
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Rate</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {points.map((p) => (
+              <tr key={p.mois}>
+                <th scope="row">Month {p.mois}</th>
+                <td>{p.taux.toFixed(2)} %</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className={`${chartTheme.height.medium} w-full`}>
         <ResponsiveContainer width="100%" height="100%">
@@ -145,23 +150,28 @@ function PostBar(props: BarShapeProps) {
 export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly PosteBitcoin[] }>) {
   return (
     <div className="px-2 py-4">
-      <table className="sr-only">
-        <caption>Reserve versus exposure breakdown, in dollars</caption>
-        <thead>
-          <tr>
-            <th scope="col">Category</th>
-            <th scope="col">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {postes.map((p) => (
-            <tr key={p.poste}>
-              <th scope="row">{p.poste}</th>
-              <td>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</td>
+      {/* Wrapped in a div, not applied to the table itself: a <table> ignores
+          width/max-width and sizes to its content regardless, so the sr-only
+          1px clip only holds on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Reserve versus exposure breakdown, in dollars</caption>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Amount</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {postes.map((p) => (
+              <tr key={p.poste}>
+                <th scope="row">{p.poste}</th>
+                <td>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className={`${chartTheme.height.small} w-full`}>
         <ResponsiveContainer width="100%" height="100%">

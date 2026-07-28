@@ -17,7 +17,7 @@ export function PageHeader({
 }>) {
   return (
     <div className="space-y-1.5">
-      <AdminPageTitle className="truncate">{title}</AdminPageTitle>
+      <AdminPageTitle>{title}</AdminPageTitle>
       {description ? <AdminPageDescription className="max-w-3xl text-balance">{description}</AdminPageDescription> : null}
     </div>
   )

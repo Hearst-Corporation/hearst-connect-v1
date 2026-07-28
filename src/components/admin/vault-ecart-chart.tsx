@@ -105,26 +105,31 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
     <div className="px-2 py-4">
       {/* The table isn't a duplicate of the chart: it's the chart's only
           keyboard- and screen-reader-accessible version. Hidden from sight,
-          never from assistive tech. */}
-      <table className="sr-only">
-        <caption>Deviation between actual and target allocation, by pocket, in percentage points</caption>
-        <thead>
-          <tr>
-            <th scope="col">Pocket</th>
-            <th scope="col">Deviation</th>
-            <th scope="col">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ecarts.map((e) => (
-            <tr key={e.poche}>
-              <th scope="row">{e.label}</th>
-              <td>{formatDeviationPoints(e.ecart)}</td>
-              <td>{e.mot}</td>
+          never from assistive tech. Wrapped in a div, not applied to the
+          table itself: a <table> ignores width/max-width and sizes to its
+          content regardless, so the sr-only 1px clip only holds on a
+          non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Deviation between actual and target allocation, by pocket, in percentage points</caption>
+          <thead>
+            <tr>
+              <th scope="col">Pocket</th>
+              <th scope="col">Deviation</th>
+              <th scope="col">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {ecarts.map((e) => (
+              <tr key={e.poche}>
+                <th scope="row">{e.label}</th>
+                <td>{formatDeviationPoints(e.ecart)}</td>
+                <td>{e.mot}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className="w-full" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
