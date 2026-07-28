@@ -3,26 +3,26 @@ import clsx from 'clsx'
 import Link from 'next/link'
 
 /**
- * Primitives du poste de commande.
+ * Command-post primitives.
  *
- * Deux règles gouvernent ce fichier :
+ * Two rules govern this file:
  *
- * 1. Une carte porte un VERDICT, pas une mesure. « 12 dossiers » n'apprend
- *    rien ; « 12 dossiers, le plus ancien attend depuis 6 jours, Acme Capital
- *    en tête » se traite. Chaque carte d'attention nomme donc le cas réel et
- *    propose le geste qui le résout.
+ * 1. A card carries a VERDICT, not a measurement. "12 cases" teaches
+ *    nothing; "12 cases, the oldest waiting 6 days, Acme Capital leading"
+ *    is actionable. Every attention card names the real case and proposes
+ *    the move that resolves it.
  *
- * 2. Une absence se dit, elle ne se dessine pas. Quand une surface n'a pas
- *    encore de source, elle l'annonce et explique ce qui manque — jamais un
- *    tableau d'exemple, jamais un zéro. `SourceAttendue` existe pour ça.
+ * 2. An absence is stated, not drawn. When a surface has no source yet, it
+ *    announces that and explains what's missing — never an example table,
+ *    never a zero. `SourceAttendue` exists for that.
  */
 
 /* ── Surfaces ────────────────────────────────────────────────────────────── */
 
 /**
- * Une seule grammaire de surface pour toute la console : `Card` ne recopie plus
- * la chaîne de classes, elle consomme `surfaceRaised` (cf. `surface.tsx`).
- * Un changement de plan raised se fait donc à un seul endroit.
+ * One surface grammar for the whole console: `Card` doesn't duplicate the
+ * class string, it consumes `surfaceRaised` (see `surface.tsx`). Changing
+ * the raised plane is therefore a single-point change.
  */
 export function Card({
   children,
@@ -48,7 +48,7 @@ export function CardHeader({
   )
 }
 
-/* ── Ton des états ───────────────────────────────────────────────────────── */
+/* ── State tone ──────────────────────────────────────────────────────────── */
 
 export type Tone = 'neutral' | 'attention' | 'critique' | 'sain'
 
@@ -66,15 +66,15 @@ const TONE_TEXT: Record<Tone, string> = {
   critique: 'text-danger-400',
 }
 
-/** Le libellé accompagne toujours la couleur : un daltonien lit le même état. */
+/** The label always accompanies the color: a colorblind reader gets the same state. */
 const TONE_LABEL: Record<Tone, string> = {
-  neutral: 'Pour information',
-  sain: 'Rien à signaler',
-  attention: 'À surveiller',
-  critique: 'Action requise',
+  neutral: 'For your information',
+  sain: 'Nothing to report',
+  attention: 'Worth watching',
+  critique: 'Action required',
 }
 
-/* ── Carte-verdict ───────────────────────────────────────────────────────── */
+/* ── Verdict card ────────────────────────────────────────────────────────── */
 
 export function VerdictCard({
   titre,
@@ -113,7 +113,7 @@ export function VerdictCard({
 
       {casUrgent ? (
         <p className="mt-4 border-t border-zinc-950/5 pt-3 text-sm text-zinc-700 dark:border-white/5 dark:text-zinc-300">
-          <span className="block text-xs text-zinc-500 dark:text-zinc-400">Le plus urgent</span>
+          <span className="block text-xs text-zinc-500 dark:text-zinc-400">Most urgent</span>
           {casUrgent}
         </p>
       ) : null}
@@ -128,7 +128,7 @@ export function VerdictCard({
   )
 }
 
-/* ── Bandeau d'exception ─────────────────────────────────────────────────── */
+/* ── Exception banner ────────────────────────────────────────────────────── */
 
 export function ExceptionBanner({
   message,
@@ -152,7 +152,7 @@ export function ExceptionBanner({
   )
 }
 
-/* ── Chiffre héros ───────────────────────────────────────────────────────── */
+/* ── Hero figure ─────────────────────────────────────────────────────────── */
 
 export function HeroFigure({
   valeur,
@@ -172,7 +172,7 @@ export function HeroFigure({
   )
 }
 
-/** Fait secondaire posé à côté du chiffre héros — jamais une tuile de plus. */
+/** Secondary fact placed beside the hero figure — never one more tile. */
 export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
   return (
     <div className="min-w-0">
@@ -182,16 +182,16 @@ export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur
   )
 }
 
-/* ── Absence de source ───────────────────────────────────────────────────── */
+/* ── No source yet ───────────────────────────────────────────────────────── */
 
 /**
- * L'état le plus important du produit.
+ * The product's most important state.
  *
- * Trois pages sur cinq décrivent un métier dont le service n'expose encore
- * aucune donnée : les tables existent en base, rien ne les lit en HTTP. Une
- * console honnête le dit et nomme ce qui manque, plutôt que d'afficher une
- * liste vide qu'on prendrait pour une panne — ou pire, un jeu d'exemple qu'on
- * prendrait pour la réalité.
+ * Three pages out of five describe a business the service doesn't expose
+ * data for yet: the tables exist in the database, nothing reads them over
+ * HTTP. An honest console says so and names what's missing, rather than
+ * showing an empty list that reads as an outage — or worse, a sample
+ * dataset that reads as reality.
  */
 export function SourceAttendue({
   quoi,
@@ -203,14 +203,14 @@ export function SourceAttendue({
       <p className="text-sm font-semibold text-zinc-950 dark:text-white">{quoi}</p>
       <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">{detail}</p>
       <div className="mx-auto mt-6 max-w-md rounded-lg bg-zinc-50 px-4 py-3 text-left ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
-        <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Ce qu’il manque</p>
+        <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">What&apos;s missing</p>
         <RequirementList requis={requis} />
       </div>
     </Card>
   )
 }
 
-/* ── Silence : rien ne demande d'attention ───────────────────────────────── */
+/* ── Calm: nothing needs attention ───────────────────────────────────────── */
 
 export function CalmState({ message }: Readonly<{ message: string }>) {
   return (
