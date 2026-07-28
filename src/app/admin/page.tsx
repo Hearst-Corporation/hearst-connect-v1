@@ -62,7 +62,11 @@ import clsx from 'clsx'
  * such on screen, never presented as a product rule.
  */
 
-export const metadata: Metadata = { title: 'Home' }
+// Next.js does not apply a layout's title.template to a page sharing the
+// same route segment as that layout (only to nested descendants) — so the
+// admin index route composes the title explicitly rather than relying on
+// admin/layout.tsx's template.
+export const metadata: Metadata = { title: { absolute: 'Home · Hearst Connect Administration' } }
 export const dynamic = 'force-dynamic'
 
 type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }

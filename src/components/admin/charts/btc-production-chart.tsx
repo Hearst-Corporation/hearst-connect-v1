@@ -101,26 +101,31 @@ export function ProductionMensuelleChart({
   return (
     <div className="px-2 py-4">
       {/* The only version readable by screen readers and keyboard navigation.
-          It carries the exact satoshi-level figure that the axis rounds. */}
-      <table className="sr-only">
-        <caption>Bitcoin produced per recorded month, with cumulative total at month end</caption>
-        <thead>
-          <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Produced that month</th>
-            <th scope="col">Cumulative at month end</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mois.map((m) => (
-            <tr key={m.periode}>
-              <th scope="row">{m.libelle}</th>
-              <td>{m.btcExact} BTC</td>
-              <td>{m.cumulExact === null ? 'not reported' : `${m.cumulExact} BTC`}</td>
+          It carries the exact satoshi-level figure that the axis rounds.
+          Wrapped in a div, not applied to the table itself: a <table>
+          ignores width/max-width and sizes to its content regardless, so
+          the sr-only 1px clip only holds on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Bitcoin produced per recorded month, with cumulative total at month end</caption>
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Produced that month</th>
+              <th scope="col">Cumulative at month end</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {mois.map((m) => (
+              <tr key={m.periode}>
+                <th scope="row">{m.libelle}</th>
+                <td>{m.btcExact} BTC</td>
+                <td>{m.cumulExact === null ? 'not reported' : `${m.cumulExact} BTC`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className={`${chartTheme.height.medium} w-full`}>
         <ResponsiveContainer width="100%" height="100%">

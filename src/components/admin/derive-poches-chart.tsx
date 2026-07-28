@@ -116,28 +116,34 @@ export function DerivePochesChart({ poches }: Readonly<{ poches: readonly Derive
   return (
     <div className="px-2 py-4">
       {/* The only screen-reader- and keyboard-accessible version: the chart
-          itself is decorative, the table carries the numbers. */}
-      <table className="sr-only">
-        <caption>Drift between target allocation and actual allocation, by pocket, in percentage points</caption>
-        <thead>
-          <tr>
-            <th scope="col">Pocket</th>
-            <th scope="col">Target</th>
-            <th scope="col">Actual</th>
-            <th scope="col">Drift</th>
-          </tr>
-        </thead>
-        <tbody>
-          {poches.map((p) => (
-            <tr key={p.poche}>
-              <th scope="row">{p.poche}</th>
-              <td>{formatValue(p.cible)}%</td>
-              <td>{formatValue(p.constate)}%</td>
-              <td>{formatSignedDrift(p.ecart)} points</td>
+          itself is decorative, the table carries the numbers. Wrapped in a
+          div (not applied to the table itself): a <table> with
+          table-layout:auto ignores an explicit width/max-width and sizes to
+          its content regardless, so the sr-only 1px clip only holds when it's
+          on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Drift between target allocation and actual allocation, by pocket, in percentage points</caption>
+          <thead>
+            <tr>
+              <th scope="col">Pocket</th>
+              <th scope="col">Target</th>
+              <th scope="col">Actual</th>
+              <th scope="col">Drift</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {poches.map((p) => (
+              <tr key={p.poche}>
+                <th scope="row">{p.poche}</th>
+                <td>{formatValue(p.cible)}%</td>
+                <td>{formatValue(p.constate)}%</td>
+                <td>{formatSignedDrift(p.ecart)} points</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className={`${chartTheme.height.small} w-full sm:${chartTheme.height.medium}`}>
         <ResponsiveContainer width="100%" height="100%">

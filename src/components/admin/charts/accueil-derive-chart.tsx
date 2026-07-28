@@ -85,26 +85,31 @@ export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly Poche
 
   return (
     <div className="px-2 py-4">
-      {/* Only version readable by screen reader and keyboard. */}
-      <table className="sr-only">
-        <caption>Gap between actual and target allocation, by pocket, in percentage points</caption>
-        <thead>
-          <tr>
-            <th scope="col">Pocket</th>
-            <th scope="col">Gap</th>
-            <th scope="col">Reading</th>
-          </tr>
-        </thead>
-        <tbody>
-          {barres.map((b) => (
-            <tr key={b.poche}>
-              <th scope="row">{b.libelle}</th>
-              <td>{formatPoints(b.points)}</td>
-              <td>{b.attention ? 'flagged' : 'within reading range'}</td>
+      {/* Only version readable by screen reader and keyboard. Wrapped in a
+          div, not applied to the table itself: a <table> ignores
+          width/max-width and sizes to its content regardless, so the
+          sr-only 1px clip only holds on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Gap between actual and target allocation, by pocket, in percentage points</caption>
+          <thead>
+            <tr>
+              <th scope="col">Pocket</th>
+              <th scope="col">Gap</th>
+              <th scope="col">Reading</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {barres.map((b) => (
+              <tr key={b.poche}>
+                <th scope="row">{b.libelle}</th>
+                <td>{formatPoints(b.points)}</td>
+                <td>{b.attention ? 'flagged' : 'within reading range'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div aria-hidden="true" className={`${chartTheme.height.small} w-full`}>
         <ResponsiveContainer width="100%" height="100%">
