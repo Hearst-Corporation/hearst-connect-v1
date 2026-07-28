@@ -67,14 +67,17 @@ function ValueBar({ percent }: Readonly<{ percent: number | null }>) {
 export function VaultValueBreakdown({ vaults }: Readonly<{ vaults: Availability<readonly Vault[]> }>) {
   const list = valueOf(vaults)
 
+function texteAbsence(list: readonly Vault[] | null): string {
+  if (list === null) return 'The vault reading did not resolve.'
+  return 'The service answered without a vault.'
+}
+
   if (list === null || list.length === 0) {
     return (
       <AdminSurface className="flex h-full flex-col">
         <AdminEmptyState
           title="No vault value."
-          description={
-            list === null ? 'The vault reading did not resolve.' : 'The service answered without a vault.'
-          }
+          description={texteAbsence(list)}
         >
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <SourceAvailabilityBadge availability={vaults} />

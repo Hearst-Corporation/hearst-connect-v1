@@ -9,7 +9,6 @@ import {
   AreaChart,
   Bar,
   BarChart,
-  Cell,
   Pie,
   PieChart,
   PolarAngleAxis,
@@ -77,6 +76,36 @@ function TooltipFrame({
   )
 }
 
+function TrendTooltip({
+  active,
+  payload,
+}: Readonly<{ active?: boolean; payload?: readonly { payload?: DashboardTrendPoint }[] }>) {
+  if (active !== true || payload?.length !== 1) return null
+  const point = payload[0]?.payload
+  if (point === undefined) return null
+  return <TooltipFrame title={point.detail} lines={[formatCompactNumber(point.value)]} />
+}
+
+function DonutTooltip({
+  active,
+  payload,
+}: Readonly<{ active?: boolean; payload?: readonly { payload?: { name: string; label: string; value: number } }[] }>) {
+  if (active !== true || payload?.length !== 1) return null
+  const slice = payload[0]?.payload
+  if (slice === undefined) return null
+  return <TooltipFrame title={slice.name} lines={[slice.label, formatPercent(slice.value, { fromBps: true })]} />
+}
+
+function BarTooltip({
+  active,
+  payload,
+}: Readonly<{ active?: boolean; payload?: readonly { payload?: DashboardBarPoint }[] }>) {
+  if (active !== true || payload?.length !== 1) return null
+  const bar = payload[0]?.payload
+  if (bar === undefined) return null
+  return <TooltipFrame title={bar.label} lines={[formatNumber(bar.value)]} />
+}
+
 export function DashboardTrendChart({
   points,
   availability,
@@ -109,15 +138,7 @@ export function DashboardTrendChart({
             minTickGap={20}
           />
           <YAxis hide />
-          <Tooltip
-            cursor={{ stroke: chartTheme.dataSeries.dataReference, strokeOpacity: 0.24 }}
-            content={({ active, payload }) => {
-              if (active !== true || payload?.length !== 1) return null
-              const point = payload[0]?.payload as DashboardTrendPoint | undefined
-              if (point === undefined) return null
-              return <TooltipFrame title={point.detail} lines={[formatCompactNumber(point.value)]} />
-            }}
-          />
+          <Tooltip cursor={{ stroke: chartTheme.dataSeries.dataReference, strokeOpacity: 0.24 }} content={<TrendTooltip />} />
           <Area
             type="monotone"
             dataKey="value"
@@ -166,19 +187,8 @@ export function DashboardCapitalDonut({
               outerRadius="88%"
               paddingAngle={2}
               isAnimationActive={false}
-            >
-              {data.map((slice) => (
-                <Cell key={slice.name} fill={slice.fill} />
-              ))}
-            </Pie>
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active !== true || payload?.length !== 1) return null
-                const slice = payload[0]?.payload as (typeof data)[number] | undefined
-                if (slice === undefined) return null
-                return <TooltipFrame title={slice.name} lines={[slice.label, formatPercent(slice.value, { fromBps: true })]} />
-              }}
             />
+            <Tooltip content={<DonutTooltip />} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -248,6 +258,8 @@ export function DashboardProgressRadial({
   )
 }
 
+type DashboardBarPointWithFill = DashboardBarPoint & { readonly fill: string }
+
 export function DashboardBarChart({
   bars,
   availability,
@@ -259,13 +271,17 @@ export function DashboardBarChart({
     return <ChartUnavailable availability={availability} label="No categories to draw." />
   }
 
+  const data: DashboardBarPointWithFill[] = bars.map((bar, index) => ({
+    ...bar,
+    fill: index === 0 ? chartTheme.dataSeries.brandPrimary : chartTheme.dataSeries.neutralRaised,
+  }))
   const height = Math.max(100, chartHeight('columns', bars.length) - 96)
 
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         {/* The Y-axis is hidden; the negative left margin removes Recharts' reserved axis gutter so the plot fills the frame. */}
-        <BarChart data={bars} margin={{ top: 8, right: 0, bottom: 0, left: -16 }}>
+        <BarChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: -16 }}>
           <XAxis
             dataKey="label"
             tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
@@ -277,23 +293,8 @@ export function DashboardBarChart({
             height={bars.length > 4 ? 46 : 28}
           />
           <YAxis hide />
-          <Tooltip
-            cursor={{ fill: chartTheme.cursor }}
-            content={({ active, payload }) => {
-              if (active !== true || payload?.length !== 1) return null
-              const bar = payload[0]?.payload as DashboardBarPoint | undefined
-              if (bar === undefined) return null
-              return <TooltipFrame title={bar.label} lines={[formatNumber(bar.value)]} />
-            }}
-          />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} isAnimationActive={false}>
-            {bars.map((bar, index) => (
-              <Cell
-                key={bar.label}
-                fill={index === 0 ? chartTheme.dataSeries.brandPrimary : chartTheme.dataSeries.neutralRaised}
-              />
-            ))}
-          </Bar>
+          <Tooltip cursor={{ fill: chartTheme.cursor }} content={<BarTooltip />} />
+          <Bar dataKey="value" radius={[8, 8, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>

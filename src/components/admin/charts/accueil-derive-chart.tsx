@@ -6,7 +6,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   LabelList,
   ReferenceLine,
   ResponsiveContainer,
@@ -70,6 +69,7 @@ type BarreDerive = {
   readonly libelle: string
   readonly points: number
   readonly attention: boolean
+  readonly fill: string
 }
 
 function formatPoints(points: number): string {
@@ -125,7 +125,9 @@ function ChartTooltip({
     <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
       <p className="font-medium text-zinc-950 dark:text-white">{barre.libelle}</p>
       <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">
-        {formatPoints(barre.points)} {barre.points < 0 ? 'below target' : 'above target'}
+        {formatPoints(barre.points)}
+        {' '}
+        {barre.points < 0 ? 'below target' : 'above target'}
       </p>
     </div>
   )
@@ -149,6 +151,7 @@ export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly Poche
     libelle: p.libelle,
     points: p.deriveBps / 100,
     attention: Math.abs(p.deriveBps) >= SEUIL_DERIVE_ATTENTION_BPS,
+    fill: Math.abs(p.deriveBps) >= SEUIL_DERIVE_ATTENTION_BPS ? TON_SIGNALE : TON_DANS_PLAGE,
   }))
 
   // Axis symmetric around zero: without it, a single pocket in negative
@@ -232,9 +235,6 @@ export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly Poche
             {/* Animation disabled, as everywhere in the console: a bar that
                 grows from zero delays reading without teaching anything. */}
             <Bar dataKey="points" radius={2} maxBarSize={16} isAnimationActive={false}>
-              {barres.map((b) => (
-                <Cell key={b.poche} fill={b.attention ? TON_SIGNALE : TON_DANS_PLAGE} />
-              ))}
               <LabelList
                 position="right"
                 offset={6}
