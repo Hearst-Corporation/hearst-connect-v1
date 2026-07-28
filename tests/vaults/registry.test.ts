@@ -62,7 +62,7 @@ function runtime() {
   return { chainId: 31337, contractAddress: ADDRESS, codePresent: true, codePresence: 'present' }
 }
 
-function vaultResponse(overrides: { snapshot?: unknown; capacity?: unknown } = {}) {
+function vaultResponse(overrides: { snapshot?: Record<string, unknown>; capacity?: Record<string, unknown> } = {}) {
   return envelope({
     runtime: runtime(),
     snapshot: {
@@ -93,7 +93,7 @@ function vaultResponse(overrides: { snapshot?: unknown; capacity?: unknown } = {
   })
 }
 
-function strategiesResponse(overrides: { strategies?: unknown } = {}) {
+function strategiesResponse(overrides: { strategies?: Record<string, unknown> } = {}) {
   return envelope({
     runtime: runtime(),
     strategies: {
@@ -127,7 +127,7 @@ function strategiesResponse(overrides: { strategies?: unknown } = {}) {
   })
 }
 
-function rwaResponse(overrides: { pockets?: unknown } = {}) {
+function rwaResponse(overrides: { pockets?: Record<string, unknown> } = {}) {
   return envelope({
     runtime: runtime(),
     pockets: {
@@ -156,7 +156,7 @@ function rebalancingResponse() {
   })
 }
 
-function eventsResponse(overrides: { events?: unknown } = {}) {
+function eventsResponse(overrides: { events?: Record<string, unknown> } = {}) {
   return envelope({
     events: {
       status: 'LIVE',
@@ -182,7 +182,7 @@ function eventsResponse(overrides: { events?: unknown } = {}) {
   })
 }
 
-function dashboardResponse(overrides: { identity?: unknown } = {}) {
+function dashboardResponse(overrides: { identity?: Record<string, unknown> } = {}) {
   return envelope({
     identity: {
       status: 'UNAVAILABLE',

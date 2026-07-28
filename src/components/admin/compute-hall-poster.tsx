@@ -58,11 +58,11 @@ export function ComputeHallPoster({
   bays = 5,
   className,
   title = 'Isometric diagram of the vault server bays',
-}: {
+}: Readonly<{
   bays?: number
   className?: string
   title?: string
-}) {
+}>) {
   const geometry = Array.from({ length: bays }, (_, i) => bayPaths(i))
   const all = geometry.flatMap((_, i) => {
     const y0 = i * (BAY_DEPTH + BAY_GAP)

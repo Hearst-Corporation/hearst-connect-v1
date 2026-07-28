@@ -102,7 +102,11 @@ function texteAbsence(list: readonly Vault[] | null): string {
   }
 
   // Highest value first — the ordering IS part of the reading.
-  const ranked = [...measured].sort((a, b) => (a.atomic < b.atomic ? 1 : a.atomic > b.atomic ? -1 : 0))
+  const ranked = [...measured].sort((a, b) => {
+    if (a.atomic < b.atomic) return 1
+    if (a.atomic > b.atomic) return -1
+    return 0
+  })
   const total = ranked.reduce((sum, entry) => sum + entry.atomic, ZERO)
 
   // Every vault answered, and none of them with a value: the honest report is

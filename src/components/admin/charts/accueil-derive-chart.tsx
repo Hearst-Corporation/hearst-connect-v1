@@ -262,10 +262,12 @@ export function AccueilDeriveChart({ poches }: Readonly<{ poches: readonly Poche
       <ul className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
         <li className="flex items-center gap-1.5">
           <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: TON_DANS_PLAGE }} />
+          {' '}
           Within reading range
         </li>
         <li className="flex items-center gap-1.5">
           <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: TON_SIGNALE }} />
+          {' '}
           Flagged — gap of at least {SEUIL_DERIVE_ATTENTION_BPS / 100} pt
         </li>
       </ul>
