@@ -40,14 +40,14 @@ function ChartUnavailable({
   label: string
 }>) {
   return (
-    <div className="flex h-full min-h-44 flex-col justify-between rounded-2xl bg-zinc-50/60 p-4 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+    <div className="flex h-full min-h-36 flex-col justify-between rounded-xl bg-zinc-50/60 p-3 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
       <div className="space-y-2">
-        <div className="h-16 rounded-xl bg-linear-to-b from-zinc-200/60 to-transparent dark:from-white/8 dark:to-transparent" />
+        <div className="h-12 rounded-xl bg-linear-to-b from-zinc-200/60 to-transparent dark:from-white/8 dark:to-transparent" />
         <div className="grid grid-cols-4 gap-2">
-          <div className="h-10 rounded-lg bg-zinc-200/70 dark:bg-white/8" />
-          <div className="h-7 self-end rounded-lg bg-zinc-200/45 dark:bg-white/6" />
-          <div className="h-5 self-end rounded-lg bg-zinc-200/35 dark:bg-white/5" />
-          <div className="h-8 self-end rounded-lg bg-zinc-200/50 dark:bg-white/7" />
+          <div className="h-8 rounded-lg bg-zinc-200/70 dark:bg-white/8" />
+          <div className="h-5 self-end rounded-lg bg-zinc-200/45 dark:bg-white/6" />
+          <div className="h-4 self-end rounded-lg bg-zinc-200/35 dark:bg-white/5" />
+          <div className="h-6 self-end rounded-lg bg-zinc-200/50 dark:bg-white/7" />
         </div>
       </div>
       <div className="flex flex-col items-center gap-2 text-center">
@@ -88,7 +88,7 @@ export function DashboardTrendChart({
     return <ChartUnavailable availability={availability} label="Not enough ordered points." />
   }
 
-  const height = Math.max(148, chartHeight('line', points.length) - 56)
+  const height = Math.max(100, chartHeight('line', points.length) - 120)
 
   return (
     <div className="w-full" style={{ height }}>
@@ -154,7 +154,7 @@ export function DashboardCapitalDonut({
 
   return (
     <div className="flex h-full flex-col justify-center">
-      <div className="mx-auto w-full max-w-64" style={{ height: 164 }}>
+      <div className="mx-auto w-full max-w-52" style={{ height: 128 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -182,10 +182,10 @@ export function DashboardCapitalDonut({
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2.5">
+      <div className="mt-1.5 grid grid-cols-2 gap-2">
         {data.map((slice) => (
-          <div key={slice.name} className="rounded-xl bg-zinc-50/70 px-2.5 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-            <div className="flex items-center gap-2">
+          <div key={slice.name} className="rounded-lg bg-zinc-50/70 px-2 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+            <div className="flex items-center gap-1.5">
               <span aria-hidden="true" className="size-2 rounded-full" style={{ background: slice.fill }} />
               <span className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
                 {slice.name}
@@ -216,7 +216,7 @@ export function DashboardProgressRadial({
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="relative w-full max-w-44" style={{ height: 152 }}>
+      <div className="relative w-full max-w-36" style={{ height: 120 }}>
         <ResponsiveContainer width="100%" height="100%">
           <RadialBarChart
             data={data}
@@ -224,7 +224,7 @@ export function DashboardProgressRadial({
             outerRadius="100%"
             startAngle={90}
             endAngle={-270}
-            barSize={18}
+            barSize={14}
           >
             <PolarAngleAxis type="number" domain={[0, 10000]} tick={false} />
             <RadialBar
@@ -236,13 +236,13 @@ export function DashboardProgressRadial({
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <p className="text-2xl font-semibold tracking-tight tabular-nums text-zinc-950 dark:text-white">{ratioLabel}</p>
-          <p className="mt-1 text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
+          <p className="text-xl font-semibold tracking-tight tabular-nums text-zinc-950 dark:text-white">{ratioLabel}</p>
+          <p className="mt-0.5 text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
             deployed
           </p>
         </div>
       </div>
-      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Deployment ratio</p>
+      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Deployment ratio</p>
     </div>
   )
 }
@@ -258,7 +258,7 @@ export function DashboardBarChart({
     return <ChartUnavailable availability={availability} label="No categories to draw." />
   }
 
-  const height = Math.max(150, chartHeight('columns', bars.length) - 36)
+  const height = Math.max(100, chartHeight('columns', bars.length) - 96)
 
   return (
     <div className="w-full" style={{ height }}>

@@ -297,23 +297,23 @@ export function DeploymentQueue({
 
   return (
     <AdminSurface className="flex h-full flex-col">
-      <div className="px-5 pt-5 pb-4 sm:px-6">
+      <div className="px-4 pt-4 pb-3 sm:px-5">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <AdminSurfaceTitle className="text-sm/5">Deployments</AdminSurfaceTitle>
-          <div className="grid min-w-0 grid-cols-1 gap-3 text-right sm:grid-cols-3">
-            <div className="rounded-xl bg-zinc-50/70 px-3 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+          <div className="grid min-w-0 grid-cols-1 gap-2.5 text-right sm:grid-cols-3">
+            <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
               <AdminLabel>Deployed</AdminLabel>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {deployedValue ?? 'Unavailable'}
               </p>
             </div>
-            <div className="rounded-xl bg-zinc-50/70 px-3 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+            <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
               <AdminLabel>Undeployed</AdminLabel>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {idleValue ?? 'Unavailable'}
               </p>
             </div>
-            <div className="rounded-xl bg-zinc-50/70 px-3 py-2 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
+            <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
               <AdminLabel>Ratio</AdminLabel>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {ratioValue ?? 'Unavailable'}
@@ -321,11 +321,11 @@ export function DeploymentQueue({
             </div>
           </div>
         </div>
-        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">{assetLabel}</p>
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{assetLabel}</p>
       </div>
 
       {!isAvailable(deployments) ? (
-        <div className="border-t border-zinc-950/10 px-5 py-4 sm:px-6 dark:border-console-line">
+        <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <SourceAvailabilityBadge availability={deployments} compact />
             <Link href={COVERAGE_HREF} className={INLINE_LINK}>
@@ -335,7 +335,7 @@ export function DeploymentQueue({
           <AdminBody className="mt-2">Ledger not exposed.</AdminBody>
         </div>
       ) : deployments.value.length === 0 ? (
-        <div className="border-t border-zinc-950/10 px-5 py-4 sm:px-6 dark:border-console-line">
+        <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
           <AdminBody>No deployment recorded.</AdminBody>
         </div>
       ) : (

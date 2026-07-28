@@ -136,14 +136,6 @@ function ClientCell({ movement }: Readonly<{ movement: Movement }>) {
   )
 }
 
-function AssetCell({ vault }: Readonly<{ vault: Vault | undefined }>) {
-  if (vault === undefined) {
-    return <Absent title="The vault this event belongs to could not be read, so its denomination is unknown." />
-  }
-  if (!isAvailable(vault.asset)) return <SourceAvailabilityBadge availability={vault.asset} compact />
-  return <span className="text-zinc-700 dark:text-zinc-300">{vault.asset.value.symbol}</span>
-}
-
 function AmountCell({ movement, vault }: Readonly<{ movement: Movement; vault: Vault | undefined }>) {
   if (movement.assetAmountAtomic === null) {
     // Most event types carry no amount at all (a strategy being added moves
@@ -163,23 +155,6 @@ function AmountCell({ movement, vault }: Readonly<{ movement: Movement; vault: V
       {formatCurrency(movement.assetAmountAtomic, { fromAtomic: 10 ** decimals })}
     </span>
   )
-}
-
-function StrategyCell({ movement, vault }: Readonly<{ movement: Movement; vault: Vault | undefined }>) {
-  if (!isAvailable(movement.strategyId)) {
-    return <SourceAvailabilityBadge availability={movement.strategyId} compact />
-  }
-
-  const id = movement.strategyId.value
-  const known =
-    vault !== undefined && isAvailable(vault.strategies)
-      ? vault.strategies.value.find((s) => s.id === id)
-      : undefined
-  // A strategy identifier is "{vaultId}:{pocket}" — the pocket is the readable
-  // half when the vault itself could not be read to supply a label.
-  const pocket = id.slice(id.indexOf(':') + 1)
-
-  return <VaultEntityLink kind="strategy" id={id} label={known === undefined ? pocket : known.label} />
 }
 
 function TransactionCell({ movement }: Readonly<{ movement: Movement }>) {
@@ -244,7 +219,7 @@ const HEADERS: readonly { key: string; label: string; className?: string }[] = [
   { key: 'status', label: 'Status', className: 'whitespace-normal break-words' },
 ]
 
-const CELL = 'px-4 py-3 align-top'
+const CELL = 'px-4 py-2 align-top'
 
 function Heading({ movements }: Readonly<{ movements: Availability<readonly Movement[]> }>) {
   return (
@@ -268,7 +243,7 @@ export function MovementLedger({
 }>) {
   if (!isAvailable(movements)) {
     return (
-      <AdminSurface className="p-6">
+      <AdminSurface className="p-4">
         <Heading movements={movements} />
         <AdminCaption className="mt-3">
           <Link href={DATA_COVERAGE_HREF} className={LINK_CLASS}>
@@ -282,7 +257,7 @@ export function MovementLedger({
   const all = movements.value
   if (all.length === 0) {
     return (
-      <AdminSurface className="p-6">
+      <AdminSurface className="p-4">
         <Heading movements={movements} />
         <AdminBody className="mt-2 max-w-prose">No indexed movement yet.</AdminBody>
       </AdminSurface>
@@ -303,7 +278,7 @@ export function MovementLedger({
 
   return (
     <AdminSurface>
-      <div className="px-5 pt-5 pb-3 sm:px-6">
+      <div className="px-4 pt-4 pb-3 sm:px-5">
         <Heading movements={movements} />
       </div>
 
@@ -312,7 +287,7 @@ export function MovementLedger({
           <thead>
             <tr className={clsx('border-b border-zinc-950/10 text-xs dark:border-console-line', MUTED_CLASS)}>
               {HEADERS.map((h) => (
-                <th key={h.key} scope="col" className={clsx(h.className, 'px-4 py-3 font-medium')}>
+                <th key={h.key} scope="col" className={clsx(h.className, 'px-4 py-2 font-medium')}>
                   {h.label}
                 </th>
               ))}
@@ -357,7 +332,7 @@ export function MovementLedger({
         </table>
       </div>
 
-      <AdminCaption className="px-5 py-3 sm:px-6">
+      <AdminCaption className="px-4 py-2 sm:px-5">
         {truncated
           ? `${formatNumber(shown.length)} / ${formatNumber(all.length)} shown.`
           : `${formatNumber(all.length)} shown.`}{' '}
