@@ -2,7 +2,7 @@
 
 import { categoricalColor, chartHeight, chartTheme } from '@/lib/chart-theme'
 import { formatNumber } from '@/lib/format'
-import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 
 /**
  * Horizontal distribution — movement types or strategic pockets.
@@ -32,6 +32,8 @@ export type BarreRepartition = {
   readonly valeur: number
 }
 
+type BarreAvecFill = BarreRepartition & { readonly fill: string }
+
 /**
  * Category-axis sizing. Recharts wraps tick text at the axis `width`, so the
  * width has to be measured, not guessed: ~6.2px per character at 11px in the
@@ -55,7 +57,9 @@ export function DistributionBarChart({
     return <p className="px-5 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">No data to display.</p>
   }
 
-  const data: BarreRepartition[] = [...barres].sort((a, b) => b.valeur - a.valeur)
+  const data: BarreAvecFill[] = [...barres]
+    .sort((a, b) => b.valeur - a.valeur)
+    .map((barre, index) => ({ ...barre, fill: categoricalColor(index) }))
   const hauteur = chartHeight('rows', data.length)
   const largeurAxe = largeurAxeCategories(data.map((b) => b.nom))
 
@@ -107,9 +111,6 @@ export function DistributionBarChart({
             {/* Animation disabled, as everywhere in the console: a bar that
                 grows from zero delays reading without teaching anything. */}
             <Bar dataKey="valeur" radius={[0, 3, 3, 0]} maxBarSize={20} isAnimationActive={false}>
-              {data.map((b, i) => (
-                <Cell key={b.nom} fill={categoricalColor(i)} />
-              ))}
               <LabelList
                 dataKey="valeur"
                 position="right"

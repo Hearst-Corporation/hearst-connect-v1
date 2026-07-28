@@ -4,7 +4,7 @@ import { AdminSurface, AdminTable, type AdminTableColumn } from '@/components/ad
 import { AdminBody, AdminLabel, AdminSurfaceTitle } from '@/components/admin/typography'
 import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
-import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
+import { formatCurrency, formatDateTime, formatPercent } from '@/lib/format'
 import {
   available,
   combine,
@@ -271,6 +271,42 @@ function ledgerColumns(
   ]
 }
 
+function LedgerPanel({
+  deployments,
+  columns,
+}: Readonly<{
+  deployments: Availability<readonly Deployment[]>
+  columns: readonly AdminTableColumn<Deployment>[]
+}>) {
+  if (!isAvailable(deployments)) {
+    return (
+      <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <SourceAvailabilityBadge availability={deployments} compact />
+          <Link href={COVERAGE_HREF} className={INLINE_LINK}>
+            Data coverage
+          </Link>
+        </div>
+        <AdminBody className="mt-2">Ledger not exposed.</AdminBody>
+      </div>
+    )
+  }
+
+  if (deployments.value.length === 0) {
+    return (
+      <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
+        <AdminBody>No deployment recorded.</AdminBody>
+      </div>
+    )
+  }
+
+  return (
+    <div className="border-t border-zinc-950/10 dark:border-console-line">
+      <AdminTable columns={columns} rows={deployments.value} keyFn={(row) => row.id} />
+    </div>
+  )
+}
+
 /* ── The component ────────────────────────────────────────────────────────── */
 
 export function DeploymentQueue({
@@ -324,25 +360,7 @@ export function DeploymentQueue({
         <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{assetLabel}</p>
       </div>
 
-      {!isAvailable(deployments) ? (
-        <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <SourceAvailabilityBadge availability={deployments} compact />
-            <Link href={COVERAGE_HREF} className={INLINE_LINK}>
-              Data coverage
-            </Link>
-          </div>
-          <AdminBody className="mt-2">Ledger not exposed.</AdminBody>
-        </div>
-      ) : deployments.value.length === 0 ? (
-        <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
-          <AdminBody>No deployment recorded.</AdminBody>
-        </div>
-      ) : (
-        <div className="border-t border-zinc-950/10 dark:border-console-line">
-          <AdminTable columns={ledgerColumns(asset, vaultsById)} rows={deployments.value} keyFn={(row) => row.id} />
-        </div>
-      )}
+      <LedgerPanel deployments={deployments} columns={ledgerColumns(asset, vaultsById)} />
     </AdminSurface>
   )
 }

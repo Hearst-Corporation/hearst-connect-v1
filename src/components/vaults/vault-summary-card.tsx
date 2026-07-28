@@ -138,7 +138,7 @@ export function VaultSummaryCard({ vault }: Readonly<{ vault: Vault }>) {
           <p className="mt-1 truncate font-mono text-xs text-zinc-500 dark:text-zinc-400" title={vault.contractAddress}>
             {[
               vault.chainId === null ? null : `chain ${vault.chainId}`,
-              address === null ? vault.contractAddress : address,
+              address ?? vault.contractAddress,
             ]
               .filter((part) => part !== null)
               .join(' · ')}

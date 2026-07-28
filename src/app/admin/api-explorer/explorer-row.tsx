@@ -31,7 +31,10 @@ function unrunnableLabel(method: BackendEndpoint['method'], pathParams: readonly
   if (method === 'POST') return 'Keeper action — Keeper page'
   // The registry's caveat already says where the value comes from: here we
   // only announce that it's missing, without repeating it.
-  if (pathParams.length > 0) return `parameter ${pathParams.map((name) => `:${name}`).join(', ')} required — not enterable here`
+  if (pathParams.length > 0) {
+    const params = pathParams.map((name) => `:${name}`).join(', ')
+    return `parameter ${params} required — not enterable here`
+  }
   return null
 }
 

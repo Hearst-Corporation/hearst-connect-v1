@@ -184,7 +184,7 @@ function movementTypeBars(movements: Availability<readonly { eventName: string }
   for (const movement of movements.value) {
     const label = libelleMouvement(movement.eventName)
     const previous = counts.get(label)
-    counts.set(label, (previous === undefined ? 0 : previous) + 1)
+    counts.set(label, previous === undefined ? 1 : previous + 1)
   }
   return [...counts.entries()]
     .map(([label, value]) => ({ label, value }))
@@ -276,10 +276,7 @@ export default async function Page() {
     formatNumber(list.filter((vault) => vault.status === 'ACTIVE').length),
   )
 
-  const totalValueLocked = asMoney(
-    sumAcrossVaults(vaults, (vault) => mapAvailability(vault.totalAssetsAtomic, (raw) => BigInt(raw))),
-    asset,
-  )
+  const totalValueLocked = asMoney(sumAcrossVaults(vaults, (vault) => mapAvailability(vault.totalAssetsAtomic, BigInt)), asset)
   const deployedCapitalAtomic = sumAcrossVaults(vaults, deployedAtomic)
   const availableCapitalAtomic = sumAcrossVaults(vaults, idleAtomic)
   const deployedCapital = asMoney(deployedCapitalAtomic, asset)

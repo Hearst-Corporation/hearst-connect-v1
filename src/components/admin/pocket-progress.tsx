@@ -80,10 +80,12 @@ export function PocketProgressLegend() {
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-zinc-500 dark:text-zinc-400">
       <span className="inline-flex items-center gap-1.5">
         <span className="h-2 w-4 rounded-full bg-accent-600 dark:bg-accent-400" aria-hidden="true" />
+        {' '}
         Actual share
       </span>
       <span className="inline-flex items-center gap-1.5">
         <span className="h-3 w-0.5 rounded-full bg-zinc-500 dark:bg-zinc-400" aria-hidden="true" />
+        {' '}
         Target share
       </span>
     </div>

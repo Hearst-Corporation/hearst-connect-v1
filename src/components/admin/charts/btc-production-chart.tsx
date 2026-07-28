@@ -84,8 +84,8 @@ function ChartTooltip({
  * not told otherwise — this caption exists to correct that.
  */
 function readabilityNote(mois: readonly MoisProduction[]): string {
-  const premier = mois[0]
-  const dernier = mois[mois.length - 1]
+  const premier = mois.at(0)
+  const dernier = mois.at(-1)
 
   if (mois.length === 1) {
     // Unreachable through the Bitcoin page, which switches to
