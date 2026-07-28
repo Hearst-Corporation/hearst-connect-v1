@@ -1,10 +1,12 @@
 'use client'
 
-import { chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/lib/chart-theme'
+import { formatNumber } from '@/lib/format'
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -13,76 +15,128 @@ import {
 } from 'recharts'
 
 /**
- * « Quelle poche s'écarte de sa cible, et dans quel sens ? »
+ * "Which pocket has drifted from its target, and in which direction?"
  *
- * Le graphique d'allocation classique (visée vs constatée) répond à « où est
- * l'argent ». Sur une page d'opérations, la question n'est pas la même : elle
- * porte sur le GESTE à faire — quelle poche a dérivé, de combien, et dans quel
- * sens. C'est donc l'écart signé qui est tracé, autour d'une ligne de zéro,
- * et non deux barres à comparer à l'œil.
+ * The classic allocation chart (target vs. actual) answers "where is the
+ * money." On an operations page, the question is different: it's about the
+ * ACTION to take — which pocket has drifted, by how much, and in which
+ * direction. So it's the signed drift that's plotted, around a zero line,
+ * rather than two bars to compare by eye.
  *
- * Deux partis pris :
+ * Three design choices:
  *
- * 1. Une seule couleur. Une poche au-dessus de sa cible n'est ni meilleure ni
- *    pire qu'une poche en dessous : seule l'amplitude compte. Colorer le signe
- *    ferait passer un jugement que la donnée ne porte pas.
- * 2. L'échelle est symétrique autour de zéro. Un axe cadré sur les seules
- *    valeurs présentes exagérerait visuellement le plus petit des écarts.
+ * 1. A single colour, and an ordinary one. A pocket above its target is
+ *    neither better nor worse than one below: only the magnitude matters.
+ *    Colouring by sign would pass a judgment the data doesn't carry, and
+ *    reaching for a semantic tone (green, orange, red) would claim a verdict
+ *    this page has no threshold to back. The bars therefore use
+ *    `chartTheme.dataSeries.brandPrimary`, and the zero reference uses
+ *    `dataSeries.dataReference` — measurement colours, no alarm.
+ * 2. The scale is symmetric around zero. An axis framed on the values
+ *    present alone would visually exaggerate the smallest drift.
+ * 3. Every bar is labelled with its own value. A drift chart whose numbers
+ *    only appear on hover is a picture, not a reading — and the operations
+ *    page is read, printed and screenshotted.
  *
- * Aucun seuil de déclenchement n'est dessiné : le service n'en publie aucun.
- * Une ligne « seuil » inventée se lirait comme une règle de gestion.
+ * No trigger threshold is drawn: the service publishes none. An invented
+ * "threshold" line would read as a management rule.
+ *
+ * The plot height comes from `chartHeight('rows', n)`: with three pockets it
+ * is three rows tall, not a fixed box with empty air below the last bar.
  */
 
 export type DerivePoche = {
   readonly poche: string
-  /** Part visée par le contrat, en pourcentage. */
+  /** Target share per the contract, in percent. */
   readonly cible: number
-  /** Part constatée sur la chaîne, en pourcentage. */
+  /** Actual on-chain share, in percent. */
   readonly constate: number
-  /** Écart signé constaté − visé, en points de pourcentage. */
+  /** Signed drift, actual − target, in percentage points. */
   readonly ecart: number
 }
 
-const ACCENT = chartTheme.series.primary
+/** Ordinary measurement, no verdict: mint, never a semantic tone. */
+const TON_MESURE = chartTheme.dataSeries.brandPrimary
 
-function nombre(valeur: number): string {
-  return valeur.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+function formatValue(value: number): string {
+  return formatNumber(value, { maximumFractionDigits: 2 })
 }
 
-function ecartSigne(valeur: number): string {
-  return valeur.toLocaleString('fr-FR', { maximumFractionDigits: 2, signDisplay: 'always' })
-}
-
-/** Le sens de l'écart, dit en toutes lettres — la couleur n'en dit rien. */
-function sensEcart(valeur: number): string {
-  if (valeur < 0) return 'sous la cible'
-  if (valeur > 0) return 'au-dessus de la cible'
-  return 'sur la cible'
-}
-
-/** Échelle symétrique, arrondie au dixième supérieur, jamais nulle. */
-function marge(poches: readonly DerivePoche[]): number {
-  let amplitude = 0
-  for (const p of poches) {
-    const absolu = Math.abs(p.ecart)
-    if (absolu > amplitude) amplitude = absolu
-  }
-  return Math.max(Math.ceil(amplitude * 12) / 10, 0.1)
+function formatSignedDrift(value: number): string {
+  return formatNumber(value, { maximumFractionDigits: 2, signDisplay: 'always' })
 }
 
 /**
- * Graduations imposées, et non laissées à la bibliothèque.
- *
- * Livrée à elle-même, recharts choisit un pas « rond » qui saute le zéro :
- * l'axe affichait −2,6 / −0,6 / 1,4 alors que le zéro est précisément la
- * référence que le lecteur cherche. On le force, avec deux graduations
- * symétriques de part et d'autre.
+ * Signed, and without the unit: "pt" is stated once by the frame around the
+ * chart. Repeating it on five ticks and every bar turns the canvas into a
+ * wall of suffixes.
  */
-function graduations(largeur: number): readonly number[] {
-  return [-largeur, -largeur / 2, 0, largeur / 2, largeur]
+function formatDriftCompact(value: number): string {
+  return formatNumber(value, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })
 }
 
-function InfoBulle({
+/** The direction of the drift, spelled out — colour alone doesn't say it. */
+function driftDirection(value: number): string {
+  if (value < 0) return 'below target'
+  if (value > 0) return 'above target'
+  return 'on target'
+}
+
+/**
+ * Symmetric scale, never zero.
+ *
+ * The 1.35 factor is not padding for looks: it is the room the direct value
+ * labels need at the outer end of the longest bar, inside the plot area.
+ */
+function axisRange(poches: readonly DerivePoche[]): number {
+  let amplitude = 0
+  for (const p of poches) {
+    const absolute = Math.abs(p.ecart)
+    if (absolute > amplitude) amplitude = absolute
+  }
+  return Math.max(Math.ceil(amplitude * 13.5) / 10, 0.1)
+}
+
+/**
+ * Ticks imposed explicitly, not left to the library.
+ *
+ * Left to itself, recharts picks a "round" step that skips zero: the axis
+ * showed −2.6 / −0.6 / 1.4 while zero is precisely the reference the reader
+ * is looking for. It's forced here, with two symmetric ticks on either side.
+ */
+function axisTicks(range: number): readonly number[] {
+  return [-range, -range / 2, 0, range / 2, range]
+}
+
+/**
+ * Direct value labels, in two passes.
+ *
+ * Recharts positions a whole label list at once, but a diverging bar wants
+ * its label at the OUTER end — right of a positive bar, left of a negative
+ * one. So two lists are rendered, and each accessor returns `null` for the
+ * sign it doesn't own; recharts draws nothing for a null label.
+ */
+type ValeurEtiquette = Readonly<{ value: unknown }>
+
+function ecartDe(entry: ValeurEtiquette): number | null {
+  const brut = entry.value
+  if (typeof brut !== 'number' || !Number.isFinite(brut)) return null
+  return brut
+}
+
+function etiquetteVersLaDroite(entry: ValeurEtiquette): string | null {
+  const ecart = ecartDe(entry)
+  if (ecart === null || ecart < 0) return null
+  return formatDriftCompact(ecart)
+}
+
+function etiquetteVersLaGauche(entry: ValeurEtiquette): string | null {
+  const ecart = ecartDe(entry)
+  if (ecart === null || ecart >= 0) return null
+  return formatDriftCompact(ecart)
+}
+
+function ChartTooltip({
   active,
   payload,
 }: Readonly<{ active?: boolean; payload?: readonly { payload?: DerivePoche }[] }>) {
@@ -90,12 +144,12 @@ function InfoBulle({
   const poche = payload[0]?.payload
   if (poche === undefined) return null
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
       <p className="font-medium text-zinc-950 dark:text-white">{poche.poche}</p>
-      <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">Visée : {nombre(poche.cible)} %</p>
-      <p className="text-zinc-600 tabular-nums dark:text-zinc-300">Constatée : {nombre(poche.constate)} %</p>
+      <p className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">Target: {formatValue(poche.cible)}%</p>
+      <p className="text-zinc-600 tabular-nums dark:text-zinc-300">Actual: {formatValue(poche.constate)}%</p>
       <p className="mt-0.5 font-medium text-zinc-950 tabular-nums dark:text-white">
-        Écart : {ecartSigne(poche.ecart)} pt
+        Drift: {formatSignedDrift(poche.ecart)} pt
       </p>
     </div>
   )
@@ -104,46 +158,59 @@ function InfoBulle({
 export function DerivePochesChart({ poches }: Readonly<{ poches: readonly DerivePoche[] }>) {
   if (poches.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-        Aucun écart n’a pu être lu poche par poche. Rien n’est tracé plutôt qu’une dérive à zéro.
+      // Left-aligned and sized to its sentence, exactly like the empty state
+      // `ChartFrame` renders around it: two absences that look different get
+      // read as two different problems.
+      <p className="px-5 pb-5 text-xs leading-relaxed text-zinc-500 sm:px-6 dark:text-zinc-400">
+        No drift could be read pocket by pocket. Nothing is plotted rather than a drift shown as zero.
       </p>
     )
   }
 
-  const donnees = [...poches]
-  const largeur = marge(poches)
+  const data = [...poches]
+  const range = axisRange(poches)
 
   return (
-    <div className="px-2 py-4">
-      {/* Seule version lisible au lecteur d'écran et au clavier : le graphique
-          lui-même est décoratif, la table porte les chiffres. */}
-      <table className="sr-only">
-        <caption>
-          Écart entre allocation visée et allocation constatée, par poche, en points de pourcentage
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Poche</th>
-            <th scope="col">Visée</th>
-            <th scope="col">Constatée</th>
-            <th scope="col">Écart</th>
-          </tr>
-        </thead>
-        <tbody>
-          {poches.map((p) => (
-            <tr key={p.poche}>
-              <th scope="row">{p.poche}</th>
-              <td>{nombre(p.cible)} %</td>
-              <td>{nombre(p.constate)} %</td>
-              <td>{ecartSigne(p.ecart)} points</td>
+    <div className="px-5 pb-5 sm:px-6">
+      {/* The only screen-reader- and keyboard-accessible version: the chart
+          itself is decorative, the table carries the numbers. Wrapped in a
+          div (not applied to the table itself): a <table> with
+          table-layout:auto ignores an explicit width/max-width and sizes to
+          its content regardless, so the sr-only 1px clip only holds when it's
+          on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Drift between target allocation and actual allocation, by pocket, in percentage points</caption>
+          <thead>
+            <tr>
+              <th scope="col">Pocket</th>
+              <th scope="col">Target</th>
+              <th scope="col">Actual</th>
+              <th scope="col">Drift</th>
+              <th scope="col">Direction</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {poches.map((p) => (
+              <tr key={p.poche}>
+                <th scope="row">{p.poche}</th>
+                <td>{formatValue(p.cible)}%</td>
+                <td>{formatValue(p.constate)}%</td>
+                <td>{formatSignedDrift(p.ecart)} points</td>
+                <td>{driftDirection(p.ecart)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <div aria-hidden="true" className="h-[200px] w-full sm:h-[240px]">
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', poches.length) }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={donnees} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
+          {/* Base margin from the shared token, with the vertical padding
+              tightened and the left edge given up entirely: the category axis
+              reserves its own width, so a left margin on top of it would only
+              push the bars away from their labels. */}
+          <BarChart data={data} layout="vertical" margin={{ ...chartTheme.margin, top: 4, bottom: 4, left: 0 }}>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
@@ -152,42 +219,57 @@ export function DerivePochesChart({ poches }: Readonly<{ poches: readonly Derive
             />
             <XAxis
               type="number"
-              domain={[-largeur, largeur]}
-              ticks={[...graduations(largeur)]}
-              // Décimale française : la bibliothèque écrirait « -2.6 ».
-              tickFormatter={(valeur: number) => `${nombre(valeur)} pt`}
-              tick={{ fill: chartTheme.tick, fontSize: 11 }}
+              domain={[-range, range]}
+              ticks={[...axisTicks(range)]}
+              tickFormatter={formatDriftCompact}
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
             />
+            {/* Wide enough for "S0 · Aave USDC": this chart owns the full
+                width of its section, so the room spent on real pocket names
+                costs the plot almost nothing. */}
             <YAxis
               type="category"
               dataKey="poche"
-              width={110}
-              tick={{ fill: chartTheme.tick, fontSize: 11 }}
+              width={128}
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
             />
-            <Tooltip content={<InfoBulle />} cursor={{ fill: chartTheme.cursor }} />
-            {/* La cible, matérialisée : à gauche du trait, la poche est sous sa
-                cible ; à droite, au-dessus. */}
-            <ReferenceLine x={0} stroke={chartTheme.series.reference} strokeWidth={1} />
-            {/* Animation coupée : cohérent avec les autres graphiques de la
-                console, et une capture d'écran ne part pas d'un graphe vide. */}
-            <Bar dataKey="ecart" fill={ACCENT} radius={2} maxBarSize={18} isAnimationActive={false} />
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor }} />
+            {/* The target, made visible: left of the line, the pocket is below
+                target; right of it, above. */}
+            <ReferenceLine x={0} stroke={chartTheme.dataSeries.dataReference} strokeWidth={1} />
+            {/* Animation off: consistent with the console's other charts, and a
+                screenshot never catches an empty graph mid-transition. */}
+            <Bar dataKey="ecart" fill={TON_MESURE} radius={2} maxBarSize={18} isAnimationActive={false}>
+              <LabelList
+                position="right"
+                offset={6}
+                fill={chartTheme.tick}
+                fontSize={chartTheme.axisFontSize}
+                valueAccessor={etiquetteVersLaDroite}
+              />
+              <LabelList
+                position="left"
+                offset={6}
+                fill={chartTheme.tick}
+                fontSize={chartTheme.axisFontSize}
+                valueAccessor={etiquetteVersLaGauche}
+              />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* La couleur ne dit rien du signe : les valeurs sont écrites. */}
-      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 px-3 text-xs text-zinc-500 dark:text-zinc-400">
-        {poches.map((p) => (
-          <li key={p.poche} className="tabular-nums">
-            <span className="text-zinc-700 dark:text-zinc-300">{p.poche}</span> {ecartSigne(p.ecart)} pt
-            <span className="text-zinc-500 dark:text-zinc-500"> ({sensEcart(p.ecart)})</span>
-          </li>
-        ))}
-      </ul>
+      {/* One line replaces the former pocket-by-pocket list: every value is
+          now written on its own bar, so repeating them underneath was the
+          same fact stated twice. What the bars can't say — which side means
+          what — is what stays. */}
+      <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+        Right of zero, the pocket sits above its target; left of zero, below it. Values in percentage points.
+      </p>
     </div>
   )
 }

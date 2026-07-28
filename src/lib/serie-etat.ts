@@ -1,8 +1,8 @@
 import type { EtatSerie } from '@/components/admin/chart-frame'
 
 /**
- * Décision d’état d’un cadre graphique à partir d’un champ `Resolved`
- * renvoyé par le backend — partagée par les pages produit (BTC, factsheet…).
+ * Chart-frame state decision from a `Resolved` field returned by the
+ * backend — shared by the product pages (BTC, factsheet…).
  */
 
 export type ChampResolu<T = unknown> = {
@@ -11,17 +11,17 @@ export type ChampResolu<T = unknown> = {
   readonly reason?: string | null
 }
 
-/** Motifs machine → phrase, pour les cadres en attente de source. */
+/** Machine reasons → sentence, for frames waiting on a source. */
 export const MOTIF_SERIE: Record<string, string> = {
-  dynavault_not_deployed: 'cette mesure n’est pas encore ouverte sur le contrat déployé',
-  // Le contrat répond, mais il n’expose aucune lecture de cette donnée : un
-  // déploiement n’y changera rien. À ne pas confondre avec le motif ci-dessus.
-  not_exposed_by_contract: 'le contrat n’expose aucune lecture de cette donnée',
-  no_custody_provider_integrated: 'aucun dépositaire n’est encore intégré',
-  not_available: 'la source n’est pas encore branchée',
-  not_configured: 'la source n’est pas encore paramétrée',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
+  dynavault_not_deployed: 'this measure is not open yet on the deployed contract',
+  // The contract responds, but exposes no read for this data: a new
+  // deployment won't change that. Not to be confused with the reason above.
+  not_exposed_by_contract: 'the contract exposes no read for this data',
+  no_custody_provider_integrated: 'no custody provider is integrated yet',
+  not_available: 'the source is not wired up yet',
+  not_configured: 'the source is not configured yet',
+  db_error: 'the database did not respond',
+  rpc_error: 'the chain did not respond',
 }
 
 export function explicationSerie(

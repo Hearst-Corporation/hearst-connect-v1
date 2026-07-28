@@ -29,19 +29,19 @@ describe('null ne devient jamais zéro', () => {
 })
 
 describe('étiquetage des provenances non live', () => {
-  it('affiche « Simulation backend » pour SIMULATED', () => {
+  it('affiche « Backend simulation » pour SIMULATED', () => {
     render(<StatusBadge status="SIMULATED" />)
-    expect(screen.getByText('Simulation backend')).toBeDefined()
+    expect(screen.getByText('Backend simulation')).toBeDefined()
   })
 
-  it('affiche « Source manuelle » pour manual', () => {
+  it('affiche « Manual source » pour manual', () => {
     render(<DataProvenance provenance="manual" />)
-    expect(screen.getByText(/Source manuelle/)).toBeDefined()
+    expect(screen.getByText(/Manual source/)).toBeDefined()
   })
 
   it('rend une fixture backend visible, jamais silencieuse', () => {
     const { container } = render(<DataProvenance provenance="fixture" />)
-    expect(container.textContent).toMatch(/Fixture backend/)
+    expect(container.textContent).toMatch(/Backend fixture/)
     // Marquage voyant : la fixture ne se fond pas dans le texte neutre.
     expect(container.querySelector('.text-hearst-warn')).not.toBeNull()
   })
@@ -50,8 +50,8 @@ describe('étiquetage des provenances non live', () => {
 describe('les états sont distincts les uns des autres', () => {
   it('EMPTY est une réponse réussie sans contenu, pas une erreur', () => {
     render(<EmptyState />)
-    expect(screen.getByText('Réponse vide')).toBeDefined()
-    expect(screen.queryByText('Erreur')).toBeNull()
+    expect(screen.getByText('Empty response')).toBeDefined()
+    expect(screen.queryByText('Error')).toBeNull()
   })
 
   it('NOT_CONFIGURED, UNAVAILABLE et PERMISSION_DENIED portent trois libellés distincts', () => {

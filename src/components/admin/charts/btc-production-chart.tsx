@@ -1,62 +1,77 @@
 'use client'
 
-import { chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/lib/chart-theme'
+import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
- * « À quelle cadence le bitcoin est-il produit ? »
+ * "At what pace is bitcoin being produced?"
  *
- * ── Pourquoi des barres, et jamais une courbe ─────────────────────────────
- * Le service relève la production PAR MOIS : chaque mois est une quantité
- * close, mesurée, indépendante de la suivante. Une courbe relierait ces
- * relevés par un segment, et ce segment se lirait comme une progression
- * observée entre les deux dates — une affirmation que personne n'a mesurée.
- * Des barres n'affirment que ce qui a été relevé.
+ * ── Why bars, and never a line ────────────────────────────────────────────
+ * The service reports production BY MONTH: each month is a closed, measured
+ * quantity, independent from the next. A line would connect these readings
+ * with a segment, and that segment would read as an observed progression
+ * between the two dates — a claim nobody actually measured. Bars only assert
+ * what was recorded.
  *
- * ── Pourquoi la même forme à 1, 2 ou N mois ───────────────────────────────
- * La tentation serait de changer de rendu selon le nombre de points. C'est le
- * contraire qu'il faut : la barre est juste dès le premier mois — une barre
- * seule est un mois mesuré, pas une tendance amputée — et le reste juste
- * quand la série s'allonge. Ce qui change, c'est la PHRASE sous le graphique,
- * qui nomme ce qui est réellement lisible : un mois n'autorise aucune
- * évolution, deux mois donnent un écart et pas encore une tendance, trois et
- * plus se lisent barre à barre.
+ * ── Why at least two months ───────────────────────────────────────────────
+ * This file used to argue that the same shape was right at 1, 2 or N months.
+ * The visual review disagreed, and it was right: a lone bar inside a plot
+ * area reads as a chart whose data failed to load, and the reader hunts for
+ * the missing series before concluding that the service has only ever
+ * published one month. The Bitcoin page now tests `plottableAsChart` and
+ * renders `SingleObservation` below two observations, so this chart is only
+ * ever asked to draw a real — if short — series.
  *
- * ── Sur l'unité ───────────────────────────────────────────────────────────
- * L'axe est en BTC, lisible d'un coup d'œil. Le chiffre exact au satoshi près
- * reste accessible à l'infobulle et dans le tableau lu par les assistances :
- * l'arrondi de l'axe ne remplace jamais la mesure.
+ * What still varies with the count is the CAPTION under the chart, which
+ * names what is actually readable: two months give a gap but not yet a
+ * trend, three or more read bar by bar. And the canvas height, which comes
+ * from `chartHeight('columns', …)` in pixels rather than a fixed class, so
+ * two bars are not stretched across a canvas built for a year of history.
+ *
+ * ── On the unit ────────────────────────────────────────────────────────────
+ * The axis is in BTC, readable at a glance. The exact satoshi-level figure
+ * stays accessible in the tooltip and in the table read by assistive tech:
+ * the axis rounding never replaces the measurement.
  */
 
 export type MoisProduction = {
-  /** Clé stable du mois, telle que renvoyée par le service (« 2026-07 »). */
+  /** Stable month key, as returned by the service ("2026-07"). */
   readonly periode: string
-  /** Le même mois, dit en français (« juil. 2026 »). */
+  /** The same month, in display form ("Jul 2026"). */
   readonly libelle: string
-  /** Production du mois, en BTC — sert uniquement à l'échelle du graphique. */
+  /** Month's production, in BTC — used only for the chart scale. */
   readonly btc: number
-  /** Production du mois au satoshi près, déjà formatée sans perte. */
+  /** Month's production to the satoshi, already formatted losslessly. */
   readonly btcExact: string
-  /** Cumul à la fin de ce mois, au satoshi près. `null` si non transmis. */
+  /** Cumulative total at the end of this month, to the satoshi. `null` if not provided. */
   readonly cumulExact: string | null
 }
 
-type LigneInfoBulle = { readonly payload?: MoisProduction }
+/**
+ * Produced bitcoin is an ordinary measurement — it carries no state — so it
+ * takes the ordinary-data role, never a semantic color. The same token as
+ * `mining-production-chart`: the two pages measure the same thing, and the
+ * same thing must not change hue between them.
+ */
+const SERIE = chartTheme.dataSeries.brandPrimary
 
-function InfoBulle({
+type TooltipPayloadRow = { readonly payload?: MoisProduction }
+
+function ChartTooltip({
   active,
   payload,
-}: Readonly<{ active?: boolean; payload?: readonly LigneInfoBulle[] }>) {
+}: Readonly<{ active?: boolean; payload?: readonly TooltipPayloadRow[] }>) {
   const mois = payload?.[0]?.payload
   if (active !== true || mois === undefined) return null
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
+    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
       <p className="font-medium text-zinc-950 dark:text-white">{mois.libelle}</p>
-      <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">Produit ce mois : {mois.btcExact} BTC</p>
+      <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">Produced this month: {mois.btcExact} BTC</p>
       {mois.cumulExact === null ? null : (
         <p className="mt-0.5 text-zinc-500 tabular-nums dark:text-zinc-400">
-          Cumul à cette date : {mois.cumulExact} BTC
+          Cumulative to date: {mois.cumulExact} BTC
         </p>
       )}
     </div>
@@ -64,26 +79,30 @@ function InfoBulle({
 }
 
 /**
- * Ce que la légende a le droit d'affirmer, selon le nombre de mois relevés.
- * Un lecteur qui voit une barre unique lui prêtera spontanément une tendance
- * s'il n'est pas détrompé — cette phrase est là pour le détromper.
+ * What the caption is allowed to claim, based on how many months are recorded.
+ * A reader who sees a short series will spontaneously read a trend into it if
+ * not told otherwise — this caption exists to correct that.
  */
-function phraseLisibilite(mois: readonly MoisProduction[]): string {
+function readabilityNote(mois: readonly MoisProduction[]): string {
   const premier = mois[0]
   const dernier = mois[mois.length - 1]
 
   if (mois.length === 1) {
-    return `Un seul mois est relevé à ce jour (${premier?.libelle ?? '—'}). La barre dit ce qui a été produit sur ce mois : aucune évolution n’est encore mesurable.`
+    // Unreachable through the Bitcoin page, which switches to
+    // `SingleObservation` below two observations. Kept — and made honest —
+    // rather than deleted, so a caller that skips that test still gets a true
+    // sentence instead of one that talks up a single bar as a chart.
+    return `Only one month is recorded (${premier?.libelle ?? '—'}). A single measurement is not a series: this chart expects at least two months, and the value on its own is the accurate way to show it.`
   }
   if (mois.length === 2) {
-    return `Deux mois sont relevés. L’écart entre les deux barres se lit, mais deux relevés ne font pas encore une tendance.`
+    return `Two months have been recorded. The gap between the two bars can be read, but two data points don't yet make a trend.`
   }
-  return `${mois.length} mois relevés, de ${premier?.libelle ?? '—'} à ${dernier?.libelle ?? '—'}. L’évolution se lit barre à barre, chaque barre restant une mesure de son mois.`
+  return `${mois.length} months recorded, from ${premier?.libelle ?? '—'} to ${dernier?.libelle ?? '—'}. The trend reads bar by bar, each bar remaining a measurement of its own month.`
 }
 
-/** Un axe en BTC : trois décimales suffisent à situer, pas à affirmer. */
-function graduation(valeur: number): string {
-  return valeur.toLocaleString('fr-FR', { maximumFractionDigits: 3 })
+/** An axis in BTC: three decimals are enough to situate, not to assert. */
+function formatTick(valeur: number): string {
+  return formatNumber(valeur, { maximumFractionDigits: 3 })
 }
 
 export function ProductionMensuelleChart({
@@ -92,64 +111,80 @@ export function ProductionMensuelleChart({
 }: Readonly<{ mois: readonly MoisProduction[]; cumulBtc: string | null }>) {
   if (mois.length === 0) {
     return (
-      <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-        Aucun mois de production n’est lisible dans les relevés. Rien n’est tracé plutôt qu’une barre à zéro.
+      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
+        No production month can be read from the data. Nothing is plotted rather than showing a bar at zero.
       </p>
     )
   }
 
   return (
-    <div className="px-2 py-4">
-      {/* Seule version lisible au lecteur d'écran et au clavier. Elle porte le
-          chiffre au satoshi près, que l'axe arrondit. */}
-      <table className="sr-only">
-        <caption>Bitcoin produit par mois relevé, et cumul à la fin de chaque mois</caption>
-        <thead>
-          <tr>
-            <th scope="col">Mois</th>
-            <th scope="col">Produit sur le mois</th>
-            <th scope="col">Cumul à la fin du mois</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mois.map((m) => (
-            <tr key={m.periode}>
-              <th scope="row">{m.libelle}</th>
-              <td>{m.btcExact} BTC</td>
-              <td>{m.cumulExact === null ? 'non transmis' : `${m.cumulExact} BTC`}</td>
+    <div className="px-3 pb-5 sm:px-4">
+      {/* The only version readable by screen readers and keyboard navigation.
+          It carries the exact satoshi-level figure that the axis rounds.
+          Wrapped in a div, not applied to the table itself: a <table>
+          ignores width/max-width and sizes to its content regardless, so
+          the sr-only 1px clip only holds on a non-table wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>Bitcoin produced per recorded month, with cumulative total at month end</caption>
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Produced that month</th>
+              <th scope="col">Cumulative at month end</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {mois.map((m) => (
+              <tr key={m.periode}>
+                <th scope="row">{m.libelle}</th>
+                <td>{m.btcExact} BTC</td>
+                <td>{m.cumulExact === null ? 'not reported' : `${m.cumulExact} BTC`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <div aria-hidden="true" className="h-[200px] w-full sm:h-[240px]">
+      {/* Height in pixels, derived from the month count. A short series gets a
+          short canvas — that is the whole fix to the "one thin bar floating in
+          a plot" defect. */}
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('columns', mois.length) }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={[...mois]} margin={{ top: 6, right: 12, bottom: 4, left: -8 }}>
+          {/* `left` stays negative: the YAxis reserves 64px of its own width
+              for the tick labels, and without this offset the plot area
+              would be pushed further right than the frame around it. */}
+          <BarChart data={[...mois]} margin={{ ...chartTheme.margin, right: 12, left: -8 }}>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
               strokeDasharray="2 4"
               vertical={false}
             />
-            <XAxis dataKey="libelle" tick={{ fill: chartTheme.tick, fontSize: 11 }} tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="libelle"
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis
-              tick={{ fill: chartTheme.tick, fontSize: 11 }}
+              tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
               width={64}
               unit=" BTC"
-              tickFormatter={graduation}
+              tickFormatter={formatTick}
             />
-            <Tooltip content={<InfoBulle />} cursor={{ fill: chartTheme.cursor }} />
-            {/* `maxBarSize` compte surtout au premier mois : sans lui, une barre
-                seule occuperait toute la largeur et se lirait comme un total,
-                pas comme un point de série. Animation coupée, comme partout
-                dans la console : un mouvement retarde la lecture et piège les
-                captures d'écran. */}
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor }} />
+            {/* `maxBarSize` matters most on a two-month series: without it
+                Recharts hands each band its full width and the two bars read
+                as slabs filling the frame rather than as two measurements.
+                Animation is off, as everywhere in the console: motion delays
+                reading and traps screenshots. */}
             <Bar
               dataKey="btc"
-              name="Produit sur le mois"
-              fill={chartTheme.series.primaryFill}
+              name="Produced that month"
+              fill={SERIE}
               radius={[3, 3, 0, 0]}
               maxBarSize={48}
               isAnimationActive={false}
@@ -158,12 +193,12 @@ export function ProductionMensuelleChart({
         </ResponsiveContainer>
       </div>
 
-      <p className="mt-3 px-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        {phraseLisibilite(mois)}
+      <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+        {readabilityNote(mois)}
         {cumulBtc === null ? null : (
           <>
             {' '}
-            Cumul transmis par le service depuis l’origine : <span className="tabular-nums">{cumulBtc} BTC</span>.
+            Cumulative total reported by the service since inception: <span className="tabular-nums">{cumulBtc} BTC</span>.
           </>
         )}
       </p>

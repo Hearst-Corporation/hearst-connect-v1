@@ -1,20 +1,29 @@
-import { CockpitSection } from '@/components/admin/cockpit-section'
 import { RequirementList, surfaceRaised } from '@/components/admin/surface'
-import { AdminBody, AdminCaption, AdminH3, AdminLabel, adminTypography } from '@/components/admin/typography'
+import {
+  Table as CatalystTable,
+  TableBody as CatalystTableBody,
+  TableCell as CatalystTableCell,
+  TableHead as CatalystTableHead,
+  TableHeader as CatalystTableHeader,
+  TableRow as CatalystTableRow,
+} from '@/components/catalyst/table'
+import { sectionContentGap } from '@/lib/layout-tokens'
+import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, AdminSurfaceTitle, adminTypography } from '@/components/admin/typography'
 import {
   ProblemState,
   RequestMetadata,
   StatusBadge,
   UnavailableState,
 } from '@/components/admin/truthful'
+import { formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
- * Design system des surfaces d'administration Hearst Connect.
- * Chrome Qatar : bandeau sunken (AdminSection) + cartes raised (AdminSurface).
- * Toute donnée affichée doit provenir du backend ; ces composants ne fabriquent rien.
+ * Hearst Connect admin surface primitives.
+ * Sunken band (AdminSection) + raised cards (AdminSurface).
+ * Every component here renders what the backend gives it — none of them fabricate data.
  */
 
 /* ── AdminSurface ─────────────────────────────────────────────────────────── */
@@ -31,7 +40,14 @@ export function AdminSurface({
   padding?: boolean
 }>) {
   return (
-    <Tag className={clsx(className, surfaceRaised, padding && 'p-5')}>
+    <Tag
+      className={clsx(
+        className,
+        surfaceRaised,
+        'overflow-hidden transition-[box-shadow,background-color,border-color] duration-200',
+        padding && 'p-6',
+      )}
+    >
       {children}
     </Tag>
   )
@@ -39,40 +55,54 @@ export function AdminSurface({
 
 /* ── AdminSection ─────────────────────────────────────────────────────────── */
 
-/**
- * Adaptateur de nom vers `CockpitSection` — le seul écart est `action` (ici) vs
- * `actions` (là-bas). Il ne peut donc pas devenir un simple ré-export tant que
- * les 6 pages appelantes écrivent `action`. Aucune structure n'est réimplémentée :
- * tout le rendu vit dans `CockpitSection`.
- */
 export function AdminSection({
   title,
   description,
-  action,
+  actions,
+  index,
   children,
   id,
   className,
-  index,
 }: Readonly<{
-  title: string
+  title?: string
   description?: string
-  action?: React.ReactNode
+  actions?: React.ReactNode
+  index?: string
   children: React.ReactNode
   id?: string
   className?: string
-  index?: string
 }>) {
+  const hasHeader = Boolean(title || actions || description)
+
   return (
-    <CockpitSection
-      id={id}
-      index={index}
-      title={title}
-      description={description}
-      actions={action}
-      className={className}
-    >
-      {children}
-    </CockpitSection>
+    <section id={id} className={clsx(className, hasHeader && 'border-t border-zinc-950/10 pt-8 dark:border-console-line')}>
+      {hasHeader ? (
+        <>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <div className="flex items-baseline gap-3">
+              {index ? (
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-zinc-200/80 text-[0.6875rem] font-semibold tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                  {index}
+                </span>
+              ) : null}
+              {title ? <AdminSectionTitle>{title}</AdminSectionTitle> : null}
+            </div>
+            {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+          </div>
+          {description ? <AdminBody className="mt-1.5 max-w-3xl">{description}</AdminBody> : null}
+        </>
+      ) : null}
+      {/*
+        A section is NOT a card.
+
+        It used to wrap its children in a sunken, ringed, padded panel — so
+        every card on the page sat inside a second box that carried no
+        information of its own, and the whole console read as boxes inside
+        boxes. A section separates with a rule above and space below; the
+        cards inside it are the only surfaces.
+      */}
+      <div className={clsx(hasHeader && 'mt-6', sectionContentGap)}>{children}</div>
+    </section>
   )
 }
 
@@ -97,19 +127,26 @@ export function AdminMetric({
     value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
 
   return (
-    <div className={clsx(className, 'min-w-0 rounded-lg bg-zinc-50/80 dark:bg-zinc-950/40 px-4 py-3.5 ring-1 ring-white/10')}>
+    <div
+      className={clsx(
+        className,
+        // A tile is its own surface now that a section is no longer a card:
+        // one ring, one background, no second frame around it.
+        'min-w-0 rounded-xl bg-white p-4 ring-1 ring-zinc-950/10 dark:bg-console-card dark:ring-console-line',
+      )}
+    >
       <AdminLabel>{label}</AdminLabel>
       <p className="mt-1.5 flex items-baseline gap-2">
         {displayable ? (
-          <span className={adminTypography.kpiValue}>
-            {typeof value === 'number' ? value.toLocaleString('fr-FR') : value}
+          <span className={clsx(adminTypography.numericStandard, 'wrap-break-word')}>
+            {typeof value === 'number' ? formatNumber(value) : value}
             {unit ? <span className="ml-1 text-sm/6 font-medium text-zinc-500 dark:text-zinc-400">{unit}</span> : null}
           </span>
         ) : (
-          <span className={clsx(adminTypography.kpiValue, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'Aucune valeur'}>—</span>
+          <span className={clsx(adminTypography.numericStandard, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'No value'}>—</span>
         )}
       </p>
-      {hint ? <AdminCaption className="mt-1.5">{hint}</AdminCaption> : null}
+      {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
     </div>
   )
 }
@@ -117,9 +154,8 @@ export function AdminMetric({
 /* ── AdminChart ───────────────────────────────────────────────────────────── */
 
 /**
- * Alias historique de `ChartFrame` : mêmes props, même rendu. Le wrapper qui
- * recopiait la signature n'ajoutait rien et faisait diverger le défaut de
- * `hauteur` ; un ré-export garde le nom public sans dupliquer le composant.
+ * Historical alias of `ChartFrame` — same props, same render. Kept as a
+ * re-export so the public name stays stable without duplicating the component.
  */
 export { ChartFrame as AdminChart } from '@/components/admin/chart-frame'
 
@@ -145,37 +181,39 @@ export function AdminTable<T>({
   empty?: React.ReactNode
 }>) {
   if (rows.length === 0) {
-    return empty ?? <AdminEmptyState title="Aucun élément" />
+    return empty ?? <AdminEmptyState title="No items" />
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-950/10 dark:border-white/10 text-xs text-zinc-500 dark:text-zinc-400">
-            {columns.map((col) => (
-              <th key={col.key} scope="col" className={clsx(col.className, 'px-5 py-3 font-medium')}>
-                {col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-950/5 dark:divide-white/5">
-          {rows.map((row) => (
-            <tr key={keyFn(row)} className="hover:bg-white/[0.03]">
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  className={clsx(col.className, 'px-5 py-3.5', col.mono && 'font-mono text-xs text-zinc-500 dark:text-zinc-400')}
-                >
-                  {col.cell(row)}
-                </td>
-              ))}
-            </tr>
+    <CatalystTable
+      dense
+      grid
+      className="[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-word"
+    >
+      <CatalystTableHead>
+        <CatalystTableRow>
+          {columns.map((col) => (
+            <CatalystTableHeader key={col.key} scope="col" className={clsx(col.className, 'font-medium')}>
+              {col.header}
+            </CatalystTableHeader>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </CatalystTableRow>
+      </CatalystTableHead>
+      <CatalystTableBody>
+        {rows.map((row) => (
+          <CatalystTableRow key={keyFn(row)}>
+            {columns.map((col) => (
+              <CatalystTableCell
+                key={col.key}
+                className={clsx(col.className, col.mono && 'font-mono text-xs text-zinc-500 dark:text-zinc-400')}
+              >
+                {col.cell(row)}
+              </CatalystTableCell>
+            ))}
+          </CatalystTableRow>
+        ))}
+      </CatalystTableBody>
+    </CatalystTable>
   )
 }
 
@@ -194,17 +232,22 @@ export function AdminStatus({
   )
 }
 
-/* ── États ────────────────────────────────────────────────────────────────── */
+/* ── States ───────────────────────────────────────────────────────────────── */
 
+/**
+ * One concise absence. Left-aligned and sized to its sentence: a centered
+ * block with 40px of vertical padding announced an outage, when all it had
+ * to say was "nothing here yet".
+ */
 export function AdminEmptyState({
   title,
   description,
   children,
 }: Readonly<{ title: string; description?: string; children?: React.ReactNode }>) {
   return (
-    <div className="px-6 py-10 text-center">
-      <p className={adminTypography.h3}>{title}</p>
-      {description ? <AdminBody className="mt-2">{description}</AdminBody> : null}
+    <div className="px-5 py-6 sm:px-6">
+      <AdminSurfaceTitle as="p">{title}</AdminSurfaceTitle>
+      {description ? <AdminBody className="mt-1.5 max-w-prose">{description}</AdminBody> : null}
       {children}
     </div>
   )
@@ -225,7 +268,7 @@ export function AdminErrorState({
   )
 }
 
-export function AdminLoadingState({ message = 'Chargement…' }: Readonly<{ message?: string }>) {
+export function AdminLoadingState({ message = 'Loading…' }: Readonly<{ message?: string }>) {
   return (
     <AdminSurface className="flex items-center gap-3 px-5 py-8">
       <span
@@ -237,17 +280,21 @@ export function AdminLoadingState({ message = 'Chargement…' }: Readonly<{ mess
   )
 }
 
+/**
+ * Same state as `SourceAttendue`, in the surfaces vocabulary. One card, one
+ * list — the ringed inner box that used to hold the requirements is gone.
+ */
 export function AdminSourceAttendue({
   quoi,
   detail,
   requis,
 }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
   return (
-    <div className={clsx(surfaceRaised, 'px-5 py-6 sm:px-6')}>
-      <p className={adminTypography.h3}>{quoi}</p>
-      <AdminBody className="mt-2">{detail}</AdminBody>
-      <div className="mt-5 rounded-lg bg-zinc-50 px-4 py-3 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:ring-white/5">
-        <p className="text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Source attendue</p>
+    <div className={clsx(surfaceRaised, 'p-6')}>
+      <AdminSurfaceTitle as="p">{quoi}</AdminSurfaceTitle>
+      <AdminBody className="mt-1.5 max-w-prose">{detail}</AdminBody>
+      <div className="mt-4 max-w-prose">
+        <AdminLabel>Expected source</AdminLabel>
         <RequirementList requis={requis} />
       </div>
     </div>
@@ -264,7 +311,7 @@ export function AdminToolbar({
     <div
       className={clsx(
         className,
-        'flex flex-wrap items-center gap-3 rounded-lg bg-zinc-50/80 dark:bg-zinc-950/40 px-4 py-3 ring-1 ring-zinc-950/10 dark:ring-white/10',
+        'flex flex-wrap items-center gap-3 rounded-lg bg-zinc-50/80 dark:bg-console-inset px-4 py-3 ring-1 ring-zinc-950/10 dark:ring-console-line',
       )}
     >
       {children}
@@ -285,7 +332,7 @@ export type AdminFilterItem = {
 
 export function AdminFilterBar({
   items,
-  ariaLabel = 'Filtres',
+  ariaLabel = 'Filters',
 }: Readonly<{
   items: readonly AdminFilterItem[]
   ariaLabel?: string
@@ -296,7 +343,7 @@ export function AdminFilterBar({
         {items.map((item) => (
           <li key={item.id}>
             <span
-              title={item.title ?? 'Filtre non actif — source en attente'}
+              title={item.title ?? 'Filter not active — source pending'}
               aria-disabled="true"
               className={clsx(
                 'inline-flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm',
@@ -331,18 +378,18 @@ export function AdminActionPanel({
   children?: React.ReactNode
 }>) {
   return (
-    <AdminSurface className="p-5">
-      <AdminH3>{title}</AdminH3>
+    <AdminSurface className="p-6">
+      <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
       {description ? <AdminBody className="mt-2">{description}</AdminBody> : null}
       {children}
       {confirmLabel ? (
         <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-          Action sensible — confirmation requise :{' '}
+          Sensitive action — confirmation required:{' '}
           <span className={clsx(danger && 'text-danger-400', 'font-mono')}>{confirmLabel}</span>
         </p>
       ) : null}
       {disabled ? (
-        <p className="mt-3 text-xs text-warning-400">Action désactivée — permissions ou configuration insuffisante.</p>
+        <p className="mt-3 text-xs text-warning-400">Action disabled — insufficient permissions or configuration.</p>
       ) : null}
     </AdminSurface>
   )
@@ -369,13 +416,13 @@ export function AdminStatusMatrix({ rows, title }: Readonly<{ rows: readonly Sta
   return (
     <AdminSurface>
       {title ? (
-        <div className="border-b border-white/5 px-5 py-4 sm:px-6 sm:py-5">
-          <AdminH3>{title}</AdminH3>
+        <div className="px-5 pt-5 pb-3 sm:px-6">
+          <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         </div>
       ) : null}
-      <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
+      <ul className="divide-y divide-zinc-950/5 pb-1 dark:divide-console-line-soft">
         {rows.map((row) => (
-          <li key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5 sm:px-6">
+          <li key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 sm:px-6">
             <span
               aria-hidden="true"
               className={clsx('size-1.5 shrink-0 rounded-full', MATRIX_DOT[row.ton ?? 'neutre'])}
@@ -410,7 +457,7 @@ export function AdminProbeResult({
   keeper?: KeeperActionResult | null
 }>) {
   return (
-    <div className="rounded-lg bg-zinc-50/80 dark:bg-zinc-950/50 p-3 ring-1 ring-zinc-950/10 dark:ring-white/10">
+    <div className="rounded-lg bg-zinc-50/80 dark:bg-console-inset p-3 ring-1 ring-zinc-950/10 dark:ring-console-line">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>
@@ -420,7 +467,7 @@ export function AdminProbeResult({
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">JSON brut</summary>
+          <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">Raw JSON</summary>
           <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-zinc-950 dark:text-white/80">{rawJson}</pre>
         </details>
       ) : null}
@@ -429,6 +476,6 @@ export function AdminProbeResult({
   )
 }
 
-/* ── Re-exports utiles ────────────────────────────────────────────────────── */
+/* ── Re-exports ───────────────────────────────────────────────────────────── */
 
 export { EmptyState, ProblemState, StatusBadge, UnavailableState } from '@/components/admin/truthful'

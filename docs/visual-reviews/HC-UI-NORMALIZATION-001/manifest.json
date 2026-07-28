@@ -1,0 +1,51 @@
+{
+  "mission": "HC-UI-NORMALIZATION-001",
+  "title": "Admin UI normalization, English migration, and chart redesign",
+  "branch": "feat/hc-ui-normalization-001",
+  "baseBranch": "main",
+  "status": "mission:review",
+  "commits": [
+    "d38fcaa refactor(admin): unify typography/section system, simplify charts, add formatters",
+    "b555714 refactor(admin): migrate charts and movement vocabulary to English",
+    "f2eafd1 refactor(admin): translate shared cockpit.tsx primitives and remaining Qatar comments",
+    "f3ca612 refactor(admin): translate truthful.tsx status/provenance vocabulary to English",
+    "8250772 refactor(admin): migrate all 17 admin routes to English + canonical template",
+    "1a4626d refactor(lib): translate server-side lib modules to English",
+    "da7c5af fix(admin): eliminate two real browser-validation bugs found via Playwright"
+  ],
+  "gates": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "test": "pass (129/129, 15 files, including new tests/language-regression.test.ts)",
+    "build": "pass (21 routes compiled)",
+    "check:catalyst": "pass (no design-system leak)",
+    "check:mocks": "pass (no simulated data)"
+  },
+  "browserValidation": {
+    "tool": "Playwright MCP, against a production build (`next build` + `next start`), not the dev server",
+    "breakpointsTested": ["1440x900", "1280x800", "375x812"],
+    "routesTested": 17,
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "horizontalOverflowFound": true,
+    "horizontalOverflowFixed": true,
+    "bugsFoundAndFixed": 3
+  },
+  "screenshots": {
+    "after-home-1440x900.png": "Admin Home at desktop width",
+    "after-home-1280x800.png": "Admin Home at laptop width",
+    "after-home-375x812.png": "Admin Home at mobile width",
+    "after-clients-1440x900.png": "Clients page",
+    "after-compliance-1440x900.png": "Compliance page",
+    "after-operations-1440x900.png": "Operations page (largest page in the app, 772 lines)",
+    "after-administration-1440x900.png": "Administration page",
+    "after-runtime-1440x900.png": "Runtime / Service Status page",
+    "after-api-explorer-1440x900.png": "API Explorer page",
+    "chart-allocation-after.png": "Vault page showing the redesigned horizontal target/actual/variance allocation chart"
+  },
+  "knownGaps": [
+    "No before-* screenshots were captured: work began immediately after the codebase survey rather than pausing for a baseline capture pass. The git history (7 commits) and this repo's blame on each touched file are the before/after record instead.",
+    "No chart-allocation-before.png for the same reason — the pre-migration grouped-bar chart is visible in git history at src/components/admin/allocation-chart.tsx prior to commit d38fcaa.",
+    "Marketing vitrine, login/register screens, and shared brand components (logo.tsx, theme-toggle.tsx) remain in French — explicitly out of scope per the mission text (\"administration application\") and this repo's own CLAUDE.md, which describes the marketing vitrine and login screen as separate surfaces from the admin console."
+  ]
+}

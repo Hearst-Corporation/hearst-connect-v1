@@ -1,226 +1,289 @@
-import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { Card, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { AdminTableSplit } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
+import { AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Couverture des données' }
+export const metadata: Metadata = { title: 'Data Coverage' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Couverture des données — quelles surfaces du produit sont réellement servies.
+ * Data Coverage — which product surfaces are actually served.
  *
- * L'agrégat renvoyé par le service décrit dix-huit surfaces métier, chacune
- * avec son propre état. C'est LA question à laquelle cette page répond : sur
- * quoi peut-on s'appuyer aujourd'hui, et ce qui manque ailleurs, pourquoi.
+ * The aggregate returned by the service describes eighteen business
+ * surfaces, each with its own status. This is THE question this page
+ * answers: what can we rely on today, and what's missing elsewhere, and why.
  *
- * Deux choix la gouvernent :
+ * Three choices govern it:
  *
- * 1. On ne montre pas la charge utile brute en premier plan. Un écran de JSON
- *    n'apprend rien à qui doit décider ; il reste consultable en bas de page.
+ * 1. We don't show the raw payload. A screen of JSON teaches nothing to
+ *    someone who has to decide.
  *
- * 2. On ne requalifie aucun état. Le service calcule l'état d'ensemble
- *    pire-champ-d'abord : une seule surface dégradée abaisse le tout. C'est un
- *    comportement documenté, on l'explique plutôt que de le corriger — un
- *    frontend qui « améliore » un état amont ment à son lecteur.
+ * 2. We don't requalify any status. The service computes the overall status
+ *    worst-field-first: a single degraded surface pulls down the whole. This
+ *    is documented behavior — we explain it rather than fix it. A frontend
+ *    that "improves" an upstream status lies to its reader.
+ *
+ * 3. Eighteen surfaces are ONE list, not three framed panels. The rejected
+ *    version put each status tier in its own card, so the reader compared
+ *    boxes instead of rows, and a tier holding two surfaces got the same
+ *    frame as a tier holding twelve. The surfaces now share a single table
+ *    ordered by tier, with the meaning of each tier — and how many surfaces
+ *    it holds — in a deliberate secondary column beside it.
  */
 
-type Resolu = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
+type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
 
-const estResolu = (v: unknown): v is Resolu =>
+const isResolvedField = (v: unknown): v is ResolvedField =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
-/** Le nom métier de chaque surface. Une clé inconnue garde sa clé. */
-const NOM_SURFACE: Record<string, string> = {
-  identity: 'Identité de l’investisseur',
-  position: 'Position détenue',
-  distributions: 'Distributions versées',
-  activity: 'Activité du compte',
-  proofs: 'Preuves de réserve',
-  allocation: 'Répartition du portefeuille',
-  subscription: 'Conditions de souscription',
-  alerts: 'Alertes en cours',
-  capacity: 'Capacité du fonds',
-  reserve: 'Réserve de trésorerie',
+/** The business name of each surface. An unknown key keeps its key. */
+const SURFACE_NAME: Record<string, string> = {
+  identity: 'Investor identity',
+  position: 'Position held',
+  distributions: 'Distributions paid',
+  activity: 'Account activity',
+  proofs: 'Proof of reserves',
+  allocation: 'Portfolio allocation',
+  subscription: 'Subscription terms',
+  alerts: 'Active alerts',
+  capacity: 'Fund capacity',
+  reserve: 'Cash reserve',
   performance: 'Performance',
-  mining: 'Production de la flotte',
-  rebalancing: 'Rééquilibrage',
-  vault: 'Portefeuille d’actifs',
-  strategies: 'Stratégies actives',
-  recentEvents: 'Derniers mouvements',
-  engine: 'Moteur de minage',
-  aiExperts: 'Analyse assistée',
+  mining: 'Fleet production',
+  rebalancing: 'Rebalancing',
+  vault: 'Asset vault',
+  strategies: 'Active strategies',
+  recentEvents: 'Recent movements',
+  engine: 'Mining engine',
+  aiExperts: 'AI-assisted analysis',
 }
 
-const nomSurface = (cle: string): string => NOM_SURFACE[cle] ?? cle
+const surfaceName = (key: string): string => SURFACE_NAME[key] ?? key
 
-/* ── Les trois familles d'état ───────────────────────────────────────────── */
+/* ── The three status tiers ──────────────────────────────────────────────── */
 
-type Famille = 'servie' | 'partielle' | 'absente'
+type CoverageTier = 'served' | 'partial' | 'notOpened'
 
-const FAMILLE_TITRE: Record<Famille, string> = {
-  servie: 'Servies',
-  partielle: 'Partiellement servies',
-  absente: 'Pas encore ouvertes',
+const TIER_TITLE: Record<CoverageTier, string> = {
+  served: 'Served',
+  partial: 'Partially served',
+  notOpened: 'Not yet open',
 }
 
-const FAMILLE_EXPLICATION: Record<Famille, string> = {
-  servie: 'Ces surfaces renvoient une valeur exploitable. On peut s’y appuyer.',
-  partielle:
-    'Ces surfaces répondent, mais sans valeur : le service sait quoi renvoyer, il n’a simplement rien à dire aujourd’hui.',
-  absente: 'Ces surfaces ne sont pas encore ouvertes. Rien n’est attendu d’elles pour l’instant.',
+const TIER_EXPLANATION: Record<CoverageTier, string> = {
+  served: 'These surfaces return a usable value. You can rely on them.',
+  partial:
+    'These surfaces respond, but without a value: the service knows what to return, it simply has nothing to say today.',
+  notOpened: 'These surfaces are not yet open. Nothing is expected from them for now.',
 }
 
-const FAMILLE_POINT: Record<Famille, string> = {
-  servie: 'bg-success-500',
-  partielle: 'bg-warning-500',
-  absente: 'bg-zinc-600',
+/**
+ * Colour here is a claim about state, which is exactly what these three tiers
+ * are — so the semantic palette is spent where it means something. An
+ * ordinary dataset would get the mint ramp instead.
+ */
+const TIER_DOT: Record<CoverageTier, string> = {
+  served: 'bg-success-500',
+  partial: 'bg-warning-500',
+  notOpened: 'bg-zinc-500',
 }
 
-const FAMILLE_TEXTE: Record<Famille, string> = {
-  servie: 'text-success-400',
-  partielle: 'text-warning-400',
-  absente: 'text-zinc-400',
+const TIER_TEXT: Record<CoverageTier, string> = {
+  served: 'text-success-400',
+  partial: 'text-warning-400',
+  notOpened: 'text-zinc-500 dark:text-zinc-400',
 }
 
-/** Le classement suit l'état déclaré par le service, sans le réinterpréter. */
-function familleDe(statut: string): Famille {
-  if (statut === 'LIVE') return 'servie'
-  if (statut === 'PARTIAL' || statut === 'STALE' || statut === 'SNAPSHOT' || statut === 'EMPTY') return 'partielle'
-  return 'absente'
+/** The ranking follows the status declared by the service, without reinterpreting it. */
+function tierFromStatus(status: string): CoverageTier {
+  if (status === 'LIVE') return 'served'
+  if (status === 'PARTIAL' || status === 'STALE' || status === 'SNAPSHOT' || status === 'EMPTY') return 'partial'
+  return 'notOpened'
 }
 
-const ORDRE: readonly Famille[] = ['servie', 'partielle', 'absente']
+const TIER_ORDER: readonly CoverageTier[] = ['served', 'partial', 'notOpened']
 
-type Surface = { readonly cle: string; readonly nom: string; readonly famille: Famille; readonly motif: string | undefined }
+type Surface = { readonly key: string; readonly name: string; readonly tier: CoverageTier; readonly reason: string | undefined }
 
-function CouvertureDonnees({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
-  const servies = surfaces.filter((s) => s.famille === 'servie')
-  const partielles = surfaces.filter((s) => s.famille === 'partielle')
-  const absentes = surfaces.filter((s) => s.famille === 'absente')
+const countIn = (surfaces: readonly Surface[], tier: CoverageTier): number =>
+  surfaces.filter((s) => s.tier === tier).length
+
+/* ── The headline band ───────────────────────────────────────────────────── */
+
+/**
+ * One band, sized to what it holds: the figure that answers the page's
+ * question, the two counts that qualify it, and a proportion bar that only
+ * needs the full width because it IS the full width.
+ */
+function CoverageBand({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
+  const served = countIn(surfaces, 'served')
+  const partial = countIn(surfaces, 'partial')
+  const notOpened = countIn(surfaces, 'notOpened')
 
   return (
-    <>
-      <Card className="p-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-          <HeroFigure valeur={`${servies.length}`} libelle="Surfaces servies" unite={`sur ${surfaces.length}`} />
-          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <SideFact
-              libelle="Partiellement servies"
-              valeur={partielles.length === 0 ? 'aucune' : String(partielles.length)}
-            />
-            <SideFact
-              libelle="Pas encore ouvertes"
-              valeur={absentes.length === 0 ? 'aucune' : String(absentes.length)}
-            />
-            <SideFact libelle="Couverture" valeur={`${Math.round((servies.length / surfaces.length) * 100)} %`} />
-          </dl>
+    <Card className="p-6">
+      <div className="grid items-end gap-x-10 gap-y-6 sm:grid-cols-2">
+        <HeroFigure valeur={`${served}`} libelle="Surfaces served" unite={`of ${surfaces.length}`} />
+        <div className="grid grid-cols-3 gap-x-6">
+          <SideFact libelle="Partially served" valeur={partial === 0 ? 'none' : String(partial)} />
+          <SideFact libelle="Not yet open" valeur={notOpened === 0 ? 'none' : String(notOpened)} />
+          <SideFact libelle="Coverage" valeur={`${Math.round((served / surfaces.length) * 100)}%`} />
         </div>
+      </div>
 
-        {/* Une seule barre, trois segments : la proportion se saisit d'un
-            coup d'œil, sans lire trois nombres puis les comparer. */}
-        <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-          {ORDRE.map((famille) => {
-            const nombre = surfaces.filter((s) => s.famille === famille).length
-            if (nombre === 0) return null
-            return (
-              <div
-                key={famille}
-                className={clsx('h-full', FAMILLE_POINT[famille])}
-                style={{ width: `${(nombre / surfaces.length) * 100}%` }}
-              />
-            )
-          })}
-        </div>
-        <p className="mt-3 text-xs text-zinc-500">
-          L’état d’ensemble annoncé par le service se lit au pire des champs : une seule surface incomplète
-          abaisse l’ensemble. C’est voulu — il vaut mieux une alerte de trop qu’un écran faussement rassurant.
-        </p>
-      </Card>
-
-      {ORDRE.map((famille) => {
-        const lot = surfaces.filter((s) => s.famille === famille)
-        if (lot.length === 0) return null
-        return (
-          <Card key={famille}>
-            <CardHeader title={`${FAMILLE_TITRE[famille]} — ${lot.length}`} hint={FAMILLE_EXPLICATION[famille]} />
-            <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
-              {lot.map((surface) => (
-                <li key={surface.cle} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5">
-                  <span
-                    aria-hidden="true"
-                    className={clsx('size-1.5 shrink-0 self-center rounded-full', FAMILLE_POINT[famille])}
-                  />
-                  <span className="text-sm text-white">{surface.nom}</span>
-                  {surface.motif === undefined ? null : (
-                    <span className={clsx('ml-auto text-xs', FAMILLE_TEXTE[famille])}>{surface.motif}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )
-      })}
-    </>
+      {/* One bar, three segments: the proportion is grasped at a glance,
+          without reading three numbers and comparing them. */}
+      <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+        {TIER_ORDER.map((tier) => {
+          const count = countIn(surfaces, tier)
+          if (count === 0) return null
+          return (
+            <div
+              key={tier}
+              className={clsx('h-full', TIER_DOT[tier])}
+              style={{ width: `${(count / surfaces.length) * 100}%` }}
+            />
+          )
+        })}
+      </div>
+      <p className="mt-3 max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+        The overall status announced by the service reads worst-field-first: a single incomplete surface pulls
+        down the whole. This is intentional — better one alert too many than a falsely reassuring screen.
+      </p>
+    </Card>
   )
 }
 
-function CorpsCouverture({
-  agregat,
+/* ── The list ────────────────────────────────────────────────────────────── */
+
+const COLONNES: readonly AdminTableColumn<Surface>[] = [
+  {
+    key: 'surface',
+    header: 'Surface',
+    cell: (s) => <span className="text-zinc-950 dark:text-white">{s.name}</span>,
+  },
+  {
+    key: 'tier',
+    header: 'Status',
+    className: 'w-44',
+    cell: (s) => (
+      <span className={clsx('inline-flex items-center gap-2 whitespace-nowrap', TIER_TEXT[s.tier])}>
+        <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[s.tier])} />
+        {TIER_TITLE[s.tier]}
+      </span>
+    ),
+  },
+  {
+    key: 'reason',
+    header: 'What the service says',
+    /* An unmapped reason code renders as an absence, never as a technical
+       string leaked into a business console. */
+    cell: (s) => <span className="text-zinc-500 dark:text-zinc-400">{s.reason === undefined ? '—' : s.reason}</span>,
+  },
+]
+
+/** The key to the table, in the secondary column — one entry per tier. */
+function TierLegend({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
+  return (
+    <Card className="p-5">
+      <AdminSurfaceTitle as="p">What each status means</AdminSurfaceTitle>
+      <dl className="mt-4 space-y-4">
+        {TIER_ORDER.map((tier) => (
+          <div key={tier}>
+            <dt className="flex items-baseline gap-2">
+              <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[tier])} />
+              <span className="text-sm font-medium text-zinc-950 dark:text-white">{TIER_TITLE[tier]}</span>
+              <span className="ml-auto text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
+                {countIn(surfaces, tier)}
+              </span>
+            </dt>
+            <dd className="mt-1 pl-3.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              {TIER_EXPLANATION[tier]}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Card>
+  )
+}
+
+function CoverageBody({
+  aggregate,
   surfaces,
-}: Readonly<{ agregat: Record<string, unknown> | null; surfaces: readonly Surface[] }>) {
-  if (agregat === null) {
+}: Readonly<{ aggregate: Record<string, unknown> | null; surfaces: readonly Surface[] }>) {
+  if (aggregate === null) {
     return (
       <SourceAttendue
-        quoi="L’état des surfaces n’a pas pu être lu"
-        detail="Le service n’a pas répondu. Aucune couverture n’est supposée : afficher « tout va bien » sans réponse serait le pire des mensonges sur cet écran."
-        requis={['Une réponse du service']}
+        quoi="The status of the surfaces could not be read"
+        detail="The service did not respond. No coverage is assumed: showing “all good” without a response would be the worst lie this screen could tell."
+        requis={['A response from the service']}
       />
     )
   }
   if (surfaces.length === 0) {
     return (
       <SourceAttendue
-        quoi="Le service n’a décrit aucune surface"
-        detail="La réponse est arrivée, mais elle ne contient aucune surface exploitable. Rien n’est déduit de ce silence."
-        requis={['Une réponse décrivant l’état de chaque surface']}
+        quoi="The service described no surfaces"
+        detail="The response arrived, but it contains no usable surface. Nothing is inferred from this silence."
+        requis={['A response describing the status of each surface']}
       />
     )
   }
-  return <CouvertureDonnees surfaces={surfaces} />
+
+  // Served first, then what is still waiting: the order carries the ranking,
+  // so no second grouping mechanism is needed on top of it.
+  const ordonnees = TIER_ORDER.flatMap((tier) => surfaces.filter((s) => s.tier === tier))
+
+  return (
+    <>
+      <CoverageBand surfaces={surfaces} />
+
+      <AdminSection
+        title="Surface by surface"
+        description="Every surface the service described, ranked by the status it declares. Nothing is requalified on the way to this screen."
+      >
+        <AdminTableSplit
+          main={
+            <Card className="overflow-hidden">
+              <AdminTable columns={COLONNES} rows={ordonnees} keyFn={(s) => s.key} />
+            </Card>
+          }
+          aside={<TierLegend surfaces={surfaces} />}
+        />
+      </AdminSection>
+    </>
+  )
 }
 
 export default async function Page() {
-  const reponse = await callBackend<Record<string, unknown>>('dashboard')
-  const agregat = reponse.ok ? reponse.data : null
+  const response = await callBackend<Record<string, unknown>>('dashboard')
+  const aggregate = response.ok ? response.data : null
 
   const surfaces =
-    agregat === null
+    aggregate === null
       ? []
-      : Object.entries(agregat)
-          .filter((entree): entree is [string, Resolu] => estResolu(entree[1]))
-          .map(([cle, resolu]) => ({
-            cle,
-            nom: nomSurface(cle),
-            famille: familleDe(resolu.status),
-            motif: motifLisible(resolu.reason),
+      : Object.entries(aggregate)
+          .filter((entry): entry is [string, ResolvedField] => isResolvedField(entry[1]))
+          .map(([key, resolved]) => ({
+            key,
+            name: surfaceName(key),
+            tier: tierFromStatus(resolved.status),
+            reason: motifLisible(resolved.reason),
           }))
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Couverture des données"
-        description="Sur quoi le produit peut s’appuyer aujourd’hui, surface par surface, et pourquoi le reste attend encore sa source."
+        title="Data Coverage"
+        description="What the product can rely on today, surface by surface, and why the rest is still waiting on its source."
       />
 
-      <CockpitSection>
-
-      <CorpsCouverture agregat={agregat} surfaces={surfaces} />
-
-      {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
-      </CockpitSection>
-    </div>
+      <CoverageBody aggregate={aggregate} surfaces={surfaces} />
+    </AdminPage>
   )
 }

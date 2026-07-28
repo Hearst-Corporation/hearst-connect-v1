@@ -7,26 +7,26 @@ import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
 import { useActionState } from 'react'
 
 /**
- * Formulaire d'action Keeper — fail-closed.
+ * Keeper action form — fail-closed.
  *
- * L'opérateur doit saisir « CONFIRMER » : aucun clic isolé ne déclenche
- * d'appel. Tant que le backend n'a pas répondu, rien n'est présenté comme
- * exécuté, et aucun hash de transaction n'est jamais affiché.
+ * The operator must type "CONFIRM": no isolated click triggers a call.
+ * Until the backend has responded, nothing is presented as executed, and
+ * no transaction hash is ever displayed.
  */
 function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }>) {
   const fieldClass =
-    'mt-1 w-full rounded-lg bg-zinc-50 px-2 py-1.5 text-sm text-zinc-950 ring-1 ring-zinc-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:bg-zinc-950/50 dark:text-white dark:ring-white/10'
+    'mt-1 w-full rounded-lg bg-zinc-50 px-2 py-1.5 text-sm text-zinc-950 ring-1 ring-zinc-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:bg-console-inset dark:text-white dark:ring-console-line'
 
   return (
     <>
       {needsMetrics ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">hashrateTh — entier ≥ 0</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">hashrateTh — integer ≥ 0</span>
             <input name="hashrateTh" type="number" min={0} step={1} required className={fieldClass} />
           </label>
           <label className="block">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">btcEarnedSats — entier ≥ 0</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">btcEarnedSats — integer ≥ 0</span>
             <input name="btcEarnedSats" type="number" min={0} step={1} required className={fieldClass} />
           </label>
         </div>
@@ -34,14 +34,14 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
 
       <label className="block">
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          Saisir <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRMER</span> pour émettre la
-          requête
+          Type <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> to submit the
+          request
         </span>
         <input
           name="confirm"
           type="text"
           autoComplete="off"
-          placeholder="CONFIRMER"
+          placeholder="CONFIRM"
           className={`${fieldClass} font-mono sm:max-w-xs`}
         />
       </label>
@@ -52,22 +52,22 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
 function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
   if (outcome.validationError) {
     return (
-      <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-white/5">
+      <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
         <p className="text-xs text-amber-600 dark:text-amber-400">{outcome.validationError}</p>
       </div>
     )
   }
 
   return (
-    <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-white/5">
+    <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Réponse backend :{' '}
+        Backend response:{' '}
         <span className="font-mono text-zinc-950 dark:text-white">
           {outcome.result?.status ?? outcome.stateReason ?? '—'}
         </span>
       </p>
       {outcome.result?.reason ? (
-        <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">reason : {outcome.result.reason}</p>
+        <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">reason: {outcome.result.reason}</p>
       ) : null}
       <ProblemState problem={outcome.problem} keeper={outcome.result} />
       {outcome.trace ? (
@@ -106,7 +106,7 @@ export function KeeperForm({
       ) : null}
 
       {disabled ? (
-        <p className="mt-4 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 ring-1 ring-zinc-950/5 dark:bg-zinc-950/50 dark:text-zinc-400 dark:ring-white/5">
+        <p className="mt-4 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 ring-1 ring-zinc-950/5 dark:bg-console-inset dark:text-zinc-400 dark:ring-console-line-soft">
           {disabledReason}
         </p>
       ) : (
@@ -118,7 +118,7 @@ export function KeeperForm({
             disabled={pending}
             className="rounded-lg bg-accent-400 px-3 py-1.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
           >
-            {pending ? 'Envoi…' : 'Émettre la requête'}
+            {pending ? 'Sending…' : 'Submit request'}
           </button>
         </form>
       )}

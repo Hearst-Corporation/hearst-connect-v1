@@ -4,10 +4,12 @@ import * as Headless from '@headlessui/react'
 import { motion } from 'motion/react'
 import React, { useState } from 'react'
 import { NavbarItem } from '@/components/catalyst/navbar'
+import { pageBlockPadding, pageInlinePadding } from '@/lib/layout-tokens'
+import clsx from 'clsx'
 
 /**
- * SidebarLayout cockpit — classes HTML identiques au Management Cockpit Qatar.
- * (Copie locale : le kit Catalyst vendoré n’est pas modifié.)
+ * Admin console SidebarLayout.
+ * (Local copy: the vendored Catalyst kit itself is never modified.)
  */
 
 function OpenMenuIcon() {
@@ -37,7 +39,9 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
         transition
         className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
       >
-        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+        {/* The drawer is the sidebar, so it carries the sidebar's plane —
+            application black — not a card's charcoal. */}
+        <div className="flex h-full flex-col rounded-xl bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-console-app dark:ring-console-line">
           <div className="-mb-3 px-4 pt-3">
             <Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
               <CloseMenuIcon />
@@ -58,7 +62,9 @@ export function CockpitSidebarLayout({
   const [showSidebar, setShowSidebar] = useState(false)
 
   return (
-    <div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-200/80 dark:bg-zinc-900 dark:lg:bg-black">
+    // The application plane: black neutral, and the sidebar sits directly on
+    // it — the shell panel to its right is what lifts off it.
+    <div className="relative isolate flex min-h-svh w-full overflow-x-hidden bg-white max-lg:flex-col lg:bg-zinc-200/80 dark:bg-console-app dark:lg:bg-console-app">
       <motion.div layoutScroll className="fixed inset-y-0 left-0 w-64 max-lg:hidden">
         {sidebar}
       </motion.div>
@@ -76,9 +82,21 @@ export function CockpitSidebarLayout({
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
-      <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
-        <div className="grow p-6 lg:rounded-xl lg:bg-white lg:p-10 lg:shadow-md lg:ring-1 lg:ring-zinc-950/[0.08] dark:lg:bg-zinc-900 dark:lg:ring-white/10">
-          <div className="w-full">{children}</div>
+      {/* The shell: a graphite canvas floating on the application black, with
+          a 16px radius and one soft shadow. It also owns the page inset —
+          identical left and right margins on every route depend on a single
+          owner. `AdminPage` centres the content inside it at the readable
+          measure. */}
+      <main className="flex flex-1 flex-col lg:min-w-0 lg:pl-64">
+        <div
+          className={clsx(
+            'grow w-full lg:bg-white',
+            'dark:lg:bg-console-shell',
+            pageInlinePadding,
+            pageBlockPadding,
+          )}
+        >
+          {children}
         </div>
       </main>
     </div>

@@ -7,29 +7,29 @@ import { endpointById } from './endpoints'
 import { z } from 'zod'
 
 /**
- * Server Actions des routes Keeper.
+ * Server Actions for the Keeper routes.
  *
- * Fail-closed, sans exception :
- *   - rien ne part sans confirmation explicite de l'opérateur ;
- *   - aucun succès n'est affiché avant la réponse du serveur ;
- *   - aucun hash de transaction n'est fabriqué — aucune de ces routes ne signe
- *     de transaction, le backend n'ayant aucun helper d'écriture on-chain ;
- *   - la réponse du backend est rendue telle quelle, y compris un 501.
+ * Fail-closed, no exceptions:
+ *   - nothing is sent without the operator's explicit confirmation;
+ *   - no success is shown before the server responds;
+ *   - no transaction hash is fabricated — none of these routes sign a
+ *     transaction, the backend has no on-chain write helper;
+ *   - the backend's response is rendered as-is, including a 501.
  */
 
 export type KeeperOutcome = {
   ok: boolean
   endpointId: string
-  /** Réponse brute du backend, affichée sans réinterprétation. */
+  /** Raw backend response, shown without reinterpretation. */
   result: KeeperActionResult | null
   problem: Problem | null
   stateReason: string | null
   trace: CallTrace | null
-  /** Erreur de validation locale, avant tout appel réseau. */
+  /** Local validation error, before any network call. */
   validationError: string | null
 }
 
-/** Schémas alignés sur la validation `.strict()` du backend. */
+/** Schemas aligned with the backend's `.strict()` validation. */
 const SCHEMAS: Record<string, z.ZodType> = {
   'keeper-mining-report': z
     .object({
@@ -52,8 +52,8 @@ function parseString(form: FormData, field: string): string {
 }
 
 /**
- * Exécute une action Keeper. `confirm` doit valoir exactement "CONFIRMER" :
- * une soumission accidentelle ne déclenche aucun appel.
+ * Runs a Keeper action. `confirm` must be exactly "CONFIRM": an accidental
+ * submission triggers no call.
  */
 export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormData): Promise<KeeperOutcome> {
   const endpointId = parseString(form, 'endpointId')
@@ -71,20 +71,20 @@ export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormDat
   try {
     endpoint = endpointById(endpointId)
   } catch {
-    return { ...base, validationError: 'Endpoint hors registre.' }
+    return { ...base, validationError: 'Endpoint not in the registry.' }
   }
   if (endpoint.category !== 'keeper') {
-    return { ...base, validationError: "Cette action n'est pas une route Keeper." }
+    return { ...base, validationError: 'This action is not a Keeper route.' }
   }
 
-  if (parseString(form, 'confirm') !== 'CONFIRMER') {
-    return { ...base, validationError: 'Confirmation absente : aucune requête n’a été émise.' }
+  if (parseString(form, 'confirm') !== 'CONFIRM') {
+    return { ...base, validationError: 'Missing confirmation: no request was sent.' }
   }
 
-  // Le rôle est revérifié ici, indépendamment de ce que l'UI a bien voulu rendre.
+  // The role is re-checked here, independently of whatever the UI rendered.
   const session = await getSession()
   if (!session || toBackendRole(session.role) !== 'admin') {
-    return { ...base, validationError: 'Rôle administrateur requis pour exécuter une action Keeper.' }
+    return { ...base, validationError: 'Administrator role required to run a Keeper action.' }
   }
 
   let body: unknown = {}
@@ -97,7 +97,7 @@ export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormDat
     const parsed = schema.safeParse(candidate)
     if (!parsed.success) {
       const issues = parsed.error.issues.map((i) => `${i.path.join('.')} ${i.message}`).join(', ')
-      return { ...base, validationError: `Requête invalide au regard du contrat : ${issues}.` }
+      return { ...base, validationError: `Request invalid against the contract: ${issues}.` }
     }
     body = parsed.data
   }
@@ -114,6 +114,6 @@ export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormDat
     }
   }
 
-  // Un 2xx n'est PAS une réussite d'opération : le corps porte le vrai statut.
+  // A 2xx is NOT operation success: the body carries the real status.
   return { ...base, ok: true, result: response.data ?? null, trace: response.trace }
 }

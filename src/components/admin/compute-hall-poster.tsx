@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 
 /**
- * Baies isométriques au trait — signature visuelle du Management Cockpit Qatar.
- * Server Component, `currentColor`, zéro dépendance.
+ * Line-drawn isometric server racks — the console's visual signature.
+ * Server Component, `currentColor`, zero dependencies.
  */
 
 const COS30 = 0.8660254
@@ -51,7 +51,7 @@ function bayPaths(index: number): { frame: string[]; units: string[] } {
 export function ComputeHallPoster({
   bays = 5,
   className,
-  title = 'Schéma isométrique des baies du portefeuille',
+  title = 'Isometric diagram of the vault server bays',
 }: {
   bays?: number
   className?: string

@@ -1,4 +1,5 @@
 import { EndpointSection } from '@/components/admin/endpoint-section'
+import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { PageHeader } from '@/components/admin/page-header'
 import {
   AdminMetric,
@@ -6,10 +7,12 @@ import {
   AdminStatusMatrix,
   type StatusMatrixRow,
 } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
+import { formatNumber } from '@/lib/format'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'État du service' }
+export const metadata: Metadata = { title: 'Service Status' }
 export const dynamic = 'force-dynamic'
 
 type Runtime = {
@@ -31,64 +34,64 @@ type Runtime = {
   }
 }
 
-function duree(secondes: number | undefined): string {
-  if (secondes === undefined || !Number.isFinite(secondes)) return '—'
-  if (secondes < 120) return `${Math.round(secondes)} s`
-  const minutes = Math.round(secondes / 60)
+function formatUptime(seconds: number | undefined): string {
+  if (seconds === undefined || !Number.isFinite(seconds)) return '—'
+  if (seconds < 120) return `${Math.round(seconds)} s`
+  const minutes = Math.round(seconds / 60)
   if (minutes < 120) return `${minutes} min`
   return `${Math.round(minutes / 60)} h`
 }
 
-function tonEtat(brut: string | undefined): StatusMatrixRow['ton'] {
-  if (brut === 'ready' || brut === 'CONFIGURED' || brut === 'RUNNING' || brut === 'running') return 'sain'
-  if (brut === 'NOT_CONFIGURED' || brut === 'disabled') return 'attention'
-  if (brut === 'unreachable') return 'critique'
+function statusTone(raw: string | undefined): StatusMatrixRow['ton'] {
+  if (raw === 'ready' || raw === 'CONFIGURED' || raw === 'RUNNING' || raw === 'running') return 'sain'
+  if (raw === 'NOT_CONFIGURED' || raw === 'disabled') return 'attention'
+  if (raw === 'unreachable') return 'critique'
   return 'neutre'
 }
 
-function statutFromBrut(brut: string | undefined): 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' {
-  if (brut === 'ready' || brut === 'CONFIGURED' || brut === 'RUNNING' || brut === 'running') return 'LIVE'
-  if (brut === undefined) return 'UNAVAILABLE'
+function statusFromRaw(raw: string | undefined): 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' {
+  if (raw === 'ready' || raw === 'CONFIGURED' || raw === 'RUNNING' || raw === 'running') return 'LIVE'
+  if (raw === undefined) return 'UNAVAILABLE'
   return 'PARTIAL'
 }
 
-function libelleEtat(brut: string | undefined): string {
-  switch (brut) {
+function statusLabel(raw: string | undefined): string {
+  switch (raw) {
     case 'ready':
-      return 'Joignable'
+      return 'Reachable'
     case 'CONFIGURED':
-      return 'Configuré'
+      return 'Configured'
     case 'RUNNING':
-      return 'En cours'
+      return 'Running'
     case 'running':
-      return 'Actif'
+      return 'Active'
     case 'NOT_CONFIGURED':
-      return 'Non configuré'
+      return 'Not configured'
     case 'unreachable':
-      return 'Injoignable'
+      return 'Unreachable'
     case 'disabled':
-      return 'Désactivé'
+      return 'Disabled'
     default:
-      return brut ?? 'Non communiqué'
+      return raw ?? 'Not reported'
   }
 }
 
-function detailLatence(ms: number | null | undefined): string | undefined {
+function latencyDetail(ms: number | null | undefined): string | undefined {
   if (ms === null || ms === undefined) return undefined
   return `${ms} ms`
 }
 
-function detailBloc(bloc: number | null | undefined): string | undefined {
-  if (bloc === null || bloc === undefined) return undefined
-  return `bloc ${bloc.toLocaleString('fr-FR')}`
+function blockDetail(block: number | null | undefined): string | undefined {
+  if (block === null || block === undefined) return undefined
+  return `block ${formatNumber(block)}`
 }
 
-function detailErreurs(n: number | undefined): string {
-  if (n !== undefined && n > 0) return `${n} erreur(s)`
-  return 'aucune erreur'
+function errorsDetail(n: number | undefined): string {
+  if (n !== undefined && n > 0) return `${n} error(s)`
+  return 'no errors'
 }
 
-function intervalleMs(ms: number | null | undefined): string | null {
+function intervalDetail(ms: number | null | undefined): string | null {
   if (ms === null || ms === undefined) return null
   return `${ms} ms`
 }
@@ -106,45 +109,45 @@ function buildMatrix(input: {
   return [
     {
       id: 'health',
-      label: 'Vivacité (health)',
+      label: 'Liveness (health)',
       status: healthOk ? 'LIVE' : 'UNAVAILABLE',
-      detail: healthOk ? 'HTTP 200' : 'Pas de réponse',
+      detail: healthOk ? 'HTTP 200' : 'No response',
       ton: healthOk ? 'sain' : 'critique',
     },
     {
       id: 'ready',
-      label: 'Disponibilité (ready)',
+      label: 'Readiness (ready)',
       status: readyLive ? 'LIVE' : 'UNAVAILABLE',
       detail: readyOk ? readyDb : undefined,
       ton: readyLive ? 'sain' : 'critique',
     },
     {
       id: 'db',
-      label: 'Base de données',
-      status: statutFromBrut(r?.databaseStatus),
-      detail: detailLatence(r?.db?.latencyMs),
-      ton: tonEtat(r?.databaseStatus),
+      label: 'Database',
+      status: statusFromRaw(r?.databaseStatus),
+      detail: latencyDetail(r?.db?.latencyMs),
+      ton: statusTone(r?.databaseStatus),
     },
     {
       id: 'contract',
-      label: 'Contrat',
-      status: statutFromBrut(r?.contractStatus),
-      detail: libelleEtat(r?.contractStatus),
-      ton: tonEtat(r?.contractStatus),
+      label: 'Contract',
+      status: statusFromRaw(r?.contractStatus),
+      detail: statusLabel(r?.contractStatus),
+      ton: statusTone(r?.contractStatus),
     },
     {
       id: 'indexer',
-      label: 'Indexeur',
-      status: statutFromBrut(r?.indexerStatus),
-      detail: detailBloc(scheduler?.lastIndexedBlock),
-      ton: tonEtat(r?.indexerStatus),
+      label: 'Indexer',
+      status: statusFromRaw(r?.indexerStatus),
+      detail: blockDetail(scheduler?.lastIndexedBlock),
+      ton: statusTone(r?.indexerStatus),
     },
     {
       id: 'scheduler',
-      label: 'Planificateur',
-      status: statutFromBrut(scheduler?.status),
-      detail: detailErreurs(scheduler?.consecutiveErrors),
-      ton: tonEtat(scheduler?.status),
+      label: 'Scheduler',
+      status: statusFromRaw(scheduler?.status),
+      detail: errorsDetail(scheduler?.consecutiveErrors),
+      ton: statusTone(scheduler?.status),
     },
   ]
 }
@@ -168,34 +171,90 @@ export default async function RuntimePage() {
   })
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Runtime et infrastructure"
-        description="Matrice d’état, métriques de déploiement et réponses brutes des sondes."
+        title="Runtime & Infrastructure"
+        description="Status matrix, deployment metrics, and raw probe responses."
       />
 
-      <AdminSection title="Matrice d’état" description="Dépendances et sondes opérationnelles">
-        <AdminStatusMatrix title="Services et dépendances" rows={matrix} />
+      {/*
+        The matrix is a single full-width list card and is therefore the section's
+        direct child: wrapping one surface in a one-column grid would be an empty
+        container around another surface. Its own card title is gone too — the
+        section's H2 already names it, and an H3 repeating it inside the card was
+        a second header for one piece of content.
+      */}
+      <AdminSection title="Status Matrix" description="Dependencies and operational probes">
+        <AdminStatusMatrix rows={matrix} />
       </AdminSection>
 
-      <AdminSection title="Déploiement" description="Version et environnement — runtime">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <AdminMetric label="Environnement" value={r?.environment ?? null} />
-          <AdminMetric label="Uptime" value={duree(r?.uptimeSeconds)} />
-          <AdminMetric label="Version" value={r?.version ?? null} />
-          <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="SHA du déploiement" />
-          <AdminMetric label="Chaîne" value={r?.chainId ?? null} hint="chainId" />
-          <AdminMetric label="Intervalle indexeur" value={intervalleMs(scheduler?.intervalMs)} />
-        </div>
+      {/*
+        Deployment facts: six peers, no headline among them, so they compose as a
+        balanced 3 × 2 block rather than the old `sm:grid-cols-2 lg:grid-cols-4`,
+        which put four on the first row and marooned two on the left of an empty
+        one.
+
+        `AdminMetricGrid count={6}` would give `lg:grid-cols-6`; at 1440 that is
+        roughly 165px per tile, too thin for a commit SHA or an environment name
+        at the standard numeric size. Explicit spans on the 12-column grid give a
+        full last row at every breakpoint: 3 across at lg (span 4), 2 at md
+        (md 4 of 8), 1 at base — 6, 6 and 6 tiles with nothing stranded.
+
+        Order is by meaning, one row per idea: deployment identity, then running
+        state. Every tile carries exactly one caption — the runtime field it
+        reads — so the tiles in a row are the same height and the caption doubles
+        as provenance on a page whose job is technical verification.
+      */}
+      <AdminSection
+        title="Deployment"
+        description="Version, environment, and scheduler settings as reported by the runtime probe"
+      >
+        <AdminGrid>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Environment" value={r?.environment ?? null} hint="environment" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Version" value={r?.version ?? null} hint="version" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="commitSha" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Uptime" value={formatUptime(r?.uptimeSeconds)} hint="uptimeSeconds" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric label="Chain" value={r?.chainId ?? null} hint="chainId" />
+          </AdminCol>
+          <AdminCol span={4} md={4}>
+            <AdminMetric
+              label="Indexer Interval"
+              value={intervalDetail(scheduler?.intervalMs)}
+              hint="indexerScheduler.intervalMs"
+            />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
 
-      <AdminSection title="Réponses brutes" description="Payload complet pour vérification technique">
-        <EndpointSection endpointId="runtime" title="Runtime" />
-        <div className="grid gap-4 lg:grid-cols-2">
-          <EndpointSection endpointId="health" title="Health" />
-          <EndpointSection endpointId="ready" title="Ready" />
-        </div>
+      {/*
+        Raw payloads. The runtime probe carries the whole deployment picture and
+        takes the full 12 columns; health and ready are one-line orchestrator
+        answers and pair off at 6 each, so the row closes exactly. Declared spans
+        rather than a bare `lg:grid-cols-2`, which left the runtime block and the
+        pair on two unrelated grids.
+      */}
+      <AdminSection title="Raw Responses" description="Full payload for technical verification">
+        <AdminGrid>
+          <AdminCol span={12}>
+            <EndpointSection endpointId="runtime" title="Runtime" />
+          </AdminCol>
+          <AdminCol span={6} md={4}>
+            <EndpointSection endpointId="health" title="Health" />
+          </AdminCol>
+          <AdminCol span={6} md={4}>
+            <EndpointSection endpointId="ready" title="Ready" />
+          </AdminCol>
+        </AdminGrid>
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }
