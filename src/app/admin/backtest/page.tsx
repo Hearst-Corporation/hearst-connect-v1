@@ -5,6 +5,7 @@ import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import type { Metadata } from 'next'
+import React from 'react'
 
 export const metadata: Metadata = { title: 'Backtests' }
 export const dynamic = 'force-dynamic'
@@ -40,6 +41,40 @@ type Resolved<T> = { readonly status: string; readonly value: T | null; readonly
 type Run = { readonly id?: string; readonly label?: string | null }
 type BacktestResponse = { readonly runs?: Resolved<readonly Run[]> }
 
+function detailBacktestVide(reason: string | undefined): string {
+  if (reason === undefined) {
+    return 'The service answered, and its register holds no run. Nothing is plotted until a first backtest exists: an invented historical performance would read as a promise of return.'
+  }
+  return `The service answered, and no run is available: ${reason}. Nothing is plotted in the meantime — an invented historical performance would read as a promise of return.`
+}
+
+function labelRun(run: Run): string {
+  if (run.label === null || run.label === undefined || run.label === '') return 'Unlabeled run'
+  return run.label
+}
+
+function ListeBacktests({ runs }: Readonly<{ runs: readonly Run[] }>) {
+  return (
+    <AdminGrid>
+      <AdminCol span={8}>
+        <Card>
+          <CardHeader title="Which backtests have been run?" hint={`${runs.length} run${runs.length > 1 ? 's' : ''} kept`} />
+          <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+            {runs.map((run, rank) => (
+              <li
+                key={run.id ?? String(rank)}
+                className="px-5 py-3.5 text-sm text-zinc-950 sm:px-6 dark:text-white"
+              >
+                {labelRun(run)}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </AdminCol>
+    </AdminGrid>
+  )
+}
+
 export default async function Page() {
   const response = await callBackend<BacktestResponse>('backtest-historical')
   const block = response.ok ? response.data.runs : undefined
@@ -47,6 +82,49 @@ export default async function Page() {
   const reason = motifLisible(block?.reason)
 
   const none = runs === null || runs === undefined || runs.length === 0
+
+  let contenu: React.ReactNode
+  if (!response.ok) {
+    contenu = (
+      <AdminGrid>
+        <AdminCol span={7} md={6}>
+          <SourceAttendue
+            quoi="Backtests could not be read"
+            detail="The service did not respond to the request. This silence is not read as proof that no backtest exists — it means the register could not be consulted at all."
+            requis={['A response from the service']}
+          />
+        </AdminCol>
+      </AdminGrid>
+    )
+  } else if (none) {
+    contenu = (
+      <AdminGrid>
+        <AdminCol span={7} md={6}>
+          <SourceAttendue
+            quoi="No backtest has been run to date"
+            detail={detailBacktestVide(reason)}
+            requis={[
+              'A reference period, with a start and an end date',
+              'The price history of the portfolio assets over that period',
+              'One execution of the calculation by the service, kept with its timestamp',
+            ]}
+            action={
+              block === undefined ? undefined : (
+                // The status slot carries what the service actually reported
+                // about its register — a real field, not a reassurance.
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Register status returned by the service:{' '}
+                  <span className="font-mono text-zinc-700 dark:text-zinc-300">{block.status}</span>
+                </p>
+              )
+            }
+          />
+        </AdminCol>
+      </AdminGrid>
+    )
+  } else {
+    contenu = <ListeBacktests runs={runs} />
+  }
 
   return (
     <AdminPage>
@@ -58,65 +136,7 @@ export default async function Page() {
       {/* Every branch declares its span. A stated absence is a paragraph, not
           a banner — seven columns is the measure it reads best at, and the
           five remaining columns are deliberate whitespace. */}
-      {!response.ok ? (
-        <AdminGrid>
-          <AdminCol span={7} md={6}>
-            <SourceAttendue
-              quoi="Backtests could not be read"
-              detail="The service did not respond to the request. This silence is not read as proof that no backtest exists — it means the register could not be consulted at all."
-              requis={['A response from the service']}
-            />
-          </AdminCol>
-        </AdminGrid>
-      ) : none ? (
-        <AdminGrid>
-          <AdminCol span={7} md={6}>
-            <SourceAttendue
-              quoi="No backtest has been run to date"
-              detail={
-                reason === undefined
-                  ? 'The service answered, and its register holds no run. Nothing is plotted until a first backtest exists: an invented historical performance would read as a promise of return.'
-                  : `The service answered, and no run is available: ${reason}. Nothing is plotted in the meantime — an invented historical performance would read as a promise of return.`
-              }
-              requis={[
-                'A reference period, with a start and an end date',
-                'The price history of the portfolio assets over that period',
-                'One execution of the calculation by the service, kept with its timestamp',
-              ]}
-              action={
-                block === undefined ? undefined : (
-                  // The status slot carries what the service actually reported
-                  // about its register — a real field, not a reassurance.
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Register status returned by the service:{' '}
-                    <span className="font-mono text-zinc-700 dark:text-zinc-300">{block.status}</span>
-                  </p>
-                )
-              }
-            />
-          </AdminCol>
-        </AdminGrid>
-      ) : (
-        <AdminGrid>
-          <AdminCol span={8}>
-            <Card>
-              <CardHeader
-                title="Which backtests have been run?"
-                hint={`${runs.length} run${runs.length > 1 ? 's' : ''} kept`}
-              />
-              <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                {runs.map((run, rank) => (
-                  <li key={run.id ?? String(rank)} className="px-5 py-3.5 text-sm text-zinc-950 sm:px-6 dark:text-white">
-                    {run.label === null || run.label === undefined || run.label === ''
-                      ? 'Unlabeled run'
-                      : run.label}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          </AdminCol>
-        </AdminGrid>
-      )}
+      {contenu}
     </AdminPage>
   )
 }

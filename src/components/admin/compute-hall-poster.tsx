@@ -20,11 +20,17 @@ function project(x: number, y: number, z: number): Point {
 }
 
 function polygon(points: Point[]): string {
-  return `${points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' ')} Z`
+  const commands = points.map((p, i) => {
+    const prefix = i === 0 ? 'M' : 'L'
+    return `${prefix}${p.x.toFixed(3)} ${p.y.toFixed(3)}`
+  })
+  return `${commands.join(' ')} Z`
 }
 
 function segment(a: Point, b: Point): string {
-  return `M${a.x.toFixed(3)} ${a.y.toFixed(3)} L${b.x.toFixed(3)} ${b.y.toFixed(3)}`
+  const start = `${a.x.toFixed(3)} ${a.y.toFixed(3)}`
+  const end = `${b.x.toFixed(3)} ${b.y.toFixed(3)}`
+  return `M${start} L${end}`
 }
 
 function bayPaths(index: number): { frame: string[]; units: string[] } {
@@ -77,12 +83,14 @@ export function ComputeHallPoster({
   const maxX = Math.max(...all.map((p) => p.x)) + pad
   const minY = Math.min(...all.map((p) => p.y)) - pad
   const maxY = Math.max(...all.map((p) => p.y)) + pad
+  const viewBoxWidth = maxX - minX
+  const viewBoxHeight = maxY - minY
 
   return (
     <svg
       role="img"
       aria-label={title}
-      viewBox={`${minX.toFixed(3)} ${minY.toFixed(3)} ${(maxX - minX).toFixed(3)} ${(maxY - minY).toFixed(3)}`}
+      viewBox={`${minX.toFixed(3)} ${minY.toFixed(3)} ${viewBoxWidth.toFixed(3)} ${viewBoxHeight.toFixed(3)}`}
       className={clsx('dc-rack w-full', className)}
       fill="none"
       stroke="currentColor"
@@ -91,13 +99,13 @@ export function ComputeHallPoster({
       vectorEffect="non-scaling-stroke"
     >
       <title>{title}</title>
-      {geometry.map((bay, i) => (
-        <g key={i} style={{ animationDelay: `${i * 70}ms` }}>
-          {bay.frame.map((d, j) => (
-            <path key={`f${j}`} d={d} strokeWidth={0.022} />
+      {geometry.map((bay) => (
+        <g key={bay.frame[0]} style={{ animationDelay: `${geometry.indexOf(bay) * 70}ms` }}>
+          {bay.frame.map((d) => (
+            <path key={`frame-${d}`} d={d} strokeWidth={0.022} />
           ))}
-          {bay.units.map((d, j) => (
-            <path key={`u${j}`} d={d} strokeWidth={0.012} strokeOpacity={0.45} />
+          {bay.units.map((d) => (
+            <path key={`unit-${d}`} d={d} strokeWidth={0.012} strokeOpacity={0.45} />
           ))}
         </g>
       ))}

@@ -6,7 +6,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   LabelList,
   ReferenceArea,
   ReferenceLine,
@@ -68,6 +67,8 @@ export type EcartPoche = {
   /** The word that states the status — colour only reinforces it. */
   readonly mot: string
 }
+
+type EcartAvecFill = EcartPoche & { readonly fill: string }
 
 /**
  * One role per level. `conforme` is not "success", it is simply the ordinary
@@ -156,7 +157,8 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
     )
   }
 
-  const magnitude = Math.max(...ecarts.map((e) => Math.abs(e.ecart)))
+  const data: EcartAvecFill[] = ecarts.map((e) => ({ ...e, fill: LEVEL_COLOR[e.niveau] }))
+  const magnitude = Math.max(...data.map((e) => Math.abs(e.ecart)))
   const bound = Math.max(MIN_BOUND_PT, Math.ceil(magnitude * 1.35))
   const graduations = [-bound, -bound / 2, 0, bound / 2, bound]
 
@@ -179,7 +181,7 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
             </tr>
           </thead>
           <tbody>
-            {ecarts.map((e) => (
+            {data.map((e) => (
               <tr key={e.poche}>
                 <th scope="row">{e.label}</th>
                 <td>{formatDeviationPoints(e.ecart)}</td>
@@ -192,10 +194,10 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
 
       {/* One row per pocket, from the shared height scale: three pockets get
           three rows of canvas, not a fixed box with air under the last bar. */}
-      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', ecarts.length) }}>
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', data.length) }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={[...ecarts]}
+            data={data}
             layout="vertical"
             // Base margin from the shared token, with the vertical padding
             // tightened and the left edge given up entirely: the category
@@ -242,9 +244,6 @@ export function VaultEcartChart({ ecarts }: Readonly<{ ecarts: readonly EcartPoc
                 from zero delays reading and leaves a screenshot caught on an
                 empty chart. */}
             <Bar dataKey="ecart" radius={2} maxBarSize={18} isAnimationActive={false}>
-              {ecarts.map((e) => (
-                <Cell key={e.poche} fill={LEVEL_COLOR[e.niveau]} />
-              ))}
               <LabelList
                 position="right"
                 offset={6}
