@@ -14,6 +14,7 @@ import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
 import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
+import React from 'react'
 
 export const metadata: Metadata = { title: 'Bitcoin' }
 export const dynamic = 'force-dynamic'
@@ -62,14 +63,6 @@ export const dynamic = 'force-dynamic'
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
-/**
- * The real shape of a `/api/v1/btc` event, as observed on the service.
- *
- * The timestamp arrives under `timestamp`, not `occurredAt` — the previous
- * version read the wrong field and therefore showed "—" on every row. Both
- * names are accepted here: the second costs nothing and covers a
- * divergence between routes.
- */
 type Evenement = {
   readonly name?: string | null
   readonly category?: string | null
@@ -78,7 +71,6 @@ type Evenement = {
   readonly occurredAt?: string | null
 }
 
-/** Monthly production report, in whole satoshis transmitted as a string. */
 type MoisBrut = {
   readonly period?: string | null
   readonly satsEarned?: string | null
@@ -206,6 +198,13 @@ function etatProductionDe(bloc: ChampResolu | undefined, moisRetenus: number): E
   return etatDe(bloc, 'Monthly production reports are not yet transmitted by the service.')
 }
 
+function contexteObservationDe(cumulProduction: string | null): string {
+  if (cumulProduction === null) {
+    return 'Bitcoin attested by the service for this month, to the satoshi.'
+  }
+  return `Bitcoin attested by the service for this month, to the satoshi. Cumulative since inception: ${cumulProduction} BTC.`
+}
+
 /** Severity decides the color AND the word: a colorblind reader gets the same state. */
 const GRAVITE: Record<string, { readonly mot: string; readonly point: string; readonly texte: string }> = {
   critical: { mot: 'Critical', point: 'bg-danger-500', texte: 'text-danger-400' },
@@ -243,49 +242,6 @@ function nomLisible(brut: string | null | undefined): string {
     .replace(/([a-z\d])([A-Z])/g, '$1 $2')
     .trim()
   return decoupe === '' ? 'Untitled event' : decoupe
-}
-
-/**
- * The event feed carries no title of its own any more: the section it lives
- * in already asks the question in its H2, and repeating it as a card header
- * put a heading inside a panel to say the same thing twice.
- */
-function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: readonly Evenement[]; statutLive: boolean }>) {
-  if (evenements.length === 0) {
-    return statutLive ? (
-      <CalmState message="No bitcoin movement has been recorded. Nothing requires attention." />
-    ) : null
-  }
-
-  return (
-    <Card className="py-1">
-      <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-        {evenements.map((e, index) => {
-          const gravite = graviteLisible(e.severity)
-          return (
-            <li
-              key={`${e.name ?? 'evenement'}-${e.timestamp ?? e.occurredAt ?? String(index)}`}
-              className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm sm:px-6"
-            >
-              <span aria-hidden="true" className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)} />
-              <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">{nomLisible(e.name)}</span>
-              {e.category === null || e.category === undefined || e.category === '' ? null : (
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">{nomLisible(e.category)}</span>
-              )}
-              <span className={clsx('text-xs font-medium', gravite.texte)}>{gravite.mot}</span>
-              {/* The service also carries an `amount` on some movements. It
-                  is NOT rendered here: the contract doesn't say what unit
-                  it's denominated in, and showing "$60,000" on an amount
-                  that could be in satoshis would be an invention three
-                  orders of magnitude off. The amount stays available in the
-                  raw response returned by the service. */}
-              <span className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{formatDateTime(e.timestamp ?? e.occurredAt)}</span>
-            </li>
-          )
-        })}
-      </ul>
-    </Card>
-  )
 }
 
 /* ── Proof registry ──────────────────────────────────────────────────────── */
@@ -335,10 +291,76 @@ function PreuvesPubliees({ bloc }: Readonly<{ bloc: Resolu<readonly unknown[]> }
   )
 }
 
-export default async function Page() {
-  const reponse = await callBackend<Btc>('btc')
-  const b = reponse.ok ? reponse.data : null
+/* ── Event feed ─────────────────────────────────────────────────────────── */
 
+function cleEvenement(e: Evenement, index: number): string {
+  return `${e.name ?? 'evenement'}-${e.timestamp ?? e.occurredAt ?? String(index)}`
+}
+
+function EvenementRow({ evenement }: Readonly<{ evenement: Evenement }>) {
+  const gravite = graviteLisible(evenement.severity)
+  return (
+    <li className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
+      <span aria-hidden="true" className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)} />
+      <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">{nomLisible(evenement.name)}</span>
+      {evenement.category === null || evenement.category === undefined || evenement.category === '' ? null : (
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">{nomLisible(evenement.category)}</span>
+      )}
+      <span className={clsx('text-xs font-medium', gravite.texte)}>{gravite.mot}</span>
+      {/* The service also carries an `amount` on some movements. It
+          is NOT rendered here: the contract doesn't say what unit
+          it's denominated in, and showing "$60,000" on an amount
+          that could be in satoshis would be an invention three
+          orders of magnitude off. The amount stays available in the
+          raw response returned by the service. */}
+      <span className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{formatDateTime(evenement.timestamp ?? evenement.occurredAt)}</span>
+    </li>
+  )
+}
+
+/**
+ * The event feed carries no title of its own any more: the section it lives
+ * in already asks the question in its H2, and repeating it as a card header
+ * put a heading inside a panel to say the same thing twice.
+ */
+function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: readonly Evenement[]; statutLive: boolean }>) {
+  if (evenements.length === 0) {
+    return statutLive ? (
+      <CalmState message="No bitcoin movement has been recorded. Nothing requires attention." />
+    ) : null
+  }
+
+  return (
+    <Card className="py-1">
+      <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+        {evenements.map((e, index) => (
+          <EvenementRow key={cleEvenement(e, index)} evenement={e} />
+        ))}
+      </ul>
+    </Card>
+  )
+}
+
+/* ── View model ──────────────────────────────────────────────────────────── */
+
+type VueBitcoin = Readonly<{
+  reponse: Btc | null
+  bitcoinProduit: string
+  reserve: { balanceUsdc: string | null; balanceBtc: string | null } | null | undefined
+  exposition: { pouch: string | null; valueUsdc: string | null; targetBps: number | null; actualBps: number | null } | null | undefined
+  produit: { totalSats: string | null; lastReportTime: string | null } | null | undefined
+  postes: readonly PosteBitcoin[]
+  evenements: readonly Evenement[]
+  fluxLisible: boolean
+  production: Production | null | undefined
+  moisProduction: readonly MoisProduction[]
+  cumulProduction: string | null
+  dernierMois: MoisProduction | undefined
+  contexteObservation: string
+}>
+
+function buildBitcoinViewModel(reponse: Btc | null): VueBitcoin {
+  const b = reponse
   const reserve = b?.reserve?.value
   const exposition = b?.exposure?.value
   const produit = b?.btcProduced?.value
@@ -350,8 +372,6 @@ export default async function Page() {
       ? '—'
       : (satsNombre / 100_000_000).toLocaleString('en-US', { maximumFractionDigits: 8 })
 
-  // Reserve and exposure: two real amounts, comparable on the same scale.
-  // An unreadable entry is dropped, never brought back to zero.
   const montantReserve = montantNumerique(reserve?.balanceUsdc)
   const montantExposition = montantNumerique(exposition?.valueUsdc)
   const postes: PosteBitcoin[] = []
@@ -360,25 +380,55 @@ export default async function Page() {
 
   const evenements = b?.events?.value
   const listeEvenements = evenements ?? []
-  // `CeQuiSestPasse` renders nothing when there is neither a movement nor a
-  // LIVE source to call calm. The section is therefore decided here, so the
-  // page never shows a titled section with an empty body under it.
   const fluxLisible = listeEvenements.length > 0 || b?.events?.status === 'LIVE'
 
-  // Production pace: the service now exposes a monthly report. Each month
-  // is a measured quantity; none is filled in or interpolated.
   const production = b?.production?.value
   const moisProduction = moisExploitables(production)
   const cumulProduction = btcExactDepuisSats(production?.cumulativeSatsEarned)
   const dernierMois = moisProduction.at(-1)
+  const contexteObservation = contexteObservationDe(cumulProduction)
 
-  // The context under a lone observation quotes only figures the service
-  // actually returned — no target, no cap, nothing to compare against that
-  // isn't in the payload.
-  const contexteObservation =
-    cumulProduction === null
-      ? 'Bitcoin attested by the service for this month, to the satoshi.'
-      : `Bitcoin attested by the service for this month, to the satoshi. Cumulative since inception: ${cumulProduction} BTC.`
+  return {
+    reponse: b,
+    bitcoinProduit,
+    reserve,
+    exposition,
+    produit,
+    postes,
+    evenements: listeEvenements,
+    fluxLisible,
+    production,
+    moisProduction,
+    cumulProduction,
+    dernierMois,
+    contexteObservation,
+  }
+}
+
+function resolveProductionState(b: Btc | null | undefined, moisRetenus: number): EtatSerie {
+  return etatProductionDe(b?.production, moisRetenus)
+}
+
+function resolveReserveState(postes: readonly PosteBitcoin[]): EtatSerie {
+  if (postes.length > 0) return { type: 'tracee' }
+  return {
+    type: 'attendue',
+    explication:
+      'Neither the reserve nor the exposed value could be read on-chain. Nothing is plotted rather than a breakdown at zero.',
+  }
+}
+
+function resolveMovementState(evenements: readonly Evenement[], fluxLisible: boolean, b: Btc | null): React.ReactNode {
+  if (!fluxLisible) return null
+  return <CeQuiSestPasse evenements={evenements} statutLive={b?.events?.status === 'LIVE'} />
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
+
+export default async function Page() {
+  const reponse = await callBackend<Btc>('btc')
+  const vue = buildBitcoinViewModel(reponse.ok ? reponse.data : null)
+  const b = vue.reponse
 
   return (
     <AdminPage>
@@ -404,14 +454,14 @@ export default async function Page() {
             <AdminGrid>
               <AdminCol span={b.proofs === undefined ? 12 : 7}>
                 <Card className="flex h-full flex-col p-6">
-                  <HeroFigure valeur={bitcoinProduit} libelle="Bitcoin produced to date" unite="BTC" />
+                  <HeroFigure valeur={vue.bitcoinProduit} libelle="Bitcoin produced to date" unite="BTC" />
                   {/* Three facts, three columns — `AdminMetricGrid` picks a
                       column count that leaves no orphan on the last row, which
                       a hand-written `grid-cols-2` did not. */}
                   <AdminMetricGrid count={3} className="mt-6">
-                    <SideFact libelle="Dormant reserve" valeur={formatCurrency(reserve?.balanceUsdc, { decimals: 0 })} />
-                    <SideFact libelle="Value exposed to the market" valeur={formatCurrency(exposition?.valueUsdc, { decimals: 0 })} />
-                    <SideFact libelle="Last production report" valeur={formatDateTime(produit?.lastReportTime)} />
+                    <SideFact libelle="Dormant reserve" valeur={formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 })} />
+                    <SideFact libelle="Value exposed to the market" valeur={formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 })} />
+                    <SideFact libelle="Last production report" valeur={formatDateTime(vue.produit?.lastReportTime)} />
                   </AdminMetricGrid>
                 </Card>
               </AdminCol>
@@ -429,18 +479,18 @@ export default async function Page() {
             <ChartFrame
               question="At what pace is bitcoin being produced?"
               unite="in bitcoin, per reported month"
-              etat={etatProductionDe(b.production, moisProduction.length)}
+              etat={resolveProductionState(b, vue.moisProduction.length)}
             >
-              {dernierMois !== undefined && !plottableAsChart(moisProduction.length) ? (
+              {vue.dernierMois !== undefined && !plottableAsChart(vue.moisProduction.length) ? (
                 <SingleObservation
-                  valeur={dernierMois.btcExact}
+                  valeur={vue.dernierMois.btcExact}
                   unite="BTC"
-                  periode={dernierMois.libelle}
-                  contexte={contexteObservation}
+                  periode={vue.dernierMois.libelle}
+                  contexte={vue.contexteObservation}
                   note="Only one month has been reported so far. A pace is the gap between two months, and there is no second month yet — the chart appears with the next report."
                 />
               ) : (
-                <ProductionMensuelleChart mois={moisProduction} cumulBtc={cumulProduction} />
+                <ProductionMensuelleChart mois={vue.moisProduction} cumulBtc={vue.cumulProduction} />
               )}
             </ChartFrame>
           </AdminSection>
@@ -451,25 +501,17 @@ export default async function Page() {
             description="The same two amounts read as a split: what sleeps in reserve, and what is exposed to the market."
           >
             <AdminGrid>
-              <AdminCol span={exposition === null || exposition === undefined ? 12 : 7}>
+              <AdminCol span={vue.exposition === null || vue.exposition === undefined ? 12 : 7}>
                 <ChartFrame
                   question="Where does the money sit?"
                   unite="in dollars"
-                  etat={
-                    postes.length > 0
-                      ? { type: 'tracee' }
-                      : {
-                          type: 'attendue',
-                          explication:
-                            'Neither the reserve nor the exposed value could be read on-chain. Nothing is plotted rather than a breakdown at zero.',
-                        }
-                  }
+                  etat={resolveReserveState(vue.postes)}
                 >
-                  <ReserveExpositionChart postes={postes} />
+                  <ReserveExpositionChart postes={vue.postes} />
                 </ChartFrame>
               </AdminCol>
 
-              {exposition === null || exposition === undefined ? null : (
+              {vue.exposition === null || vue.exposition === undefined ? null : (
                 <AdminCol span={5}>
                   <Card className="flex h-full flex-col">
                     <CardHeader
@@ -480,21 +522,21 @@ export default async function Page() {
                       <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
                         <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Exposed pouch</span>
                         <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">
-                          {exposition.pouch === null || exposition.pouch === undefined || exposition.pouch === ''
+                          {vue.exposition.pouch === null || vue.exposition.pouch === undefined || vue.exposition.pouch === ''
                             ? 'Not reported'
-                            : exposition.pouch}
+                            : vue.exposition.pouch}
                         </span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
                         <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Target share</span>
                         <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
-                          {partLisible(exposition.targetBps)}
+                          {partLisible(vue.exposition.targetBps)}
                         </span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
                         <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Observed share</span>
                         <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
-                          {partLisible(exposition.actualBps)}
+                          {partLisible(vue.exposition.actualBps)}
                         </span>
                       </li>
                     </ul>
@@ -505,12 +547,12 @@ export default async function Page() {
           </AdminSection>
 
           {/* ── What happened ──────────────────────────────────────────────── */}
-          {fluxLisible ? (
+          {vue.fluxLisible ? (
             <AdminSection
               title="What happened recently"
               description="Movements and alerts reported by the service, most recent first."
             >
-              <CeQuiSestPasse evenements={listeEvenements} statutLive={b.events?.status === 'LIVE'} />
+              {resolveMovementState(vue.evenements, vue.fluxLisible, b)}
             </AdminSection>
           ) : null}
 
