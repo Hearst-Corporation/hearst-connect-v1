@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 /**
- * Raccourci compact — bande Qatar (icône + titre + statut).
+ * Compact shortcut row — icon + title + status.
  */
 export function ShortcutRow({
   title,

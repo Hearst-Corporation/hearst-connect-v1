@@ -4,15 +4,15 @@ import type { Metadata } from 'next'
 import { AdminShell } from './admin-shell'
 
 export const metadata: Metadata = {
-  title: { template: '%s · Console Hearst Connect', default: 'Console Hearst Connect' },
+  title: { template: '%s · Hearst Connect Administration', default: 'Hearst Connect Administration' },
 }
 
 /**
- * Garde serveur : aucune surface admin ne se rend sans session valide.
+ * Server guard: no admin surface renders without a valid session.
  *
- * `publicUser` retire le jeton backend AVANT de franchir la frontière
- * serveur → client. La coque n'a besoin que de l'identité ; le jeton, lui, ne
- * doit apparaître ni dans les props sérialisées, ni dans le HTML rendu.
+ * `publicUser` strips the backend token BEFORE crossing the server → client
+ * boundary. The shell only needs the identity; the token itself must never
+ * appear in serialized props or in the rendered HTML.
  */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await requireSession()

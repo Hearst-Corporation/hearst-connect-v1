@@ -9,7 +9,8 @@ import {
   type PocheDerive,
 } from '@/components/admin/charts/accueil-derive-chart'
 import { AccueilVueEnsemble, type VerdictAccueil } from '@/components/admin/charts/accueil-vue-ensemble'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { ExceptionBanner, CalmState } from '@/components/admin/cockpit'
 import { DistributionBarChart, type BarreRepartition } from '@/components/admin/distribution-chart'
 import { PageHeader } from '@/components/admin/page-header'
@@ -17,6 +18,7 @@ import { PocketProgress, PocketProgressLegend } from '@/components/admin/pocket-
 import { ShortcutRow } from '@/components/admin/shortcut-row'
 import { Panel, PanelHeading, surfaceRaised } from '@/components/admin/surface'
 import { callBackend } from '@/lib/backend/client'
+import { formatNumber, formatPercent } from '@/lib/format'
 import { ilYA, libelleMouvement, montantUsdc, phraseMouvement } from '@/lib/mouvements'
 import { etatSerieDe } from '@/lib/serie-etat'
 import {
@@ -30,42 +32,46 @@ import Link from 'next/link'
 import clsx from 'clsx'
 
 /**
- * Accueil — le poste de commande.
+ * Home — the command post.
  *
- * L'écran répond à une seule question, dans cet ordre : « tout va bien, ou
- * pas ? », puis « où en est-on ? », puis « que s'est-il passé ? ».
+ * The screen answers a single question, in this order: "is everything fine,
+ * or not?", then "where do things stand?", then "what happened?".
  *
- * D'où la composition :
- *   1. les exceptions et les ALERTES d'abord — le service en émet, elles ne
- *      peuvent pas rester sous le pli ;
- *   2. la vue d'ensemble : encours, plafond consommé, et trois verdicts
- *      opérationnels (dérive, couverture électricité, disponibilité) ;
- *   3. les mesures détaillées, puis les graphiques qui les expliquent ;
- *   4. l'activité récente, et seulement à la fin les raccourcis.
+ * Hence the composition:
+ *   1. exceptions and ALERTS first — the service emits them, they cannot
+ *      stay below the fold;
+ *   2. the overview: assets under management, cap utilization, and three
+ *      operational verdicts (drift, electricity coverage, availability);
+ *   3. the detailed measures, then the charts that explain them;
+ *   4. recent activity, and only at the end the shortcuts.
  *
- * Deux partis pris qui rompent avec la version précédente, assumés :
+ * Two deliberate departures from the previous version:
  *
- * — Les graphiques passent de `CockpitFigure` à `ChartFrame`. Un cadre qui
- *   déclare l'unité, la provenance et l'ÉTAT de la série vaut mieux qu'une
- *   figure muette : quand la source manque, le cadre reste posé et dit
- *   pourquoi, au lieu de disparaître ou de tracer un zéro.
+ * — Charts move from `CockpitFigure` to `ChartFrame`. A frame that declares
+ *   the unit, the source, and the STATE of the series beats a mute figure:
+ *   when the source is missing, the frame stays in place and says why,
+ *   instead of disappearing or plotting a zero.
  *
- * — Le donut « Mix capacité » cède la place à la barre de plafond de la vue
- *   d'ensemble. Les deux représentaient le même nombre ; le second emplacement
- *   sert désormais à la DÉRIVE d'allocation, qui n'était affichée nulle part
- *   alors qu'elle est la seule mesure actionnable du bloc.
+ * — The "Capacity mix" donut gives way to the overview's cap bar. Both
+ *   represented the same number; the freed slot now serves allocation
+ *   DRIFT, which wasn't shown anywhere even though it's the only
+ *   actionable measure in the block.
  *
- * Les seuils de lecture (dérive, couverture électricité) sont des conventions
- * de cette console : le contrat n'expose aucune tolérance. Ils sont annoncés
- * comme tels à l'écran, jamais présentés comme une règle du produit.
+ * The reading thresholds (drift, electricity coverage) are conventions of
+ * this console: the contract exposes no tolerance. They are announced as
+ * such on screen, never presented as a product rule.
  */
 
-export const metadata: Metadata = { title: 'Accueil' }
+// Next.js does not apply a layout's title.template to a page sharing the
+// same route segment as that layout (only to nested descendants) — so the
+// admin index route composes the title explicitly rather than relying on
+// admin/layout.tsx's template.
+export const metadata: Metadata = { title: { absolute: 'Home · Hearst Connect Administration' } }
 export const dynamic = 'force-dynamic'
 
-type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
-type Poche = {
+type Pocket = {
   readonly pocket: string
   readonly label?: string | null
   readonly targetBps: number
@@ -74,78 +80,74 @@ type Poche = {
 }
 
 type Dashboard = {
-  readonly capacity?: Resolu<{
+  readonly capacity?: Resolved<{
     tvlCap: string
     totalAssets: string
     availableCapacity: string
     utilizationBps: number | null
   }>
-  readonly performance?: Resolu<{ navPerShare: string | null; totalReturnBps: number | null }>
-  readonly strategies?: Resolu<readonly Poche[]>
-  readonly allocation?: Resolu<{ pockets: readonly Poche[]; targetTotalBps?: number | null }>
-  readonly alerts?: Resolu<readonly AlerteBackend[]>
-  readonly rebalancing?: Resolu<{
+  readonly performance?: Resolved<{ navPerShare: string | null; totalReturnBps: number | null }>
+  readonly strategies?: Resolved<readonly Pocket[]>
+  readonly allocation?: Resolved<{ pockets: readonly Pocket[]; targetTotalBps?: number | null }>
+  readonly alerts?: Resolved<readonly AlerteBackend[]>
+  readonly rebalancing?: Resolved<{
     lastRebalanceAt: string | null
     driftBps: number | null
     pending: unknown
   }>
-  readonly reserve?: Resolu<{
+  readonly reserve?: Resolved<{
     reserveUsdc: string | null
     reserveBps: number | null
     electricityCoveredMonths: number | null
   }>
-  readonly subscription?: Resolu<{
+  readonly subscription?: Resolved<{
     subscriptionOpen: boolean | null
     minimumDepositAtomic: string | null
     whitelistRequired: boolean | null
   }>
 }
 
-type Mouvement = {
+type Movement = {
   readonly id: string
   readonly eventName: string
   readonly assetAmountAtomic: string | null
   readonly occurredAt: string | null
 }
 
-type Evenements = { readonly events?: Resolu<readonly Mouvement[]> }
+type EventsResponse = { readonly events?: Resolved<readonly Movement[]> }
 
-/* ── Formatage ───────────────────────────────────────────────────────────── */
+/* ── Formatting ──────────────────────────────────────────────────────────── */
 
-function pourcentage(bps: number | null | undefined): string {
+/** A drift is expressed in POINTS, with its sign: "+2.15 pt" is deliberate. */
+function formatDriftPoints(bps: number | null | undefined): string {
   if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
-  return `${(bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %`
+  const value = bps / 100
+  const sign = value > 0 ? '+' : ''
+  return `${sign}${formatNumber(value, { maximumFractionDigits: 2 })} pt`
 }
 
-/** Un écart se dit en POINTS, avec son signe : « −2,15 pt » se décide. */
-function points(bps: number | null | undefined): string {
-  if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
-  const valeur = bps / 100
-  const signe = valeur > 0 ? '+' : ''
-  return `${signe}${valeur.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} pt`
-}
-
-/* ── Poches ──────────────────────────────────────────────────────────────── */
+/* ── Pockets ─────────────────────────────────────────────────────────────── */
 
 /**
- * `allocation.pockets` porte le libellé et la dérive déjà calculée par le
- * service ; `strategies` ne porte que la cible et le réel. On lit donc le
- * premier quand il répond, et on retombe sur le second sans rien inventer.
+ * `allocation.pockets` carries the label and the drift already computed by
+ * the service; `strategies` carries only target and actual. We read the
+ * former when it answers, and fall back to the latter without inventing
+ * anything.
  */
-function pochesLues(d: Dashboard | null): readonly Poche[] {
-  const parAllocation = d?.allocation?.value?.pockets
-  if (parAllocation !== undefined && parAllocation !== null && parAllocation.length > 0) return parAllocation
-  const parStrategies = d?.strategies?.value
-  if (parStrategies !== undefined && parStrategies !== null) return parStrategies
+function readPockets(d: Dashboard | null): readonly Pocket[] {
+  const fromAllocation = d?.allocation?.value?.pockets
+  if (fromAllocation !== undefined && fromAllocation !== null && fromAllocation.length > 0) return fromAllocation
+  const fromStrategies = d?.strategies?.value
+  if (fromStrategies !== undefined && fromStrategies !== null) return fromStrategies
   return []
 }
 
-function libellePoche(p: Poche): string {
+function pocketLabel(p: Pocket): string {
   return typeof p.label === 'string' && p.label !== '' ? p.label : p.pocket
 }
 
-function allocations(poches: readonly Poche[]): PocheAllocation[] {
-  return poches.map((p) => ({
+function allocationBars(pockets: readonly Pocket[]): PocheAllocation[] {
+  return pockets.map((p) => ({
     poche: p.pocket,
     cible: p.targetBps / 100,
     reel: p.actualBps === null ? null : p.actualBps / 100,
@@ -153,337 +155,339 @@ function allocations(poches: readonly Poche[]): PocheAllocation[] {
 }
 
 /**
- * La dérive vient du service quand il la fournit. À défaut, elle se déduit du
- * couple réel/cible — une soustraction, pas une invention. Une poche dont le
- * réel n'est pas lisible est ÉCARTÉE : une dérive nulle se lirait « alignée ».
+ * Drift comes from the service when it provides it. Otherwise, it's derived
+ * from the actual/target pair — a subtraction, not an invention. A pocket
+ * whose actual value isn't readable is EXCLUDED: a zero drift would read as
+ * "aligned".
  */
-function derives(poches: readonly Poche[]): PocheDerive[] {
-  const lues: PocheDerive[] = []
-  for (const p of poches) {
-    const fournie = p.driftBps
-    if (typeof fournie === 'number' && Number.isFinite(fournie)) {
-      lues.push({ poche: p.pocket, libelle: libellePoche(p), deriveBps: fournie })
+function driftBars(pockets: readonly Pocket[]): PocheDerive[] {
+  const read: PocheDerive[] = []
+  for (const p of pockets) {
+    const provided = p.driftBps
+    if (typeof provided === 'number' && Number.isFinite(provided)) {
+      read.push({ poche: p.pocket, libelle: pocketLabel(p), deriveBps: provided })
       continue
     }
     if (p.actualBps !== null && Number.isFinite(p.actualBps)) {
-      lues.push({ poche: p.pocket, libelle: libellePoche(p), deriveBps: p.actualBps - p.targetBps })
+      read.push({ poche: p.pocket, libelle: pocketLabel(p), deriveBps: p.actualBps - p.targetBps })
     }
   }
-  return lues
+  return read
 }
 
 /* ── Verdicts ────────────────────────────────────────────────────────────── */
 
-function verdictDerive(
+function driftVerdict(
   rebalancing: Dashboard['rebalancing'],
-  pirePocheBps: number | null,
+  worstPocketBps: number | null,
 ): VerdictAccueil {
-  const bloc = rebalancing?.value
-  const globale = bloc?.driftBps
-  const mesure = typeof globale === 'number' && Number.isFinite(globale) ? globale : pirePocheBps
-  const dernier = bloc?.lastRebalanceAt
+  const block = rebalancing?.value
+  const overall = block?.driftBps
+  const measure = typeof overall === 'number' && Number.isFinite(overall) ? overall : worstPocketBps
+  const last = block?.lastRebalanceAt
   const detail =
-    typeof dernier === 'string' && dernier !== ''
-      ? `Dernier rééquilibrage ${ilYA(dernier)}`
-      : 'Aucun rééquilibrage horodaté'
+    typeof last === 'string' && last !== ''
+      ? `Last rebalance ${ilYA(last)}`
+      : 'No rebalance timestamped yet'
 
-  if (mesure === null || !Number.isFinite(mesure)) {
+  if (measure === null || !Number.isFinite(measure)) {
     return {
-      id: 'derive',
-      libelle: 'Dérive d’allocation',
+      id: 'drift',
+      libelle: 'Allocation drift',
       valeur: '—',
-      mot: 'Non mesurée',
+      mot: 'Not measured',
       ton: 'neutre',
-      detail: 'Le service ne renvoie pas d’écart de rééquilibrage',
+      detail: 'The service does not return a rebalancing gap',
     }
   }
 
-  const ampleur = Math.abs(mesure)
-  let mot = 'Aligné'
+  const magnitude = Math.abs(measure)
+  let mot = 'Aligned'
   let ton: VerdictAccueil['ton'] = 'sain'
-  if (ampleur >= SEUIL_DERIVE_CRITIQUE_BPS) {
-    mot = 'Action requise'
+  if (magnitude >= SEUIL_DERIVE_CRITIQUE_BPS) {
+    mot = 'Action required'
     ton = 'critique'
-  } else if (ampleur >= SEUIL_DERIVE_ATTENTION_BPS) {
-    mot = 'À surveiller'
+  } else if (magnitude >= SEUIL_DERIVE_ATTENTION_BPS) {
+    mot = 'Watch closely'
     ton = 'attention'
   }
 
-  return { id: 'derive', libelle: 'Dérive d’allocation', valeur: points(mesure), mot, ton, detail }
+  return { id: 'drift', libelle: 'Allocation drift', valeur: formatDriftPoints(measure), mot, ton, detail }
 }
 
 /**
- * La réserve couvre l'électricité de la ferme pendant N mois. C'est la mesure
- * de survie opérationnelle du produit : sous six mois, le sujet n'est plus
- * financier, il est industriel. Le seuil est une convention de cette console,
- * annoncée dans le détail affiché.
+ * The reserve covers the farm's electricity for N months. It's the
+ * operational survival measure of the product: below six months, the
+ * subject is no longer financial, it's industrial. The threshold is a
+ * convention of this console, announced in the displayed detail.
  */
-const SEUIL_ELEC_CONFORTABLE_MOIS = 12
-const SEUIL_ELEC_CRITIQUE_MOIS = 6
+const ELECTRICITY_COMFORTABLE_MONTHS = 12
+const ELECTRICITY_CRITICAL_MONTHS = 6
 
-function verdictElectricite(reserve: Dashboard['reserve']): VerdictAccueil {
-  const mois = reserve?.value?.electricityCoveredMonths
-  if (typeof mois !== 'number' || !Number.isFinite(mois)) {
+function electricityVerdict(reserve: Dashboard['reserve']): VerdictAccueil {
+  const months = reserve?.value?.electricityCoveredMonths
+  if (typeof months !== 'number' || !Number.isFinite(months)) {
     return {
-      id: 'electricite',
-      libelle: 'Électricité couverte',
+      id: 'electricity',
+      libelle: 'Electricity covered',
       valeur: '—',
-      mot: 'Non mesurée',
+      mot: 'Not measured',
       ton: 'neutre',
-      detail: 'Le service ne renvoie pas de couverture',
+      detail: 'The service does not return coverage',
     }
   }
 
-  let mot = 'Couverture confortable'
+  let mot = 'Comfortable coverage'
   let ton: VerdictAccueil['ton'] = 'sain'
-  if (mois < SEUIL_ELEC_CRITIQUE_MOIS) {
-    mot = 'Action requise'
+  if (months < ELECTRICITY_CRITICAL_MONTHS) {
+    mot = 'Action required'
     ton = 'critique'
-  } else if (mois < SEUIL_ELEC_CONFORTABLE_MOIS) {
-    mot = 'À surveiller'
+  } else if (months < ELECTRICITY_COMFORTABLE_MONTHS) {
+    mot = 'Watch closely'
     ton = 'attention'
   }
 
   return {
-    id: 'electricite',
-    libelle: 'Électricité couverte',
-    valeur: `${mois.toLocaleString('fr-FR')} mois`,
+    id: 'electricity',
+    libelle: 'Electricity covered',
+    valeur: `${formatNumber(months)} months`,
     mot,
     ton,
-    detail: `Réserve ${montantUsdc(reserve?.value?.reserveUsdc, 0)} · seuil de lecture ${SEUIL_ELEC_CONFORTABLE_MOIS} mois`,
+    detail: `Reserve ${montantUsdc(reserve?.value?.reserveUsdc, 0)} · reading threshold ${ELECTRICITY_COMFORTABLE_MONTHS} months`,
   }
 }
 
-function verdictService(indisponible: boolean, dernierMouvement: Mouvement | undefined): VerdictAccueil {
-  if (indisponible) {
+function serviceVerdict(unavailable: boolean, lastMovement: Movement | undefined): VerdictAccueil {
+  if (unavailable) {
     return {
       id: 'service',
-      libelle: 'Disponibilité du service',
-      valeur: 'Indisponible',
-      mot: 'Action requise',
+      libelle: 'Service availability',
+      valeur: 'Unavailable',
+      mot: 'Action required',
       ton: 'critique',
-      detail: 'La sonde de disponibilité ne répond pas',
+      detail: 'The availability probe is not responding',
     }
   }
-  const horodatage = dernierMouvement?.occurredAt
+  const timestamp = lastMovement?.occurredAt
   return {
     id: 'service',
-    libelle: 'Disponibilité du service',
-    valeur: 'Opérationnel',
-    mot: 'Rien à signaler',
+    libelle: 'Service availability',
+    valeur: 'Operational',
+    mot: 'Nothing to report',
     ton: 'sain',
     detail:
-      typeof horodatage === 'string' && horodatage !== ''
-        ? `Dernier mouvement indexé ${ilYA(horodatage)}`
-        : 'Aucun mouvement indexé récemment',
+      typeof timestamp === 'string' && timestamp !== ''
+        ? `Last movement indexed ${ilYA(timestamp)}`
+        : 'No movement indexed recently',
   }
 }
 
-/* ── Mesures secondaires ─────────────────────────────────────────────────── */
+/* ── Secondary measures ──────────────────────────────────────────────────── */
 
-function tonPerformance(bps: number | null | undefined): AdminKpiItem['tone'] {
+function performanceTone(bps: number | null | undefined): AdminKpiItem['tone'] {
   if (bps !== null && bps !== undefined && bps > 0) return 'success'
   return 'default'
 }
 
-function mesures(input: {
+function kpiItems(input: {
   d: Dashboard | null
-  nombrePoches: number
-  dernierMouvement: Mouvement | undefined
+  pocketCount: number
+  lastMovement: Movement | undefined
 }): AdminKpiItem[] {
-  const { d, nombrePoches, dernierMouvement } = input
-  const capacite = d?.capacity?.value
+  const { d, pocketCount, lastMovement } = input
+  const capacity = d?.capacity?.value
   const perf = d?.performance?.value
-  const souscription = d?.subscription?.value
+  const subscription = d?.subscription?.value
 
   return [
     {
-      id: 'capacite',
-      label: 'Capacité disponible',
-      value: montantUsdc(capacite?.availableCapacity, 0),
-      hint: 'Reste souscriptible',
+      id: 'capacity',
+      label: 'Available capacity',
+      value: montantUsdc(capacity?.availableCapacity, 0),
+      hint: 'Remaining subscribable',
     },
-    { id: 'plafond', label: 'Plafond TVL', value: montantUsdc(capacite?.tvlCap, 0), hint: 'Plafond contractuel' },
-    { id: 'nav', label: 'Valeur de part', value: perf?.navPerShare ?? null, hint: 'navPerShare, en USDC' },
+    { id: 'cap', label: 'TVL cap', value: montantUsdc(capacity?.tvlCap, 0), hint: 'Contractual cap' },
+    { id: 'nav', label: 'Share value', value: perf?.navPerShare ?? null, hint: 'navPerShare, in USDC' },
     {
       id: 'performance',
       label: 'Performance',
-      value: pourcentage(perf?.totalReturnBps),
-      hint: 'Rendement total depuis l’origine',
-      tone: tonPerformance(perf?.totalReturnBps),
+      value: formatPercent(perf?.totalReturnBps, { fromBps: true, maximumFractionDigits: 2 }),
+      hint: 'Total return since inception',
+      tone: performanceTone(perf?.totalReturnBps),
     },
     {
-      id: 'utilisation',
-      label: 'Taux d’utilisation',
-      value: pourcentage(capacite?.utilizationBps),
-      hint: 'Part du plafond engagée',
+      id: 'utilization',
+      label: 'Utilization rate',
+      value: formatPercent(capacity?.utilizationBps, { fromBps: true, maximumFractionDigits: 2 }),
+      hint: 'Share of the cap committed',
     },
     {
-      id: 'poches',
-      label: 'Poches stratégiques',
-      value: nombrePoches > 0 ? String(nombrePoches) : null,
-      hint: 'Stratégies lisibles sur la chaîne',
+      id: 'pockets',
+      label: 'Strategic pockets',
+      value: pocketCount > 0 ? String(pocketCount) : null,
+      hint: 'Strategies readable on-chain',
     },
     {
-      id: 'souscription',
-      label: 'Souscription',
-      value: souscriptionLisible(souscription?.subscriptionOpen),
+      id: 'subscription',
+      label: 'Subscription',
+      value: subscriptionLabel(subscription?.subscriptionOpen),
       hint:
-        souscription?.whitelistRequired === true ? 'Liste blanche exigée' : 'Ticket minimum ci-contre',
+        subscription?.whitelistRequired === true ? 'Whitelist required' : 'Minimum ticket opposite',
     },
     {
       id: 'ticket',
-      label: 'Ticket minimum',
-      value: montantUsdc(souscription?.minimumDepositAtomic, 0),
-      hint: dernierMouvement?.occurredAt ? `Dernier mvt · ${ilYA(dernierMouvement.occurredAt)}` : 'Dépôt initial',
+      label: 'Minimum ticket',
+      value: montantUsdc(subscription?.minimumDepositAtomic, 0),
+      hint: lastMovement?.occurredAt ? `Last mvt · ${ilYA(lastMovement.occurredAt)}` : 'Initial deposit',
     },
   ]
 }
 
-function souscriptionLisible(ouverte: boolean | null | undefined): string | null {
-  if (ouverte === true) return 'Ouverte'
-  if (ouverte === false) return 'Fermée'
+function subscriptionLabel(open: boolean | null | undefined): string | null {
+  if (open === true) return 'Open'
+  if (open === false) return 'Closed'
   return null
 }
 
-/* ── Répartition des mouvements ──────────────────────────────────────────── */
+/* ── Movement distribution ──────────────────────────────────────────────── */
 
 /**
- * Compte réel des types d'événements indexés — aucune catégorie n'est ajoutée
- * pour « faire joli » : un type absent du flux est absent du graphique.
+ * Real count of indexed event types — no category is added "to look nice":
+ * a type absent from the feed is absent from the chart.
  */
-function repartitionParType(mouvements: readonly Mouvement[]): BarreRepartition[] {
-  const compte = new Map<string, number>()
-  for (const m of mouvements) {
-    const dejaVu = compte.get(m.eventName)
-    compte.set(m.eventName, dejaVu === undefined ? 1 : dejaVu + 1)
+function distributionByType(movements: readonly Movement[]): BarreRepartition[] {
+  const counts = new Map<string, number>()
+  for (const m of movements) {
+    const seen = counts.get(m.eventName)
+    counts.set(m.eventName, seen === undefined ? 1 : seen + 1)
   }
-  return [...compte.entries()].map(([nom, valeur]) => ({ nom: libelleMouvement(nom), valeur }))
+  return [...counts.entries()].map(([name, value]) => ({ nom: libelleMouvement(name), valeur: value }))
 }
 
-/* ── État des cadres ─────────────────────────────────────────────────────── */
+/* ── Frame states ────────────────────────────────────────────────────────── */
 
 /**
- * Une série LIVE mais vide n'est pas une série tracée : le cadre doit dire
- * « aucune donnée sur la période » plutôt que d'afficher un graphique nu.
+ * A LIVE but empty series is not a plotted series: the frame must say "no
+ * data for the period" instead of displaying a bare chart.
  */
-function etatDeSerie(bloc: Resolu<unknown> | undefined, longueur: number, defaut: string, vide: string): EtatSerie {
-  const etat = etatSerieDe(bloc, defaut)
-  if (etat.type === 'tracee' && longueur === 0) return { type: 'vide', explication: vide }
-  return etat
+function seriesState(block: Resolved<unknown> | undefined, length: number, fallback: string, empty: string): EtatSerie {
+  const state = etatSerieDe(block, fallback)
+  if (state.type === 'tracee' && length === 0) return { type: 'vide', explication: empty }
+  return state
 }
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
-  const [dashboard, evenements, disponibilite] = await Promise.all([
+  const [dashboard, events, availability] = await Promise.all([
     callBackend<Dashboard>('dashboard'),
-    callBackend<Evenements>('series1-events', { params: { limit: 12 } }),
+    callBackend<EventsResponse>('series1-events', { params: { limit: 12 } }),
     callBackend<{ ready?: boolean }>('ready'),
   ])
 
-  const serviceIndisponible = !disponibilite.ok || disponibilite.data.ready !== true
+  const serviceUnavailable = !availability.ok || availability.data.ready !== true
   const d = dashboard.ok ? dashboard.data : null
-  const capacite = d?.capacity?.value
-  const mouvements = evenements.ok ? evenements.data.events?.value : null
-  const listeMouvements = mouvements === null || mouvements === undefined ? [] : mouvements
-  const dernierMouvement = listeMouvements[0]
+  const capacity = d?.capacity?.value
+  const movements = events.ok ? events.data.events?.value : null
+  const movementList = movements === null || movements === undefined ? [] : movements
+  const lastMovement = movementList[0]
 
-  const poches = pochesLues(d)
-  const barresAllocation = allocations(poches)
-  const barresDerive = derives(poches)
-  const repartition = repartitionParType(listeMouvements)
+  const pockets = readPockets(d)
+  const allocationBarData = allocationBars(pockets)
+  const driftBarData = driftBars(pockets)
+  const distribution = distributionByType(movementList)
 
-  // Le verdict global retient la poche la plus décrochée, pas la moyenne :
-  // une moyenne compense une poche en excès par une poche en défaut et rend
-  // « aligné » un portefeuille qui ne l'est pas.
-  const pirePocheBps =
-    barresDerive.length > 0
-      ? barresDerive.reduce((pire, p) => (Math.abs(p.deriveBps) > Math.abs(pire) ? p.deriveBps : pire), 0)
+  // The overall verdict keeps the most-drifted pocket, not the average: an
+  // average offsets an over-allocated pocket against an under-allocated one
+  // and would read "aligned" on a portfolio that isn't.
+  const worstPocketBps =
+    driftBarData.length > 0
+      ? driftBarData.reduce((worst, p) => (Math.abs(p.deriveBps) > Math.abs(worst) ? p.deriveBps : worst), 0)
       : null
 
-  const alertes = d?.alerts?.value
-  const listeAlertes = alertes === null || alertes === undefined ? [] : alertes
+  const alerts = d?.alerts?.value
+  const alertList = alerts === null || alerts === undefined ? [] : alerts
 
   const verdicts: VerdictAccueil[] = [
-    verdictDerive(d?.rebalancing, pirePocheBps),
-    verdictElectricite(d?.reserve),
-    verdictService(serviceIndisponible, dernierMouvement),
+    driftVerdict(d?.rebalancing, worstPocketBps),
+    electricityVerdict(d?.reserve),
+    serviceVerdict(serviceUnavailable, lastMovement),
   ]
 
-  const metaSnapshot = dernierMouvement?.occurredAt
-    ? `Series 1 · snapshot ${ilYA(dernierMouvement.occurredAt)}`
+  const metaSnapshot = lastMovement?.occurredAt
+    ? `Series 1 · snapshot ${ilYA(lastMovement.occurredAt)}`
     : 'Series 1 · snapshot live'
 
   return (
-    <>
-      <PageHeader title="Hearst Connect — Portefeuille Series 1" meta={metaSnapshot} />
+    <AdminPage>
+      <PageHeader title="Hearst Connect — Series 1 Portfolio" description={metaSnapshot} />
 
-      {serviceIndisponible ? (
+      {serviceUnavailable ? (
         <ExceptionBanner
-          message="Le service ne répond pas ou n’est pas prêt."
+          message="The service is not responding or is not ready."
           href="/admin/runtime"
-          actionLabel="État du service"
+          actionLabel="Service status"
         />
       ) : null}
 
-      <CockpitSection>
+      <AdminSection>
         <AccueilVueEnsemble
-          encours={montantUsdc(capacite?.totalAssets, 0)}
-          encoursLegende="Actifs mesurés sur la chaîne, libellés en USDC"
-          utiliseBps={capacite?.utilizationBps ?? null}
-          disponible={montantUsdc(capacite?.availableCapacity, 0)}
-          plafond={montantUsdc(capacite?.tvlCap, 0)}
+          encours={montantUsdc(capacity?.totalAssets, 0)}
+          encoursLegende="On-chain assets, denominated in USDC"
+          utiliseBps={capacity?.utilizationBps ?? null}
+          disponible={montantUsdc(capacity?.availableCapacity, 0)}
+          plafond={montantUsdc(capacity?.tvlCap, 0)}
           verdicts={verdicts}
         />
 
-        {/* Les alertes viennent avant les mesures : une console qui fait lire
-            huit chiffres avant de signaler un incident inverse les priorités. */}
-        <AccueilAlertes alertes={listeAlertes} />
+        {/* Alerts come before the measures: a console that makes you read
+            eight numbers before flagging an incident has its priorities
+            backwards. */}
+        <AccueilAlertes alertes={alertList} />
 
-        <AdminKpiSurface items={mesures({ d, nombrePoches: poches.length, dernierMouvement })} />
+        <AdminKpiSurface items={kpiItems({ d, pocketCount: pockets.length, lastMovement })} />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <ChartFrame
-              question="L’argent est-il placé là où il devrait l’être ?"
-              unite="Part du portefeuille, en %"
-              etat={etatDeSerie(
+              question="Is the money allocated where it should be?"
+              unite="Share of portfolio, in %"
+              etat={seriesState(
                 d?.allocation ?? d?.strategies,
-                barresAllocation.length,
-                'les poches stratégiques ne sont pas encore lisibles',
-                'le service renvoie une allocation sans aucune poche',
+                allocationBarData.length,
+                'strategic pockets are not yet readable',
+                'the service returns an allocation with no pockets',
               )}
             >
-              <AllocationChart poches={barresAllocation} />
+              <AllocationChart poches={allocationBarData} />
             </ChartFrame>
           </div>
           <div className="lg:col-span-1">
             <ChartFrame
-              question="Quelle poche a décroché de sa cible ?"
-              unite="Écart signé, en points"
-              etat={etatDeSerie(
+              question="Which pocket has drifted from its target?"
+              unite="Signed gap, in points"
+              etat={seriesState(
                 d?.allocation ?? d?.strategies,
-                barresDerive.length,
-                'le service ne renvoie pas d’écart d’allocation',
-                'aucune poche n’expose d’écart lisible',
+                driftBarData.length,
+                'the service does not return an allocation gap',
+                'no pocket exposes a readable gap',
               )}
             >
-              <AccueilDeriveChart poches={barresDerive} />
+              <AccueilDeriveChart poches={driftBarData} />
             </ChartFrame>
           </div>
         </div>
 
-        {poches.length > 0 ? (
+        {pockets.length > 0 ? (
           <div className={clsx(surfaceRaised, 'overflow-hidden')}>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-950/5 px-5 py-3 dark:border-white/5">
               <h2 className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase dark:text-zinc-400">
-                Poches
+                Pockets
               </h2>
               <PocketProgressLegend />
             </div>
             <ul>
-              {poches.map((p, i) => (
+              {pockets.map((p, i) => (
                 <li key={p.pocket}>
                   <Link
                     href="/admin/vault"
@@ -494,10 +498,10 @@ export default async function Page() {
                   >
                     <div className="w-full min-w-0 sm:w-52">
                       <p className="truncate text-sm font-semibold text-zinc-950 dark:text-white">
-                        {libellePoche(p)}
+                        {pocketLabel(p)}
                       </p>
                       <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                        Poche {p.pocket} · écart {points(p.driftBps)}
+                        Pocket {p.pocket} · drift {formatDriftPoints(p.driftBps)}
                       </p>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -514,49 +518,49 @@ export default async function Page() {
             </ul>
           </div>
         ) : null}
-      </CockpitSection>
+      </AdminSection>
 
-      <CockpitSection
+      <AdminSection
         index="02"
-        title="Activité récente"
+        title="Recent activity"
         description={
-          dernierMouvement
-            ? `${phraseMouvement(dernierMouvement.eventName)} · ${dernierMouvement.occurredAt ? ilYA(dernierMouvement.occurredAt) : '—'}`
-            : 'Mouvements indexés Series 1'
+          lastMovement
+            ? `${phraseMouvement(lastMovement.eventName)} · ${lastMovement.occurredAt ? ilYA(lastMovement.occurredAt) : '—'}`
+            : 'Series 1 indexed movements'
         }
         actions={
           <Link
             href="/admin/operations"
             className="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400"
           >
-            Registre →
+            Log →
           </Link>
         }
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <ChartFrame
-              question="De quoi est faite l’activité récente ?"
-              unite="Nombre d’événements indexés"
-              etat={etatDeSerie(
-                evenements.ok ? evenements.data.events : undefined,
-                repartition.length,
-                'les mouvements ne sont pas encore indexés',
-                'aucun mouvement relevé sur la période',
+              question="What does recent activity consist of?"
+              unite="Number of indexed events"
+              etat={seriesState(
+                events.ok ? events.data.events : undefined,
+                distribution.length,
+                'movements are not yet indexed',
+                'no movement recorded for the period',
               )}
             >
-              <DistributionBarChart barres={repartition} />
+              <DistributionBarChart barres={distribution} />
             </ChartFrame>
           </div>
 
           <div className="lg:col-span-3">
-            {listeMouvements.length === 0 ? (
-              <CalmState message="Aucun mouvement relevé récemment." />
+            {movementList.length === 0 ? (
+              <CalmState message="No movement recorded recently." />
             ) : (
               <Panel inset="none" className="overflow-hidden">
-                <PanelHeading title="Mouvements" />
+                <PanelHeading title="Movements" />
                 <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
-                  {listeMouvements.slice(0, 8).map((m) => (
+                  {movementList.slice(0, 8).map((m) => (
                     <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">
@@ -574,31 +578,31 @@ export default async function Page() {
             )}
           </div>
         </div>
-      </CockpitSection>
+      </AdminSection>
 
-      {/* Les raccourcis ferment la page : on navigue APRÈS avoir lu l'état,
-          pas avant. Ils ne sont plus le contenu principal de l'accueil. */}
-      <nav aria-label="Accès rapides" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Shortcuts close the page: you navigate AFTER reading the state, not
+          before. They're no longer the main content of Home. */}
+      <nav aria-label="Quick access" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ShortcutRow
           href="/admin/operations"
-          title="Registre des opérations"
-          status="Mouvements on-chain"
+          title="Operations log"
+          status="On-chain movements"
           icon={ArrowsRightLeftIcon}
         />
         <ShortcutRow
           href="/admin/runtime"
-          title="État du service"
-          status={serviceIndisponible ? 'Indisponible' : 'Sondes runtime'}
+          title="Service status"
+          status={serviceUnavailable ? 'Unavailable' : 'Runtime probes'}
           icon={ServerStackIcon}
         />
-        <ShortcutRow href="/admin/vault" title="Vault" status="Stratégies et rééquilibrage" icon={CircleStackIcon} />
+        <ShortcutRow href="/admin/vault" title="Vault" status="Strategies and rebalancing" icon={CircleStackIcon} />
         <ShortcutRow
           href="/admin/administration"
           title="Administration"
-          status="Équipe, traces, réglages"
+          status="Team, audit trail, settings"
           icon={Cog6ToothIcon}
         />
       </nav>
-    </>
+    </AdminPage>
   )
 }

@@ -94,6 +94,6 @@ describe('registre des endpoints', () => {
   })
 
   it('rejette un identifiant hors registre', () => {
-    expect(() => endpointById('inexistant')).toThrow(/hors registre|inconnu/i)
+    expect(() => endpointById('inexistant')).toThrow(/unknown to the registry|unknown/i)
   })
 })

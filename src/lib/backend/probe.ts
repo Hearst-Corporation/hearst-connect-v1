@@ -5,15 +5,15 @@ import { callBackend, statusFromMeta, type CallTrace } from './client'
 import { BACKEND_ENDPOINTS, type BackendEndpoint } from './endpoints'
 
 /**
- * Appel unitaire déclenché depuis l'API Explorer.
+ * Single call triggered from the API Explorer.
  *
- * Réservé aux lectures : une action Keeper ne s'exécute que depuis sa page
- * dédiée, derrière confirmation explicite.
+ * Reserved for reads: a Keeper action only executes from its dedicated page,
+ * behind explicit confirmation.
  *
- * Fail-closed : aucun chemin de cette action ne lève. Une entrée hors contrat
- * (id inconnu, méthode non lisible, chemin paramétré sans paramètre) est un
- * `ProbeOutcome` nommé, pas une exception — une Server Action qui lève tombe
- * dans l'error boundary et perd l'explication au passage.
+ * Fail-closed: no path of this action throws. An entry outside the contract
+ * (unknown id, non-readable method, parameterized path without a parameter)
+ * is a named `ProbeOutcome`, not an exception — a Server Action that throws
+ * falls into the error boundary and loses the explanation along the way.
  */
 
 export type ProbeOutcome = {
@@ -25,25 +25,26 @@ export type ProbeOutcome = {
   trace: CallTrace
 }
 
-/** Paramètres de chemin déclarés par le registre, syntaxe `:nom`. */
+/** Path parameters declared by the registry, `:name` syntax. */
 const PATH_PARAM = /:(\w+)/g
 
-/** Le registre est la seule source : lecture sans lever, contrairement à `endpointById`. */
+/** The registry is the only source: reads without throwing, unlike `endpointById`. */
 function findEndpoint(id: string): BackendEndpoint | null {
   return BACKEND_ENDPOINTS.find((endpoint) => endpoint.id === id) ?? null
 }
 
 /**
- * Noms des paramètres de chemin d'une route, lus depuis `endpoint.path`.
- * Inspection du registre, sans le modifier ni dupliquer sa syntaxe ailleurs.
+ * Names of a route's path parameters, read from `endpoint.path`.
+ * Inspects the registry without modifying it or duplicating its syntax
+ * elsewhere.
  */
 function pathParamNames(path: string): string[] {
   return [...path.matchAll(PATH_PARAM)].map(([, name]) => name)
 }
 
 /**
- * Trace honnête d'un appel qui n'a pas eu lieu : pas de statut HTTP, pas de
- * requestId, durée nulle. Jamais un faux 200.
+ * Honest trace of a call that never happened: no HTTP status, no requestId,
+ * zero duration. Never a fake 200.
  */
 function traceWithoutCall(method: string, path: string): CallTrace {
   return {
@@ -70,16 +71,16 @@ export async function probeEndpoint(_prev: ProbeOutcome | null, form: FormData):
   const rawEndpointId = form.get('endpointId')
   const endpointId = typeof rawEndpointId === 'string' ? rawEndpointId : ''
 
-  // `endpointId` vient d'un champ de formulaire : il est contrôlé par le
-  // client, donc traité comme une entrée non fiable.
+  // `endpointId` comes from a form field: it's controlled by the client,
+  // so it's treated as untrusted input.
   const endpoint = findEndpoint(endpointId)
   if (!endpoint) {
     return refusal(
       endpointId,
       'NOT_SUPPORTED',
       endpointId
-        ? `Endpoint inconnu du registre : « ${endpointId} ». Aucune requête n'a été émise.`
-        : "Aucun endpoint désigné par le formulaire. Aucune requête n'a été émise.",
+        ? `Endpoint unknown to the registry: "${endpointId}". No request was sent.`
+        : 'No endpoint designated by the form. No request was sent.',
       traceWithoutCall('—', '—'),
     )
   }
@@ -88,21 +89,21 @@ export async function probeEndpoint(_prev: ProbeOutcome | null, form: FormData):
     return refusal(
       endpointId,
       'NOT_SUPPORTED',
-      "L'API Explorer n'exécute que des lectures : cette route s'exécute depuis sa page dédiée.",
+      'The API Explorer only executes reads: this route runs from its dedicated page.',
       traceWithoutCall(endpoint.method, endpoint.path),
     )
   }
 
-  // Un chemin paramétré ne peut pas être appelé depuis l'Explorer : les valeurs
-  // légitimes viennent d'une réponse backend, jamais d'une saisie. Sans elles,
-  // `resolvePath` lèverait — on refuse avant, avec l'explication.
+  // A parameterized path cannot be called from the Explorer: legitimate
+  // values come from a backend response, never from an input. Without them,
+  // `resolvePath` would throw — this refuses beforehand, with the explanation.
   const missingParams = pathParamNames(endpoint.path)
   if (missingParams.length > 0) {
-    const labels = missingParams.map((name) => `« ${name} »`).join(', ')
+    const labels = missingParams.map((name) => `"${name}"`).join(', ')
     return refusal(
       endpointId,
       'NOT_SUPPORTED',
-      `Route paramétrée : ${labels} ne peut pas être deviné ici. Aucune requête n'a été émise.`,
+      `Parameterized route: ${labels} cannot be guessed here. No request was sent.`,
       traceWithoutCall(endpoint.method, endpoint.path),
     )
   }

@@ -16,19 +16,19 @@ import {
 } from '@heroicons/react/20/solid'
 
 /**
- * Navigation de la console — une seule liste, à plat.
+ * Console navigation — a single flat list.
  *
- * Les groupes repliables ont été retirés : sur cinq groupes, les intitulés se
- * tronquaient (« SOCLE TECHNIQUE ET A… ») et il fallait deux clics pour
- * atteindre une page. Une liste directe se parcourt d'un coup d'œil.
+ * Collapsible groups were removed: across five groups, labels truncated
+ * ("CORE TECHNICAL A…") and reaching a page took two clicks. A flat list
+ * scans in one glance.
  *
- * `separateurAvant` pose un filet discret entre deux familles d'écrans — un
- * trait suffit à marquer la rupture, sans ajouter un titre de section de plus.
+ * `separateurAvant` draws a discreet rule between two families of screens —
+ * a line is enough to mark the break, without adding another section title.
  *
- * Trois pages restent volontairement hors de cette liste et s'atteignent depuis
- * « Administration » : la couverture des données, la vue produit consolidée et
- * le profil connecté. Les mettre ici allongerait le menu sans servir le
- * parcours quotidien.
+ * Three pages stay deliberately out of this list and are reached from
+ * "Administration": data coverage, the consolidated product view, and the
+ * signed-in profile. Adding them here would lengthen the menu without
+ * serving the everyday path.
  */
 
 export type IconeNav = typeof HomeIcon
@@ -37,35 +37,35 @@ export type EntreeNav = Readonly<{
   libelle: string
   href: string
   icone: IconeNav
-  /** Filet de séparation posé au-dessus de cette entrée. */
+  /** Separator rule drawn above this entry. */
   separateurAvant?: boolean
 }>
 
 export const ADMIN_NAV: readonly EntreeNav[] = [
-  { libelle: 'Accueil', href: '/admin', icone: HomeIcon },
-  { libelle: 'Portefeuille', href: '/admin/vault', icone: CircleStackIcon },
-  { libelle: 'Mouvements', href: '/admin/operations', icone: ArrowsRightLeftIcon },
-  { libelle: 'Journal Série 1', href: '/admin/series-1', icone: Squares2X2Icon },
+  { libelle: 'Home', href: '/admin', icone: HomeIcon },
+  { libelle: 'Vault', href: '/admin/vault', icone: CircleStackIcon },
+  { libelle: 'Operations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
+  { libelle: 'Series 1 Log', href: '/admin/series-1', icone: Squares2X2Icon },
 
-  { libelle: 'Minage', href: '/admin/mining', icone: CpuChipIcon, separateurAvant: true },
+  { libelle: 'Mining', href: '/admin/mining', icone: CpuChipIcon, separateurAvant: true },
   { libelle: 'Bitcoin', href: '/admin/btc', icone: CubeIcon },
-  { libelle: 'Fiche produit', href: '/admin/product', icone: DocumentTextIcon },
-  { libelle: 'Rétro-tests', href: '/admin/backtest', icone: PresentationChartLineIcon },
+  { libelle: 'Product Sheet', href: '/admin/product', icone: DocumentTextIcon },
+  { libelle: 'Backtests', href: '/admin/backtest', icone: PresentationChartLineIcon },
 
   { libelle: 'Clients', href: '/admin/clients', icone: BuildingOffice2Icon, separateurAvant: true },
-  { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },
+  { libelle: 'Compliance', href: '/admin/conformite', icone: ShieldCheckIcon },
 
-  { libelle: 'État du service', href: '/admin/runtime', icone: SignalIcon, separateurAvant: true },
-  { libelle: 'Actions keeper', href: '/admin/keeper', icone: WrenchScrewdriverIcon },
-  { libelle: 'Explorateur d’API', href: '/admin/api-explorer', icone: CommandLineIcon },
+  { libelle: 'Service Status', href: '/admin/runtime', icone: SignalIcon, separateurAvant: true },
+  { libelle: 'Keeper Actions', href: '/admin/keeper', icone: WrenchScrewdriverIcon },
+  { libelle: 'API Explorer', href: '/admin/api-explorer', icone: CommandLineIcon },
   { libelle: 'Administration', href: '/admin/administration', icone: UsersIcon },
 ]
 
 /**
- * Entrée active : le PLUS LONG chemin déclaré qui préfixe la page courante.
+ * Active entry: the LONGEST declared path that prefixes the current page.
  *
- * Le plus long, et pas le premier qui correspond, parce que `/admin` préfixe
- * toutes les pages de la console : sans cette règle il resterait allumé partout.
+ * The longest, not the first match, because `/admin` prefixes every page in
+ * the console — without this rule it would stay lit everywhere.
  */
 export function hrefActif(pathname: string): string | undefined {
   let meilleur: string | undefined

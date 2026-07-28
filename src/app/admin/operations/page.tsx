@@ -3,7 +3,7 @@ import { Card, CardHeader, HeroFigure, SideFact } from '@/components/admin/cockp
 import { DerivePochesChart, type DerivePoche } from '@/components/admin/derive-poches-chart'
 import { DistributionBarChart } from '@/components/admin/distribution-chart'
 import { PageHeader } from '@/components/admin/page-header'
-import { AdminSurfaceHeader } from '@/components/admin/typography'
+import { AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
 import {
   AdminErrorState,
   AdminMetric,
@@ -16,6 +16,7 @@ import {
 } from '@/components/admin/surfaces'
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { explorerTxUrl } from '@/lib/explorer'
+import { formatNumber } from '@/lib/format'
 import {
   adresseCourte,
   dateLisible,
@@ -32,47 +33,47 @@ import clsx from 'clsx'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Opérations' }
+export const metadata: Metadata = { title: 'Operations' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Opérations — ce qui s'est passé, ce qui a dérivé, ce qui attend un geste.
+ * Operations — what happened, what drifted, what is waiting on a move.
  *
- * La page répondait à « que renvoie la route ? » : l'état du rééquilibrage y
- * était déversé en JSON brut dans un dépliant. Un opérateur n'a pas à lire une
- * enveloppe pour savoir s'il doit agir. Trois questions la structurent
- * désormais :
+ * The page used to answer "what does the route return?": the rebalancing
+ * state was dumped as raw JSON inside a disclosure widget. An operator
+ * shouldn't have to read an envelope to know whether to act. Three questions
+ * structure it now:
  *
- *   01. Faut-il rééquilibrer ? — l'écart à la cible, poche par poche.
- *   02. Que s'est-il passé sur la chaîne ? — le registre, en fil et en table.
- *   03. Le registre est-il à jour ? — l'état réel de l'indexeur.
- *   04. Qu'est-ce qui attend une validation ? — rien, et on dit pourquoi.
+ *   01. Does it need rebalancing? — the drift from target, pocket by pocket.
+ *   02. What happened on the chain? — the ledger, as a feed and as a table.
+ *   03. Is the ledger up to date? — the indexer's actual state.
+ *   04. What's waiting on approval? — nothing, and here's why.
  *
- * ── Deux sources pour un même sujet, et c'est voulu ────────────────────────
- * `GET /api/v1/rebalancing/status` est la lecture DIRECTE du contrat : elle
- * répond aujourd'hui UNAVAILABLE / `not_exposed_by_contract`. Le contrat
- * déployé n'expose tout simplement aucun état de rééquilibrage. La page le dit
- * en toutes lettres au lieu de laisser deviner ce vide.
+ * ── Two sources for the same subject, on purpose ───────────────────────────
+ * `GET /api/v1/rebalancing/status` is the DIRECT read of the contract: today
+ * it responds UNAVAILABLE / `not_exposed_by_contract`. The deployed contract
+ * simply exposes no rebalancing state. The page says so plainly instead of
+ * leaving that gap to guesswork.
  *
- * Ce qu'on sait malgré tout vient de l'INDEXEUR, via `GET /api/v1/dashboard`
- * (`rebalancing` et `allocation`, tous deux LIVE) : date du dernier
- * rééquilibrage, écart constaté, et le détail signé poche par poche. Les deux
- * provenances sont affichées séparément — les confondre reviendrait à faire
- * passer une donnée indexée pour une lecture on-chain.
+ * What we do know instead comes from the INDEXER, via `GET /api/v1/dashboard`
+ * (`rebalancing` and `allocation`, both LIVE): the date of the last
+ * rebalance, the observed drift, and the signed detail pocket by pocket. The
+ * two provenances are shown separately — conflating them would pass off
+ * indexed data as an on-chain read.
  *
- * ── Ce qui n'est PAS tracé ─────────────────────────────────────────────────
- * Le délai entre `occurredAt` et `indexedAt` serait facile à mettre en courbe,
- * mais le premier lot d'événements a été rattrapé après coup : la série
- * mélangerait un backfill et un régime nominal, et se lirait « l'indexeur a
- * des heures de retard ». La fraîcheur de l'indexation est donc lue là où elle
- * est mesurée — le planificateur exposé par `GET /api/v1/runtime` — et non
- * déduite du registre.
+ * ── What is NOT tracked ─────────────────────────────────────────────────────
+ * The delay between `occurredAt` and `indexedAt` would be easy to chart, but
+ * the first batch of events was backfilled after the fact: the series would
+ * mix a backfill with a nominal regime and read as "the indexer is hours
+ * behind." Indexing freshness is therefore read where it's actually
+ * measured — the scheduler exposed by `GET /api/v1/runtime` — not inferred
+ * from the ledger.
  *
- * Aucun seuil de déclenchement du rééquilibrage n'est publié par le service :
- * la page donne l'écart brut et ne dessine aucune ligne rouge inventée.
+ * No rebalancing trigger threshold is published by the service: the page
+ * gives the raw drift and draws no invented red line.
  */
 
-/* ── Formes réelles des réponses ──────────────────────────────────────────── */
+/* ── Actual response shapes ───────────────────────────────────────────────── */
 
 type MouvementIndexe = {
   readonly id: string
@@ -95,7 +96,7 @@ type ReponseEvenements = {
   readonly events?: Resolu<readonly MouvementIndexe[]>
 }
 
-/** Bloc `runtime` embarqué dans la réponse de `rebalancing/status`. */
+/** `runtime` block embedded in the `rebalancing/status` response. */
 type RuntimeContrat = {
   readonly mode?: string | null
   readonly chainId?: number | null
@@ -141,7 +142,7 @@ type Runtime = {
   readonly db?: { readonly reachable?: boolean | null; readonly latencyMs?: number | null }
 }
 
-/* ── Formats ──────────────────────────────────────────────────────────────── */
+/* ── Formatting ───────────────────────────────────────────────────────────── */
 
 function instantDe(iso: string | null | undefined): number | null {
   if (iso === null || iso === undefined || iso === '') return null
@@ -151,8 +152,8 @@ function instantDe(iso: string | null | undefined): number | null {
 
 function jourLisible(iso: string | null): string {
   const t = instantDe(iso)
-  if (t === null) return 'Date inconnue'
-  return new Date(t).toLocaleDateString('fr-FR', {
+  if (t === null) return 'unknown date'
+  return new Date(t).toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -163,16 +164,16 @@ function jourLisible(iso: string | null): string {
 function heureLisible(iso: string | null): string {
   const t = instantDe(iso)
   if (t === null) return '—'
-  return new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  return new Date(t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
-/** Un écart en points de base se lit en points de pourcentage, jamais brut. */
+/** A drift in basis points reads as percentage points, never raw. */
 function ecartLisible(bps: number | null | undefined): string {
   if (typeof bps !== 'number' || !Number.isFinite(bps)) return '—'
-  return (bps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+  return formatNumber(bps / 100, { maximumFractionDigits: 2 })
 }
 
-/** Entier de chaîne → BigInt. Une valeur illisible n'est pas comptée. */
+/** String integer → BigInt. An unreadable value isn't counted. */
 function entierAtomique(valeur: string | null | undefined): bigint | null {
   if (valeur === null || valeur === undefined || valeur === '') return null
   try {
@@ -184,10 +185,10 @@ function entierAtomique(valeur: string | null | undefined): bigint | null {
 
 function nombreDeChaine(valeur: string | null | undefined): string {
   const entier = entierAtomique(valeur)
-  return entier === null ? '—' : entier.toLocaleString('fr-FR')
+  return entier === null ? '—' : formatNumber(Number(entier))
 }
 
-/** Un identifiant de chaîne n'est pas une quantité : pas de séparateur. */
+/** A chain id isn't a quantity: no thousands separator. */
 function chaineLisible(chainId: number | null | undefined): string {
   if (typeof chainId !== 'number' || !Number.isFinite(chainId)) return '—'
   return String(chainId)
@@ -195,28 +196,28 @@ function chaineLisible(chainId: number | null | undefined): string {
 
 function retardLisible(blocs: number | null | undefined): string {
   if (typeof blocs !== 'number' || !Number.isFinite(blocs)) {
-    return 'Retard d’indexeur : non communiqué par le contrat.'
+    return 'Indexer lag: not reported by the contract.'
   }
-  return `Retard d’indexeur annoncé par le contrat : ${formatCount(blocs)} bloc(s).`
+  return `Indexer lag reported by the contract: ${formatCount(blocs)} block(s).`
 }
 
 function cadenceLisible(intervalMs: number | null | undefined): string {
   if (typeof intervalMs !== 'number' || !Number.isFinite(intervalMs)) return '—'
-  if (intervalMs < 60_000) return `toutes les ${Math.round(intervalMs / 1000)} s`
-  return `toutes les ${Math.round(intervalMs / 60_000)} min`
+  if (intervalMs < 60_000) return `every ${Math.round(intervalMs / 1000)}s`
+  return `every ${Math.round(intervalMs / 60_000)}min`
 }
 
 /**
- * Motif machine → phrase. Un motif inconnu ne fuit pas tel quel : mieux vaut
- * dire qu'on ne sait pas que d'afficher `not_exposed_by_contract` à l'écran.
+ * Machine reason → sentence. An unknown reason doesn't leak through as-is: better to
+ * say we don't know than to show `not_exposed_by_contract` on screen.
  */
 function phraseIndisponibilite(motif: string | null | undefined): string {
   const lisible = motifLisible(motif)
-  if (lisible !== undefined) return `Raison donnée par le service : ${lisible}.`
-  return 'Le service ne précise pas de raison.'
+  if (lisible !== undefined) return `Reason given by the service: ${lisible}.`
+  return 'The service does not specify a reason.'
 }
 
-/* ── Registre : agrégats réels ────────────────────────────────────────────── */
+/* ── Ledger: real aggregates ──────────────────────────────────────────────── */
 
 function trierDuPlusRecent(mouvements: readonly MouvementIndexe[]): readonly MouvementIndexe[] {
   return [...mouvements].sort((a, b) => {
@@ -234,7 +235,7 @@ type BarreType = { readonly nom: string; readonly valeur: number }
 type CumulType = {
   readonly nom: string
   readonly nombre: number
-  /** Somme des montants portés par ce type, ou `null` s'il n'en porte aucun. */
+  /** Sum of amounts carried by this type, or `null` if it carries none. */
   readonly montantAtomique: string | null
 }
 
@@ -244,8 +245,8 @@ function agregerParType(mouvements: readonly MouvementIndexe[]): readonly CumulT
   const parType = new Map<string, Agregat>()
   for (const m of mouvements) {
     const nom = libelleMouvement(m.eventName)
-    // `BigInt(0)` et non `0n` : la cible de compilation du projet est ES2017,
-    // où le littéral BigInt n'existe pas encore.
+    // `BigInt(0)`, not `0n`: the project's compilation target is ES2017,
+    // where the BigInt literal doesn't exist yet.
     const courant = parType.get(nom) ?? { nombre: 0, total: BigInt(0), avecMontant: 0 }
     courant.nombre += 1
     const montant = entierAtomique(m.assetAmountAtomic)
@@ -267,7 +268,7 @@ const barresDe = (cumuls: readonly CumulType[]): readonly BarreType[] =>
 
 type GroupeJour = { readonly jour: string; readonly mouvements: readonly MouvementIndexe[] }
 
-/** Le fil se lit par journée : c'est ainsi qu'une équipe raconte sa semaine. */
+/** The feed reads by day: that's how a team tells the story of its week. */
 function grouperParJour(mouvements: readonly MouvementIndexe[]): readonly GroupeJour[] {
   const parJour = new Map<string, MouvementIndexe[]>()
   for (const m of mouvements) {
@@ -279,7 +280,7 @@ function grouperParJour(mouvements: readonly MouvementIndexe[]): readonly Groupe
   return [...parJour.entries()].map(([jour, liste]) => ({ jour, mouvements: liste }))
 }
 
-/* ── Rééquilibrage : dérive poche par poche ───────────────────────────────── */
+/* ── Rebalancing: drift pocket by pocket ──────────────────────────────────── */
 
 function derivesDe(poches: readonly Poche[] | null | undefined): readonly DerivePoche[] {
   if (!poches) return []
@@ -301,32 +302,32 @@ function derivesDe(poches: readonly Poche[] | null | undefined): readonly Derive
 }
 
 /**
- * État du cadre de dérive.
+ * State of the drift frame.
  *
- * Trois absences distinctes, trois phrases distinctes : le service muet, la
- * source non transmise, et le cas où la répartition arrive mais sans les trois
- * champs nécessaires à un écart. Les confondre reviendrait à faire passer une
- * panne pour une fonctionnalité manquante.
+ * Three distinct absences, three distinct messages: the service staying
+ * silent, the source not being wired up, and the case where the allocation
+ * arrives but without the three fields needed to compute a drift. Conflating
+ * them would pass off an outage as a missing feature.
  */
 function etatDeriveDe(dashboard: BackendResult<Dashboard>, derives: readonly DerivePoche[]): EtatSerie {
   if (!dashboard.ok) {
     return {
       type: 'indisponible',
-      explication: 'Le service n’a pas répondu. Aucune dérive n’est tracée plutôt qu’une valeur périmée.',
+      explication: 'The service did not respond. No drift is shown rather than a stale value.',
     }
   }
   if (derives.length > 0) return { type: 'tracee' }
 
-  const defaut = 'Aucune poche ne remonte à la fois sa cible et sa part constatée.'
+  const defaut = 'No pocket reports both its target and its observed share.'
   const etat = etatSerieDe(dashboard.data.allocation, defaut)
   return etat.type === 'tracee' ? { type: 'attendue', explication: defaut } : etat
 }
 
-/* ── Section 01 · Rééquilibrage ───────────────────────────────────────────── */
+/* ── Section 01 · Rebalancing ──────────────────────────────────────────────── */
 
 function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashboard> }>) {
   if (!dashboard.ok) {
-    return <AdminErrorState state={dashboard.state} title="Mesure de dérive non lisible" />
+    return <AdminErrorState state={dashboard.state} title="Drift measurement unavailable" />
   }
 
   const champ = dashboard.data.rebalancing
@@ -337,23 +338,23 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
         <HeroFigure
           valeur={ecartLisible(mesure?.driftBps)}
-          libelle="Écart constaté à l’allocation cible"
-          unite="points de %"
+          libelle="Observed drift from target allocation"
+          unite="percentage points"
         />
         <dl className="grid flex-1 grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-          <SideFact libelle="Dernier rééquilibrage" valeur={dateLisible(mesure?.lastRebalanceAt)} />
-          <SideFact libelle="Ancienneté" valeur={ilYA(mesure?.lastRebalanceAt)} />
-          {/* `pending: null` : le service ne remonte aucune demande. On l'écrit
-              plutôt que d'afficher « 0 », qui laisserait croire à un compteur. */}
+          <SideFact libelle="Last rebalance" valeur={dateLisible(mesure?.lastRebalanceAt)} />
+          <SideFact libelle="Time since" valeur={ilYA(mesure?.lastRebalanceAt)} />
+          {/* `pending: null`: the service reports no request. We say so
+              explicitly rather than showing "0", which would read as a counter. */}
           <SideFact
-            libelle="Demande en cours"
-            valeur={mesure?.pending === null || mesure?.pending === undefined ? 'Aucune remontée' : 'Une demande est ouverte'}
+            libelle="Pending request"
+            valeur={mesure?.pending === null || mesure?.pending === undefined ? 'None reported' : 'A request is open'}
           />
         </dl>
       </div>
       <p className="mt-5 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-white/5 dark:text-zinc-400">
-        Mesure indexée · {statutAffichage(champ?.status)} — aucun seuil de déclenchement n’est publié par le
-        service : l’écart est donné brut, la décision reste humaine.
+        Indexed measurement · {statutAffichage(champ?.status)} — no trigger threshold is published by the
+        service: the drift is given raw, the decision stays human.
       </p>
     </Card>
   )
@@ -361,7 +362,7 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
 
 function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<RebalancingStatus> }>) {
   if (!rebalancing.ok) {
-    return <AdminErrorState state={rebalancing.state} title="État du rééquilibrage non lisible" />
+    return <AdminErrorState state={rebalancing.state} title="Rebalancing state unavailable" />
   }
 
   const champ = rebalancing.data.rebalancing
@@ -372,27 +373,27 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
     <AdminSurface className="p-5 sm:p-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <AdminStatus status={statutAffichage(champ?.status)} />
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Lecture directe du contrat</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Direct contract read</p>
       </div>
 
       <p className="mt-3 max-w-2xl text-sm text-zinc-700 dark:text-zinc-300">
         {lisible
-          ? 'Le contrat expose un état de rééquilibrage : voir le détail ci-dessous.'
-          : 'Le contrat déployé n’expose aucun état de rééquilibrage. Ce n’est pas une panne du service : la capacité de lecture est absente de la source.'}
+          ? 'The contract exposes a rebalancing state: see the detail below.'
+          : 'The deployed contract exposes no rebalancing state. This is not a service outage: the read capability is absent from the source.'}
       </p>
       {lisible ? null : (
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{phraseIndisponibilite(champ?.reason)}</p>
       )}
 
-      {/* Ces quatre faits étaient noyés dans le JSON brut : ils disent quel
-          contrat a été interrogé, et s'il porte bien du code. */}
+      {/* These four facts used to be buried in raw JSON: they say which
+          contract was queried, and whether it actually carries code. */}
       <dl className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 border-t border-zinc-950/5 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-white/5">
-        <SideFact libelle="Mode de contrat" valeur={contrat?.mode ?? '—'} />
-        <SideFact libelle="Chaîne" valeur={chaineLisible(contrat?.chainId)} />
-        <SideFact libelle="Contrat interrogé" valeur={adresseCourte(contrat?.contractAddress) ?? '—'} />
+        <SideFact libelle="Contract mode" valeur={contrat?.mode ?? '—'} />
+        <SideFact libelle="Chain" valeur={chaineLisible(contrat?.chainId)} />
+        <SideFact libelle="Contract queried" valeur={adresseCourte(contrat?.contractAddress) ?? '—'} />
         <SideFact
-          libelle="Code présent à l’adresse"
-          valeur={contrat?.codePresence === 'present' ? 'Oui' : (contrat?.codePresence ?? '—')}
+          libelle="Code present at address"
+          valeur={contrat?.codePresence === 'present' ? 'Yes' : (contrat?.codePresence ?? '—')}
         />
       </dl>
 
@@ -400,22 +401,22 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
         href="/admin/keeper"
         className="mt-5 inline-block text-sm text-accent-600 hover:underline dark:text-accent-400"
       >
-        Actions keeper (rééquilibrage) →
+        Keeper actions (rebalancing) →
       </Link>
     </AdminSurface>
   )
 }
 
-/* ── Section 02 · Registre ────────────────────────────────────────────────── */
+/* ── Section 02 · Ledger ───────────────────────────────────────────────────── */
 
 function cellType(m: MouvementIndexe) {
   return <span className="text-zinc-950 dark:text-white">{libelleMouvement(m.eventName)}</span>
 }
 
 /**
- * Un tiret n'est pas un montant : il ne porte donc pas la couleur d'accent,
- * réservée aux valeurs réellement chiffrées. Un « — » vert se lisait comme une
- * somme au premier coup d'œil.
+ * A dash isn't an amount: it doesn't carry the accent color, reserved for
+ * values that are actually numeric. A green "—" used to read as a sum at
+ * first glance.
  */
 function cellMontant(m: MouvementIndexe) {
   if (m.assetAmountAtomic === null) {
@@ -460,9 +461,9 @@ function renderTxHash(chainId: number | undefined, txHash: string) {
 function colonnesMouvements(chainId: number | undefined): readonly AdminTableColumn<MouvementIndexe>[] {
   return [
     { key: 'type', header: 'Type', cell: cellType },
-    { key: 'montant', header: 'Montant', cell: cellMontant },
-    { key: 'adresse', header: 'Investisseur', mono: true, cell: cellAdresse },
-    { key: 'bloc', header: 'Bloc', mono: true, cell: cellBloc },
+    { key: 'montant', header: 'Amount', cell: cellMontant },
+    { key: 'adresse', header: 'Investor', mono: true, cell: cellAdresse },
+    { key: 'bloc', header: 'Block', mono: true, cell: cellBloc },
     {
       key: 'hash',
       header: 'Transaction',
@@ -475,12 +476,12 @@ function colonnesMouvements(chainId: number | undefined): readonly AdminTableCol
 
 function detailRegistreVide(reason: string | null | undefined): string {
   if (reason === 'no_events_indexed') {
-    return 'Le registre est consulté et vide — pas une panne.'
+    return 'The ledger was queried and is empty — not an outage.'
   }
-  return 'Le registre ne renvoie aucun mouvement.'
+  return 'The ledger returns no movement.'
 }
 
-/** Une ligne du fil : l'heure, la phrase, l'acteur, le montant. */
+/** One line of the feed: the time, the sentence, the actor, the amount. */
 function LigneFil({ mouvement }: Readonly<{ mouvement: MouvementIndexe }>) {
   const acteur = adresseCourte(mouvement.investorAddress)
   return (
@@ -502,19 +503,19 @@ function LigneFil({ mouvement }: Readonly<{ mouvement: MouvementIndexe }>) {
 }
 
 /**
- * Le fil chronologique — les mouvements les plus récents, racontés.
+ * The chronological feed — the most recent movements, narrated.
  *
- * Il ne double pas la table : celle-ci porte le détail vérifiable (bloc,
- * transaction, adresse), lui porte la lecture — quand, quoi, combien. Un
- * opérateur ouvre la page pour la seconde question, pas pour la première.
+ * It doesn't duplicate the table: the table carries the verifiable detail
+ * (block, transaction, address), the feed carries the read — when, what, how
+ * much. An operator opens the page for the second question, not the first.
  */
 function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly MouvementIndexe[] }>) {
   const groupes = grouperParJour(mouvements)
   return (
     <Card className="flex flex-col">
       <CardHeader
-        title="Que s’est-il passé, et quand ?"
-        hint={`Les ${mouvements.length} mouvements les plus récents, du plus récent au plus ancien`}
+        title="What happened, and when?"
+        hint={`The ${mouvements.length} most recent movements, newest first`}
       />
       <div className="divide-y divide-zinc-950/5 dark:divide-white/5">
         {groupes.map((groupe) => (
@@ -534,7 +535,7 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
   )
 }
 
-/** Les faits de tête du registre : volume, période couverte, montants cumulés. */
+/** The ledger's headline facts: volume, period covered, cumulative amounts. */
 function EnTeteRegistre({
   mouvements,
   cumuls,
@@ -546,16 +547,15 @@ function EnTeteRegistre({
   return (
     <Card className="p-6">
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-        <HeroFigure valeur={formatCount(mouvements.length)} libelle="Mouvements relevés sur la chaîne" />
+        <HeroFigure valeur={formatCount(mouvements.length)} libelle="Movements recorded on chain" />
         <dl className="grid flex-1 grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          <SideFact libelle="Types distincts" valeur={formatCount(cumuls.length)} />
-          <SideFact libelle="Premier mouvement relevé" valeur={dateLisible(premier)} />
-          <SideFact libelle="Dernier mouvement relevé" valeur={ilYA(dernier)} />
-          {/* Les cumuls ne sont donnés que par type : additionner un dépôt et
-              une facture d'électricité produirait un total qui ne veut rien
-              dire. */}
+          <SideFact libelle="Distinct types" valeur={formatCount(cumuls.length)} />
+          <SideFact libelle="First movement recorded" valeur={dateLisible(premier)} />
+          <SideFact libelle="Last movement recorded" valeur={ilYA(dernier)} />
+          {/* Totals are given by type only: summing a deposit and an
+              electricity payment would produce a total that means nothing. */}
           {avecMontant.map((c) => (
-            <SideFact key={c.nom} libelle={`${c.nom} · cumul`} valeur={montantUsdc(c.montantAtomique)} />
+            <SideFact key={c.nom} libelle={`${c.nom} · total`} valeur={montantUsdc(c.montantAtomique)} />
           ))}
         </dl>
       </div>
@@ -579,9 +579,9 @@ function RegistreMouvements({
   if (!mouvements || mouvements.length === 0) {
     return (
       <AdminSourceAttendue
-        quoi="Aucun mouvement enregistré"
+        quoi="No movement recorded"
         detail={detailRegistreVide(reponse.data.events?.reason)}
-        requis={['Un premier mouvement relevé sur la chaîne']}
+        requis={['A first movement recorded on the chain']}
       />
     )
   }
@@ -601,8 +601,8 @@ function RegistreMouvements({
 
         <AdminSurface className="flex flex-col p-6 lg:col-span-2">
           <AdminSurfaceHeader
-            title="Répartition par type"
-            description={`${recents.length} mouvements, ${cumuls.length} types distincts`}
+            title="Breakdown by type"
+            description={`${recents.length} movements, ${cumuls.length} distinct types`}
           />
           <DistributionBarChart barres={barresDe(cumuls)} />
         </AdminSurface>
@@ -611,8 +611,8 @@ function RegistreMouvements({
       <AdminSurface>
         <AdminSurfaceHeader
           className="px-5 pt-5 sm:px-6"
-          title="Registre détaillé"
-          description="Chaque mouvement avec son bloc, sa transaction et l’adresse concernée — la version vérifiable."
+          title="Detailed ledger"
+          description="Every movement with its block, transaction, and the address involved — the verifiable version."
         />
         <AdminTable rows={recents} keyFn={(m) => m.id} columns={colonnesMouvements(chainId)} />
       </AdminSurface>
@@ -620,27 +620,27 @@ function RegistreMouvements({
   )
 }
 
-/* ── Section 03 · Indexation ──────────────────────────────────────────────── */
+/* ── Section 03 · Indexing ─────────────────────────────────────────────────── */
 
-/** L'état porte un mot autant qu'une couleur : la teinte ne suffit jamais. */
+/** The state carries a word as much as a color: the tint alone is never enough. */
 const ETAT_INDEXEUR: Record<string, { readonly mot: string; readonly point: string; readonly texte: string }> = {
-  RUNNING: { mot: 'En marche', point: 'bg-success-500', texte: 'text-success-400' },
-  IDLE: { mot: 'Au repos', point: 'bg-info-500', texte: 'text-info-400' },
-  DEGRADED: { mot: 'Dégradé', point: 'bg-warning-500', texte: 'text-warning-400' },
-  STOPPED: { mot: 'À l’arrêt', point: 'bg-danger-500', texte: 'text-danger-400' },
-  ERROR: { mot: 'En erreur', point: 'bg-danger-500', texte: 'text-danger-400' },
+  RUNNING: { mot: 'Running', point: 'bg-success-500', texte: 'text-success-400' },
+  IDLE: { mot: 'Idle', point: 'bg-info-500', texte: 'text-info-400' },
+  DEGRADED: { mot: 'Degraded', point: 'bg-warning-500', texte: 'text-warning-400' },
+  STOPPED: { mot: 'Stopped', point: 'bg-danger-500', texte: 'text-danger-400' },
+  ERROR: { mot: 'Error', point: 'bg-danger-500', texte: 'text-danger-400' },
 }
 
 function etatIndexeur(brut: string | null | undefined) {
   if (typeof brut !== 'string' || brut === '') {
-    return { mot: 'Non communiqué', point: 'bg-zinc-600', texte: 'text-zinc-400' }
+    return { mot: 'Not reported', point: 'bg-zinc-600', texte: 'text-zinc-400' }
   }
   return ETAT_INDEXEUR[brut.toUpperCase()] ?? { mot: brut, point: 'bg-zinc-600', texte: 'text-zinc-400' }
 }
 
 function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtime> }>) {
   if (!runtime.ok) {
-    return <AdminErrorState state={runtime.state} title="État de l’indexation non lisible" />
+    return <AdminErrorState state={runtime.state} title="Indexing state unavailable" />
   }
 
   const planificateur = runtime.data.indexerScheduler
@@ -651,26 +651,26 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
     <AdminSurface className="p-5 sm:p-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span aria-hidden="true" className={clsx('size-2 shrink-0 rounded-full', etat.point)} />
-        <p className={clsx('text-sm font-medium', etat.texte)}>Indexeur : {etat.mot}</p>
+        <p className={clsx('text-sm font-medium', etat.texte)}>Indexer: {etat.mot}</p>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Le registre ci-dessus vaut ce que vaut cette synchronisation.
+          The ledger above is only as good as this sync.
         </p>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <AdminMetric
-          label="Dernière synchronisation"
+          label="Last sync"
           value={ilYA(derniereSynchro)}
           hint={dateLisible(derniereSynchro)}
         />
-        <AdminMetric label="Dernier bloc indexé" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
-        <AdminMetric label="Cadence de relève" value={cadenceLisible(planificateur?.intervalMs)} />
-        {/* Un compteur d'erreurs mesuré à zéro EST une information ; il ne vient
-            pas d'une absence retombée sur zéro. */}
+        <AdminMetric label="Last indexed block" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
+        <AdminMetric label="Polling interval" value={cadenceLisible(planificateur?.intervalMs)} />
+        {/* An error counter measured at zero IS information; it doesn't come
+            from an absence collapsed into zero. */}
         <AdminMetric
-          label="Erreurs consécutives"
+          label="Consecutive errors"
           value={formatCount(planificateur?.consecutiveErrors)}
-          hint={`Base de données : ${runtime.data.db?.reachable === true ? 'joignable' : 'non joignable'}`}
+          hint={`Database: ${runtime.data.db?.reachable === true ? 'reachable' : 'unreachable'}`}
         />
       </div>
 
@@ -691,9 +691,9 @@ export default async function Page() {
     callBackend<Runtime>('runtime'),
   ])
 
-  // `runtime` n'est pas enveloppé : la chaîne se lit sous `contract`, jamais à
-  // la racine. Lue au mauvais endroit, elle vaut `undefined` et aucun lien
-  // d'explorateur ne se construit.
+  // `runtime` isn't wrapped: the chain is read under `contract`, never at the
+  // root. Read from the wrong place, it evaluates to `undefined` and no
+  // explorer link gets built.
   const chainId = runtime.ok ? (runtime.data.contract?.chainId ?? undefined) : undefined
   const mouvements = reponse.ok ? (reponse.data.events?.value ?? null) : null
 
@@ -701,22 +701,22 @@ export default async function Page() {
   const etatDerive = etatDeriveDe(dashboard, derives)
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Opérations"
-        description="Faut-il rééquilibrer, que s’est-il passé sur la chaîne, et le registre est-il à jour."
+        title="Operations"
+        description="Whether it needs rebalancing, what happened on the chain, and whether the ledger is up to date."
       />
 
       <AdminSection
         index="01"
-        title="Rééquilibrage"
-        description="L’écart à l’allocation cible, poche par poche — et ce que le contrat lui-même n’expose pas."
+        title="Rebalancing"
+        description="The drift from target allocation, pocket by pocket — and what the contract itself doesn't expose."
       >
         <SyntheseDerive dashboard={dashboard} />
 
         <ChartFrame
-          question="Quelle poche s’écarte de sa cible ?"
-          unite="en points de pourcentage"
+          question="Which pocket is drifting from its target?"
+          unite="in percentage points"
           etat={etatDerive}
           hauteur="h-48"
         >
@@ -728,12 +728,12 @@ export default async function Page() {
 
       <AdminSection
         index="02"
-        title="Registre des mouvements"
-        description="Les événements indexés de la Series 1 — ce qui s’est réellement produit sur la chaîne."
+        title="Movement ledger"
+        description="The indexed events of Series 1 — what actually happened on the chain."
       >
         <div className="flex items-center gap-2">
-          {/* Le backend renvoie ce statut en champ libre : on le valide au lieu
-              de le forcer, sinon un libellé « undefined » s'affiche. */}
+          {/* The backend returns this status as a free-form field: we validate
+              it instead of forcing it, otherwise an "undefined" label would show. */}
           {reponse.ok && reponse.data.events ? (
             <AdminStatus status={statutAffichage(reponse.data.events.status)} />
           ) : null}
@@ -743,30 +743,31 @@ export default async function Page() {
 
       <AdminSection
         index="03"
-        title="Fraîcheur du registre"
-        description="Un registre ne vaut que par son indexation : voici son état, mesuré à la source."
+        title="Ledger freshness"
+        description="A ledger is only as good as its indexing: here is its state, measured at the source."
       >
         <SectionIndexation runtime={runtime} />
       </AdminSection>
 
-      {/* Placée en fin de page, et non en tête : une file vide ouvrant l'écran
-          le ferait passer pour mort. Le contenu, lui, ne bouge pas — la source
-          n'existe toujours pas, et c'est ce qui doit être dit. */}
+      {/* Placed at the end of the page, not the top: an empty queue opening
+          the screen would make it look dead. The content itself doesn't
+          change — the source still doesn't exist, and that's what needs to
+          be said. */}
       <AdminSection
         index="04"
-        title="En attente de validation"
-        description="Approbations financières — source en attente"
+        title="Pending approval"
+        description="Financial approvals — source pending"
       >
         <AdminSourceAttendue
-          quoi="Aucune file de validation ouverte"
-          detail="DistributionApproval, VaultDeploymentApproval et ProposalSignature existent en base mais ne sont pas encore exposées en HTTP."
+          quoi="No approval queue open"
+          detail="DistributionApproval, VaultDeploymentApproval, and ProposalSignature exist in the database but are not yet exposed over HTTP."
           requis={[
-            'Lecture des demandes en attente et signatures reçues',
-            'Geste d’approbation/rejet avec journalisation',
-            'Contrôle conformité rattaché à chaque demande',
+            'Reading pending requests and received signatures',
+            'Approve/reject action with logging',
+            'Compliance check attached to each request',
           ]}
         />
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }

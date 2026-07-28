@@ -6,8 +6,8 @@ import React, { useState } from 'react'
 import { NavbarItem } from '@/components/catalyst/navbar'
 
 /**
- * SidebarLayout cockpit — classes HTML identiques au Management Cockpit Qatar.
- * (Copie locale : le kit Catalyst vendoré n’est pas modifié.)
+ * Admin console SidebarLayout.
+ * (Local copy: the vendored Catalyst kit itself is never modified.)
  */
 
 function OpenMenuIcon() {

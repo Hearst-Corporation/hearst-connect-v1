@@ -1,4 +1,3 @@
-import { CockpitSection } from '@/components/admin/cockpit-section'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminBody, AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
 import { AdminSection, AdminSourceAttendue, AdminSurface } from '@/components/admin/surfaces'
@@ -10,40 +9,40 @@ export const metadata: Metadata = { title: 'Administration' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Administration — le compte, l'audit, et les trois écrans secondaires.
+ * Administration — the current account, the audit trail, and the three secondary screens.
  *
- * Cette page était devenue un annuaire de liens qui doublait la navigation :
- * chaque entrée de la sidebar y figurait une seconde fois, doublée d'un nom de
- * route (« Minage (brut) — GET /api/v1/mining »). Deux chemins vers le même
- * écran, dont un écrit en jargon d'API.
+ * This page used to be a link directory that duplicated the navigation:
+ * every sidebar entry showed up here a second time, paired with a route name
+ * (e.g. "Mining (raw) — GET /api/v1/mining"). Two paths to the same screen,
+ * one of them written in API jargon.
  *
- * Ne restent ici que les choses qu'elle SEULE porte : qui est connecté, le
- * journal des décisions, et les trois écrans volontairement tenus hors du menu
- * principal parce qu'ils ne servent pas au parcours quotidien.
+ * Only what this page ALONE carries remains: who is signed in, the decision
+ * log, and the three screens deliberately kept out of the main menu because
+ * they aren't part of the daily workflow.
  */
 
-/** Écrans absents de la navigation — leur seul point d'entrée. */
-const ECRANS_SECONDAIRES = [
+/** Screens absent from the navigation — their only entry point. */
+const SECONDARY_SCREENS = [
   {
     href: '/admin/administration/produit',
-    libelle: 'Vue produit consolidée',
-    aide: 'Production, réserve et rémunération sur un seul écran',
+    label: 'Consolidated product view',
+    hint: 'Production, reserve, and compensation on a single screen',
   },
   {
     href: '/admin/dashboard',
-    libelle: 'Couverture des données',
-    aide: 'Ce que le service sert réellement, surface par surface',
+    label: 'Data coverage',
+    hint: 'What the service actually serves, surface by surface',
   },
   {
     href: '/admin/profile',
-    libelle: 'Votre compte',
-    aide: 'Le dossier investisseur rattaché à ce compte, s’il en existe un',
+    label: 'Your account',
+    hint: 'The investor record linked to this account, if one exists',
   },
 ] as const
 
-function ListeLiens({
+function LinkList({
   items,
-}: Readonly<{ items: readonly { href: string; libelle: string; aide: string }[] }>) {
+}: Readonly<{ items: readonly { href: string; label: string; hint: string }[] }>) {
   return (
     <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
       {items.map((s) => (
@@ -53,8 +52,8 @@ function ListeLiens({
             className="flex items-baseline justify-between gap-4 px-5 py-3 transition hover:bg-white/[0.04] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-600"
           >
             <span className="min-w-0">
-              <span className="block truncate text-sm text-zinc-950 dark:text-white">{s.libelle}</span>
-              <span className="block truncate text-xs text-zinc-500 dark:text-zinc-400">{s.aide}</span>
+              <span className="block truncate text-sm text-zinc-950 dark:text-white">{s.label}</span>
+              <span className="block truncate text-xs text-zinc-500 dark:text-zinc-400">{s.hint}</span>
             </span>
             <span aria-hidden="true" className="shrink-0 text-zinc-500 dark:text-zinc-400">
               →
@@ -71,12 +70,12 @@ export default async function Page() {
 
   return (
     <AdminPage>
-      <PageHeader title="Administration" description="Le compte connecté, le journal des décisions et les écrans secondaires." />
+      <PageHeader title="Administration" description="The signed-in account, the decision log, and the secondary screens." />
 
-      <CockpitSection title="Équipe" description="Session locale et journal d’administration">
+      <AdminSection title="Team" description="Local session and administration log">
         <div className="grid gap-4 lg:grid-cols-2">
           <AdminSurface>
-            <AdminSurfaceHeader title="Équipe et accès" description="Session locale · un propriétaire déclaré" />
+            <AdminSurfaceHeader title="Team and access" description="Local session · one declared owner" />
             <div className="px-5 py-4 sm:px-6">
               <p className="text-sm/6 text-zinc-950 dark:text-white">{session.name}</p>
               <AdminBody className="text-xs/5">{session.email}</AdminBody>
@@ -87,30 +86,30 @@ export default async function Page() {
           </AdminSurface>
 
           <AdminSurface>
-            <AdminSurfaceHeader title="Journal des décisions" description="Audit · source en attente" />
+            <AdminSurfaceHeader title="Decision log" description="Audit · source pending" />
             <div className="px-5 py-4 sm:px-6">
               <AdminBody>
-                Le journal d’administration existe en base mais n’est pas encore transmis. Aucune ligne inventée.
+                The administration log exists in the database but is not yet exposed. No row is invented.
               </AdminBody>
             </div>
           </AdminSurface>
         </div>
-      </CockpitSection>
+      </AdminSection>
 
-      <AdminSection title="Écrans secondaires" description="Hors navigation principale — ils ne servent pas au quotidien">
+      <AdminSection title="Secondary screens" description="Outside the main navigation — not part of the daily workflow">
         <AdminSurface>
-          <ListeLiens items={ECRANS_SECONDAIRES} />
+          <LinkList items={SECONDARY_SCREENS} />
         </AdminSurface>
       </AdminSection>
 
-      <AdminSection title="Sources" description="Rôles, permissions et contrats">
+      <AdminSection title="Sources" description="Roles, permissions, and contracts">
         <AdminSourceAttendue
-          quoi="Rôles, permissions et smart contracts dédiés"
-          detail="Pas de surface smart contracts autonome : les lectures passent par le portefeuille, l’état du service et le journal Série 1. Aucune action on-chain simulée."
+          quoi="Roles, permissions, and dedicated smart contracts"
+          detail="No standalone smart-contract surface: reads go through the wallet, the service state, and the Series 1 log. No on-chain action is simulated."
           requis={[
-            'Rôles conformité et opérations distincts',
-            'Journal d’administration lisible',
-            'Endpoints dédiés contrats si lecture owner/rôles/pause requise',
+            'Distinct compliance and operations roles',
+            'Readable administration log',
+            'Dedicated contract endpoints if owner/roles/pause reads are required',
           ]}
         />
       </AdminSection>

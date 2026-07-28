@@ -3,10 +3,10 @@
 /*
  * Design system — Hearst Connect
  * ------------------------------------------------------------------
- * TYPO — règle absolue : Satoshi Variable uniquement (Fontshare, vendu localement).
- * font-sans · font-display · font-mono → même famille (--font-satoshi).
+ * TYPE — absolute rule: Satoshi Variable only (Fontshare, self-hosted).
+ * font-sans · font-display · font-mono → same family (--font-satoshi).
  *
- * Aligné hearstcorporation.io : navy #020611, mint #A7FB90.
+ * Aligned with hearstcorporation.io: navy #020611, mint #A7FB90.
  */
 
 @custom-variant dark {
@@ -21,12 +21,12 @@
 }
 
 @theme {
-  /* ── Typographie — Satoshi Variable uniquement ───────────────────────────── */
+  /* ── Typography — Satoshi Variable only ──────────────────────────────────── */
   --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 
-  /* ── Tokens produit (scène Hearst corporate) ───────────────────────────── */
+  /* ── Product tokens (Hearst corporate scene) ─────────────────────────────── */
   --color-brand-background: #020611;
   --color-brand-surface: #000000;
   --color-brand-surface-raised: #18183a;
@@ -36,7 +36,7 @@
   --color-brand-accent: #a7fb90;
   --color-brand-accent-foreground: #000000;
 
-  /* ── Neutre — zinc re-teinté navy Hearst ───────────────────────────────── */
+  /* ── Neutral — zinc re-tinted Hearst navy ────────────────────────────────── */
   --color-neutral-50: #f8fafc;
   --color-neutral-400: #b2b2b2;
   --color-neutral-600: #7f7f7f;
@@ -54,7 +54,7 @@
   --color-zinc-900: #0b0e17;
   --color-zinc-950: #020611;
 
-  /* ── Surfaces nommées ──────────────────────────────────────────────────── */
+  /* ── Named surfaces ───────────────────────────────────────────────────────── */
   --color-surface-page: #020611;
   --color-surface-panel: #000000;
   --color-surface-sunken: #0b0e17;
@@ -62,26 +62,26 @@
   --color-hairline: #191919;
   --color-border-control: #758696;
 
-  /* ── Accent : MINT HEARST (hearstcorporation.io --mint-green) ──────────────
-   * Rampe monotone (teinte constante H≈107,1° — le mint de marque), luminance
-   * WCAG strictement décroissante de 50 → 950. Aucun doublon.
+  /* ── Accent: HEARST MINT (hearstcorporation.io --mint-green) ───────────────
+   * Monotone ramp (constant hue H≈107.1° — the brand mint), WCAG luminance
+   * strictly decreasing from 50 → 950. No duplicates.
    *
-   * #a7fb90 EST la marque : c'est une couleur claire (L=0,7922), sa place
-   * naturelle est 300. Les échelons 50→500 sont donc des mints lumineux : ils
-   * ne peuvent porter QUE du texte sombre (--color-accent-ink). Le fond de
-   * bouton à texte blanc est accent-600, assombri exprès pour passer AA.
+   * #a7fb90 IS the brand color: it's a light color (L=0.7922), its natural
+   * home is 300. Steps 50→500 are therefore bright mints: they can only
+   * carry dark text (--color-accent-ink). The white-text button background
+   * is accent-600, deliberately darkened to pass AA.
    *
-   * Contraste par échelon destiné à porter du texte :
+   * Contrast per step intended to carry text:
    *   token  hex       lum.    vs #ffffff   vs #000000 (= --color-accent-ink)
-   *   300    #a7fb90   0,7922      1,25        16,84  ✅ fond + ink noir
-   *   400    #88ef6c   0,6805      1,44        14,61  ✅ fond + ink noir
-   *                                                   ✅ texte sur fond sombre
-   *                                                      (13,8:1 sur zinc-950)
-   *   500    #63db43   0,5372      1,79        11,74  ✅ fond + ink noir
-   *   600    #33801e   0,1624      4,94 ✅AA     4,25  ← fond bouton, texte blanc
-   *                                                   ✅ texte sur fond blanc
-   *   700    #266615   0,0997      7,01 ✅AAA    2,99  ← texte/fond haut contraste
-   * Échelons 800→950 : fonds sombres, texte blanc (9,8:1 → 17,0:1).
+   *   300    #a7fb90   0.7922      1.25        16.84  ✅ background + black ink
+   *   400    #88ef6c   0.6805      1.44        14.61  ✅ background + black ink
+   *                                                   ✅ text on dark background
+   *                                                      (13.8:1 on zinc-950)
+   *   500    #63db43   0.5372      1.79        11.74  ✅ background + black ink
+   *   600    #33801e   0.1624      4.94 ✅AA     4.25  ← button bg, white text
+   *                                                   ✅ text on white background
+   *   700    #266615   0.0997      7.01 ✅AAA    2.99  ← high-contrast text/bg
+   * Steps 800→950: dark backgrounds, white text (9.8:1 → 17.0:1).
    */
   --color-accent-50: #f1feee;
   --color-accent-100: #e2fdda;
@@ -150,8 +150,8 @@
 }
 
 /*
- * Cockpit admin — couleurs HTML Qatar (zinc Tailwind canon) + accent mint Hearst.
- * Scoped : ne pas retinter zinc navy sur la console.
+ * Admin console — canonical Tailwind zinc + Hearst mint accent.
+ * Scoped: keeps the marketing/login navy zinc remap out of the console.
  */
 .cockpit-theme {
   --color-zinc-50: #fafafa;
@@ -168,12 +168,12 @@
   --color-black: #000000;
   --color-white: #ffffff;
 
-  /* L'accent mint n'est PAS redéclaré ici : il est hérité tel quel du @theme
-   * global. Cette classe ne porte que ce qui diffère réellement — le zinc
-   * canonique Tailwind, qui remplace le zinc re-teinté navy de la vitrine. */
+  /* The mint accent is NOT redeclared here: it's inherited as-is from the
+   * global @theme. This class only carries what genuinely differs — the
+   * canonical Tailwind zinc, replacing the marketing surface's navy remap. */
 }
 
-/* Bande décorative cockpit — masques Qatar (deux axes). */
+/* Decorative console band — two-axis mask. */
 .dc-cockpit-band {
   -webkit-mask-image: linear-gradient(to left, black 0%, black 38%, transparent 100%),
     linear-gradient(to top, black 0%, black 25%, transparent 92%);

@@ -1,7 +1,8 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { Card, HeroFigure, SideFact } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import {
   ReserveExpositionChart,
   VendingCurveChart,
@@ -9,27 +10,28 @@ import {
   type PosteBitcoin,
 } from '@/components/admin/product-charts'
 import { callBackend } from '@/lib/backend/client'
+import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSerieDe } from '@/lib/serie-etat'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Produit' }
+export const metadata: Metadata = { title: 'Product' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Produit — une surface pour six anciennes pages.
+ * Product — one surface for six former pages.
  *
- * `Vault`, `Mining`, `BTC`, `Product`, `Backtest` et `Series 1` étaient six
- * entrées de navigation qui déversaient chacune la réponse brute de leurs
- * routes. Elles décrivaient l'organisation du backend, pas une question que
- * quelqu'un se pose. Réunies ici, elles répondent à quatre questions :
- * combien le fonds produit, où l'argent dort, comment la rémunération évolue,
- * et ce qui n'est pas encore mesurable.
+ * `Vault`, `Mining`, `BTC`, `Product`, `Backtest` and `Series 1` used to be
+ * six navigation entries that each dumped the raw response of their route.
+ * They described the backend's organization, not a question anyone actually
+ * asks. Brought together here, they answer four questions: how much the
+ * fund produces, where the money sits, how the reward evolves, and what
+ * isn't measurable yet.
  *
- * Les cadres de graphique sont posés MÊME quand la série manque. C'est
- * délibéré : la vue existe, son axe et son unité sont décidés, et le jour où
- * la route répond il n'y a rien à redessiner. Aucune série n'est fabriquée en
- * attendant — un test l'interdit, et la lire comme une mesure serait pire que
- * de ne rien montrer.
+ * Chart frames are rendered EVEN when the series is missing. That's
+ * deliberate: the view exists, its axis and unit are decided, and the day
+ * the route responds there's nothing left to redraw. No series is fabricated
+ * in the meantime — a test forbids it, and reading it as a real measurement
+ * would be worse than showing nothing.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
@@ -56,26 +58,19 @@ type Backtest = { readonly runs?: Resolu<unknown> }
 
 const etatDe = etatSerieDe
 
-function usdc(atomique: string | null | undefined, decimales = 0): string {
-  if (atomique === null || atomique === undefined || atomique === '') return '—'
-  const n = Number(atomique)
-  if (!Number.isFinite(n)) return '—'
-  return `${(n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} $`
-}
-
 function etatCourbe(
   points: readonly PointCourbe[],
   courbeParametree: boolean,
   vendingCurve: Resolu<unknown> | undefined,
 ): EtatSerie {
   if (points.length === 0) {
-    return etatDe(vendingCurve, 'Les termes du produit ne sont pas encore transmis.')
+    return etatDe(vendingCurve, 'The product terms have not been transmitted yet.')
   }
   if (courbeParametree) return { type: 'tracee' }
   return {
     type: 'attendue',
     explication:
-      'Les cinq échéances du produit sont bien définies, mais aucun taux n’y est encore inscrit. La courbe s’affichera dès qu’ils le seront.',
+      "The product's five maturities are defined, but no rate has been recorded yet. The curve will appear once they are.",
   }
 }
 
@@ -94,23 +89,22 @@ export default async function Page() {
   const hashrate = m?.hashrate?.value
   const sats = b?.btcProduced?.value?.totalSats
   const satsNombre = sats === undefined || sats === null ? null : Number(sats)
-  const bitcoinProduit =
-    satsNombre === null ? '—' : (satsNombre / 100_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 4 })
+  const bitcoinProduit = satsNombre === null ? '—' : formatNumber(satsNombre / 100_000_000, { maximumFractionDigits: 4 })
 
-  // Réserve et exposition — deux montants réels, comparables sur une même échelle.
+  // Reserve and exposure — two real amounts, comparable on the same scale.
   const reserveUsdc = b?.reserve?.value?.balanceUsdc
   const expositionUsdc = b?.exposure?.value?.valueUsdc
   const postes: PosteBitcoin[] = []
   if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
-    postes.push({ poste: 'Réserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
+    postes.push({ poste: 'Reserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
   }
   if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
-    postes.push({ poste: 'Exposition', montant: Number(expositionUsdc) / 1_000_000, accent: true })
+    postes.push({ poste: 'Exposure', montant: Number(expositionUsdc) / 1_000_000, accent: true })
   }
 
-  // Courbe de rémunération. Le service renvoie cinq points réels, tous à zéro
-  // sur ce déploiement : la courbe n'est pas encore paramétrée. Tracer une
-  // ligne plate se lirait comme « rémunération nulle mesurée », ce qui est faux.
+  // Reward curve. The service returns five real points, all at zero on this
+  // deployment: the curve isn't parameterized yet. Drawing a flat line would
+  // read as "measured zero reward", which would be false.
   const courbeBrute = f?.vendingCurve?.value
   const points: PointCourbe[] =
     courbeBrute === null || courbeBrute === undefined
@@ -119,39 +113,45 @@ export default async function Page() {
   const courbeParametree = points.some((p) => p.taux !== 0)
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Produit"
-        description="Ce que le fonds produit, où son argent se trouve, et comment sa rémunération évolue. Six anciennes vues réunies ici."
+        title="Product"
+        description="What the fund produces, where its money sits, and how its reward evolves. Six former views brought together here."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
-      {/* ── Ce que le fonds produit ─────────────────────────────────────── */}
+      {/* ── What the fund produces ──────────────────────────────────────── */}
       <Card className="p-6">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <HeroFigure
-            valeur={hashrate ? Number(hashrate.reportedHashrateTh).toLocaleString('fr-FR') : '—'}
-            libelle="Puissance de calcul déclarée"
+            valeur={hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—'}
+            libelle="Reported hashrate"
             unite="TH/s"
           />
           <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <SideFact libelle="Bitcoin produit" valeur={`${bitcoinProduit} BTC`} />
-            <SideFact libelle="Coût mensuel d’électricité" valeur={usdc(m?.electricity?.value?.monthlyCost)} />
-            <SideFact libelle="Plafond du fonds" valeur={f?.tvlCap?.value ? usdc(String(f.tvlCap.value)) : '—'} />
+            <SideFact libelle="Bitcoin produced" valeur={`${bitcoinProduit} BTC`} />
+            <SideFact
+              libelle="Monthly electricity cost"
+              valeur={formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })}
+            />
+            <SideFact
+              libelle="Fund cap"
+              valeur={f?.tvlCap?.value ? formatCurrency(f.tvlCap.value, { decimals: 0 }) : '—'}
+            />
           </dl>
         </div>
       </Card>
 
-      {/* ── Graphiques ──────────────────────────────────────────────────── */}
+      {/* ── Charts ──────────────────────────────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartFrame
-          question="Où l’argent du fonds se trouve-t-il ?"
-          unite="en dollars"
+          question="Where does the fund's money sit?"
+          unite="in dollars"
           etat={
             postes.length > 0
               ? { type: 'tracee' }
-              : { type: 'attendue', explication: 'Ni la réserve ni l’exposition n’ont pu être lues sur la chaîne.' }
+              : { type: 'attendue', explication: 'Neither the reserve nor the exposure could be read on-chain.' }
           }
           hauteur="h-44"
         >
@@ -159,39 +159,39 @@ export default async function Page() {
         </ChartFrame>
 
         <ChartFrame
-          question="Comment la rémunération évolue-t-elle sur la durée ?"
-          unite="en pourcentage, par mois"
+          question="How does the reward evolve over time?"
+          unite="in percent, per month"
           etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
         >
           <VendingCurveChart points={points} />
         </ChartFrame>
       </div>
 
-      {/* ── Cadres en attente de leur source ────────────────────────────── */}
+      {/* ── Frames waiting on their source ─────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-3">
         <ChartFrame
-          question="Comment la performance se compare-t-elle à l’historique ?"
-          unite="en pourcentage"
+          question="How does performance compare to history?"
+          unite="in percent"
           etat={etatDe(
             backtest.ok ? backtest.data.runs : undefined,
-            'Aucun rétro-test n’a encore été exécuté sur ce déploiement.',
+            'No backtest has been run on this deployment yet.',
           )}
           hauteur="h-40"
         />
         <ChartFrame
-          question="D’où vient le rendement ?"
-          unite="en pourcentage du total"
-          etat={etatDe(b?.attribution, 'La décomposition du rendement n’est pas encore calculée.')}
+          question="Where does the yield come from?"
+          unite="as a percentage of total"
+          etat={etatDe(b?.attribution, 'The yield breakdown has not been calculated yet.')}
           hauteur="h-40"
         />
         <ChartFrame
-          question="Comment la flotte se comporte-t-elle dans le temps ?"
-          unite="en TH/s"
-          etat={etatDe(m?.operationalTelemetry, 'La télémétrie d’exploitation n’est pas encore transmise.')}
+          question="How does the fleet perform over time?"
+          unite="in TH/s"
+          etat={etatDe(m?.operationalTelemetry, 'Operational telemetry has not been transmitted yet.')}
           hauteur="h-40"
         />
       </div>
-      </CockpitSection>
-    </div>
+      </AdminSection>
+    </AdminPage>
   )
 }

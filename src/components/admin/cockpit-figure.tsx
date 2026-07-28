@@ -2,7 +2,7 @@ import { surfaceRaised } from '@/components/admin/surface'
 import clsx from 'clsx'
 
 /**
- * Panneau graphique — figure/figcaption Qatar (ChartSurface).
+ * Chart panel — figure/figcaption pattern (ChartSurface).
  */
 export function CockpitFigure({
   title,
@@ -16,7 +16,7 @@ export function CockpitFigure({
   action?: React.ReactNode
   children: React.ReactNode
   className?: string
-  /** @deprecated — la hauteur est gérée par l’enfant. */
+  /** @deprecated — height is handled by the child. */
   chartHeight?: string
 }>) {
   const hasCaption = Boolean(title || description || action)

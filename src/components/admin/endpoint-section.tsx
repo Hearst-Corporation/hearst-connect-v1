@@ -1,6 +1,6 @@
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { endpointById } from '@/lib/backend/endpoints'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { surfaceRaised } from '@/components/admin/surface'
 import {
   EmptyState,
@@ -30,7 +30,7 @@ function EndpointBody({
   }
 
   if (isEmpty) {
-    return <EmptyState reason="Le backend a répondu sans contenu pour cette ressource." />
+    return <EmptyState reason="The backend responded with no content for this resource." />
   }
 
   return (
@@ -42,12 +42,12 @@ function EndpointBody({
 }
 
 /**
- * Section de page adossée à UN endpoint du registre.
+ * Page section backed by ONE endpoint from the registry.
  *
- * Elle appelle le backend côté serveur et rend, dans l'ordre : le statut réel
- * de l'enveloppe, la trace d'appel, puis la donnée — ou l'état qui explique son
- * absence. Aucune page ne réinterprète le contrat pour son compte : tout passe
- * par ici, donc une seule lecture du contrat existe dans l'application.
+ * It calls the backend server-side and renders, in order: the envelope's real
+ * status, the call trace, then the data — or the state that explains its
+ * absence. No page reinterprets the contract on its own: everything goes
+ * through here, so only one reading of the contract exists in the app.
  */
 export async function EndpointSection({
   endpointId,
@@ -58,7 +58,7 @@ export async function EndpointSection({
   endpointId: string
   title?: string
   params?: Record<string, string | number>
-  /** Rendu métier de la donnée reçue. Absent → seul le JSON brut est proposé. */
+  /** Business rendering of the received data. Absent → only the raw JSON is shown. */
   children?: (data: unknown) => React.ReactNode
 }>) {
   const endpoint = endpointById(endpointId)
@@ -71,7 +71,7 @@ export async function EndpointSection({
       (typeof result.data === 'object' && result.data !== null && Object.keys(result.data).length === 0))
 
   return (
-    <CockpitSection
+    <AdminSection
       title={title ?? endpoint.summary}
       description={`${endpoint.method} ${result.trace.path}`}
       actions={result.ok ? <EnvelopeMetaLine meta={result.meta} /> : undefined}
@@ -91,6 +91,6 @@ export async function EndpointSection({
           <RequestMetadata trace={result.trace} />
         </div>
       </div>
-    </CockpitSection>
+    </AdminSection>
   )
 }

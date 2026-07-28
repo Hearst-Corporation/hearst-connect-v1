@@ -1,49 +1,53 @@
 import clsx from 'clsx'
 
 /**
- * Typographie admin — échelle canonique (Satoshi Variable).
+ * Admin typography — canonical scale.
  *
- * Alignée Catalyst : text-{size}/{line-height}, mobile-first.
+ * text-{size}/{line-height}, mobile-first, Catalyst-aligned.
  *
- * H1  — titre de page (PageHeader)
- * H2  — titre de section (AdminSection)
- * H3  — titre de surface / carte / panneau
+ * Document order: H1 page title / H2 section title / H3 surface title / H4 subsection-in-surface.
+ * `display` is an opt-in class for rare full-bleed headlines — it is not part of the routine
+ * heading flow and must never be the only thing standing between two H1s on a page.
  */
 
 export const adminTypography = {
-  h1: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 dark:text-white',
-  h2: 'text-base/7 font-semibold tracking-tight text-zinc-950 sm:text-sm/6 dark:text-white',
-  h3: 'text-sm/6 font-semibold text-zinc-950 dark:text-white',
+  display: 'text-3xl/9 font-semibold tracking-tight text-zinc-950 dark:text-white',
+  pageTitle: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 dark:text-white',
+  sectionTitle: 'text-lg/7 font-semibold tracking-tight text-zinc-950 dark:text-white',
+  surfaceTitle: 'text-sm/6 font-semibold text-zinc-950 dark:text-white',
+  bodyLarge: 'text-base/7 text-zinc-500 dark:text-zinc-400',
   body: 'text-sm/6 text-zinc-500 dark:text-zinc-400',
   caption: 'text-xs/5 text-zinc-500 dark:text-zinc-400',
   label: 'text-xs/5 font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
-  kpiHero: 'text-4xl/10 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-5xl/10 dark:text-white',
-  kpiValue: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-3xl/8 dark:text-white',
-  endpoint: 'font-mono text-xs/5 text-zinc-500 dark:text-zinc-400',
-  navLabel: 'text-sm/6 font-medium text-zinc-950 dark:text-white',
-  navHint: 'text-xs/5 text-zinc-500 dark:text-zinc-400',
+  numericHero: 'text-4xl/10 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-5xl/10 dark:text-white',
+  numericStandard: 'text-2xl/8 font-semibold tracking-tight text-zinc-950 tabular-nums sm:text-3xl/8 dark:text-white',
+  mono: 'font-mono text-xs/5 text-zinc-500 dark:text-zinc-400',
 } as const
 
 type TypoProps = Readonly<{ children: React.ReactNode; className?: string }>
 
-export function AdminH1({ children, className }: TypoProps) {
-  return <h1 className={clsx(adminTypography.h1, className)}>{children}</h1>
+export function AdminPageTitle({ children, className }: TypoProps) {
+  return <h1 className={clsx(adminTypography.pageTitle, className)}>{children}</h1>
 }
 
-export function AdminH2({
+export function AdminPageDescription({ children, className }: TypoProps) {
+  return <p className={clsx(adminTypography.bodyLarge, className)}>{children}</p>
+}
+
+export function AdminSectionTitle({
   children,
   className,
   as: Tag = 'h2',
-}: TypoProps & { as?: 'h2' | 'h3' | 'p' }) {
-  return <Tag className={clsx(adminTypography.h2, className)}>{children}</Tag>
+}: TypoProps & { as?: 'h2' | 'h3' }) {
+  return <Tag className={clsx(adminTypography.sectionTitle, className)}>{children}</Tag>
 }
 
-export function AdminH3({
+export function AdminSurfaceTitle({
   children,
   className,
   as: Tag = 'h3',
-}: TypoProps & { as?: 'h2' | 'h3' | 'p' | 'dt' }) {
-  return <Tag className={clsx(adminTypography.h3, className)}>{children}</Tag>
+}: TypoProps & { as?: 'h3' | 'h4' | 'p' | 'dt' }) {
+  return <Tag className={clsx(adminTypography.surfaceTitle, className)}>{children}</Tag>
 }
 
 export function AdminBody({ children, className }: TypoProps) {
@@ -54,16 +58,36 @@ export function AdminCaption({ children, className }: TypoProps) {
   return <p className={clsx(adminTypography.caption, className)}>{children}</p>
 }
 
-export function AdminLabel({ children, className }: TypoProps) {
-  return <p className={clsx(adminTypography.label, className)}>{children}</p>
+export function AdminLabel({
+  children,
+  className,
+  as: Tag = 'p',
+}: TypoProps & { as?: 'p' | 'span' }) {
+  return <Tag className={clsx(adminTypography.label, className)}>{children}</Tag>
 }
 
-/** Conteneur page admin — espacement vertical uniforme. */
+export function AdminNumericHero({
+  children,
+  className,
+  as: Tag = 'span',
+}: TypoProps & { as?: 'span' | 'p' }) {
+  return <Tag className={clsx(adminTypography.numericHero, className)}>{children}</Tag>
+}
+
+export function AdminNumericValue({
+  children,
+  className,
+  as: Tag = 'span',
+}: TypoProps & { as?: 'span' | 'p' }) {
+  return <Tag className={clsx(adminTypography.numericStandard, className)}>{children}</Tag>
+}
+
+/** Admin page container — owns the page's vertical rhythm. Nothing else may add page-level space-y. */
 export function AdminPage({ children, className }: TypoProps) {
-  return <div className={clsx(className, 'space-y-8')}>{children}</div>
+  return <div className={clsx('mx-auto w-full max-w-[1600px] space-y-8', className)}>{children}</div>
 }
 
-/** En-tête de carte cockpit (figcaption Qatar). */
+/** Card/panel header — title, optional description, optional trailing action. */
 export function AdminSurfaceHeader({
   title,
   description,
@@ -84,7 +108,7 @@ export function AdminSurfaceHeader({
       )}
     >
       <div>
-        <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</h3>
+        <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         {description ? (
           <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
         ) : null}
