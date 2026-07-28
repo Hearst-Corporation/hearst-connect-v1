@@ -1,25 +1,25 @@
 import type { ResolvedStatus } from '@/lib/resolved'
 
 /**
- * Garde de statut d'affichage.
+ * Display-status guard.
  *
- * Le backend expose certains statuts en champ libre (`string`). Les composants
- * d'affichage (`StatusBadge`, `AdminStatus`) indexent en revanche des
- * dictionnaires fermés sur `ResolvedStatus | 'SNAPSHOT'` : une valeur hors
- * dictionnaire y produit une classe de couleur `undefined` et le libellé
- * littéral « undefined » à l'écran. Ce module ferme ce trou en validant la
- * chaîne reçue au lieu de la forcer par un cast.
+ * The backend exposes some statuses as a free-form `string`. Display
+ * components (`StatusBadge`, `AdminStatus`) instead index dictionaries
+ * closed over `ResolvedStatus | 'SNAPSHOT'`: a value outside that dictionary
+ * produces an `undefined` color class and the literal label "undefined" on
+ * screen. This module closes that gap by validating the received string
+ * instead of forcing it through a cast.
  */
 
 export type StatutAffichage = ResolvedStatus | 'SNAPSHOT'
 
 /**
- * Table exhaustive des statuts affichables.
+ * Exhaustive table of displayable statuses.
  *
- * Le type `Record<StatutAffichage, true>` oblige TypeScript à signaler tout
- * membre manquant : si `ResolvedStatus` gagne demain une valeur, la compilation
- * échoue ici plutôt que de dériver silencieusement. Un simple tableau de
- * chaînes n'offrirait pas cette garantie.
+ * The `Record<StatutAffichage, true>` type forces TypeScript to flag any
+ * missing member: if `ResolvedStatus` gains a value tomorrow, compilation
+ * fails here instead of silently drifting. A plain string array wouldn't
+ * offer that guarantee.
  */
 const STATUTS_AFFICHABLES: Record<StatutAffichage, true> = {
   LIVE: true,
@@ -36,26 +36,25 @@ const STATUTS_AFFICHABLES: Record<StatutAffichage, true> = {
 }
 
 /**
- * Repli pour une valeur que nous ne savons pas interpréter.
+ * Fallback for a value we can't interpret.
  *
- * `UNAVAILABLE` et non `LIVE` : afficher « Live » sur un statut incompris
- * reviendrait à certifier une fraîcheur que rien n'établit. Le choix reprend
- * celui de `statusFromMeta` (`src/lib/backend/client.ts`), dont le `default`
- * retombe déjà sur `UNAVAILABLE` — même maison, même repli.
+ * `UNAVAILABLE`, not `LIVE`: showing "Live" for an unrecognized status would
+ * certify a freshness nothing establishes. The choice mirrors
+ * `statusFromMeta` (`src/lib/backend/client.ts`), whose `default` already
+ * falls back to `UNAVAILABLE` — same house, same fallback.
  */
 const STATUT_INCONNU: StatutAffichage = 'UNAVAILABLE'
 
-/** Vrai si la chaîne est exactement l'un des statuts affichables. */
+/** True if the string is exactly one of the displayable statuses. */
 export function estStatutAffichage(valeur: string): valeur is StatutAffichage {
   return Object.hasOwn(STATUTS_AFFICHABLES, valeur)
 }
 
 /**
- * Rend un statut sûr à partir d'une chaîne backend.
+ * Renders a safe status from a backend string.
  *
- * Une absence (`null`/`undefined`) et une valeur inconnue sont traitées
- * identiquement : dans les deux cas, nous n'avons pas d'état lisible à
- * annoncer.
+ * An absence (`null`/`undefined`) and an unknown value are treated
+ * identically: in both cases, we have no readable state to announce.
  */
 export function statutAffichage(valeur: string | null | undefined): StatutAffichage {
   if (valeur === null || valeur === undefined) return STATUT_INCONNU

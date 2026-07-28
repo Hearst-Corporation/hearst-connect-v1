@@ -1,10 +1,11 @@
 import { resolved, type Resolved } from '@/lib/resolved'
 
 /**
- * Traduit un échec HTTP backend en état nommé.
+ * Translates a backend HTTP failure into a named state.
  *
- * Le statut HTTP prime sur le corps : un 403 peut porter un Problem annonçant
- * 401 — lire `code` confondrait « non authentifié » et « droits insuffisants ».
+ * The HTTP status takes precedence over the body: a 403 can carry a Problem
+ * announcing 401 — reading `code` would conflate "not authenticated" with
+ * "insufficient rights".
  */
 
 type ProblemLike = { readonly code?: string; readonly detail?: string; readonly requestId?: string }
@@ -27,27 +28,27 @@ export function stateForHttpFailure(
 ): Resolved<never> {
   const provenance = { route, requestId: isProblemLike(body) ? (body.requestId ?? requestId) : requestId }
   const detail = isProblemLike(body) ? (body.detail ?? null) : null
-  const sessionAbsente = messages?.sessionAbsente ?? 'Session absente ou expirée.'
+  const sessionAbsente = messages?.sessionAbsente ?? 'Session absent or expired.'
 
   if (httpStatus === 501) {
     const reason = isKeeperLike(body) ? (body.reason ?? 'not_supported_by_contract') : 'not_supported_by_contract'
-    return resolved.notSupported(detail ?? `Non implémenté par le backend (${reason}).`, provenance)
+    return resolved.notSupported(detail ?? `Not implemented by the backend (${reason}).`, provenance)
   }
 
   switch (httpStatus) {
     case 401:
       return resolved.permissionDenied(detail ?? sessionAbsente, provenance)
     case 403:
-      return resolved.permissionDenied(detail ?? 'Droits insuffisants : rôle administrateur requis.', provenance)
+      return resolved.permissionDenied(detail ?? 'Insufficient rights: administrator role required.', provenance)
     case 429:
-      return resolved.unavailable(detail ?? 'Quota de requêtes dépassé.', provenance)
+      return resolved.unavailable(detail ?? 'Request quota exceeded.', provenance)
     case 503:
       return isProblemLike(body) && body.code === 'NOT_CONFIGURED'
-        ? resolved.notConfigured(detail ?? 'Source non configurée côté backend.', provenance)
-        : resolved.unavailable(detail ?? 'Backend temporairement indisponible.', provenance)
+        ? resolved.notConfigured(detail ?? 'Source not configured on the backend.', provenance)
+        : resolved.unavailable(detail ?? 'Backend temporarily unavailable.', provenance)
     case 504:
-      return resolved.unavailable(detail ?? 'Délai dépassé côté passerelle.', provenance)
+      return resolved.unavailable(detail ?? 'Timeout at the gateway.', provenance)
     default:
-      return resolved.error(detail ?? `Erreur backend (HTTP ${httpStatus}).`, provenance)
+      return resolved.error(detail ?? `Backend error (HTTP ${httpStatus}).`, provenance)
   }
 }

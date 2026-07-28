@@ -4,21 +4,20 @@ import { surfaceRaised } from '@/components/admin/surface'
 import clsx from 'clsx'
 
 /**
- * « Tout va bien, ou pas ? » — la réponse en trois secondes.
+ * "Is everything fine, or not?" — the answer in three seconds.
  *
- * Le bandeau réunit les trois seules choses qu'un responsable regarde avant
- * toute autre : combien d'argent est engagé, quelle part du plafond est
- * consommée, et si une opération demande une décision aujourd'hui.
+ * The band gathers the only three things an operator checks before anything
+ * else: how much money is committed, how much of the cap is consumed, and
+ * whether an operation demands a decision today.
  *
- * Pourquoi une BARRE de capacité et non un second anneau : le plafond TVL est
- * une limite linéaire avec des seuils (75 %, 90 %). L'œil compare deux
- * longueurs bien mieux que deux arcs, et la barre porte son propre verdict
- * écrit (« Capacité confortable »). Le donut « Mix capacité » qui occupait
- * cette place disait le même nombre une seconde fois : deux représentations du
- * même chiffre dans le même écran ne sont pas de la redondance utile, c'est du
- * bruit.
+ * Why a capacity BAR and not a second ring: the TVL cap is a linear limit
+ * with thresholds (75%, 90%). The eye compares two lengths far better than
+ * two arcs, and the bar carries its own written verdict ("Comfortable
+ * capacity"). The "Capacity mix" donut that used to occupy this slot said
+ * the same number a second time: two representations of the same figure on
+ * the same screen isn't useful redundancy, it's noise.
  *
- * Les verdicts ne sont jamais une couleur seule : chacun porte un MOT.
+ * Verdicts are never a color alone: each one carries a WORD.
  */
 
 export type TonVerdict = 'neutre' | 'sain' | 'attention' | 'critique'
@@ -34,7 +33,7 @@ export type VerdictAccueil = {
   readonly id: string
   readonly libelle: string
   readonly valeur: string
-  /** Le verdict écrit — c'est lui qui porte l'information, pas la teinte. */
+  /** The written verdict — it carries the information, not the color. */
   readonly mot: string
   readonly ton: TonVerdict
   readonly detail?: string
@@ -76,17 +75,17 @@ export function AccueilVueEnsemble({
   verdicts: readonly VerdictAccueil[]
 }>) {
   return (
-    <section aria-label="Vue d’ensemble du portefeuille" className={clsx(surfaceRaised, 'overflow-hidden')}>
+    <section aria-label="Portfolio overview" className={clsx(surfaceRaised, 'overflow-hidden')}>
       <div className="grid grid-cols-1 gap-px bg-zinc-950/5 lg:grid-cols-12 dark:bg-white/5">
         <div className="bg-white px-5 py-6 sm:px-6 lg:col-span-5 dark:bg-zinc-900">
-          {/* Pas d'unité passée à `HeroFigure` : `montantUsdc` rend déjà le
-              symbole, l'ajouter donnerait « 1 177 859 $ USDC ». */}
-          <HeroFigure valeur={encours} libelle="Encours du portefeuille" />
+          {/* No unit passed to `HeroFigure`: `montantUsdc` already renders
+              the symbol, adding one would produce "$1,177,859 USDC". */}
+          <HeroFigure valeur={encours} libelle="Portfolio assets" />
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{encoursLegende}</p>
         </div>
         <div className="bg-white px-5 py-6 sm:px-6 lg:col-span-7 dark:bg-zinc-900">
           <p className="mb-3 text-xs tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-            Plafond de souscription consommé
+            Subscription cap consumed
           </p>
           <CapacityBar utiliseBps={utiliseBps} disponible={disponible} total={plafond} />
         </div>

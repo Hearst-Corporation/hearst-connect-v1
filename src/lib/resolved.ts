@@ -1,11 +1,11 @@
 /**
- * Contrat d'état des données affichées.
+ * Contract for the state of displayed data.
  *
- * Règle unique : une valeur n'est rendue que si le backend l'a réellement
- * fournie. Toute autre situation est un état nommé, jamais une valeur inventée
- * ni un zéro de remplacement.
+ * Single rule: a value is only rendered if the backend actually provided it.
+ * Any other situation is a named state, never an invented value nor a
+ * placeholder zero.
  *
- * `null` n'est pas `0`. Une absence n'est pas une donnée.
+ * `null` is not `0`. An absence is not a data point.
  */
 
 export type ResolvedStatus =
@@ -20,23 +20,23 @@ export type ResolvedStatus =
   | 'SIMULATED'
   | 'ERROR'
 
-/** Traçabilité : d'où vient (ou aurait dû venir) la donnée. */
+/** Traceability: where the data comes from (or should have come from). */
 export type Provenance = {
-  /** Route backend interrogée, ou attendue si la source n'est pas branchée. */
+  /** Backend route queried, or the expected one if the source isn't wired up. */
   route: string | null
-  /** Champ exact lu dans la réponse. */
+  /** Exact field read from the response. */
   field: string | null
-  /** Horodatage ISO de la réponse, quand il y en a eu une. */
+  /** ISO timestamp of the response, when there was one. */
   fetchedAt: string | null
-  /** Identifiant de corrélation renvoyé par le backend. */
+  /** Correlation identifier returned by the backend. */
   requestId: string | null
 }
 
 export type Resolved<T> = {
   status: ResolvedStatus
-  /** Renseigné uniquement pour LIVE, STALE et PARTIAL. `null` partout ailleurs. */
+  /** Set only for LIVE, STALE and PARTIAL. `null` everywhere else. */
   value: T | null
-  /** Explication d'origine backend, affichable telle quelle. */
+  /** Backend-originated explanation, displayable as-is. */
   reason: string | null
   provenance: Provenance
 }
@@ -58,11 +58,11 @@ export const resolved = {
   stale: <T>(value: T, reason: string, provenance: Partial<Provenance>): Resolved<T> =>
     make<T>('STALE', value, reason, provenance),
 
-  /** Seules les sous-valeurs réellement reçues sont portées par `value`. */
+  /** Only the sub-values actually received are carried by `value`. */
   partial: <T>(value: T, reason: string, provenance: Partial<Provenance>): Resolved<T> =>
     make<T>('PARTIAL', value, reason, provenance),
 
-  /** Le backend a répondu, et la réponse ne contient aucun élément. */
+  /** The backend responded, and the response contains no element. */
   empty: <T>(provenance: Partial<Provenance>): Resolved<T> => make<T>('EMPTY', null, null, provenance),
 
   notConfigured: <T>(reason: string, provenance: Partial<Provenance> = {}): Resolved<T> =>
@@ -81,15 +81,15 @@ export const resolved = {
     make<T>('ERROR', null, reason, provenance),
 }
 
-/** Une valeur n'est affichable que dans ces trois états. */
+/** A value is only displayable in these three states. */
 export function hasDisplayableValue<T>(r: Resolved<T>): r is Resolved<T> & { value: T } {
   return (r.status === 'LIVE' || r.status === 'STALE' || r.status === 'PARTIAL') && r.value !== null
 }
 
 /**
- * Rendu d'un nombre. Une valeur absente n'est jamais convertie en 0 : elle
- * s'affiche « — », quel que soit l'appelant.
+ * Renders a number. A missing value is never converted to 0: it renders as
+ * "—", regardless of the caller.
  */
 export function formatCount(value: number | null | undefined): string {
-  return typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('fr-FR') : '—'
+  return typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('en-US') : '—'
 }

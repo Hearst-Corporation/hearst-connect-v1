@@ -3,34 +3,34 @@ import { fromBackendRole, loginWithBackend, type BackendLoginFailure } from './b
 import { getSession, type Session } from './session'
 
 /**
- * Authentification — déléguée au backend Hearst Connect.
+ * Authentication — delegated to the Hearst Connect backend.
  *
- * Ce frontend ne détient plus aucun mot de passe et n'en compare plus aucun :
- * l'autorité est `POST /api/v1/auth/login`. Le jeton renvoyé est rangé dans le
- * cookie de session serveur, jamais ailleurs.
+ * This frontend no longer holds any password and no longer compares any:
+ * the authority is `POST /api/v1/auth/login`. The returned token is stored
+ * in the server session cookie, never anywhere else.
  */
 
 export type AuthResult = { ok: true; session: Session } | { ok: false; error: string; reason: LoginFailure }
 
-/** Motifs d'échec, tels que l'écran de connexion doit les traiter. */
+/** Failure reasons, as the login screen must handle them. */
 export type LoginFailure = BackendLoginFailure | 'missing_fields'
 
 /**
- * Messages destinés à l'utilisateur.
+ * User-facing messages.
  *
- * Ils sont honnêtes sur ce qui se passe sans révéler de détail technique
- * exploitable : ni statut HTTP brut, ni corps de réponse, ni jeton, ni indice
- * permettant de distinguer « e-mail inconnu » de « mot de passe faux ».
+ * They are honest about what's happening without revealing exploitable
+ * technical detail: no raw HTTP status, no response body, no token, no clue
+ * that would let one distinguish "unknown email" from "wrong password".
  */
 const FAILURE_MESSAGES: Record<LoginFailure, string> = {
-  missing_fields: 'Renseignez votre e-mail et votre mot de passe.',
-  invalid_credentials: 'E-mail ou mot de passe incorrect.',
-  forbidden: 'Ce compte n’ouvre pas l’accès à la console d’administration.',
-  rate_limited: 'Trop de tentatives de connexion. Patientez une minute avant de réessayer.',
-  unavailable: 'Le service d’authentification est momentanément injoignable. Réessayez dans quelques instants.',
-  malformed_response: 'Le service d’authentification a répondu de façon inattendue. La connexion n’a pas abouti.',
-  server_error: 'La connexion a échoué côté service. Réessayez dans quelques instants.',
-  not_configured: 'Aucun service d’authentification n’est configuré sur ce déploiement.',
+  missing_fields: 'Enter your email and password.',
+  invalid_credentials: 'Incorrect email or password.',
+  forbidden: 'This account does not open access to the administration console.',
+  rate_limited: 'Too many login attempts. Wait a minute before trying again.',
+  unavailable: 'The authentication service is temporarily unreachable. Try again shortly.',
+  malformed_response: 'The authentication service responded unexpectedly. Login did not complete.',
+  server_error: 'Login failed on the service side. Try again shortly.',
+  not_configured: 'No authentication service is configured on this deployment.',
 }
 
 export function loginErrorMessage(reason: LoginFailure): string {
@@ -38,12 +38,12 @@ export function loginErrorMessage(reason: LoginFailure): string {
 }
 
 /**
- * Vérifie un couple e-mail / mot de passe auprès du backend et compose la
- * session serveur correspondante.
+ * Verifies an email / password pair against the backend and composes the
+ * corresponding server session.
  *
- * Le rôle backend est traduit une seule fois, ici : `admin` → `OWNER` (V1
- * single-owner). Un `investor` est refusé explicitement — cette console est une
- * surface d'administration, pas un espace investisseur.
+ * The backend role is translated once, here: `admin` → `OWNER` (V1
+ * single-owner). An `investor` is explicitly refused — this console is an
+ * administration surface, not an investor space.
  */
 export async function authenticate(email: string, password: string): Promise<AuthResult> {
   const result = await loginWithBackend(email, password)
@@ -63,8 +63,8 @@ export async function authenticate(email: string, password: string): Promise<Aut
     session: {
       userId: credentials.userId,
       email: credentials.email,
-      // Le backend ne renvoie pas de nom d'affichage : on n'en invente pas, on
-      // reprend la partie locale de l'e-mail, qui vient bien du compte réel.
+      // The backend does not return a display name: none is invented — the
+      // local part of the email is reused, which does come from the real account.
       name: credentials.email.split('@')[0] || credentials.email,
       role,
       backendToken: credentials.token,
@@ -74,9 +74,9 @@ export async function authenticate(email: string, password: string): Promise<Aut
 }
 
 /**
- * Garde des routes applicatives : renvoie la session ou redirige vers /login.
- * Utilisée par le layout serveur de `/admin` — la vérification est côté
- * serveur, jamais côté client. Une session expirée est traitée comme absente.
+ * Guard for application routes: returns the session or redirects to /login.
+ * Used by the server layout of `/admin` — the check happens server side,
+ * never client side. An expired session is treated as absent.
  */
 export async function requireSession(): Promise<Session> {
   const session = await getSession()

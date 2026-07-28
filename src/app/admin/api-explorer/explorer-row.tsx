@@ -6,9 +6,9 @@ import { probeEndpoint, type ProbeOutcome } from '@/lib/backend/probe'
 import { useActionState } from 'react'
 
 function authLabelFor(auth: BackendEndpoint['auth']): string {
-  if (auth === 'public') return 'publique'
-  if (auth === 'admin') return 'admin requis'
-  return 'session requise'
+  if (auth === 'public') return 'public'
+  if (auth === 'admin') return 'admin required'
+  return 'session required'
 }
 
 function CopyButton({ text }: Readonly<{ text: string }>) {
@@ -18,20 +18,20 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
       onClick={() => navigator.clipboard.writeText(text)}
       className="rounded border border-zinc-950/10 dark:border-white/10 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
     >
-      Copier
+      Copy
     </button>
   )
 }
 
 /**
- * Mention affichée à la place du bouton quand la ligne n'est pas exécutable.
- * `null` quand la route se lit telle quelle.
+ * Text shown in place of the button when the row isn't runnable.
+ * `null` when the route reads as-is.
  */
 function unrunnableLabel(method: BackendEndpoint['method'], pathParams: readonly string[]): string | null {
-  if (method === 'POST') return 'action Keeper — page Keeper'
-  // Le caveat du registre dit déjà d'où vient la valeur : on annonce seulement
-  // qu'elle manque ici, sans la répéter.
-  if (pathParams.length > 0) return `paramètre ${pathParams.map((name) => `:${name}`).join(', ')} requis — non saisissable ici`
+  if (method === 'POST') return 'Keeper action — Keeper page'
+  // The registry's caveat already says where the value comes from: here we
+  // only announce that it's missing, without repeating it.
+  if (pathParams.length > 0) return `parameter ${pathParams.map((name) => `:${name}`).join(', ')} required — not enterable here`
   return null
 }
 
@@ -64,7 +64,7 @@ export function ExplorerRow({
               disabled={pending}
               className="rounded border border-zinc-950/10 dark:border-white/10 px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
             >
-              {pending ? 'Appel…' : 'Exécuter'}
+              {pending ? 'Calling…' : 'Run'}
             </button>
           )}
         </form>
@@ -78,7 +78,7 @@ export function ExplorerRow({
           <div className="mb-2 flex items-center gap-2">
             <CopyButton text={outcome.rawJson} />
             {outcome.metaStatus ? (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">enveloppe : {outcome.metaStatus}</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">envelope: {outcome.metaStatus}</span>
             ) : null}
           </div>
           <AdminProbeResult
@@ -91,13 +91,13 @@ export function ExplorerRow({
       ) : null}
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (jeton expurgé)</summary>
+        <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (token redacted)</summary>
         <pre className="mt-1 overflow-x-auto rounded bg-zinc-50/80 dark:bg-zinc-950/50 p-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{curl}</pre>
       </details>
 
       {isKeeper ? (
         <p className="mt-2 text-xs text-warning-400">
-          Action avec effet de bord — exécution et confirmation depuis /admin/keeper uniquement.
+          Action with side effects — run and confirm from /admin/keeper only.
         </p>
       ) : null}
     </div>

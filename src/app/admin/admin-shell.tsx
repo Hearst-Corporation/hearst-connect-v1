@@ -19,9 +19,9 @@ import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 /**
- * Coque admin — Catalyst SidebarLayout, navigation à plat.
- * Accent vert Hearst conservé sur le badge et l'avatar (texte accent-ink :
- * du blanc sur accent-400 tomberait à 1,7:1).
+ * Admin shell — Catalyst SidebarLayout, flat navigation.
+ * Hearst mint accent kept on the badge and avatar (accent-ink text: white on
+ * accent-400 would fall to a 1.7:1 contrast ratio).
  */
 
 function initials(name: string): string {
@@ -44,14 +44,14 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-zinc-950 dark:text-white">Hearst Connect</div>
-            <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">Management Cockpit</div>
+            <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">Administration</div>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarBody>
-        {/* Une seule liste : chaque page est à un clic, sans titre de section
-            ni groupe à déplier. Le filet marque la rupture, pas un intitulé. */}
+        {/* A single list: every page is one click away, no section title or
+            group to expand. The rule marks the break, not a heading. */}
         <SidebarSection>
           {ADMIN_NAV.map((entree) => (
             <div key={entree.href}>
@@ -72,12 +72,12 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
           <div className="px-2 py-1">
             <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">{user.name}</p>
             <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
-            <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">rôle {user.role}</p>
+            <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">Role: {user.role}</p>
           </div>
           <form action={logout}>
             <SidebarItem type="submit">
               <ArrowRightStartOnRectangleIcon data-slot="icon" />
-              <SidebarLabel>Se déconnecter</SidebarLabel>
+              <SidebarLabel>Sign out</SidebarLabel>
             </SidebarItem>
           </form>
         </SidebarSection>
@@ -105,7 +105,7 @@ export function AdminShell({ user, children }: Readonly<{ user: SessionUser; chi
   return (
     <div className="cockpit-theme dark contents">
       <CockpitSidebarLayout navbar={navbar} sidebar={sidebar}>
-        <div className="w-full space-y-8">{children}</div>
+        <div className="w-full">{children}</div>
       </CockpitSidebarLayout>
     </div>
   )

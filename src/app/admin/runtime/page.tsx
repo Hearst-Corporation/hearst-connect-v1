@@ -6,10 +6,12 @@ import {
   AdminStatusMatrix,
   type StatusMatrixRow,
 } from '@/components/admin/surfaces'
+import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
+import { formatNumber } from '@/lib/format'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'État du service' }
+export const metadata: Metadata = { title: 'Service Status' }
 export const dynamic = 'force-dynamic'
 
 type Runtime = {
@@ -31,64 +33,64 @@ type Runtime = {
   }
 }
 
-function duree(secondes: number | undefined): string {
-  if (secondes === undefined || !Number.isFinite(secondes)) return '—'
-  if (secondes < 120) return `${Math.round(secondes)} s`
-  const minutes = Math.round(secondes / 60)
+function formatUptime(seconds: number | undefined): string {
+  if (seconds === undefined || !Number.isFinite(seconds)) return '—'
+  if (seconds < 120) return `${Math.round(seconds)} s`
+  const minutes = Math.round(seconds / 60)
   if (minutes < 120) return `${minutes} min`
   return `${Math.round(minutes / 60)} h`
 }
 
-function tonEtat(brut: string | undefined): StatusMatrixRow['ton'] {
-  if (brut === 'ready' || brut === 'CONFIGURED' || brut === 'RUNNING' || brut === 'running') return 'sain'
-  if (brut === 'NOT_CONFIGURED' || brut === 'disabled') return 'attention'
-  if (brut === 'unreachable') return 'critique'
+function statusTone(raw: string | undefined): StatusMatrixRow['ton'] {
+  if (raw === 'ready' || raw === 'CONFIGURED' || raw === 'RUNNING' || raw === 'running') return 'sain'
+  if (raw === 'NOT_CONFIGURED' || raw === 'disabled') return 'attention'
+  if (raw === 'unreachable') return 'critique'
   return 'neutre'
 }
 
-function statutFromBrut(brut: string | undefined): 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' {
-  if (brut === 'ready' || brut === 'CONFIGURED' || brut === 'RUNNING' || brut === 'running') return 'LIVE'
-  if (brut === undefined) return 'UNAVAILABLE'
+function statusFromRaw(raw: string | undefined): 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' {
+  if (raw === 'ready' || raw === 'CONFIGURED' || raw === 'RUNNING' || raw === 'running') return 'LIVE'
+  if (raw === undefined) return 'UNAVAILABLE'
   return 'PARTIAL'
 }
 
-function libelleEtat(brut: string | undefined): string {
-  switch (brut) {
+function statusLabel(raw: string | undefined): string {
+  switch (raw) {
     case 'ready':
-      return 'Joignable'
+      return 'Reachable'
     case 'CONFIGURED':
-      return 'Configuré'
+      return 'Configured'
     case 'RUNNING':
-      return 'En cours'
+      return 'Running'
     case 'running':
-      return 'Actif'
+      return 'Active'
     case 'NOT_CONFIGURED':
-      return 'Non configuré'
+      return 'Not configured'
     case 'unreachable':
-      return 'Injoignable'
+      return 'Unreachable'
     case 'disabled':
-      return 'Désactivé'
+      return 'Disabled'
     default:
-      return brut ?? 'Non communiqué'
+      return raw ?? 'Not reported'
   }
 }
 
-function detailLatence(ms: number | null | undefined): string | undefined {
+function latencyDetail(ms: number | null | undefined): string | undefined {
   if (ms === null || ms === undefined) return undefined
   return `${ms} ms`
 }
 
-function detailBloc(bloc: number | null | undefined): string | undefined {
-  if (bloc === null || bloc === undefined) return undefined
-  return `bloc ${bloc.toLocaleString('fr-FR')}`
+function blockDetail(block: number | null | undefined): string | undefined {
+  if (block === null || block === undefined) return undefined
+  return `block ${formatNumber(block)}`
 }
 
-function detailErreurs(n: number | undefined): string {
-  if (n !== undefined && n > 0) return `${n} erreur(s)`
-  return 'aucune erreur'
+function errorsDetail(n: number | undefined): string {
+  if (n !== undefined && n > 0) return `${n} error(s)`
+  return 'no errors'
 }
 
-function intervalleMs(ms: number | null | undefined): string | null {
+function intervalDetail(ms: number | null | undefined): string | null {
   if (ms === null || ms === undefined) return null
   return `${ms} ms`
 }
@@ -106,45 +108,45 @@ function buildMatrix(input: {
   return [
     {
       id: 'health',
-      label: 'Vivacité (health)',
+      label: 'Liveness (health)',
       status: healthOk ? 'LIVE' : 'UNAVAILABLE',
-      detail: healthOk ? 'HTTP 200' : 'Pas de réponse',
+      detail: healthOk ? 'HTTP 200' : 'No response',
       ton: healthOk ? 'sain' : 'critique',
     },
     {
       id: 'ready',
-      label: 'Disponibilité (ready)',
+      label: 'Readiness (ready)',
       status: readyLive ? 'LIVE' : 'UNAVAILABLE',
       detail: readyOk ? readyDb : undefined,
       ton: readyLive ? 'sain' : 'critique',
     },
     {
       id: 'db',
-      label: 'Base de données',
-      status: statutFromBrut(r?.databaseStatus),
-      detail: detailLatence(r?.db?.latencyMs),
-      ton: tonEtat(r?.databaseStatus),
+      label: 'Database',
+      status: statusFromRaw(r?.databaseStatus),
+      detail: latencyDetail(r?.db?.latencyMs),
+      ton: statusTone(r?.databaseStatus),
     },
     {
       id: 'contract',
-      label: 'Contrat',
-      status: statutFromBrut(r?.contractStatus),
-      detail: libelleEtat(r?.contractStatus),
-      ton: tonEtat(r?.contractStatus),
+      label: 'Contract',
+      status: statusFromRaw(r?.contractStatus),
+      detail: statusLabel(r?.contractStatus),
+      ton: statusTone(r?.contractStatus),
     },
     {
       id: 'indexer',
-      label: 'Indexeur',
-      status: statutFromBrut(r?.indexerStatus),
-      detail: detailBloc(scheduler?.lastIndexedBlock),
-      ton: tonEtat(r?.indexerStatus),
+      label: 'Indexer',
+      status: statusFromRaw(r?.indexerStatus),
+      detail: blockDetail(scheduler?.lastIndexedBlock),
+      ton: statusTone(r?.indexerStatus),
     },
     {
       id: 'scheduler',
-      label: 'Planificateur',
-      status: statutFromBrut(scheduler?.status),
-      detail: detailErreurs(scheduler?.consecutiveErrors),
-      ton: tonEtat(scheduler?.status),
+      label: 'Scheduler',
+      status: statusFromRaw(scheduler?.status),
+      detail: errorsDetail(scheduler?.consecutiveErrors),
+      ton: statusTone(scheduler?.status),
     },
   ]
 }
@@ -168,34 +170,34 @@ export default async function RuntimePage() {
   })
 
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
-        title="Runtime et infrastructure"
-        description="Matrice d’état, métriques de déploiement et réponses brutes des sondes."
+        title="Runtime & Infrastructure"
+        description="Status matrix, deployment metrics, and raw probe responses."
       />
 
-      <AdminSection title="Matrice d’état" description="Dépendances et sondes opérationnelles">
-        <AdminStatusMatrix title="Services et dépendances" rows={matrix} />
+      <AdminSection title="Status Matrix" description="Dependencies and operational probes">
+        <AdminStatusMatrix title="Services and Dependencies" rows={matrix} />
       </AdminSection>
 
-      <AdminSection title="Déploiement" description="Version et environnement — runtime">
+      <AdminSection title="Deployment" description="Version and environment — runtime">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <AdminMetric label="Environnement" value={r?.environment ?? null} />
-          <AdminMetric label="Uptime" value={duree(r?.uptimeSeconds)} />
+          <AdminMetric label="Environment" value={r?.environment ?? null} />
+          <AdminMetric label="Uptime" value={formatUptime(r?.uptimeSeconds)} />
           <AdminMetric label="Version" value={r?.version ?? null} />
-          <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="SHA du déploiement" />
-          <AdminMetric label="Chaîne" value={r?.chainId ?? null} hint="chainId" />
-          <AdminMetric label="Intervalle indexeur" value={intervalleMs(scheduler?.intervalMs)} />
+          <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="Deployment SHA" />
+          <AdminMetric label="Chain" value={r?.chainId ?? null} hint="chainId" />
+          <AdminMetric label="Indexer Interval" value={intervalDetail(scheduler?.intervalMs)} />
         </div>
       </AdminSection>
 
-      <AdminSection title="Réponses brutes" description="Payload complet pour vérification technique">
+      <AdminSection title="Raw Responses" description="Full payload for technical verification">
         <EndpointSection endpointId="runtime" title="Runtime" />
         <div className="grid gap-4 lg:grid-cols-2">
           <EndpointSection endpointId="health" title="Health" />
           <EndpointSection endpointId="ready" title="Ready" />
         </div>
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }

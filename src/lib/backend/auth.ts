@@ -4,32 +4,32 @@ import { backendUrl } from '@/lib/env'
 import type { Role } from '@/lib/session'
 
 /**
- * Pont d'authentification frontend → backend Hearst Connect.
+ * Frontend → Hearst Connect backend authentication bridge.
  *
- * Le backend Railway est désormais l'AUTORITÉ d'authentification : ce frontend
- * ne vérifie plus lui-même un mot de passe et ne frappe plus aucun jeton. Il
- * transmet les identifiants à `POST /api/v1/auth/login`, reçoit un jeton porteur
- * et le range dans la session serveur — jamais ailleurs.
+ * The Railway backend is now the authentication AUTHORITY: this frontend no
+ * longer verifies a password itself and no longer mints any token. It
+ * forwards credentials to `POST /api/v1/auth/login`, receives a bearer
+ * token, and stores it in the server session — never anywhere else.
  *
- * `import 'server-only'` fait échouer le build si ce module atteint un bundle
- * client : le jeton backend ne doit jamais quitter le serveur.
+ * `import 'server-only'` fails the build if this module reaches a client
+ * bundle: the backend token must never leave the server.
  */
 
-/** Rôles reconnus par le backend. */
+/** Roles recognized by the backend. */
 export type BackendRole = 'investor' | 'admin'
 
-/** Chemin canonique de la route de connexion du backend. */
+/** Canonical path of the backend's login route. */
 export const LOGIN_PATH = '/api/v1/auth/login'
 
-/** Délai maximal d'une tentative de connexion, en millisecondes. */
+/** Maximum duration of a login attempt, in milliseconds. */
 const LOGIN_TIMEOUT_MS = 10_000
 
 /**
- * Rôle backend correspondant au rôle frontend.
+ * Backend role corresponding to the frontend role.
  *
- * OWNER et ADMIN deviennent `admin`. MEMBER n'obtient PAS `investor` par
- * défaut : ce frontend est une console d'administration, et un membre n'a
- * aucune raison d'interroger le backend en son nom. Le refus est explicite.
+ * OWNER and ADMIN become `admin`. MEMBER does NOT get `investor` by default:
+ * this frontend is an administration console, and a member has no reason to
+ * query the backend on its behalf. The refusal is explicit.
  */
 export function toBackendRole(role: Role): BackendRole | null {
   switch (role) {
@@ -42,43 +42,43 @@ export function toBackendRole(role: Role): BackendRole | null {
 }
 
 /**
- * Rôle frontend correspondant au rôle backend.
+ * Frontend role corresponding to the backend role.
  *
- * V1 single-owner : le backend ne connaît que `admin` et `investor`. `admin`
- * ouvre la console en tant que propriétaire ; `investor` ne l'ouvre PAS — le
- * refus est explicite, jamais une rétrogradation silencieuse en MEMBER qui
- * laisserait croire à une session valide.
+ * V1 single-owner: the backend only knows `admin` and `investor`. `admin`
+ * opens the console as owner; `investor` does NOT open it — the refusal is
+ * explicit, never a silent downgrade to MEMBER that would suggest a valid
+ * session.
  */
 export function fromBackendRole(role: BackendRole): Role | null {
   return role === 'admin' ? 'OWNER' : null
 }
 
 /**
- * Retire un préfixe « Bearer » éventuellement déjà présent dans la valeur du
- * jeton.
+ * Strips a "Bearer" prefix possibly already present in the token value.
  *
- * Le contrat cible impose une valeur BRUTE, sans préfixe : c'est au frontend de
- * composer `Authorization: Bearer <token>`. Le déploiement Railway courant
- * renvoie encore l'ancien format préfixé ; sans cette normalisation, l'en-tête
- * deviendrait « Bearer Bearer <token> » et toutes les routes protégées
- * répondraient 401. La normalisation est donc défensive et idempotente.
+ * The target contract requires a RAW value, without prefix: it's up to the
+ * frontend to compose `Authorization: Bearer <token>`. The current Railway
+ * deployment still returns the old prefixed format; without this
+ * normalization, the header would become "Bearer Bearer <token>" and every
+ * protected route would respond 401. The normalization is therefore
+ * defensive and idempotent.
  */
 export function normalizeBearerToken(raw: string): string {
   let value = raw.trim()
-  // Boucle : « Bearer Bearer x » a déjà été observé côté backend, on ne veut
-  // pas d'une normalisation qui n'enlèverait qu'une couche.
+  // Loop: "Bearer Bearer x" has already been observed backend side; a
+  // normalization that only strips one layer is not wanted.
   while (/^bearer\s+/i.test(value)) {
     value = value.replace(/^bearer\s+/i, '').trim()
   }
   return value
 }
 
-/** En-tête d'autorisation à envoyer au backend, composé sans double préfixe. */
+/** Authorization header to send to the backend, composed without a double prefix. */
 export function authorizationHeader(token: string): string {
   return `Bearer ${normalizeBearerToken(token)}`
 }
 
-/** Identité et jeton renvoyés par le backend, une fois normalisés. */
+/** Identity and token returned by the backend, once normalized. */
 export type BackendCredentials = {
   token: string
   userId: string
@@ -110,9 +110,9 @@ function readString(source: Record<string, unknown>, key: string): string | null
 }
 
 /**
- * Lit `expiresAt` (ISO 8601) et le convertit en secondes epoch.
- * Une date absente, illisible ou déjà passée n'est pas rattrapée par une durée
- * arbitraire : la réponse est considérée hors contrat.
+ * Reads `expiresAt` (ISO 8601) and converts it to epoch seconds.
+ * A missing, unreadable, or already-past date is not patched up by an
+ * arbitrary duration: the response is considered out of contract.
  */
 function readExpiry(source: Record<string, unknown>): number | null {
   const raw = readString(source, 'expiresAt')
@@ -123,12 +123,12 @@ function readExpiry(source: Record<string, unknown>): number | null {
 }
 
 /**
- * Valide et normalise le corps d'une réponse de connexion.
+ * Validates and normalizes the body of a login response.
  *
- * Contrat attendu :
+ * Expected contract:
  * `{ token, tokenType, expiresAt, user: { id, email, role } }`.
- * Toute divergence rend `null` : on préfère un échec nommé à une session
- * fabriquée à partir d'une réponse qu'on n'a pas comprise.
+ * Any divergence returns `null`: a named failure is preferred over a session
+ * built from a response that wasn't understood.
  */
 export function parseLoginResponse(body: unknown): BackendCredentials | null {
   if (!isRecord(body)) return null
@@ -154,10 +154,10 @@ export function parseLoginResponse(body: unknown): BackendCredentials | null {
 }
 
 /**
- * Soumet un couple e-mail / mot de passe au backend.
+ * Submits an email / password pair to the backend.
  *
- * Aucun repli local : si le backend est injoignable, la connexion échoue. Rien
- * de ce que renvoie le backend n'est journalisé — ni le jeton, ni le corps.
+ * No local fallback: if the backend is unreachable, the login fails. Nothing
+ * the backend returns is ever logged — neither the token nor the body.
  */
 export async function loginWithBackend(email: string, password: string): Promise<BackendLoginResult> {
   const base = backendUrl()

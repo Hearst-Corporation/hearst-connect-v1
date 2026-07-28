@@ -1,26 +1,26 @@
 import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
 import { PageHeader } from '@/components/admin/page-header'
-import { CockpitSection } from '@/components/admin/cockpit-section'
+import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Votre compte' }
+export const metadata: Metadata = { title: 'Your Account' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Votre compte — ce que le produit sait de la personne connectée.
+ * Your account — what the product knows about the signed-in person.
  *
- * Deux identités coexistent et ne doivent surtout pas être confondues : le
- * compte d'administration, qui ouvre cette console, et le dossier investisseur,
- * qui rattache une personne à une position dans le fonds. Le premier existe
- * toujours — vous êtes connecté. Le second n'existe que pour qui a souscrit.
+ * Two identities coexist here and must not be confused: the admin account,
+ * which opens this console, and the investor record, which links a person
+ * to a position in the fund. The former always exists — you're signed in.
+ * The latter only exists for someone who has subscribed.
  *
- * Le service répond ici « partiel, aucune valeur » : c'est la réponse juste
- * pour un compte d'administration, pas une panne. La page le dit avec ces
- * mots-là plutôt que d'afficher une fiche d'identité vide, qu'on lirait comme
- * un dossier perdu.
+ * The service answers here with "partial, no value": that's the correct
+ * answer for an admin account, not an outage. The page says so in those
+ * words rather than showing an empty identity card, which would read like
+ * a lost record.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
@@ -36,9 +36,9 @@ type Identite = {
 type ReponseProfil = { readonly identity?: Resolu<Identite> }
 
 const LIBELLE_ROLE: Record<Role, string> = {
-  OWNER: 'Propriétaire de l’espace',
-  ADMIN: 'Administrateur',
-  MEMBER: 'Membre',
+  OWNER: 'Space owner',
+  ADMIN: 'Administrator',
+  MEMBER: 'Member',
 }
 
 function DossierInvestisseur({
@@ -49,9 +49,9 @@ function DossierInvestisseur({
   if (!ok) {
     return (
       <SourceAttendue
-        quoi="Le dossier investisseur n’a pas pu être lu"
-        detail="Le service n’a pas répondu à la demande. On ne conclut pas de ce silence qu’aucun dossier n’existe."
-        requis={['Une réponse du service']}
+        quoi="The investor record could not be read"
+        detail="The service did not respond to the request. This silence doesn't mean no record exists."
+        requis={['A response from the service']}
       />
     )
   }
@@ -59,16 +59,16 @@ function DossierInvestisseur({
   if (identite === null || identite === undefined) {
     const suffixe =
       motif === undefined
-        ? 'Le service a bien été consulté : il ne trouve pas de dossier associé.'
-        : `Le service a bien été consulté : ${motif}.`
+        ? 'The service was reached: it finds no record attached to this account.'
+        : `The service was reached: ${motif}.`
     return (
       <SourceAttendue
-        quoi="Aucun dossier investisseur n’est rattaché à ce compte"
-        detail={`${suffixe} C’est le cas normal d’un compte d’administration — administrer l’espace et souscrire au fonds sont deux choses distinctes, et l’un n’implique pas l’autre. Aucune fiche n’est affichée ici plutôt qu’une fiche vide, qu’on prendrait pour un dossier perdu.`}
+        quoi="No investor record is attached to this account"
+        detail={`${suffixe} This is the normal case for an admin account — administering the space and subscribing to the fund are two distinct things, and one doesn't imply the other. No record is shown here rather than an empty one, which would look like a lost record.`}
         requis={[
-          'Une souscription au fonds effectuée avec cette adresse e-mail',
-          'Un dossier de connaissance client instruit et validé',
-          'Une adresse de portefeuille rattachée au dossier',
+          'A fund subscription made with this email address',
+          'A know-your-customer file reviewed and approved',
+          'A wallet address attached to the record',
         ]}
       />
     )
@@ -76,12 +76,12 @@ function DossierInvestisseur({
 
   return (
     <Card>
-      <CardHeader title="Ce que le service sait de vous" hint="Transmis par le service, sans retouche" />
+      <CardHeader title="What the service knows about you" hint="Passed through from the service, unedited" />
       <dl className="divide-y divide-zinc-950/5 dark:divide-white/5">
-        <Ligne libelle="Nom du dossier" valeur={identite.displayName} />
-        <Ligne libelle="Adresse e-mail" valeur={identite.email} />
-        <Ligne libelle="Portefeuille" valeur={identite.walletAddress} mono />
-        <Ligne libelle="Connaissance client" valeur={identite.kycStatus} />
+        <Ligne libelle="Record name" valeur={identite.displayName} />
+        <Ligne libelle="Email address" valeur={identite.email} />
+        <Ligne libelle="Wallet" valeur={identite.walletAddress} mono />
+        <Ligne libelle="Know-your-customer" valeur={identite.kycStatus} />
         <Ligne libelle="Qualification" valeur={identite.accreditation} />
       </dl>
     </Card>
@@ -98,44 +98,44 @@ export default async function Page() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Votre compte"
-        description="Le compte qui ouvre cette console, et le dossier investisseur qui lui est rattaché — s’il en existe un."
+        title="Your Account"
+        description="The account that opens this console, and the investor record attached to it — if one exists."
       />
 
-      <CockpitSection>
+      <AdminSection>
 
-      {/* ── A. Le compte connecté : la seule certitude de cette page ────── */}
+      {/* ── A. The signed-in account: the one certainty on this page ────── */}
       <Card>
-        <CardHeader title="Avec quel compte êtes-vous connecté ?" hint="Lu dans votre session, pas dans le service" />
+        <CardHeader title="Signed in as" hint="Read from your session, not from the service" />
         {session === null ? (
           <p className="px-5 py-6 text-sm text-danger-400">
-            Aucune session valide n’a été trouvée. Reconnectez-vous pour afficher votre compte.
+            No valid session was found. Sign in again to view your account.
           </p>
         ) : (
           <dl className="divide-y divide-zinc-950/5 dark:divide-white/5">
-            <Ligne libelle="Nom" valeur={session.name} />
-            <Ligne libelle="Adresse e-mail" valeur={session.email} />
-            <Ligne libelle="Rôle" valeur={LIBELLE_ROLE[session.role]} />
+            <Ligne libelle="Name" valeur={session.name} />
+            <Ligne libelle="Email address" valeur={session.email} />
+            <Ligne libelle="Role" valeur={LIBELLE_ROLE[session.role]} />
           </dl>
         )}
       </Card>
 
-      {/* ── B. Le dossier investisseur : présent, ou honnêtement absent ─── */}
+      {/* ── B. The investor record: present, or honestly absent ─── */}
       <section aria-labelledby="dossier" className="space-y-3">
         <h2 id="dossier" className="text-sm font-semibold text-zinc-950 dark:text-white">
-          Dossier investisseur
+          Investor record
         </h2>
 
         <DossierInvestisseur ok={reponse.ok} identite={identite} motif={motif} />
       </section>
 
-      {/* Le sous-sol : la réponse détaillée pour qui veut vérifier un champ. */}
-      </CockpitSection>
+      {/* The basement: the detailed response for anyone who wants to verify a field. */}
+      </AdminSection>
     </div>
   )
 }
 
-/** Une valeur absente rend « — » : jamais une chaîne vide, jamais un zéro. */
+/** A missing value renders as "—": never an empty string, never a zero. */
 function Ligne({
   libelle,
   valeur,

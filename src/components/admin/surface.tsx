@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 
 /**
- * Grammaire de surface — registre institutionnel Qatar / Hearst Cockpit.
- * Trois plans : raised · sunken · hero.
+ * Surface grammar — Hearst Connect's institutional register.
+ * Three planes: raised · sunken · hero.
  */
 
 export const surfaceRaised =
@@ -35,12 +35,12 @@ export function Panel({
 }
 
 /**
- * Liste des éléments qu'une source doit encore fournir.
+ * List of items a source still needs to provide.
  *
- * Deux surfaces l'affichent avec des mises en page différentes (`SourceAttendue`
- * centrée dans `cockpit.tsx`, `AdminSourceAttendue` alignée à gauche dans
- * `surfaces.tsx`). Seule la liste elle-même était identique : elle vit ici, les
- * deux habillages restent chez leurs propriétaires respectifs.
+ * Two surfaces render it with different layouts (`SourceAttendue`, centered,
+ * in `cockpit.tsx`; `AdminSourceAttendue`, left-aligned, in `surfaces.tsx`).
+ * Only the list itself was identical: it lives here, both wrappers stay with
+ * their respective owners.
  */
 export function RequirementList({ requis }: Readonly<{ requis: readonly string[] }>) {
   return (

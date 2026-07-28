@@ -1,11 +1,12 @@
 'use client'
 
 import { chartTheme } from '@/lib/chart-theme'
+import { formatCurrency, formatPercent } from '@/lib/format'
 import { Pie, PieChart, ResponsiveContainer, Sector, Tooltip, type PieSectorShapeProps } from 'recharts'
 
 /**
- * Mix capacité — donut (forme Qatar « Capacity mix »).
- * Données dashboard : encours, capacité disponible, plafond TVL.
+ * Capacity mix — donut chart.
+ * Dashboard data: outstanding, available capacity, TVL cap.
  */
 
 function parseUsdc(raw: string | undefined): number | null {
@@ -15,7 +16,7 @@ function parseUsdc(raw: string | undefined): number | null {
   return n / 1_000_000
 }
 
-function InfoBulle({
+function TooltipContent({
   active,
   payload,
 }: Readonly<{ active?: boolean; payload?: readonly { name?: string; value?: number }[] }>) {
@@ -25,13 +26,13 @@ function InfoBulle({
     <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-white/10">
       <p className="font-medium text-zinc-950 dark:text-white">{p?.name}</p>
       <p className="mt-0.5 tabular-nums text-zinc-500 dark:text-zinc-400">
-        {typeof p?.value === 'number' ? `${p.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} $` : '—'}
+        {typeof p?.value === 'number' ? formatCurrency(p.value, { fromAtomic: 1, decimals: 0 }) : '—'}
       </p>
     </div>
   )
 }
 
-function Tranche(props: PieSectorShapeProps) {
+function PieSliceShape(props: PieSectorShapeProps) {
   return <Sector {...props} />
 }
 
@@ -47,42 +48,38 @@ export function UtilizationChart({
   utilizationBps?: number | null
 }>) {
   const cap = parseUsdc(tvlCap)
-  const encours = parseUsdc(totalAssets)
-  const dispo = parseUsdc(availableCapacity)
+  const outstanding = parseUsdc(totalAssets)
+  const available = parseUsdc(availableCapacity)
 
-  if (encours === null && dispo === null && cap === null) {
+  if (outstanding === null && available === null && cap === null) {
     return (
-      <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
-        Capacité non lisible dans le dashboard.
-      </p>
+      <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">Capacity data not available from the dashboard.</p>
     )
   }
 
-  const utilise = encours ?? null
-  const disponible = dispo ?? null
-  const centre = cap !== null ? `${cap.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} $` : '—'
-  const pct =
+  const centerLabel = formatCurrency(cap, { fromAtomic: 1, decimals: 0 })
+  const utilizationLabel =
     utilizationBps !== null && utilizationBps !== undefined && Number.isFinite(utilizationBps)
-      ? `${(utilizationBps / 100).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %`
+      ? formatPercent(utilizationBps, { fromBps: true })
       : null
 
   type Slice = { name: string; value: number; fill: string }
 
   const slices: Slice[] = []
-  if (utilise !== null && utilise > 0) {
-    slices.push({ name: 'Encours', value: utilise, fill: chartTheme.series.primary })
+  if (outstanding !== null && outstanding > 0) {
+    slices.push({ name: 'Outstanding', value: outstanding, fill: chartTheme.series.primary })
   }
-  if (disponible !== null && disponible > 0) {
-    slices.push({ name: 'Capacité disponible', value: disponible, fill: chartTheme.series.ghost })
+  if (available !== null && available > 0) {
+    slices.push({ name: 'Available capacity', value: available, fill: chartTheme.series.ghost })
   }
 
   if (slices.length === 0) {
-    return <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">Aucun encours constaté.</p>
+    return <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">No outstanding balance recorded.</p>
   }
 
   return (
     <div className="flex h-full flex-col">
-      <div className="relative h-[180px] w-full">
+      <div className={`relative ${chartTheme.height.small} w-full`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -93,15 +90,17 @@ export function UtilizationChart({
               outerRadius="88%"
               paddingAngle={2}
               isAnimationActive={false}
-              shape={Tranche}
+              shape={PieSliceShape}
             />
-            <Tooltip content={<InfoBulle />} />
+            <Tooltip content={<TooltipContent />} />
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-xl font-semibold tabular-nums text-zinc-950 dark:text-white">{centre}</span>
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Plafond TVL</span>
-          {pct ? <span className="mt-0.5 text-xs font-medium text-accent-600 dark:text-accent-400">{pct} utilisé</span> : null}
+          <span className="text-xl font-semibold tabular-nums text-zinc-950 dark:text-white">{centerLabel}</span>
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400">TVL cap</span>
+          {utilizationLabel ? (
+            <span className="mt-0.5 text-xs font-medium text-accent-600 dark:text-accent-400">{utilizationLabel} utilized</span>
+          ) : null}
         </div>
       </div>
       <ul className="mt-3 space-y-1.5">
@@ -112,7 +111,7 @@ export function UtilizationChart({
               <span className="truncate">{s.name}</span>
             </span>
             <span className="shrink-0 font-medium tabular-nums text-zinc-950 dark:text-white">
-              {s.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} $
+              {formatCurrency(s.value, { fromAtomic: 1, decimals: 0 })}
             </span>
           </li>
         ))}

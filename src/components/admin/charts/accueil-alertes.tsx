@@ -3,21 +3,22 @@ import { motifLisible } from '@/lib/mouvements'
 import clsx from 'clsx'
 
 /**
- * Les alertes du service, affichées.
+ * The service's alerts, rendered.
  *
- * Le champ `alerts` du dashboard est LIVE depuis toujours et n'était rendu
- * nulle part : une console d'administration qui garde ses alertes pour elle
- * rate sa fonction première. Elles sont donc posées haut, juste sous le
- * bandeau d'exception runtime, avant tout chiffre.
+ * The dashboard's `alerts` field has always been LIVE and was rendered
+ * nowhere: an admin console that keeps its alerts to itself misses its
+ * primary function. They are therefore placed high, right under the runtime
+ * exception banner, before any figure.
  *
- * Deux règles de rendu :
+ * Two rendering rules:
  *
- * 1. La gravité est écrite EN TOUTES LETTRES à côté de la pastille. Un lecteur
- *    qui ne distingue pas l'ambre du rouge lit le même verdict. C'est la même
- *    convention que `GRAVITE` (page BTC) et `TONE_LABEL` (cockpit).
- * 2. Le texte affiché est traduit quand le code d'alerte figure au dictionnaire
- *    partagé, et rendu TEL QUEL sinon. Traduire au jugé un message qu'on ne
- *    connaît pas reviendrait à réécrire ce que dit le service.
+ * 1. Severity is spelled OUT IN WORDS next to the dot. A reader who can't
+ *    tell amber from red reads the same verdict. Same convention as
+ *    `GRAVITE` (BTC page) and `TONE_LABEL` (cockpit).
+ * 2. The displayed text is translated when the alert code is in the shared
+ *    dictionary, and rendered AS-IS otherwise. Guessing a translation for a
+ *    message we don't recognize would amount to rewriting what the service
+ *    is saying.
  */
 
 export type AlerteBackend = {
@@ -26,77 +27,77 @@ export type AlerteBackend = {
   readonly message?: string | null
 }
 
-type Gravite = {
+type Severity = {
   readonly mot: string
   readonly point: string
   readonly texte: string
   readonly bordure: string
 }
 
-const GRAVITE: Record<string, Gravite> = {
-  critical: { mot: 'Critique', point: 'bg-danger-500', texte: 'text-danger-400', bordure: 'border-danger-500/50' },
-  error: { mot: 'Anomalie', point: 'bg-danger-500', texte: 'text-danger-400', bordure: 'border-danger-500/50' },
-  warning: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400', bordure: 'border-warning-500/40' },
-  warn: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400', bordure: 'border-warning-500/40' },
-  info: { mot: 'Pour information', point: 'bg-info-500', texte: 'text-info-400', bordure: 'border-info-500/30' },
-  notice: { mot: 'Pour information', point: 'bg-info-500', texte: 'text-info-400', bordure: 'border-info-500/30' },
+const SEVERITY: Record<string, Severity> = {
+  critical: { mot: 'Critical', point: 'bg-danger-500', texte: 'text-danger-400', bordure: 'border-danger-500/50' },
+  error: { mot: 'Anomaly', point: 'bg-danger-500', texte: 'text-danger-400', bordure: 'border-danger-500/50' },
+  warning: { mot: 'Watch closely', point: 'bg-warning-500', texte: 'text-warning-400', bordure: 'border-warning-500/40' },
+  warn: { mot: 'Watch closely', point: 'bg-warning-500', texte: 'text-warning-400', bordure: 'border-warning-500/40' },
+  info: { mot: 'Informational', point: 'bg-info-500', texte: 'text-info-400', bordure: 'border-info-500/30' },
+  notice: { mot: 'Informational', point: 'bg-info-500', texte: 'text-info-400', bordure: 'border-info-500/30' },
 }
 
-const NON_QUALIFIEE: Gravite = {
-  mot: 'Non qualifiée',
+const UNQUALIFIED: Severity = {
+  mot: 'Unqualified',
   point: 'bg-zinc-600',
   texte: 'text-zinc-400',
   bordure: 'border-white/10',
 }
 
-function graviteLisible(brut: string | null | undefined): Gravite {
-  if (typeof brut !== 'string' || brut === '') return NON_QUALIFIEE
-  return GRAVITE[brut.toLowerCase()] ?? NON_QUALIFIEE
+function severityInfo(raw: string | null | undefined): Severity {
+  if (typeof raw !== 'string' || raw === '') return UNQUALIFIED
+  return SEVERITY[raw.toLowerCase()] ?? UNQUALIFIED
 }
 
-/** Codes d'alerte connus, dits en français. Un code inconnu garde son message. */
-const TEXTE_ALERTE: Record<string, string> = {
-  no_position: 'aucune position active : rien n’est encore déployé pour ce compte',
+/** Known alert codes, spelled out. An unknown code keeps its raw message. */
+const ALERT_TEXT: Record<string, string> = {
+  no_position: 'no active position: nothing has been deployed yet for this account',
 }
 
-function texteAlerte(alerte: AlerteBackend): string {
+function alertText(alerte: AlerteBackend): string {
   const code = alerte.code
   if (typeof code === 'string' && code !== '') {
-    const local = TEXTE_ALERTE[code]
+    const local = ALERT_TEXT[code]
     if (local !== undefined) return local
-    const partage = motifLisible(code)
-    if (partage !== undefined) return partage
+    const shared = motifLisible(code)
+    if (shared !== undefined) return shared
   }
   if (typeof alerte.message === 'string' && alerte.message !== '') return alerte.message
-  return 'Alerte sans intitulé transmise par le service.'
+  return 'Unlabeled alert reported by the service.'
 }
 
-/** Une alerte sans code ni message reste identifiable dans une liste. */
-function cleAlerte(alerte: AlerteBackend, rang: number): string {
+/** An alert with neither code nor message stays identifiable in a list. */
+function alertKey(alerte: AlerteBackend, rank: number): string {
   const code = alerte.code
   if (typeof code === 'string' && code !== '') return code
-  return `alerte-${rang}`
+  return `alert-${rank}`
 }
 
 export function AccueilAlertes({ alertes }: Readonly<{ alertes: readonly AlerteBackend[] }>) {
   if (alertes.length === 0) return null
 
   return (
-    <section aria-label="Alertes du service" className={clsx(surfaceRaised, 'overflow-hidden')}>
+    <section aria-label="Service alerts" className={clsx(surfaceRaised, 'overflow-hidden')}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-950/5 px-5 py-3 dark:border-white/5">
         <h2 className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase dark:text-zinc-400">
-          Alertes en cours
+          Active alerts
         </h2>
         <span className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">
-          {alertes.length} relevée{alertes.length > 1 ? 's' : ''} par le service
+          {alertes.length} flagged by the service
         </span>
       </div>
       <ul>
-        {alertes.map((a, rang) => {
-          const g = graviteLisible(a.severity)
+        {alertes.map((a, rank) => {
+          const g = severityInfo(a.severity)
           return (
             <li
-              key={cleAlerte(a, rang)}
+              key={alertKey(a, rank)}
               className={clsx(
                 'flex flex-col gap-1.5 border-b border-l-2 px-5 py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:gap-4',
                 'border-b-zinc-950/5 dark:border-b-white/5',
@@ -107,7 +108,7 @@ export function AccueilAlertes({ alertes }: Readonly<{ alertes: readonly AlerteB
                 <span aria-hidden="true" className={clsx('size-2 shrink-0 rounded-full', g.point)} />
                 {g.mot}
               </span>
-              <p className="min-w-0 flex-1 text-sm text-zinc-700 dark:text-zinc-200">{texteAlerte(a)}</p>
+              <p className="min-w-0 flex-1 text-sm text-zinc-700 dark:text-zinc-200">{alertText(a)}</p>
             </li>
           )
         })}

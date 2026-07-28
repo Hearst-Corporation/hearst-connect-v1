@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/admin/page-header'
+import { AdminPage } from '@/components/admin/typography'
 import {
   AdminEmptyState,
   AdminSection,
@@ -14,49 +15,49 @@ export const metadata: Metadata = { title: 'Clients' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Clients — structure prête pour l’annuaire organisations/investisseurs.
- * Aucune ligne inventée tant que le backend n’expose pas la source.
+ * Clients — structure ready for the organisations/investors directory.
+ * No row is invented until the backend exposes the source.
  */
 
-const COLONNES_ATTENDUES = [
-  'Organisation',
+const EXPECTED_COLUMNS = [
+  'Organization',
   'Type',
-  'Statut',
-  'Conformité',
-  'Risque',
-  'Encours',
-  'Dernière activité',
-  'Personnes liées',
-  'Portefeuille',
+  'Status',
+  'Compliance',
+  'Risk',
+  'AUM',
+  'Last activity',
+  'Linked people',
+  'Portfolio',
 ] as const
 
-type LigneVide = Record<string, never>
+type EmptyRow = Record<string, never>
 
-function cellVide(_row: LigneVide) {
+function emptyCell(_row: EmptyRow) {
   return <span className="text-zinc-500 dark:text-zinc-400">—</span>
 }
 
-const COLONNES: readonly AdminTableColumn<LigneVide>[] = COLONNES_ATTENDUES.map((header) => ({
+const COLUMNS: readonly AdminTableColumn<EmptyRow>[] = EXPECTED_COLUMNS.map((header) => ({
   key: header,
   header,
-  cell: cellVide,
+  cell: emptyCell,
 }))
 
 export default function Page() {
   return (
-    <div className="space-y-8">
+    <AdminPage>
       <PageHeader
         title="Clients"
-        description="Organisations, personnes et portefeuilles — annuaire en attente de source backend."
+        description="Organizations, people and portfolios — directory awaiting a backend source."
       />
 
-      <AdminSection title="Annuaire" description="Table prête — aucune donnée simulée" index="01">
+      <AdminSection title="Directory" description="Table ready — no simulated data" index="01">
         <AdminToolbar>
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">Recherche — inactive</span>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">Search — inactive</span>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">·</span>
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">Filtres — en attente de source</span>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">Filters — awaiting source</span>
           <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
-            Tri et pagination disponibles à l’arrivée de la source
+            Sorting and pagination available once the source arrives
           </span>
         </AdminToolbar>
         <AdminSurface>
@@ -65,26 +66,26 @@ export default function Page() {
             keyFn={() => ''}
             empty={
               <AdminEmptyState
-                title="L’annuaire des organisations n’est pas encore ouvert"
-                description="Le service ne transmet aucune organisation. Cette structure accueillera les données sans refonte graphique."
+                title="The organizations directory isn’t open yet"
+                description="The service isn’t transmitting any organizations. This structure will host the data without a graphical redesign."
               />
             }
-            columns={COLONNES}
+            columns={COLUMNS}
           />
         </AdminSurface>
       </AdminSection>
 
-      <AdminSection title="Sources" description="Ce que le service doit encore exposer" index="02">
+      <AdminSection title="Sources" description="What the service still needs to expose" index="02">
         <AdminSourceAttendue
-          quoi="Endpoints attendus"
-          detail="Organisations et investisseurs ne sont pas encore exposés en HTTP."
+          quoi="Expected endpoints"
+          detail="Organizations and investors aren’t exposed over HTTP yet."
           requis={[
-            'Entité Organisation dans le modèle de données',
-            'GET annuaire avec encours, conformité et risque',
-            'Rattachement personnes, portefeuilles et souscriptions',
+            'Organization entity in the data model',
+            'GET directory endpoint with AUM, compliance and risk',
+            'Linking to people, portfolios and subscriptions',
           ]}
         />
       </AdminSection>
-    </div>
+    </AdminPage>
   )
 }
