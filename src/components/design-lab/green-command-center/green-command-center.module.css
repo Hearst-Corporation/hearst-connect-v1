@@ -1,0 +1,761 @@
+/*
+ * Green Command Center — visual matter, ported from the reference prototype.
+ *
+ * ── Why a CSS Module and not Tailwind utilities ────────────────────────────
+ * This composition is a LABORATORY. Its colours are not the product's tokens:
+ * the console runs on Hearst mint (#a7fb90) over neutral graphite, and this
+ * prototype runs on a neon green (#79ff00) over near-black with a specific
+ * five-stop panel gradient. Expressing that in Tailwind would mean either
+ * adding a second palette to the global `@theme` — leaking a competing design
+ * system into the vitrine and the console — or writing a wall of arbitrary
+ * values. A scoped module keeps every value here, provably reaching nothing
+ * else, until the migration decides what becomes a real token.
+ *
+ * Nothing in `src/styles/tailwind.css`, `cockpit-theme` or
+ * `src/components/catalyst/**` is touched by this file.
+ *
+ * Every value below is transcribed from the reference `styles.css`, not
+ * re-invented. The variables at `.viewport` are the single place a value is
+ * declared; the rules underneath only reference them.
+ */
+
+.viewport {
+  /* ── Palette (reference styles.css :root) ───────────────────────────────── */
+  --gcc-bg: #000;
+  --gcc-shell: #050506;
+  --gcc-workspace: #020203;
+  --gcc-panel-top: #2b2c33;
+  --gcc-panel-mid: #111217;
+  --gcc-panel-bottom: #030304;
+  --gcc-panel-border: #141519;
+  --gcc-line: rgba(255, 255, 255, 0.075);
+  --gcc-text: #f2f4fa;
+  --gcc-muted: #83868f;
+  --gcc-faint: #777b83;
+  --gcc-green: #79ff00;
+  --gcc-green-bright: #7cff00;
+
+  /* ── Geometry (reference grid, in px — this is the pixel contract) ─────── */
+  --gcc-rail-w: 68px;
+  --gcc-pad: 14px;
+  --gcc-gap: 14px;
+  --gcc-metrics-h: 116px;
+  --gcc-bottom-h: 230px;
+  --gcc-aside-w: 290px;
+  --gcc-info-w: 560px;
+  --gcc-signal-head-h: 118px;
+
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  background: var(--gcc-bg);
+  overflow: hidden;
+  color: var(--gcc-text);
+  /* The prototype is Arial-metric; the product font is Satoshi. Keeping the
+     reference stack here is what makes the geometry comparable at all — a
+     different font would move every label by a few pixels and make the pixel
+     report unreadable. The migration decides whether Satoshi replaces it. */
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.viewport *,
+.viewport *::before,
+.viewport *::after {
+  box-sizing: border-box;
+}
+
+.shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  background: var(--gcc-shell);
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* The fine dust texture. Two offset dot fields in soft-light — this is the
+   "matière" of the reference and is reproduced exactly, not approximated. */
+.shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.24;
+  background-image: radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.07) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 78% 35%, rgba(255, 255, 255, 0.035) 0 1px, transparent 1.5px);
+  background-size: 5px 5px, 7px 7px;
+  mix-blend-mode: soft-light;
+}
+
+/* ── Rail ─────────────────────────────────────────────────────────────────── */
+
+.rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--gcc-rail-w);
+  background: linear-gradient(180deg, #36373e 0%, #141519 19%, #24252b 55%, #17181c 100%);
+  border-right: 1px solid #101116;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3;
+}
+
+.brand {
+  height: 70px;
+  width: var(--gcc-rail-w);
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(180deg, #41434b, #24252b);
+  border-bottom: 1px solid #08090b;
+  text-shadow: 0 1px 0 #000;
+  color: var(--gcc-text);
+  text-decoration: none;
+}
+
+.railBtn {
+  width: var(--gcc-rail-w);
+  height: 58px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  color: #e2e5ef;
+  opacity: 0.84;
+  text-decoration: none;
+  font: inherit;
+}
+
+.railBtn > span {
+  filter: grayscale(1);
+}
+
+.railActive {
+  background: rgba(0, 0, 0, 0.08);
+  opacity: 1;
+}
+
+/* A laboratory is still keyboard-navigable: the reference has no focus style
+   because nothing in it is reachable, and that is not a property to port. */
+.railBtn:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid var(--gcc-green);
+  outline-offset: -3px;
+}
+
+.railCaption {
+  margin-top: auto;
+  margin-bottom: 12px;
+  font-size: 6px;
+  letter-spacing: 0.03em;
+  color: #c6c8cf;
+}
+
+/* ── Workspace grid ───────────────────────────────────────────────────────── */
+
+.workspace {
+  position: absolute;
+  left: var(--gcc-rail-w);
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: var(--gcc-pad) var(--gcc-pad) 13px;
+  display: grid;
+  grid-template-rows: var(--gcc-metrics-h) minmax(280px, 1fr) var(--gcc-bottom-h);
+  gap: var(--gcc-gap);
+  background: var(--gcc-workspace);
+  overflow: hidden;
+}
+
+/* The one panel material every surface shares. */
+.panel {
+  border: 1px solid var(--gcc-panel-border);
+  background: linear-gradient(180deg, var(--gcc-panel-top) 0%, var(--gcc-panel-mid) 26%, var(--gcc-panel-bottom) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* ── Metrics row ──────────────────────────────────────────────────────────── */
+
+.metricsRow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) var(--gcc-aside-w);
+  gap: 0;
+  height: var(--gcc-metrics-h);
+  min-width: 0;
+  /*
+   * ── A deliberate divergence from the reference, measured ────────────────
+   * The reference declares `height:116px` on this row and its six cards then
+   * OVERFLOW it: measured at 2048×1146, the row is 116px in the prototype but
+   * every card box comes out 145px — the prototype's 30px/34px padding plus
+   * three text lines simply do not fit the band it declares, and nothing clips
+   * them, so the cards spill 29px over the row and under the panel below.
+   *
+   * The declared geometry is the intent; the 29px spill is a bug in the
+   * prototype. The cards here fill exactly 116px, which is why the geometry
+   * report shows `dh=-29` on all six boxes against the reference render. That
+   * is the one place this composition does not reproduce the reference
+   * pixel-for-pixel, and it is on purpose.
+   */
+  align-items: stretch;
+}
+
+.metricCard {
+  padding: 30px 34px 18px;
+  border-right-color: #050506;
+  min-width: 0;
+}
+
+.metricCard h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--gcc-text);
+}
+
+.metricLine {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+}
+
+.metricIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+  background: var(--gcc-green);
+  color: #111;
+  font-weight: 900;
+  font-size: 18px;
+  box-shadow: 0 0 16px rgba(121, 255, 0, 0.18);
+}
+
+/* The ring / gauge / orbit variants: hollow, accent-stroked. The reference
+   pairs the 3px ring with a 12px glyph — anything larger breaks the ring. */
+.metricIconHollow {
+  background: transparent;
+  color: var(--gcc-green);
+  border: 3px solid var(--gcc-green);
+  font-size: 12px;
+  box-shadow: none;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.metricText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+/*
+ * The reference hides `strong` (`.metric-line strong{display:none}`) — the
+ * prototype's big numbers are decorative leftovers. Here the figure is a REAL
+ * reading, so it is shown; the two support lines keep the reference's 7px
+ * caption treatment.
+ */
+.metricValue {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--gcc-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metricCaption {
+  font-size: 7px;
+  color: var(--gcc-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Decision card ────────────────────────────────────────────────────────── */
+
+.decisionCard {
+  margin-left: var(--gcc-gap);
+  padding: 26px 34px;
+  background: linear-gradient(180deg, #84ff12, #62ed00);
+  color: #fff;
+  border: 1px solid #85ff18;
+  box-shadow: 0 0 20px rgba(102, 255, 0, 0.08);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.decisionTitle {
+  font-size: 27px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.decisionTitle span {
+  font-weight: 200;
+  opacity: 0.75;
+}
+
+.decisionMeta {
+  margin-top: 5px;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.decisionMeta b {
+  font-size: 9px;
+}
+
+/* ── Main row ─────────────────────────────────────────────────────────────── */
+
+.mainRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--gcc-aside-w);
+  gap: var(--gcc-gap);
+  min-height: 0;
+}
+
+.heroChart {
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.heroSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The hero panel's caption sits over the plot, on the reference's 34px gutter. */
+.panelCaption {
+  position: absolute;
+  left: 34px;
+  top: 18px;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  pointer-events: none;
+  max-width: calc(100% - 68px);
+}
+
+.panelCaptionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gcc-text);
+  white-space: nowrap;
+}
+
+.panelCaptionNote {
+  font-size: 8px;
+  color: var(--gcc-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The wave panel's caption block: a title over the real type counts. */
+.waveCaption {
+  position: absolute;
+  left: 34px;
+  top: 20px;
+  pointer-events: none;
+  max-width: calc(100% - 68px);
+}
+
+.waveCaptionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gcc-text);
+}
+
+.waveLegend {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+
+.waveLegendItem {
+  font-size: 8px;
+  color: #8e9199;
+}
+
+.waveLegendValue {
+  color: #d9dce4;
+}
+
+.readingInline {
+  color: #d9dce4;
+}
+
+.vaultEstate {
+  margin-top: 10px;
+}
+
+.rightStack {
+  display: grid;
+  grid-template-rows: var(--gcc-signal-head-h) repeat(4, minmax(0, 1fr));
+  min-height: 0;
+}
+
+.signalCard {
+  padding: 28px 34px 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.signalCard + .signalCard {
+  border-top: 0;
+}
+
+.signalCard h3 {
+  margin: 0 0 5px;
+  font-size: 9px;
+  color: var(--gcc-text);
+  font-weight: 700;
+}
+
+.signalCard p {
+  display: block;
+  margin: 2px 0;
+  font-size: 8px;
+  color: #9a9da5;
+}
+
+.signalCard strong {
+  display: block;
+  margin: 2px 0;
+  font-size: 8px;
+  color: #d8dae1;
+}
+
+.signalDot {
+  color: var(--gcc-green);
+}
+
+.signalCard svg {
+  display: block;
+  width: 100%;
+  height: 50px;
+  margin-top: 0;
+}
+
+.signalCompact {
+  padding-top: 25px;
+}
+
+.signalCompact svg {
+  height: 38px;
+  margin-top: -2px;
+}
+
+/* ── Bottom row ───────────────────────────────────────────────────────────── */
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--gcc-info-w) var(--gcc-aside-w);
+  gap: 0;
+  min-height: 0;
+}
+
+.wavePanel {
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.wavePanel svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  border-left: 0;
+  min-height: 0;
+}
+
+.infoCell {
+  padding: 34px 38px 20px;
+  border-right: 1px solid var(--gcc-line);
+  border-bottom: 1px solid var(--gcc-line);
+  background: linear-gradient(180deg, #25262d, #08090b 45%, #020203);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.infoCell:nth-child(n + 3) {
+  border-bottom: 0;
+}
+
+.infoCell h3,
+.vaultCard h3 {
+  margin: 0 0 15px;
+  font-size: 10px;
+  color: var(--gcc-text);
+  font-weight: 700;
+}
+
+.infoCell p,
+.vaultCard p {
+  margin: 3px 0;
+  font-size: 8px;
+  color: #8e9199;
+}
+
+.health {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.healthIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+  background: var(--gcc-green);
+  color: #111;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.health p {
+  line-height: 1.3;
+}
+
+.health b {
+  color: #d9dce4;
+}
+
+.vaultCard {
+  height: auto;
+  min-height: 0;
+  padding: 35px 34px 20px;
+  border-left: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.vaultLine {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.vaultLine > span {
+  font-size: 10px;
+  color: var(--gcc-text);
+}
+
+.vaultCard hr {
+  border: 0;
+  border-top: 1px solid var(--gcc-line);
+  margin: 16px 0 20px;
+}
+
+.vaultCard small {
+  color: #70737b;
+  font-size: 8px;
+}
+
+/* ── Honest absence ───────────────────────────────────────────────────────── */
+
+/*
+ * An absence is rendered, never hidden and never zeroed. It reads in the panel
+ * caption register so it cannot pass for a measurement, and it carries the
+ * route that would answer it.
+ */
+.absent {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 8px;
+  color: #9a9da5;
+  white-space: nowrap;
+}
+
+.absent::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid #6f747f;
+}
+
+.absentRoute {
+  font-size: 7px;
+  color: #6b6e76;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* On the mint decision card the same absence has to sit on a light field. */
+.absentOnAccent {
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.absentOnAccent::before {
+  border-color: rgba(0, 0, 0, 0.55);
+}
+
+.srOnly {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ── Progressive reduction (reference media queries, transcribed) ─────────── */
+
+@media (max-width: 1600px) {
+  .metricCard {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+  .bottomRow {
+    grid-template-columns: minmax(0, 1fr) 500px 270px;
+  }
+  .mainRow {
+    grid-template-columns: minmax(0, 1fr) 270px;
+  }
+  .metricsRow {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) 270px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .viewport {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+  .shell {
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
+  }
+  .rail {
+    position: fixed;
+  }
+  .workspace {
+    position: relative;
+    left: var(--gcc-rail-w);
+    right: auto;
+    top: 0;
+    bottom: auto;
+    width: calc(100% - var(--gcc-rail-w));
+    min-height: 100dvh;
+    grid-template-rows: auto minmax(420px, 1fr) auto;
+    overflow: visible;
+  }
+  .metricsRow {
+    height: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+  }
+  .decisionCard {
+    margin-left: 0;
+  }
+  .mainRow {
+    grid-template-columns: minmax(0, 1fr) 250px;
+    min-height: 520px;
+  }
+  .bottomRow {
+    grid-template-columns: minmax(0, 1fr) 1fr;
+    grid-template-areas: 'wave vault' 'info info';
+  }
+  .wavePanel {
+    grid-area: wave;
+    min-height: 230px;
+  }
+  .vaultCard {
+    grid-area: vault;
+    min-height: 230px;
+  }
+  .infoGrid {
+    grid-area: info;
+    min-height: 230px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rail,
+  .brand,
+  .railBtn {
+    width: 54px;
+  }
+  .workspace {
+    left: 54px;
+    width: calc(100% - 54px);
+    padding: 10px;
+    gap: 10px;
+  }
+  .metricsRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .metricCard,
+  .decisionCard {
+    min-height: 106px;
+    padding: 22px 18px;
+  }
+  .mainRow {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .heroChart {
+    min-height: 430px;
+  }
+  .rightStack {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+  .signalCard {
+    min-height: 110px;
+  }
+  .bottomRow {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas: 'wave' 'info' 'vault';
+  }
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+  .infoCell {
+    min-height: 112px;
+  }
+  .vaultCard {
+    min-height: 210px;
+  }
+}
