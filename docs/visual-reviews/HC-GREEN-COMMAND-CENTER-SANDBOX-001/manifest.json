@@ -1,0 +1,108 @@
+{
+  "id": "HC-GREEN-COMMAND-CENTER-SANDBOX-001",
+  "title": "Green Command Center — administration Home laboratory",
+  "date": "2026-07-30",
+  "repository": "Hearst-Corporation/hearst-connect-v1",
+  "branch": "sandbox/hc-green-admin-home-v1",
+  "startCommit": "f73c22e91a6dc7d2514505efba03288d5cc384ae",
+  "worktree": "../hearst-connect-v1-green-lab",
+  "mission": "Prove the black-and-green command center design against the real /admin Home reading, in an isolated route. /admin is not replaced.",
+
+  "reference": {
+    "archive": "~/Desktop/hearst-connect-green-command-center-v1 (4).zip",
+    "extractedTo": "session scratchpad (outside the repository), unmodified",
+    "files": ["index.html", "styles.css", "reference.png", "README.md"],
+    "note": "HTML/CSS/SVG visual reference. Not an npm package. reference.png used for comparison only and never as a page background."
+  },
+
+  "routes": {
+    "sandbox": "/design-lab/admin-home-green",
+    "readOnlyBaseline": "/admin",
+    "sandboxLinkedFromNavigation": false,
+    "sandboxIndexed": false,
+    "deployed": false
+  },
+
+  "dataSource": {
+    "loader": "loadAdminRegistry(session.name, { movementLimit: 12 })",
+    "readsPerRender": 1,
+    "sharedDerivation": "src/lib/vaults/overview.ts (estateOverview)",
+    "consumedBy": ["/admin", "/design-lab/admin-home-green"],
+    "inventedValues": 0
+  },
+
+  "viewports": [
+    { "tag": "2048x1146", "canonical": true, "horizontalOverflowPx": 0, "consoleErrors": 0, "failedRequests": 0 },
+    { "tag": "1440x900", "canonical": false, "horizontalOverflowPx": 0, "consoleErrors": 0, "failedRequests": 0 },
+    { "tag": "1280x800", "canonical": false, "horizontalOverflowPx": 0, "consoleErrors": 0, "failedRequests": 0 },
+    { "tag": "390x844", "canonical": false, "horizontalOverflowPx": 0, "consoleErrors": 0, "failedRequests": 0 }
+  ],
+
+  "artifacts": [
+    { "file": "before-admin-2048x1146.png", "sha256_16": "aa676fd2a2eb2bed", "what": "/admin BEFORE any change, authenticated session" },
+    { "file": "reference-html-2048x1146.png", "sha256_16": "d53df83657bf1698", "what": "the untouched reference prototype at the canonical viewport" },
+    { "file": "sandbox-2048x1146.png", "sha256_16": "451540428d83df99", "what": "the laboratory at the canonical viewport" },
+    { "file": "overlay-2048x1146.png", "sha256_16": "42dcaf563ec1fe15", "what": "reference with the laboratory composited at 50%" },
+    { "file": "diff-2048x1146.png", "sha256_16": "be3ad7513b6c386e", "what": "absolute per-pixel difference, rendered as heat (green = match, red = differ)" },
+    { "file": "sandbox-1440x900.png", "sha256_16": "aa1d6fa1845c5a78", "what": "laboratory at 1440x900" },
+    { "file": "sandbox-1280x800.png", "sha256_16": "069f76ef272617dd", "what": "laboratory at 1280x800 (reference reflow breakpoint)" },
+    { "file": "sandbox-390x844.png", "sha256_16": "b1b44ce75777e87f", "what": "laboratory at 390x844" },
+    { "file": "geometry-report.json", "what": "measured box of every structural element, reference vs laboratory" },
+    { "file": "diff-report.json", "what": "mean channel delta, visible-difference percentage, per-band breakdown" }
+  ],
+
+  "pixelComparison": {
+    "canonicalViewport": "2048x1146",
+    "structuralBoxesMeasured": 29,
+    "structuralBoxesPixelExact": 23,
+    "structuralBoxesWithin2px": 23,
+    "divergentBoxes": 6,
+    "divergenceCause": "The reference declares height:116px on .metrics-row but its six cards compute to 145px and overflow it by 29px (overflow:visible), physically overlapping the hero panel below. The laboratory's cards fill the declared 116px instead. x, y and width are exact on all six.",
+    "meanChannelDelta": 11.82,
+    "pixelsPastVisibleThresholdPercent": 10.79,
+    "residualDeltaCause": "Reference decorative curves that are not reproduced (they encode no data), plus real labels and figures differing from the prototype's invented text."
+  },
+
+  "gates": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "check:catalyst": "PASS — ran for real (catalyst-doctor found), reported PROPRE / no design system leak. Not skipped.",
+    "check:mocks": "PASS — 144 runtime files, 5 rules, no simulated data",
+    "test": "PASS — 191 tests, 20 files",
+    "build": "PASS — /design-lab/admin-home-green compiled as a dynamic route",
+    "skipped": []
+  },
+
+  "behaviouralChecks": {
+    "total": 10,
+    "passed": 10,
+    "list": [
+      "unauthenticated visit redirected to /login?reason=expired",
+      "authenticated visit renders the laboratory",
+      "no session/bearer material present in the served HTML",
+      "no hydration mismatch",
+      "no console errors",
+      "exactly one rail, no Catalyst sidebar, no top header, one main",
+      "rail flush at x=0, width 68px, full 1146px height",
+      "no outer frame: main at 0,0 spanning the full viewport, no horizontal overflow",
+      "six rail destinations reachable by keyboard",
+      "focused rail elements show a visible focus ring"
+    ]
+  },
+
+  "adminRegression": {
+    "check": "/admin captured before and after the pure-calculation extraction, same session, same viewport",
+    "result": "byte-identical PNG (sha256 aa676fd2a2eb2bed both times)",
+    "conclusion": "the extraction changed no rendered output of /admin"
+  },
+
+  "stopConditions": {
+    "adminReplaced": false,
+    "navigationModified": false,
+    "merged": false,
+    "pushedToMain": false,
+    "deployed": false,
+    "packagePublished": false,
+    "designSystemMigrationStarted": false
+  }
+}
