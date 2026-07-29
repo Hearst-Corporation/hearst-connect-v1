@@ -1,30 +1,56 @@
 {
   "viewport": "2048x1146",
   "elementsMeasured": 29,
-  "exactMatches": 23,
-  "withinTwoPx": 23,
-  "worstOffender": {
-    "element": "decisionCard",
-    "reference": {
-      "x": 1758,
-      "y": 14,
-      "w": 276,
-      "h": 145
+  "exactMatches": 20,
+  "withinTwoPx": 20,
+  "metricBandContract": {
+    "measurements": {
+      "rowTop": 14,
+      "rowBottom": 159,
+      "rowHeight": 145,
+      "cardCount": 6,
+      "cardHeights": [
+        145,
+        145,
+        145,
+        145,
+        145,
+        145
+      ],
+      "lowestCardBottom": 159,
+      "spillPastRowPx": 0,
+      "nextRowTop": 173,
+      "overlapWithNextRowPx": 0,
+      "scrollVsClientHeight": 0,
+      "anyCardScrolls": false
     },
-    "sandbox": {
-      "x": 1758,
-      "y": 14,
-      "w": 276,
-      "h": 119
-    },
-    "delta": {
-      "dx": 0,
-      "dy": 0,
-      "dw": 0,
-      "dh": -26
-    },
-    "worstPx": 26,
-    "exact": false
+    "checks": [
+      {
+        "name": "every card height equals the band height",
+        "pass": true,
+        "detail": "band=145 cards=145"
+      },
+      {
+        "name": "no card spills past the band",
+        "pass": true,
+        "detail": "spill=0px"
+      },
+      {
+        "name": "no overlap with the next row",
+        "pass": true,
+        "detail": "overlap=0px (band bottom 159, next row top 173)"
+      },
+      {
+        "name": "no card overflows its own content box",
+        "pass": true,
+        "detail": "anyCardScrolls=false"
+      },
+      {
+        "name": "page does not scroll vertically",
+        "pass": true,
+        "detail": "scroll-client=0px"
+      }
+    ]
   },
   "rows": [
     {
@@ -108,16 +134,16 @@
         "x": 82,
         "y": 14,
         "w": 1952,
-        "h": 116
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": 0
+        "dh": 29
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 29,
+      "exact": false
     },
     {
       "element": "decisionCard",
@@ -131,16 +157,16 @@
         "x": 1758,
         "y": 14,
         "w": 276,
-        "h": 119
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": -26
+        "dh": 0
       },
-      "worstPx": 26,
-      "exact": false
+      "worstPx": 0,
+      "exact": true
     },
     {
       "element": "mainRow",
@@ -152,18 +178,18 @@
       },
       "sandbox": {
         "x": 82,
-        "y": 144,
+        "y": 173,
         "w": 1952,
-        "h": 745
+        "h": 716
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 29,
         "dw": 0,
-        "dh": 0
+        "dh": -29
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 29,
+      "exact": false
     },
     {
       "element": "heroChart",
@@ -175,18 +201,18 @@
       },
       "sandbox": {
         "x": 82,
-        "y": 144,
+        "y": 173,
         "w": 1648,
-        "h": 745
+        "h": 716
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 29,
         "dw": 0,
-        "dh": 0
+        "dh": -29
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 29,
+      "exact": false
     },
     {
       "element": "rightStack",
@@ -198,18 +224,18 @@
       },
       "sandbox": {
         "x": 1744,
-        "y": 144,
+        "y": 173,
         "w": 290,
-        "h": 745
+        "h": 716
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 29,
         "dw": 0,
-        "dh": 0
+        "dh": -29
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 29,
+      "exact": false
     },
     {
       "element": "bottomRow",
@@ -338,16 +364,16 @@
         "x": 82,
         "y": 14,
         "w": 332,
-        "h": 119
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": -26
+        "dh": 0
       },
-      "worstPx": 26,
-      "exact": false
+      "worstPx": 0,
+      "exact": true
     },
     {
       "element": "metricCards[1]",
@@ -361,16 +387,16 @@
         "x": 414,
         "y": 14,
         "w": 332,
-        "h": 119
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": -26
+        "dh": 0
       },
-      "worstPx": 26,
-      "exact": false
+      "worstPx": 0,
+      "exact": true
     },
     {
       "element": "metricCards[2]",
@@ -384,16 +410,16 @@
         "x": 747,
         "y": 14,
         "w": 332,
-        "h": 119
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": -26
+        "dh": 0
       },
-      "worstPx": 26,
-      "exact": false
+      "worstPx": 0,
+      "exact": true
     },
     {
       "element": "metricCards[3]",
@@ -407,16 +433,16 @@
         "x": 1079,
         "y": 14,
         "w": 332,
-        "h": 119
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": -26
+        "dh": 0
       },
-      "worstPx": 26,
-      "exact": false
+      "worstPx": 0,
+      "exact": true
     },
     {
       "element": "metricCards[4]",
@@ -430,16 +456,16 @@
         "x": 1412,
         "y": 14,
         "w": 332,
-        "h": 119
+        "h": 145
       },
       "delta": {
         "dx": 0,
         "dy": 0,
         "dw": 0,
-        "dh": -26
+        "dh": 0
       },
-      "worstPx": 26,
-      "exact": false
+      "worstPx": 0,
+      "exact": true
     },
     {
       "element": "signalCards.count",
@@ -474,18 +500,18 @@
       },
       "sandbox": {
         "x": 1744,
-        "y": 144,
+        "y": 173,
         "w": 290,
         "h": 118
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 29,
         "dw": 0,
         "dh": 0
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 29,
+      "exact": false
     },
     {
       "element": "signalCards[1]",
@@ -497,18 +523,18 @@
       },
       "sandbox": {
         "x": 1744,
-        "y": 262,
+        "y": 291,
         "w": 290,
-        "h": 157
+        "h": 150
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 29,
         "dw": 0,
-        "dh": 0
+        "dh": -7
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 29,
+      "exact": false
     },
     {
       "element": "signalCards[2]",
@@ -520,18 +546,18 @@
       },
       "sandbox": {
         "x": 1744,
-        "y": 419,
+        "y": 441,
         "w": 290,
-        "h": 157
+        "h": 150
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 22,
         "dw": 0,
-        "dh": 0
+        "dh": -7
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 22,
+      "exact": false
     },
     {
       "element": "signalCards[3]",
@@ -543,18 +569,18 @@
       },
       "sandbox": {
         "x": 1744,
-        "y": 576,
+        "y": 590,
         "w": 290,
-        "h": 157
+        "h": 150
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 14,
         "dw": 0,
-        "dh": 0
+        "dh": -7
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 14,
+      "exact": false
     },
     {
       "element": "signalCards[4]",
@@ -566,18 +592,18 @@
       },
       "sandbox": {
         "x": 1744,
-        "y": 732,
+        "y": 740,
         "w": 290,
-        "h": 157
+        "h": 150
       },
       "delta": {
         "dx": 0,
-        "dy": 0,
+        "dy": 8,
         "dw": 0,
-        "dh": 0
+        "dh": -7
       },
-      "worstPx": 0,
-      "exact": true
+      "worstPx": 8,
+      "exact": false
     },
     {
       "element": "infoCells.count",
@@ -694,5 +720,7 @@
       "worstPx": 0,
       "exact": true
     }
-  ]
+  ],
+  "textureLayerPresent": true,
+  "seriesLayerPresent": true
 }

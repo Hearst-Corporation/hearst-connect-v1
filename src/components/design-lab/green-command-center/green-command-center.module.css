@@ -39,7 +39,20 @@
   --gcc-rail-w: 68px;
   --gcc-pad: 14px;
   --gcc-gap: 14px;
-  --gcc-metrics-h: 116px;
+  /*
+   * ── The metric band's canonical height ──────────────────────────────────
+   * The reference declares 116px here, but its own cards compute to 145px and
+   * spill 29px over the row, physically overlapping the hero panel below
+   * (`overflow: visible`, measured at 2048×1146: row bottom 130px, card bottom
+   * 159px, next row starting at 144px).
+   *
+   * 145px is therefore the height the reference's content actually needs — the
+   * declared 116px was never sufficient for it. The band adopts the content
+   * height so the cards fit exactly: no clipping, no spill, and no overlap with
+   * the row beneath. The extra 29px comes out of the hero row's `1fr`, so the
+   * three rows still fill the viewport exactly and nothing scrolls.
+   */
+  --gcc-metrics-h: 145px;
   --gcc-bottom-h: 230px;
   --gcc-aside-w: 290px;
   --gcc-info-w: 560px;
@@ -191,20 +204,13 @@
   height: var(--gcc-metrics-h);
   min-width: 0;
   /*
-   * ── A deliberate divergence from the reference, measured ────────────────
-   * The reference declares `height:116px` on this row and its six cards then
-   * OVERFLOW it: measured at 2048×1146, the row is 116px in the prototype but
-   * every card box comes out 145px — the prototype's 30px/34px padding plus
-   * three text lines simply do not fit the band it declares, and nothing clips
-   * them, so the cards spill 29px over the row and under the panel below.
-   *
-   * The declared geometry is the intent; the 29px spill is a bug in the
-   * prototype. The cards here fill exactly 116px, which is why the geometry
-   * report shows `dh=-29` on all six boxes against the reference render. That
-   * is the one place this composition does not reproduce the reference
-   * pixel-for-pixel, and it is on purpose.
+   * The cards fill the band exactly — same height, same top, same bottom. With
+   * `--gcc-metrics-h` set to the content height (145px, see its declaration),
+   * `stretch` makes every card box equal to the row box: nothing overflows and
+   * nothing reaches the row below.
    */
   align-items: stretch;
+  overflow: hidden;
 }
 
 .metricCard {

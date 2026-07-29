@@ -11,8 +11,29 @@
 | Sandbox route | `/design-lab/admin-home-green` |
 | Baseline route | `/admin` — **not replaced, not modified in behaviour** |
 | Deployed | **No.** Nothing pushed to `main`, nothing merged, no Vercel project touched |
+| Revision | Correction pass — decorative curve texture restored, metric band contract fixed |
 
 ---
+
+## 0. What the correction pass changed
+
+Three things, and nothing else:
+
+1. **The reference's decorative curves are restored.** All twelve paths, verbatim, as an
+   `aria-hidden` prop-less texture layer painted under the data layer — see **§6bis**. The
+   previous pass omitted them; that was over-cautious and cost the panel the reference's
+   material.
+2. **The metric band contract is fixed.** The band now takes the 145px its cards actually
+   need, so they fit exactly: no spill, no overlap with the hero row, no card overflow, no
+   page scroll — asserted at **all four viewports** (§6).
+3. **The plot's accent hierarchy is protected.** Two decorative green lines and the threshold
+   rule are held back in opacity so the full accent belongs to the measured series alone.
+   Geometry, hue and stroke weight are the reference's; **no colour, texture, surface,
+   gradient or light value changed** (§6bis).
+
+Consequence to read honestly: fixing the band moved the geometry count from 23/29 to **20/29**
+pixel-exact boxes. The reference *render* overlaps its own rows; refusing that overlap
+necessarily places everything below the band 29px lower. The metric strip itself became exact.
 
 ## 1. What this is
 
@@ -121,23 +142,20 @@ route. `check:mocks` enforces this and passes.
 
 ## 6. Pixel comparison at 2048 × 1146
 
-### Structural geometry — 23/29 boxes pixel-exact
+### Structural geometry — 20/29 boxes pixel-exact
 
 Every structural element's box was measured in both renders (`geometry-report.json`).
-**23 of 29 are exact to the pixel**, including: rail, brand block, workspace, metrics row,
-main row, hero panel, right stack, all five signal cards, bottom row, wave panel, info grid,
-all four info cells, and the vault panel.
+**20 of 29 are exact to the pixel**, including: rail, brand block, workspace, the metrics
+row, **all five metric cards and the decision card**, bottom row, wave panel, info grid, all
+four info cells, and the vault panel.
 
-### The one divergence, and why it is intentional
+The metric strip is now exact where it previously was not: its band mean delta fell from
+**7.60 to 4.37** once the band contract was fixed (below).
 
-Six boxes differ, all by the same amount and only in height:
+### The metric band contract
 
-```
-decisionCard    dx=0 dy=0 dw=0 dh=-26
-metricCards[0..4] dx=0 dy=0 dw=0 dh=-26
-```
-
-x, y and width are exact. The cause, measured in the reference itself:
+The reference declares `height:116px` on `.metrics-row`, but its own cards compute to 145px
+and nothing clips them. Measured in the reference itself at 2048 × 1146:
 
 ```
 .metrics-row  declared height: 116px   → measured row bottom:  130px
@@ -146,43 +164,122 @@ x, y and width are exact. The cause, measured in the reference itself:
 overflow: visible
 ```
 
-**The reference's own cards overflow the band they declare by 29px and physically overlap
-the hero panel beneath them.** 116px is the declared intent; the spill is a bug in the
-prototype. The laboratory's cards fill exactly 116px. This is the single place the
-composition does not reproduce the reference pixel-for-pixel, and it is deliberate.
+**The reference's cards spill 29px past their band and physically overlap the hero panel
+beneath them.** 145px is therefore the height the reference's content actually needs; the
+declared 116px was never sufficient for it. The band adopts the content height, and the extra
+29px comes out of the hero row's `1fr` so the three rows still fill the viewport exactly.
+
+Asserted, not assumed — 5/5 at the canonical viewport and **4/4 across all reviewed
+viewports** (`geometry-report.json → metricBandContract`):
+
+| Assertion | Result |
+|---|---|
+| every card height equals the band height | **PASS** — band 145px, cards 145px |
+| no card spills past the band | **PASS** — spill 0px |
+| no overlap with the next row | **PASS** — band ends 159, hero row starts 173 (14px gap) |
+| no card overflows its own content box | **PASS** |
+| page does not scroll vertically | **PASS** |
+
+| Viewport | Band | Cards | Spill | Overlap | Overflow-X |
+|---|---|---|---|---|---|
+| 2048×1146 | 145px | 145px | 0px | 0px | 0px |
+| 1440×900 | 145px | 145px | 0px | 0px | 0px |
+| 1280×800 | 238px | 119px | 0px | 0px | 0px |
+| 390×844 | 359px | 115/107/137px | 0px | 0px | 0px |
+
+### The remaining divergence, and why it follows from the contract
+
+Nine boxes differ. All are the rows *below* the band, all by the same 29px, and `dx`/`dw` are
+zero on every one of them:
+
+```
+metricsRow     dx=0 dy=0  dw=0 dh=+29
+mainRow        dx=0 dy=29 dw=0 dh=-29
+heroChart      dx=0 dy=29 dw=0 dh=-29
+rightStack     dx=0 dy=29 dw=0 dh=-29
+signalCards[0..4]  dx=0 dy=8…29 dw=0 dh=0…-7
+```
+
+This is the direct arithmetic consequence of "no overlap": the reference *render* has its
+cards sitting on top of the hero panel, so any layout that refuses that overlap must place
+the hero row 29px lower. **The geometry count went from 23/29 to 20/29 precisely because the
+band contract was fixed** — the two requirements are in tension, and the contract was given
+priority as instructed.
 
 ### Raster difference
 
 | Metric | Value |
 |---|---|
-| Mean channel delta | **11.82** / 255 |
-| Pixels past a visible threshold (Δ>32) | **10.79 %** |
+| Mean channel delta | **13.58** / 255 |
+| Pixels past a visible threshold (Δ>32) | **10.44 %** |
+| Metric band (band 0) mean delta | **4.37** — was 7.60 before the contract fix |
 
-Progression across the correction passes: `13.96 → 12.66 → 11.91 → 11.82`.
+The mean delta rose (11.82 → 13.58) while the **visible-difference share fell**
+(10.79 % → 10.44 %). Both movements come from the same cause: restoring the reference's
+twelve decorative paths puts a great deal of pale line work back on screen, and because the
+hero row now sits 29px lower, each of those paths registers as a *pair* in the difference
+image. That inflates the mean without adding new structural error — the shell, the panel
+boundaries and the metric strip all match more closely than before.
 
 The 50% overlay (`overlay-2048x1146.png`) shows rail, brand block, every panel edge, the
-metric band seams, the mint decision card, the five right-stack rows, the three bottom
-columns, the 2×2 grid separators, the green rule, the dashed rule, the tick baseline and the
-axis label line all superimposing. The difference heatmap (`diff-2048x1146.png`) is green
-(matching) across the entire shell and every panel boundary; red is confined to line work
-inside the two chart panels and to text.
+metric band seams and its card divisions, the mint decision card, the three bottom columns,
+the 2×2 grid separators and the wave panel all superimposing. The difference heatmap
+(`diff-2048x1146.png`) is green (matching) across the entire shell, the metric strip and
+every panel boundary.
 
 ### Residual delta — what it is, honestly
 
-1. **The reference's nine decorative curves are not reproduced.** They are hand-drawn
-   beziers that encode no data. This product has no second series to put on that axis, and
-   drawing curves across a plot that has an axis would be an invented reading dressed as
-   decoration. Reproduced instead: the plot surface (three-stop background, 135×76 grid
-   pattern, five rules, glow filters, gradient definitions), the atmospheric mist volumes,
-   and the ribbon in the reference's exact weights (18px halo at .34 under a 7px gradient
-   stroke).
+1. **The 29px vertical offset of every row below the metric band**, explained above. Each of
+   the reference's decorative paths therefore appears twice in the difference image — once at
+   the reference's y, once at the laboratory's. This is the largest single contributor to the
+   raster delta and it is a consequence of the no-overlap requirement, not an error.
 2. **Text differs by design** — real labels and real figures against the prototype's
    invented ones. Permitted by the mission ("le contenu métier peut avoir des libellés
    différents"); the geometry, matter and visual hierarchy are what had to match.
-3. **The plot's upper two thirds are darker than the reference's**, because the reference's
-   pale curve crowd lifts those rows. Pixel-sampled at x=700: the panel top matches exactly
-   (`(30,31,37)` and `(27,28,33)` in both renders), confirming the background gradient is
-   correctly ported; the divergence lower down is the missing artwork, not a wrong colour.
+3. **Two decorative green lines and the plot's green threshold rule are held back in
+   opacity** — see §6bis. Their geometry, hue and weight are the reference's.
+
+## 6bis. The decorative curve texture
+
+The reference's plot is nine hand-drawn bezier curves, a broad white glow pass and two mist
+volumes. **All twelve paths are reproduced verbatim** in
+`green-plot-texture.tsx` — every coordinate, stroke, opacity and filter reference is
+transcribed from the prototype's `index.html`, not re-authored.
+
+They are **texture, not measurement** — the same category of thing as the dust field on the
+shell or the gradient under a panel. Three properties make that structural rather than a
+convention someone has to remember:
+
+1. **`aria-hidden="true"` and `role="presentation"`, with no accessible text.** Assistive
+   technology is never told these lines exist, because there is nothing to tell: they carry
+   no value, no unit and no series. Asserted by check 10 of §9.
+2. **The component takes no props.** It cannot read a vault, a movement or an availability,
+   so it cannot render a figure — not by accident, and not after a future edit. This is
+   what keeps the honesty guarantee from depending on anyone's discipline.
+3. **It is painted under the data layer**, which lives in its own `[data-gcc="plot-series"]`
+   group. Asserted by check 11 of §9; the SVG `<desc>` names only the measurement
+   (check 12), e.g. *"Movements per day: 3 measured points, drawn as the single neon green
+   curve. Jul 26 4, Jul 27 2, Jul 28 7."*
+
+**One departure from the reference's values, and why.** In the prototype, two of the
+decorative curves and the plot's horizontal threshold rule are `#7cff00` — the same green as
+its neon ribbon. That is harmless in a file where nothing is a measurement. Here the accent
+green **is** the measurement: three curves in the identical accent would leave a reader unable
+to tell which line is the reading, which is precisely the confusion this console exists to
+prevent. Those three paths keep the reference's geometry, hue and stroke weight and are held
+back in opacity (`.28` on the two curves, `.4` on the rule); the measured series gains a thin
+solid core so it survives against the restored texture.
+
+That is a legibility constraint applied to a decorative layer. **No colour, texture, surface,
+gradient or light value was changed** — verified by diff: zero colour, gradient, shadow or
+filter values differ in the CSS module, and `src/styles/tailwind.css` and
+`src/components/catalyst/**` are untouched.
+
+### Colour fidelity, pixel-sampled
+
+Sampled at x=700 in both renders, the panel top matches exactly — `(30,31,37)` at y=150 and
+`(27,28,33)` at y=200 — confirming the plot's three-stop background gradient is ported
+correctly rather than approximated.
 
 ## 7. Other viewports
 
@@ -204,8 +301,8 @@ All run with `pnpm`, from the worktree:
 | `pnpm typecheck` | **PASS** |
 | `pnpm lint` | **PASS** |
 | `pnpm check:catalyst` | **PASS — and it genuinely ran** |
-| `pnpm check:mocks` | **PASS** — 144 runtime files, 5 rules, no simulated data |
-| `pnpm test` | **PASS** — 191 tests, 20 files |
+| `pnpm check:mocks` | **PASS** — 145 runtime files, 5 rules, no simulated data |
+| `pnpm test` | **PASS** — 191 tests in 20 files |
 | `pnpm build` | **PASS** — `/design-lab/admin-home-green` compiled as a dynamic route |
 
 **No gate was skipped.** On `check:catalyst` specifically — the known trap is that a missing
@@ -221,23 +318,31 @@ Design system déclaré: src/styles/tailwind.css (100 tokens · accent vert #63d
 One non-blocking warning (`--color-brand-` nomenclature) is **pre-existing on `main`** and
 not introduced by this work.
 
-## 9. Behavioural checks — 10/10
+## 9. Behavioural checks — 14 of 14 pass
 
 Measured in the browser, not asserted:
 
-- unauthenticated visit → redirected to `/login?reason=expired`
-- authenticated visit → laboratory renders (200)
-- **no session/bearer material appears in the served HTML** (cookie segments compared
-  against the full page source)
-- no hydration mismatch
-- no console errors
-- exactly one rail, **zero** Catalyst sidebars, **zero** `<header>` elements, one `<main>`
-  — no double shell
-- rail flush at x=0, 68px wide, 1146px tall
-- no outer frame; no horizontal overflow
-- six rail destinations reachable by keyboard
-- visible focus ring on focused rail elements (the reference has no focus style at all,
-  since nothing in it is reachable; that was not a property worth porting)
+1. unauthenticated visit → redirected to `/login?reason=expired`
+2. authenticated visit → laboratory renders (200)
+3. **no session/bearer material appears in the served HTML** (cookie segments compared
+   against the full page source)
+4. no hydration mismatch
+5. no console errors
+6. exactly one rail, **zero** Catalyst sidebars, **zero** `<header>` elements, one `<main>`
+   — no double shell
+7. rail flush at x=0, 68px wide, 1146px tall
+8. no outer frame; no horizontal overflow
+9. decorative curve layer present, carrying 12 reference paths
+10. **decorative layer is `aria-hidden`, `role="presentation"`, and carries no accessible
+    text** — no `<title>`, `<desc>`, `<text>` or `aria-label` anywhere inside it
+11. **measured series is a separate layer painted after the texture**
+12. **the SVG description names only the measurement** — checked against its rendered text
+13. six rail destinations reachable by keyboard
+14. visible focus ring on focused rail elements (the reference has no focus style at all,
+    since nothing in it is reachable; that was not a property worth porting)
+
+Checks 9–12 are new in this pass and exist specifically to keep the restored decorative
+texture from ever being read as data.
 
 ## 10. `/admin` is unchanged — proven, not claimed
 
@@ -278,6 +383,7 @@ extraction. Both PNGs are **byte-identical** (`sha256` prefix `aa676fd2a2eb2bed`
 | `green-command-rail.tsx` | `GreenCommandRail` |
 | `green-metric-strip.tsx` | `GreenMetricStrip`, `GreenDecisionPanel` |
 | `green-hero-chart-panel.tsx` | `GreenHeroChartPanel` |
+| `green-plot-texture.tsx` | `GreenPlotTexture` — the reference's 12 decorative paths, `aria-hidden`, prop-less |
 | `green-signal-stack.tsx` | `GreenSignalStack` |
 | `green-wave-panel.tsx` | `GreenWavePanel` |
 | `green-activity-panel.tsx` | `GreenInfoGrid`, `GreenVaultPanel` |
@@ -298,9 +404,17 @@ break the 7px caption rhythm the reference geometry depends on.
 - the public marketing site — no link to the laboratory
 - the backend — no call added or changed
 
-The only edits outside new files are `src/app/admin/page.tsx` (extraction, provably
-output-identical) and `.gitignore` (one entry, `.visual-tmp/`, for the throwaway capture
-harness).
+The only edit outside new files, across both passes, is `src/app/admin/page.tsx` — the
+pure-calculation extraction, provably output-identical (§10). `.gitignore` is unmodified: the
+capture harness lived in an untracked scratch directory and was deleted after use.
+
+**This correction pass touched exactly two files**, both laboratory-only:
+
+```
+src/components/design-lab/green-command-center/green-command-center.module.css
+src/components/design-lab/green-command-center/green-hero-chart-panel.tsx
++ src/components/design-lab/green-command-center/green-plot-texture.tsx  (new)
+```
 
 ## 13. Mapping — reference slot → real content
 
@@ -318,25 +432,39 @@ harness).
 
 Stated plainly:
 
-- **The reference's decorative curve crowd is absent**, by choice. If the design is to keep
-  that density, it needs either real additional series or an explicit decision that the
-  panel carries ornament. This is the main open design question.
+- **The decorative texture is now an accepted ornament**, not an absence. §6bis states that
+  explicitly, and the checks in §9 keep it from being read as data. What remains a **product
+  decision** is whether the shipped screen should keep ornament in a data panel at all, or
+  earn that density from real additional series (candidates: NAV per share over time,
+  utilisation against the TVL cap, per-pocket drift). This laboratory does not settle that.
+- **The accent hierarchy inside the plot is a judgement, not a measurement.** Holding two
+  decorative green lines and the threshold rule back in opacity is what makes the measured
+  series identifiable; the exact opacities (`.28`, `.4`) were chosen by eye against the
+  restored texture, not derived from a contrast target.
 - **The prototype font is kept** (`Arial, Helvetica, sans-serif`) so the geometry stays
   comparable. The product font is Satoshi. Substituting it will move every label slightly;
   the migration must re-measure.
 - **`reference.png` was compared by eye, not by pixel arithmetic** — the numeric comparison
   is against the rendered `index.html`, which is the canonical source.
 - **No a11y audit tool was run** (no axe/Storybook a11y wiring in this repo). Keyboard
-  reachability and focus visibility were measured; contrast on the mint decision card and on
-  the 7px/8px captions has **not** been formally verified. The 7–8px caption sizes come from
-  the reference and are below what the console would normally ship.
+  reachability, focus visibility and the decorative layer's exclusion from the accessibility
+  tree were measured; **contrast has not been formally verified** — not on the mint decision
+  card, not on the 7px/8px captions, and not on the accent ribbon against the restored
+  texture. The 7–8px caption sizes come from the reference and are below what the console
+  would normally ship. **This remains unproven and is the first thing to check before any of
+  this becomes a product surface.**
 - **The 390×844 rail caption is clipped** ("HEARS↵CONNECT") — cosmetic, inherited from the
   reference's 54px rail.
 - **`/admin` was verified unchanged by screenshot and by the full test suite**, not by a
-  route-level snapshot test. No such harness exists in the repo.
+  route-level snapshot test. No such harness exists in the repo. That verification was made
+  against the pure-calculation extraction; **this correction pass touched only laboratory
+  files**, so `/admin` is untouched by it too (see §12).
 - The laboratory reads the estate in its **current degraded state** (`rpc_error` on the
   vault snapshot). The panels that carry money figures have therefore been seen only in
   their absence branch. Their available branch is covered by unit tests, not by a screenshot.
+- **The 29px offset of the lower rows against the reference render is permanent** while the
+  no-overlap requirement holds. It cannot be closed without reintroducing the prototype's
+  spill; §6 explains the tension.
 
 ## 15. Stop conditions — all respected
 
@@ -350,22 +478,25 @@ Stated plainly:
 
 ## 16. Recommendation for the Design System phase
 
-1. **Settle the plot density question first.** It is the only substantive gap and it is a
-   product decision, not an implementation detail: either the hero panel gets real
-   additional series (candidates: NAV per share over time, utilisation against the TVL cap,
-   per-pocket drift) or the ornament is accepted explicitly. Everything else is already in
-   place.
+1. **Decide whether a data panel may carry ornament.** The reference's texture is now
+   reproduced and provably excluded from the accessibility tree, so the density question is no
+   longer an implementation gap — it is a product choice. Either the ornament stays (and the
+   `GreenPlotTexture` seam is where it lives), or the hero panel earns that density from real
+   additional series: NAV per share over time, utilisation against the TVL cap, per-pocket
+   drift. Whichever way it goes, the accent must keep belonging to the measurement alone.
 2. **Promote the CSS-module variables to tokens, not the class names.** The `--gcc-*` block
    at the root of `green-command-center.module.css` is already the single declaration point.
    Note the collision to resolve: the console's accent is Hearst mint `#a7fb90`, the
    prototype's is neon `#79ff00`. Two accents cannot both be "the" accent — that choice
    belongs to the design system phase, and until it is made the laboratory keeps its own
    scoped values so nothing leaks into the vitrine or the console.
-3. **Raise the caption sizes before this becomes a product surface.** 7–8px is a prototype
-   value; pick the smallest size the design system is willing to defend and re-measure the
-   band heights, which will change.
-4. **Fix the metrics band contract.** Either the cards fit 116px (what this laboratory does)
-   or the band grows to the ~145px the content needs. The reference does neither and spills.
+3. **Verify contrast, then raise the caption sizes.** Contrast is the one thing this review
+   could not prove (§14): the mint decision card, the 7–8px captions and the accent ribbon
+   over the restored texture are all unmeasured. 7–8px is a prototype value; pick the smallest
+   size the design system will defend, then re-measure the band heights, which will change.
+4. **The metrics band contract is settled — keep it.** The band takes the 145px its content
+   needs; the reference's declared 116px never fitted its own cards. If the caption sizes
+   change, that number changes with them, and `--gcc-metrics-h` is the single place to edit.
 5. **Keep the `estateOverview` seam.** It is what made this sandbox provably consistent with
    `/admin`; a replacement screen should consume it rather than restate the arithmetic.
 6. Replace the rail's placeholder glyphs with the console's real icon set at the same time
