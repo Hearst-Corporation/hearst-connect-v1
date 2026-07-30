@@ -28,7 +28,7 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
         </span>
         <div className={gcc.metricText}>
           <div className={gcc.metricValueSlot}>
-            {available ? <span className={gcc.metricValue}>{cell.value.value}</span> : <span className={gcc.metricValueMuted}>—</span>}
+            <span className={gcc.metricValue}>{available ? cell.value.value : '—'}</span>
           </div>
           <span className={available ? gcc.metricStateLive : gcc.metricStateUnavailable}>
             <span className={available ? gcc.signalDot : gcc.metricStateDotMuted} aria-hidden="true">
