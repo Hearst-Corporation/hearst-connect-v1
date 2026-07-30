@@ -14,7 +14,9 @@ import { Absent, gcc, Panel } from './primitives'
 
 const CHART_WIDTH = 760
 const CHART_HEIGHT = 320
-const CHART_PADDING = { top: 32, right: 58, bottom: 58, left: 58 } as const
+const CHART_PADDING = { top: 36, right: 66, bottom: 58, left: 66 } as const
+
+const SVG_NUMBER_FONT = 'Arial, Helvetica, sans-serif'
 
 type ChartPoint = Readonly<{ x: number; y: number; label: string; value: number }>
 
@@ -37,6 +39,15 @@ function buildChartPoints(points: readonly TrendPoint[]): readonly ChartPoint[] 
       innerHeight -
       ((Math.max(point.value, minValue) - minValue) / span) * innerHeight
     return { x, y, label: point.label, value: point.value }
+  })
+}
+
+function buildYTicks(maxValue: number) {
+  return [0, 1, 2, 3, 4].map((step) => {
+    const ratio = step / 4
+    const value = Math.round(maxValue - ratio * maxValue)
+    const y = CHART_PADDING.top + (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom) * ratio
+    return { value, y }
   })
 }
 
@@ -72,14 +83,7 @@ export function GreenHeroChartPanel({
                 const chartPoints = buildChartPoints(trend.value)
                 const polyline = chartPoints.map((point) => `${point.x},${point.y}`).join(' ')
                 const maxValue = Math.max(...trend.value.map((point) => point.value), 1)
-                const yTicks = [0, 1, 2, 3, 4].map((step) => {
-                  const ratio = step / 4
-                  const value = Math.round(maxValue - ratio * maxValue)
-                  const y =
-                    CHART_PADDING.top +
-                    (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom) * ratio
-                  return { value, y }
-                })
+                const yTicks = buildYTicks(maxValue)
 
                 return (
                   <div className={gcc.heroChartBody} role="img" aria-label={`${title} line chart`}>
@@ -98,10 +102,11 @@ export function GreenHeroChartPanel({
                             className={gcc.heroGridLine}
                           />
                           <text
-                            x={CHART_PADDING.left - 10}
+                            x={CHART_PADDING.left - 12}
                             y={tick.y + 4}
                             textAnchor="end"
                             className={gcc.heroAxisLabel}
+                            fontFamily={SVG_NUMBER_FONT}
                           >
                             {tick.value}
                           </text>
@@ -122,17 +127,30 @@ export function GreenHeroChartPanel({
                       <g clipPath="url(#gcc-activity-plot-clip)">
                         <polyline className={gcc.heroSeriesLine} points={polyline} />
                         {chartPoints.map((point) => (
-                          <circle key={`dot-${point.label}-${point.value}`} cx={point.x} cy={point.y} r={5} className={gcc.heroSeriesPoint}>
+                          <circle
+                            key={`dot-${point.label}-${point.value}`}
+                            cx={point.x}
+                            cy={point.y}
+                            r={5}
+                            className={gcc.heroSeriesPoint}
+                          >
                             <title>{`${point.label}: ${point.value} movements`}</title>
                           </circle>
                         ))}
                       </g>
 
                       {chartPoints.map((point) => {
-                        const labelY = Math.max(point.y - 12, CHART_PADDING.top + 16)
+                        const labelY = point.y <= CHART_PADDING.top + 18 ? point.y + 20 : point.y - 12
                         return (
                           <g key={`point-${point.label}-${point.value}`}>
-                            <text x={point.x} y={labelY} textAnchor="middle" className={gcc.heroPointLabel}>
+                            <text
+                              x={point.x}
+                              y={labelY}
+                              textAnchor="middle"
+                              className={gcc.heroPointLabel}
+                              fontFamily={SVG_NUMBER_FONT}
+                              fontWeight="700"
+                            >
                               {point.value}
                             </text>
                             <text
