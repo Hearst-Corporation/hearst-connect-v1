@@ -60,7 +60,7 @@ export function Panel({
 export function Absent({
   availability,
   onAccent = false,
-  showRoute = true,
+  showRoute = false,
 }: Readonly<{ availability: Availability<unknown>; onAccent?: boolean; showRoute?: boolean }>) {
   if (isAvailable(availability)) return null
   const { reason, endpoint, status } = availability
@@ -87,7 +87,7 @@ export function Reading({
   value,
   className,
   onAccent = false,
-  showRoute = true,
+  showRoute = false,
 }: Readonly<{
   value: Availability<string>
   className?: string

@@ -56,7 +56,7 @@ export function GreenWavePanel({
             </TableBody>
           </Table>
         ) : (
-          <Absent availability={availability} />
+          <Absent availability={availability} showRoute={false} />
         )}
       </div>
     </Panel>

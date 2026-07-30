@@ -1,6 +1,5 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
-import { Text } from '@/components/catalyst/text'
 import { Absent, gcc, Panel, Reading } from './primitives'
 import clsx from 'clsx'
 
@@ -21,19 +20,14 @@ import clsx from 'clsx'
 
 export type MetricCell = Readonly<{
   id: string
-  /** Panel heading — the operational name of the figure. */
   title: string
   value: Availability<string>
-  /** What the figure measures. */
-  caption: string
-  /** Where it is read from, in the reference's second caption line. */
-  support: string
   glyph: string
-  /** Hollow ringed medallion, as the reference's ring/gauge/orbit variants. */
   hollow?: boolean
 }>
 
 function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
+  const available = isAvailable(cell.value)
   return (
     <Panel className={gcc.metricCard} data-gcc="metric-card">
       {/* `Subheading` du kit : 14px/24px, 600, blanc. Remplace un h2 maison à 12px. */}
@@ -47,20 +41,16 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
         >
           {cell.glyph}
         </span>
-        {/*
-         * The reference cell is exactly three lines tall: a figure and two 7px
-         * captions. An absence has to fit that same box, so it occupies the
-         * figure line as the word alone and the route takes the second caption
-         * — never both a badge and a route on the figure line, which would push
-         * the card past the 116px band.
-         */}
         <div className={gcc.metricText}>
-          <Reading value={cell.value} showRoute={false} />
-          {/* `Text` du kit pour les deux lignes de support : 14px, zinc-400. */}
-          <Text className={gcc.metricCaption}>{cell.caption}</Text>
-          <Text className={gcc.metricCaption}>
-            {isAvailable(cell.value) ? cell.support : (cell.value.endpoint ?? cell.value.reason ?? cell.support)}
-          </Text>
+          <div className={gcc.metricValueSlot}>
+            <Reading value={cell.value} showRoute={false} />
+          </div>
+          <span className={available ? gcc.metricStateLive : gcc.metricStateUnavailable}>
+            <span className={available ? gcc.signalDot : gcc.metricStateDotMuted} aria-hidden="true">
+              ●
+            </span>
+            {available ? 'Live' : 'Unavailable'}
+          </span>
         </div>
       </div>
     </Panel>
@@ -77,9 +67,15 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
 export function GreenDecisionPanel({
   pending,
   hint,
-}: Readonly<{ pending: Availability<string>; hint: string }>) {
+  actionable,
+}: Readonly<{ pending: Availability<string>; hint: string; actionable: boolean }>) {
+  const unavailable = !isAvailable(pending)
   return (
-    <Panel className={gcc.decisionCard} aria-label="Decision queue" data-gcc="decision-card">
+    <Panel
+      className={actionable ? gcc.decisionCardStrong : unavailable ? gcc.decisionCardCalm : gcc.decisionCardNeutral}
+      aria-label="Decision queue"
+      data-gcc="decision-card"
+    >
       <div className={gcc.decisionTitle}>
         DECISION <span>QUEUE</span>
       </div>
@@ -96,7 +92,9 @@ export function GreenDecisionPanel({
         )}
       </div>
       <div className={gcc.decisionMeta}>
-        <span aria-hidden="true">●</span> {hint}
+        <span className={actionable ? gcc.decisionAction : gcc.decisionActionMuted}>
+          <span aria-hidden="true">●</span> {hint}
+        </span>
       </div>
     </Panel>
   )

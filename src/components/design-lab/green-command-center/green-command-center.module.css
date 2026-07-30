@@ -40,6 +40,7 @@
   --gcc-panel-border: #141519;
   --gcc-line: rgba(255, 255, 255, 0.075);
   --gcc-text: #f2f4fa;
+  --gcc-secondary-text: #b0b3bb;
   /*
    * ── Les deux gris secondaires passent AA, mesure à l'appui ─────────────────
    * Le prototype posait #83868f et #777b83 sur ses fonds noirs. Mesurés sur le
@@ -134,20 +135,14 @@
    * Les cartes remplissent la bande exactement, sans débordement.
    */
   --gcc-metrics-h: 132px;
+  --gcc-bottom-h: 304px;
   --gcc-aside-w: 290px;
   --gcc-info-w: 560px;
 
   width: 100vw;
-  /*
-   * `min-height`, pas `height`.
-   *
-   * Le prototype tenait dans un écran parce que ses textes faisaient 7 à 9px.
-   * À 14px, sur un 1440×900, les trois rangées demandent plus que la hauteur
-   * disponible : avec `height: 100dvh` + `overflow: hidden`, la grille écrasait
-   * ses rangées et six panneaux coupaient leur contenu. En `min-height`, la
-   * page occupe l'écran quand elle y tient, et défile quand elle n'y tient pas.
-   */
+  height: 100dvh;
   min-height: 100dvh;
+  overflow: hidden;
   background: var(--gcc-bg);
   color: var(--gcc-text);
   /*
@@ -186,12 +181,13 @@
   grid-template-columns: var(--gcc-rail-w) minmax(0, 1fr);
   align-items: stretch;
   width: 100%;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 100%;
   min-width: 0;
   background: var(--gcc-shell);
   border: 0;
   border-radius: 0;
-  overflow-x: hidden;
+  overflow: hidden;
   box-shadow: none;
 }
 
@@ -249,15 +245,32 @@
  * ~400 px de noir entre trois mesures.
  */
 .heroBody {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
-  align-content: start;
   min-height: 0;
   padding: 0 20px 16px;
+  min-width: 0;
 }
 
 /* La `Table` de Catalyst gère ses bordures ; on retire juste sa gouttière. */
 .heroTable {
   --gutter: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.heroTableSr {
+  --gutter: 0;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 /* Texte de contenu : `Text` du kit. On borne juste la troncature. */
@@ -280,6 +293,9 @@
 
 .signalNote {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -320,6 +336,7 @@
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .cellDivider {
@@ -564,11 +581,13 @@
    * étirait une table de trois lignes sur 691px de noir. `auto` supprime les
    * deux défauts d'un coup : chaque rangée prend ce que son contenu demande.
    */
-  grid-template-rows: auto auto auto;
-  align-content: start;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: var(--gcc-metrics-h) minmax(0, 1fr) var(--gcc-bottom-h);
+  align-content: stretch;
   gap: var(--gcc-gap);
   background: var(--gcc-workspace);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* The one panel material every surface shares. */
@@ -591,7 +610,8 @@
    * grâce à `stretch`, mais la bande suit quand une légende s'enroule sur deux
    * lignes. Verrouillée à 132px, elle coupait 22px de la légende du seuil.
    */
-  min-height: var(--gcc-metrics-h);
+  min-height: 0;
+  height: 100%;
   min-width: 0;
   align-items: stretch;
   overflow-x: hidden;
@@ -601,6 +621,9 @@
   padding: 18px 20px 16px;
   border-right-color: #050506;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .metricCard h2 {
@@ -615,7 +638,8 @@
 .metricLine {
   display: flex;
   gap: 13px;
-  align-items: center;
+  align-items: flex-start;
+  min-height: 0;
 }
 
 .metricIcon {
@@ -647,8 +671,11 @@
 .metricText {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 6px;
   min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  justify-content: space-between;
 }
 
 /*
@@ -676,17 +703,37 @@
  * mangeait la moitié de la phrase, dont le seuil lui-même. Une légende qui
  * s'enroule reste lisible ; une légende tronquée ment par omission.
  */
-.metricCaption {
+.metricValueSlot {
+  min-height: 22px;
+  display: flex;
+  align-items: baseline;
+}
+
+.metricStateLive,
+.metricStateUnavailable {
   color: var(--gcc-faint);
-  overflow-wrap: anywhere;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.metricStateUnavailable {
+  color: var(--gcc-muted);
+}
+
+.metricStateDotMuted {
+  color: var(--gcc-muted);
 }
 
 /* ── Decision card ────────────────────────────────────────────────────────── */
 
-.decisionCard {
+.decisionCardStrong,
+.decisionCardNeutral,
+.decisionCardCalm {
   margin-left: var(--gcc-gap);
   padding: 18px 22px;
-  background: linear-gradient(180deg, #b6fca2, #8fe878);
   /*
    * ── L'encre sur l'aplat accent est SOMBRE ─────────────────────────────────
    * Le prototype pose `color: #fff` ici. Mesuré : du blanc sur #84ff12 donne
@@ -704,6 +751,22 @@
   box-shadow: 0 0 20px rgba(167, 251, 144, 0.10);
   min-width: 0;
   overflow: hidden;
+}
+
+.decisionCardStrong {
+  background: linear-gradient(180deg, #b6fca2, #8fe878);
+}
+
+.decisionCardNeutral {
+  background: linear-gradient(180deg, #a9cf9f, #8eb086);
+  border-color: #9ec794;
+  box-shadow: 0 0 20px rgba(144, 182, 134, 0.10);
+}
+
+.decisionCardCalm {
+  background: linear-gradient(180deg, #95ad90, #7f947b);
+  border-color: #8da389;
+  box-shadow: 0 0 20px rgba(110, 136, 104, 0.08);
 }
 
 .decisionTitle {
@@ -726,6 +789,21 @@
 .decisionMeta b {
 }
 
+.decisionAction,
+.decisionActionMuted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.decisionAction {
+  color: rgba(0, 0, 0, 0.96);
+}
+
+.decisionActionMuted {
+  color: rgba(0, 0, 0, 0.6);
+}
+
 /* ── Main row ─────────────────────────────────────────────────────────────── */
 
 /*
@@ -740,6 +818,7 @@
   gap: var(--gcc-gap);
   align-items: stretch;
   min-height: 0;
+  overflow: hidden;
 }
 
 .heroChart {
@@ -747,6 +826,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 
@@ -766,15 +846,18 @@
 
 .rightStack {
   display: grid;
-  /* Cinq signaux de même hauteur, mais dictée par le plus grand : une rangée de
-   * tête figée à 104px coupait la première carte de 5px. */
-  grid-auto-rows: minmax(min-content, auto);
+  grid-auto-rows: minmax(0, 1fr);
   min-height: 0;
+  overflow: hidden;
 }
 
 .signalCard {
   padding: 14px 20px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
 }
 
 .signalCard + .signalCard {
@@ -825,7 +908,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--gcc-info-w) var(--gcc-aside-w);
   gap: 0;
+  height: 100%;
   min-height: 0;
+  margin-top: 8px;
+  overflow: hidden;
 }
 
 .wavePanel {
@@ -836,21 +922,35 @@
   flex-direction: column;
 }
 
+.wavePanel .heroHead {
+  padding-bottom: 6px;
+  padding-top: 14px;
+}
+
+.wavePanel .heroBody {
+  padding-bottom: 12px;
+  overflow-y: auto;
+}
+
 
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   border-left: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .infoCell {
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-right: 1px solid var(--gcc-line);
   border-bottom: 1px solid var(--gcc-line);
   background: linear-gradient(180deg, #25262d, #08090b 45%, #020203);
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .infoCell:nth-child(n + 3) {
@@ -859,23 +959,28 @@
 
 .infoCell h3,
 .vaultCard h3 {
-  margin: 0 0 15px;
+  margin: 0 0 8px;
   color: var(--gcc-text);
   font-weight: 700;
 }
 
 .infoCell p,
 .vaultCard p {
-  margin: 3px 0;
+  margin: 2px 0;
   /* Le token, pas une copie de sa valeur : ce #8e9199 en dur était le même gris
    * que `--gcc-muted` et échouait AA de son côté sans qu'on le sache. */
-  color: var(--gcc-muted);
+  color: var(--gcc-secondary-text);
+  overflow-wrap: anywhere;
+}
+
+.bottomRow .cellText {
+  color: var(--gcc-secondary-text);
 }
 
 .health {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .healthIcon {
@@ -900,11 +1005,14 @@
 }
 
 .vaultCard {
-  height: auto;
+  height: 100%;
   min-height: 0;
   padding: 16px 20px;
   border-left: 0;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .vaultLine {
@@ -920,7 +1028,7 @@
 .vaultCard hr {
   border: 0;
   border-top: 1px solid var(--gcc-line);
-  margin: 16px 0 20px;
+  margin: 12px 0 14px;
 }
 
 .vaultCard small {
@@ -944,6 +1052,55 @@
 /* On the accent decision card the same absence has to sit on a light field. */
 .absentOnAccent {
   color: rgba(0, 0, 0, 0.72);
+}
+
+.heroChartBody {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.heroChartSvg {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+}
+
+.heroGridLine {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
+}
+
+.heroAxisLabel {
+  fill: #9a9da6;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.heroSeriesLine {
+  fill: none;
+  stroke: var(--gcc-green);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.heroSeriesPoint {
+  fill: var(--gcc-green);
+  stroke: #0f1113;
+  stroke-width: 1;
+}
+
+.heroPointLabel {
+  fill: #f2f4fa;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 
@@ -994,12 +1151,14 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0;
   }
-  .decisionCard {
+  .decisionCardStrong,
+  .decisionCardNeutral,
+  .decisionCardCalm {
     margin-left: 0;
   }
   .mainRow {
     grid-template-columns: minmax(0, 1fr) 250px;
-    min-height: 520px;
+    min-height: 0;
   }
   .bottomRow {
     grid-template-columns: minmax(0, 1fr) 1fr;
@@ -1007,15 +1166,15 @@
   }
   .wavePanel {
     grid-area: wave;
-    min-height: 230px;
+    min-height: 0;
   }
   .vaultCard {
     grid-area: vault;
-    min-height: 230px;
+    min-height: 0;
   }
   .infoGrid {
     grid-area: info;
-    min-height: 230px;
+    min-height: 0;
   }
 }
 
@@ -1032,16 +1191,16 @@
    * tronquer reproduirait le défaut qu'on corrige.
    */
   .viewport {
-    height: auto;
+    height: 100dvh;
     min-height: 100dvh;
-    overflow: visible;
+    overflow: hidden;
   }
   .shell {
     display: flex;
     flex-direction: column;
-    height: auto;
+    height: 100%;
     min-height: 100dvh;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .rail {
@@ -1108,21 +1267,25 @@
     bottom: auto;
     width: 100%;
     min-height: 0;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
     padding: 10px;
     gap: 10px;
-    overflow: visible;
+    overflow: auto;
   }
   .metricsRow {
     height: auto;
     grid-template-columns: 1fr 1fr;
   }
   .metricCard,
-  .decisionCard {
+  .decisionCardStrong,
+  .decisionCardNeutral,
+  .decisionCardCalm {
     min-height: 106px;
     padding: 16px 14px;
   }
-  .decisionCard {
+  .decisionCardStrong,
+  .decisionCardNeutral,
+  .decisionCardCalm {
     margin-left: 0;
     grid-column: span 2;
   }
@@ -1131,14 +1294,14 @@
     min-height: 0;
   }
   .heroChart {
-    min-height: 380px;
+    min-height: 0;
   }
   .rightStack {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
   }
   .signalCard {
-    min-height: 100px;
+    min-height: 0;
   }
   .bottomRow {
     grid-template-columns: 1fr;
@@ -1146,7 +1309,7 @@
   }
   .wavePanel {
     grid-area: wave;
-    min-height: 200px;
+    min-height: 0;
   }
   .infoGrid {
     grid-area: info;
@@ -1154,12 +1317,12 @@
     min-height: 0;
   }
   .infoCell {
-    min-height: 100px;
+    min-height: 0;
     border-right: 0;
   }
   .vaultCard {
     grid-area: vault;
-    min-height: 200px;
+    min-height: 0;
     border-left: 0;
   }
 }
