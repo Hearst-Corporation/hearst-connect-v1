@@ -1,4 +1,6 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { Badge } from '@/components/catalyst/badge'
+import { Text } from '@/components/catalyst/text'
 import styles from './green-command-center.module.css'
 import clsx from 'clsx'
 
@@ -40,11 +42,20 @@ export function Panel({
 }
 
 /**
- * A named absence.
+ * A named absence — rendered with Catalyst's `Badge`.
  *
- * Renders "Unavailable", the service's own machine reason when it gave one,
- * and the endpoint that would answer it. `onAccent` switches the ink for the
- * mint decision card, where light-on-light would be unreadable.
+ * ── Why the kit and not a hand-drawn pill ─────────────────────────────────
+ * This used to be a `<span>` at 8px with a `::before` dot drawn in CSS: the
+ * single most important string on the screen ("Unavailable", "Not exposed")
+ * was also its least legible. `Badge` renders it at 12px with a real
+ * background from the theme, and it is a component the whole product already
+ * shares — one less pill to maintain.
+ *
+ * The route keeps its own line, in Catalyst's `Text`, so the reader gets the
+ * endpoint that would answer the missing figure.
+ *
+ * `onAccent` still exists: on the light accent card a `zinc` badge would sit
+ * light-on-light, so the ink flips there.
  */
 export function Absent({
   availability,
@@ -53,15 +64,14 @@ export function Absent({
 }: Readonly<{ availability: Availability<unknown>; onAccent?: boolean; showRoute?: boolean }>) {
   if (isAvailable(availability)) return null
   const { reason, endpoint, status } = availability
+  const route = [endpoint, reason].filter((part) => part !== null && part !== '').join(' · ')
   return (
-    <span>
-      <span className={clsx(styles.absent, onAccent && styles.absentOnAccent)}>
+    <span className={styles.absentBlock}>
+      <Badge color="zinc" className={clsx(onAccent && styles.absentOnAccent)}>
         {status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
-      </span>
-      {showRoute && (endpoint !== null || reason !== null) && (
-        <span className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>
-          {[endpoint, reason].filter((part) => part !== null && part !== '').join(' · ')}
-        </span>
+      </Badge>
+      {showRoute && route !== '' && (
+        <Text className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>{route}</Text>
       )}
     </span>
   )

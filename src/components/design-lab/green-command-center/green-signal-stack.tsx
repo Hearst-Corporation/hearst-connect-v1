@@ -1,4 +1,6 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { Subheading } from '@/components/catalyst/heading'
+import { Text, Strong } from '@/components/catalyst/text'
 import { Absent, gcc, Panel } from './primitives'
 import clsx from 'clsx'
 
@@ -24,40 +26,27 @@ export type Signal = Readonly<{
   value: Availability<string>
   /** A short line naming what the figure is. */
   note?: string
-  /** 0–10000 when the signal has a ratio worth drawing as a gauge. */
-  gaugeBps?: Availability<number>
 }>
-
-function Gauge({ ratioBps }: Readonly<{ ratioBps: Availability<number> }>) {
-  if (!isAvailable(ratioBps)) return null
-  const clamped = Math.max(0, Math.min(10000, ratioBps.value))
-  const filled = (clamped / 10000) * 220
-  return (
-    <svg viewBox="0 0 260 38" preserveAspectRatio="none" role="img" aria-label={`${(clamped / 100).toFixed(1)} percent`}>
-      <rect x="20" y="22" width="220" height="5" fill="#2a2c33" />
-      <rect x="20" y="22" width={filled.toFixed(1)} height="5" fill="#7cff00" />
-    </svg>
-  )
-}
 
 function SignalPanel({ signal, compact }: Readonly<{ signal: Signal; compact: boolean }>) {
   return (
     <Panel className={clsx(gcc.signalCard, compact && gcc.signalCompact)} data-gcc="signal-card">
-      <h3>{signal.title}</h3>
+      <Subheading level={3} className={gcc.cardTitle}>
+        {signal.title}
+      </Subheading>
       {signal.note !== undefined && (
-        <p>
-          <span className={gcc.signalDot}>●</span> {signal.note}
-        </p>
+        <Text className={gcc.signalNote}>
+          <span className={gcc.signalDot} aria-hidden="true">●</span> {signal.note}
+        </Text>
       )}
       {isAvailable(signal.value) ? (
-        <strong>{signal.value.value}</strong>
+        <Strong className={gcc.signalValue}>{signal.value.value}</Strong>
       ) : (
         /* The reference signal card is a 9px heading over two 8px lines. The
            absence keeps to one line so the five-row stack keeps its rhythm;
            the route is already stated on the metric band above. */
         <Absent availability={signal.value} showRoute={false} />
       )}
-      {signal.gaugeBps !== undefined && <Gauge ratioBps={signal.gaugeBps} />}
     </Panel>
   )
 }

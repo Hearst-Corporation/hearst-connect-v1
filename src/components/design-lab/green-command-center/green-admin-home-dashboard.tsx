@@ -1,9 +1,16 @@
 import { formatAddress, formatNumber } from '@/lib/format'
+import type { SessionUser } from '@/lib/session'
 import type { AdminRegistry } from '@/lib/vaults/model'
-import { available, isAvailable, mapAvailability, unavailable } from '@/lib/vaults/model'
+import {
+  available,
+  isAvailable,
+  mapAvailability,
+  unavailable,
+  REBALANCING_THRESHOLD_BPS,
+} from '@/lib/vaults/model'
 import { estateOverview } from '@/lib/vaults/overview'
 import { GreenCommandCenterShell, gcc } from './green-command-center-shell'
-import { GreenCommandRail, type RailDestination } from './green-command-rail'
+import { GreenCommandRail } from './green-command-rail'
 import { GreenDecisionPanel, GreenMetricStrip, type MetricCell } from './green-metric-strip'
 import { GreenHeroChartPanel } from './green-hero-chart-panel'
 import { GreenSignalStack, type Signal } from './green-signal-stack'
@@ -30,16 +37,10 @@ import { GreenInfoGrid, GreenVaultPanel } from './green-activity-panel'
  * and `95.8%` appear nowhere.
  */
 
-/** The rail's five destinations — the console's own primary navigation. */
-const RAIL: readonly RailDestination[] = [
-  { href: '/admin', label: 'Home', glyph: '⌂', current: true },
-  { href: '/admin/clients', label: 'Clients', glyph: '◎' },
-  { href: '/admin/conformite', label: 'Compliance', glyph: '⌘' },
-  { href: '/admin/operations', label: 'Operations', glyph: '▣' },
-  { href: '/admin/administration', label: 'Administration', glyph: 'ϟ' },
-]
-
-export function GreenAdminHomeDashboard({ registry }: Readonly<{ registry: AdminRegistry }>) {
+export function GreenAdminHomeDashboard({
+  registry,
+  user,
+}: Readonly<{ registry: AdminRegistry; user: SessionUser }>) {
   const overview = estateOverview(registry)
   const vaults = registry.vaults
 
@@ -57,7 +58,9 @@ export function GreenAdminHomeDashboard({ registry }: Readonly<{ registry: Admin
       id: 'breached',
       title: 'Above threshold',
       value: overview.breachedPockets,
-      caption: 'Pockets past the 200 bps console threshold',
+      // Le seuil est INTERPOLÉ depuis la constante, pas recopié : une légende
+      // qui répète un chiffre finit par mentir le jour où le chiffre change.
+      caption: `Pockets past the ${REBALANCING_THRESHOLD_BPS} bps console threshold`,
       support: 'Strategies · /api/v1/vault/strategies',
       glyph: '●',
       hollow: true,
@@ -117,7 +120,6 @@ export function GreenAdminHomeDashboard({ registry }: Readonly<{ registry: Admin
       title: 'Capital deployed',
       value: overview.deployedCapital,
       note: 'Placed in a strategy',
-      gaugeBps: overview.deploymentRatioBps,
     },
     { id: 'capital-available', title: 'Available capital', value: overview.availableCapital, note: 'Idle in the vault' },
     {
@@ -125,7 +127,6 @@ export function GreenAdminHomeDashboard({ registry }: Readonly<{ registry: Admin
       title: 'Deployment ratio',
       value: overview.deploymentRatio,
       note: 'Deployed over total',
-      gaugeBps: overview.deploymentRatioBps,
     },
     {
       id: 'rebalancing',
@@ -156,12 +157,19 @@ export function GreenAdminHomeDashboard({ registry }: Readonly<{ registry: Admin
     status: source.status.toLowerCase(),
   }))
 
-  const liveCount = registry.sources.filter((source) => source.status === 'LIVE').length
+  /*
+   * La note ne RECALCULE pas le compte de sources actives.
+   *
+   * `overview.liveSources` porte déjà « n/m ». Le dashboard refaisait le même
+   * filtre `status === 'LIVE'` que `estateOverview`, pour afficher deux fois le
+   * même chiffre côte à côte. La note nomme seulement ce qui est compté.
+   */
+  const sourcesNote = `endpoints answering, of ${formatNumber(registry.sources.length)} declared`
 
   return (
     <GreenCommandCenterShell
       label="Hearst Connect green command center — administration home laboratory"
-      rail={<GreenCommandRail destinations={RAIL} />}
+      rail={<GreenCommandRail currentHref="/admin" userName={user.name} userRole={user.role} />}
     >
       <GreenMetricStrip
         cells={cells}
@@ -184,7 +192,7 @@ export function GreenAdminHomeDashboard({ registry }: Readonly<{ registry: Admin
           exceptions={registry.clientExceptions}
           deployments={registry.deployments}
           sourcesLive={overview.liveSources}
-          sourcesNote={`${formatNumber(liveCount)} of ${formatNumber(registry.sources.length)} endpoints answering`}
+          sourcesNote={sourcesNote}
           movements={registry.movements}
         />
         <GreenVaultPanel

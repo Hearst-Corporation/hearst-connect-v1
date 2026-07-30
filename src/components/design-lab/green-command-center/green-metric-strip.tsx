@@ -1,4 +1,6 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { Subheading } from '@/components/catalyst/heading'
+import { Text } from '@/components/catalyst/text'
 import { Absent, gcc, Panel, Reading } from './primitives'
 import clsx from 'clsx'
 
@@ -34,7 +36,10 @@ export type MetricCell = Readonly<{
 function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
   return (
     <Panel className={gcc.metricCard} data-gcc="metric-card">
-      <h2>{cell.title}</h2>
+      {/* `Subheading` du kit : 14px/24px, 600, blanc. Remplace un h2 maison à 12px. */}
+      <Subheading level={2} className={gcc.cardTitle}>
+        {cell.title}
+      </Subheading>
       <div className={gcc.metricLine}>
         <span
           className={clsx(gcc.metricIcon, cell.hollow === true && gcc.metricIconHollow)}
@@ -51,10 +56,11 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
          */}
         <div className={gcc.metricText}>
           <Reading value={cell.value} showRoute={false} />
-          <small className={gcc.metricCaption}>{cell.caption}</small>
-          <small className={gcc.metricCaption}>
+          {/* `Text` du kit pour les deux lignes de support : 14px, zinc-400. */}
+          <Text className={gcc.metricCaption}>{cell.caption}</Text>
+          <Text className={gcc.metricCaption}>
             {isAvailable(cell.value) ? cell.support : (cell.value.endpoint ?? cell.value.reason ?? cell.support)}
-          </small>
+          </Text>
         </div>
       </div>
     </Panel>
@@ -62,7 +68,7 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
 }
 
 /**
- * The decision panel — the mint block at the end of the band.
+ * The decision panel — the accent block at the end of the band.
  *
  * In the reference it announces "03 ITEMS PENDING" as decoration. Here it
  * counts what actually needs a decision, and when that count has no source it
@@ -89,7 +95,9 @@ export function GreenDecisionPanel({
           <Absent availability={pending} onAccent showRoute={false} />
         )}
       </div>
-      <div className={gcc.decisionMeta}>● {hint}</div>
+      <div className={gcc.decisionMeta}>
+        <span aria-hidden="true">●</span> {hint}
+      </div>
     </Panel>
   )
 }
