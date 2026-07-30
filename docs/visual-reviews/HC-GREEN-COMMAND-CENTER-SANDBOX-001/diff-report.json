@@ -1,0 +1,56 @@
+{
+  "width": 2048,
+  "height": 1146,
+  "meanChannelDelta": 13.58,
+  "pixelsPastVisibleThresholdPercent": 10.44,
+  "bands": [
+    {
+      "band": 0,
+      "yFrom": 0,
+      "yTo": 143,
+      "meanDelta": 4.37
+    },
+    {
+      "band": 1,
+      "yFrom": 143,
+      "yTo": 287,
+      "meanDelta": 16.49
+    },
+    {
+      "band": 2,
+      "yFrom": 287,
+      "yTo": 430,
+      "meanDelta": 18.82
+    },
+    {
+      "band": 3,
+      "yFrom": 430,
+      "yTo": 573,
+      "meanDelta": 17.02
+    },
+    {
+      "band": 4,
+      "yFrom": 573,
+      "yTo": 716,
+      "meanDelta": 15.87
+    },
+    {
+      "band": 5,
+      "yFrom": 716,
+      "yTo": 860,
+      "meanDelta": 19.72
+    },
+    {
+      "band": 6,
+      "yFrom": 860,
+      "yTo": 1003,
+      "meanDelta": 5.98
+    },
+    {
+      "band": 7,
+      "yFrom": 1003,
+      "yTo": 1146,
+      "meanDelta": 10.44
+    }
+  ]
+}
