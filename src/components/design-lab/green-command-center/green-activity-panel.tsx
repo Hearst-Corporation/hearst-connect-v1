@@ -1,6 +1,8 @@
 import { formatRelativeTime } from '@/lib/format'
 import { libelleMouvement } from '@/lib/mouvements'
 import { isAvailable, type Availability, type ClientException, type Movement } from '@/lib/vaults/model'
+import { Subheading } from '@/components/catalyst/heading'
+import { Text, Strong } from '@/components/catalyst/text'
 import { Absent, gcc, Panel } from './primitives'
 
 /**
@@ -35,15 +37,15 @@ export function GreenInfoGrid({
     <Panel as="section" className={gcc.infoGrid} aria-label="Operational detail" data-gcc="info-grid">
       {/* ── Client exceptions ─────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <h3>Client exceptions</h3>
+        <Subheading level={3} className={gcc.cardTitle}>Client exceptions</Subheading>
         {isAvailable(exceptions) ? (
           exceptions.value.length === 0 ? (
-            <p>No client is currently blocked.</p>
+            <Text className={gcc.cellText}>No client is currently blocked.</Text>
           ) : (
             exceptions.value.slice(0, 3).map((exception) => (
-              <p key={`${exception.clientLabel}-${exception.issue}`}>
+              <Text key={`${exception.clientLabel}-${exception.issue}`} className={gcc.cellText}>
                 {exception.clientLabel} · {exception.issue.toLowerCase().replaceAll('_', ' ')}
-              </p>
+              </Text>
             ))
           )
         ) : (
@@ -53,12 +55,12 @@ export function GreenInfoGrid({
 
       {/* ── Deployment queue ──────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <h3>Deployment queue</h3>
+        <Subheading level={3} className={gcc.cardTitle}>Deployment queue</Subheading>
         {isAvailable(deployments) ? (
-          <p>Queue readable.</p>
+          <Text className={gcc.cellText}>Queue readable.</Text>
         ) : (
           <>
-            <p>No deployment ledger is exposed by the service.</p>
+            <Text className={gcc.cellText}>No deployment ledger is exposed by the service.</Text>
             <Absent availability={deployments} />
           </>
         )}
@@ -66,36 +68,35 @@ export function GreenInfoGrid({
 
       {/* ── Source health ─────────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <h3>Source health</h3>
+        <Subheading level={3} className={gcc.cardTitle}>Source health</Subheading>
         <div className={gcc.health}>
           <span className={gcc.healthIcon} aria-hidden="true">
             ₿
           </span>
-          <p>
+          <div className={gcc.healthText}>
             {isAvailable(sourcesLive) ? (
               <>
-                <b>{sourcesLive.value} live</b>
-                <br />
-                {sourcesNote}
+                <Strong className={gcc.healthValue}>{sourcesLive.value} live</Strong>
+                <Text className={gcc.cellText}>{sourcesNote}</Text>
               </>
             ) : (
               <Absent availability={sourcesLive} />
             )}
-          </p>
+          </div>
         </div>
       </article>
 
       {/* ── Recent activity ──────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <h3>Recent activity</h3>
+        <Subheading level={3} className={gcc.cardTitle}>Recent activity</Subheading>
         {isAvailable(movements) ? (
           movements.value.length === 0 ? (
-            <p>The window holds no movement.</p>
+            <Text className={gcc.cellText}>The window holds no movement.</Text>
           ) : (
             movements.value.slice(0, 3).map((movement) => (
-              <p key={movement.id}>
+              <Text key={movement.id} className={gcc.cellText}>
                 {libelleMouvement(movement.eventName)} · {formatRelativeTime(movement.occurredAt)}
-              </p>
+              </Text>
             ))
           )
         ) : (
@@ -123,40 +124,40 @@ export function GreenVaultPanel({
 }>) {
   return (
     <Panel className={gcc.vaultCard} aria-label="Vault register and source activity" data-gcc="vault-card">
-      <h3>Vault register</h3>
+      <Subheading level={3} className={gcc.cardTitle}>Vault register</Subheading>
       {!isAvailable(vaultAbsence) ? (
         <Absent availability={vaultAbsence} />
       ) : vaultLines.length === 0 ? (
-        <p>The register lists no vault.</p>
+        <Text className={gcc.cellText}>The register lists no vault.</Text>
       ) : (
         vaultLines.slice(0, 2).map((line) => (
           <div className={gcc.vaultLine} key={line.id}>
             <span aria-hidden="true">↳</span>
-            <p>
-              {line.label}
-              <br />
-              <small>{line.detail}</small>
-            </p>
+            <div className={gcc.vaultLineText}>
+              <Strong className={gcc.cellStrong}>{line.label}</Strong>
+              <Text className={gcc.cellText}>{line.detail}</Text>
+            </div>
           </div>
         ))
       )}
 
-      <p className={gcc.vaultEstate}>
-        Estate value ·{' '}
+      <div className={gcc.vaultEstate}>
+        <Text className={gcc.cellText}>Estate value</Text>
         {isAvailable(estateValue) ? (
-          <span className={gcc.readingInline}>{estateValue.value}</span>
+          <Strong className={gcc.cellStrong}>{estateValue.value}</Strong>
         ) : (
           <Absent availability={estateValue} showRoute={false} />
         )}
-      </p>
+      </div>
 
-      <hr />
+      <hr className={gcc.cellDivider} />
 
-      <h3>Source activity</h3>
+      <Subheading level={3} className={gcc.cardTitle}>Source activity</Subheading>
       {sourceLines.slice(0, 4).map((source) => (
-        <p key={source.id}>
-          {source.label} · <span className={gcc.readingInline}>{source.status}</span>
-        </p>
+        <div key={source.id} className={gcc.sourceRow}>
+          <Text className={gcc.cellText}>{source.label}</Text>
+          <Strong className={gcc.cellStrong}>{source.status}</Strong>
+        </div>
       ))}
     </Panel>
   )

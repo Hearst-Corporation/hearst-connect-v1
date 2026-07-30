@@ -3,9 +3,11 @@
  *
  * ── Why a CSS Module and not Tailwind utilities ────────────────────────────
  * This composition is a LABORATORY. Its colours are not the product's tokens:
- * the console runs on Hearst mint (#a7fb90) over neutral graphite, and this
- * prototype runs on a neon green (#79ff00) over near-black with a specific
- * five-stop panel gradient. Expressing that in Tailwind would mean either
+ * the console runs on Hearst mint (#a7fb90) over neutral graphite, while this
+ * prototype was built on a neon green (#79ff00) over near-black. The whole
+ * composition now speaks ONE green, and it is the product's own: the Hearst
+ * mint #a7fb90, the accent `/admin` uses everywhere. Font too: Satoshi
+ * Variable, not the prototype's Arial. Expressing that in Tailwind would mean either
  * adding a second palette to the global `@theme` — leaking a competing design
  * system into the vitrine and the console — or writing a wall of arbitrary
  * values. A scoped module keeps every value here, provably reaching nothing
@@ -14,9 +16,17 @@
  * Nothing in `src/styles/tailwind.css`, `cockpit-theme` or
  * `src/components/catalyst/**` is touched by this file.
  *
- * Every value below is transcribed from the reference `styles.css`, not
- * re-invented. The variables at `.viewport` are the single place a value is
- * declared; the rules underneath only reference them.
+ * ── CE QUI EST TRANSCRIT, ET CE QUI NE L'EST PAS ──────────────────────────
+ * La matière vient de la référence : dégradés de panneau, texture de poussière,
+ * gradients SVG, halos. Trois géométries en revanche sont RÉINVENTÉES ici, et
+ * chacune est justifiée à sa déclaration :
+ *   · `--gcc-rail-w` 68px → 200px  (les libellés Catalyst ne tiennent pas en 68)
+ *   · `--gcc-metrics-h` 116px → 145px (les cartes de la référence débordent 116)
+ *   · le dégradé du rail, redistribué (étiré sur 900px il ne plongeait jamais)
+ *
+ * Et toutes les valeurs ne passent pas par `.viewport` : les gris de texte et
+ * les bordures sont écrits au point d'usage. Ce n'est pas l'idéal, mais le
+ * prétendre serait faux.
  */
 
 .viewport {
@@ -30,13 +40,79 @@
   --gcc-panel-border: #141519;
   --gcc-line: rgba(255, 255, 255, 0.075);
   --gcc-text: #f2f4fa;
-  --gcc-muted: #83868f;
-  --gcc-faint: #777b83;
-  --gcc-green: #79ff00;
-  --gcc-green-bright: #7cff00;
+  /*
+   * ── Les deux gris secondaires passent AA, mesure à l'appui ─────────────────
+   * Le prototype posait #83868f et #777b83 sur ses fonds noirs. Mesurés sur le
+   * fond réel des cartes (#020203 → #08090b), ils donnent 4.41:1 et 3.27:1 —
+   * sous le 4.5:1 exigé pour du petit texte. Ils portent les légendes des cinq
+   * cartes métriques et les libellés du registre : de la donnée, pas de
+   * l'ornement. Remontés au premier échelon qui passe, la hiérarchie est
+   * conservée (`faint` reste plus pâle que `muted`).
+   */
+  --gcc-muted: #9a9da6;
+  --gcc-faint: #9095a0;
+  /*
+   * ── UN SEUL VERT : le mint de marque Hearst ───────────────────────────────
+   * Le prototype tourne sur un néon `#79ff00`, et la composition en comptait
+   * CINQ nuances (#79ff00, #7cff00, #8aff00, #73ff00, #84ff12) tout en
+   * annonçant « un seul accent ».
+   *
+   * Le vert est désormais celui que le produit met partout ailleurs :
+   * `#a7fb90`, la couleur de marque, `accent-400` dans la console et l'accent
+   * de `/admin`. Une seule valeur, la même que le reste du produit.
+   *
+   * `--color-accent-ink` (#000) porte le texte posé SUR cet aplat : le mint est
+   * clair (L=0,79), du blanc dessus tomberait à 1,25:1.
+   */
+  /*
+   * `--color-accent-400` vaut #88ef6c dans le `@theme` global et #a7fb90
+   * seulement sous `.cockpit-theme`. Ce laboratoire n'est PAS sous cette classe :
+   * il recevait donc #88ef6c, un vert plus jaune que la marque. `accent-300` EST
+   * #a7fb90 globalement — c'est le bon token ici. Mesuré avant correction :
+   * rgb(136,239,108) au lieu de rgb(167,251,144).
+   */
+  --gcc-green: var(--color-accent-300, #a7fb90);
+  /*
+   * `#7cff00` est le vert des tracés SVG. Il n'est référencé par aucun `var()`
+   * de ce fichier : les SVG des `.tsx` l'écrivent en dur, parce qu'un attribut
+   * `stroke` ne lit pas une variable de module CSS. La déclaration reste ici
+   * comme SOURCE DE VÉRITÉ documentaire du couple de verts, pas comme token
+   * consommé — sinon on croirait à un token mort.
+   */
+  --gcc-green-bright: var(--color-accent-300, #a7fb90);
 
   /* ── Geometry (reference grid, in px — this is the pixel contract) ─────── */
-  --gcc-rail-w: 68px;
+  /*
+   * ── Largeur du rail — élargie pour Catalyst ─────────────────────────────
+   * Le prototype pose 68 px : assez pour un glyphe seul, pas pour un
+   * `SidebarItem` qui porte une icône ET son libellé. Les 68 px étaient la
+   * mesure d'un rail muet ; un rail nommé demande 232 px, la largeur de la
+   * barre latérale de la console (`/admin`), ce qui aligne les deux surfaces
+   * au lieu d'en inventer une troisième.
+   *
+   * C'est la divergence assumée de cette passe : on gagne la navigation réelle
+   * de Catalyst — libellés lisibles, états, focus, cible tactile — et on perd
+   * le rail-icônes du prototype. Le reste de la géométrie ne bouge pas.
+   *
+   * 200 px et non 232 : à 232 le rail mangeait la composition et le déséquilibre
+   * se voyait à la capture. 200 px suffit à « Administration », le libellé le
+   * plus long, sans troncature.
+   */
+  --gcc-rail-w: 200px;
+
+  /*
+   * ── UN SEUL ACCENT ────────────────────────────────────────────────────────
+   * La navigation parlait le mint de marque (#a7fb90) tandis que les données
+   * parlaient le néon (#79ff00). Deux accents dans la même image : à l'écran le
+   * mint paraissait délavé à côté du néon, beaucoup plus saturé — c'est
+   * exactement l'incohérence qu'un accent unique existe pour éviter.
+   *
+   * Toute la composition prend donc le mint de marque. Le néon du prototype reste
+   * la couleur de marque et pourra redevenir l'accent unique le jour où toute la
+   * composition basculera — mais alors partout, pas sur le seul rail.
+   */
+  --gcc-accent: var(--gcc-green);
+  --gcc-accent-ink: var(--color-accent-ink, #000000);
   --gcc-pad: 14px;
   --gcc-gap: 14px;
   /*
@@ -52,23 +128,40 @@
    * the row beneath. The extra 29px comes out of the hero row's `1fr`, so the
    * three rows still fill the viewport exactly and nothing scrolls.
    */
-  --gcc-metrics-h: 145px;
-  --gcc-bottom-h: 230px;
+  /*
+   * Remesurée après le passage à Catalyst : `Subheading` (14/24) + deux `Text`
+   * (14/24) tiennent en 132px, contre 145px quand les légendes faisaient 7px.
+   * Les cartes remplissent la bande exactement, sans débordement.
+   */
+  --gcc-metrics-h: 132px;
   --gcc-aside-w: 290px;
   --gcc-info-w: 560px;
-  --gcc-signal-head-h: 118px;
 
   width: 100vw;
-  height: 100dvh;
+  /*
+   * `min-height`, pas `height`.
+   *
+   * Le prototype tenait dans un écran parce que ses textes faisaient 7 à 9px.
+   * À 14px, sur un 1440×900, les trois rangées demandent plus que la hauteur
+   * disponible : avec `height: 100dvh` + `overflow: hidden`, la grille écrasait
+   * ses rangées et six panneaux coupaient leur contenu. En `min-height`, la
+   * page occupe l'écran quand elle y tient, et défile quand elle n'y tient pas.
+   */
   min-height: 100dvh;
   background: var(--gcc-bg);
-  overflow: hidden;
   color: var(--gcc-text);
-  /* The prototype is Arial-metric; the product font is Satoshi. Keeping the
-     reference stack here is what makes the geometry comparable at all — a
-     different font would move every label by a few pixels and make the pixel
-     report unreadable. The migration decides whether Satoshi replaces it. */
-  font-family: Arial, Helvetica, sans-serif;
+  /*
+   * ── SATOSHI VARIABLE, la police du produit ────────────────────────────────
+   * Le prototype est calibré sur les métriques d'Arial, et cette composition
+   * l'a d'abord conservé pour rendre la comparaison pixel possible. Ce n'est
+   * plus un laboratoire de comparaison : l'écran doit parler la langue de la
+   * marque. `--font-satoshi` est déclarée par `src/lib/fonts.ts` (Satoshi
+   * Variable, poids 300 à 900, auto-hébergée) et exposée sur `<html>`.
+   *
+   * Satoshi est plus étroite qu'Arial à taille égale : les libellés gagnent de
+   * la place, ce qui est exactement ce qu'il fallait pour remonter les tailles.
+   */
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
 .viewport *,
@@ -77,15 +170,28 @@
   box-sizing: border-box;
 }
 
+/*
+ * Le shell est une GRILLE à deux colonnes, plus un bloc à positionnement absolu.
+ *
+ * Le rail et le workspace étaient en `position: absolute` calés sur les quatre
+ * bords, ce qui suppose un parent de hauteur connue. En rendant la page
+ * scrollable (`min-height` au lieu de `height` sur `.viewport`), cette hauteur
+ * a disparu et les deux enfants se sont effondrés à 0. Une grille
+ * `rail | reste` donne la même géométrie — rail collé à gauche, sur toute la
+ * hauteur du contenu — sans dépendre d'une hauteur fixée d'avance.
+ */
 .shell {
   position: relative;
+  display: grid;
+  grid-template-columns: var(--gcc-rail-w) minmax(0, 1fr);
+  align-items: stretch;
   width: 100%;
-  height: 100%;
+  min-height: 100dvh;
   min-width: 0;
   background: var(--gcc-shell);
   border: 0;
   border-radius: 0;
-  overflow: hidden;
+  overflow-x: hidden;
   box-shadow: none;
 }
 
@@ -103,89 +209,366 @@
   mix-blend-mode: soft-light;
 }
 
+
+/* ══════════════════ CATALYST : le kit porte la typographie ══════════════════
+ *
+ * Ces classes ne redéclarent AUCUNE taille, graisse ni couleur de texte : le kit
+ * les porte (`Subheading` 14px/24px/600 blanc, `Text` 14px/24px zinc-400,
+ * `Strong` 500 blanc, `Badge` 12px). Elles ne règlent que la MARGE et la
+ * TRONCATURE — ce que le kit ne peut pas savoir de notre géométrie.
+ *
+ * C'est le point de la migration : les 7px, 8px, 9px et 10px du prototype ont
+ * disparu. La densité baisse, la lisibilité monte, et la géométrie ci-dessous a
+ * été remesurée pour l'absorber.
+ */
+
+/* Titre de carte, de signal, de cellule : `Subheading` du kit, marge resserrée. */
+.cardTitle {
+  margin: 0;
+}
+
+/* Les deux panneaux passés en table : en-tête fixe, corps défilant. */
+.heroHead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 20px 8px;
+  flex: none;
+  min-width: 0;
+}
+
+/*
+ * Le corps ne défile PAS et ne s'étire pas : il se cale en haut.
+ *
+ * `overflow: auto` faisait de « Movement types » le seul bloc scrollable de la
+ * page — 109 px cachés derrière une barre interne, quand les panneaux voisins
+ * coupaient en silence. Maintenant que les rangées se dimensionnent sur leur
+ * contenu, rien n'a à défiler ici. `align-content: start` évite l'inverse : une
+ * table de trois lignes étalée sur la hauteur de la colonne voisine, soit
+ * ~400 px de noir entre trois mesures.
+ */
+.heroBody {
+  flex: 1 1 auto;
+  align-content: start;
+  min-height: 0;
+  padding: 0 20px 16px;
+}
+
+/* La `Table` de Catalyst gère ses bordures ; on retire juste sa gouttière. */
+.heroTable {
+  --gutter: 0;
+}
+
+/* Texte de contenu : `Text` du kit. On borne juste la troncature. */
+/*
+ * Le texte des cellules s'enroule au lieu d'être coupé — même raison que
+ * `.metricCaption` : à 14px, une phrase de Catalyst dans une colonne calibrée
+ * pour du 8px perd sa fin, et c'est souvent sa fin qui porte l'information
+ * (« … is exposed by the service », « … of 6 declared »).
+ */
+.cellText {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Valeur lue : `Strong` du kit, en chiffres tabulaires. */
+.cellStrong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.signalNote {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signalValue {
+  font-variant-numeric: tabular-nums;
+}
+
+/* L'absence : `Badge` du kit, plus sa route sur sa propre ligne. */
+.absentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.healthText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.healthValue {
+  font-variant-numeric: tabular-nums;
+}
+
+.vaultLineText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sourceRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cellDivider {
+  border: 0;
+  border-top: 1px solid var(--gcc-line);
+  margin: 8px 0;
+}
+
 /* ── Rail ─────────────────────────────────────────────────────────────────── */
 
 .rail {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  /* Première colonne de la grille du shell (cf. `.shell`) : la largeur vient de
+   * `grid-template-columns`, la hauteur de `align-items: stretch`. Le contenu
+   * du rail reste collé en haut et son pied en bas, comme avant. */
+  position: relative;
   width: var(--gcc-rail-w);
-  background: linear-gradient(180deg, #36373e 0%, #141519 19%, #24252b 55%, #17181c 100%);
+  /*
+   * ── Le dégradé du rail est REDISTRIBUÉ, pas copié ─────────────────────────
+   * Le prototype déclare `#36373e 0%, #141519 19%, #24252b 55%, #17181c 100%`,
+   * calibré pour un rail de 68 px. Étiré sur toute la hauteur du viewport, ses
+   * arrêts s'espacent et le rail reste clair de haut en bas : mesuré au pixel à
+   * 900 px de haut, il finissait à #17181c quand les panneaux voisins
+   * descendaient à #08080a. Le rail paraissait donc PLUS CLAIR que les surfaces
+   * qu'il borde — défaut visible à l'œil, et confirmé au pixel.
+   *
+   * Les arrêts suivent désormais la même descente que `.panel` : lumière rasante
+   * sur les 4 premiers pour-cent, puis plongée vers le noir.
+   */
+  background: linear-gradient(
+    180deg,
+    #36373e 0%,
+    #24252b 4%,
+    #17181c 12%,
+    #101115 40%,
+    #08080a 75%,
+    #050506 100%
+  );
   border-right: 1px solid #101116;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   z-index: 3;
+  overflow: hidden;
 }
 
-.brand {
-  height: 70px;
-  width: var(--gcc-rail-w);
-  display: grid;
-  place-items: center;
-  font-size: 36px;
-  font-weight: 800;
-  background: linear-gradient(180deg, #41434b, #24252b);
-  border-bottom: 1px solid #08090b;
-  text-shadow: 0 1px 0 #000;
-  color: var(--gcc-text);
-  text-decoration: none;
-}
-
-.railBtn {
-  width: var(--gcc-rail-w);
-  height: 58px;
-  border: 0;
+/*
+ * ── Habillage de Catalyst, jamais sa réécriture ───────────────────────────
+ * Les règles ci-dessous ne touchent QUE la matière : fond, accent, densité.
+ * Tout le comportement (survol, focus, page courante, cible tactile) reste
+ * celui de `SidebarItem`, et les fichiers du kit ne sont pas modifiés.
+ *
+ * `Sidebar` de Catalyst pose son propre fond ; on le neutralise pour laisser
+ * voir le dégradé du rail, qui est la signature visuelle du prototype.
+ */
+.rail > nav,
+.rail :global([data-slot='section']) {
   background: transparent;
+}
+
+/* Le dégradé est peint par `.rail` ; les enfants ne doivent rien poser dessus. */
+.rail > nav {
+  height: 100%;
+  min-height: 0;
+}
+
+/*
+ * SidebarHeader : bordure `dark:border-white/5` du kit, pas une valeur inventée.
+ * (La première version posait `#08090b`, qui ne vient d'aucun fichier Catalyst.)
+ */
+.brandHeader {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brandText {
+  min-width: 0;
+}
+
+/*
+ * `Subheading` de Catalyst : `sm:text-sm/6 font-semibold dark:text-white`,
+ * soit 14px / 24px / 600. La première version posait un interligne de 20px et
+ * l'annonçait comme la valeur du kit — les deux étaient faux.
+ */
+.brandName {
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Le sous-titre. `Text` du kit vaut 14px/24px ; 12px/16px est un choix de CETTE
+ * composition, pas une citation de Catalyst — la nuance compte, sinon le
+ * commentaire ment sur sa source. La couleur, elle, est bien celle du kit
+ * (`dark:text-zinc-400` = #a1a1aa).
+ */
+.brandSub {
+  font-size: 12px;
+  line-height: 16px;
+  color: #a1a1aa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * SidebarFooter : `border-t dark:border-white/5`.
+ *
+ * `SidebarBody` porte `flex-1` dans le kit, ce qui poussait ce pied tout en bas
+ * du viewport — un vide de plusieurs centaines de pixels séparait « Runtime » de
+ * l'identité. Le pied remonte donc sous la navigation, et le rail se lit comme
+ * un seul bloc continu au lieu de deux îlots.
+ */
+.railFooter {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 0;
+}
+
+/*
+ * Le corps ne s'étire plus.
+ *
+ * `SidebarBody` porte `flex-1` (soit `flex: 1 1 0%`) : mesuré, il occupait
+ * 710 px pour ~340 px de contenu, et poussait le pied à 783 px — d'où le grand
+ * vide entre « Runtime » et l'identité. La classe `.flex-1` du kit est visée
+ * directement : `nth-child` perdait en spécificité.
+ */
+.rail :global(nav > .flex-1) {
+  flex: 0 0 auto !important;
+  overflow-y: visible;
+}
+
+.railUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+/* Avatar de Catalyst : size-8 rounded-full. */
+.avatar {
   display: grid;
   place-items: center;
-  font-size: 17px;
-  color: #e2e5ef;
-  opacity: 0.84;
-  text-decoration: none;
-  font: inherit;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--gcc-accent);
+  color: var(--gcc-accent-ink);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.railBtn > span {
-  filter: grayscale(1);
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--gcc-accent);
+  color: var(--gcc-accent-ink);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: 0 0 18px rgba(167, 251, 144, 0.24);
 }
 
-.railActive {
-  background: rgba(0, 0, 0, 0.08);
-  opacity: 1;
+/*
+ * L'entrée courante prend l'accent : sur son libellé, sur son icône et sur son
+ * liseré. Le fond reste une teinte à très faible opacité — un aplat accent plein
+ * derrière du texte clair serait illisible, et la page courante n'a pas besoin
+ * de crier pour être reconnue.
+ */
+.railItem :global([data-current]) {
+  background: rgba(167, 251, 144, 0.14);
+  color: var(--gcc-accent);
 }
 
-/* A laboratory is still keyboard-navigable: the reference has no focus style
-   because nothing in it is reachable, and that is not a property to port. */
-.railBtn:focus-visible,
-.brand:focus-visible {
-  outline: 2px solid var(--gcc-green);
-  outline-offset: -3px;
+.railItem :global([data-current] svg) {
+  fill: var(--gcc-accent);
 }
 
-.railCaption {
-  margin-top: auto;
-  margin-bottom: 12px;
-  font-size: 6px;
-  letter-spacing: 0.03em;
-  color: #c6c8cf;
+.railItem :global([data-current]) span {
+  color: var(--gcc-accent);
 }
+
+/*
+ * Le liseré de page courante de Catalyst est `dark:bg-white` : il passe à l'accent.
+ *
+ * `gcc.railItem` atterrit sur le `<span class="relative">` EXTERNE de
+ * `SidebarItem` — pas sur le `<a>`. Le liseré est donc son premier enfant
+ * direct. La première version visait `> span > span:first-child`, un niveau trop
+ * bas : mesuré au pixel, le liseré restait rgb(255,255,255).
+ */
+/*
+ * Le liseré de page courante.
+ *
+ * Catalyst le place à `-left-4` (−16 px), ce qui suppose que le conteneur ait
+ * 16 px de marge à sa gauche. Dans ce rail il sortait donc DU rail : à l'écran
+ * on voyait un fragment vert détaché, coupé par le bord gauche. On le ramène à
+ * l'intérieur, collé au bord de l'entrée.
+ */
+.railItem > span:first-child {
+  background: var(--gcc-accent);
+  left: 0;
+}
+
+/* Survol : la même teinte, nettement plus discrète que l'état courant (0.07 contre 0.12). */
+.railItem :global(a:hover) {
+  background: rgba(167, 251, 144, 0.08);
+}
+
+/* Focus visible — l'anneau parle l'accent lui aussi. */
+.railItem :global(a:focus-visible) {
+  outline: 2px solid var(--gcc-accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
 
 /* ── Workspace grid ───────────────────────────────────────────────────────── */
 
 .workspace {
-  position: absolute;
-  left: var(--gcc-rail-w);
-  right: 0;
-  top: 0;
-  bottom: 0;
+  /* Seconde colonne de la grille du shell. */
+  position: relative;
+  min-width: 0;
   padding: var(--gcc-pad) var(--gcc-pad) 13px;
   display: grid;
-  grid-template-rows: var(--gcc-metrics-h) minmax(280px, 1fr) var(--gcc-bottom-h);
+  /*
+   * Les rangées se dimensionnent sur leur CONTENU, plus sur des hauteurs figées.
+   *
+   * Le texte de Catalyst est à 14px/24px, là où les cartes de la référence
+   * étaient calibrées pour 7-9px. Une rangée basse verrouillée à 268px faisait
+   * déborder le registre de coffres de 116px, et une rangée centrale en `1fr`
+   * étirait une table de trois lignes sur 691px de noir. `auto` supprime les
+   * deux défauts d'un coup : chaque rangée prend ce que son contenu demande.
+   */
+  grid-template-rows: auto auto auto;
+  align-content: start;
   gap: var(--gcc-gap);
   background: var(--gcc-workspace);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* The one panel material every surface shares. */
@@ -201,20 +584,21 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr)) var(--gcc-aside-w);
   gap: 0;
-  height: var(--gcc-metrics-h);
-  min-width: 0;
   /*
-   * The cards fill the band exactly — same height, same top, same bottom. With
-   * `--gcc-metrics-h` set to the content height (145px, see its declaration),
-   * `stretch` makes every card box equal to the row box: nothing overflows and
-   * nothing reaches the row below.
+   * La bande prend la hauteur de sa plus grande carte, pas l'inverse.
+   *
+   * `min-height` remplace `height` : les six cartes restent d'égale hauteur
+   * grâce à `stretch`, mais la bande suit quand une légende s'enroule sur deux
+   * lignes. Verrouillée à 132px, elle coupait 22px de la légende du seuil.
    */
+  min-height: var(--gcc-metrics-h);
+  min-width: 0;
   align-items: stretch;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .metricCard {
-  padding: 30px 34px 18px;
+  padding: 18px 20px 16px;
   border-right-color: #050506;
   min-width: 0;
 }
@@ -242,10 +626,10 @@
   flex: 0 0 30px;
   border-radius: 50%;
   background: var(--gcc-green);
-  color: #111;
+  color: var(--gcc-accent-ink);
   font-weight: 900;
   font-size: 18px;
-  box-shadow: 0 0 16px rgba(121, 255, 0, 0.18);
+  box-shadow: 0 0 16px rgba(167, 251, 144, 0.20);
 }
 
 /* The ring / gauge / orbit variants: hollow, accent-stroked. The reference
@@ -263,7 +647,7 @@
 .metricText {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
   min-width: 0;
 }
 
@@ -284,23 +668,40 @@
   text-overflow: ellipsis;
 }
 
+/*
+ * La légende PASSE À LA LIGNE au lieu d'être coupée.
+ *
+ * À 7px, « Pockets past the 200 bps console threshold » tenait sur une ligne.
+ * À 14px (Catalyst), elle demande 49px de plus que sa colonne : l'ellipse
+ * mangeait la moitié de la phrase, dont le seuil lui-même. Une légende qui
+ * s'enroule reste lisible ; une légende tronquée ment par omission.
+ */
 .metricCaption {
-  font-size: 7px;
   color: var(--gcc-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 /* ── Decision card ────────────────────────────────────────────────────────── */
 
 .decisionCard {
   margin-left: var(--gcc-gap);
-  padding: 26px 34px;
-  background: linear-gradient(180deg, #84ff12, #62ed00);
-  color: #fff;
-  border: 1px solid #85ff18;
-  box-shadow: 0 0 20px rgba(102, 255, 0, 0.08);
+  padding: 18px 22px;
+  background: linear-gradient(180deg, #b6fca2, #8fe878);
+  /*
+   * ── L'encre sur l'aplat accent est SOMBRE ─────────────────────────────────
+   * Le prototype pose `color: #fff` ici. Mesuré : du blanc sur #84ff12 donne
+   * 1,29:1 et sur #62ed00 1,54:1 — très loin des 3:1 que WCAG AA exige pour du
+   * grand texte. C'était le bloc le plus visible de l'écran, et il portait le
+   * COMPTE des décisions en attente : la donnée la moins lisible était la plus
+   * importante.
+   *
+   * `--gcc-accent-ink` existe précisément pour ce cas. La branche d'absence
+   * l'appliquait déjà (`.absentOnAccent`) ; la branche « valeur » ne le faisait
+   * pas, donc l'absence était lisible et le chiffre non.
+   */
+  color: var(--gcc-accent-ink);
+  border: 1px solid #c1fcb1;
+  box-shadow: 0 0 20px rgba(167, 251, 144, 0.10);
   min-width: 0;
   overflow: hidden;
 }
@@ -319,98 +720,45 @@
 
 .decisionMeta {
   margin-top: 5px;
-  font-size: 8px;
   font-weight: 700;
 }
 
 .decisionMeta b {
-  font-size: 9px;
 }
 
 /* ── Main row ─────────────────────────────────────────────────────────────── */
 
+/*
+ * La rangée prend la hauteur de sa plus grande colonne, mais chaque panneau
+ * garde la même : `stretch` est voulu ici — deux cartes de hauteurs
+ * différentes côte à côte creuseraient une marche dans la composition. Ce qui
+ * est corrigé, c'est le CONTENU qui s'étirait à l'intérieur (cf. `.heroBody`).
+ */
 .mainRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--gcc-aside-w);
   gap: var(--gcc-gap);
+  align-items: stretch;
   min-height: 0;
 }
 
 .heroChart {
   min-width: 0;
-  height: auto;
   min-height: 0;
-  overflow: hidden;
-  position: relative;
-}
-
-.heroSvg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* The hero panel's caption sits over the plot, on the reference's 34px gutter. */
-.panelCaption {
-  position: absolute;
-  left: 34px;
-  top: 18px;
   display: flex;
-  gap: 14px;
-  align-items: baseline;
-  pointer-events: none;
-  max-width: calc(100% - 68px);
+  flex-direction: column;
 }
 
-.panelCaptionTitle {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--gcc-text);
-  white-space: nowrap;
-}
 
-.panelCaptionNote {
-  font-size: 8px;
-  color: var(--gcc-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-/* The wave panel's caption block: a title over the real type counts. */
-.waveCaption {
-  position: absolute;
-  left: 34px;
-  top: 20px;
-  pointer-events: none;
-  max-width: calc(100% - 68px);
-}
 
-.waveCaptionTitle {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--gcc-text);
-}
 
-.waveLegend {
-  margin-top: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-}
 
-.waveLegendItem {
-  font-size: 8px;
-  color: #8e9199;
-}
 
-.waveLegendValue {
-  color: #d9dce4;
-}
 
-.readingInline {
-  color: #d9dce4;
-}
+
+
+
 
 .vaultEstate {
   margin-top: 10px;
@@ -418,13 +766,14 @@
 
 .rightStack {
   display: grid;
-  grid-template-rows: var(--gcc-signal-head-h) repeat(4, minmax(0, 1fr));
+  /* Cinq signaux de même hauteur, mais dictée par le plus grand : une rangée de
+   * tête figée à 104px coupait la première carte de 5px. */
+  grid-auto-rows: minmax(min-content, auto);
   min-height: 0;
 }
 
 .signalCard {
-  padding: 28px 34px 0;
-  overflow: hidden;
+  padding: 14px 20px;
   min-width: 0;
 }
 
@@ -434,7 +783,6 @@
 
 .signalCard h3 {
   margin: 0 0 5px;
-  font-size: 9px;
   color: var(--gcc-text);
   font-weight: 700;
 }
@@ -442,14 +790,12 @@
 .signalCard p {
   display: block;
   margin: 2px 0;
-  font-size: 8px;
   color: #9a9da5;
 }
 
 .signalCard strong {
   display: block;
   margin: 2px 0;
-  font-size: 8px;
   color: #d8dae1;
 }
 
@@ -465,7 +811,7 @@
 }
 
 .signalCompact {
-  padding-top: 25px;
+  padding-top: 14px;
 }
 
 .signalCompact svg {
@@ -483,17 +829,13 @@
 }
 
 .wavePanel {
-  height: auto;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
-  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.wavePanel svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
 
 .infoGrid {
   display: grid;
@@ -504,11 +846,10 @@
 }
 
 .infoCell {
-  padding: 34px 38px 20px;
+  padding: 16px 20px;
   border-right: 1px solid var(--gcc-line);
   border-bottom: 1px solid var(--gcc-line);
   background: linear-gradient(180deg, #25262d, #08090b 45%, #020203);
-  overflow: hidden;
   min-width: 0;
 }
 
@@ -519,7 +860,6 @@
 .infoCell h3,
 .vaultCard h3 {
   margin: 0 0 15px;
-  font-size: 10px;
   color: var(--gcc-text);
   font-weight: 700;
 }
@@ -527,8 +867,9 @@
 .infoCell p,
 .vaultCard p {
   margin: 3px 0;
-  font-size: 8px;
-  color: #8e9199;
+  /* Le token, pas une copie de sa valeur : ce #8e9199 en dur était le même gris
+   * que `--gcc-muted` et échouait AA de son côté sans qu'on le sache. */
+  color: var(--gcc-muted);
 }
 
 .health {
@@ -545,7 +886,7 @@
   flex: 0 0 30px;
   border-radius: 50%;
   background: var(--gcc-green);
-  color: #111;
+  color: var(--gcc-accent-ink);
   font-size: 19px;
   font-weight: 900;
 }
@@ -561,9 +902,8 @@
 .vaultCard {
   height: auto;
   min-height: 0;
-  padding: 35px 34px 20px;
+  padding: 16px 20px;
   border-left: 0;
-  overflow: hidden;
   min-width: 0;
 }
 
@@ -574,7 +914,6 @@
 }
 
 .vaultLine > span {
-  font-size: 10px;
   color: var(--gcc-text);
 }
 
@@ -586,50 +925,27 @@
 
 .vaultCard small {
   color: #70737b;
-  font-size: 8px;
 }
 
-/* ── Honest absence ───────────────────────────────────────────────────────── */
 
 /*
- * An absence is rendered, never hidden and never zeroed. It reads in the panel
- * caption register so it cannot pass for a measurement, and it carries the
- * route that would answer it.
+ * La ROUTE d'une absence ne se tronque pas.
+ *
+ * Elle est là pour qu'on sache quel endpoint interroger. Coupée à
+ * « /api/v1/deployments · no_deployment_ledg… », elle ne sert plus à rien : le
+ * motif de l'absence est justement dans ce qui manque. Elle s'enroule.
  */
-.absent {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 8px;
-  color: #9a9da5;
-  white-space: nowrap;
-}
-
-.absent::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: 1px solid #6f747f;
-}
-
 .absentRoute {
-  font-size: 7px;
   color: #6b6e76;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   display: block;
+  overflow-wrap: anywhere;
 }
 
-/* On the mint decision card the same absence has to sit on a light field. */
+/* On the accent decision card the same absence has to sit on a light field. */
 .absentOnAccent {
   color: rgba(0, 0, 0, 0.72);
 }
 
-.absentOnAccent::before {
-  border-color: rgba(0, 0, 0, 0.55);
-}
 
 .srOnly {
   position: absolute !important;
@@ -662,30 +978,17 @@
 }
 
 @media (max-width: 1280px) {
-  .viewport {
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-  .shell {
-    min-height: 100dvh;
-    height: auto;
-    overflow: visible;
-  }
-  .rail {
-    position: fixed;
-  }
-  .workspace {
-    position: relative;
-    left: var(--gcc-rail-w);
-    right: auto;
-    top: 0;
-    bottom: auto;
-    width: calc(100% - var(--gcc-rail-w));
-    min-height: 100dvh;
-    grid-template-rows: auto minmax(420px, 1fr) auto;
-    overflow: visible;
-  }
+  /*
+   * Ce palier ne repositionne plus rien.
+   *
+   * Il forçait `.rail { position: fixed }` et `.workspace { left: 200px;
+   * width: calc(100% - 200px) }` — des compensations du temps où le shell
+   * empilait deux blocs absolus. Depuis que `.shell` est une grille
+   * `rail | reste`, ces règles décalaient le workspace de 200 px HORS de sa
+   * propre colonne : mesuré à 1024 px, 20 textes amputés et 5121 px de
+   * débordement vertical. La grille place les deux colonnes toute seule ; il ne
+   * reste ici que ce qui concerne vraiment le palier — le nombre de colonnes.
+   */
   .metricsRow {
     height: auto;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -717,51 +1020,146 @@
 }
 
 @media (max-width: 760px) {
-  .rail,
-  .brand,
-  .railBtn {
-    width: 54px;
+  /*
+   * ── Sous 760 px, le rail passe AU-DESSUS du contenu ──────────────────────
+   * La version précédente le gardait en colonne latérale de 180 px. Mesuré :
+   * 46 % de la largeur écran à 390 px, 56 % à 320 px, et 10 px de débordement
+   * horizontal à 320 px. Les cartes tombaient à 68 px de large et 42 éléments de
+   * texte étaient amputés en plein mot.
+   *
+   * Le rail devient donc une barre horizontale défilante — ce que Catalyst
+   * prévoit avec `StackedLayout` pour ce palier. Les libellés restent : les
+   * tronquer reproduirait le défaut qu'on corrige.
+   */
+  .viewport {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
   }
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .rail {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    flex: none;
+    flex-direction: column;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .rail :global([data-slot='sidebar']) {
+    flex-direction: column;
+  }
+  .brandHeader {
+    padding: 10px 12px;
+    border-bottom: 0;
+  }
+  /* Le pied (identité, déconnexion, légende) n'a pas sa place sur une ligne. */
+  .railFooter {
+    display: none;
+  }
+
+  .rail :global([data-slot='sidebar']) > div:nth-child(2) {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: none;
+  }
+  .rail :global([data-slot='section']) {
+    flex-direction: row;
+    gap: 4px;
+    flex: none;
+  }
+  .rail :global([data-slot='section'] + [data-slot='section']) {
+    margin-top: 0;
+    margin-left: 12px;
+  }
+  /* Un intitulé de section n'a pas de sens sur une seule ligne. */
+  .rail :global(h3) {
+    display: none;
+  }
+  .railItem {
+    flex: none;
+  }
+  /* Le liseré vertical devient un soulignement sous l'entrée courante. */
+  .railItem > span:first-child {
+    top: auto;
+    bottom: -2px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    height: 2px;
+  }
+
   .workspace {
-    left: 54px;
-    width: calc(100% - 54px);
+    position: relative;
+    left: 0;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    min-height: 0;
+    grid-template-rows: auto auto auto;
     padding: 10px;
     gap: 10px;
+    overflow: visible;
   }
   .metricsRow {
+    height: auto;
     grid-template-columns: 1fr 1fr;
   }
   .metricCard,
   .decisionCard {
     min-height: 106px;
-    padding: 22px 18px;
+    padding: 16px 14px;
+  }
+  .decisionCard {
+    margin-left: 0;
+    grid-column: span 2;
   }
   .mainRow {
     grid-template-columns: 1fr;
     min-height: 0;
   }
   .heroChart {
-    min-height: 430px;
+    min-height: 380px;
   }
   .rightStack {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
   }
   .signalCard {
-    min-height: 110px;
+    min-height: 100px;
   }
   .bottomRow {
-    display: grid;
     grid-template-columns: 1fr;
     grid-template-areas: 'wave' 'info' 'vault';
   }
+  .wavePanel {
+    grid-area: wave;
+    min-height: 200px;
+  }
   .infoGrid {
+    grid-area: info;
     grid-template-columns: 1fr;
+    min-height: 0;
   }
   .infoCell {
-    min-height: 112px;
+    min-height: 100px;
+    border-right: 0;
   }
   .vaultCard {
-    min-height: 210px;
+    grid-area: vault;
+    min-height: 200px;
+    border-left: 0;
   }
 }

@@ -1,5 +1,6 @@
 import { GreenAdminHomeDashboard } from '@/components/design-lab/green-command-center/green-admin-home-dashboard'
 import { requireSession } from '@/lib/auth'
+import { publicUser } from '@/lib/session'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 
@@ -24,5 +25,10 @@ export const dynamic = 'force-dynamic'
 export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
-  return <GreenAdminHomeDashboard registry={registry} />
+  /*
+   * `publicUser` retire le jeton porteur AVANT la frontière serveur → client.
+   * Le rail est un composant client : lui passer la session brute publierait le
+   * jeton dans le HTML sérialisé. Même précaution que `src/app/admin/layout.tsx`.
+   */
+  return <GreenAdminHomeDashboard registry={registry} user={publicUser(session)} />
 }
