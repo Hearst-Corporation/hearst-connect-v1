@@ -24,7 +24,6 @@ export type Signal = Readonly<{
   id: string
   title: string
   value: Availability<string>
-  /** A short line naming what the figure is. */
   note?: string
 }>
 
@@ -34,9 +33,12 @@ function SignalPanel({ signal, compact }: Readonly<{ signal: Signal; compact: bo
       <Subheading level={3} className={gcc.cardTitle}>
         {signal.title}
       </Subheading>
-      {signal.note !== undefined && (
+      {signal.note !== undefined && signal.note !== '' && (
         <Text className={gcc.signalNote}>
-          <span className={gcc.signalDot} aria-hidden="true">●</span> {signal.note}
+          <span className={gcc.signalDot} aria-hidden="true">
+            ●
+          </span>{' '}
+          {signal.note}
         </Text>
       )}
       {isAvailable(signal.value) ? (

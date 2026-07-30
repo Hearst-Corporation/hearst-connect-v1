@@ -6,7 +6,6 @@ import {
   isAvailable,
   mapAvailability,
   unavailable,
-  REBALANCING_THRESHOLD_BPS,
 } from '@/lib/vaults/model'
 import { estateOverview } from '@/lib/vaults/overview'
 import { GreenCommandCenterShell, gcc } from './green-command-center-shell'
@@ -16,6 +15,13 @@ import { GreenHeroChartPanel } from './green-hero-chart-panel'
 import { GreenSignalStack, type Signal } from './green-signal-stack'
 import { GreenWavePanel } from './green-wave-panel'
 import { GreenInfoGrid, GreenVaultPanel } from './green-activity-panel'
+
+function parseCount(value: string): number {
+  const digits = value.replaceAll(/[^0-9]/g, '')
+  if (digits === '') return 0
+  const count = Number.parseInt(digits, 10)
+  return Number.isFinite(count) ? count : 0
+}
 
 /**
  * The green command center, carrying the administration Home reading.
@@ -50,18 +56,12 @@ export function GreenAdminHomeDashboard({
       id: 'vaults-active',
       title: 'Active vaults',
       value: overview.activeVaults,
-      caption: 'Vaults reporting a readable snapshot',
-      support: 'Register · /api/v1/vault',
       glyph: '₿',
     },
     {
       id: 'breached',
       title: 'Above threshold',
       value: overview.breachedPockets,
-      // Le seuil est INTERPOLÉ depuis la constante, pas recopié : une légende
-      // qui répète un chiffre finit par mentir le jour où le chiffre change.
-      caption: `Pockets past the ${REBALANCING_THRESHOLD_BPS} bps console threshold`,
-      support: 'Strategies · /api/v1/vault/strategies',
       glyph: '●',
       hollow: true,
     },
@@ -69,17 +69,13 @@ export function GreenAdminHomeDashboard({
       id: 'movements',
       title: 'Recent movements',
       value: overview.recentMovements,
-      caption: 'Indexed ledger events in the window',
-      support: 'Ledger · /api/v1/series1/events',
       glyph: '↯',
       hollow: true,
     },
     {
       id: 'sources',
       title: 'Live sources',
-      value: overview.liveSources,
-      caption: 'Endpoints answering, over those declared',
-      support: 'Backend endpoint registry',
+      value: mapAvailability(overview.liveSources, (value) => value.replace('/', ' / ')),
       glyph: '◔',
       hollow: true,
     },
@@ -87,8 +83,6 @@ export function GreenAdminHomeDashboard({
       id: 'estate',
       title: 'Estate value',
       value: overview.totalValueLocked,
-      caption: 'Everything the register holds',
-      support: 'Snapshot · /api/v1/vault',
       glyph: '⌁',
     },
   ]
@@ -119,26 +113,22 @@ export function GreenAdminHomeDashboard({
       id: 'capital-deployed',
       title: 'Capital deployed',
       value: overview.deployedCapital,
-      note: 'Placed in a strategy',
     },
-    { id: 'capital-available', title: 'Available capital', value: overview.availableCapital, note: 'Idle in the vault' },
+    { id: 'capital-available', title: 'Available capital', value: overview.availableCapital },
     {
       id: 'deployment-ratio',
       title: 'Deployment ratio',
       value: overview.deploymentRatio,
-      note: 'Deployed over total',
     },
     {
       id: 'rebalancing',
       title: 'Rebalancing state',
-      value: mapAvailability(registry.rebalancing, (rows) => `${formatNumber(rows.length)} pockets tracked`),
-      note: 'Contract-reported drift',
+      value: mapAvailability(registry.rebalancing, (rows) => formatNumber(rows.length)),
     },
     {
       id: 'denomination',
       title: 'Denomination',
       value: mapAvailability(overview.asset, (asset) => `${asset.symbol} · ${formatNumber(asset.decimals)} dp`),
-      note: 'Shared across the register',
     },
   ]
 
@@ -147,7 +137,7 @@ export function GreenAdminHomeDashboard({
     ? vaults.value.map((vault) => ({
         id: vault.id,
         label: vault.label,
-        detail: `${vault.status.toLowerCase()} · ${formatAddress(vault.contractAddress) ?? vault.contractAddress}`,
+        detail: formatAddress(vault.contractAddress) ?? vault.contractAddress,
       }))
     : []
 
@@ -157,14 +147,12 @@ export function GreenAdminHomeDashboard({
     status: source.status.toLowerCase(),
   }))
 
-  /*
-   * La note ne RECALCULE pas le compte de sources actives.
-   *
-   * `overview.liveSources` porte déjà « n/m ». Le dashboard refaisait le même
-   * filtre `status === 'LIVE'` que `estateOverview`, pour afficher deux fois le
-   * même chiffre côte à côte. La note nomme seulement ce qui est compté.
-   */
-  const sourcesNote = `endpoints answering, of ${formatNumber(registry.sources.length)} declared`
+  const decisionActionable = isAvailable(pendingDecisions) && parseCount(pendingDecisions.value) > 0
+  const decisionHint = !isAvailable(pendingDecisions)
+    ? 'Queue unavailable'
+    : decisionActionable
+      ? 'Review now'
+      : 'No pending review'
 
   return (
     <GreenCommandCenterShell
@@ -173,14 +161,15 @@ export function GreenAdminHomeDashboard({
     >
       <GreenMetricStrip
         cells={cells}
-        decision={<GreenDecisionPanel pending={pendingDecisions} hint="Review now" />}
+        decision={
+          <GreenDecisionPanel pending={pendingDecisions} hint={decisionHint} actionable={decisionActionable} />
+        }
       />
 
       <section className={gcc.mainRow} aria-label="Activity and capital" data-gcc="main-row">
         <GreenHeroChartPanel
           title="Recent activity"
           trend={overview.recentTrend}
-          axisLabel={isAvailable(overview.asset) ? 'Value moved' : 'Movements per day'}
           countLabel={overview.recentMovements}
         />
         <GreenSignalStack signals={signals} />
@@ -192,7 +181,6 @@ export function GreenAdminHomeDashboard({
           exceptions={registry.clientExceptions}
           deployments={registry.deployments}
           sourcesLive={overview.liveSources}
-          sourcesNote={sourcesNote}
           movements={registry.movements}
         />
         <GreenVaultPanel

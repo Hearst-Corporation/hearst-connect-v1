@@ -24,13 +24,11 @@ export function GreenInfoGrid({
   exceptions,
   deployments,
   sourcesLive,
-  sourcesNote,
   movements,
 }: Readonly<{
   exceptions: Availability<readonly ClientException[]>
   deployments: Availability<unknown>
   sourcesLive: Availability<string>
-  sourcesNote: string
   movements: Availability<readonly Movement[]>
 }>) {
   return (
@@ -40,7 +38,7 @@ export function GreenInfoGrid({
         <Subheading level={3} className={gcc.cardTitle}>Client exceptions</Subheading>
         {isAvailable(exceptions) ? (
           exceptions.value.length === 0 ? (
-            <Text className={gcc.cellText}>No client is currently blocked.</Text>
+            <Text className={gcc.cellText}>None</Text>
           ) : (
             exceptions.value.slice(0, 3).map((exception) => (
               <Text key={`${exception.clientLabel}-${exception.issue}`} className={gcc.cellText}>
@@ -49,7 +47,7 @@ export function GreenInfoGrid({
             ))
           )
         ) : (
-          <Absent availability={exceptions} />
+          <Absent availability={exceptions} showRoute={false} />
         )}
       </article>
 
@@ -57,11 +55,13 @@ export function GreenInfoGrid({
       <article className={gcc.infoCell} data-gcc="info-cell">
         <Subheading level={3} className={gcc.cardTitle}>Deployment queue</Subheading>
         {isAvailable(deployments) ? (
-          <Text className={gcc.cellText}>Queue readable.</Text>
+          <Text className={gcc.cellText}>Readable</Text>
         ) : (
           <>
-            <Text className={gcc.cellText}>No deployment ledger is exposed by the service.</Text>
-            <Absent availability={deployments} />
+            <Text className={gcc.cellText}>
+              {deployments.status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
+            </Text>
+            <Text className={gcc.cellText}>Deployment ledger unavailable</Text>
           </>
         )}
       </article>
@@ -76,11 +76,10 @@ export function GreenInfoGrid({
           <div className={gcc.healthText}>
             {isAvailable(sourcesLive) ? (
               <>
-                <Strong className={gcc.healthValue}>{sourcesLive.value} live</Strong>
-                <Text className={gcc.cellText}>{sourcesNote}</Text>
+                <Strong className={gcc.healthValue}>{sourcesLive.value}</Strong>
               </>
             ) : (
-              <Absent availability={sourcesLive} />
+              <Absent availability={sourcesLive} showRoute={false} />
             )}
           </div>
         </div>
@@ -91,7 +90,7 @@ export function GreenInfoGrid({
         <Subheading level={3} className={gcc.cardTitle}>Recent activity</Subheading>
         {isAvailable(movements) ? (
           movements.value.length === 0 ? (
-            <Text className={gcc.cellText}>The window holds no movement.</Text>
+            <Text className={gcc.cellText}>None</Text>
           ) : (
             movements.value.slice(0, 3).map((movement) => (
               <Text key={movement.id} className={gcc.cellText}>
@@ -100,7 +99,7 @@ export function GreenInfoGrid({
             ))
           )
         ) : (
-          <Absent availability={movements} />
+          <Absent availability={movements} showRoute={false} />
         )}
       </article>
     </Panel>
@@ -126,16 +125,16 @@ export function GreenVaultPanel({
     <Panel className={gcc.vaultCard} aria-label="Vault register and source activity" data-gcc="vault-card">
       <Subheading level={3} className={gcc.cardTitle}>Vault register</Subheading>
       {!isAvailable(vaultAbsence) ? (
-        <Absent availability={vaultAbsence} />
+        <Absent availability={vaultAbsence} showRoute={false} />
       ) : vaultLines.length === 0 ? (
-        <Text className={gcc.cellText}>The register lists no vault.</Text>
+        <Text className={gcc.cellText}>None</Text>
       ) : (
         vaultLines.slice(0, 2).map((line) => (
           <div className={gcc.vaultLine} key={line.id}>
             <span aria-hidden="true">↳</span>
             <div className={gcc.vaultLineText}>
               <Strong className={gcc.cellStrong}>{line.label}</Strong>
-              <Text className={gcc.cellText}>{line.detail}</Text>
+              <Text className={gcc.cellText}>Readable · {line.detail}</Text>
             </div>
           </div>
         ))
