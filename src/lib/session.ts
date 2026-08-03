@@ -1,14 +1,33 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto'
 import { cookies } from 'next/headers'
+import { authSecret } from '@/lib/env'
 
 /**
- * Server session — HMAC-SHA256-signed httpOnly cookie.
+ * Server session — AES-256-GCM AUTHENTICATED-ENCRYPTED httpOnly cookie.
  *
- * No secret is written in the code: `AUTH_SECRET` comes from the environment
- * (Hearst doctrine §2.1). The cookie carries the user's identity AND the
- * bearer token issued by the backend — which is why it stays strictly
- * httpOnly: it is never readable in JavaScript, never serialized to a client
- * component, never rendered in the HTML.
+ * ── Why encryption, not just a signature (SEC-02) ──────────────────────────
+ * The cookie carries the user's identity AND the bearer token issued by the
+ * backend. A signed-only cookie keeps that token in plaintext base64: anyone
+ * who obtains the cookie value (a log, a backup, a proxy) can read the backend
+ * bearer token. So the payload is now ENCRYPTED, not merely signed. AES-GCM is
+ * authenticated encryption: its 128-bit tag detects any tampering, which is why
+ * it replaces the previous HMAC entirely — a forged or altered token fails
+ * decryption and yields `null`.
+ *
+ * The cookie stays strictly httpOnly regardless: never readable in JavaScript,
+ * never serialized to a client component, never rendered in the HTML.
+ *
+ * ── Key ────────────────────────────────────────────────────────────────────
+ * The 256-bit key is derived deterministically from `AUTH_SECRET` (SHA-256).
+ * No secret is written in the code (Hearst doctrine §2.1); `AUTH_SECRET` comes
+ * from the environment through the single `env.ts` door.
+ *
+ * ── Rotation ───────────────────────────────────────────────────────────────
+ * Tokens are versioned (`v1` prefix). To rotate the key, mint under a new
+ * version while `verifyToken` still accepts the previous one for one token
+ * lifetime, then drop the old branch. Rotating `AUTH_SECRET` invalidates all
+ * live sessions (they fail decryption and are treated as expired) — a safe
+ * default, since a session cannot outlive the secret that sealed it.
  *
  * The cookie's expiration is ALIGNED with the backend token's: a frontend
  * session does not outlive the token it carries.
@@ -50,40 +69,64 @@ type SessionPayload = Session & {
   exp: number
 }
 
-function secret(): string {
-  const value = process.env.AUTH_SECRET
-  if (!value || value.length < 32) {
+/** Current token format version. Bump alongside a key rotation (see header). */
+const TOKEN_VERSION = 'v1'
+const IV_BYTES = 12 // 96-bit nonce, the standard size for AES-GCM.
+
+/**
+ * 256-bit encryption key, derived from `AUTH_SECRET` by SHA-256.
+ *
+ * A hash gives a uniform 32-byte key from a secret of any length ≥ 32 chars,
+ * deterministically, so the same secret always decrypts its own tokens. It is
+ * never logged and never leaves the server.
+ */
+function key(): Buffer {
+  const value = authSecret()
+  if (!value) {
     throw new Error('AUTH_SECRET missing or too short (32 characters minimum). See .env.example.')
   }
-  return value
+  return createHash('sha256').update(value).digest()
 }
 
-const encode = (value: string) => Buffer.from(value, 'utf8').toString('base64url')
-const sign = (data: string) => createHmac('sha256', secret()).update(data).digest('base64url')
-
-function safeEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a)
-  const right = Buffer.from(b)
-  if (left.length !== right.length) return false
-  return timingSafeEqual(left, right)
-}
-
+/**
+ * Seals a session into a `v1.<iv>.<ciphertext>.<tag>` token, all base64url.
+ * AES-256-GCM: the payload is confidential AND tamper-evident. A fresh random
+ * IV per token means two identical sessions never produce the same ciphertext.
+ */
 export function createToken(session: Session): string {
   const payload: SessionPayload = { ...session, exp: session.expiresAt }
-  const data = encode(JSON.stringify(payload))
-  return `${data}.${sign(data)}`
+  const iv = randomBytes(IV_BYTES)
+  const cipher = createCipheriv('aes-256-gcm', key(), iv)
+  const ciphertext = Buffer.concat([cipher.update(JSON.stringify(payload), 'utf8'), cipher.final()])
+  const tag = cipher.getAuthTag()
+  return [
+    TOKEN_VERSION,
+    iv.toString('base64url'),
+    ciphertext.toString('base64url'),
+    tag.toString('base64url'),
+  ].join('.')
 }
 
 export function verifyToken(token: string | undefined): Session | null {
   if (!token) return null
 
-  const [data, signature] = token.split('.')
-  if (!data || !signature) return null
-  if (!safeEqual(signature, sign(data))) return null
+  const parts = token.split('.')
+  if (parts.length !== 4) return null
+  const [version, ivRaw, ctRaw, tagRaw] = parts
+  if (version !== TOKEN_VERSION) return null
 
   let payload: SessionPayload
   try {
-    payload = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'))
+    const iv = Buffer.from(ivRaw, 'base64url')
+    const ciphertext = Buffer.from(ctRaw, 'base64url')
+    const tag = Buffer.from(tagRaw, 'base64url')
+    if (iv.length !== IV_BYTES || tag.length !== 16) return null
+    const decipher = createDecipheriv('aes-256-gcm', key(), iv)
+    decipher.setAuthTag(tag)
+    // `final()` throws if the tag does not verify — a tampered or forged token
+    // cannot be decrypted, and lands here as `null` rather than a valid session.
+    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
+    payload = JSON.parse(plaintext)
   } catch {
     return null
   }
