@@ -6,13 +6,13 @@ import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
+import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
 export const metadata: Metadata = { title: 'Your Account' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -146,11 +146,11 @@ export default async function Page() {
       rail={<GreenCommandRail currentHref="/admin/administration" userName={railUserName} userRole={railUserRole} />}
     >
       <section className={gcc.metricsRow} aria-label="Profile summary">
-        <Panel className={gcc.metricCard}><h2>Session</h2><div className={gcc.metricText}><Reading value={manual(sessionState)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Name</h2><div className={gcc.metricText}><Reading value={manual(session?.name ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Email</h2><div className={gcc.metricText}><Reading value={manual(session?.email ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={manual(session === null ? '—' : LIBELLE_ROLE[session.role])} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Investor record</h2><div className={gcc.metricText}><Reading value={manual(investorState)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Session</h2><div className={gcc.metricText}><Reading value={editorial(sessionState)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Name</h2><div className={gcc.metricText}><Reading value={editorial(session?.name ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Email</h2><div className={gcc.metricText}><Reading value={editorial(session?.email ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Investor record</h2><div className={gcc.metricText}><Reading value={editorial(investorState)} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Account <span>identity</span></p>
           <p className={gcc.decisionMeta}>{reponse.ok ? 'Profile endpoint reachable' : 'Profile endpoint unavailable'}</p>

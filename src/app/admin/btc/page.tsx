@@ -10,6 +10,7 @@ import { ReserveExpositionChart, type PosteBitcoin } from '@/components/admin/pr
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { plottableAsChart } from '@/lib/chart-theme'
+import { available, editorial, unavailable } from '@/lib/vaults/model'
 import { formatCurrency, formatDateTime } from '@/lib/format'
 import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
 import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
@@ -20,8 +21,6 @@ import React from 'react'
 
 export const metadata: Metadata = { title: 'Bitcoin' }
 export const dynamic = 'force-dynamic'
-
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -654,17 +653,30 @@ export default async function Page() {
   const vue = buildBitcoinViewModel(reponse.ok ? reponse.data : null)
   const b = vue.reponse
 
+  // VER-10: figures are editorial when the source responded, absent otherwise —
+  // never badged "Live" for a placeholder. Counts (Monthly reports, Event rows)
+  // are measurements only when their source actually answered.
+  const btcFigure = (value: string) =>
+    reponse.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+  const monthlyReportsCell = reponse.ok
+    ? available(String(vue.moisProduction.length), { provenance: 'live', asOf: null })
+    : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+  const eventRowsCell =
+    reponse.ok && b?.events?.value
+      ? available(String(vue.evenements.length), { provenance: 'live', asOf: null })
+      : unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'events_unreadable' })
+
   return (
     <GreenCommandCenterShell
       label="Hearst Connect bitcoin cockpit"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Bitcoin summary">
-        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={manual(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Reserve</h2><div className={gcc.metricText}><Reading value={manual(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Exposure</h2><div className={gcc.metricText}><Reading value={manual(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Monthly reports</h2><div className={gcc.metricText}><Reading value={manual(String(vue.moisProduction.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Event rows</h2><div className={gcc.metricText}><Reading value={manual(String(vue.evenements.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={btcFigure(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Reserve</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Exposure</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Monthly reports</h2><div className={gcc.metricText}><Reading value={monthlyReportsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Event rows</h2><div className={gcc.metricText}><Reading value={eventRowsCell} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Bitcoin <span>surface</span></p>
           <p className={gcc.decisionMeta}>{b === null ? 'Source unavailable' : 'Source available'}</p>

@@ -6,7 +6,8 @@ import { VaultValueBreakdown } from '@/components/vaults/vault-value-breakdown'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { publicUser } from '@/lib/session'
-import { isAvailable, mapAvailability } from '@/lib/vaults/model'
+import { editorial, isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
+import { activeVaultCount } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
 
@@ -34,20 +35,16 @@ export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name)
   const user = publicUser(session)
-  const activeVaults = mapAvailability(
-    registry.vaults,
-    (rows) => formatNumber(rows.filter((vault) => vault.status === 'ACTIVE').length),
+  // Canonical, unreadable-aware count (VER-05) — no longer reimplemented here.
+  const activeVaults = activeVaultCount(registry.vaults)
+  const totalVaults = measuredCount(registry.vaults)
+  // A console-assembled ratio over the source-health strip, which is always
+  // present. Editorial, not a single backend field — so it is never badged "Live".
+  const liveSources = editorial(
+    `${registry.sources.filter((source) => source.status === 'LIVE').length} / ${registry.sources.length}`,
   )
-  const totalVaults = mapAvailability(registry.vaults, (rows) => formatNumber(rows.length))
-  const liveSources = {
-    kind: 'available',
-    value: `${registry.sources.filter((source) => source.status === 'LIVE').length} / ${registry.sources.length}`,
-    provenance: 'manual',
-    asOf: null,
-    stale: false,
-  } as const
-  const movements = mapAvailability(registry.movements, (rows) => formatNumber(rows.length))
-  const exceptions = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
+  const movements = measuredCount(registry.movements)
+  const exceptions = measuredCount(registry.clientExceptions)
   const decisionLabel =
     isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0 ? 'Review pending' : 'No pending review'
 

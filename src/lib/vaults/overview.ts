@@ -208,6 +208,37 @@ export function recentActivityTrend(
   return unavailable({ endpoint: '/api/v1/series1/events', status: 'PARTIAL', reason: 'not_enough_ordered_points' })
 }
 
+/**
+ * How many vaults are active — or why that count cannot be stated.
+ *
+ * A vault whose status is `UNREADABLE` is, by definition, one the service could
+ * not read: it is neither known-active nor known-inactive. Counting it as
+ * "not active" (as a plain `.filter(status === 'ACTIVE').length` does) publishes
+ * a number smaller than the truth that looks exactly like a complete one — the
+ * VER-05 defect, where `/admin` showed "Active vaults 0 ● Live" over a register
+ * whose only vault was unreadable.
+ *
+ * So the count is refused as soon as one vault is unreadable, exactly like
+ * `sumAcrossVaults` refuses a money total. An empty register is an absence too,
+ * not a measured zero. A register of vaults all readable yields a real count —
+ * which may legitimately be zero.
+ */
+export function activeVaultCount(vaults: Availability<readonly Vault[]>): Availability<string> {
+  if (!isAvailable(vaults)) return vaults
+  if (vaults.value.length === 0) {
+    return unavailable({ endpoint: '/api/v1/vault', status: 'EMPTY', reason: 'no_vault_in_register' })
+  }
+  if (vaults.value.some((vault) => vault.status === 'UNREADABLE')) {
+    return unavailable({ endpoint: '/api/v1/vault', status: 'PARTIAL', reason: 'vault_snapshot_unreadable' })
+  }
+  const active = vaults.value.filter((vault) => vault.status === 'ACTIVE').length
+  return available(formatNumber(active), {
+    provenance: vaults.provenance,
+    asOf: vaults.asOf,
+    stale: vaults.stale,
+  })
+}
+
 /* ── The overview reading ─────────────────────────────────────────────────── */
 
 /**
@@ -247,9 +278,7 @@ export function estateOverview(registry: AdminRegistry): EstateOverview {
 
   return {
     asset,
-    activeVaults: mapAvailability(vaults, (list) =>
-      formatNumber(list.filter((vault) => vault.status === 'ACTIVE').length),
-    ),
+    activeVaults: activeVaultCount(vaults),
     totalValueLocked: asMoney(
       sumAcrossVaults(vaults, (vault) => mapAvailability(vault.totalAssetsAtomic, BigInt)),
       asset,

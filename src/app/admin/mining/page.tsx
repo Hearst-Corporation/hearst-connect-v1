@@ -15,13 +15,13 @@ import { adresseCourte, dateLisible, ilYA, libelleMouvement, montantUsdc } from 
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
 import { publicUser } from '@/lib/session'
+import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Mining' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -675,7 +675,16 @@ export default async function Page() {
   const hashrateValue = hashrateLisible(resume.releve)
   const producedValue = btcLisible(resume.cumulBtc)
   const billValue = dollarsLisibles(resume.factureMensuelle)
-  const attestationCount = resume.attestations.length
+  // VER-10: figures are editorial when their source responded; the attestation
+  // COUNT is a measurement only when the movements source actually answered —
+  // an unread source is a named absence, never a bare "0".
+  const miningFigure = (value: string): Availability<string> =>
+    reponseMinage.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/mining', status: 'UNAVAILABLE', reason: 'mining_source_unreachable' })
+  const btcFigure = (value: string): Availability<string> =>
+    reponseBtc.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+  const attestationsCell: Availability<string> = reponseMouvements.ok
+    ? available(String(resume.attestations.length), { provenance: 'live', asOf: null })
+    : unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE', reason: 'events_source_unreachable' })
 
   return (
     <GreenCommandCenterShell
@@ -683,11 +692,11 @@ export default async function Page() {
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Mining summary">
-        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={manual(hashrateValue)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={manual(producedValue)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Monthly bill</h2><div className={gcc.metricText}><Reading value={manual(billValue)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Attestations</h2><div className={gcc.metricText}><Reading value={manual(String(attestationCount))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Coverage threshold</h2><div className={gcc.metricText}><Reading value={manual(dollarsLisibles(resume.seuil))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={miningFigure(hashrateValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={btcFigure(producedValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Monthly bill</h2><div className={gcc.metricText}><Reading value={miningFigure(billValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Attestations</h2><div className={gcc.metricText}><Reading value={attestationsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Coverage threshold</h2><div className={gcc.metricText}><Reading value={editorial(dollarsLisibles(resume.seuil))} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Mining <span>state</span></p>
           <p className={gcc.decisionMeta}>{minage === null ? 'Source unavailable' : 'Source available'}</p>

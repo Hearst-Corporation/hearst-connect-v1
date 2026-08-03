@@ -13,12 +13,12 @@ import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { formatNumber } from '@/lib/format'
 import { publicUser } from '@/lib/session'
+import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Service Status' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 type Runtime = {
   readonly databaseStatus?: string
@@ -183,11 +183,11 @@ export default async function RuntimePage() {
       rail={<GreenCommandRail currentHref="/admin/runtime" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Runtime summary">
-        <Panel className={gcc.metricCard}><h2>Health</h2><div className={gcc.metricText}><Reading value={manual(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Ready</h2><div className={gcc.metricText}><Reading value={manual(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Database</h2><div className={gcc.metricText}><Reading value={manual(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Indexer</h2><div className={gcc.metricText}><Reading value={manual(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Environment</h2><div className={gcc.metricText}><Reading value={manual(r?.environment ?? 'Not reported')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Health</h2><div className={gcc.metricText}><Reading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Ready</h2><div className={gcc.metricText}><Reading value={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Database</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Indexer</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Environment</h2><div className={gcc.metricText}><Reading value={editorial(r?.environment ?? 'Not reported')} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Runtime <span>state</span></p>
           <p className={gcc.decisionMeta}>{r?.version ?? 'Version not reported'}</p>

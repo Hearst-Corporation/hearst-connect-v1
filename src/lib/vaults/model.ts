@@ -79,6 +79,37 @@ export function unavailable(
 }
 
 /**
+ * An EDITORIAL value — a label, a convention, a threshold this console applies.
+ * It is genuinely present (so it renders), but it is NOT a backend measurement,
+ * and its `manual` provenance is what lets the display refuse to badge it "Live"
+ * (see VER-09). Use this ONLY for values that carry no claim about live data:
+ * a section heading, a console-defined threshold, an editorial caption.
+ *
+ * It must never wrap a COUNT or a figure derived from a source reading — for
+ * that, use `measuredCount` / `mapAvailability`, which propagate absence.
+ */
+export function editorial(value: string): Available<string> {
+  return { kind: 'available', value, provenance: 'manual', asOf: null, stale: false }
+}
+
+/**
+ * A COUNT derived from a source reading, rendered honestly.
+ *
+ * This is the fix for the audit's root cause (VER-10): pages used to compute
+ * `list.length` after collapsing an absent source to `[]`, then force the count
+ * "available/Live" with a local `manual()` helper. A count nobody could make
+ * was indistinguishable from a real zero.
+ *
+ * Here the count is a derivation OF the source availability: if the source is
+ * unavailable, so is the count; if it is available, the count carries the
+ * source's provenance and freshness — so "0 measured" and "not measurable"
+ * stay opposite facts, by construction.
+ */
+export function measuredCount<T>(source: Availability<readonly T[]>): Availability<string> {
+  return mapAvailability(source, (list) => String(list.length))
+}
+
+/**
  * The value carried by an availability, extracted from the union.
  *
  * `Availability<T>` only mentions `T` in its available branch, and TypeScript
@@ -91,6 +122,28 @@ type ValueOf<A> = A extends Available<infer T> ? T : never
 
 export function isAvailable<T>(a: Availability<T>): a is Available<T> {
   return a.kind === 'available'
+}
+
+/**
+ * The freshness signal a value carries — the honest basis for a "Live" badge.
+ *
+ * VER-09: a badge that reads "Live" the instant a value is merely PRESENT lies
+ * twice — it calls an editorial label a measurement, and it calls stale data
+ * fresh. A live signal requires a real backend provenance AND a non-stale read.
+ *
+ * - `live`     — read from a backend/chain/indexed source, not stale.
+ * - `stale`    — a real reading, but the source flagged it out of date.
+ * - `editorial`— present, but authored (a label, a convention): never "Live".
+ * - `absent`   — no value at all.
+ */
+export type Signal = 'live' | 'stale' | 'editorial' | 'absent'
+
+const LIVE_PROVENANCE: ReadonlySet<Provenance> = new Set<Provenance>(['live', 'db', 'indexed', 'chain'])
+
+export function signalOf<T>(a: Availability<T>): Signal {
+  if (a.kind !== 'available') return 'absent'
+  if (!LIVE_PROVENANCE.has(a.provenance)) return 'editorial'
+  return a.stale ? 'stale' : 'live'
 }
 
 /** The value if there is one — never a fallback, only `null`. */

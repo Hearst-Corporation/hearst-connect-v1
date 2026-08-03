@@ -4,6 +4,7 @@ import { Panel, Reading } from '@/components/design-lab/green-command-center/pri
 import { ADMIN_SECONDARY, CLIENTS_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
+import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -12,7 +13,6 @@ export const dynamic = 'force-dynamic'
 
 const SCREEN_COUNT = ADMIN_SECONDARY.reduce((total, group) => total + group.entrees.length, 0)
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 export default async function Page() {
   const session = await requireSession()
@@ -27,31 +27,31 @@ export default async function Page() {
         <Panel className={gcc.metricCard}>
           <h2>Account</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(session.name)} className={gcc.metricValue} />
+            <Reading value={editorial(session.name)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Email</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(session.email)} className={gcc.metricValue} />
+            <Reading value={editorial(session.email)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Role</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(session.role)} className={gcc.metricValue} />
+            <Reading value={editorial(session.role)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Secondary screens</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(SCREEN_COUNT))} className={gcc.metricValue} />
+            <Reading value={editorial(String(SCREEN_COUNT))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Admin log source</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual('Not exposed')} className={gcc.metricValue} />
+            <Reading value={editorial('Not exposed')} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
