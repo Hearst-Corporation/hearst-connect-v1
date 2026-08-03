@@ -3,6 +3,7 @@ import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
+import { notFound } from 'next/navigation'
 
 /**
  * Green command center — visual laboratory for the administration Home screen.
@@ -23,6 +24,10 @@ import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
+  // ARCH-02: this is a DEV-ONLY sandbox that duplicates /admin. In production it
+  // must not be reachable — otherwise it is a second, unlinked copy of the
+  // console home. `notFound()` before any data read keeps it out of prod.
+  if (process.env.NODE_ENV === 'production') notFound()
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
   /*

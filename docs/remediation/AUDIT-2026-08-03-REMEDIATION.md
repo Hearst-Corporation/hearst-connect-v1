@@ -87,7 +87,10 @@ knip : **30 → 18 fichiers morts** (les 18 restants = 17 Catalyst vendorés con
 | DEAD-01/09 (partiel) | 14 composants orphelins supprimés sous `components/admin` + `components/vaults` (grep de preuve : 0 import réel). | knip -12 | **FIXED** |
 | DEAD-06 | Kit Catalyst : **conservé** (vendoré, décision produit) même si 17 fichiers inutilisés — à documenter (`VENDOR.md`, Lot 4). | — | GARDÉ (voulu) |
 
-Reste Lot 7 : `resolved-mapper` (rebrancher ou retirer), duplication `/design-lab` (sortir de prod), assets/PNG.
+| ARCH-02 | `/design-lab/admin-home-green` (sandbox dupliquant `/admin`) : garde `if (NODE_ENV==='production') notFound()` avant tout. Dev inchangé, prod = 404. | **prouvé en prod réelle** : user authentifié → 404 | **FIXED** |
+| DEAD-04 / BAPI-07 | `resolved-mapper.ts` : 0 import runtime (seul `resolved.test.ts` l'exerce). Module cohérent et testé, **conçu** comme mapper canonique mais non branché. Décision : **conservé + documenté** plutôt que supprimé — le supprimer optimiserait le compteur knip au prix d'une abstraction délibérée. À brancher ou retirer sur décision produit. | grep : 0 import hors test | DOCUMENTÉ |
+
+Reste Lot 7 : brancher/retirer `resolved-mapper` (décision produit), assets/PNG (16 Mo docs).
 
 ## Lot 8 — Backend, contrats & observabilité  🟡 EN COURS
 
