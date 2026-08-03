@@ -578,7 +578,16 @@
   align-content: stretch;
   gap: var(--gcc-gap);
   background: var(--gcc-workspace);
-  overflow: hidden;
+  /*
+   * UI-01 : le workspace DÉFILE verticalement quand son contenu dépasse la
+   * hauteur du viewport (écran bas, zoom navigateur), au lieu d'être coupé par
+   * `overflow: hidden`. Sur un écran haut, les trois rangées remplissent
+   * exactement l'espace et rien ne défile — le cockpit reste identique. La
+   * coupe horizontale est conservée (les tables larges gèrent leur propre
+   * défilement, cf. WideTableScroll).
+   */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* The one panel material every surface shares. */
@@ -1258,9 +1267,33 @@
     padding: 10px 12px;
     border-bottom: 0;
   }
-  /* Le pied (identité, déconnexion, légende) n'a pas sa place sur une ligne. */
+  /*
+   * UI-02 : sous 760 px, le pied ne DISPARAÎT plus.
+   *
+   * Le masquer entièrement supprimait le seul moyen de se déconnecter sur
+   * mobile : « Sign out » vivait dans ce pied. Le pied rejoint donc la barre
+   * horizontale — l'identité verbeuse est repliée (elle est déjà dans le
+   * brandHeader), mais l'action de déconnexion reste atteignable et tactile.
+   */
   .railFooter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-top: 0;
+    margin-top: 0;
+    padding: 0 12px 10px;
+    flex: none;
+  }
+  /* Le bloc identité (avatar + nom + rôle) est déjà rendu par le brandHeader
+     en haut ; inutile de le répéter sur la barre. */
+  .railFooter .railUser {
     display: none;
+  }
+  /* La section qui porte « Sign out » reste en ligne, à droite de la barre. */
+  .railFooter :global([data-slot='section']) {
+    flex-direction: row;
+    margin-left: auto;
+    flex: none;
   }
 
   .rail :global([data-slot='sidebar']) > div:nth-child(2) {
