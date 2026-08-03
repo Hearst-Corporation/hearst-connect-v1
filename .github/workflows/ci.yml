@@ -28,3 +28,5 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Anti-données-simulées (check:mocks)
         run: pnpm run check:mocks
+      - name: Convergence Design System (check:ds — hex hors tokens)
+        run: pnpm run check:ds

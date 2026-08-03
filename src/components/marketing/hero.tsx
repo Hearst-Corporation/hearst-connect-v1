@@ -15,7 +15,7 @@ export function Hero() {
       >
         <div
           style={{ clipPath: CLIP_PATH }}
-          className="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#93c5fd] to-[#2563eb] opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"
+          className="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-accent-300 to-accent-600 opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"
         />
       </div>
 
@@ -59,7 +59,7 @@ export function Hero() {
       >
         <div
           style={{ clipPath: CLIP_PATH }}
-          className="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-[#93c5fd] to-[#2563eb] opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75"
+          className="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-accent-300 to-accent-600 opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75"
         />
       </div>
     </div>
