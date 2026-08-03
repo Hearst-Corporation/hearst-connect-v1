@@ -343,11 +343,23 @@ export function endpointsByCategory(category: EndpointCategory): BackendEndpoint
 
 /** Substitutes path parameters. Refuses any missing parameter. */
 export function resolvePath(endpoint: BackendEndpoint, params: Record<string, string | number> = {}): string {
-  return endpoint.path.replace(/:(\w+)/g, (_, name: string) => {
+  const consumed = new Set<string>()
+  const path = endpoint.path.replace(/:(\w+)/g, (_, name: string) => {
     const value = params[name]
     if (value === undefined) {
       throw new Error(`Parameter "${name}" required by ${endpoint.path} and not provided.`)
     }
-    return String(value)
+    consumed.add(name)
+    return encodeURIComponent(String(value))
   })
+
+  // BAPI-04: params that are NOT path segments (e.g. `limit`) were silently
+  // dropped — `{ params: { limit: 50 } }` never reached the URL, so the backend
+  // always returned its default page size. They now become a query string.
+  const query = new URLSearchParams()
+  for (const [name, value] of Object.entries(params)) {
+    if (!consumed.has(name)) query.set(name, String(value))
+  }
+  const qs = query.toString()
+  return qs === '' ? path : `${path}?${qs}`
 }

@@ -20,15 +20,27 @@ export const metadata: Metadata = { title: 'Service Status' }
 export const dynamic = 'force-dynamic'
 
 
+/**
+ * BAPI-03: the type now matches the ACTUAL non-enveloped /api/v1/runtime
+ * payload (verified against production, 2026-08-04). The service reports the
+ * version as `serviceVersion` (not `version`) and the chain under
+ * `contract.chainId` (not a top-level `chainId`) — reading the old paths made
+ * the Version and Chain fields render empty even though the backend supplies them.
+ */
 type Runtime = {
   readonly databaseStatus?: string
   readonly contractStatus?: string
   readonly indexerStatus?: string
   readonly environment?: string
   readonly uptimeSeconds?: number
-  readonly version?: string
-  readonly commitSha?: string
-  readonly chainId?: number
+  readonly serviceVersion?: string
+  readonly commitSha?: string | null
+  readonly contract?: {
+    readonly mode?: string
+    readonly chainId?: number
+    readonly contractAddress?: string
+    readonly codePresent?: boolean
+  }
   readonly db?: { readonly reachable?: boolean; readonly latencyMs?: number | null }
   readonly indexerScheduler?: {
     readonly status?: string
@@ -40,7 +52,7 @@ type Runtime = {
 }
 
 function formatUptime(seconds: number | undefined): string {
-  if (seconds === undefined || !Number.isFinite(seconds)) return '—'
+  if (seconds === undefined || !Number.isFinite(seconds)) return '—'
   if (seconds < 120) return `${Math.round(seconds)} s`
   const minutes = Math.round(seconds / 60)
   if (minutes < 120) return `${minutes} min`
@@ -190,7 +202,7 @@ export default async function RuntimePage() {
         <Panel className={gcc.metricCard}><h2>Environment</h2><div className={gcc.metricText}><Reading value={editorial(r?.environment ?? 'Not reported')} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Runtime <span>state</span></p>
-          <p className={gcc.decisionMeta}>{r?.version ?? 'Version not reported'}</p>
+          <p className={gcc.decisionMeta}>{r?.serviceVersion ?? 'Version not reported'}</p>
           <p className={gcc.decisionActionMuted}>Matrix + raw probes</p>
         </Panel>
       </section>
@@ -202,7 +214,7 @@ export default async function RuntimePage() {
       {/*
         The matrix is a single full-width list card and is therefore the section's
         direct child: wrapping one surface in a one-column grid would be an empty
-        container around another surface. Its own card title is gone too — the
+        container around another surface. Its own card title is gone too — the
         section's H2 already names it, and an H3 repeating it inside the card was
         a second header for one piece of content.
       */}
@@ -212,7 +224,7 @@ export default async function RuntimePage() {
 
       {/*
         Deployment facts: six peers, no headline among them, so they compose as a
-        balanced 3 × 2 block rather than the old `sm:grid-cols-2 lg:grid-cols-4`,
+        balanced 3 Ã 2 block rather than the old `sm:grid-cols-2 lg:grid-cols-4`,
         which put four on the first row and marooned two on the left of an empty
         one.
 
@@ -220,11 +232,11 @@ export default async function RuntimePage() {
         roughly 165px per tile, too thin for a commit SHA or an environment name
         at the standard numeric size. Explicit spans on the 12-column grid give a
         full last row at every breakpoint: 3 across at lg (span 4), 2 at md
-        (md 4 of 8), 1 at base — 6, 6 and 6 tiles with nothing stranded.
+        (md 4 of 8), 1 at base — 6, 6 and 6 tiles with nothing stranded.
 
         Order is by meaning, one row per idea: deployment identity, then running
-        state. Every tile carries exactly one caption — the runtime field it
-        reads — so the tiles in a row are the same height and the caption doubles
+        state. Every tile carries exactly one caption — the runtime field it
+        reads — so the tiles in a row are the same height and the caption doubles
         as provenance on a page whose job is technical verification.
       */}
       <AdminSection
@@ -236,7 +248,7 @@ export default async function RuntimePage() {
             <AdminMetric label="Environment" value={r?.environment ?? null} hint="environment" />
           </AdminCol>
           <AdminCol span={4} md={4}>
-            <AdminMetric label="Version" value={r?.version ?? null} hint="version" />
+            <AdminMetric label="Version" value={r?.serviceVersion ?? null} hint="version" />
           </AdminCol>
           <AdminCol span={4} md={4}>
             <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="commitSha" />
@@ -245,7 +257,7 @@ export default async function RuntimePage() {
             <AdminMetric label="Uptime" value={formatUptime(r?.uptimeSeconds)} hint="uptimeSeconds" />
           </AdminCol>
           <AdminCol span={4} md={4}>
-            <AdminMetric label="Chain" value={r?.chainId ?? null} hint="chainId" />
+            <AdminMetric label="Chain" value={r?.contract?.chainId ?? null} hint="chainId" />
           </AdminCol>
           <AdminCol span={4} md={4}>
             <AdminMetric
@@ -260,7 +272,7 @@ export default async function RuntimePage() {
         </Panel>
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}><h3>Uptime</h3><p className={gcc.signalValue}>{formatUptime(r?.uptimeSeconds)}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Chain</h3><p className={gcc.signalValue}>{r?.chainId === undefined ? '—' : String(r.chainId)}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Chain</h3><p className={gcc.signalValue}>{r?.contract?.chainId === undefined ? "—" : String(r.contract.chainId)}</p></Panel>
           <Panel className={gcc.signalCard}><h3>Scheduler</h3><p className={gcc.cellText}>{scheduler?.status ?? 'Not reported'}</p></Panel>
         </aside>
       </section>

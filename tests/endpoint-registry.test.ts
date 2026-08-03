@@ -93,6 +93,17 @@ describe('registre des endpoints', () => {
     expect(() => resolvePath(detail)).toThrow(/index/)
   })
 
+  it('BAPI-04 : un paramètre hors chemin devient une query string, jamais ignoré', () => {
+    const events = endpointById('series1-events')
+    // `limit` n'est pas un segment de chemin : il doit apparaître en query.
+    expect(resolvePath(events, { limit: 50 })).toBe('/api/v1/series1/events?limit=50')
+    // Sans paramètre, pas de « ? » superflu.
+    expect(resolvePath(events)).toBe('/api/v1/series1/events')
+    // Chemin ET query coexistent, le segment consommé n'est pas redupliqué.
+    const detail = endpointById('strategy-detail')
+    expect(resolvePath(detail, { index: 2, limit: 10 })).toBe('/api/v1/strategies/2?limit=10')
+  })
+
   it('rejette un identifiant hors registre', () => {
     expect(() => endpointById('inexistant')).toThrow(/unknown to the registry|unknown/i)
   })
