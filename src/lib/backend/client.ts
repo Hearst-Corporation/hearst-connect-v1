@@ -85,6 +85,37 @@ function trace(endpoint: BackendEndpoint, path: string, startedAt: number, extra
   }
 }
 
+/**
+ * OPS-06: one structured, secret-free line per backend call.
+ *
+ * An operator needs to correlate what a user saw with the backend: the request
+ * id, the route, the HTTP status, the duration and a named reason. What must
+ * NEVER be logged is the Authorization header, the bearer token, the cookie,
+ * the request body or any response value — so this only ever receives the
+ * already-safe fields of the trace, never the payload. A failed log must not
+ * fail a request, hence the try/catch.
+ */
+function logCall(t: CallTrace, outcome: 'ok' | 'error', reason: string | null): void {
+  try {
+    console.info(
+      JSON.stringify({
+        tag: 'backend-call',
+        outcome,
+        method: t.method,
+        path: t.path,
+        httpStatus: t.httpStatus,
+        durationMs: t.durationMs,
+        requestId: t.requestId,
+        rateLimitRemaining: t.rateLimitRemaining,
+        reason,
+        at: t.at,
+      }),
+    )
+  } catch {
+    // Observability must never bring a request down.
+  }
+}
+
 type AuthorizationOutcome =
   | { ok: true; authorization: string | null }
   | { ok: false; state: Resolved<never> }
@@ -190,11 +221,13 @@ export async function callBackend<T = unknown>(
     })
   } catch (cause) {
     const aborted = cause instanceof Error && cause.name === 'AbortError'
+    const failTrace = trace(endpoint, path, startedAt, { requestId })
+    logCall(failTrace, 'error', aborted ? 'timeout' : 'unreachable')
     return {
       ok: false,
       problem: null,
       keeper: null,
-      trace: trace(endpoint, path, startedAt, { requestId }),
+      trace: failTrace,
       state: resolved.unavailable(
         aborted ? `The backend did not respond within the allotted time.` : 'Backend unreachable.',
         { route: path, requestId },
@@ -212,6 +245,7 @@ export async function callBackend<T = unknown>(
     requestId: serverRequestId,
     rateLimitRemaining: Number.isNaN(rateLimitRemaining) ? null : rateLimitRemaining,
   })
+  logCall(callTrace, response.ok ? 'ok' : 'error', response.ok ? null : `http_${response.status}`)
 
   let body: unknown = null
   try {

@@ -95,7 +95,9 @@ Reste Lot 7 : `resolved-mapper` (rebrancher ou retirer), duplication `/design-la
 |----|----------------------|--------|------|
 | BAPI-03 | Type `Runtime` + accès alignés sur le payload réel : `serviceVersion`, `contract.chainId`. | navigateur : Version 0.1.0, Chain 31 337 (étaient « — ») | **FIXED** |
 | BAPI-04 | `resolvePath` construit une query string pour les params hors chemin (`limit`) au lieu de les jeter ; segments encodés. | test endpoint-registry ✓ | **FIXED** |
-| BAPI-08/12/13/16, OPS-06 | strategy-detail, normalisation Bearer/headers, retry/timeout, observabilité requestId. | — | TODO |
+| OPS-06 | Journalisation structurée par appel backend (`console.info` JSON) : requestId, route, statut, durée, raison nommée. **Jamais** de jeton/Authorization/cookie/payload. | `tests/backend-logging.test.ts` (2 tests prouvant l'absence de fuite) | **FIXED** |
+| BAPI-08 | `strategy-detail` (`/api/v1/strategies/:index`) est déclaré au registre mais atteignable par aucun chemin UI (l'API explorer refuse les chemins paramétrés). Pas cassé, pas exposé — pas de feature inventée. | — | DOCUMENTÉ (limitation connue) |
+| BAPI-12/13/16 | normalisation Bearer/headers, retry/timeout idempotent. | — | TODO |
 
 ## Lots suivants (résumé — détaillés à l'ouverture de chaque lot)
 
