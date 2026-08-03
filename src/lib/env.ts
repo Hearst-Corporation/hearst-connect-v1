@@ -89,6 +89,28 @@ export function authSecret(): string | null {
 }
 
 /**
+ * Dev quick-login credentials — LOCAL DEV ONLY. Returns null in production
+ * or when unset. Never logged. The real owner password is never read here
+ * (doctrine §7): these are a dedicated dev-only pair, distinct from the real
+ * owner account (guard verified by tests/auth-doctrine.test.ts).
+ */
+export function devQuickLogin(): { email: string; password: string } | null {
+  if (process.env.NODE_ENV === 'production') return null
+  const email = process.env.DEV_QUICK_LOGIN_EMAIL?.trim()
+  const password = process.env.DEV_QUICK_LOGIN_PASSWORD?.trim()
+  if (!email || !password) return null
+  return { email, password }
+}
+
+/**
+ * Lightweight presence check for the UI: never returns the values, only
+ * whether a dev quick-login pair is available.
+ */
+export function devQuickLoginAvailable(): boolean {
+  return devQuickLogin() !== null
+}
+
+/**
  * Full server configuration state, meant for display.
  * No value appears here — only names and statuses.
  *

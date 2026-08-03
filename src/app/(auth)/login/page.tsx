@@ -1,4 +1,4 @@
-import { checkConfiguration } from '@/lib/env'
+import { checkConfiguration, devQuickLoginAvailable } from '@/lib/env'
 import { getSession } from '@/lib/session'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
@@ -32,10 +32,7 @@ export default async function LoginPage({
   // Bouton de connexion rapide owner : dev local uniquement, et seulement si
   // les identifiants existent réellement dans l'environnement serveur — on
   // n'affiche jamais le bouton pour ensuite échouer faute de config.
-  const devQuickLoginAvailable =
-    process.env.NODE_ENV !== 'production' &&
-    Boolean(process.env.DEV_QUICK_LOGIN_EMAIL) &&
-    Boolean(process.env.DEV_QUICK_LOGIN_PASSWORD)
-
-  return <LoginForm notice={notice} loginReady={loginReady} devQuickLoginAvailable={devQuickLoginAvailable} />
+  return (
+    <LoginForm notice={notice} loginReady={loginReady} devQuickLoginAvailable={devQuickLoginAvailable()} />
+  )
 }

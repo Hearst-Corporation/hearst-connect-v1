@@ -1,6 +1,7 @@
 'use server'
 
 import type { ResolvedStatus } from '@/lib/resolved'
+import { getSession } from '@/lib/session'
 import { callBackend, statusFromMeta, type CallTrace } from './client'
 import { BACKEND_ENDPOINTS, type BackendEndpoint } from './endpoints'
 
@@ -68,11 +69,26 @@ function refusal(
 }
 
 export async function probeEndpoint(_prev: ProbeOutcome | null, form: FormData): Promise<ProbeOutcome> {
+  // ARCH-01 / BAPI-01: a Server Action does NOT traverse the /admin layout, so
+  // the route guard does not protect it. Without this check the action runs for
+  // an anonymous caller (proven by replay in the audit). The guard is explicit
+  // and independent, like `runKeeperAction` in keeper.ts — a Server Action must
+  // never rely on a layout for its authorization. Fail-closed, non-throwing.
+  const session = await getSession()
+  if (!session) {
+    return refusal(
+      '',
+      'PERMISSION_DENIED',
+      'No session: the API Explorer only runs for an authenticated administrator.',
+      traceWithoutCall('—', '—'),
+    )
+  }
+
+  // Untrusted input from a form field. `FormData.get` may return a File; a
+  // non-string field is treated as an empty id, never coerced to "[object File]".
   const rawEndpointId = form.get('endpointId')
   const endpointId = typeof rawEndpointId === 'string' ? rawEndpointId : ''
 
-  // `endpointId` comes from a form field: it's controlled by the client,
-  // so it's treated as untrusted input.
   const endpoint = findEndpoint(endpointId)
   if (!endpoint) {
     return refusal(

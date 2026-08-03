@@ -27,16 +27,29 @@ tests mordent : sur l'ancienne logique VER-05, `activeVaults` d'un register `[UN
 | VER-09 | Badge découplé de la présence : `signalOf()` classe `live`/`stale`/`editorial`/`absent` selon provenance + `stale`. « Live » réservé aux lectures backend fraîches ; éditorial ⇒ « Reference » (marqueur creux) ; périmé ⇒ « Stale ». | `src/lib/vaults/model.ts` (signalOf) ; `green-metric-strip.tsx` ; `.module.css` | `veracity-p0.test.ts` 5 tests VER-09 | **FIXED** |
 | VER-11/12 | series-1 « Types » et runtime : cartes de comptage passées en `Availability` honnête (VER-12 traité avec series-1) ; VER-11 (runtime lit chainId/version au mauvais niveau) = **lot 8** (contrat backend), pas encore traité. | `src/app/admin/series-1/page.tsx` | typecheck | VER-12 **FIXED** · VER-11 TODO(lot 8) |
 
+## Lot 2 — Sécurité & contrôle d'accès  ✅ TERMINÉ
+
+Gate finale : `typecheck` ✓ · `lint` ✓ · `check:mocks` ✓ · `test` ✓ **216 tests (23 fichiers)** ·
+`build` prod ✓ (10,7 s, Next 16.2.12) · en-têtes CSP+HSTS **vérifiés en prod réelle**.
+
+| ID | Correction appliquée | Fichier | Preuve | État |
+|----|----------------------|---------|--------|------|
+| ARCH-01 / BAPI-01 | Garde de session explicite + validation FormData en tête de `probeEndpoint` (refus fail-closed `PERMISSION_DENIED`, comme `keeper.ts`). Audit des 3 modules `'use server'` : keeper déjà gardé, actions=login pré-session par nature. | `src/lib/backend/probe.ts` | `tests/probe-guard.test.ts` (3 tests : anonyme refusé, `fetch` jamais appelé, File non coercé) ; HTTP 307 en prod | **FIXED** |
+| SEC-04 | CSP + HSTS(prod) + Permissions-Policy ajoutés (X-CTO/Referrer/X-Frame conservés). `unsafe-eval` dev-only, `upgrade-insecure-requests` prod-only, HSTS prod-only. URL backend absente de `connect-src`. | `next.config.mjs` | curl en prod : CSP + HSTS + Permissions-Policy présents ; `/login` sans violation | **FIXED** |
+| OPS-05 / ARCH-05 | `process.env` métier ramené à `env.ts` : accesseurs `devQuickLogin()`/`devQuickLoginAvailable()` ; `session.ts` délègue à `authSecret()` (code mort réactivé). | `env.ts`, `actions.ts`, `login/page.tsx`, `session.ts` | `grep process.env hors env.ts` = ∅ (hors NODE_ENV) ; 31 tests session/login/auth ✓ | **FIXED** |
+| SEC-02 | Cookie **chiffré AES-256-GCM** (auth. encryption) au lieu de signé seul : jeton porteur backend plus lisible. Clé dérivée SHA-256 d'AUTH_SECRET ; token versionné `v1` ; IV aléatoire ; tag GCM = anti-falsification. Rotation documentée. | `src/lib/session.ts` | preuve crypto (jeton absent en clair, tamper rejeté) + `tests/session-encryption.test.ts` (7 tests) | **FIXED** |
+| SEC-03 | Next.js **16.2.6 → 16.2.12** : 0 vuln Next restante (dont SSRF Server Actions). `brace-expansion` forcé aux versions corrigées via override workspace. Vulns **20 → 6**, toutes dev/build-only et transitives (playwright, next>sharp, next>postcss). | `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml` | `pnpm audit` 20→6 ; build prod ✓ ; 216 tests ✓ | **FIXED** (résiduel dev-only documenté) |
+| SEC-07 | Révocation serveur impossible depuis le frontend : le backend n'expose ni logout ni revoke. | — | sondes réelles : `/auth/logout` **404**, `/auth/revoke` **404** ; contrat requis dans `BACKEND-FOLLOWUPS.md` | **BLOCKED_EXTERNAL** |
+
+### Résiduel SEC-03 (documenté, non masqué)
+6 vulns restantes, **toutes hors runtime de production** : `playwright` (test), `next>sharp` (build/image-optim),
+`next>postcss` (build CSS, 4 advisories). Épinglées par Next 16.2.12 ; un override forcé casserait l'arbre Next.
+À lever à la prochaine montée mineure de Next. Aucune n'est atteignable par une requête utilisateur en production.
+
 ## Lots suivants (résumé — détaillés à l'ouverture de chaque lot)
 
 | ID | Sujet | État |
 |----|-------|------|
-| ARCH-01 / BAPI-01 | garde session + validation FormData dans `probeEndpoint` | TODO |
-| SEC-02 | jeton porteur non chiffré dans le cookie | TODO |
-| SEC-07 | révocation post-logout | TODO |
-| SEC-03 | vulns dépendances (Next.js) | TODO |
-| SEC-04 | CSP / HSTS / Permissions-Policy | TODO |
-| OPS-05 / ARCH-05 | `process.env` hors `env.ts` | TODO |
 | OPS-01 / OPS-02 / OPS-04 | CI anti-faux-vert + `check:mocks` | TODO |
 | TEST-02/04/05 | Playwright comportemental | TODO |
 | UI-01/02/04/06/07/10/12/14/16 | responsive, mobile, a11y, langue | TODO |

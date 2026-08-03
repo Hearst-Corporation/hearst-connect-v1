@@ -1,5 +1,6 @@
 'use server'
 
+import { devQuickLogin } from '@/lib/env'
 import { redirect } from 'next/navigation'
 import { authenticate, loginErrorMessage } from './auth'
 import { endSession, startSession } from './session'
@@ -69,13 +70,12 @@ export async function quickLoginOwner(_prevState: LoginState): Promise<LoginStat
     return { error: loginErrorMessage('missing_fields') }
   }
 
-  const email = process.env.DEV_QUICK_LOGIN_EMAIL
-  const password = process.env.DEV_QUICK_LOGIN_PASSWORD
-  if (!email || !password) {
+  const credentials = devQuickLogin()
+  if (!credentials) {
     return { error: 'DEV_QUICK_LOGIN_EMAIL / DEV_QUICK_LOGIN_PASSWORD missing from .env.local.' }
   }
 
-  const result = await authenticate(email, password)
+  const result = await authenticate(credentials.email, credentials.password)
   if (!result.ok) {
     return { error: result.error }
   }
