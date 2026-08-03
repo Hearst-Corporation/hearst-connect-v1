@@ -61,15 +61,58 @@ Satoshi Variable uniquement (auto-hébergée, `src/lib/fonts.ts`).
 `prefers-reduced-motion` respecté (cf. `tailwind.css` `@media` et le module CSS
 de la console). Les animations d'entrée sont décoratives et désactivables.
 
-## Ce qui reste conditionné à la doctrine markdown
+## Charts — conformité à la doctrine §7 (vérifiée)
 
-- **Langue FR** : la console est en anglais (migration EN délibérée, gardée par
-  un test). Le glossaire FR canonique (Vault→? Estate→?) doit venir de la
-  doctrine avant traduction — non deviné.
-- **Compositions canoniques** (PageShell, KpiRow, ChartPanel…) : contrats à
-  arbitrer par la doctrine ; les blocs existants (green command center) tiennent
-  déjà lieu de compositions de fait.
-- **Structure `src/components/compositions/` et sortie du Green Command Center de
-  `design-lab/`** : déplacement de dossiers à cadrer par la doctrine (risque de
-  casse d'imports élevé pour un gain d'organisation — à faire une fois le
-  contrat cible fixé).
+- **Moteur unique** : Recharts (chart.js/react-chartjs-2 retirés au Lot 7).
+- **Aucun chart dans une route** (`src/app/` : 0 import recharts).
+- **Conteneur d'états partagé** : `ChartFrame` / `EtatSerie` (tracee, vide,
+  attendue, indisponible) — couvre loading/empty/error/unavailable (§7.3).
+- **Tokens `--chart-*`** ajoutés (§7.5) : `--chart-1..5` (séries), `--chart-
+  positive/negative/warning/neutral` (statuts, grammaire distincte), grid/axis/
+  tooltip. `chart-theme.ts` : 0 hex. Vérifié : `--chart-1` résout `#88ef6c`.
+- **Formatters centralisés** : `src/lib/format.ts` (nombre, %, devise, date,
+  compact, adresse, hash) + `mouvements.ts` (libellés métier).
+- **Anti-fabrication** : `plottableAsChart` (≥ 2 points) empêche une courbe
+  depuis un scalaire ; une donnée absente rend un état nommé, pas une série vide.
+- **Écart restant** : l'arborescence `src/components/charts/{core,cartesian,
+  polar}` de §7.2 (renommage/déplacement de 6 charts fonctionnels) — reporté
+  pour ne pas casser l'existant sans contrat de container arbitré.
+
+## Langue produit — français (doctrine §1) : mission dédiée requise
+
+La doctrine fixe le **français** comme langue produit. La console est
+actuellement en **anglais** (migration EN délibérée HC-UI-NORMALIZATION-001,
+gardée par `tests/language-regression.test.ts` qui INTERDIT le français).
+
+La traduction est une **mission coordonnée**, pas une retouche : elle exige, en
+lockstep, (1) le vocabulaire de statut, (2) la nav + « Sign out », (3) le corps
+des 19 pages, (4) l'INVERSION de `language-regression.test.ts` (il faut qu'il
+impose le FR au lieu de l'interdire), (5) la mise à jour de `source-
+availability.test.tsx` et des assertions e2e (`veracity.spec.ts`) qui matchent
+les libellés anglais. Une traduction PARTIELLE laisse une console FR/EN mixte —
+non conforme à « cohérent » (§10). Elle n'est donc pas amorcée ici (un essai a
+été fait puis annulé pour préserver la cohérence).
+
+**Glossaire d'ancrage** (à valider avant la mission FR — dérivé du FR déjà
+présent dans la vitrine et `mouvements.ts`, à compléter) :
+
+| EN (actuel) | FR (proposé) |
+|---|---|
+| Live / Reference / Unavailable / Stale | En direct / Référence / Indisponible / Obsolète |
+| Sign out | Se déconnecter |
+| Home / Clients / Compliance / Operations / Runtime | Accueil / Clients / Conformité / Opérations / Exécution |
+| Data coverage | Couverture des données |
+| Vault / Estate | Coffre / Patrimoine |
+| Active vaults / Recent movements | Coffres actifs / Mouvements récents |
+| Deployed / Available capital | Capital déployé / Capital disponible |
+
+## Compositions & structure de dossiers (doctrine §2, §7.2)
+
+- **Compositions de fait déjà présentes** : le Green Command Center fournit
+  `Panel`, `Reading`, `GreenMetricStrip` (KPI row), `ChartFrame` (Chart panel),
+  `Absent` (Empty/Unavailable state) — les contrats de §2 existent sous d'autres
+  noms.
+- **Sortie de `design-lab/` et `src/components/compositions/`** : renommage de
+  dossiers à fort risque de casse d'imports (le shell green est importé par
+  toutes les routes admin). À faire dans la mission FR/compositions, avec
+  re-vérification e2e complète — pas en fin de passe.

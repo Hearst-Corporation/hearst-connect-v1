@@ -1,0 +1,22 @@
+{
+  "id": "HC-DESIGN-SYSTEM-CONVERGENCE-001",
+  "title": "Convergence Design System — accent unique, tokens charts, a11y tables, thème",
+  "branch": "remediation/audit-2026-08-03",
+  "shaStart": "9809208",
+  "shaFinal": "56a9c0f+",
+  "date": "2026-08-04",
+  "doctrine": "docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md",
+  "auth": "dev quick-login (backend réel ; mot de passe owner jamais saisi)",
+  "server": "next dev 16.2.12 @ localhost:3000",
+  "reducedMotion": "respecté (@media prefers-reduced-motion dans tailwind.css + module console)",
+  "shots": [
+    { "file": "login-dark-1440x900.png", "route": "/login", "viewport": "1440x900", "theme": "dark", "state": "public", "console": "clean", "network": "none" },
+    { "file": "marketing-light-1440x900.png", "route": "/", "viewport": "1440x900", "theme": "light", "state": "public FR", "console": "clean", "note": "prouve le dual-thème public + accent mint unique (gradient converti)" },
+    { "file": "console-desktop-1440x900.png", "route": "/admin", "viewport": "1440x900", "theme": "dark (console dark-only)", "state": "live+unavailable", "console": "clean" },
+    { "file": "table-large-1440x900.png", "route": "/admin/vaults", "viewport": "1440x900", "theme": "dark", "state": "table scope+caption, scroll interne", "console": "clean" },
+    { "file": "chart-panel-1440x900.png", "route": "/admin/mining", "viewport": "1440x900", "theme": "dark", "state": "chart : état honnête si données absentes (pas de fausse courbe)", "console": "clean" },
+    { "file": "form-1440x900.png", "route": "/admin/keeper", "viewport": "1440x900", "theme": "dark", "state": "formulaire", "console": "clean" },
+    { "file": "console-laptop-1280x800.png", "route": "/admin", "viewport": "1280x800", "theme": "dark", "state": "live+unavailable", "console": "clean" },
+    { "file": "console-mobile-390x844.png", "route": "/admin", "viewport": "390x844", "theme": "dark", "state": "nav + déconnexion visible", "console": "clean" }
+  ]
+}
