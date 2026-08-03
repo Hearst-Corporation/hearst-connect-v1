@@ -75,6 +75,28 @@ auth via dev quick-login, backend réel), script `pnpm e2e`. Specs hors du glob 
 | UI-07 | `<html lang="fr">` déjà en place. La console est en anglais : la migration FR complète (LANGUE PRODUIT) est le **Lot 4** — les nouveaux fichiers sont alignés sur l'anglais pour ne pas casser `language-regression`. | — | — | PARTIEL → Lot 4 |
 | UI-04/10/12/14/16 | (reste du lot) cohérence verts, WideTableScroll, barre de défilement, sémantique tables, bascule de thème. | — | — | TODO |
 
+## Lot 7 — Nettoyage architectural (code mort)  🟡 EN COURS
+
+Gate finale : typecheck ✓ lint ✓ check:mocks ✓ (131 fichiers) test ✓ (217) · build/e2e ✓.
+knip : **30 → 18 fichiers morts** (les 18 restants = 17 Catalyst vendorés conservés + 1 script docs hors périmètre).
+
+| ID | Correction appliquée | Preuve | État |
+|----|----------------------|--------|------|
+| DEAD-05 | `chart.js` + `react-chartjs-2` retirés de package.json (0 import prouvé). | knip « unused dependencies » disparu ; 3 paquets retirés | **FIXED** |
+| DEAD-02 / ARCH-03 | Branche `AdminShell` inatteignable supprimée : les 18 routes admin sont toutes dans `GREEN_SHELL_ROUTES`. `admin-layout-client.tsx` + `admin-shell.tsx` + `cockpit-sidebar-layout.tsx` supprimés ; `layout.tsx` simplifié (garde `requireSession()` conservée). | e2e : garde /admin toujours 307 ; `admin-nav.ts` conservé (encore utilisé) | **FIXED** |
+| DEAD-01/09 (partiel) | 14 composants orphelins supprimés sous `components/admin` + `components/vaults` (grep de preuve : 0 import réel). | knip -12 | **FIXED** |
+| DEAD-06 | Kit Catalyst : **conservé** (vendoré, décision produit) même si 17 fichiers inutilisés — à documenter (`VENDOR.md`, Lot 4). | — | GARDÉ (voulu) |
+
+Reste Lot 7 : `resolved-mapper` (rebrancher ou retirer), duplication `/design-lab` (sortir de prod), assets/PNG.
+
+## Lot 8 — Backend, contrats & observabilité  🟡 EN COURS
+
+| ID | Correction appliquée | Preuve | État |
+|----|----------------------|--------|------|
+| BAPI-03 | Type `Runtime` + accès alignés sur le payload réel : `serviceVersion`, `contract.chainId`. | navigateur : Version 0.1.0, Chain 31 337 (étaient « — ») | **FIXED** |
+| BAPI-04 | `resolvePath` construit une query string pour les params hors chemin (`limit`) au lieu de les jeter ; segments encodés. | test endpoint-registry ✓ | **FIXED** |
+| BAPI-08/12/13/16, OPS-06 | strategy-detail, normalisation Bearer/headers, retry/timeout, observabilité requestId. | — | TODO |
+
 ## Lots suivants (résumé — détaillés à l'ouverture de chaque lot)
 
 | ID | Sujet | État |
