@@ -285,6 +285,7 @@ export function MovementLedger({
 
       <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
         <table className="w-full min-w-[980px] table-fixed text-left text-sm">
+          <caption className="sr-only">Movement ledger: chronological on-chain events for the estate.</caption>
           <thead>
             <tr className={clsx('border-b border-zinc-950/10 text-xs dark:border-console-line', MUTED_CLASS)}>
               {HEADERS.map((h) => (

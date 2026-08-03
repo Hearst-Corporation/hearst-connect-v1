@@ -267,10 +267,11 @@ export function ClientExceptionTable({
       </div>
       <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
         <table className="w-full min-w-[860px] table-fixed text-left text-sm">
+          <caption className="sr-only">Client exceptions: client, issue, related vault, compliance and last activity.</caption>
           <thead>
             <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
               {COLUMNS.map((column) => (
-                <th key={column.key} className={clsx(HEAD_CELL, column.className)}>
+                <th key={column.key} scope="col" className={clsx(HEAD_CELL, column.className)}>
                   {column.header}
                 </th>
               ))}
