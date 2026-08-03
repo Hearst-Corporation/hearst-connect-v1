@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { publicUser } from '@/lib/session'
+import { available, unavailable, type Availability } from '@/lib/vaults/model'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import clsx from 'clsx'
@@ -122,7 +123,6 @@ type SourceActivityRow = {
 const countIn = (surfaces: readonly Surface[], tier: CoverageTier): number =>
   surfaces.filter((s) => s.tier === tier).length
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 const HEAD_CELL = 'px-3 py-2 font-medium whitespace-normal break-words'
 const BODY_CELL = 'px-3 py-2 align-top'
 
@@ -145,10 +145,22 @@ export default async function Page() {
             reason: motifLisible(resolved.reason),
           }))
   const ordered = TIER_ORDER.flatMap((tier) => surfaces.filter((surface) => surface.tier === tier))
+
+  // VER-01: when the aggregate could not be read, coverage is NOT measurable —
+  // it is not "0 served / 0%". Only a readable aggregate yields real counts,
+  // and a readable-but-empty aggregate yields an honest zero.
+  const coverageUnreadable = unavailable({ endpoint: '/api/v1/admin/dashboard', status: 'UNAVAILABLE', reason: 'dashboard_source_unreachable' })
+  const asCount = (n: number): Availability<string> =>
+    aggregate === null ? coverageUnreadable : available(String(n), { provenance: 'live', asOf: null })
   const served = countIn(surfaces, 'served')
-  const partial = countIn(surfaces, 'partial')
-  const notOpened = countIn(surfaces, 'notOpened')
-  const coverageRatio = surfaces.length === 0 ? 0 : Math.round((served / surfaces.length) * 100)
+  const servedCell = asCount(served)
+  const partialCell = asCount(countIn(surfaces, 'partial'))
+  const notOpenedCell = asCount(countIn(surfaces, 'notOpened'))
+  const totalCell = asCount(surfaces.length)
+  const coverageCell: Availability<string> =
+    aggregate === null || surfaces.length === 0
+      ? coverageUnreadable
+      : available(`${Math.round((served / surfaces.length) * 100)}%`, { provenance: 'live', asOf: null })
 
   return (
     <GreenCommandCenterShell
@@ -159,31 +171,31 @@ export default async function Page() {
         <Panel className={gcc.metricCard}>
           <h2>Served</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(served))} className={gcc.metricValue} />
+            <Reading value={servedCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Partial</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(partial))} className={gcc.metricValue} />
+            <Reading value={partialCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Not open</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(notOpened))} className={gcc.metricValue} />
+            <Reading value={notOpenedCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Total surfaces</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(surfaces.length))} className={gcc.metricValue} />
+            <Reading value={totalCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Coverage ratio</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(`${coverageRatio}%`)} className={gcc.metricValue} />
+            <Reading value={coverageCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>

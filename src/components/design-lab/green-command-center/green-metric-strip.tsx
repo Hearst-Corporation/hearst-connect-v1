@@ -1,7 +1,32 @@
-import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { isAvailable, signalOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
 import { Absent, gcc, Panel } from './primitives'
 import clsx from 'clsx'
+
+/**
+ * VER-09: the freshness badge is driven by the value's SIGNAL — its provenance
+ * and staleness — not by mere presence. "Live" is reserved for a fresh backend
+ * reading; an editorial value reads "Reference", a stale one reads "Stale".
+ */
+const SIGNAL_LABEL: Record<Signal, string> = {
+  live: 'Live',
+  stale: 'Stale',
+  editorial: 'Reference',
+  absent: 'Unavailable',
+}
+
+function signalClasses(signal: Signal): { text: string; dot: string; hollow: boolean } {
+  switch (signal) {
+    case 'live':
+      return { text: gcc.metricStateLive, dot: gcc.signalDot, hollow: false }
+    case 'stale':
+      return { text: gcc.metricStateStale, dot: gcc.metricStateDotStale, hollow: false }
+    case 'editorial':
+      return { text: gcc.metricStateEditorial, dot: gcc.metricStateDotEditorial, hollow: true }
+    case 'absent':
+      return { text: gcc.metricStateUnavailable, dot: gcc.metricStateDotMuted, hollow: false }
+  }
+}
 
 export type MetricCell = Readonly<{
   id: string
@@ -13,6 +38,8 @@ export type MetricCell = Readonly<{
 
 function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
   const available = isAvailable(cell.value)
+  const signal = signalOf(cell.value)
+  const state = signalClasses(signal)
 
   return (
     <Panel className={gcc.metricCard} data-gcc="metric-card">
@@ -30,11 +57,11 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
           <div className={gcc.metricValueSlot}>
             <span className={gcc.metricValue}>{available ? cell.value.value : '—'}</span>
           </div>
-          <span className={available ? gcc.metricStateLive : gcc.metricStateUnavailable}>
-            <span className={available ? gcc.signalDot : gcc.metricStateDotMuted} aria-hidden="true">
-              ●
+          <span className={state.text}>
+            <span className={state.dot} aria-hidden="true">
+              {state.hollow ? '○' : '●'}
             </span>
-            {available ? 'Live' : 'Unavailable'}
+            {SIGNAL_LABEL[signal]}
           </span>
         </div>
       </div>

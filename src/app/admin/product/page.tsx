@@ -11,6 +11,7 @@ import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
 import { publicUser } from '@/lib/session'
+import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
@@ -69,8 +70,6 @@ const PAGE_REASONS = {
   ...MOTIF_SERIE,
   dynavault_not_deployed: 'these terms are not yet available on the deployed contract',
 }
-
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({
   children,
@@ -225,6 +224,30 @@ export default async function Page() {
 
   const hasPocketDetail = readablePockets.length > 0
 
+  // VER-03: these counts are only measurements when their source was read.
+  // When the factsheet call failed, or the allocation / curve is absent, the
+  // count is unavailable — never a bare "0" that reads as "zero measured".
+  const factsheetUnreadable = unavailable({
+    endpoint: '/api/v1/product/factsheet',
+    status: 'UNAVAILABLE',
+    reason: 'product_factsheet_unreachable',
+  })
+  const pocketsCell: Availability<string> =
+    !response.ok || rawPockets === null || rawPockets === undefined
+      ? (response.ok
+          ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'allocation_absent' })
+          : factsheetUnreadable)
+      : available(String(readablePockets.length), { provenance: 'live', asOf: null })
+  const curveCell: Availability<string> =
+    !response.ok || rawCurve === null || rawCurve === undefined
+      ? (response.ok
+          ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'vending_curve_absent' })
+          : factsheetUnreadable)
+      : available(String(points.length), { provenance: 'live', asOf: null })
+  // Single figures: present only when the factsheet was read. Editorial (not a
+  // live-badged measurement) since they are formatted contract terms.
+  const figure = (value: string): Availability<string> => (response.ok ? editorial(value) : factsheetUnreadable)
+
   return (
     <GreenCommandCenterShell
       label="Hearst Connect product cockpit"
@@ -234,31 +257,31 @@ export default async function Page() {
         <Panel className={gcc.metricCard}>
           <h2>Minimum deposit</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 }))} className={gcc.metricValue} />
+            <Reading value={figure(formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 }))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Duration</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(readableDuration(terms?.productDurationMonths))} className={gcc.metricValue} />
+            <Reading value={figure(readableDuration(terms?.productDurationMonths))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Fund cap</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(formatCurrency(cap, { decimals: 0 }))} className={gcc.metricValue} />
+            <Reading value={figure(formatCurrency(cap, { decimals: 0 }))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Pockets</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(readablePockets.length))} className={gcc.metricValue} />
+            <Reading value={pocketsCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Curve milestones</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(points.length))} className={gcc.metricValue} />
+            <Reading value={curveCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>

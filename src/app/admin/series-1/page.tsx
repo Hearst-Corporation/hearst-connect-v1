@@ -16,12 +16,11 @@ import {
   phraseMouvement,
 } from '@/lib/mouvements'
 import { publicUser } from '@/lib/session'
+import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Series 1 Log' }
 export const dynamic = 'force-dynamic'
-
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -151,9 +150,20 @@ export default async function Page() {
   const user = publicUser(session)
   const bloc = reponse.ok ? reponse.data.events : undefined
   const mouvements = bloc?.value
-  const movementCount = mouvements === null || mouvements === undefined ? 'Unavailable' : String(mouvements.length)
-  const financialCount =
-    mouvements === null || mouvements === undefined ? 'Unavailable' : String(mouvements.filter(estFinancier).length)
+  // VER-10 / VER-12: counts are measurements only when the events source was
+  // read. An unread source is a named absence, never "0" nor the string
+  // "Unavailable" badged as a live value.
+  const eventsUnavailable = unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE', reason: 'events_source_unreachable' })
+  const readable = mouvements !== null && mouvements !== undefined
+  const movementCount: Availability<string> = readable
+    ? available(String(mouvements.length), { provenance: 'live', asOf: null })
+    : eventsUnavailable
+  const financialCount: Availability<string> = readable
+    ? available(String(mouvements.filter(estFinancier).length), { provenance: 'live', asOf: null })
+    : eventsUnavailable
+  const typesCount: Availability<string> = readable
+    ? available(String(new Set(mouvements.map((m) => m.eventName)).size), { provenance: 'live', asOf: null })
+    : eventsUnavailable
   const last = mouvements?.[0]?.occurredAt ?? null
 
   return (
@@ -164,23 +174,23 @@ export default async function Page() {
       <section className={gcc.metricsRow} aria-label="Series 1 summary">
         <Panel className={gcc.metricCard}>
           <h2>Movements</h2>
-          <div className={gcc.metricText}><Reading value={manual(movementCount)} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={movementCount} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Financial entries</h2>
-          <div className={gcc.metricText}><Reading value={manual(financialCount)} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={financialCount} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Latest</h2>
-          <div className={gcc.metricText}><Reading value={manual(ilYA(last))} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={readable ? editorial(ilYA(last)) : eventsUnavailable} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Types</h2>
-          <div className={gcc.metricText}><Reading value={manual(String(new Set((mouvements ?? []).map((m) => m.eventName)).size))} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={typesCount} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Source status</h2>
-          <div className={gcc.metricText}><Reading value={manual(reponse.ok ? 'Reachable' : 'Unavailable')} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={editorial(reponse.ok ? 'Reachable' : 'Unavailable')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Series 1 <span>log</span></p>

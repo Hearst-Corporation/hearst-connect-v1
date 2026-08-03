@@ -6,13 +6,13 @@ import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { publicUser } from '@/lib/session'
+import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import React from 'react'
 
 export const metadata: Metadata = { title: 'Backtests' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -120,8 +120,11 @@ export default async function Page() {
   const block = response.ok ? response.data.runs : undefined
   const runs = block?.value
   const reason = motifLisible(block?.reason)
-  const runCount =
-    runs === null || runs === undefined ? 'Unavailable' : String(runs.length)
+  // VER-10: the run COUNT is a measurement only when the runs source answered.
+  const runCountCell: Availability<string> =
+    runs === null || runs === undefined
+      ? unavailable({ endpoint: '/api/v1/backtest/historical', status: 'UNAVAILABLE', reason: 'backtest_runs_unreadable' })
+      : available(String(runs.length), { provenance: 'live', asOf: null })
 
   const none = runs === null || runs === undefined || runs.length === 0
 
@@ -176,23 +179,23 @@ export default async function Page() {
       <section className={gcc.metricsRow} aria-label="Backtest summary">
         <Panel className={gcc.metricCard}>
           <h2>Runs</h2>
-          <div className={gcc.metricText}><Reading value={manual(runCount)} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={runCountCell} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Source status</h2>
-          <div className={gcc.metricText}><Reading value={manual(response.ok ? 'Reachable' : 'Unavailable')} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={editorial(response.ok ? 'Reachable' : 'Unavailable')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Registry</h2>
-          <div className={gcc.metricText}><Reading value={manual(block?.status ?? 'Not reported')} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={editorial(block?.status ?? 'Not reported')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Historical curve</h2>
-          <div className={gcc.metricText}><Reading value={manual(none ? 'Not available' : 'Available')} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={editorial(none ? 'Not available' : 'Available')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Reason</h2>
-          <div className={gcc.metricText}><Reading value={manual(reason ?? 'None')} className={gcc.metricValue} /></div>
+          <div className={gcc.metricText}><Reading value={editorial(reason ?? 'None')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Backtests <span>state</span></p>

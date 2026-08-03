@@ -34,14 +34,13 @@ import { formatCount } from '@/lib/resolved'
 import { etatSerieDe } from '@/lib/serie-etat'
 import { publicUser } from '@/lib/session'
 import { statutAffichage } from '@/lib/statut-affichage'
+import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Operations' }
 export const dynamic = 'force-dynamic'
-
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <Panel className={clsx(gcc.heroChart, className)}>{children}</Panel>
@@ -847,10 +846,23 @@ export default async function Page() {
 
   const derives = derivesDe(dashboard.ok ? dashboard.data.allocation?.value?.pockets : undefined)
   const etatDerive = etatDeriveDe(dashboard, derives)
-  const movementCount = reponse.ok && reponse.data.events?.value ? reponse.data.events.value.length : 0
+
+  // VER-02: an unread events source is NOT "0 movements". The count is only a
+  // measurement when the ledger actually answered with a value.
+  const movementCountCell: Availability<string> =
+    reponse.ok && reponse.data.events?.value
+      ? available(formatNumber(reponse.data.events.value.length), { provenance: 'live', asOf: null })
+      : unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE', reason: 'events_source_unreachable' })
+  // Pockets measured: derived from the dashboard allocation. Unreadable when the
+  // dashboard call failed or the allocation is absent — never a bare "0".
+  const pocketsMeasuredCell: Availability<string> =
+    dashboard.ok && dashboard.data.allocation?.value?.pockets
+      ? available(formatNumber(derives.length), { provenance: 'live', asOf: null })
+      : unavailable({ endpoint: '/api/v1/admin/dashboard', status: 'PARTIAL', reason: 'allocation_unreadable' })
+  // Status readouts (not measured counts): a backend state string, or a named
+  // absence. Editorial provenance keeps them from being badged "Live".
   const rebalancingStatus = rebalancing.ok ? (rebalancing.data.rebalancing?.status ?? 'UNAVAILABLE') : 'UNAVAILABLE'
   const runtimeStatus = runtime.ok ? (runtime.data.indexerStatus ?? runtime.data.indexer?.status ?? 'NOT_REPORTED') : 'UNAVAILABLE'
-  const ratioValue = derives.length > 0 ? `${formatNumber(derives.length)}` : '0'
 
   return (
     <GreenCommandCenterShell
@@ -861,31 +873,38 @@ export default async function Page() {
         <Panel className={gcc.metricCard}>
           <h2>Movements</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(String(movementCount))} className={gcc.metricValue} />
+            <Reading value={movementCountCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Pockets measured</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(ratioValue)} className={gcc.metricValue} />
+            <Reading value={pocketsMeasuredCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Rebalancing source</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(rebalancingStatus)} className={gcc.metricValue} />
+            <Reading value={editorial(rebalancingStatus)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Indexer</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(runtimeStatus)} className={gcc.metricValue} />
+            <Reading value={editorial(runtimeStatus)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
           <h2>Ledger status</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(reponse.ok && reponse.data.events ? statutAffichage(reponse.data.events.status) : 'Unavailable')} className={gcc.metricValue} />
+            <Reading
+              value={
+                reponse.ok && reponse.data.events
+                  ? editorial(statutAffichage(reponse.data.events.status))
+                  : unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE', reason: 'events_source_unreachable' })
+              }
+              className={gcc.metricValue}
+            />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>

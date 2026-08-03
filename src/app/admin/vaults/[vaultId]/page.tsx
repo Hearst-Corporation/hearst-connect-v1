@@ -19,6 +19,7 @@ import {
 import { publicUser } from '@/lib/session'
 import {
   combine,
+  editorial,
   isAvailable,
   mapAvailability,
   parseVaultId,
@@ -53,10 +54,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: short === null ? 'Vault' : `Vault ${short}` }
 }
 
-function manual(value: string): Availability<string> {
-  return { kind: 'available', value, provenance: 'manual', asOf: null, stale: false }
-}
-
 function amountOf(vault: Vault, atomic: Availability<string | bigint>): Availability<string> {
   return combine(vault.asset, atomic, (asset, raw) => {
     const formatted = formatCurrency(raw.toString(), { unit: '', fromAtomic: 10 ** asset.decimals })
@@ -82,7 +79,7 @@ function lastRebalanceReading(vault: Vault): Availability<string> {
   if (at === null) {
     return { kind: 'unavailable', status: 'EMPTY', endpoint: '/api/v1/rebalancing/status', reason: null }
   }
-  return manual(`${formatDateTime(at)} · ${formatRelativeTime(at)}`)
+  return editorial(`${formatDateTime(at)} · ${formatRelativeTime(at)}`)
 }
 
 export default async function Page({ params }: PageProps) {
@@ -113,7 +110,7 @@ export default async function Page({ params }: PageProps) {
     registry.movements.value.length > 0 &&
     scopedMovements.value.length === 0
 
-  const activeStatus = manual(vault.status)
+  const activeStatus = editorial(vault.status)
   const totalValue = amountOf(vault, vault.totalAssetsAtomic)
   const deployedValue = amountOf(vault, deployedAtomic(vault))
   const idleValue = amountOf(vault, idleAtomic(vault))
@@ -135,7 +132,7 @@ export default async function Page({ params }: PageProps) {
         <Panel className={gcc.metricCard}>
           <h2>Vault</h2>
           <div className={gcc.metricText}>
-            <Reading value={manual(vault.label)} className={gcc.metricValue} />
+            <Reading value={editorial(vault.label)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>

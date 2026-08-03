@@ -16,12 +16,12 @@ import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSerieDe } from '@/lib/serie-etat'
 import { publicUser } from '@/lib/session'
+import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Consolidated product view' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -191,17 +191,40 @@ export default async function Page() {
   const courbeParametree = courbeParametreeDe(points)
   const plafond = f?.tvlCap?.value
 
+  // VER-04: "Reserve split" and "Curve points" are counts whose source must be
+  // read to state them. When the bitcoin or factsheet call failed, or the
+  // reading is absent, the count is unavailable — not "0".
+  const reserveSplitCell: Availability<string> =
+    !btc.ok
+      ? unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+      : b?.reserve?.value?.balanceUsdc === undefined && b?.exposure?.value?.valueUsdc === undefined
+        ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
+        : available(String(postes.length), { provenance: 'live', asOf: null })
+  const curvePointsCell: Availability<string> =
+    !factsheet.ok
+      ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
+      : f?.vendingCurve?.value === null || f?.vendingCurve?.value === undefined
+        ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'vending_curve_absent' })
+        : available(String(points.length), { provenance: 'live', asOf: null })
+  // Single formatted figures: editorial when their source was read, else absent.
+  const miningFigure = (value: string): Availability<string> =>
+    mining.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/mining', status: 'UNAVAILABLE', reason: 'mining_source_unreachable' })
+  const btcFigure = (value: string): Availability<string> =>
+    btc.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+  const factsheetFigure = (value: string): Availability<string> =>
+    factsheet.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
+
   return (
     <GreenCommandCenterShell
       label="Hearst Connect consolidated product cockpit"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Consolidated product summary">
-        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={manual(hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Bitcoin produced</h2><div className={gcc.metricText}><Reading value={manual(bitcoinProduit ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Reserve split</h2><div className={gcc.metricText}><Reading value={manual(String(postes.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Curve points</h2><div className={gcc.metricText}><Reading value={manual(String(points.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Fund cap</h2><div className={gcc.metricText}><Reading value={manual(plafond ? ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—' : '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={hashrate ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh))) : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Bitcoin produced</h2><div className={gcc.metricText}><Reading value={bitcoinProduit === null ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' }) : btcFigure(bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Reserve split</h2><div className={gcc.metricText}><Reading value={reserveSplitCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Curve points</h2><div className={gcc.metricText}><Reading value={curvePointsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Fund cap</h2><div className={gcc.metricText}><Reading value={plafond ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Consolidated <span>view</span></p>
           <p className={gcc.decisionMeta}>{b === null ? 'BTC source unavailable' : 'BTC source reachable'}</p>

@@ -8,6 +8,7 @@ import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
 import { publicUser } from '@/lib/session'
+import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { ExplorerRow } from './explorer-row'
@@ -15,7 +16,6 @@ import { ExplorerRow } from './explorer-row'
 export const metadata: Metadata = { title: 'API Explorer' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -99,11 +99,11 @@ export default async function ApiExplorerPage() {
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="API explorer summary">
-        <Panel className={gcc.metricCard}><h2>Total endpoints</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Safe reads</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.filter((e) => e.method === 'GET' && e.category !== 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>AI context</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Base URL</h2><div className={gcc.metricText}><Reading value={manual(backendUrl() ?? 'HEARST_API_URL not set')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Total endpoints</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Safe reads</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.method === 'GET' && e.category !== 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>AI context</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Base URL</h2><div className={gcc.metricText}><Reading value={editorial(backendUrl() ?? 'HEARST_API_URL not set')} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>API <span>explorer</span></p>
           <p className={gcc.decisionMeta}>Registry grouped by action type</p>

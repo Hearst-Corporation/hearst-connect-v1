@@ -10,6 +10,7 @@ import { backendUrl } from '@/lib/env'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
+import { editorial } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
@@ -18,7 +19,6 @@ import { KeeperForm } from './keeper-form'
 export const metadata: Metadata = { title: 'Keeper Actions' }
 export const dynamic = 'force-dynamic'
 
-const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
   return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
@@ -102,11 +102,11 @@ export default async function KeeperPage() {
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Keeper summary">
-        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={manual(String(keeperEndpoints.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={manual(session.role)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Backend URL</h2><div className={gcc.metricText}><Reading value={manual(backendConfigured ? 'Configured' : 'Not set')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Authorization</h2><div className={gcc.metricText}><Reading value={manual(isAdmin ? 'Admin access' : 'Restricted')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Keeper enabled</h2><div className={gcc.metricText}><Reading value={manual('Backend circuit breaker applies')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(keeperEndpoints.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={editorial(session.role)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Backend URL</h2><div className={gcc.metricText}><Reading value={editorial(backendConfigured ? 'Configured' : 'Not set')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Authorization</h2><div className={gcc.metricText}><Reading value={editorial(isAdmin ? 'Admin access' : 'Restricted')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Keeper enabled</h2><div className={gcc.metricText}><Reading value={editorial('Backend circuit breaker applies')} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Keeper <span>actions</span></p>
           <p className={gcc.decisionMeta}>{disabledReason ? 'Actions inert' : 'Actions available'}</p>

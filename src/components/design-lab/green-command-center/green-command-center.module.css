@@ -718,6 +718,32 @@
   color: var(--gcc-muted);
 }
 
+/* VER-09: an editorial value is present but is NOT a live measurement. Its
+   badge reads "Reference" in a neutral tone with a hollow marker, so it is
+   never mistaken for a fresh backend reading. A stale reading keeps a filled
+   marker but a warning tone and reads "Stale". */
+.metricStateEditorial,
+.metricStateStale {
+  color: var(--gcc-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.metricStateStale {
+  color: var(--gcc-amber, #c9a227);
+}
+
+.metricStateDotEditorial {
+  color: var(--gcc-muted);
+}
+
+.metricStateDotStale {
+  color: var(--gcc-amber, #c9a227);
+}
+
 /* ── Decision card ────────────────────────────────────────────────────────── */
 
 .decisionCardStrong,
