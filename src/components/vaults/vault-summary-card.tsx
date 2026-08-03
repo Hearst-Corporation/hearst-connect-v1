@@ -1,6 +1,4 @@
-import { AdminSurface } from '@/components/admin/surfaces'
-import { AdminCaption, AdminSurfaceTitle, adminTypography } from '@/components/admin/typography'
-import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
 import { VaultEntityLink } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { formatAddress, formatCurrency, formatDateTime, formatRelativeTime } from '@/lib/format'
@@ -72,10 +70,10 @@ function Field({
 }: Readonly<{ label: string; hint?: string; children: React.ReactNode }>) {
   return (
     <div className="min-w-0">
-      <dt className={adminTypography.label}>{label}</dt>
+      <dt className={gcc.cellText}>{label}</dt>
       <dd className="mt-1.5 min-w-0">
         {children}
-        {hint === undefined ? null : <AdminCaption className="mt-1">{hint}</AdminCaption>}
+        {hint === undefined ? null : <p className={gcc.cellText}>{hint}</p>}
       </dd>
     </div>
   )
@@ -94,7 +92,7 @@ function TextField({
           {value.value}
         </p>
       ) : (
-        <SourceAvailabilityBadge availability={value} />
+        <Absent availability={value} showRoute={false} />
       )}
     </Field>
   )
@@ -114,7 +112,7 @@ function NodeField({
 }>) {
   return (
     <Field label={label} hint={hint}>
-      {isAvailable(availability) ? children : <SourceAvailabilityBadge availability={availability} />}
+      {isAvailable(availability) ? children : <Absent availability={availability} showRoute={false} />}
     </Field>
   )
 }
@@ -131,10 +129,11 @@ export function VaultSummaryCard({ vault }: Readonly<{ vault: Vault }>) {
   )
 
   return (
-    <AdminSurface padding>
+    <Panel className={gcc.heroChart}>
+      <div className={gcc.heroBody}>
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
-          <AdminSurfaceTitle>{vault.label}</AdminSurfaceTitle>
+          <h2 className={gcc.cardTitle}>{vault.label}</h2>
           <p className="mt-1 truncate font-mono text-xs text-zinc-500 dark:text-zinc-400" title={vault.contractAddress}>
             {[
               vault.chainId === null ? null : `chain ${vault.chainId}`,
@@ -180,6 +179,7 @@ export function VaultSummaryCard({ vault }: Readonly<{ vault: Vault }>) {
       <p className="mt-6 truncate border-t border-zinc-950/5 pt-3 font-mono text-[0.6875rem]/4 text-zinc-500 dark:border-console-line dark:text-zinc-500">
         {vault.id}
       </p>
-    </AdminSurface>
+      </div>
+    </Panel>
   )
 }

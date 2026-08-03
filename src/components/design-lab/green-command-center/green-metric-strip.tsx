@@ -48,10 +48,11 @@ export function GreenDecisionPanel({
   actionable,
 }: Readonly<{ pending: Availability<string>; hint: string; actionable: boolean }>) {
   const unavailable = !isAvailable(pending)
+  const useStrongGreen = actionable || unavailable
 
   return (
     <Panel
-      className={actionable ? gcc.decisionCardStrong : unavailable ? gcc.decisionCardCalm : gcc.decisionCardNeutral}
+      className={useStrongGreen ? gcc.decisionCardStrong : gcc.decisionCardNeutral}
       aria-label="Decision queue"
       data-gcc="decision-card"
     >

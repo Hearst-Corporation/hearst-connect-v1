@@ -1,3 +1,5 @@
+'use client'
+
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import type { TrendPoint } from '@/lib/vaults/overview'
 import { Subheading } from '@/components/catalyst/heading'
@@ -10,45 +12,37 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import {
+  CartesianGrid,
+  LabelList,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { Absent, gcc, Panel } from './primitives'
+type TrendTooltipPoint = Readonly<{ label: string; value: number; detail: string }>
 
-const CHART_WIDTH = 760
-const CHART_HEIGHT = 320
-const CHART_PADDING = { top: 36, right: 66, bottom: 58, left: 66 } as const
+function TrendTooltip({
+  active,
+  payload,
+}: Readonly<{ active?: boolean; payload?: readonly { payload?: TrendTooltipPoint }[] }>) {
+  const rawPoint = payload?.[0]?.payload
+  const point =
+    typeof rawPoint === 'object' && rawPoint !== null
+      ? (rawPoint as TrendTooltipPoint)
+      : null
 
-const SVG_NUMBER_FONT = 'Arial, Helvetica, sans-serif'
+  if (active !== true || point === null) return null
 
-type ChartPoint = Readonly<{ x: number; y: number; label: string; value: number }>
-
-function buildChartPoints(points: readonly TrendPoint[]): readonly ChartPoint[] {
-  if (points.length === 0) return []
-
-  const innerWidth = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right
-  const innerHeight = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom
-  const maxValue = Math.max(...points.map((point) => point.value), 1)
-  const minValue = 0
-  const span = Math.max(maxValue - minValue, 1)
-
-  return points.map((point, index) => {
-    const x =
-      points.length === 1
-        ? CHART_PADDING.left + innerWidth / 2
-        : CHART_PADDING.left + (innerWidth * index) / (points.length - 1)
-    const y =
-      CHART_PADDING.top +
-      innerHeight -
-      ((Math.max(point.value, minValue) - minValue) / span) * innerHeight
-    return { x, y, label: point.label, value: point.value }
-  })
-}
-
-function buildYTicks(maxValue: number) {
-  return [0, 1, 2, 3, 4].map((step) => {
-    const ratio = step / 4
-    const value = Math.round(maxValue - ratio * maxValue)
-    const y = CHART_PADDING.top + (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom) * ratio
-    return { value, y }
-  })
+  return (
+    <div className={gcc.heroTooltip}>
+      <p className={gcc.heroTooltipTitle}>{point.detail}</p>
+      <p className={gcc.heroTooltipLine}>{point.value} movements</p>
+    </div>
+  )
 }
 
 export function GreenHeroChartPanel({
@@ -79,95 +73,64 @@ export function GreenHeroChartPanel({
             {trend.value.length === 0 ? (
               <Text className={gcc.cellText}>No ordered activity points are currently available.</Text>
             ) : (
-              (() => {
-                const chartPoints = buildChartPoints(trend.value)
-                const polyline = chartPoints.map((point) => `${point.x},${point.y}`).join(' ')
-                const maxValue = Math.max(...trend.value.map((point) => point.value), 1)
-                const yTicks = buildYTicks(maxValue)
-
-                return (
-                  <div className={gcc.heroChartBody} role="img" aria-label={`${title} line chart`}>
-                    <svg
-                      className={gcc.heroChartSvg}
-                      viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-                      aria-hidden="true"
+              <div className={gcc.heroChartBody} role="img" aria-label={`${title} line chart`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={trend.value}
+                    margin={{ top: 30, right: 56, bottom: 34, left: 34 }}
+                  >
+                    <CartesianGrid
+                      stroke="rgba(255, 255, 255, 0.12)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fill: '#9a9da6', fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={0}
+                      minTickGap={24}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fill: '#9a9da6', fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={26}
+                    />
+                    <Tooltip
+                      cursor={{ stroke: 'rgba(255, 255, 255, 0.25)' }}
+                      content={<TrendTooltip />}
+                    />
+                    <Line
+                      type="linear"
+                      dataKey="value"
+                      stroke="var(--gcc-green)"
+                      strokeWidth={2}
+                      dot={{
+                        r: 5,
+                        fill: 'var(--gcc-green)',
+                        stroke: '#0f1113',
+                        strokeWidth: 1,
+                      }}
+                      activeDot={{
+                        r: 6,
+                        fill: 'var(--gcc-green)',
+                        stroke: '#0f1113',
+                        strokeWidth: 1,
+                      }}
+                      isAnimationActive={false}
                     >
-                      {yTicks.map((tick) => (
-                        <g key={`y-${tick.value}-${tick.y}`}>
-                          <line
-                            x1={CHART_PADDING.left}
-                            x2={CHART_WIDTH - CHART_PADDING.right}
-                            y1={tick.y}
-                            y2={tick.y}
-                            className={gcc.heroGridLine}
-                          />
-                          <text
-                            x={CHART_PADDING.left - 12}
-                            y={tick.y + 4}
-                            textAnchor="end"
-                            className={gcc.heroAxisLabel}
-                            fontFamily={SVG_NUMBER_FONT}
-                          >
-                            {tick.value}
-                          </text>
-                        </g>
-                      ))}
-
-                      <defs>
-                        <clipPath id="gcc-activity-plot-clip">
-                          <rect
-                            x={CHART_PADDING.left}
-                            y={CHART_PADDING.top}
-                            width={CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right}
-                            height={CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom}
-                          />
-                        </clipPath>
-                      </defs>
-
-                      <g clipPath="url(#gcc-activity-plot-clip)">
-                        <polyline className={gcc.heroSeriesLine} points={polyline} />
-                        {chartPoints.map((point) => (
-                          <circle
-                            key={`dot-${point.label}-${point.value}`}
-                            cx={point.x}
-                            cy={point.y}
-                            r={5}
-                            className={gcc.heroSeriesPoint}
-                          >
-                            <title>{`${point.label}: ${point.value} movements`}</title>
-                          </circle>
-                        ))}
-                      </g>
-
-                      {chartPoints.map((point) => {
-                        const labelY = point.y <= CHART_PADDING.top + 18 ? point.y + 20 : point.y - 12
-                        return (
-                          <g key={`point-${point.label}-${point.value}`}>
-                            <text
-                              x={point.x}
-                              y={labelY}
-                              textAnchor="middle"
-                              className={gcc.heroPointLabel}
-                              fontFamily={SVG_NUMBER_FONT}
-                              fontWeight="700"
-                            >
-                              {point.value}
-                            </text>
-                            <text
-                              x={point.x}
-                              y={CHART_HEIGHT - CHART_PADDING.bottom + 26}
-                              textAnchor="middle"
-                              className={gcc.heroAxisLabel}
-                            >
-                              {point.label}
-                            </text>
-                          </g>
-                        )
-                      })}
-                    </svg>
-                  </div>
-                )
-              })()
+                      <LabelList
+                        dataKey="value"
+                        position="top"
+                        offset={10}
+                        className={gcc.heroPointLabel}
+                      />
+                    </Line>
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             )}
 
             <Table dense grid className={gcc.heroTableSr}>

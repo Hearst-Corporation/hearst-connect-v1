@@ -1,6 +1,4 @@
-import { AdminSurface } from '@/components/admin/surfaces'
-import { AdminBody, AdminCaption, AdminSurfaceTitle } from '@/components/admin/typography'
-import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import { Absent as Missing, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { explorerTxUrl } from '@/lib/explorer'
 import { formatAddress, formatCurrency, formatDateTime, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
@@ -221,8 +219,8 @@ const CELL = 'px-4 py-2 align-top'
 function Heading({ movements }: Readonly<{ movements: Availability<readonly Movement[]> }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <AdminSurfaceTitle className="text-sm/5">Movement ledger</AdminSurfaceTitle>
-      <SourceAvailabilityBadge availability={movements} compact />
+      <h3 className={gcc.cardTitle}>Movement ledger</h3>
+      <Missing availability={movements} showRoute={false} />
     </div>
   )
 }
@@ -240,24 +238,30 @@ export function MovementLedger({
 }>) {
   if (!isAvailable(movements)) {
     return (
-      <AdminSurface className="p-4">
-        <Heading movements={movements} />
-        <AdminCaption className="mt-3">
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <Heading movements={movements} />
+        </div>
+        <div className={gcc.heroBody}>
           <Link href={DATA_COVERAGE_HREF} className={LINK_CLASS}>
             Data coverage
           </Link>
-        </AdminCaption>
-      </AdminSurface>
+        </div>
+      </Panel>
     )
   }
 
   const all = movements.value
   if (all.length === 0) {
     return (
-      <AdminSurface className="p-4">
-        <Heading movements={movements} />
-        <AdminBody className="mt-2 max-w-prose">No indexed movement yet.</AdminBody>
-      </AdminSurface>
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <Heading movements={movements} />
+        </div>
+        <div className={gcc.heroBody}>
+          <p className={gcc.cellText}>No indexed movement yet.</p>
+        </div>
+      </Panel>
     )
   }
 
@@ -274,13 +278,13 @@ export function MovementLedger({
   const truncated = shown.length < all.length
 
   return (
-    <AdminSurface>
-      <div className="px-4 pt-4 pb-3 sm:px-5">
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
         <Heading movements={movements} />
       </div>
 
-      <div className="overflow-x-hidden">
-        <table className="w-full table-fixed text-left text-sm">
+      <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
+        <table className="w-full min-w-[980px] table-fixed text-left text-sm">
           <thead>
             <tr className={clsx('border-b border-zinc-950/10 text-xs dark:border-console-line', MUTED_CLASS)}>
               {HEADERS.map((h) => (
@@ -329,12 +333,12 @@ export function MovementLedger({
         </table>
       </div>
 
-      <AdminCaption className="px-4 py-2 sm:px-5">
+      <p className={clsx(gcc.cellText, 'px-4 py-2')}>
         {truncated
           ? `${formatNumber(shown.length)} / ${formatNumber(all.length)} shown.`
           : `${formatNumber(all.length)} shown.`}{' '}
         Indexed only.
-      </AdminCaption>
-    </AdminSurface>
+      </p>
+    </Panel>
   )
 }

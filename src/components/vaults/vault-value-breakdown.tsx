@@ -1,8 +1,7 @@
 import Link from 'next/link'
+import clsx from 'clsx'
 
-import { AdminEmptyState, AdminSurface } from '@/components/admin/surfaces'
-import { AdminCaption, AdminLabel, AdminSurfaceTitle } from '@/components/admin/typography'
-import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
@@ -74,22 +73,18 @@ function texteAbsence(list: readonly Vault[] | null): string {
 
   if (list === null || list.length === 0) {
     return (
-      <AdminSurface className="flex h-full flex-col">
-        <AdminEmptyState
-          title="No vault value."
-          description={texteAbsence(list)}
-        >
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <SourceAvailabilityBadge availability={vaults} />
-            <Link
-              href={entityHref('source', 'vault')}
-              className="text-xs text-accent-600 underline-offset-4 hover:underline dark:text-accent-400"
-            >
-              Data coverage
-            </Link>
-          </div>
-        </AdminEmptyState>
-      </AdminSurface>
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <h3 className={gcc.cardTitle}>Value by vault</h3>
+        </div>
+        <div className={gcc.heroBody}>
+          <p className={gcc.cellText}>{texteAbsence(list)}</p>
+          <Absent availability={vaults} showRoute />
+          <Link href={entityHref('source', 'vault')} className="text-sm text-accent-300 underline underline-offset-2">
+            Data coverage
+          </Link>
+        </div>
+      </Panel>
     )
   }
 
@@ -113,21 +108,20 @@ function texteAbsence(list: readonly Vault[] | null): string {
   // an absence, not a chart of empty bars.
   if (ranked.length === 0) {
     return (
-      <AdminSurface className="flex h-full flex-col">
-        <div className="px-5 pt-5 pb-4 sm:px-6">
-          <AdminSurfaceTitle>Value by vault</AdminSurfaceTitle>
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <h3 className={gcc.cardTitle}>Value by vault</h3>
         </div>
-        <AdminEmptyState
-          title="Vault values unavailable."
-          description="The register lists vaults, but none carried a readable total."
-        >
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            {unmeasured.map((vault) => (
-              <SourceAvailabilityBadge key={vault.id} availability={vault.totalAssetsAtomic} compact />
-            ))}
-          </div>
-        </AdminEmptyState>
-      </AdminSurface>
+        <div className={gcc.heroBody}>
+          <p className={gcc.cellText}>The register lists vaults, but none carried a readable total.</p>
+          {unmeasured.map((vault) => (
+            <div key={vault.id} className={gcc.sourceRow}>
+              <span className={gcc.cellText}>{vault.label}</span>
+              <Absent availability={vault.totalAssetsAtomic} showRoute={false} />
+            </div>
+          ))}
+        </div>
+      </Panel>
     )
   }
 
@@ -138,20 +132,20 @@ function texteAbsence(list: readonly Vault[] | null): string {
   const largest = ranked[0].atomic
 
   return (
-    <AdminSurface className="flex h-full flex-col">
-      <div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 pb-3 sm:px-5">
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
         <div>
-          <AdminSurfaceTitle className="text-sm/5">Value by vault</AdminSurfaceTitle>
+          <h3 className={gcc.cardTitle}>Value by vault</h3>
         </div>
         <div className="text-right">
-          <AdminLabel>Readable total</AdminLabel>
-          <p className="mt-1 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
+          <p className={gcc.cellText}>Readable total</p>
+          <p className={gcc.cellStrong}>
             {formatCurrency(total.toString(), { fromAtomic: assetScale(ranked[0].vault) })}
           </p>
         </div>
       </div>
 
-      <ul className="flex-1 divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+      <ul className={clsx(gcc.heroBody, 'divide-y divide-zinc-950/5 dark:divide-console-line-soft')}>
         {ranked.map(({ vault, atomic }) => {
           const percent = total > ZERO ? Number((atomic * BPS) / total) / 100 : null
           const width = total > ZERO && largest > ZERO ? Number((atomic * BPS) / largest) / 100 : null
@@ -192,8 +186,8 @@ function texteAbsence(list: readonly Vault[] | null): string {
       </ul>
 
       {unmeasured.length > 0 ? (
-        <div className="space-y-2 px-4 pt-3 pb-4 sm:px-5">
-          <AdminCaption>Excluded from total: {formatNumber(unmeasured.length)} unread vaults.</AdminCaption>
+        <div className="space-y-2 px-4 pb-4 sm:px-5">
+          <p className={gcc.cellText}>Excluded from total: {formatNumber(unmeasured.length)} unread vaults.</p>
           <ul className="space-y-1.5">
             {unmeasured.map((vault) => (
               <li key={vault.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -203,12 +197,12 @@ function texteAbsence(list: readonly Vault[] | null): string {
                 >
                   {vault.label}
                 </Link>
-                <SourceAvailabilityBadge availability={vault.totalAssetsAtomic} compact />
+                <Absent availability={vault.totalAssetsAtomic} showRoute={false} />
               </li>
             ))}
           </ul>
         </div>
       ) : null}
-    </AdminSurface>
+    </Panel>
   )
 }

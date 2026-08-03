@@ -2,6 +2,9 @@
 
 **Green Command Center — visual laboratory for the administration Home screen**
 
+> Archive note (current repo state): this file documents the initial isolated sandbox pass.  
+> The `/admin` migration is now propagated in the main app; use `README.md` for the current route-level status.
+
 | | |
 |---|---|
 | Date | 2026-07-30 |

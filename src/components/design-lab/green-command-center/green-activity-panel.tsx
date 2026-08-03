@@ -114,15 +114,13 @@ export function GreenVaultPanel({
   vaultLines,
   vaultAbsence,
   estateValue,
-  sourceLines,
 }: Readonly<{
   vaultLines: readonly Readonly<{ id: string; label: string; detail: string }>[]
   vaultAbsence: Availability<unknown>
   estateValue: Availability<string>
-  sourceLines: readonly Readonly<{ id: string; label: string; status: string }>[]
 }>) {
   return (
-    <Panel className={gcc.vaultCard} aria-label="Vault register and source activity" data-gcc="vault-card">
+    <Panel className={gcc.vaultCard} aria-label="Vault register" data-gcc="vault-card">
       <Subheading level={3} className={gcc.cardTitle}>Vault register</Subheading>
       {!isAvailable(vaultAbsence) ? (
         <Absent availability={vaultAbsence} showRoute={false} />
@@ -150,14 +148,6 @@ export function GreenVaultPanel({
       </div>
 
       <hr className={gcc.cellDivider} />
-
-      <Subheading level={3} className={gcc.cardTitle}>Source activity</Subheading>
-      {sourceLines.slice(0, 4).map((source) => (
-        <div key={source.id} className={gcc.sourceRow}>
-          <Text className={gcc.cellText}>{source.label}</Text>
-          <Strong className={gcc.cellStrong}>{source.status}</Strong>
-        </div>
-      ))}
     </Panel>
   )
 }

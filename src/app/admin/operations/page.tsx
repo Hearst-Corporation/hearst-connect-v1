@@ -1,21 +1,22 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { Card, CardHeader, HeroFigure, SideFact } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { DerivePochesChart, type DerivePoche } from '@/components/admin/derive-poches-chart'
 import { DistributionBarChart } from '@/components/admin/distribution-chart'
-import { AdminChartSplit, AdminCol, AdminGrid, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
+import { AdminChartSplit, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
 import { SingleObservation } from '@/components/admin/single-observation'
-import { AdminBody, AdminCaption, AdminPage, AdminSurfaceHeader } from '@/components/admin/typography'
+import { AdminBody, AdminCaption, AdminSurfaceHeader } from '@/components/admin/typography'
 import {
   AdminErrorState,
   AdminMetric,
-  AdminSection,
   AdminSourceAttendue,
   AdminStatus,
   AdminSurface,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin/surfaces'
+import { requireSession } from '@/lib/auth'
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { plottableAsChart } from '@/lib/chart-theme'
 import { explorerTxUrl } from '@/lib/explorer'
@@ -31,6 +32,7 @@ import {
 } from '@/lib/mouvements'
 import { formatCount } from '@/lib/resolved'
 import { etatSerieDe } from '@/lib/serie-etat'
+import { publicUser } from '@/lib/session'
 import { statutAffichage } from '@/lib/statut-affichage'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
@@ -38,6 +40,39 @@ import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Operations' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <Panel className={clsx(gcc.heroChart, className)}>{children}</Panel>
+}
+
+function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
+  return (
+    <div className={gcc.heroHead}>
+      <h3 className={gcc.cardTitle}>{title}</h3>
+      <p className={gcc.cellText}>{hint}</p>
+    </div>
+  )
+}
+
+function HeroFigure({ valeur, libelle, unite }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
+  return (
+    <div>
+      <p className={gcc.metricValue}>{valeur}</p>
+      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
+    </div>
+  )
+}
+
+function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
+  return (
+    <div>
+      <p className={gcc.cellText}>{libelle}</p>
+      <p className={gcc.cellStrong}>{valeur}</p>
+    </div>
+  )
+}
 
 /**
  * Operations — what happened, what drifted, what is waiting on a move.
@@ -795,6 +830,8 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
+  const session = await requireSession()
+  const user = publicUser(session)
   const [reponse, rebalancing, dashboard, runtime] = await Promise.all([
     callBackend<ReponseEvenements>('series1-events', { params: { limit: 50 } }),
     callBackend<RebalancingStatus>('rebalancing-status'),
@@ -810,81 +847,112 @@ export default async function Page() {
 
   const derives = derivesDe(dashboard.ok ? dashboard.data.allocation?.value?.pockets : undefined)
   const etatDerive = etatDeriveDe(dashboard, derives)
+  const movementCount = reponse.ok && reponse.data.events?.value ? reponse.data.events.value.length : 0
+  const rebalancingStatus = rebalancing.ok ? (rebalancing.data.rebalancing?.status ?? 'UNAVAILABLE') : 'UNAVAILABLE'
+  const runtimeStatus = runtime.ok ? (runtime.data.indexerStatus ?? runtime.data.indexer?.status ?? 'NOT_REPORTED') : 'UNAVAILABLE'
+  const ratioValue = derives.length > 0 ? `${formatNumber(derives.length)}` : '0'
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Operations"
-        description="Whether it needs rebalancing, what happened on the chain, and whether the ledger is up to date."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect operations cockpit"
+      rail={<GreenCommandRail currentHref="/admin/operations" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Operations summary">
+        <Panel className={gcc.metricCard}>
+          <h2>Movements</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(movementCount))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Pockets measured</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(ratioValue)} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Rebalancing source</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(rebalancingStatus)} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Indexer</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(runtimeStatus)} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Ledger status</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(reponse.ok && reponse.data.events ? statutAffichage(reponse.data.events.status) : 'Unavailable')} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Operations <span>state</span></p>
+          <p className={gcc.decisionMeta}>Chain events and indexer freshness</p>
+          <p className={gcc.decisionActionMuted}>No approval queue endpoint</p>
+        </Panel>
+      </section>
 
-      <AdminSection
-        index="01"
-        title="Rebalancing"
-        description="The drift from target allocation, pocket by pocket — and what the contract itself doesn't expose."
-      >
-        <SyntheseDerive dashboard={dashboard} />
+      <section className={gcc.mainRow} aria-label="Rebalancing and runtime">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Rebalancing</h2>
+          </div>
+          <div className={clsx(gcc.heroBody, 'gap-3')}>
+            <SyntheseDerive dashboard={dashboard} />
+            <AdminChartSplit className="items-start" chart={<CadreDerive derives={derives} etat={etatDerive} />} aside={<LectureOnChain rebalancing={rebalancing} />} />
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}>
+            <h3>Indexer freshness</h3>
+            <SectionIndexation runtime={runtime} />
+          </Panel>
+        </aside>
+      </section>
 
-        {/* The canonical split: the measurement at eight columns, what the
-            contract will and won't say about it at four. They used to be
-            three cards stacked at full width, which gave the on-chain read
-            the same weight as the drift itself. */}
-        <AdminChartSplit
-          className="items-start"
-          chart={<CadreDerive derives={derives} etat={etatDerive} />}
-          aside={<LectureOnChain rebalancing={rebalancing} />}
-        />
-      </AdminSection>
-
-      <AdminSection
-        index="02"
-        title="Movement ledger"
-        description="The indexed events of Series 1 — what actually happened on the chain."
-        // The backend returns this status as a free-form field: we validate
-        // it instead of forcing it, otherwise an "undefined" label would show.
-        // It belongs in the section's action slot, not in a bare row of its
-        // own above the content.
-        actions={
-          reponse.ok && reponse.data.events ? (
-            <AdminStatus status={statutAffichage(reponse.data.events.status)} />
-          ) : null
-        }
-      >
-        <RegistreMouvements reponse={reponse} mouvements={mouvements} chainId={chainId} />
-      </AdminSection>
-
-      <AdminSection
-        index="03"
-        title="Ledger freshness"
-        description="A ledger is only as good as its indexing: here is its state, measured at the source."
-      >
-        <SectionIndexation runtime={runtime} />
-      </AdminSection>
-
-      {/* Placed at the end of the page, not the top: an empty queue opening
-          the screen would make it look dead. The content itself doesn't
-          change — the source still doesn't exist, and that's what needs to
-          be said. Eight columns rather than twelve: the card is sized to the
-          three lines it holds, and the rest is deliberate whitespace. */}
-      <AdminSection
-        index="04"
-        title="Pending approval"
-        description="Financial approvals — source pending"
-      >
-        <AdminGrid>
-          <AdminCol span={8}>
-            <AdminSourceAttendue
-              quoi="No approval queue open"
-              detail="DistributionApproval, VaultDeploymentApproval, and ProposalSignature exist in the database but are not yet exposed over HTTP."
-              requis={[
-                'Reading pending requests and received signatures',
-                'Approve/reject action with logging',
-                'Compliance check attached to each request',
-              ]}
-            />
-          </AdminCol>
-        </AdminGrid>
-      </AdminSection>
-    </AdminPage>
+      <section className={gcc.bottomRow} aria-label="Ledger and approvals">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}>
+            <h3 className={gcc.cardTitle}>Movement ledger</h3>
+          </div>
+          <div className={gcc.heroBody}>
+            <RegistreMouvements reponse={reponse} mouvements={mouvements} chainId={chainId} />
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}>
+            <h3>Rebalancing source</h3>
+            <p className={gcc.cellText}>Direct contract read and indexed dashboard read are rendered separately.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Ledger source</h3>
+            <p className={gcc.cellText}>Series 1 events endpoint only; no synthetic event is generated.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Indexer health</h3>
+            <p className={gcc.cellText}>Runtime scheduler and sync timestamps drive freshness status.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Threshold</h3>
+            <p className={gcc.cellText}>No backend trigger threshold is invented in this view.</p>
+          </article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Pending approval</h3>
+          <AdminSourceAttendue
+            quoi="No approval queue open"
+            detail="DistributionApproval, VaultDeploymentApproval, and ProposalSignature exist in the database but are not yet exposed over HTTP."
+            requis={[
+              'Reading pending requests and received signatures',
+              'Approve/reject action with logging',
+              'Compliance check attached to each request',
+            ]}
+          />
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

@@ -1,0 +1,73 @@
+{
+  "route": "/design-lab/admin-home-green",
+  "checks": [
+    {
+      "viewport": "2048x1146",
+      "file": "admin-home-green-2048x1146.png",
+      "metrics": {
+        "scrollWidth": 2048,
+        "clientWidth": 2048,
+        "hasHorizontalOverflow": false,
+        "hasVerticalPageScroll": false,
+        "bodyScrollHeight": 1146,
+        "viewportHeight": 1146,
+        "bottomRowBottom": 1133,
+        "bottomRowVisibleInViewport": true,
+        "heroChartPresent": true,
+        "heroChartHeight": 275.03125,
+        "decision": "DECISION QUEUEUnavailable● Queue unavailable"
+      }
+    },
+    {
+      "viewport": "1440x900",
+      "file": "admin-home-green-1440x900.png",
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "hasVerticalPageScroll": false,
+        "bodyScrollHeight": 900,
+        "viewportHeight": 900,
+        "bottomRowBottom": 887,
+        "bottomRowVisibleInViewport": true,
+        "heroChartPresent": true,
+        "heroChartHeight": 216,
+        "decision": "DECISION QUEUEUnavailable● Queue unavailable"
+      }
+    },
+    {
+      "viewport": "1280x800",
+      "file": "admin-home-green-1280x800.png",
+      "metrics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "hasHorizontalOverflow": false,
+        "hasVerticalPageScroll": false,
+        "bodyScrollHeight": 800,
+        "viewportHeight": 800,
+        "bottomRowBottom": 787,
+        "bottomRowVisibleInViewport": true,
+        "heroChartPresent": true,
+        "heroChartHeight": 192,
+        "decision": "DECISION QUEUEUnavailable● Queue unavailable"
+      }
+    },
+    {
+      "viewport": "390x844",
+      "file": "admin-home-green-390x844.png",
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "hasHorizontalOverflow": false,
+        "hasVerticalPageScroll": false,
+        "bodyScrollHeight": 844,
+        "viewportHeight": 844,
+        "bottomRowBottom": 834,
+        "bottomRowVisibleInViewport": true,
+        "heroChartPresent": true,
+        "heroChartHeight": 202.546875,
+        "decision": "DECISION QUEUEUnavailable● Queue unavailable"
+      }
+    }
+  ]
+}

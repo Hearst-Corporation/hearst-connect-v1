@@ -1,14 +1,16 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
-import { AdminPage } from '@/components/admin/typography'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
+import { publicUser } from '@/lib/session'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
@@ -68,6 +70,72 @@ const PAGE_REASONS = {
   dynavault_not_deployed: 'these terms are not yet available on the deployed contract',
 }
 
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({
+  children,
+  className = '',
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <Panel className={clsx(gcc.wavePanel, className)}>{children}</Panel>
+}
+
+function CardHeader({
+  title,
+  hint,
+}: Readonly<{ title: string; hint: string }>) {
+  return (
+    <div className={gcc.heroHead}>
+      <h3 className={gcc.cardTitle}>{title}</h3>
+      <p className={gcc.cellText}>{hint}</p>
+    </div>
+  )
+}
+
+function HeroFigure({
+  valeur,
+  libelle,
+  unite,
+}: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
+  return (
+    <div>
+      <p className={gcc.metricValue}>{valeur}</p>
+      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
+    </div>
+  )
+}
+
+function SideFact({
+  libelle,
+  valeur,
+}: Readonly<{ libelle: string; valeur: string }>) {
+  return (
+    <div>
+      <p className={gcc.cellText}>{libelle}</p>
+      <p className={gcc.cellStrong}>{valeur}</p>
+    </div>
+  )
+}
+
+function SourceAttendue({
+  quoi,
+  detail,
+  requis,
+}: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
+  return (
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
+        <h3 className={gcc.cardTitle}>{quoi}</h3>
+      </div>
+      <div className={gcc.heroBody}>
+        <p className={gcc.cellText}>{detail}</p>
+        {requis.map((item) => (
+          <p key={item} className={gcc.cellText}>{item}</p>
+        ))}
+      </div>
+    </Panel>
+  )
+}
+
 function stateOf(block: Resolved<unknown> | undefined, fallback: string): EtatSerie {
   return etatSerieDe(block, fallback, PAGE_REASONS)
 }
@@ -120,7 +188,8 @@ function curveState(points: readonly PointCourbe[], curveConfigured: boolean, ve
 }
 
 export default async function Page() {
-  const response = await callBackend<Factsheet>('product-factsheet')
+  const [session, response] = await Promise.all([requireSession(), callBackend<Factsheet>('product-factsheet')])
+  const user = publicUser(session)
   const f = response.ok ? response.data : null
 
   const terms = f?.terms?.value
@@ -157,11 +226,54 @@ export default async function Page() {
   const hasPocketDetail = readablePockets.length > 0
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Product Sheet"
-        description="The terms an investor subscribes to: minimum deposit, duration, fund cap, expected reward rate, and the targeted allocation of the money."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect product cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Product summary">
+        <Panel className={gcc.metricCard}>
+          <h2>Minimum deposit</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 }))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Duration</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(readableDuration(terms?.productDurationMonths))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Fund cap</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(formatCurrency(cap, { decimals: 0 }))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Pockets</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(readablePockets.length))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Curve milestones</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(points.length))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Product <span>sheet</span></p>
+          <p className={gcc.decisionMeta}>{curveConfigured ? 'Reward curve configured' : 'Reward curve pending'}</p>
+          <p className={gcc.decisionActionMuted}>No synthetic terms</p>
+        </Panel>
+      </section>
+
+      <section className={gcc.mainRow} aria-label="Product details">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Product sheet</h2>
+          </div>
+          <div className={gcc.heroBody}>
 
       {f === null ? (
         // One stated absence, at the measure a sentence reads best — not a
@@ -300,6 +412,58 @@ export default async function Page() {
           </AdminSection>
         </>
       )}
-    </AdminPage>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}>
+            <h3>Coverage</h3>
+            <p className={gcc.cellText}>{f === null ? 'Factsheet unavailable' : 'Factsheet available'}</p>
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Allocation source</h3>
+            <p className={gcc.cellText}>{hasPocketDetail ? 'Readable pockets' : 'No readable pocket'}</p>
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Vending curve</h3>
+            <p className={gcc.cellText}>{curveConfigured ? 'Configured' : 'Not configured'}</p>
+          </Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Product notes">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}>
+            <h3 className={gcc.cardTitle}>Guardrails</h3>
+          </div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>No interpolated rewards when all milestones are zero.</p>
+            <p className={gcc.cellText}>No synthetic target allocation when pockets are unreadable.</p>
+            <p className={gcc.cellText}>All absences remain explicit and sourced.</p>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}>
+            <h3>Terms endpoint</h3>
+            <p className={gcc.cellText}>`product-factsheet`</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Allocation view</h3>
+            <p className={gcc.cellText}>Target vs observed by pocket.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Curve view</h3>
+            <p className={gcc.cellText}>Monthly reward rate milestones.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Threshold</h3>
+            <p className={gcc.cellText}>No fake rate when source is not configured.</p>
+          </article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Status</h3>
+          <p className={gcc.cellText}>{f === null ? 'Product factsheet source unavailable.' : 'Product factsheet source reachable.'}</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

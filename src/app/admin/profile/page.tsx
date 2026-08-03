@@ -1,15 +1,47 @@
-import { Card, CardHeader, SourceAttendue } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
-import { AdminPage } from '@/components/admin/typography'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 
 export const metadata: Metadata = { title: 'Your Account' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
+
+function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
+  return (
+    <div className={gcc.heroHead}>
+      <h3 className={gcc.cardTitle}>{title}</h3>
+      <p className={gcc.cellText}>{hint}</p>
+    </div>
+  )
+}
+
+function SourceAttendue({
+  quoi,
+  detail,
+  requis,
+}: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
+  return (
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>{quoi}</h3></div>
+      <div className={gcc.heroBody}>
+        <p className={gcc.cellText}>{detail}</p>
+        {requis.map((item) => <p key={item} className={gcc.cellText}>{item}</p>)}
+      </div>
+    </Panel>
+  )
+}
 
 /**
  * Your account — what the product knows about the signed-in person.
@@ -99,18 +131,37 @@ function DossierInvestisseur({
 
 export default async function Page() {
   const [session, reponse] = await Promise.all([getSession(), callBackend<ReponseProfil>('profile')])
+  const railUserName = session?.name ?? 'Hearst user'
+  const railUserRole = session?.role ?? 'MEMBER'
 
   const bloc = reponse.ok ? reponse.data.identity : undefined
   const identite = bloc?.value
   const motif = motifLisible(bloc?.reason)
+  const sessionState = session === null ? 'No valid session' : 'Session active'
+  const investorState = identite === null || identite === undefined ? 'No investor record' : 'Investor record present'
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Your Account"
-        description="The account that opens this console, and the investor record attached to it — if one exists."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect profile cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={railUserName} userRole={railUserRole} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Profile summary">
+        <Panel className={gcc.metricCard}><h2>Session</h2><div className={gcc.metricText}><Reading value={manual(sessionState)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Name</h2><div className={gcc.metricText}><Reading value={manual(session?.name ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Email</h2><div className={gcc.metricText}><Reading value={manual(session?.email ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={manual(session === null ? '—' : LIBELLE_ROLE[session.role])} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Investor record</h2><div className={gcc.metricText}><Reading value={manual(investorState)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Account <span>identity</span></p>
+          <p className={gcc.decisionMeta}>{reponse.ok ? 'Profile endpoint reachable' : 'Profile endpoint unavailable'}</p>
+          <p className={gcc.decisionActionMuted}>Session and investor are distinct</p>
+        </Panel>
+      </section>
 
+      <section className={gcc.mainRow} aria-label="Profile identity">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Your account</h2></div>
+          <div className={gcc.heroBody}>
       <AdminSection
         title="Identity"
         description="Two things live here and they are not the same. The account is what signs you in; the investor record is what links a person to a position in the fund. One does not imply the other."
@@ -140,7 +191,35 @@ export default async function Page() {
           </AdminCol>
         </AdminGrid>
       </AdminSection>
-    </AdminPage>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Profile source</h3><p className={gcc.cellText}>{reponse.ok ? 'Reachable' : 'Unavailable'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Investor reason</h3><p className={gcc.cellText}>{motif ?? 'None reported'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Role mapping</h3><p className={gcc.cellText}>Session role does not imply subscription.</p></Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Profile notes">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Data doctrine</h3></div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>Admin identity and investor identity are rendered separately.</p>
+            <p className={gcc.cellText}>Absence of investor record is explicit, never implied as outage.</p>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Session source</h3><p className={gcc.cellText}>`getSession()`</p></article>
+          <article className={gcc.infoCell}><h3>Profile source</h3><p className={gcc.cellText}>`profile` backend endpoint</p></article>
+          <article className={gcc.infoCell}><h3>Investor fields</h3><p className={gcc.cellText}>Name, email, wallet, KYC, accreditation</p></article>
+          <article className={gcc.infoCell}><h3>Fallback</h3><p className={gcc.cellText}>No fabricated investor row</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Coverage path</h3>
+          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint-level status reasons.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }
 

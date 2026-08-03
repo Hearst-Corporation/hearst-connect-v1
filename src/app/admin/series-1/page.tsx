@@ -1,8 +1,9 @@
-import { Card, CardHeader, HeroFigure, SourceAttendue } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import { AdminMetric } from '@/components/admin/surfaces'
-import { AdminPage } from '@/components/admin/typography'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { formatNumber } from '@/lib/format'
 import {
@@ -14,10 +15,51 @@ import {
   motifLisible,
   phraseMouvement,
 } from '@/lib/mouvements'
+import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Series 1 Log' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
+
+function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
+  return (
+    <div className={gcc.heroHead}>
+      <h3 className={gcc.cardTitle}>{title}</h3>
+      <p className={gcc.cellText}>{hint}</p>
+    </div>
+  )
+}
+
+function HeroFigure({ valeur, libelle }: Readonly<{ valeur: string; libelle: string }>) {
+  return (
+    <div>
+      <p className={gcc.metricValue}>{valeur}</p>
+      <p className={gcc.cellText}>{libelle}</p>
+    </div>
+  )
+}
+
+function SourceAttendue({ quoi, detail, requis }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
+  return (
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
+        <h3 className={gcc.cardTitle}>{quoi}</h3>
+      </div>
+      <div className={gcc.heroBody}>
+        <p className={gcc.cellText}>{detail}</p>
+        {requis.map((item) => (
+          <p key={item} className={gcc.cellText}>{item}</p>
+        ))}
+      </div>
+    </Panel>
+  )
+}
 
 /**
  * Series 1 Log — the fund's journal, read as a narrative.
@@ -102,19 +144,96 @@ function CorpsJournal({
 }
 
 export default async function Page() {
-  const reponse = await callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } })
+  const [session, reponse] = await Promise.all([
+    requireSession(),
+    callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } }),
+  ])
+  const user = publicUser(session)
   const bloc = reponse.ok ? reponse.data.events : undefined
   const mouvements = bloc?.value
+  const movementCount = mouvements === null || mouvements === undefined ? 'Unavailable' : String(mouvements.length)
+  const financialCount =
+    mouvements === null || mouvements === undefined ? 'Unavailable' : String(mouvements.filter(estFinancier).length)
+  const last = mouvements?.[0]?.occurredAt ?? null
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Series 1 Log"
-        description="Every movement the chain has recorded for the Series 1 fund, most recent to oldest. Each line comes straight from the service — nothing here is aggregated, estimated, or totalled across movement types."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect series 1 cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Series 1 summary">
+        <Panel className={gcc.metricCard}>
+          <h2>Movements</h2>
+          <div className={gcc.metricText}><Reading value={manual(movementCount)} className={gcc.metricValue} /></div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Financial entries</h2>
+          <div className={gcc.metricText}><Reading value={manual(financialCount)} className={gcc.metricValue} /></div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Latest</h2>
+          <div className={gcc.metricText}><Reading value={manual(ilYA(last))} className={gcc.metricValue} /></div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Types</h2>
+          <div className={gcc.metricText}><Reading value={manual(String(new Set((mouvements ?? []).map((m) => m.eventName)).size))} className={gcc.metricValue} /></div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Source status</h2>
+          <div className={gcc.metricText}><Reading value={manual(reponse.ok ? 'Reachable' : 'Unavailable')} className={gcc.metricValue} /></div>
+        </Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Series 1 <span>log</span></p>
+          <p className={gcc.decisionMeta}>Chronological chain journal</p>
+          <p className={gcc.decisionActionMuted}>No synthetic movement</p>
+        </Panel>
+      </section>
 
-      <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
-    </AdminPage>
+      <section className={gcc.mainRow} aria-label="Series 1 journal">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Series 1 log</h2>
+          </div>
+          <div className={gcc.heroBody}>
+            <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}>
+            <h3>Recent movement</h3>
+            <p className={gcc.cellText}>{dateLisible(last)}</p>
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Feed ordering</h3>
+            <p className={gcc.cellText}>Newest to oldest</p>
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Amount rule</h3>
+            <p className={gcc.cellText}>No amount means no forced zero.</p>
+          </Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Series 1 notes">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Ledger contract</h3></div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>Each line maps to one backend movement entry.</p>
+            <p className={gcc.cellText}>No cross-type total is presented.</p>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Endpoint</h3><p className={gcc.cellText}>`series1-events`</p></article>
+          <article className={gcc.infoCell}><h3>Ordering</h3><p className={gcc.cellText}>Most recent first</p></article>
+          <article className={gcc.infoCell}><h3>Amount</h3><p className={gcc.cellText}>Shown only when carried by source.</p></article>
+          <article className={gcc.infoCell}><h3>Fallback</h3><p className={gcc.cellText}>No fabricated row.</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Data coverage</h3>
+          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint-level status.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }
 

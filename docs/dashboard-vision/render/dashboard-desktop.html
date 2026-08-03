@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Hearst Connect — Vault Operations Cockpit (concept)</title>
+<style>
+/*
+ * Hearst Connect — dashboard vision, desktop cockpit.
+ * Standalone concept mockup. Not wired into the application.
+ * Tokens mirror .cockpit-theme in src/styles/tailwind.css (graphite + mint #a7fb90).
+ */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../../src/assets/fonts/Satoshi-Variable.woff2') format('woff2');
+  font-weight: 300 900;
+  font-display: block;
+}
+:root {
+  --app:#101010; --card:#2a2a2a; --card-top:#303030; --line:#3d3d3d;
+  --t-body:#dedede; --t-muted:#b3b3b3; --t-faint:#8b8b8b; --white:#fff;
+  --accent:#a7fb90; --accent-lift:#c1fcb1; --ink:#000;
+  --ok:#34d399; --warn:#fb923c; --bad:#f87171; --info:#60a5fa;
+  --soft:rgba(167,251,144,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{
+  background:var(--app);color:var(--t-body);
+  font-family:'Satoshi',ui-sans-serif,system-ui,sans-serif;
+  font-size:15px;-webkit-font-smoothing:antialiased;
+  display:grid;grid-template-columns:248px 1fr;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum";letter-spacing:-.01em}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+aside{background:#0b0b0b;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:22px 16px}
+.brand{display:flex;gap:11px;align-items:center;padding:0 6px 22px}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--ink);
+  display:grid;place-items:center;font-weight:800;font-size:17px;flex:none}
+.brand b{display:block;font-size:15px;font-weight:700;color:var(--white);letter-spacing:-.01em}
+.brand span{display:block;font-size:11.5px;color:var(--t-faint);margin-top:1px}
+nav{display:flex;flex-direction:column;gap:2px}
+.nlabel{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#6b6b6b;padding:0 10px 8px;font-weight:600}
+.n{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:8px;color:var(--t-muted);font-size:14px;font-weight:500}
+.n .ic{width:16px;height:16px;flex:none;opacity:.85}
+.n.on{background:var(--soft);color:var(--white);font-weight:650}
+.n.on .ic{opacity:1;color:var(--accent)}
+.n .cnt{margin-left:auto;font-size:11px;font-weight:700;padding:1px 6px;border-radius:20px;background:#3d3d3d;color:var(--t-body)}
+.n .cnt.alert{background:rgba(248,113,113,.16);color:var(--bad)}
+.sidefoot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.who{display:flex;gap:10px;align-items:center;padding:0 6px}
+.av{width:30px;height:30px;border-radius:8px;background:#303030;display:grid;place-items:center;
+  font-size:12px;font-weight:700;color:var(--t-body);flex:none}
+.who b{font-size:13px;color:var(--white);font-weight:650;display:block}
+.who span{font-size:11px;color:var(--t-faint)}
+.role{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--accent);
+  border:1px solid rgba(167,251,144,.3);border-radius:4px;padding:2px 5px}
+
+/* ── Main ────────────────────────────────────────────────────────── */
+main{display:flex;flex-direction:column;padding:20px 26px 18px;gap:14px;min-width:0;overflow:hidden}
+header{display:flex;align-items:flex-start;gap:20px}
+h1{font-size:22px;font-weight:700;color:var(--white);letter-spacing:-.02em}
+.sub{font-size:12.5px;color:var(--t-faint);margin-top:3px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
+  border:1px solid var(--line);border-radius:20px;padding:4px 10px;color:var(--t-muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+.dot.w{background:var(--warn)} .dot.b{background:var(--bad)}
+.concept{border-color:rgba(251,146,60,.35);color:var(--warn);letter-spacing:.06em}
+.hactions{margin-left:auto;display:flex;gap:9px;align-items:center}
+.btn{font-size:12.5px;font-weight:650;border-radius:8px;padding:8px 13px;border:1px solid var(--line);
+  color:var(--t-body);background:#242424;white-space:nowrap}
+.btn.primary{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+
+/* KPI strip — uncaged figures, separated by rules */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);padding:14px 0}
+.kpi{padding:0 22px;border-left:1px solid #262626}
+.kpi:first-child{border-left:0;padding-left:2px}
+.klabel{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--t-faint);font-weight:600}
+.kval{font-size:31px;font-weight:700;color:var(--white);margin-top:7px;line-height:1.05;letter-spacing:-.025em}
+.kval.warnv{color:var(--warn)} .kval.na{font-size:15px;color:var(--t-faint);font-weight:600;padding-top:11px}
+.kfoot{font-size:11.5px;color:var(--t-faint);margin-top:6px;display:flex;align-items:center;gap:6px}
+.delta{font-weight:700} .up{color:var(--ok)} .down{color:var(--bad)} .flat{color:var(--t-faint)}
+.spark{margin-top:8px;display:block}
+
+/* Grid */
+.body{display:grid;grid-template-columns:1fr 372px;gap:14px;flex:1;min-height:0}
+.left{display:grid;grid-template-rows:1fr 326px;gap:14px;min-height:0}
+.right{display:grid;grid-template-rows:1.16fr 1fr;gap:14px;min-height:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.phead{display:flex;align-items:center;gap:10px;padding:13px 16px 11px;border-bottom:1px solid #363636;flex:none}
+.ptitle{font-size:13.5px;font-weight:650;color:var(--white)}
+.pq{font-size:11.5px;color:var(--t-faint);margin-top:2px}
+.pmeta{margin-left:auto;display:flex;gap:8px;align-items:center;flex:none}
+.tag{font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--t-faint);
+  border:1px solid var(--line);border-radius:5px;padding:2.5px 6px}
+.tag.live{color:var(--ok);border-color:rgba(52,211,153,.3)}
+.tag.na{color:var(--t-faint);border-color:#3d3d3d}
+.pbody{padding:12px 16px 14px;flex:1;min-height:0;display:flex;flex-direction:column}
+
+/* Legend */
+.legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:var(--t-muted)}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:3px;border-radius:2px;background:var(--accent);flex:none}
+.sw.band{height:9px;border-radius:2px;background:rgba(167,251,144,.16);border:1px solid rgba(167,251,144,.3)}
+.sw.thr{background:transparent;border-top:2px dashed var(--warn);height:0}
+.sw.ev{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+
+/* Tables — borderless */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--t-faint);
+  font-weight:600;text-align:left;padding:0 10px 8px 0}
+th.r,td.r{text-align:right;padding-right:0}
+td{padding:8px 10px 8px 0;border-top:1px solid #333;color:var(--t-body);white-space:nowrap}
+tr:first-child td{border-top:0}
+td b{font-weight:650;color:var(--white)}
+.mute{color:var(--t-faint)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:650;
+  border-radius:5px;padding:2px 7px;border:1px solid transparent}
+.pill.ok{background:rgba(52,211,153,.13);color:var(--ok);border-color:rgba(52,211,153,.26)}
+.pill.warn{background:rgba(251,146,60,.13);color:var(--warn);border-color:rgba(251,146,60,.28)}
+.pill.bad{background:rgba(248,113,113,.13);color:var(--bad);border-color:rgba(248,113,113,.28)}
+.pill.na{background:#2f2f2f;color:var(--t-faint);border-color:#3d3d3d}
+.pill.info{background:rgba(96,165,250,.13);color:var(--info);border-color:rgba(96,165,250,.28)}
+
+/* Decisions */
+.dec{display:flex;flex-direction:column;gap:0;overflow:hidden;flex:1;min-height:0}
+.d{display:flex;gap:11px;padding:9px 0;border-top:1px solid #333;align-items:flex-start}
+.dec .d:first-child{border-top:0;padding-top:2px}
+.dbar{width:3px;border-radius:2px;align-self:stretch;flex:none;background:var(--warn)}
+.dbar.bad{background:var(--bad)} .dbar.info{background:var(--info)}
+.dtxt{min-width:0;flex:1}
+.dtitle{font-size:12.5px;font-weight:650;color:var(--white);letter-spacing:-.005em}
+.dwhy{font-size:11.5px;color:var(--t-faint);margin-top:3px;line-height:1.45}
+.dact{flex:none;align-self:center;font-size:11.5px;font-weight:650;color:var(--accent);white-space:nowrap}
+.dact.dim{color:var(--t-faint)}
+
+.foot{display:flex;align-items:center;gap:14px;font-size:11px;color:#6b6b6b;flex:none;padding:6px 0 2px}
+.foot .sep{width:1px;height:11px;background:#333}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <div class="mark">H</div>
+    <div><b>Hearst Connect</b><span>Administration console</span></div>
+  </div>
+  <nav>
+    <div class="nlabel">Operate</div>
+    <div class="n on">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M10.7 2.3a1 1 0 0 0-1.4 0l-7 7A1 1 0 0 0 3 11h1v6a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-6h1a1 1 0 0 0 .7-1.7l-7-7Z"/></svg>
+      Home</div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 0 1 1-1h5l2 2h5a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4Z"/></svg>
+      Vaults<span class="cnt">7</span></div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M13 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM3 17a7 7 0 0 1 14 0H3Z"/></svg>
+      Clients<span class="cnt alert">3</span></div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5 3 4.5v5c0 4.3 2.9 8.1 7 9 4.1-.9 7-4.7 7-9v-5l-7-3Zm3.3 6.2-4 4.6a1 1 0 0 1-1.5 0L6 10.4l1.2-1.2 1.4 1.5 3.4-3.9 1.3 1Z"/></svg>
+      Compliance<span class="cnt alert">2</span></div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 7h13l-3-3 1.4-1.4L19 8l-5.6 5.4L12 12l3-3H2V7Zm16 6H5l3 3-1.4 1.4L1 12l5.6-5.4L8 8l-3 3h13v2Z"/></svg>
+      Operations</div>
+    <div class="nlabel" style="padding-top:20px">System</div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3h12a1 1 0 0 1 1 1v3H3V4a1 1 0 0 1 1-1Zm-1 6h14v3H3V9Zm0 5h14v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2Z"/></svg>
+      Runtime<span class="cnt">5/6</span></div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M6.7 5.3 2 10l4.7 4.7 1.4-1.4L4.8 10l3.3-3.3-1.4-1.4Zm6.6 0-1.4 1.4L15.2 10l-3.3 3.3 1.4 1.4L18 10l-4.7-4.7Z"/></svg>
+      API Explorer<span class="cnt">26</span></div>
+    <div class="n">
+      <svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M8.3 2h3.4l.4 2.3 1.7 1 2.1-.9 1.7 3-1.7 1.6v1.9l1.7 1.6-1.7 3-2.1-.9-1.7 1-.4 2.4H8.3l-.4-2.4-1.7-1-2.1.9-1.7-3L4.1 12v-1.9L2.4 8.4l1.7-3 2.1.9 1.7-1L8.3 2Zm1.7 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8Z"/></svg>
+      Administration</div>
+  </nav>
+  <div class="sidefoot">
+    <div class="who">
+      <div class="av">AD</div>
+      <div><b>adrien</b><span>hearstcorporation.io</span></div>
+      <div class="role">OWNER</div>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <header>
+    <div>
+      <h1>Vault operations</h1>
+      <div class="sub">Estate across 7 vaults · Base mainnet · positions read on-chain, ledger from the indexer</div>
+    </div>
+    <div class="hactions">
+      <span class="chip concept"><span class="dot w"></span>CONCEPT · FIXTURE DATA</span>
+      <span class="chip"><span class="dot"></span>Indexer lag 14 s</span>
+      <span class="chip">Last read 12:41:08 UTC</span>
+      <button class="btn">Export register</button>
+      <button class="btn primary">Run rebalance</button>
+    </div>
+  </header>
+
+  <!-- KPI strip: 5 headline figures, uncaged -->
+  <section class="kpis">
+    <div class="kpi">
+      <div class="klabel">Estate value</div>
+      <div class="kval num">$8,412,660</div>
+      <div class="kfoot"><span class="delta up num">+2.4%</span> vs 30 d · USDC, 6 dp</div>
+      <svg class="spark" width="150" height="20" viewBox="0 0 150 20" fill="none" aria-label="Estate value, 30 days, rising">
+        <path d="M0 15 L15 14 L30 15.5 L45 12 L60 13 L75 9.5 L90 10.5 L105 7 L120 8 L135 5 L150 4"
+              stroke="#a7fb90" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="kpi">
+      <div class="klabel">Capital deployed</div>
+      <div class="kval num">81.3%</div>
+      <div class="kfoot"><span class="delta flat num">−0.6 pt</span> vs 30 d · $1.57M idle</div>
+      <svg class="spark" width="150" height="20" viewBox="0 0 150 20" fill="none" aria-label="Deployment ratio, 30 days, flat">
+        <path d="M0 8 L15 7 L30 9 L45 8.5 L60 10 L75 8 L90 9 L105 11 L120 9.5 L135 10 L150 10.5"
+              stroke="#b3b3b3" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="kpi">
+      <div class="klabel">Pockets above threshold</div>
+      <div class="kval num warnv">4</div>
+      <div class="kfoot">of 21 · console threshold ±200 bps</div>
+      <svg class="spark" width="150" height="20" viewBox="0 0 150 20" fill="none" aria-label="Breached pockets, 30 days, rising">
+        <path d="M0 16 L15 16 L30 14 L45 15 L60 12 L75 13 L90 11 L105 9 L120 10 L135 7 L150 6"
+              stroke="#fb923c" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="kpi">
+      <div class="klabel">Clients blocked</div>
+      <div class="kval num warnv">3</div>
+      <div class="kfoot">2 compliance · 1 no vault assigned</div>
+      <svg class="spark" width="150" height="20" viewBox="0 0 150 20" fill="none" aria-label="Blocked clients, 30 days">
+        <path d="M0 12 L15 12 L30 10 L45 11 L60 11 L75 9 L90 12 L105 10 L120 9 L135 9 L150 8"
+              stroke="#b3b3b3" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="kpi">
+      <div class="klabel">Net flow · 30 d</div>
+      <div class="kval num">+$612,400</div>
+      <div class="kfoot"><span class="delta up num">14</span> deposits · <span class="num">3</span> redemptions</div>
+      <svg class="spark" width="150" height="20" viewBox="0 0 150 20" fill="none" aria-label="Net flow, 30 days, positive">
+        <rect x="2" y="10" width="7" height="7" fill="#3d3d3d"/><rect x="14" y="7" width="7" height="10" fill="#3d3d3d"/>
+        <rect x="26" y="12" width="7" height="5" fill="#3d3d3d"/><rect x="38" y="5" width="7" height="12" fill="#a7fb90"/>
+        <rect x="50" y="9" width="7" height="8" fill="#3d3d3d"/><rect x="62" y="13" width="7" height="4" fill="#f87171"/>
+        <rect x="74" y="6" width="7" height="11" fill="#a7fb90"/><rect x="86" y="10" width="7" height="7" fill="#3d3d3d"/>
+        <rect x="98" y="3" width="7" height="14" fill="#a7fb90"/><rect x="110" y="11" width="7" height="6" fill="#3d3d3d"/>
+        <rect x="122" y="8" width="7" height="9" fill="#3d3d3d"/><rect x="134" y="2" width="7" height="15" fill="#a7fb90"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="body">
+    <div class="left">
+
+      <!-- DOMINANT VISUAL: drift control chart -->
+      <section class="panel">
+        <div class="phead">
+          <div>
+            <div class="ptitle">Allocation drift against target — is any pocket outside tolerance?</div>
+            <div class="pq">21 pockets across 7 vaults · 30 days · basis points from target · read on-chain</div>
+          </div>
+          <div class="pmeta">
+            <span class="tag live">chain · 14 s ago</span>
+            <span class="tag">±200 bps · console convention</span>
+          </div>
+        </div>
+        <div class="pbody">
+          <svg viewBox="0 0 1080 300" width="100%" height="100%" preserveAspectRatio="none" style="flex:1;min-height:0" aria-label="Control chart of allocation drift over 30 days">
+            <!-- tolerance band -->
+            <rect x="62" y="112" width="1006" height="76" fill="rgba(167,251,144,.10)"/>
+            <line x1="62" y1="112" x2="1068" y2="112" stroke="#fb923c" stroke-width="1.4" stroke-dasharray="6 5"/>
+            <line x1="62" y1="188" x2="1068" y2="188" stroke="#fb923c" stroke-width="1.4" stroke-dasharray="6 5"/>
+            <line x1="62" y1="150" x2="1068" y2="150" stroke="#5a5a5a" stroke-width="1"/>
+            <!-- y axis -->
+            <g font-size="14" fill="#8b8b8b" font-family="Satoshi,sans-serif" text-anchor="end">
+              <text x="52" y="45">+500</text><text x="52" y="117">+200</text>
+              <text x="52" y="155">0</text><text x="52" y="193">−200</text><text x="52" y="265">−500</text>
+            </g>
+            <text x="52" y="88" font-size="13" fill="#fb923c" text-anchor="end" font-family="Satoshi,sans-serif">bps</text>
+            <!-- gridlines -->
+            <g stroke="#2e2e2e" stroke-width="1">
+              <line x1="62" y1="40" x2="1068" y2="40"/><line x1="62" y1="260" x2="1068" y2="260"/>
+            </g>
+            <!-- series: worst pocket per vault, 4 shown -->
+            <path d="M62 158 L146 152 L230 148 L314 143 L398 136 L482 128 L566 121 L650 110 L734 98 L818 86 L902 74 L986 62 L1068 55"
+                  stroke="#f87171" stroke-width="2.4" fill="none" stroke-linejoin="round"/>
+            <path d="M62 146 L146 149 L230 143 L314 138 L398 141 L482 133 L566 126 L650 122 L734 116 L818 108 L902 104 L986 99 L1068 96"
+                  stroke="#fb923c" stroke-width="2.2" fill="none" stroke-linejoin="round"/>
+            <path d="M62 152 L146 155 L230 150 L314 153 L398 149 L482 152 L566 147 L650 151 L734 148 L818 145 L902 149 L986 146 L1068 144"
+                  stroke="#a7fb90" stroke-width="2.2" fill="none" stroke-linejoin="round"/>
+            <path d="M62 160 L146 163 L230 158 L314 166 L398 161 L482 168 L566 164 L650 172 L734 167 L818 174 L902 170 L986 176 L1068 173"
+                  stroke="#6b6b6b" stroke-width="2" fill="none" stroke-linejoin="round"/>
+            <!-- breach markers -->
+            <circle cx="818" cy="86" r="6" fill="#f87171"/><circle cx="902" cy="74" r="6" fill="#f87171"/>
+            <circle cx="986" cy="62" r="6" fill="#f87171"/><circle cx="1068" cy="55" r="6" fill="#f87171"/>
+            <circle cx="986" cy="99" r="6" fill="#fb923c"/><circle cx="1068" cy="96" r="6" fill="#fb923c"/>
+            <!-- missing-data gap: hatched, not a filled block — an absence, not a shape -->
+            <defs>
+              <pattern id="gap" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#6b6b6b" stroke-width="1.1" opacity=".55"/>
+              </pattern>
+            </defs>
+            <rect x="566" y="40" width="84" height="220" fill="url(#gap)"/>
+            <line x1="566" y1="40" x2="566" y2="260" stroke="#7a7a7a" stroke-width="1" stroke-dasharray="3 4"/>
+            <line x1="650" y1="40" x2="650" y2="260" stroke="#7a7a7a" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="608" y="34" font-size="12.5" fill="#b3b3b3" text-anchor="middle" font-family="Satoshi,sans-serif">no data</text>
+            <!-- x axis -->
+            <g font-size="14" fill="#8b8b8b" font-family="Satoshi,sans-serif" text-anchor="middle">
+              <text x="62" y="288" text-anchor="start">Jun 29</text><text x="314" y="288">Jul 6</text><text x="566" y="288">Jul 13</text>
+              <text x="818" y="288">Jul 20</text><text x="1068" y="288" text-anchor="end">Jul 28</text>
+            </g>
+          </svg>
+          <div class="legend" style="padding-top:10px">
+            <span class="lg"><i class="sw" style="background:#f87171"></i>Meridian S1 · RWA</span>
+            <span class="lg"><i class="sw" style="background:#fb923c"></i>Atlas S0 · Mining</span>
+            <span class="lg"><i class="sw" style="background:#a7fb90"></i>Corvus S2 · Yield</span>
+            <span class="lg"><i class="sw" style="background:#6b6b6b"></i>17 other pockets</span>
+            <span class="lg"><i class="sw thr"></i>±200 bps threshold</span>
+            <span class="lg"><i class="sw band"></i>within tolerance</span>
+            <span class="lg"><i class="sw ev"></i>breach</span>
+            <span class="lg mute" style="margin-left:auto">Rebalancing tolerance is not published by the contract — it is this console's stated convention.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vault register -->
+      <section class="panel">
+        <div class="phead">
+          <div>
+            <div class="ptitle">Vault register</div>
+            <div class="pq">Value, capacity headroom, worst pocket drift · one row per vault</div>
+          </div>
+          <div class="pmeta"><span class="tag live">chain</span><span class="tag">7 of 7 read</span></div>
+        </div>
+        <div class="pbody" style="padding-top:6px">
+          <table>
+            <thead><tr>
+              <th style="width:23%">Vault</th><th>Status</th><th class="r">Value</th>
+              <th class="r">Deployed</th><th class="r">Headroom</th><th class="r">NAV / share</th>
+              <th class="r">Worst drift</th><th class="r">Last activity</th>
+            </tr></thead>
+            <tbody>
+              <tr><td><b>Meridian</b> <span class="mute">· 8453 · 0x4f…a91c</span></td>
+                <td><span class="pill ok">Active</span></td><td class="r num"><b>$2,914,220</b></td>
+                <td class="r num">86.2%</td><td class="r num">$1,085,780</td><td class="r num">1.184210</td>
+                <td class="r num" style="color:#f87171;font-weight:700">+512 bps</td><td class="r num mute">3 h ago</td></tr>
+              <tr><td><b>Atlas</b> <span class="mute">· 8453 · 0x1c…77b3</span></td>
+                <td><span class="pill ok">Active</span></td><td class="r num"><b>$2,140,900</b></td>
+                <td class="r num">79.4%</td><td class="r num">$859,100</td><td class="r num">1.091455</td>
+                <td class="r num" style="color:#fb923c;font-weight:700">+268 bps</td><td class="r num mute">6 h ago</td></tr>
+              <tr><td><b>Corvus</b> <span class="mute">· 8453 · 0x93…2e04</span></td>
+                <td><span class="pill ok">Active</span></td><td class="r num"><b>$1,482,310</b></td>
+                <td class="r num">82.7%</td><td class="r num">$517,690</td><td class="r num">1.166075</td>
+                <td class="r num">−41 bps</td><td class="r num mute">1 h ago</td></tr>
+              <tr><td><b>Vega</b> <span class="mute">· 8453 · 0xb7…c580</span></td>
+                <td><span class="pill ok">Active</span></td><td class="r num"><b>$1,177,852</b></td>
+                <td class="r num">74.1%</td><td class="r num">$822,148</td><td class="r num">1.043900</td>
+                <td class="r num" style="color:#fb923c;font-weight:700">−214 bps</td><td class="r num mute">11 h ago</td></tr>
+              <tr><td><b>Lyra</b> <span class="mute">· 8453 · 0x2a…9df1</span></td>
+                <td><span class="pill info">Funding</span></td><td class="r num"><b>$697,378</b></td>
+                <td class="r num">31.0%</td><td class="r num">$2,302,622</td><td class="r num">1.002140</td>
+                <td class="r num mute">—</td><td class="r num mute">2 d ago</td></tr>
+              <tr><td><b>Orion</b> <span class="mute">· 8453 · 0x6e…14aa</span></td>
+                <td><span class="pill na">No code</span></td><td class="r"><span class="pill na">Unavailable</span></td>
+                <td class="r mute">—</td><td class="r mute">—</td><td class="r mute">—</td>
+                <td class="r mute">—</td><td class="r num mute">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="right">
+      <!-- Decisions -->
+      <section class="panel">
+        <div class="phead">
+          <div>
+            <div class="ptitle">Needs a decision</div>
+            <div class="pq">Ranked by capital at stake · each item names its resolution</div>
+          </div>
+          <div class="pmeta"><span class="pill warn num">6</span></div>
+        </div>
+        <div class="pbody" style="padding-top:4px">
+          <div class="dec">
+            <div class="d"><i class="dbar bad"></i><div class="dtxt">
+              <div class="dtitle">Meridian S1 drifted +512 bps</div>
+              <div class="dwhy">Above threshold 9 days · $149,208 misallocated · no rebalance since Jul 8</div>
+            </div><span class="dact">Rebalance →</span></div>
+
+            <div class="d"><i class="dbar bad"></i><div class="dtxt">
+              <div class="dtitle">Northgate Capital deployment blocked</div>
+              <div class="dwhy">$400,000 · compliance review open since Jul 26</div>
+            </div><span class="dact">Review →</span></div>
+
+            <div class="d"><i class="dbar"></i><div class="dtxt">
+              <div class="dtitle">Atlas S0 drifted +268 bps</div>
+              <div class="dwhy">Above threshold 2 days · $57,378 misallocated</div>
+            </div><span class="dact">Rebalance →</span></div>
+
+            <div class="d"><i class="dbar"></i><div class="dtxt">
+              <div class="dtitle">Vega under-deployed at 74.1%</div>
+              <div class="dwhy">$822,148 idle for 11 days · lowest of the estate</div>
+            </div><span class="dact">Deploy →</span></div>
+
+            <div class="d"><i class="dbar info"></i><div class="dtxt">
+              <div class="dtitle">Lyra has no client assigned</div>
+              <div class="dwhy">Funded Jul 27 · no investor record attached</div>
+            </div><span class="dact">Assign →</span></div>
+
+            <div class="d"><i class="dbar info"></i><div class="dtxt">
+              <div class="dtitle">Orion returns no contract code</div>
+              <div class="dwhy">Address answers, bytecode empty since Jul 24</div>
+            </div><span class="dact dim">Runtime →</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Split: movements + source health -->
+      <section class="panel">
+        <div class="phead">
+          <div>
+            <div class="ptitle">Ledger &amp; sources</div>
+            <div class="pq">Indexed Series 1 movements · endpoint availability</div>
+          </div>
+          <div class="pmeta"><span class="tag live">indexer</span></div>
+        </div>
+        <div class="pbody" style="padding-top:8px;gap:10px">
+          <table>
+            <thead><tr><th>Latest movements</th><th class="r">Amount</th><th class="r">When</th></tr></thead>
+            <tbody>
+              <tr><td>Deposit recorded <span class="mute">· Meridian</span></td><td class="r num"><b>$60,000</b></td><td class="r num mute">3 h</td></tr>
+              <tr><td>Mining report submitted <span class="mute">· Atlas</span></td><td class="r mute">—</td><td class="r num mute">3 h</td></tr>
+              <tr><td>Electricity settled <span class="mute">· Atlas</span></td><td class="r num"><b>$18,420</b></td><td class="r num mute">5 h</td></tr>
+              <tr><td>Strategy added <span class="mute">· Corvus</span></td><td class="r mute">—</td><td class="r num mute">6 h</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:auto;border-top:1px solid #363636;padding-top:10px">
+            <div class="klabel" style="margin-bottom:8px">Source health · 26 endpoints</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:11.5px">
+              <span><span class="dot" style="display:inline-block;margin-right:7px"></span>Vault &amp; strategies <span class="mute">live</span></span>
+              <span><span class="dot" style="display:inline-block;margin-right:7px"></span>Series 1 ledger <span class="mute">live</span></span>
+              <span><span class="dot" style="display:inline-block;margin-right:7px"></span>Mining &amp; BTC <span class="mute">live</span></span>
+              <span><span class="dot w" style="display:inline-block;margin-right:7px"></span>Rebalancing <span class="mute">not exposed</span></span>
+              <span><span class="dot b" style="display:inline-block;margin-right:7px"></span>Client directory <span class="mute">404</span></span>
+              <span><span class="dot b" style="display:inline-block;margin-right:7px"></span>Compliance reviews <span class="mute">404</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>CONCEPT · FIXTURE DATA — figures are illustrative, not readings from any Hearst environment</span>
+    <i class="sep"></i><span>All money in USDC (6 dp) · basis points from contract targets</span>
+    <i class="sep"></i><span>Absent sources render as a named absence, never as zero</span>
+  </div>
+</main>
+
+</body>
+</html>

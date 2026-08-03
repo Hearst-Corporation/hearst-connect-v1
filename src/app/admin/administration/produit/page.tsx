@@ -1,23 +1,44 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { Card, HeroFigure } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
-import { AdminPage } from '@/components/admin/typography'
 import {
   ReserveExpositionChart,
   VendingCurveChart,
   type PointCourbe,
   type PosteBitcoin,
 } from '@/components/admin/product-charts'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSerieDe } from '@/lib/serie-etat'
+import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Consolidated product view' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
+
+function HeroFigure({
+  valeur,
+  libelle,
+  unite,
+}: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
+  return (
+    <div>
+      <p className={gcc.metricValue}>{valeur}</p>
+      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
+    </div>
+  )
+}
 
 /**
  * Consolidated product view — one surface for six former pages.
@@ -147,6 +168,8 @@ function ReserveChart({
 }
 
 export default async function Page() {
+  const session = await requireSession()
+  const user = publicUser(session)
   const [mining, btc, factsheet, backtest] = await Promise.all([
     callBackend<Mining>('mining'),
     callBackend<Btc>('btc'),
@@ -169,12 +192,29 @@ export default async function Page() {
   const plafond = f?.tvlCap?.value
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Consolidated product view"
-        description="Production, reserve and reward terms for the fund on a single screen — what used to be six separate portfolio and production pages, each showing one route's raw response."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect consolidated product cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Consolidated product summary">
+        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={manual(hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Bitcoin produced</h2><div className={gcc.metricText}><Reading value={manual(bitcoinProduit ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Reserve split</h2><div className={gcc.metricText}><Reading value={manual(String(postes.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Curve points</h2><div className={gcc.metricText}><Reading value={manual(String(points.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Fund cap</h2><div className={gcc.metricText}><Reading value={manual(plafond ? ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—' : '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Consolidated <span>view</span></p>
+          <p className={gcc.decisionMeta}>{b === null ? 'BTC source unavailable' : 'BTC source reachable'}</p>
+          <p className={gcc.decisionActionMuted}>{courbeParametree ? 'Curve configured' : 'Curve waiting on rates'}</p>
+        </Panel>
+      </section>
 
+      <section className={gcc.mainRow} aria-label="Consolidated product details">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Consolidated product view</h2>
+          </div>
+          <div className={gcc.heroBody}>
       {/* ── What the fund produces ──────────────────────────────────────────
           The hashrate is the measure this page leads with, so it takes five
           columns; the three figures that qualify it are equal tiles across
@@ -266,6 +306,34 @@ export default async function Page() {
           </AdminCol>
         </AdminGrid>
       </AdminSection>
-    </AdminPage>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Backtest feed</h3><p className={gcc.cellText}>{backtest.ok ? (backtest.data.runs?.status ?? 'Not reported') : 'Unavailable'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Attribution</h3><p className={gcc.cellText}>{b?.attribution?.status ?? 'Not reported'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Telemetry</h3><p className={gcc.cellText}>{m?.operationalTelemetry?.status ?? 'Not reported'}</p></Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Consolidated notes">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Scope</h3></div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>Consolidates production, reserve, reward terms, and missing reads.</p>
+            <p className={gcc.cellText}>No series is fabricated when source is absent.</p>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Endpoints</h3><p className={gcc.cellText}>`mining`, `btc`, `product-factsheet`, `backtest-historical`</p></article>
+          <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Hashrate + BTC produced</p></article>
+          <article className={gcc.infoCell}><h3>Reserve</h3><p className={gcc.cellText}>Reserve and exposure split</p></article>
+          <article className={gcc.infoCell}><h3>Reward</h3><p className={gcc.cellText}>Vending curve by month</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Contract gaps</h3>
+          <p className={gcc.cellText}>Attribution, take-profit tiers, and telemetry stay explicit when not exposed.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

@@ -43,7 +43,7 @@ src/
 │   ├── (marketing)/            vitrine publique
 │   ├── (auth)/                 connexion
 │   └── admin/                  console d'administration protégée
-│       ├── page.tsx            Accueil — dashboard agrégé
+│       ├── page.tsx            Accueil — Green Command Center (cockpit validé)
 │       ├── clients/            annuaire (source en attente)
 │       ├── conformite/         file KYC/KYB (source en attente)
 │       ├── operations/         mouvements + rééquilibrage
@@ -69,10 +69,12 @@ Navigation principale (5 sections) : **Accueil · Clients · Conformité · Opé
 Chrome UI unifié (registre Qatar / Hearst Cockpit) sur toutes les pages admin :
 `PageHeader` · `CockpitSection` / `AdminSection` (bandeau sunken) · `Panel` / `AdminSurface` / `Card` (cartes raised) · typo zinc + accent.
 
-- **Accueil** : agrégat `dashboard`, mouvements `series1-events`, sondes `ready`/`runtime`
-- **Clients / Conformité** : structures prêtes (table, filtres) — aucune donnée inventée
-- **Opérations** : registre on-chain + `rebalancing-status`
-- **Administration** : hub vers produit, runtime, API Explorer, Keeper
+État de migration cockpit green (`src/app/admin`), au 2026-07-30 :
+- **Shell green actif sur toutes les routes admin** via `GreenCommandCenterShell`/`GreenCommandRail`.
+- **Composition green complétée** : `/admin`, `/admin/clients`, `/admin/conformite`, `/admin/vaults`, `/admin/vaults/[vaultId]`, `/admin/administration`, `/admin/dashboard`, `/admin/operations`, `/admin/product`, `/admin/series-1`, `/admin/mining`, `/admin/btc`, `/admin/backtest`, `/admin/administration/produit`, `/admin/runtime`, `/admin/api-explorer`, `/admin/keeper`, `/admin/profile`.
+- **Composition contenu legacy** : terminée sur le périmètre `/admin` actuellement routé.
+- **Route legacy conservée** : `/admin/vault` redirige vers `/admin/vaults` (pas de rendu legacy maintenu).
+- **Layout de compatibilité** : `AdminShell` reste en fallback pour d'éventuelles routes admin futures non encore déclarées.
 - **26 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité
 
 Revue visuelle : `docs/visual-reviews/HC-ADMIN-DASHBOARD-002/`

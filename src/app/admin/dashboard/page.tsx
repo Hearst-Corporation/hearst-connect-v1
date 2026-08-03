@@ -1,12 +1,15 @@
-import { Card, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
-import { AdminTableSplit } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
-import { AdminSection, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
-import { AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
+import { publicUser } from '@/lib/session'
+import { loadAdminRegistry } from '@/lib/vaults/registry'
+import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Data Coverage' }
 export const dynamic = 'force-dynamic'
@@ -109,159 +112,25 @@ function tierFromStatus(status: string): CoverageTier {
 const TIER_ORDER: readonly CoverageTier[] = ['served', 'partial', 'notOpened']
 
 type Surface = { readonly key: string; readonly name: string; readonly tier: CoverageTier; readonly reason: string | undefined }
+type SourceActivityRow = {
+  readonly endpointId: string
+  readonly label: string
+  readonly status: string
+  readonly detail: string | null
+}
 
 const countIn = (surfaces: readonly Surface[], tier: CoverageTier): number =>
   surfaces.filter((s) => s.tier === tier).length
 
-/* ── The headline band ───────────────────────────────────────────────────── */
-
-/**
- * One band, sized to what it holds: the figure that answers the page's
- * question, the two counts that qualify it, and a proportion bar that only
- * needs the full width because it IS the full width.
- */
-function CoverageBand({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
-  const served = countIn(surfaces, 'served')
-  const partial = countIn(surfaces, 'partial')
-  const notOpened = countIn(surfaces, 'notOpened')
-
-  return (
-    <Card className="p-6">
-      <div className="grid items-end gap-x-10 gap-y-6 sm:grid-cols-2">
-        <HeroFigure valeur={`${served}`} libelle="Surfaces served" unite={`of ${surfaces.length}`} />
-        <div className="grid grid-cols-3 gap-x-6">
-          <SideFact libelle="Partially served" valeur={partial === 0 ? 'none' : String(partial)} />
-          <SideFact libelle="Not yet open" valeur={notOpened === 0 ? 'none' : String(notOpened)} />
-          <SideFact libelle="Coverage" valeur={`${Math.round((served / surfaces.length) * 100)}%`} />
-        </div>
-      </div>
-
-      {/* One bar, three segments: the proportion is grasped at a glance,
-          without reading three numbers and comparing them. */}
-      <div className="mt-6 flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        {TIER_ORDER.map((tier) => {
-          const count = countIn(surfaces, tier)
-          if (count === 0) return null
-          return (
-            <div
-              key={tier}
-              className={clsx('h-full', TIER_DOT[tier])}
-              style={{ width: `${(count / surfaces.length) * 100}%` }}
-            />
-          )
-        })}
-      </div>
-      <p className="mt-3 max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        The overall status announced by the service reads worst-field-first: a single incomplete surface pulls
-        down the whole. This is intentional — better one alert too many than a falsely reassuring screen.
-      </p>
-    </Card>
-  )
-}
-
-/* ── The list ────────────────────────────────────────────────────────────── */
-
-const COLONNES: readonly AdminTableColumn<Surface>[] = [
-  {
-    key: 'surface',
-    header: 'Surface',
-    cell: (s) => <span className="text-zinc-950 dark:text-white">{s.name}</span>,
-  },
-  {
-    key: 'tier',
-    header: 'Status',
-    className: 'w-44',
-    cell: (s) => (
-      <span className={clsx('inline-flex items-center gap-2 whitespace-nowrap', TIER_TEXT[s.tier])}>
-        <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[s.tier])} />
-        {TIER_TITLE[s.tier]}
-      </span>
-    ),
-  },
-  {
-    key: 'reason',
-    header: 'What the service says',
-    /* An unmapped reason code renders as an absence, never as a technical
-       string leaked into a business console. */
-    cell: (s) => <span className="text-zinc-500 dark:text-zinc-400">{s.reason ?? '—'}</span>,
-  },
-]
-
-/** The key to the table, in the secondary column — one entry per tier. */
-function TierLegend({ surfaces }: Readonly<{ surfaces: readonly Surface[] }>) {
-  return (
-    <Card className="p-5">
-      <AdminSurfaceTitle as="p">What each status means</AdminSurfaceTitle>
-      <dl className="mt-4 space-y-4">
-        {TIER_ORDER.map((tier) => (
-          <div key={tier}>
-            <dt className="flex items-baseline gap-2">
-              <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[tier])} />
-              <span className="text-sm font-medium text-zinc-950 dark:text-white">{TIER_TITLE[tier]}</span>
-              <span className="ml-auto text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
-                {countIn(surfaces, tier)}
-              </span>
-            </dt>
-            <dd className="mt-1 pl-3.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              {TIER_EXPLANATION[tier]}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </Card>
-  )
-}
-
-function CoverageBody({
-  aggregate,
-  surfaces,
-}: Readonly<{ aggregate: Record<string, unknown> | null; surfaces: readonly Surface[] }>) {
-  if (aggregate === null) {
-    return (
-      <SourceAttendue
-        quoi="The status of the surfaces could not be read"
-        detail="The service did not respond. No coverage is assumed: showing “all good” without a response would be the worst lie this screen could tell."
-        requis={['A response from the service']}
-      />
-    )
-  }
-  if (surfaces.length === 0) {
-    return (
-      <SourceAttendue
-        quoi="The service described no surfaces"
-        detail="The response arrived, but it contains no usable surface. Nothing is inferred from this silence."
-        requis={['A response describing the status of each surface']}
-      />
-    )
-  }
-
-  // Served first, then what is still waiting: the order carries the ranking,
-  // so no second grouping mechanism is needed on top of it.
-  const ordonnees = TIER_ORDER.flatMap((tier) => surfaces.filter((s) => s.tier === tier))
-
-  return (
-    <>
-      <CoverageBand surfaces={surfaces} />
-
-      <AdminSection
-        title="Surface by surface"
-        description="Every surface the service described, ranked by the status it declares. Nothing is requalified on the way to this screen."
-      >
-        <AdminTableSplit
-          main={
-            <Card className="overflow-hidden">
-              <AdminTable columns={COLONNES} rows={ordonnees} keyFn={(s) => s.key} />
-            </Card>
-          }
-          aside={<TierLegend surfaces={surfaces} />}
-        />
-      </AdminSection>
-    </>
-  )
-}
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+const HEAD_CELL = 'px-3 py-2 font-medium whitespace-normal break-words'
+const BODY_CELL = 'px-3 py-2 align-top'
 
 export default async function Page() {
+  const session = await requireSession()
+  const user = publicUser(session)
   const response = await callBackend<Record<string, unknown>>('dashboard')
+  const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
   const aggregate = response.ok ? response.data : null
 
   const surfaces =
@@ -275,15 +144,161 @@ export default async function Page() {
             tier: tierFromStatus(resolved.status),
             reason: motifLisible(resolved.reason),
           }))
+  const ordered = TIER_ORDER.flatMap((tier) => surfaces.filter((surface) => surface.tier === tier))
+  const served = countIn(surfaces, 'served')
+  const partial = countIn(surfaces, 'partial')
+  const notOpened = countIn(surfaces, 'notOpened')
+  const coverageRatio = surfaces.length === 0 ? 0 : Math.round((served / surfaces.length) * 100)
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Data Coverage"
-        description="What the product can rely on today, surface by surface, and why the rest is still waiting on its source."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect data coverage cockpit"
+      rail={<GreenCommandRail currentHref="/admin/dashboard" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Coverage summary">
+        <Panel className={gcc.metricCard}>
+          <h2>Served</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(served))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Partial</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(partial))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Not open</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(notOpened))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Total surfaces</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(String(surfaces.length))} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.metricCard}>
+          <h2>Coverage ratio</h2>
+          <div className={gcc.metricText}>
+            <Reading value={manual(`${coverageRatio}%`)} className={gcc.metricValue} />
+          </div>
+        </Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Coverage <span>state</span></p>
+          <p className={gcc.decisionMeta}>{aggregate === null ? 'Dashboard source unavailable' : 'Dashboard source reachable'}</p>
+          <p className={gcc.decisionActionMuted}>Worst-field-first from backend status</p>
+        </Panel>
+      </section>
 
-      <CoverageBody aggregate={aggregate} surfaces={surfaces} />
-    </AdminPage>
+      <section className={gcc.mainRow} aria-label="Surface status table">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Surface by surface</h2>
+          </div>
+          <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
+            {aggregate === null ? (
+              <p className={gcc.cellText}>The dashboard endpoint did not respond. No coverage is inferred.</p>
+            ) : (
+              <table className="w-full min-w-[760px] table-fixed text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
+                    <th className={HEAD_CELL}>Surface</th>
+                    <th className={HEAD_CELL}>Status</th>
+                    <th className={HEAD_CELL}>Reason</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                  {ordered.map((surface) => (
+                    <tr key={surface.key}>
+                      <td className={BODY_CELL}>{surface.name}</td>
+                      <td className={clsx(BODY_CELL, TIER_TEXT[surface.tier])}>
+                        <span className="inline-flex items-center gap-2">
+                          <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[surface.tier])} />
+                          {TIER_TITLE[surface.tier]}
+                        </span>
+                      </td>
+                      <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{surface.reason ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          {TIER_ORDER.map((tier) => (
+            <Panel key={tier} className={gcc.signalCard}>
+              <h3>{TIER_TITLE[tier]}</h3>
+              <p className={gcc.signalValue}>{countIn(surfaces, tier)}</p>
+              <p className={gcc.cellText}>{TIER_EXPLANATION[tier]}</p>
+            </Panel>
+          ))}
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Source activity">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}>
+            <h3 className={gcc.cardTitle}>Source activity</h3>
+          </div>
+          <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
+            <table className="w-full min-w-[680px] table-fixed text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
+                  <th className={HEAD_CELL}>Source</th>
+                  <th className={HEAD_CELL}>Status</th>
+                  <th className={HEAD_CELL}>Detail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                {registry.sources.map((source: SourceActivityRow) => (
+                  <tr key={source.endpointId}>
+                    <td className={BODY_CELL}>{source.label}</td>
+                    <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{source.status.toLowerCase()}</td>
+                    <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{source.detail ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}>
+            <h3>Served</h3>
+            <p className={gcc.cellText}>Live surfaces with usable value.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Partial</h3>
+            <p className={gcc.cellText}>Response exists but value is incomplete.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Not open</h3>
+            <p className={gcc.cellText}>Endpoint or capability is not yet exposed.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Contract</h3>
+            <p className={gcc.cellText}>Statuses are rendered exactly as backend reports.</p>
+          </article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Key links</h3>
+          <div className={gcc.sourceRow}>
+            <Link href="/admin/operations" className="text-sm text-accent-300 underline underline-offset-2">
+              Operations
+            </Link>
+            <span className={gcc.cellText}>Runtime and chain movements</span>
+          </div>
+          <div className={gcc.sourceRow}>
+            <Link href="/admin/runtime" className="text-sm text-accent-300 underline underline-offset-2">
+              Runtime
+            </Link>
+            <span className={gcc.cellText}>Indexer and scheduler state</span>
+          </div>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }
