@@ -46,11 +46,29 @@ Gate finale : `typecheck` ✓ · `lint` ✓ · `check:mocks` ✓ · `test` ✓ *
 `next>postcss` (build CSS, 4 advisories). Épinglées par Next 16.2.12 ; un override forcé casserait l'arbre Next.
 À lever à la prochaine montée mineure de Next. Aucune n'est atteignable par une requête utilisateur en production.
 
+## Lot 3 — Chaîne qualité & tests  ✅ TERMINÉ
+
+Gate finale : `typecheck` ✓ · `lint` ✓ · `check:mocks` ✓ (7 règles) · `test` ✓ **216 vitest** ·
+`e2e` ✓ **17 tests Playwright** (chromium, backend réel).
+
+| ID | Correction appliquée | Fichier | Preuve | État |
+|----|----------------------|---------|--------|------|
+| OPS-01 | Job CI **repo-local `truthful-data`** qui lance `pnpm check:mocks`, bloquant, indépendant de la gate d'organisation. | `.github/workflows/ci.yml` | YAML valide, 2 jobs (`ci`, `truthful-data`) | **FIXED** |
+| OPS-02 | Rapport vitest **JSON** émis sous CI (`/tmp/vitest-report.json`) → le garde-fou « 0 test » peut enfin se déclencher. `check` repassé en `pnpm` (OPS-17). | `vitest.config.mts`, `package.json` | `CI=1 vitest` écrit le JSON avec `numTotalTests` ; dev inchangé | **FIXED** |
+| OPS-04 | Protection de branche = réglage GitHub externe. Job CI ajouté côté dépôt ; reste à déclarer `gate`+`truthful-data` required. | — | action externe documentée | **BLOCKED_EXTERNAL** (`BACKEND-FOLLOWUPS.md`) |
+| TEST-03 | Couverture élargie : + `actions.ts`, `env.ts`, `overview.ts`, `probe.ts` (surface véracité/sécu, au lieu de 12 fichiers lib seulement). | `vitest.config.mts` | include étendu | **FIXED** |
+| check:mocks+ | 2 règles ajoutées : **FORCED_AVAILABLE** (objet `available/manual` inline hors model.ts) et **COUNT_FROM_EMPTY_FALLBACK** (`?? [].length`). A détecté un résiduel réel (`clients/page.tsx:93`, corrigé en `editorial()`). | `scripts/check-no-mocks.mjs`, `clients/page.tsx` | règles prouvées « mordantes » ; `kind:'available'` n'existe plus que dans model.ts | **FIXED** |
+| TEST-02 | e2e comportementaux : chaque route admin rend 200 sans erreur console ; dashboard n'étiquette pas une absence « Live » ; Server Action anonyme ne renvoie pas de sonde live. | `e2e/veracity.spec.ts` | 3 tests ✓ | **FIXED** |
+| TEST-04 | e2e contrôle d'accès : anonyme refusé (6 routes), login valide/invalide, cookie forgé/mauvais-secret/expiré rejetés, IDOR/injection. | `e2e/access-control.spec.ts` | 13 tests ✓ | **FIXED** |
+| TEST-05 | e2e : logout efface la session, le bouton retour ne ressuscite pas le contenu protégé. | `e2e/access-control.spec.ts` | 1 test ✓ | **FIXED** |
+
+Harnais : `@playwright/test@1.51.1` ajouté (dev), `playwright.config.ts` (webServer auto sur :3200,
+auth via dev quick-login, backend réel), script `pnpm e2e`. Specs hors du glob vitest (`.spec.ts` sous `e2e/`).
+
 ## Lots suivants (résumé — détaillés à l'ouverture de chaque lot)
 
 | ID | Sujet | État |
 |----|-------|------|
-| OPS-01 / OPS-02 / OPS-04 | CI anti-faux-vert + `check:mocks` | TODO |
 | TEST-02/04/05 | Playwright comportemental | TODO |
 | UI-01/02/04/06/07/10/12/14/16 | responsive, mobile, a11y, langue | TODO |
 | DEAD-01…10 | code mort, chart.js, `/design-lab` | TODO |

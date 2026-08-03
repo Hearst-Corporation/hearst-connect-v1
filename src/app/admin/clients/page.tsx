@@ -5,7 +5,7 @@ import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { publicUser } from '@/lib/session'
 import { DATA_COVERAGE_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
-import { unavailable, mapAvailability, type Availability } from '@/lib/vaults/model'
+import { editorial, unavailable, mapAvailability, type Availability } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
@@ -90,7 +90,7 @@ export default async function Page() {
         <ClientsMetric title="Compliance source" value={complianceDirectory} />
         <ClientsMetric title="Client exceptions" value={clientExceptions} />
         <ClientsMetric title="Reachable vaults" value={reachableVaults} />
-        <ClientsMetric title="Coverage surface" value={{ kind: 'available', value: 'Data coverage', provenance: 'manual', asOf: null, stale: false }} />
+        <ClientsMetric title="Coverage surface" value={editorial('Data coverage')} />
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Clients <span>status</span></p>
           <p className={gcc.decisionMeta}>Source not exposed</p>

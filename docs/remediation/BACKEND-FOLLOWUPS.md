@@ -53,6 +53,26 @@ une opération backend/infra. Aucun correctif frontend possible ni souhaitable.
 
 ---
 
+## OPS-04 — Protection de la branche `main` (required check)
+
+**État : BLOCKED_EXTERNAL** (réglage GitHub, hors dépôt ; le prompt interdit de
+modifier les règles GitHub externes sans autorisation explicite).
+
+**Constat.** La branche `main` n'exige aucun status check : un rouge peut y être
+poussé (et l'a déjà été). Le job d'organisation `gate` et le nouveau job repo-local
+`truthful-data` (OPS-01, ajouté dans `.github/workflows/ci.yml`) doivent être
+déclarés **required** dans les règles de protection de branche.
+
+**Action externe requise (par un admin du dépôt GitHub) :**
+Settings → Branches → Branch protection rules → `main` :
+- ☑ Require status checks to pass before merging
+- Required checks : `gate` (org) ET `truthful-data` (repo-local, OPS-01)
+- ☑ Require branches to be up to date before merging
+- ☑ Do not allow bypassing the above settings
+
+Aucun correctif dépôt supplémentaire possible : le job CI existe désormais côté
+dépôt, seule la RÈGLE de protection (externe) reste à activer.
+
 ## BAPI-09 — Anti-force-brute permissif sur /api/v1/auth/login
 
 **État : BLOCKED_EXTERNAL.**
