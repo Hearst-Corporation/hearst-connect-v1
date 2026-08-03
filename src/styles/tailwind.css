@@ -163,6 +163,26 @@
   --color-info-950: #0b1b33;
   --color-info-ink: #0a1b33;
 
+  /* ── Charts — tokens de dataviz (doctrine §7.5) ────────────────────────────
+   * Deux grammaires distinctes : les couleurs de SÉRIES (`--chart-1..5`, une
+   * rampe catégorielle) et les couleurs de STATUT (`--chart-positive/negative/
+   * warning/neutral`). L'accent de marque ouvre la rampe de séries ; le reste
+   * est neutre-graphite pour ne pas rivaliser avec l'accent. Aucun hex n'est
+   * réintroduit : ces tokens pointent sur les couleurs canoniques déjà définies.
+   */
+  --chart-1: var(--color-accent-400);
+  --chart-2: var(--color-zinc-300);
+  --chart-3: var(--color-zinc-400);
+  --chart-4: var(--color-zinc-500);
+  --chart-5: var(--color-zinc-600);
+  --chart-positive: var(--color-success-400);
+  --chart-negative: var(--color-danger-400);
+  --chart-warning: var(--color-warning-400);
+  --chart-neutral: var(--color-zinc-500);
+  --chart-grid: var(--color-zinc-500);
+  --chart-axis: var(--color-zinc-500);
+  --chart-tooltip-surface: var(--color-zinc-800);
+
   /* ── Alias compatibilité ─────────────────────────────────────────────────── */
   --color-cockpit-deep: #020611;
   --color-cockpit-page: #020611;

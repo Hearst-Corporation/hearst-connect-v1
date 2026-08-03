@@ -33,11 +33,12 @@ export const chartTheme = {
   },
   margin: { top: 8, right: 16, bottom: 8, left: 8 },
   axisFontSize: 11,
-  grid: 'var(--color-zinc-500)',
+  // Doctrine §7.5 : la grille et les axes parlent les tokens `--chart-*`.
+  grid: 'var(--chart-grid, var(--color-zinc-500))',
   /** Restrained: grid lines situate a value, they are not part of the data. */
   gridOpacity: 0.06,
-  tick: 'var(--color-zinc-500)',
-  cursor: 'color-mix(in oklab, var(--color-zinc-500) 8%, transparent)',
+  tick: 'var(--chart-axis, var(--color-zinc-500))',
+  cursor: 'color-mix(in oklab, var(--chart-axis, var(--color-zinc-500)) 8%, transparent)',
   tooltip: {
     bg: 'var(--color-white)',
     border: 'color-mix(in oklab, var(--color-zinc-950) 10%, transparent)',
@@ -45,7 +46,7 @@ export const chartTheme = {
     body: 'var(--color-zinc-500)',
   },
   tooltipDark: {
-    bg: 'var(--color-zinc-800)',
+    bg: 'var(--chart-tooltip-surface, var(--color-zinc-800))',
     border: 'color-mix(in oklab, var(--color-white) 10%, transparent)',
     title: 'var(--color-white)',
     body: 'var(--color-zinc-400)',
@@ -102,13 +103,15 @@ export const chartTheme = {
  * neutral graphite. A six-category chart therefore has one green bar, not six
  * shades of green pretending to be six different meanings.
  */
+// Doctrine §7.5 : rampe de SÉRIES via les tokens `--chart-1..5` (grammaire
+// distincte des couleurs de statut). Les fallbacks conservent les couleurs
+// canoniques si les tokens ne sont pas résolus.
 export const CATEGORICAL_RAMP = [
-  'var(--color-accent-400)',
-  'var(--color-zinc-300)',
-  'var(--color-zinc-400)',
-  'var(--color-zinc-500)',
-  'var(--color-zinc-600)',
-  'var(--color-zinc-700)',
+  'var(--chart-1, var(--color-accent-400))',
+  'var(--chart-2, var(--color-zinc-300))',
+  'var(--chart-3, var(--color-zinc-400))',
+  'var(--chart-4, var(--color-zinc-500))',
+  'var(--chart-5, var(--color-zinc-600))',
 ] as const
 
 export function categoricalColor(index: number): string {
