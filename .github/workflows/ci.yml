@@ -3,5 +3,28 @@ on:
   push: { branches: [main] }
   pull_request:
 jobs:
+  # Gate canonique d'organisation (typecheck, lint, tests, build).
   ci:
     uses: Hearst-Corporation/.github/.github/workflows/ci-nextjs.yml@v1
+
+  # OPS-01 : la garantie centrale du produit (aucune donnée simulée dans le
+  # runtime) doit être VÉRIFIÉE EN CI, bloquante. La gate d'organisation ne
+  # lance pas `check:mocks` ; ce job repo-local le fait, quel que soit l'état
+  # de la gate d'organisation. Exiger « truthful-data » en required check dans
+  # les règles de branche est une action GitHub externe (OPS-04,
+  # BLOCKED_EXTERNAL — voir docs/remediation).
+  truthful-data:
+    name: truthful-data
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install (lockfile gelé)
+        run: pnpm install --frozen-lockfile
+      - name: Anti-données-simulées (check:mocks)
+        run: pnpm run check:mocks

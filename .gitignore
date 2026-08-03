@@ -43,3 +43,8 @@ storybook-static
 
 # captures playwright locales
 .playwright-mcp/
+
+# artefacts e2e Playwright
+/test-results/
+/playwright-report/
+/e2e-report.json

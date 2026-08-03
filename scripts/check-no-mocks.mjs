@@ -60,6 +60,31 @@ const RULES = [
     pattern: /\?\?\s*0\b(?!\s*\.)|\|\|\s*0\b(?!\s*\.)/g,
     message: 'Coalescence vers 0 : une valeur absente ne vaut pas zéro (utiliser formatCount / « — »).',
   },
+  {
+    id: 'FORCED_AVAILABLE',
+    // VER-10 : un objet Availability construit à la main avec kind:'available'
+    // + provenance:'manual' force n'importe quelle chaîne à l'état « disponible »
+    // (badgé « Live »). C'est LA cause racine des P0 de véracité. Le seul
+    // constructeur légitime est `editorial()` / `available()` de vaults/model.
+    // NB : `strip()` a déjà vidé les littéraux, donc on matche les NOMS de
+    // propriétés côte à côte (`kind:` ... `provenance:`), motif qui ne survient
+    // que dans la construction manuelle d'un Available.
+    pattern: /\bkind:\s*''[\s\S]{0,90}?\bprovenance:\s*''|\bprovenance:\s*''[\s\S]{0,90}?\bkind:\s*''/g,
+    message:
+      'Objet Availability forcé à « available/manual » à la main — utiliser editorial() (jamais badgé Live) ou available() typé. Cf. VER-10.',
+    // Les constructeurs canoniques (available/unavailable/editorial) vivent dans
+    // model.ts : c'est le seul endroit où l'objet littéral est permis.
+    exempt: (file) => /src[\\/]lib[\\/]vaults[\\/]model\.ts$/.test(file),
+  },
+  {
+    id: 'COUNT_FROM_EMPTY_FALLBACK',
+    // VER-01/02/03 : une longueur affichée dérivée d'un `?? []` replie l'absence
+    // de la source sur « 0 mesuré ». Le compte doit propager l'Availability
+    // (measuredCount / mapAvailability), pas repartir d'un tableau vide.
+    pattern: /\?\?\s*\[\]\s*\)?\s*\.length\b|\(\s*\w+\s*\?\?\s*\[\]\s*\)\.length/g,
+    message:
+      'Compteur dérivé de `?? []` : une source absente devient « 0 » indistinguable d’un vrai zéro. Utiliser measuredCount() / propager l’Availability. Cf. VER-01/03.',
+  },
 ]
 
 function walk(dir, out = []) {
@@ -103,7 +128,9 @@ const violations = []
 for (const file of runtimeFiles) {
   const raw = readFileSync(file, 'utf8')
   const code = strip(raw)
+  const relPath = relative(ROOT, file)
   for (const rule of RULES) {
+    if (typeof rule.exempt === 'function' && rule.exempt(relPath)) continue
     rule.pattern.lastIndex = 0
     for (const match of code.matchAll(rule.pattern)) {
       const line = code.slice(0, match.index).split('\n').length
