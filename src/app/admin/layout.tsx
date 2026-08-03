@@ -1,7 +1,7 @@
 import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
-import { AdminShell } from './admin-shell'
+import { AdminLayoutClient } from './admin-layout-client'
 
 export const metadata: Metadata = {
   title: { template: '%s · Hearst Connect Administration', default: 'Hearst Connect Administration' },
@@ -16,5 +16,5 @@ export const metadata: Metadata = {
  */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await requireSession()
-  return <AdminShell user={publicUser(session)}>{children}</AdminShell>
+  return <AdminLayoutClient user={publicUser(session)}>{children}</AdminLayoutClient>
 }

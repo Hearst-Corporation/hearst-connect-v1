@@ -32,7 +32,7 @@ import type { ResolvedStatus } from '@/lib/resolved'
 /* ── Availability ─────────────────────────────────────────────────────────── */
 
 /** Where a value came from, as reported by the service. */
-export type Provenance = 'live' | 'db' | 'manual' | 'chain' | 'unknown'
+export type Provenance = 'live' | 'db' | 'indexed' | 'manual' | 'chain' | 'unknown'
 
 export type Available<T> = Readonly<{
   kind: 'available'

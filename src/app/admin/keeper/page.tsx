@@ -1,19 +1,28 @@
-import { Card } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
-import { PageHeader } from '@/components/admin/page-header'
 import { StatusBadge } from '@/components/admin/truthful'
-import { AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
+import { AdminSurfaceTitle } from '@/components/admin/typography'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
+import { publicUser } from '@/lib/session'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { KeeperForm } from './keeper-form'
 
 export const metadata: Metadata = { title: 'Keeper Actions' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
 
 /**
  * Keeper Actions — the routes that ask the service to record something.
@@ -65,6 +74,7 @@ function Prerequisite({
 
 export default async function KeeperPage() {
   const session = await requireSession()
+  const user = publicUser(session)
   const keeperEndpoints = endpointsByCategory('keeper')
 
   // Prerequisites known BEFORE any call: without them the actions stay inert.
@@ -87,12 +97,27 @@ export default async function KeeperPage() {
   const actionMd = actionSpan === 12 ? (8 as const) : (4 as const)
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Keeper Actions"
-        description="Backend administration actions. Nothing is sent without explicit confirmation, no success is assumed, and the backend response is rendered as-is."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect keeper cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Keeper summary">
+        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={manual(String(keeperEndpoints.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={manual(session.role)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Backend URL</h2><div className={gcc.metricText}><Reading value={manual(backendConfigured ? 'Configured' : 'Not set')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Authorization</h2><div className={gcc.metricText}><Reading value={manual(isAdmin ? 'Admin access' : 'Restricted')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Keeper enabled</h2><div className={gcc.metricText}><Reading value={manual('Backend circuit breaker applies')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Keeper <span>actions</span></p>
+          <p className={gcc.decisionMeta}>{disabledReason ? 'Actions inert' : 'Actions available'}</p>
+          <p className={gcc.decisionActionMuted}>Explicit CONFIRM required</p>
+        </Panel>
+      </section>
 
+      <section className={gcc.mainRow} aria-label="Keeper scope and readiness">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Keeper actions</h2></div>
+          <div className={gcc.heroBody}>
       <AdminSection title="Scope" description="These routes log a request — they sign nothing">
         <AdminGrid>
           <AdminCol span={8}>
@@ -144,7 +169,19 @@ export default async function KeeperPage() {
           </AdminCol>
         </AdminGrid>
       </AdminSection>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Role gate</h3><p className={gcc.cellText}>{isAdmin ? 'Satisfied' : 'Not satisfied'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Service address</h3><p className={gcc.cellText}>{backendConfigured ? 'Configured' : 'Missing'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Disabled reason</h3><p className={gcc.cellText}>{disabledReason ?? 'None'}</p></Panel>
+        </aside>
+      </section>
 
+      <section className={gcc.bottomRow} aria-label="Keeper forms">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Actions</h3></div>
+          <div className={gcc.heroBody}>
       <AdminSection
         title="Actions"
         description={`${keeperEndpoints.length} routes exposed by the service. Nothing leaves this page until the word CONFIRM has been typed into the action's own field.`}
@@ -161,6 +198,19 @@ export default async function KeeperPage() {
           ))}
         </AdminGrid>
       </AdminSection>
-    </AdminPage>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Confirmation</h3><p className={gcc.cellText}>Each form requires typing `CONFIRM`.</p></article>
+          <article className={gcc.infoCell}><h3>No signature</h3><p className={gcc.cellText}>Requests do not generate on-chain signatures.</p></article>
+          <article className={gcc.infoCell}><h3>Quota</h3><p className={gcc.cellText}>Backend enforces request rate limits.</p></article>
+          <article className={gcc.infoCell}><h3>Result</h3><p className={gcc.cellText}>Backend response is rendered as-is.</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Operational note</h3>
+          <p className={gcc.cellText}>Use Keeper for intentional backend write requests only.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

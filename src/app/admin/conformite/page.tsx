@@ -1,9 +1,15 @@
-import { AdminTableSplit } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
-import { RequirementList } from '@/components/admin/surface'
-import { AdminSection, AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
-import { AdminBody, AdminLabel, AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Absent, Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { requireSession } from '@/lib/auth'
+import { DATA_COVERAGE_ENTRY } from '@/lib/admin-nav'
+import { formatNumber } from '@/lib/format'
+import { publicUser } from '@/lib/session'
+import { mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
+import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Compliance' }
 export const dynamic = 'force-dynamic'
@@ -32,38 +38,6 @@ const SEGMENTS = [
   { id: 'termine', label: 'Completed', hint: 'Decision rendered and logged' },
 ] as const
 
-type QueuePlaceholderRow = Readonly<{
-  reference: string
-  organization: string
-  segment: string
-  age: string
-  dueDate: string
-  risk: string
-  analyst: string
-}>
-
-const PLACEHOLDER_QUEUE_ROWS: readonly QueuePlaceholderRow[] = [
-  {
-    reference: 'Unavailable',
-    organization: 'No case exposed by service',
-    segment: '—',
-    age: '—',
-    dueDate: '—',
-    risk: '—',
-    analyst: '—',
-  },
-]
-
-const QUEUE_COLUMNS: readonly AdminTableColumn<QueuePlaceholderRow>[] = [
-  { key: 'reference', header: 'Reference', cell: (row) => row.reference },
-  { key: 'organization', header: 'Organization', cell: (row) => row.organization },
-  { key: 'segment', header: 'Segment', cell: (row) => row.segment },
-  { key: 'age', header: 'Age', cell: (row) => row.age },
-  { key: 'due-date', header: 'Due date', cell: (row) => row.dueDate },
-  { key: 'risk', header: 'Risk', cell: (row) => row.risk },
-  { key: 'analyst', header: 'Analyst', cell: (row) => row.analyst },
-]
-
 /** What the backend still owes this screen. */
 const MISSING_FROM_SOURCE = [
   'Reading cases with status, age, and due date',
@@ -72,71 +46,146 @@ const MISSING_FROM_SOURCE = [
   'Analyst assignment and decision log',
 ] as const
 
-export default function Page() {
+function ComplianceMetric({
+  title,
+  value,
+}: Readonly<{ title: string; value: Availability<string> }>) {
   return (
-    <AdminPage>
-      <PageHeader
-        title="Compliance"
-        description="The KYC/KYB review queue. No case is listed and no counter is shown at zero — the service exposes no case, which is not the same statement as having none."
-      />
+    <Panel className={gcc.metricCard}>
+      <h2>{title}</h2>
+      <div className={gcc.metricText}>
+        <Reading value={value} className={gcc.metricValue} />
+      </div>
+    </Panel>
+  )
+}
 
-      <AdminSection
-        title="Review queue"
-        description="One state for one absence, beside the journey a case will follow once the source is connected."
-      >
-        <AdminTableSplit
-          className="items-start"
-          main={
-            <AdminSurface padding>
-              <AdminSurfaceTitle as="p">No case submitted</AdminSurfaceTitle>
-              <AdminBody className="mt-1.5 max-w-prose">
-                The service exposes no case. Nothing is counted at zero here: a zero would claim
-                there is nothing to process, when what we actually know is that the queue cannot be
-                read at all.
-              </AdminBody>
+export default async function Page() {
+  const session = await requireSession()
+  const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
+  const user = publicUser(session)
 
-              <div className="mt-6 max-w-prose">
-                <AdminLabel>What the source must expose</AdminLabel>
-                <RequirementList requis={MISSING_FROM_SOURCE} />
-              </div>
+  const queueSource = unavailable({
+    endpoint: '/api/v1/compliance',
+    status: 'NOT_EXPOSED',
+    reason: 'no_compliance_review_endpoint',
+  })
 
-              <div className="mt-6">
-                <AdminLabel>Columns the queue will carry</AdminLabel>
-                <AdminSurface className="mt-2">
-                  <AdminTable rows={PLACEHOLDER_QUEUE_ROWS} keyFn={(row) => row.reference} columns={QUEUE_COLUMNS} />
-                </AdminSurface>
-              </div>
-            </AdminSurface>
-          }
-          aside={
-            <AdminSurface padding>
-              <AdminSurfaceTitle>A case’s journey</AdminSurfaceTitle>
-              <AdminBody className="mt-1.5">
-                The five stages a file goes through. They describe the process; none of them
-                carries a count until cases arrive.
-              </AdminBody>
+  const clientExceptions = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
+  const stages = unavailable({
+    endpoint: '/api/v1/compliance',
+    status: 'NOT_EXPOSED',
+    reason: 'process_stages_are_ui_definition_not_case_counts',
+  })
 
-              <ol className="mt-5 space-y-4">
-                {SEGMENTS.map((segment, rang) => (
-                  <li key={segment.id} className="flex gap-3">
-                    <span className="mt-0.5 shrink-0 text-[0.6875rem]/4 font-medium tabular-nums text-zinc-400 dark:text-zinc-500">
-                      {rang + 1}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-zinc-950 dark:text-white">
-                        {segment.label}
-                      </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        {segment.hint}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </AdminSurface>
-          }
-        />
-      </AdminSection>
-    </AdminPage>
+  return (
+    <GreenCommandCenterShell
+      label="Hearst Connect compliance cockpit"
+      rail={<GreenCommandRail currentHref="/admin/conformite" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Compliance status">
+        <ComplianceMetric title="Queue source" value={queueSource} />
+        <ComplianceMetric title="Cases" value={queueSource} />
+        <ComplianceMetric title="High risk" value={queueSource} />
+        <ComplianceMetric title="Due renewal" value={queueSource} />
+        <ComplianceMetric title="Process stages" value={stages} />
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Compliance <span>queue</span></p>
+          <p className={gcc.decisionMeta}>Source not exposed</p>
+          <p className={gcc.decisionActionMuted}>No case submitted</p>
+        </Panel>
+      </section>
+
+      <section className={gcc.mainRow} aria-label="Compliance queue">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Review queue</h2>
+          </div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>
+              The backend currently exposes no compliance review queue endpoint. Cases are therefore not rendered as zero and no placeholder queue is shown.
+            </p>
+            <p className={gcc.cellText}>
+              The journey remains defined so the page can switch to live cases without layout change once the source opens.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link href={DATA_COVERAGE_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
+                {DATA_COVERAGE_ENTRY.libelle}
+              </Link>
+              <Link href="/admin/operations" className="text-sm text-accent-300 underline underline-offset-2">
+                Operations
+              </Link>
+            </div>
+          </div>
+        </Panel>
+
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}>
+            <h3>Queue endpoint</h3>
+            <Absent availability={queueSource} showRoute={false} />
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Client exceptions</h3>
+            <Reading value={clientExceptions} className={gcc.signalValue} />
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Coverage path</h3>
+            <p className={gcc.cellText}>Track endpoint readiness in Data coverage.</p>
+          </Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Compliance details">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}>
+            <h3 className={gcc.cardTitle}>Case journey</h3>
+          </div>
+          <div className={gcc.heroBody}>
+            {SEGMENTS.map((segment, index) => (
+              <p key={segment.id} className={gcc.cellText}>
+                {index + 1}. {segment.label} · {segment.hint}
+              </p>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}>
+            <h3>Queue read</h3>
+            <Absent availability={queueSource} showRoute={false} />
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Review actions</h3>
+            <Absent availability={queueSource} showRoute={false} />
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Mandatory fields</h3>
+            {MISSING_FROM_SOURCE.slice(0, 2).map((item) => (
+              <p key={item} className={gcc.cellText}>
+                {item}
+              </p>
+            ))}
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Decision trail</h3>
+            {MISSING_FROM_SOURCE.slice(2).map((item) => (
+              <p key={item} className={gcc.cellText}>
+                {item}
+              </p>
+            ))}
+          </article>
+        </Panel>
+
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Source activity</h3>
+          {registry.sources.slice(0, 6).map((source) => (
+            <div key={source.endpointId} className={gcc.sourceRow}>
+              <p className={gcc.cellText}>{source.label}</p>
+              <span className={gcc.cellStrong}>{source.status.toLowerCase()}</span>
+            </div>
+          ))}
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

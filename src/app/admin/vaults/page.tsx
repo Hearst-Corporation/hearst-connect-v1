@@ -1,63 +1,124 @@
-import { PageHeader } from '@/components/admin/page-header'
-import { AdminPage } from '@/components/admin/typography'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { VaultDataTable } from '@/components/vaults/vault-data-table'
 import { VaultValueBreakdown } from '@/components/vaults/vault-value-breakdown'
 import { requireSession } from '@/lib/auth'
-import { sectionContentGap } from '@/lib/layout-tokens'
+import { formatNumber } from '@/lib/format'
+import { publicUser } from '@/lib/session'
+import { isAvailable, mapAvailability } from '@/lib/vaults/model'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Vault registry' }
 export const dynamic = 'force-dynamic'
 
-/**
- * The vault registry — the console's principal destination.
- *
- * ── Why this page is thin ─────────────────────────────────────────────────
- * It is the register, not a second dashboard. Everything an admin comes here
- * for is one row per vault, and the one reading a table cannot give at a
- * glance: how the value is distributed across the register. Two surfaces, no
- * metric strip, no chart wall. The dashboard already answers "how is the
- * estate doing"; this page answers "which vaults are there, and what is each
- * one holding".
- *
- * ── Where the data comes from, and what it costs ──────────────────────────
- * `loadAdminRegistry` reads the whole operating model in one pass and both
- * surfaces below consume the SAME `registry.vaults` reading. Rendering them
- * from two separate loads would let the table and the breakdown disagree
- * about the same vault within one paint.
- *
- * The service exposes ONE vault today (`GET /api/v1/vault`, singular — there
- * is no `/vaults` registry endpoint). That is not hidden here: the register
- * lists exactly what the service returned, and `VaultDataTable` renders a
- * named absence with the route that would answer it wherever a column has no
- * source, rather than a dash or a zero.
- *
- * The account label is passed through because the registry attributes the one
- * client-side exception this service can attest — `no_investor_record` on the
- * signed-in account — to a real name rather than to an anonymous row.
- */
+function VaultMetric({
+  title,
+  value,
+}: Readonly<{
+  title: string
+  value: import('@/lib/vaults/model').Availability<string>
+}>) {
+  return (
+    <Panel className={gcc.metricCard}>
+      <h2>{title}</h2>
+      <div className={gcc.metricText}>
+        <Reading value={value} className={gcc.metricValue} />
+      </div>
+    </Panel>
+  )
+}
+
 export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name)
+  const user = publicUser(session)
+  const activeVaults = mapAvailability(
+    registry.vaults,
+    (rows) => formatNumber(rows.filter((vault) => vault.status === 'ACTIVE').length),
+  )
+  const totalVaults = mapAvailability(registry.vaults, (rows) => formatNumber(rows.length))
+  const liveSources = {
+    kind: 'available',
+    value: `${registry.sources.filter((source) => source.status === 'LIVE').length} / ${registry.sources.length}`,
+    provenance: 'manual',
+    asOf: null,
+    stale: false,
+  } as const
+  const movements = mapAvailability(registry.movements, (rows) => formatNumber(rows.length))
+  const exceptions = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
+  const decisionLabel =
+    isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0 ? 'Review pending' : 'No pending review'
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Vault registry"
-        description="Every vault the service returns, with what it holds, how much of that is actually working, and what it is waiting on — one row per vault, and a named absence wherever the service publishes no reading."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect vault registry cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Vault registry status">
+        <VaultMetric title="Active vaults" value={activeVaults} />
+        <VaultMetric title="Vaults listed" value={totalVaults} />
+        <VaultMetric title="Live sources" value={liveSources} />
+        <VaultMetric title="Indexed movements" value={movements} />
+        <VaultMetric title="Client exceptions" value={exceptions} />
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>
+            Vault <span>registry</span>
+          </p>
+          <p className={gcc.decisionMeta}>Operational view</p>
+          <p className={gcc.decisionActionMuted}>{decisionLabel}</p>
+        </Panel>
+      </section>
 
-      {/*
-        Both surfaces read the full page width: the table is ten columns wide
-        and the breakdown is a list of rows, so neither has a natural narrow
-        home. They are separated by the section gap rather than by a box —
-        wrapping them in a container would be a frame carrying no information.
-      */}
-      <div className={sectionContentGap}>
+      <section className={gcc.mainRow} aria-label="Vault table and signals">
         <VaultDataTable vaults={registry.vaults} />
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}>
+            <h3>Status</h3>
+            <Reading value={activeVaults} className={gcc.signalValue} />
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Coverage</h3>
+            <Reading value={liveSources} className={gcc.signalValue} />
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Exceptions</h3>
+            <Reading value={exceptions} className={gcc.signalValue} />
+          </Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Vault value breakdown">
         <VaultValueBreakdown vaults={registry.vaults} />
-      </div>
-    </AdminPage>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}>
+            <h3>Registry endpoint</h3>
+            <p className={gcc.cellText}>`GET /api/v1/vault`</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Threshold</h3>
+            <p className={gcc.cellText}>Console threshold ±2,00 pt</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Navigation</h3>
+            <p className={gcc.cellText}>Detail pages in `/admin/vaults/{'{vaultId}'}`</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Data contract</h3>
+            <p className={gcc.cellText}>No fallback count when a source is unavailable.</p>
+          </article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Source activity</h3>
+          {registry.sources.map((source) => (
+            <div key={source.endpointId} className={gcc.sourceRow}>
+              <p className={gcc.cellText}>{source.label}</p>
+              <span className={gcc.cellStrong}>{source.status.toLowerCase()}</span>
+            </div>
+          ))}
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

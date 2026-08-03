@@ -5,6 +5,7 @@ import {
   available,
   isAvailable,
   mapAvailability,
+  REBALANCING_THRESHOLD_BPS,
   unavailable,
 } from '@/lib/vaults/model'
 import { estateOverview } from '@/lib/vaults/overview'
@@ -49,6 +50,7 @@ export function GreenAdminHomeDashboard({
 }: Readonly<{ registry: AdminRegistry; user: SessionUser }>) {
   const overview = estateOverview(registry)
   const vaults = registry.vaults
+  const thresholdPoints = formatNumber(REBALANCING_THRESHOLD_BPS / 100, { maximumFractionDigits: 2 })
 
   /* ── Top band: the five estate figures, then the decision queue ────────── */
   const cells: readonly MetricCell[] = [
@@ -60,7 +62,7 @@ export function GreenAdminHomeDashboard({
     },
     {
       id: 'breached',
-      title: 'Above threshold',
+      title: `Above console threshold (±${thresholdPoints} pt)`,
       value: overview.breachedPockets,
       glyph: '●',
       hollow: true,
@@ -141,12 +143,6 @@ export function GreenAdminHomeDashboard({
       }))
     : []
 
-  const sourceLines = registry.sources.map((source) => ({
-    id: source.endpointId,
-    label: source.label,
-    status: source.status.toLowerCase(),
-  }))
-
   const decisionActionable = isAvailable(pendingDecisions) && parseCount(pendingDecisions.value) > 0
   const decisionHint = !isAvailable(pendingDecisions)
     ? 'Queue unavailable'
@@ -187,7 +183,6 @@ export function GreenAdminHomeDashboard({
           vaultLines={vaultLines}
           vaultAbsence={vaults}
           estateValue={overview.totalValueLocked}
-          sourceLines={sourceLines}
         />
       </section>
     </GreenCommandCenterShell>

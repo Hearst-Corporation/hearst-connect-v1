@@ -1,17 +1,10 @@
 import clsx from 'clsx'
 import Link from 'next/link'
 
-import { AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
-import { AdminSurfaceTitle } from '@/components/admin/typography'
-import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatDateTime, formatNumber, formatPercent } from '@/lib/format'
-import {
-  REBALANCING_THRESHOLD_BPS,
-  isAvailable,
-  type Availability,
-  type RebalancingRow,
-} from '@/lib/vaults/model'
+import { REBALANCING_THRESHOLD_BPS, isAvailable, type Availability, type RebalancingRow } from '@/lib/vaults/model'
 
 /**
  * The rebalancing queue — every strategy pocket measured against its target.
@@ -52,6 +45,13 @@ const COVERAGE_HREF = entityHref('source', 'rebalancing-status')
 
 const ROW_LINK =
   'text-xs font-medium text-accent-400 underline-offset-4 hover:underline focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500'
+
+type RebalancingColumn = Readonly<{
+  key: string
+  header: string
+  className?: string
+  cell: (row: RebalancingRow) => React.ReactNode
+}>
 
 /**
  * An absence, in the one word the console uses for it. Never "—", never "0":
@@ -110,7 +110,7 @@ function ordered(rows: readonly RebalancingRow[]): readonly RebalancingRow[] {
   })
 }
 
-const COLUMNS: readonly AdminTableColumn<RebalancingRow>[] = [
+const COLUMNS: readonly RebalancingColumn[] = [
   {
     key: 'vault',
     header: 'Vault',
@@ -196,7 +196,7 @@ const COLUMNS: readonly AdminTableColumn<RebalancingRow>[] = [
           </span>
         )
       }
-      return <SourceAvailabilityBadge availability={row.lastRebalanceAt} compact />
+      return <Absent availability={row.lastRebalanceAt} showRoute={false} />
     },
   },
   {
@@ -229,24 +229,25 @@ const COLUMNS: readonly AdminTableColumn<RebalancingRow>[] = [
       )
     },
   },
-]
+] as const
+
+const HEAD_CELL = 'px-3 py-2 font-medium whitespace-normal break-words'
+const BODY_CELL = 'px-3 py-2 align-top'
 
 export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonly RebalancingRow[]> }>) {
   if (!isAvailable(rows)) {
     return (
-      <AdminSurface className="flex h-full flex-col">
-        <div className="px-4 py-4 sm:px-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <AdminSurfaceTitle className="text-sm/5">Rebalancing</AdminSurfaceTitle>
-            <SourceAvailabilityBadge availability={rows} compact />
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <Link href={COVERAGE_HREF} className={ROW_LINK}>
-              Data coverage
-            </Link>
-          </div>
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <h3 className={gcc.cardTitle}>Rebalancing</h3>
         </div>
-      </AdminSurface>
+        <div className={gcc.heroBody}>
+          <Absent availability={rows} showRoute />
+          <Link href={COVERAGE_HREF} className={ROW_LINK}>
+            Data coverage
+          </Link>
+        </div>
+      </Panel>
     )
   }
 
@@ -258,19 +259,17 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
 
   if (list.length === 0) {
     return (
-      <AdminSurface className="flex h-full flex-col">
-        <div className="px-4 py-4 sm:px-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <AdminSurfaceTitle className="text-sm/5">Rebalancing</AdminSurfaceTitle>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">No pockets</span>
-          </div>
-          <div className="mt-3">
-            <Link href={COVERAGE_HREF} className={ROW_LINK}>
-              Data coverage
-            </Link>
-          </div>
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <h3 className={gcc.cardTitle}>Rebalancing</h3>
         </div>
-      </AdminSurface>
+        <div className={gcc.heroBody}>
+          <p className={gcc.cellText}>No pockets</p>
+          <Link href={COVERAGE_HREF} className={ROW_LINK}>
+            Data coverage
+          </Link>
+        </div>
+      </Panel>
     )
   }
 
@@ -284,13 +283,15 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
   }
 
   return (
-    <AdminSurface className="flex h-full flex-col">
-      <div className="px-4 pt-4 pb-3 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <AdminSurfaceTitle className="text-sm/5">Rebalancing</AdminSurfaceTitle>
-          <SourceAvailabilityBadge availability={rows} compact />
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
+        <div className="flex w-full items-center justify-between gap-3">
+          <h3 className={gcc.cardTitle}>Rebalancing</h3>
+          <span className={gcc.cellText}>±{THRESHOLD_POINTS} pt</span>
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2.5">
+      </div>
+      <div className={clsx(gcc.heroBody, 'gap-3')}>
+        <div className="grid grid-cols-3 gap-2.5">
           <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
             <p className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">Status</p>
             <p className={clsx('mt-1 text-sm font-medium', breached.length > 0 ? 'text-warning-400' : 'text-zinc-950 dark:text-white')}>
@@ -308,8 +309,31 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
             <p className="mt-1 text-sm font-medium tabular-nums text-zinc-950 dark:text-white">±{THRESHOLD_POINTS} pt</p>
           </div>
         </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] table-fixed text-left text-sm">
+            <thead>
+              <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
+                {COLUMNS.map((column) => (
+                  <th key={column.key} className={clsx(HEAD_CELL, column.className)}>
+                    {column.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+              {ordered(list).map((row) => (
+                <tr key={row.strategyId}>
+                  {COLUMNS.map((column) => (
+                    <td key={`${row.strategyId}-${column.key}`} className={clsx(BODY_CELL, column.className)}>
+                      {column.cell(row)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <AdminTable columns={COLUMNS} rows={ordered(list)} keyFn={(row) => row.strategyId} />
-    </AdminSurface>
+    </Panel>
   )
 }

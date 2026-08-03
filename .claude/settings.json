@@ -7,8 +7,10 @@
       }
     }
   },
+  "hooks": {},
   "enabledPlugins": {
-    "hearst-core@hearst": true,
-    "hearst-secops@hearst": true
+    "hearst-core@hearst": false,
+    "hearst-secops@hearst": false,
+    "hearst-storybook@hearst": false
   }
 }

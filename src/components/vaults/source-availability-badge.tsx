@@ -39,6 +39,7 @@ import clsx from 'clsx'
 const PROVENANCE_LABEL: Record<Provenance, { short: string; long: string }> = {
   live: { short: 'Live', long: 'Live source' },
   db: { short: 'Database', long: 'Database' },
+  indexed: { short: 'Indexed', long: 'Indexed source' },
   manual: { short: 'Manual', long: 'Manual entry' },
   chain: { short: 'On-chain', long: 'On-chain read' },
   unknown: { short: 'Source not stated', long: 'Source not stated by the service' },

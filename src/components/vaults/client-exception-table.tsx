@@ -1,6 +1,6 @@
-import { AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
-import { AdminBody, AdminCaption, AdminSurfaceTitle } from '@/components/admin/typography'
-import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import clsx from 'clsx'
+
+import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatAddress, formatDateTime, formatRelativeTime } from '@/lib/format'
 import { motifLisible } from '@/lib/mouvements'
@@ -44,6 +44,13 @@ import Link from 'next/link'
 const DATA_COVERAGE_HREF = entityHref('source', 'data-coverage')
 
 const LINK_CLASS = 'text-accent-600 hover:underline dark:text-accent-400'
+
+type ExceptionColumn = Readonly<{
+  key: string
+  header: string
+  className?: string
+  cell: (row: ClientException) => React.ReactNode
+}>
 
 /* ── The issue vocabulary ─────────────────────────────────────────────────── */
 
@@ -160,13 +167,13 @@ function RelatedVaultCell({ row }: Readonly<{ row: ClientException }>) {
 }
 
 function TextOrSource({ value }: Readonly<{ value: Availability<string> }>) {
-  if (!isAvailable(value)) return <SourceAvailabilityBadge availability={value} compact />
+  if (!isAvailable(value)) return <Absent availability={value} showRoute={false} />
   if (value.value === '') return <span className="text-zinc-500 dark:text-zinc-400">—</span>
   return <span className="text-zinc-700 dark:text-zinc-300">{value.value}</span>
 }
 
 function TimestampCell({ value }: Readonly<{ value: Availability<string> }>) {
-  if (!isAvailable(value)) return <SourceAvailabilityBadge availability={value} compact />
+  if (!isAvailable(value)) return <Absent availability={value} showRoute={false} />
   if (value.value === '') return <span className="text-zinc-500 dark:text-zinc-400">—</span>
   return (
     <span className="tabular-nums text-zinc-700 dark:text-zinc-300" title={formatDateTime(value.value)}>
@@ -175,7 +182,7 @@ function TimestampCell({ value }: Readonly<{ value: Availability<string> }>) {
   )
 }
 
-const COLUMNS: readonly AdminTableColumn<ClientException>[] = [
+const COLUMNS: readonly ExceptionColumn[] = [
   { key: 'client', header: 'Client', cell: (row) => <ClientCell row={row} /> },
   { key: 'issue', header: 'Issue', cell: (row) => <IssueCell row={row} /> },
   { key: 'vault', header: 'Related vault', cell: (row) => <RelatedVaultCell row={row} /> },
@@ -198,15 +205,18 @@ const COLUMNS: readonly AdminTableColumn<ClientException>[] = [
       </Link>
     ),
   },
-]
+] as const
+
+const HEAD_CELL = 'px-3 py-2 font-medium whitespace-normal break-words'
+const BODY_CELL = 'px-3 py-2 align-top'
 
 /* ── Card chrome ──────────────────────────────────────────────────────────── */
 
 function Heading({ exceptions }: Readonly<{ exceptions: Availability<readonly ClientException[]> }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <AdminSurfaceTitle className="text-sm/5">Client exceptions</AdminSurfaceTitle>
-      <SourceAvailabilityBadge availability={exceptions} compact />
+      <h3 className={gcc.cardTitle}>Client exceptions</h3>
+      <Absent availability={exceptions} showRoute={false} />
     </div>
   )
 }
@@ -218,21 +228,17 @@ export function ClientExceptionTable({
 }: Readonly<{ exceptions: Availability<readonly ClientException[]> }>) {
   if (!isAvailable(exceptions)) {
     return (
-      <AdminSurface className="flex h-full flex-col p-4">
-        <Heading exceptions={exceptions} />
-        <AdminBody className="mt-2 max-w-prose">{absenceSentence(exceptions)}</AdminBody>
-        {/*
-          The badge above already names the route that would answer this, so
-          the footer carries the one link and nothing else — repeating the
-          endpoint in prose is the kind of noise that makes an absence read
-          like an incident report.
-        */}
-        <AdminCaption className="mt-3">
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <Heading exceptions={exceptions} />
+        </div>
+        <div className={gcc.heroBody}>
+          <p className={gcc.cellText}>{absenceSentence(exceptions)}</p>
           <Link href={DATA_COVERAGE_HREF} className={LINK_CLASS}>
             Data coverage
           </Link>
-        </AdminCaption>
-      </AdminSurface>
+        </div>
+      </Panel>
     )
   }
 
@@ -240,26 +246,49 @@ export function ClientExceptionTable({
     // Only reachable once a client directory exists. Until then the branch
     // above runs, and this sentence is never printed over an absent source.
     return (
-      <AdminSurface className="flex h-full flex-col p-4">
-        <Heading exceptions={exceptions} />
-        <AdminBody className="mt-2 max-w-prose">
+      <Panel className={gcc.wavePanel}>
+        <div className={gcc.heroHead}>
+          <Heading exceptions={exceptions} />
+        </div>
+        <div className={gcc.heroBody}>
+          <p className={gcc.cellText}>
           No client exceptions detected. The service enumerated its clients and none of them is in an
           exception state.
-        </AdminBody>
-      </AdminSurface>
+          </p>
+        </div>
+      </Panel>
     )
   }
 
   return (
-    <AdminSurface className="h-full">
-      <div className="px-4 pt-4 pb-3 sm:px-5">
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
         <Heading exceptions={exceptions} />
       </div>
-      <AdminTable
-        columns={COLUMNS}
-        rows={exceptions.value}
-        keyFn={(row) => `${row.clientId ?? row.clientLabel}·${row.issue}`}
-      />
-    </AdminSurface>
+      <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
+        <table className="w-full min-w-[860px] table-fixed text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
+              {COLUMNS.map((column) => (
+                <th key={column.key} className={clsx(HEAD_CELL, column.className)}>
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+            {exceptions.value.map((row) => (
+              <tr key={`${row.clientId ?? row.clientLabel}·${row.issue}`}>
+                {COLUMNS.map((column) => (
+                  <td key={`${row.clientId ?? row.clientLabel}-${column.key}`} className={clsx(BODY_CELL, column.className)}>
+                    {column.cell(row)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
   )
 }

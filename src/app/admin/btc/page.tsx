@@ -1,23 +1,78 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { ProductionMensuelleChart, type MoisProduction } from '@/components/admin/charts/btc-production-chart'
-import { CalmState, Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminSection } from '@/components/admin/surfaces'
 import { ReserveExpositionChart, type PosteBitcoin } from '@/components/admin/product-charts'
-import { AdminPage } from '@/components/admin/typography'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { plottableAsChart } from '@/lib/chart-theme'
 import { formatCurrency, formatDateTime } from '@/lib/format'
 import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
 import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
+import { publicUser } from '@/lib/session'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 import React from 'react'
 
 export const metadata: Metadata = { title: 'Bitcoin' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
+
+function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
+  return (
+    <div className={gcc.heroHead}>
+      <h3 className={gcc.cardTitle}>{title}</h3>
+      <p className={gcc.cellText}>{hint}</p>
+    </div>
+  )
+}
+
+function HeroFigure({ valeur, libelle, unite }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
+  return (
+    <div>
+      <p className={gcc.metricValue}>{valeur}</p>
+      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
+    </div>
+  )
+}
+
+function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
+  return (
+    <div>
+      <p className={gcc.cellText}>{libelle}</p>
+      <p className={gcc.cellStrong}>{valeur}</p>
+    </div>
+  )
+}
+
+function SourceAttendue({ quoi, detail, requis }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
+  return (
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>{quoi}</h3></div>
+      <div className={gcc.heroBody}>
+        <p className={gcc.cellText}>{detail}</p>
+        {requis.map((item) => <p key={item} className={gcc.cellText}>{item}</p>)}
+      </div>
+    </Panel>
+  )
+}
+
+function CalmState({ message }: Readonly<{ message: string }>) {
+  return (
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroBody}><p className={gcc.cellText}>{message}</p></div>
+    </Panel>
+  )
+}
 
 /**
  * Bitcoin — what has been produced, at what pace, where the money sleeps,
@@ -594,17 +649,33 @@ function BitcoinBody({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
 /* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
-  const reponse = await callBackend<Btc>('btc')
+  const [session, reponse] = await Promise.all([requireSession(), callBackend<Btc>('btc')])
+  const user = publicUser(session)
   const vue = buildBitcoinViewModel(reponse.ok ? reponse.data : null)
   const b = vue.reponse
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Bitcoin"
-        description="What the fund has produced in bitcoin, how its money is split between reserve and market exposure, and what has happened recently."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect bitcoin cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Bitcoin summary">
+        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={manual(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Reserve</h2><div className={gcc.metricText}><Reading value={manual(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Exposure</h2><div className={gcc.metricText}><Reading value={manual(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Monthly reports</h2><div className={gcc.metricText}><Reading value={manual(String(vue.moisProduction.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Event rows</h2><div className={gcc.metricText}><Reading value={manual(String(vue.evenements.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Bitcoin <span>surface</span></p>
+          <p className={gcc.decisionMeta}>{b === null ? 'Source unavailable' : 'Source available'}</p>
+          <p className={gcc.decisionActionMuted}>No projected yield</p>
+        </Panel>
+      </section>
 
+      <section className={gcc.mainRow} aria-label="Bitcoin details">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Bitcoin operations</h2></div>
+          <div className={gcc.heroBody}>
       {b === null ? (
         // One card, stated once — no section wrapper around a single surface.
         <SourceAttendue
@@ -615,6 +686,35 @@ export default async function Page() {
       ) : (
         <BitcoinBody vue={vue} b={b} />
       )}
-    </AdminPage>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Production state</h3><p className={gcc.cellText}>{vue.moisProduction.length > 0 ? 'Reported' : 'Pending'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Reserve split</h3><p className={gcc.cellText}>{vue.postes.length > 0 ? 'Readable' : 'Unavailable'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Events stream</h3><p className={gcc.cellText}>{vue.fluxLisible ? 'Live feed' : 'No feed'}</p></Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Bitcoin notes">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Guardrails</h3></div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>One month is displayed as observation, not trend.</p>
+            <p className={gcc.cellText}>No custody chart when provider is not integrated.</p>
+            <p className={gcc.cellText}>No take-profit tiers without contract read.</p>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Endpoint</h3><p className={gcc.cellText}>`btc`</p></article>
+          <article className={gcc.infoCell}><h3>Reserve model</h3><p className={gcc.cellText}>Reserve vs exposure in USD.</p></article>
+          <article className={gcc.infoCell}><h3>Production model</h3><p className={gcc.cellText}>Satoshis converted with exact decimals.</p></article>
+          <article className={gcc.infoCell}><h3>Movement feed</h3><p className={gcc.cellText}>Severity words and dots stay aligned.</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Coverage path</h3>
+          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint readiness and reasons.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

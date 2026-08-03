@@ -1,19 +1,24 @@
 import { EndpointSection } from '@/components/admin/endpoint-section'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import {
   AdminMetric,
   AdminSection,
   AdminStatusMatrix,
   type StatusMatrixRow,
 } from '@/components/admin/surfaces'
-import { AdminPage } from '@/components/admin/typography'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { formatNumber } from '@/lib/format'
+import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Service Status' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
 
 type Runtime = {
   readonly databaseStatus?: string
@@ -153,6 +158,8 @@ function buildMatrix(input: {
 }
 
 export default async function RuntimePage() {
+  const session = await requireSession()
+  const user = publicUser(session)
   const [runtime, health, ready] = await Promise.all([
     callBackend<Runtime>('runtime'),
     callBackend<Record<string, unknown>>('health'),
@@ -171,12 +178,27 @@ export default async function RuntimePage() {
   })
 
   return (
-    <AdminPage>
-      <PageHeader
-        title="Runtime & Infrastructure"
-        description="Status matrix, deployment metrics, and raw probe responses."
-      />
+    <GreenCommandCenterShell
+      label="Hearst Connect runtime cockpit"
+      rail={<GreenCommandRail currentHref="/admin/runtime" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Runtime summary">
+        <Panel className={gcc.metricCard}><h2>Health</h2><div className={gcc.metricText}><Reading value={manual(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Ready</h2><div className={gcc.metricText}><Reading value={manual(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Database</h2><div className={gcc.metricText}><Reading value={manual(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Indexer</h2><div className={gcc.metricText}><Reading value={manual(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Environment</h2><div className={gcc.metricText}><Reading value={manual(r?.environment ?? 'Not reported')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Runtime <span>state</span></p>
+          <p className={gcc.decisionMeta}>{r?.version ?? 'Version not reported'}</p>
+          <p className={gcc.decisionActionMuted}>Matrix + raw probes</p>
+        </Panel>
+      </section>
 
+      <section className={gcc.mainRow} aria-label="Runtime matrix and deployment">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Runtime and infrastructure</h2></div>
+          <div className={gcc.heroBody}>
       {/*
         The matrix is a single full-width list card and is therefore the section's
         direct child: wrapping one surface in a one-column grid would be an empty
@@ -234,7 +256,19 @@ export default async function RuntimePage() {
           </AdminCol>
         </AdminGrid>
       </AdminSection>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Uptime</h3><p className={gcc.signalValue}>{formatUptime(r?.uptimeSeconds)}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Chain</h3><p className={gcc.signalValue}>{r?.chainId === undefined ? '—' : String(r.chainId)}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Scheduler</h3><p className={gcc.cellText}>{scheduler?.status ?? 'Not reported'}</p></Panel>
+        </aside>
+      </section>
 
+      <section className={gcc.bottomRow} aria-label="Runtime raw responses">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Raw responses</h3></div>
+          <div className={gcc.heroBody}>
       {/*
         Raw payloads. The runtime probe carries the whole deployment picture and
         takes the full 12 columns; health and ready are one-line orchestrator
@@ -255,6 +289,19 @@ export default async function RuntimePage() {
           </AdminCol>
         </AdminGrid>
       </AdminSection>
-    </AdminPage>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Health probe</h3><p className={gcc.cellText}>Liveness endpoint</p></article>
+          <article className={gcc.infoCell}><h3>Ready probe</h3><p className={gcc.cellText}>Readiness endpoint</p></article>
+          <article className={gcc.infoCell}><h3>Runtime probe</h3><p className={gcc.cellText}>Environment and scheduler payload</p></article>
+          <article className={gcc.infoCell}><h3>Contract</h3><p className={gcc.cellText}>No probe value is rewritten by frontend</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Coverage path</h3>
+          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint-level surface status.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

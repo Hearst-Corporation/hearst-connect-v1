@@ -124,6 +124,7 @@ function provenanceDe(raw: string | null | undefined): Provenance {
   switch (raw) {
     case 'live':
     case 'db':
+    case 'indexed':
     case 'manual':
     case 'chain':
       return raw

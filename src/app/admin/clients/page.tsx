@@ -1,9 +1,13 @@
-import { ArrowRightIcon } from '@heroicons/react/20/solid'
-import { PageHeader } from '@/components/admin/page-header'
-import { RequirementList } from '@/components/admin/surface'
-import { AdminSection, AdminSurface } from '@/components/admin/surfaces'
-import { AdminBody, AdminCaption, AdminLabel, AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Absent, Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { requireSession } from '@/lib/auth'
+import { formatNumber } from '@/lib/format'
+import { publicUser } from '@/lib/session'
 import { DATA_COVERAGE_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
+import { unavailable, mapAvailability, type Availability } from '@/lib/vaults/model'
+import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
+import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -36,75 +40,146 @@ export const dynamic = 'force-dynamic'
  * an empty state does not grow into a second dashboard.
  */
 
-/** What the backend still owes this screen, in the order it would have to arrive. */
 const MISSING_FROM_SOURCE = [
-  'A client directory endpoint — nothing enumerates organizations today',
-  'A client identifier carried by each vault, so a vault can be attributed',
-  'Compliance state and activity per client, if either is to be shown',
+  'Client directory endpoint',
+  'Client id on each vault',
+  'Per-client compliance status',
 ] as const
 
-export default function Page() {
+function ClientsMetric({
+  title,
+  value,
+}: Readonly<{ title: string; value: Availability<string> }>) {
   return (
-    <AdminPage>
-      <PageHeader
-        title="Clients"
-        description="Organizations, people and portfolios. The directory opens the day the backend exposes a source — until then nothing is listed, because nothing is known."
-      />
+    <Panel className={gcc.metricCard}>
+      <h2>{title}</h2>
+      <div className={gcc.metricText}>
+        <Reading value={value} className={gcc.metricValue} />
+      </div>
+    </Panel>
+  )
+}
 
-      <AdminSection
-        title="Directory"
-        description="No row is invented while the source is missing, and no empty table is drawn to stand in for one."
-      >
-        <AdminSurface padding>
-          <AdminSurfaceTitle as="p">Client directory not exposed by the service</AdminSurfaceTitle>
-          <AdminBody className="mt-1.5 max-w-prose">
-            No endpoint enumerates organizations, so this console cannot name a single one — and does
-            not stand in for the answer with a count or an empty table. This screen will host the
-            directory without a graphical redesign the day a source exists.
-          </AdminBody>
+export default async function Page() {
+  const session = await requireSession()
+  const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
+  const user = publicUser(session)
 
-          {/* Two declared tracks inside the one card: where a client IS reachable
-              today, and what has to arrive before this screen lists one. The
-              alternative — a card for the bridge and a second card for the gap —
-              was two surfaces saying the same thing about the same absence. */}
-          <div className="mt-6 grid gap-x-10 gap-y-6 lg:grid-cols-2">
-            <div className="min-w-0">
-              <AdminLabel>Where a client is reachable today</AdminLabel>
-              <AdminBody className="mt-2 max-w-prose">
-                Through the vault it holds. Each vault in the registry names its client whenever the
-                service provides one, so the registry — not this screen — is where a client-to-vault
-                relationship can be read at all.
-              </AdminBody>
-              <Link
-                href={VAULT_REGISTRY_ENTRY.href}
-                className="group mt-3 inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-accent-700 transition hover:text-accent-600 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:text-accent-400 dark:hover:text-accent-300"
-              >
+  const clientDirectory = unavailable({
+    endpoint: '/api/v1/clients',
+    status: 'NOT_EXPOSED',
+    reason: 'no_client_directory_endpoint',
+  })
+
+  const complianceDirectory = unavailable({
+    endpoint: '/api/v1/compliance',
+    status: 'NOT_EXPOSED',
+    reason: 'no_client_compliance_endpoint',
+  })
+
+  const clientExceptions = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
+  const reachableVaults = mapAvailability(registry.vaults, (rows) => formatNumber(rows.length))
+
+  return (
+    <GreenCommandCenterShell
+      label="Hearst Connect clients cockpit"
+      rail={<GreenCommandRail currentHref="/admin/clients" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Client status">
+        <ClientsMetric title="Client directory" value={clientDirectory} />
+        <ClientsMetric title="Compliance source" value={complianceDirectory} />
+        <ClientsMetric title="Client exceptions" value={clientExceptions} />
+        <ClientsMetric title="Reachable vaults" value={reachableVaults} />
+        <ClientsMetric title="Coverage surface" value={{ kind: 'available', value: 'Data coverage', provenance: 'manual', asOf: null, stale: false }} />
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Clients <span>status</span></p>
+          <p className={gcc.decisionMeta}>Source not exposed</p>
+          <p className={gcc.decisionActionMuted}>Directory unavailable</p>
+        </Panel>
+      </section>
+
+      <section className={gcc.mainRow} aria-label="Clients explanation">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}>
+            <h2 className={gcc.cardTitle}>Directory</h2>
+          </div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>
+              No endpoint enumerates organizations today. This page keeps the client surface visible without inventing rows or fallback counts.
+            </p>
+            <p className={gcc.cellText}>
+              Reach client context through vault ownership while the directory endpoint is not exposed.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link href={VAULT_REGISTRY_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
                 {VAULT_REGISTRY_ENTRY.libelle}
-                <ArrowRightIcon
-                  aria-hidden="true"
-                  className="size-4 shrink-0 transition group-hover:translate-x-0.5"
-                />
+              </Link>
+              <Link href={DATA_COVERAGE_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
+                {DATA_COVERAGE_ENTRY.libelle}
               </Link>
             </div>
-
-            <div className="min-w-0">
-              <AdminLabel>What the service must expose first</AdminLabel>
-              <RequirementList requis={MISSING_FROM_SOURCE} />
-            </div>
           </div>
+        </Panel>
 
-          <AdminCaption className="mt-6">
-            Source ·{' '}
-            <Link
-              href={DATA_COVERAGE_ENTRY.href}
-              className="rounded-sm underline decoration-zinc-400/60 underline-offset-2 transition hover:text-zinc-950 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:hover:text-white"
-            >
-              {DATA_COVERAGE_ENTRY.libelle}
-            </Link>{' '}
-            records which routes answer and which do not.
-          </AdminCaption>
-        </AdminSurface>
-      </AdminSection>
-    </AdminPage>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}>
+            <h3>Source contract</h3>
+            <Absent availability={clientDirectory} showRoute={false} />
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Compliance contract</h3>
+            <Absent availability={complianceDirectory} showRoute={false} />
+          </Panel>
+          <Panel className={gcc.signalCard}>
+            <h3>Client exceptions</h3>
+            <Reading value={clientExceptions} className={gcc.signalValue} />
+          </Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Client requirements">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}>
+            <h3 className={gcc.cardTitle}>Missing from source</h3>
+          </div>
+          <div className={gcc.heroBody}>
+            {MISSING_FROM_SOURCE.map((item) => (
+              <p key={item} className={gcc.cellText}>
+                {item}
+              </p>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}>
+            <h3>Directory endpoint</h3>
+            <Absent availability={clientDirectory} showRoute={false} />
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Compliance endpoint</h3>
+            <Absent availability={complianceDirectory} showRoute={false} />
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Vault path</h3>
+            <p className={gcc.cellText}>Use the vault registry to reach client-linked vault context.</p>
+          </article>
+          <article className={gcc.infoCell}>
+            <h3>Coverage path</h3>
+            <p className={gcc.cellText}>Use Data coverage for endpoint-level status and reasons.</p>
+          </article>
+        </Panel>
+
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Source activity</h3>
+          {registry.sources.slice(0, 6).map((source) => (
+            <div key={source.endpointId} className={gcc.sourceRow}>
+              <p className={gcc.cellText}>{source.label}</p>
+              <span className={gcc.cellStrong}>{source.status.toLowerCase()}</span>
+            </div>
+          ))}
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

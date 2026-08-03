@@ -35,10 +35,13 @@ les propriétaires et administrateurs d'espaces Hearst.
 
 ## Gates & tests
 
-- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:catalyst` → `check:mocks` →
-  `test`, en série (le premier rouge arrête tout). Pas de build dans la gate (le build vit dans
-  le déploiement). `check:catalyst` reste dans le script npm mais n'est plus une règle de ce
-  document.
+- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:mocks` → `test`, en série (le
+  premier rouge arrête tout). Pas de build dans la gate (le build vit dans le déploiement).
+- **Aucune gate de design (décision du 2026-07-31).** Le design est libre : pas de vérificateur
+  de design system, pas de Storybook obligatoire, pas de captures ni de revue visuelle imposées,
+  aucune palette ni token imposé. Le kit Catalyst (`src/components/catalyst/`) reste un **outil
+  disponible**, jamais une obligation ; il n'est pas modifié quand on l'utilise. La gate
+  `check:catalyst` et son script ont été supprimés à cette date.
 - Ce que chaque étape garantit :
   - `typecheck` (`tsc --noEmit`) — TypeScript strict, aucune erreur de type.
   - `lint` (`eslint`) — `src/components/catalyst/**` volontairement ignoré.

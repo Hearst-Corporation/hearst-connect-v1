@@ -1,21 +1,70 @@
 import { MiningProductionChart, type MoisProduit } from '@/components/admin/charts/mining-production-chart'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { Card, CardHeader, HeroFigure, SideFact, SourceAttendue } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
+import { EndpointSection } from '@/components/admin/endpoint-section'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminSection } from '@/components/admin/surfaces'
-import { PageHeader } from '@/components/admin/page-header'
-import { AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
+import { AdminSurfaceTitle } from '@/components/admin/typography'
+import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { plottableAsChart } from '@/lib/chart-theme'
 import { adresseCourte, dateLisible, ilYA, libelleMouvement, montantUsdc } from '@/lib/mouvements'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
+import { publicUser } from '@/lib/session'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Mining' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
+
+function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
+  return (
+    <div className={gcc.heroHead}>
+      <h3 className={gcc.cardTitle}>{title}</h3>
+      <p className={gcc.cellText}>{hint}</p>
+    </div>
+  )
+}
+
+function HeroFigure({ valeur, libelle, unite }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
+  return (
+    <div>
+      <p className={gcc.metricValue}>{valeur}</p>
+      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
+    </div>
+  )
+}
+
+function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
+  return (
+    <div>
+      <p className={gcc.cellText}>{libelle}</p>
+      <p className={gcc.cellStrong}>{valeur}</p>
+    </div>
+  )
+}
+
+function SourceAttendue({ quoi, detail, requis }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
+  return (
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>{quoi}</h3></div>
+      <div className={gcc.heroBody}>
+        <p className={gcc.cellText}>{detail}</p>
+        {requis.map((item) => <p key={item} className={gcc.cellText}>{item}</p>)}
+      </div>
+    </Panel>
+  )
+}
 
 /**
  * Mining — does production pay the bill?
@@ -583,6 +632,19 @@ function MiningBody({
       <FleetSection resume={resume} />
       <ElectricitySection resume={resume} />
       <MissingSection telemetry={telemetry} />
+      <AdminSection
+        title="Dedicated mining reads"
+        description="The aggregate above folds several contract reads together. These routes return each line on its own."
+      >
+        <AdminGrid>
+          <AdminCol span={6} md={4}>
+            <EndpointSection endpointId="mining-onchain" title="On-chain mining metrics" />
+          </AdminCol>
+          <AdminCol span={6} md={4}>
+            <EndpointSection endpointId="mining-electricity" title="Electricity line item" />
+          </AdminCol>
+        </AdminGrid>
+      </AdminSection>
     </>
   )
 }
@@ -590,6 +652,9 @@ function MiningBody({
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
+  const session = await requireSession()
+  const user = publicUser(session)
+
   // Three calls in parallel: the page only renders once all three have
   // arrived — chaining them would only add up their latencies.
   //
@@ -607,11 +672,33 @@ export default async function Page() {
   const production = reponseBtc.ok ? reponseBtc.data.production : undefined
   const mouvements = reponseMouvements.ok ? (reponseMouvements.data.events?.value ?? []) : []
   const resume = resumeMinage(minage, production, attestationsMinage(mouvements))
+  const hashrateValue = hashrateLisible(resume.releve)
+  const producedValue = btcLisible(resume.cumulBtc)
+  const billValue = dollarsLisibles(resume.factureMensuelle)
+  const attestationCount = resume.attestations.length
 
   return (
-    <AdminPage>
-      <PageHeader title="Mining" description="Does what the fleet produces cover what it consumes?" />
+    <GreenCommandCenterShell
+      label="Hearst Connect mining cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="Mining summary">
+        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={manual(hashrateValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={manual(producedValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Monthly bill</h2><div className={gcc.metricText}><Reading value={manual(billValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Attestations</h2><div className={gcc.metricText}><Reading value={manual(String(attestationCount))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Coverage threshold</h2><div className={gcc.metricText}><Reading value={manual(dollarsLisibles(resume.seuil))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>Mining <span>state</span></p>
+          <p className={gcc.decisionMeta}>{minage === null ? 'Source unavailable' : 'Source available'}</p>
+          <p className={gcc.decisionActionMuted}>No market-price inference</p>
+        </Panel>
+      </section>
 
+      <section className={gcc.mainRow} aria-label="Mining details">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Mining operations</h2></div>
+          <div className={gcc.heroBody}>
       {minage === null ? (
         // One card, stated once. Wrapping this single surface in a section
         // would have added a container that carries no information of its own.
@@ -623,6 +710,35 @@ export default async function Page() {
       ) : (
         <MiningBody resume={resume} production={production} telemetry={minage.operationalTelemetry} />
       )}
-    </AdminPage>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Fleet</h3><p className={gcc.cellText}>{texteBooleen(resume.exploitation?.fleetActive, 'Running', 'Stopped')}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Curtailment</h3><p className={gcc.cellText}>{texteBooleen(resume.exploitation?.curtailed, 'Active', 'Inactive')}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Electricity payee</h3><p className={gcc.cellText}>{adresseCourte(resume.electricite?.payee) ?? 'Not disclosed'}</p></Panel>
+        </aside>
+      </section>
+
+      <section className={gcc.bottomRow} aria-label="Mining notes">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Computation scope</h3></div>
+          <div className={gcc.heroBody}>
+            <p className={gcc.cellText}>Threshold = monthly bill / BTC produced in month.</p>
+            <p className={gcc.cellText}>No profitability verdict without market BTC price endpoint.</p>
+            <p className={gcc.cellText}>Operational telemetry frame remains explicit when missing.</p>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          <article className={gcc.infoCell}><h3>Endpoints</h3><p className={gcc.cellText}>`mining`, `btc`, `series1-events`</p></article>
+          <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Monthly BTC reports only.</p></article>
+          <article className={gcc.infoCell}><h3>Electricity</h3><p className={gcc.cellText}>Contract bill and payment line.</p></article>
+          <article className={gcc.infoCell}><h3>Telemetry</h3><p className={gcc.cellText}>Not inferred from unrelated data.</p></article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Dedicated reads</h3>
+          <p className={gcc.cellText}>On-chain mining metrics and electricity lines remain linked in page sections.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

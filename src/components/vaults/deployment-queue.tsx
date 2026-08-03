@@ -1,8 +1,7 @@
 import Link from 'next/link'
+import clsx from 'clsx'
 
-import { AdminSurface, AdminTable, type AdminTableColumn } from '@/components/admin/surfaces'
-import { AdminBody, AdminLabel, AdminSurfaceTitle } from '@/components/admin/typography'
-import { SourceAvailabilityBadge } from '@/components/vaults/source-availability-badge'
+import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatCurrency, formatDateTime, formatPercent } from '@/lib/format'
 import {
@@ -167,10 +166,17 @@ const STATUS_TONE: Record<DeploymentStatus, string> = {
   FAILED: 'bg-danger-400/20 text-danger-400 ring-danger-400/40',
 }
 
+type LedgerColumn = Readonly<{
+  key: string
+  header: string
+  className?: string
+  cell: (row: Deployment) => React.ReactNode
+}>
+
 function ledgerColumns(
   asset: Availability<{ symbol: string; decimals: number }>,
   vaultsById: ReadonlyMap<string, Vault>,
-): readonly AdminTableColumn<Deployment>[] {
+): readonly LedgerColumn[] {
   return [
     {
       key: 'vault',
@@ -194,7 +200,7 @@ function ledgerColumns(
           // built from a display label would be a fabricated join.
           <span className="text-zinc-950 dark:text-zinc-300">{row.clientLabel.value}</span>
         ) : (
-          <SourceAvailabilityBadge availability={row.clientLabel} compact />
+          <Absent availability={row.clientLabel} showRoute={false} />
         ),
     },
     {
@@ -271,38 +277,62 @@ function ledgerColumns(
   ]
 }
 
+const HEAD_CELL = 'px-3 py-2 font-medium whitespace-normal break-words'
+const BODY_CELL = 'px-3 py-2 align-top'
+
 function LedgerPanel({
   deployments,
   columns,
 }: Readonly<{
   deployments: Availability<readonly Deployment[]>
-  columns: readonly AdminTableColumn<Deployment>[]
+  columns: readonly LedgerColumn[]
 }>) {
   if (!isAvailable(deployments)) {
     return (
-      <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
+      <div className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <SourceAvailabilityBadge availability={deployments} compact />
+          <Absent availability={deployments} showRoute />
           <Link href={COVERAGE_HREF} className={INLINE_LINK}>
             Data coverage
           </Link>
         </div>
-        <AdminBody className="mt-2">Ledger not exposed.</AdminBody>
+        <p className={gcc.cellText}>Ledger not exposed.</p>
       </div>
     )
   }
 
   if (deployments.value.length === 0) {
     return (
-      <div className="border-t border-zinc-950/10 px-4 py-3 sm:px-5 dark:border-console-line">
-        <AdminBody>No deployment recorded.</AdminBody>
+      <div className="px-4 py-3">
+        <p className={gcc.cellText}>No deployment recorded.</p>
       </div>
     )
   }
 
   return (
-    <div className="border-t border-zinc-950/10 dark:border-console-line">
-      <AdminTable columns={columns} rows={deployments.value} keyFn={(row) => row.id} />
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[920px] table-fixed text-left text-sm">
+        <thead>
+          <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
+            {columns.map((column) => (
+              <th key={column.key} className={clsx(HEAD_CELL, column.className)}>
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+          {deployments.value.map((row) => (
+            <tr key={row.id}>
+              {columns.map((column) => (
+                <td key={`${row.id}-${column.key}`} className={clsx(BODY_CELL, column.className)}>
+                  {column.cell(row)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -332,25 +362,25 @@ export function DeploymentQueue({
   const assetLabel = isAvailable(asset) ? asset.value.symbol : '—'
 
   return (
-    <AdminSurface className="flex h-full flex-col">
-      <div className="px-4 pt-4 pb-3 sm:px-5">
+    <Panel className={gcc.wavePanel}>
+      <div className={gcc.heroHead}>
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-          <AdminSurfaceTitle className="text-sm/5">Deployments</AdminSurfaceTitle>
+          <h3 className={gcc.cardTitle}>Deployments</h3>
           <div className="grid min-w-0 grid-cols-1 gap-2.5 text-right sm:grid-cols-3">
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-              <AdminLabel>Deployed</AdminLabel>
+              <p className={gcc.cellText}>Deployed</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {deployedValue ?? 'Unavailable'}
               </p>
             </div>
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-              <AdminLabel>Undeployed</AdminLabel>
+              <p className={gcc.cellText}>Undeployed</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {idleValue ?? 'Unavailable'}
               </p>
             </div>
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-              <AdminLabel>Ratio</AdminLabel>
+              <p className={gcc.cellText}>Ratio</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {ratioValue ?? 'Unavailable'}
               </p>
@@ -360,7 +390,9 @@ export function DeploymentQueue({
         <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{assetLabel}</p>
       </div>
 
-      <LedgerPanel deployments={deployments} columns={ledgerColumns(asset, vaultsById)} />
-    </AdminSurface>
+      <div className={gcc.heroBody}>
+        <LedgerPanel deployments={deployments} columns={ledgerColumns(asset, vaultsById)} />
+      </div>
+    </Panel>
   )
 }

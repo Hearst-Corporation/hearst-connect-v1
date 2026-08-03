@@ -1,15 +1,25 @@
-import { Card } from '@/components/admin/cockpit'
+import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
+import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
+import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
-import { PageHeader } from '@/components/admin/page-header'
 import { AdminSection } from '@/components/admin/surfaces'
-import { AdminPage, AdminSurfaceTitle } from '@/components/admin/typography'
+import { AdminSurfaceTitle } from '@/components/admin/typography'
+import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
+import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { ExplorerRow } from './explorer-row'
 
 export const metadata: Metadata = { title: 'API Explorer' }
 export const dynamic = 'force-dynamic'
+
+const manual = (value: string) => ({ kind: 'available' as const, value, provenance: 'manual' as const, asOf: null, stale: false })
+
+function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
+  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+}
 
 /**
  * API Explorer — the whole registry, as three lists.
@@ -79,14 +89,32 @@ function curlFor(method: string, path: string, auth: string): string {
   return lines.join(' \\\n')
 }
 
-export default function ApiExplorerPage() {
-  return (
-    <AdminPage>
-      <PageHeader
-        title="API Explorer"
-        description={`Registry of ${BACKEND_ENDPOINTS.length} endpoints. Reads and actions, grouped — no secrets shown.`}
-      />
+export default async function ApiExplorerPage() {
+  const session = await requireSession()
+  const user = publicUser(session)
 
+  return (
+    <GreenCommandCenterShell
+      label="Hearst Connect API explorer cockpit"
+      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+    >
+      <section className={gcc.metricsRow} aria-label="API explorer summary">
+        <Panel className={gcc.metricCard}><h2>Total endpoints</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Safe reads</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.filter((e) => e.method === 'GET' && e.category !== 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>AI context</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={manual(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Base URL</h2><div className={gcc.metricText}><Reading value={manual(backendUrl() ?? 'HEARST_API_URL not set')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.decisionCardNeutral}>
+          <p className={gcc.decisionTitle}>API <span>explorer</span></p>
+          <p className={gcc.decisionMeta}>Registry grouped by action type</p>
+          <p className={gcc.decisionActionMuted}>No secret rendered</p>
+        </Panel>
+      </section>
+
+      <section className={gcc.mainRow} aria-label="Explorer usage and auth">
+        <Panel className={gcc.heroChart}>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>API explorer</h2></div>
+          <div className={gcc.heroBody}>
       <AdminGrid>
         <AdminCol span={8}>
           <Card className="p-6">
@@ -126,7 +154,19 @@ export default function ApiExplorerPage() {
           </Card>
         </AdminCol>
       </AdminGrid>
+          </div>
+        </Panel>
+        <aside className={gcc.rightStack}>
+          <Panel className={gcc.signalCard}><h3>Session role</h3><p className={gcc.signalValue}>{session.role}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Registry source</h3><p className={gcc.cellText}>`src/lib/backend/endpoints.ts`</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Execution</h3><p className={gcc.cellText}>POST actions run from Keeper Actions only.</p></Panel>
+        </aside>
+      </section>
 
+      <section className={gcc.bottomRow} aria-label="Endpoint groups">
+        <Panel className={gcc.wavePanel}>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Endpoint groups</h3></div>
+          <div className={gcc.heroBody}>
       {GROUPS.map((group) => {
         const endpoints = BACKEND_ENDPOINTS.filter(group.filter)
         if (endpoints.length === 0) return null
@@ -152,6 +192,25 @@ export default function ApiExplorerPage() {
           </AdminSection>
         )
       })}
-    </AdminPage>
+          </div>
+        </Panel>
+        <Panel as="section" className={gcc.infoGrid}>
+          {AUTH_LEVELS.map((level) => (
+            <article key={level.auth} className={gcc.infoCell}>
+              <h3>{level.libelle}</h3>
+              <p className={gcc.cellText}>{level.detail}</p>
+            </article>
+          ))}
+          <article className={gcc.infoCell}>
+            <h3>Path params</h3>
+            <p className={gcc.cellText}>Rows with `:param` are documented but not callable directly.</p>
+          </article>
+        </Panel>
+        <Panel className={gcc.vaultCard}>
+          <h3 className={gcc.cardTitle}>Usage</h3>
+          <p className={gcc.cellText}>Live reads show status, duration, and request id from backend response.</p>
+        </Panel>
+      </section>
+    </GreenCommandCenterShell>
   )
 }

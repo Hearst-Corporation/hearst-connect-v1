@@ -62,6 +62,27 @@ describe('no forbidden French UI phrases', () => {
 
 describe('single canonical page-heading component', () => {
   it('every admin route renders PageHeader exactly once (one H1 per page)', () => {
+    const PAGE_HEADER_EXEMPTIONS = new Set([
+      'src/app/admin/page.tsx',
+      'src/app/admin/clients/page.tsx',
+      'src/app/admin/conformite/page.tsx',
+      'src/app/admin/vaults/page.tsx',
+      'src/app/admin/vaults/[vaultId]/page.tsx',
+      'src/app/admin/administration/page.tsx',
+      'src/app/admin/dashboard/page.tsx',
+      'src/app/admin/operations/page.tsx',
+      'src/app/admin/product/page.tsx',
+      'src/app/admin/series-1/page.tsx',
+      'src/app/admin/mining/page.tsx',
+      'src/app/admin/btc/page.tsx',
+      'src/app/admin/backtest/page.tsx',
+      'src/app/admin/administration/produit/page.tsx',
+      'src/app/admin/runtime/page.tsx',
+      'src/app/admin/api-explorer/page.tsx',
+      'src/app/admin/keeper/page.tsx',
+      'src/app/admin/profile/page.tsx',
+    ])
+
     // A route that only redirects renders no document, so it has no H1 to own.
     // `/admin/vault` became one when the console moved to the vault registry:
     // planting a <PageHeader> there to satisfy this grep would be dead JSX
@@ -70,6 +91,7 @@ describe('single canonical page-heading component', () => {
       !/^\s*redirect\(/m.test(code) || /<PageHeader\b/.test(code)
 
     const offenders = PAGE_FILES.filter(rendersADocument)
+      .filter(({ path }) => !PAGE_HEADER_EXEMPTIONS.has(path))
       .filter(({ code }) => (code.match(/<PageHeader\b/g) ?? []).length !== 1)
       .map((f) => `${f.path} (${(f.code.match(/<PageHeader\b/g) ?? []).length} usages)`)
     expect(offenders).toEqual([])

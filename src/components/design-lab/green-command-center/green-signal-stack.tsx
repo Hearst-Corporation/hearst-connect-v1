@@ -1,6 +1,6 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
-import { Text, Strong } from '@/components/catalyst/text'
+import { Strong } from '@/components/catalyst/text'
 import { Absent, gcc, Panel } from './primitives'
 import clsx from 'clsx'
 
@@ -24,7 +24,6 @@ export type Signal = Readonly<{
   id: string
   title: string
   value: Availability<string>
-  note?: string
 }>
 
 function SignalPanel({ signal, compact }: Readonly<{ signal: Signal; compact: boolean }>) {
@@ -33,14 +32,6 @@ function SignalPanel({ signal, compact }: Readonly<{ signal: Signal; compact: bo
       <Subheading level={3} className={gcc.cardTitle}>
         {signal.title}
       </Subheading>
-      {signal.note !== undefined && signal.note !== '' && (
-        <Text className={gcc.signalNote}>
-          <span className={gcc.signalDot} aria-hidden="true">
-            ●
-          </span>{' '}
-          {signal.note}
-        </Text>
-      )}
       {isAvailable(signal.value) ? (
         <Strong className={gcc.signalValue}>{signal.value.value}</Strong>
       ) : (
