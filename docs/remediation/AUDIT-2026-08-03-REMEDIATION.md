@@ -65,6 +65,16 @@ Gate finale : `typecheck` ✓ · `lint` ✓ · `check:mocks` ✓ (7 règles) · 
 Harnais : `@playwright/test@1.51.1` ajouté (dev), `playwright.config.ts` (webServer auto sur :3200,
 auth via dev quick-login, backend réel), script `pnpm e2e`. Specs hors du glob vitest (`.spec.ts` sous `e2e/`).
 
+## Lot 6 — Responsive, mobile & accessibilité  🟡 EN COURS
+
+| ID | Correction appliquée | Fichier | Preuve | État |
+|----|----------------------|---------|--------|------|
+| UI-02 | Déconnexion mobile rétablie : le pied du rail ne fait plus `display:none` sous 760 px ; il rejoint la barre horizontale, l'action « Sign out » reste tactile (cible 111×44). | `green-command-center.module.css` | e2e + mesure navigateur : visible @375/390/760 px, clic → /login | **FIXED** |
+| UI-01 | Défilement vertical du workspace : `overflow-y:auto` au lieu de `hidden` — le contenu au-delà du viewport (écran bas, zoom) devient atteignable ; cockpit inchangé sur écran haut. | `green-command-center.module.css` | mesure : routes coupées @1440×600 → atteignables après fix | **FIXED** |
+| UI-06 | Frontières ajoutées : `admin/loading.tsx` (état « loading » nommé), `admin/error.tsx` (erreur nommée + retry, `digest` non exposé), `global-error.tsx` (erreur de layout racine). | `src/app/admin/loading.tsx`, `error.tsx`, `src/app/global-error.tsx` | typecheck ✓ ; e2e « renders 200 no console error » ✓ | **FIXED** |
+| UI-07 | `<html lang="fr">` déjà en place. La console est en anglais : la migration FR complète (LANGUE PRODUIT) est le **Lot 4** — les nouveaux fichiers sont alignés sur l'anglais pour ne pas casser `language-regression`. | — | — | PARTIEL → Lot 4 |
+| UI-04/10/12/14/16 | (reste du lot) cohérence verts, WideTableScroll, barre de défilement, sémantique tables, bascule de thème. | — | — | TODO |
+
 ## Lots suivants (résumé — détaillés à l'ouverture de chaque lot)
 
 | ID | Sujet | État |
