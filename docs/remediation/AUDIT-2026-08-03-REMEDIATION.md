@@ -10,6 +10,7 @@
 
 ## Lot 1 — P0 véracité + cause commune  ✅ TERMINÉ
 
+SHA du correctif : `6de5275`.
 Gate finale : `typecheck` ✓ · `lint` ✓ · `check:mocks` ✓ (145 fichiers) · `test` ✓ **206 tests (21 fichiers)**.
 Nouveau fichier de tests comportementaux : `tests/vaults/veracity-p0.test.ts` (15 tests). Preuve que les
 tests mordent : sur l'ancienne logique VER-05, `activeVaults` d'un register `[UNREADABLE]` renvoyait
