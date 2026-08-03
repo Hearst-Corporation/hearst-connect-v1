@@ -949,14 +949,26 @@
 .wavePanel .heroBody {
   padding-bottom: 12px;
   overflow-y: auto;
-  -ms-overflow-style: none; /* IE/Edge legacy */
-  scrollbar-width: none; /* Firefox */
+  /* UI-12 : la barre de défilement reste VISIBLE et utilisable. Elle était
+     masquée (scrollbar-width:none + ::-webkit-scrollbar{display:none}) alors que
+     le contenu défile — l'utilisateur n'avait aucune indication qu'il pouvait
+     défiler. On la garde, fine et discrète, accordée au système sombre. */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--gcc-line-strong, rgba(255, 255, 255, 0.18)) transparent;
 }
 
 .wavePanel .heroBody::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none; /* Chromium/Safari */
+  width: 8px;
+  height: 8px;
+}
+
+.wavePanel .heroBody::-webkit-scrollbar-thumb {
+  background: var(--gcc-line-strong, rgba(255, 255, 255, 0.18));
+  border-radius: 4px;
+}
+
+.wavePanel .heroBody::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 
