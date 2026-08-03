@@ -20,8 +20,8 @@ export default function GlobalError({
           minHeight: '100dvh',
           display: 'grid',
           placeItems: 'center',
-          background: '#08080a',
-          color: '#e8efe9',
+          background: 'var(--color-console-app, #101010)',
+          color: 'var(--color-zinc-300, #dedede)',
           fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
         }}
       >
@@ -29,7 +29,7 @@ export default function GlobalError({
           <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 8px' }}>
             Hearst Connect est momentanément indisponible
           </h1>
-          <p style={{ color: '#93a89c', fontSize: '0.95rem', margin: '0 0 20px' }}>
+          <p style={{ color: 'var(--color-zinc-400, #b3b3b3)', fontSize: '0.95rem', margin: '0 0 20px' }}>
             Une erreur inattendue a empêché l’affichage. Réessayez dans un instant.
           </p>
           {error.digest ? (
@@ -37,7 +37,7 @@ export default function GlobalError({
               style={{
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                 fontSize: '0.75rem',
-                color: '#5a6b62',
+                color: 'var(--color-zinc-500, #8b8b8b)',
                 margin: '0 0 20px',
               }}
             >
@@ -51,9 +51,9 @@ export default function GlobalError({
               fontSize: '0.85rem',
               padding: '10px 18px',
               borderRadius: '8px',
-              border: '1px solid #4bbf9f',
+              border: '1px solid var(--color-accent-300, #a7fb90)',
               background: 'transparent',
-              color: '#4bbf9f',
+              color: 'var(--color-accent-300, #a7fb90)',
               cursor: 'pointer',
             }}
           >

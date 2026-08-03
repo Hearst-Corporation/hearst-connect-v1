@@ -13,8 +13,8 @@ export default function AdminLoading() {
         minHeight: '100dvh',
         display: 'grid',
         placeItems: 'center',
-        background: '#08080a',
-        color: '#93a89c',
+        background: 'var(--color-console-app, #101010)',
+        color: 'var(--color-zinc-400, #b3b3b3)',
       }}
       aria-busy="true"
       aria-live="polite"

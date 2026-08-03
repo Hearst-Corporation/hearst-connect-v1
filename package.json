@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run check:mocks && pnpm run test",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run check:mocks && pnpm run check:ds && pnpm run test",
     "lint:fast": "oxlint src",
     "quality:dead": "knip",
     "quality:dup": "jscpd src --threshold 100 --reporters consoleFull",
@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "sonar": "npm run test:coverage && docker run --rm -v \"$(pwd)\":/usr/src -e SONAR_TOKEN -e SONAR_HOST_URL=http://100.88.191.49:9010 sonarsource/sonar-scanner-cli",
-    "check:mocks": "node scripts/check-no-mocks.mjs"
+    "check:mocks": "node scripts/check-no-mocks.mjs",
+    "check:ds": "node scripts/check-design-system.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

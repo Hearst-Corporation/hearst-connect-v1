@@ -36,8 +36,8 @@ export function Cta() {
         <circle r={512} cx={512} cy={512} fill="url(#hearst-cta-gradient)" fillOpacity="0.7" />
         <defs>
           <radialGradient id="hearst-cta-gradient">
-            <stop stopColor="#2563eb" />
-            <stop offset={1} stopColor="#172554" />
+            <stop stopColor="var(--color-accent-500, #63db43)" />
+            <stop offset={1} stopColor="var(--color-accent-900, #17370e)" />
           </radialGradient>
         </defs>
       </svg>

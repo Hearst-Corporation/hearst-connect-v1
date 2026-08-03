@@ -24,8 +24,8 @@ export default function AdminError({
         display: 'grid',
         placeItems: 'center',
         padding: '24px',
-        background: '#08080a',
-        color: '#e8efe9',
+        background: 'var(--color-console-app, #101010)',
+        color: 'var(--color-zinc-300, #dedede)',
       }}
     >
       <div style={{ maxWidth: '32rem', textAlign: 'center' }}>
@@ -35,7 +35,7 @@ export default function AdminError({
             fontSize: '0.72rem',
             letterSpacing: '0.16em',
             textTransform: 'uppercase',
-            color: '#93a89c',
+            color: 'var(--color-zinc-400, #b3b3b3)',
             margin: 0,
           }}
         >
@@ -44,7 +44,7 @@ export default function AdminError({
         <p style={{ fontSize: '1.4rem', fontWeight: 600, margin: '10px 0 8px' }}>
           This surface could not be displayed
         </p>
-        <p style={{ color: '#93a89c', fontSize: '0.95rem', margin: '0 0 20px' }}>
+        <p style={{ color: 'var(--color-zinc-400, #b3b3b3)', fontSize: '0.95rem', margin: '0 0 20px' }}>
           An error occurred while rendering. No data is shown rather than a wrong one. Try again; if the
           problem persists, the reference below helps with diagnosis.
         </p>
@@ -53,7 +53,7 @@ export default function AdminError({
             style={{
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
               fontSize: '0.75rem',
-              color: '#5a6b62',
+              color: 'var(--color-zinc-500, #8b8b8b)',
               margin: '0 0 20px',
             }}
           >
@@ -68,9 +68,9 @@ export default function AdminError({
             fontSize: '0.85rem',
             padding: '10px 18px',
             borderRadius: '8px',
-            border: '1px solid #4bbf9f',
+            border: '1px solid var(--color-accent-300, #a7fb90)',
             background: 'transparent',
-            color: '#4bbf9f',
+            color: 'var(--color-accent-300, #a7fb90)',
             cursor: 'pointer',
           }}
         >
