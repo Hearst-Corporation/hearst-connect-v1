@@ -99,6 +99,20 @@ Reste Lot 7 : `resolved-mapper` (rebrancher ou retirer), duplication `/design-la
 | BAPI-08 | `strategy-detail` (`/api/v1/strategies/:index`) est déclaré au registre mais atteignable par aucun chemin UI (l'API explorer refuse les chemins paramétrés). Pas cassé, pas exposé — pas de feature inventée. | — | DOCUMENTÉ (limitation connue) |
 | BAPI-12/13/16 | normalisation Bearer/headers, retry/timeout idempotent. | — | TODO |
 
+## Lot 4/5 — Design System & langue produit  🔴 CONDITIONNÉ À LA DOCTRINE
+
+Le document `HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md` **n'est pas présent dans le dépôt**
+(cherché : absent de `src/`, racine, docs/). Il définit le contrat cible (tokens exacts, contrats
+des compositions PageShell/KpiRow/ChartPanel, glossaire FR, structure de dossiers). Ce qui suit est
+donc soit **fait sans dépendance**, soit **conditionné** — sans inventer un design system ni un
+glossaire de traduction.
+
+| ID | État | Détail |
+|----|------|--------|
+| Catalyst VENDOR.md | **FIXED** | `src/components/catalyst/VENDOR.md` créé : source, licence, 27 fichiers / 9 importés, adaptations, dette. Exigé par le prompt. |
+| LANGUE PRODUIT (FR) | **BLOQUÉ (décision requise)** | Le prompt demande le **français canonique**. Or la console a été **délibérément migrée en anglais** (mission HC-UI-NORMALIZATION-001, gardée par `tests/language-regression.test.ts` : les libellés métier de `mouvements.ts` sont en anglais). Traduire = **inverser une décision testée** ET deviner la terminologie que la doctrine absente doit fixer. `<html lang="fr">` est en place ; la traduction complète des 25 surfaces + inversion du test est conditionnée à la doctrine (glossaire). Ne pas deviner. |
+| Tokens centralisés, compositions canoniques, Recharts wrappers, Aceternity | TODO (conditionné) | `layout-tokens.ts`, `chart-theme.ts` existent ; la consolidation en `PageShell/KpiRow/ChartPanel` et la structure de dossiers suivent la doctrine. |
+
 ## Lots suivants (résumé — détaillés à l'ouverture de chaque lot)
 
 | ID | Sujet | État |
