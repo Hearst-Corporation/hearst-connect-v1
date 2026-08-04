@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { Panel } from '@/components/compositions'
 import clsx from 'clsx'
 
-import { Absent, Panel, gcc } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatCurrency, formatDateTime, formatPercent } from '@/lib/format'
 import {
@@ -363,7 +364,7 @@ export function DeploymentQueue({
   const assetLabel = isAvailable(asset) ? asset.value.symbol : '—'
 
   return (
-    <Panel className={gcc.wavePanel}>
+    <Panel tone="plain" className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <h3 className={gcc.cardTitle}>Déploiements</h3>

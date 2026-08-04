@@ -1,6 +1,7 @@
 import { isAvailable, signalOf, type Availability, type Signal } from '@/lib/vaults/model'
+import { Panel } from '@/components/compositions'
 import { Subheading } from '@/components/catalyst/heading'
-import { Absent, gcc, Panel } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**
@@ -45,7 +46,7 @@ function MetricPanel({ cell }: Readonly<{ cell: MetricCell }>) {
   const state = signalClasses(signal)
 
   return (
-    <Panel className={gcc.metricCard} data-gcc="metric-card">
+    <Panel tone="plain" className={gcc.metricCard} data-gcc="metric-card">
       <Subheading level={2} className={gcc.cardTitle}>
         {cell.title}
       </Subheading>
@@ -81,7 +82,7 @@ export function GreenDecisionPanel({
   const useStrongGreen = actionable || unavailable
 
   return (
-    <Panel
+    <Panel tone="plain"
       className={useStrongGreen ? gcc.decisionCardStrong : gcc.decisionCardNeutral}
       aria-label="File de décisions"
       data-gcc="decision-card"

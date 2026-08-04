@@ -1,7 +1,8 @@
 import clsx from 'clsx'
+import { Panel } from '@/components/compositions'
 import Link from 'next/link'
 
-import { Absent, Panel, gcc } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { REBALANCING_THRESHOLD_BPS, isAvailable, type Availability, type RebalancingRow } from '@/lib/vaults/model'
@@ -237,7 +238,7 @@ const BODY_CELL = 'px-3 py-2 align-top'
 export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonly RebalancingRow[]> }>) {
   if (!isAvailable(rows)) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <h3 className={gcc.cardTitle}>Rebalancing</h3>
         </div>
@@ -259,7 +260,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
 
   if (list.length === 0) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <h3 className={gcc.cardTitle}>Rebalancing</h3>
         </div>
@@ -283,7 +284,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
   }
 
   return (
-    <Panel className={gcc.wavePanel}>
+    <Panel tone="plain" className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <div className="flex w-full items-center justify-between gap-3">
           <h3 className={gcc.cardTitle}>Rebalancing</h3>

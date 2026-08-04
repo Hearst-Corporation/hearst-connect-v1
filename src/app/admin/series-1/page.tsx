@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { MetricValue, Panel, PanelHeader, SourceAttendue } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
 import { AdminMetric } from '@/components/admin/surfaces'
 import { requireSession } from '@/lib/auth'
@@ -21,44 +22,6 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Journal Series 1' }
 export const dynamic = 'force-dynamic'
-
-function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
-}
-
-function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
-  return (
-    <div className={gcc.heroHead}>
-      <h3 className={gcc.cardTitle}>{title}</h3>
-      <p className={gcc.cellText}>{hint}</p>
-    </div>
-  )
-}
-
-function HeroFigure({ valeur, libelle }: Readonly<{ valeur: string; libelle: string }>) {
-  return (
-    <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>{libelle}</p>
-    </div>
-  )
-}
-
-function SourceAttendue({ quoi, detail, requis }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
-  return (
-    <Panel className={gcc.wavePanel}>
-      <div className={gcc.heroHead}>
-        <h3 className={gcc.cardTitle}>{quoi}</h3>
-      </div>
-      <div className={gcc.heroBody}>
-        <p className={gcc.cellText}>{detail}</p>
-        {requis.map((item) => (
-          <p key={item} className={gcc.cellText}>{item}</p>
-        ))}
-      </div>
-    </Panel>
-  )
-}
 
 /**
  * Series 1 Log — the fund's journal, read as a narrative.
@@ -172,27 +135,27 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé Series 1">
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Mouvements</h2>
           <div className={gcc.metricText}><Reading value={movementCount} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Écritures financières</h2>
           <div className={gcc.metricText}><Reading value={financialCount} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Dernier</h2>
           <div className={gcc.metricText}><Reading value={readable ? editorial(ilYA(last)) : eventsUnavailable} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Types</h2>
           <div className={gcc.metricText}><Reading value={typesCount} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>État de la source</h2>
           <div className={gcc.metricText}><Reading value={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Journal <span>Series 1</span></p>
           <p className={gcc.decisionMeta}>Journal chronologique de la chaîne</p>
           <p className={gcc.decisionActionMuted}>Aucun mouvement synthétique</p>
@@ -200,7 +163,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Journal Series 1">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Journal Series 1</h2>
           </div>
@@ -209,15 +172,15 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Mouvement récent</h3>
             <p className={gcc.cellText}>{dateLisible(last)}</p>
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Ordre du flux</h3>
             <p className={gcc.cellText}>Du plus récent au plus ancien</p>
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Règle des montants</h3>
             <p className={gcc.cellText}>Pas de montant ne signifie pas un zéro forcé.</p>
           </Panel>
@@ -225,20 +188,20 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Notes Series 1">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Contrat du journal</h3></div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>Chaque ligne correspond à une écriture de mouvement du backend.</p>
             <p className={gcc.cellText}>Aucun total inter-types n’est présenté.</p>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>`series1-events`</p></article>
           <article className={gcc.infoCell}><h3>Ordre</h3><p className={gcc.cellText}>Du plus récent au plus ancien</p></article>
           <article className={gcc.infoCell}><h3>Montant</h3><p className={gcc.cellText}>Affiché uniquement quand porté par la source.</p></article>
           <article className={gcc.infoCell}><h3>Repli</h3><p className={gcc.cellText}>Aucune ligne fabriquée.</p></article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Couverture des données</h3>
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état au niveau des points d’accès.</p>
         </Panel>
@@ -273,9 +236,9 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
           `count` keeps their row full rather than stranding one on the left. */}
       <AdminGrid>
         <AdminCol span={5}>
-          <Card className="h-full p-6">
-            <HeroFigure valeur={formatNumber(mouvements.length)} libelle="Mouvements enregistrés" />
-          </Card>
+          <Panel tone="plain" className="h-full p-6">
+            <MetricValue valeur={formatNumber(mouvements.length)} libelle="Mouvements enregistrés" />
+          </Panel>
         </AdminCol>
         <AdminCol span={7}>
           <AdminMetricGrid count={3} className="h-full">
@@ -291,18 +254,18 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
 
       <AdminTableSplit
         main={
-          <Card>
-            <CardHeader title="Que s’est-il passé ?" hint="Du plus récent au plus ancien" />
+          <Panel>
+            <PanelHeader title="Que s’est-il passé ?" hint="Du plus récent au plus ancien" />
             <ol className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
               {mouvements.map((m) => (
                 <LigneMouvement key={m.id} mouvement={m} />
               ))}
             </ol>
-          </Card>
+          </Panel>
         }
         aside={
-          <Card>
-            <CardHeader
+          <Panel>
+            <PanelHeader
               title="De quoi ce journal est-il fait ?"
               hint={`${mouvements.length} mouvement${mouvements.length > 1 ? 's' : ''} répartis sur ${repartition.length} type${repartition.length > 1 ? 's' : ''}`}
             />
@@ -324,7 +287,7 @@ function JournalSerie1({ mouvements }: Readonly<{ mouvements: readonly Mouvement
                 </li>
               ))}
             </ul>
-          </Card>
+          </Panel>
         }
       />
     </>

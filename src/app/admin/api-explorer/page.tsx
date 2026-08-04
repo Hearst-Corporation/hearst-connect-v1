@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { AdminSurfaceTitle } from '@/components/admin/typography'
@@ -15,11 +16,6 @@ import { ExplorerRow } from './explorer-row'
 
 export const metadata: Metadata = { title: 'Explorateur d’API' }
 export const dynamic = 'force-dynamic'
-
-
-function Card({ children, className = '' }: Readonly<{ children: ReactNode; className?: string }>) {
-  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
-}
 
 /**
  * API Explorer — the whole registry, as three lists.
@@ -99,12 +95,12 @@ export default async function ApiExplorerPage() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé explorateur d’API">
-        <Panel className={gcc.metricCard}><h2>Total des points d’accès</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Lectures sûres</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.method === 'GET' && e.category !== 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Contexte IA</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>URL de base</h2><div className={gcc.metricText}><Reading value={editorial(backendUrl() ?? 'HEARST_API_URL non défini')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Total des points d’accès</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Lectures sûres</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.method === 'GET' && e.category !== 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Contexte IA</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>URL de base</h2><div className={gcc.metricText}><Reading value={editorial(backendUrl() ?? 'HEARST_API_URL non défini')} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Explorateur <span>d’API</span></p>
           <p className={gcc.decisionMeta}>Registre groupé par type d’action</p>
           <p className={gcc.decisionActionMuted}>Aucun secret rendu</p>
@@ -112,12 +108,12 @@ export default async function ApiExplorerPage() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Usage et autorisation de l’explorateur">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Explorateur d’API</h2></div>
           <div className={gcc.heroBody}>
       <AdminGrid>
         <AdminCol span={8}>
-          <Card className="p-6">
+          <Panel tone="plain" className="p-6">
             <AdminSurfaceTitle as="p">Ce qu’une ligne vous permet de faire</AdminSurfaceTitle>
             <p className="mt-3 max-w-prose text-sm/6 text-zinc-600 dark:text-zinc-300">
               Une lecture sûre peut être appelée en direct depuis sa propre ligne. La réponse arrive avec son statut
@@ -130,11 +126,11 @@ export default async function ApiExplorerPage() {
               <span className="font-mono">:parameter</span>, dont la valeur légitime provient d’une réponse
               antérieure plutôt que d’un champ de texte.
             </p>
-          </Card>
+          </Panel>
         </AdminCol>
 
         <AdminCol span={4} as="aside">
-          <Card className="p-5">
+          <Panel tone="plain" className="p-5">
             <AdminSurfaceTitle as="p">Autorisation</AdminSurfaceTitle>
             <dl className="mt-4 space-y-4">
               {AUTH_LEVELS.map((level) => (
@@ -151,20 +147,20 @@ export default async function ApiExplorerPage() {
                 </div>
               ))}
             </dl>
-          </Card>
+          </Panel>
         </AdminCol>
       </AdminGrid>
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Rôle de session</h3><p className={gcc.signalValue}>{session.role}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Source du registre</h3><p className={gcc.cellText}>`src/lib/backend/endpoints.ts`</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Exécution</h3><p className={gcc.cellText}>Les actions POST s’exécutent uniquement depuis les Actions Keeper.</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Rôle de session</h3><p className={gcc.signalValue}>{session.role}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Source du registre</h3><p className={gcc.cellText}>`src/lib/backend/endpoints.ts`</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Exécution</h3><p className={gcc.cellText}>Les actions POST s’exécutent uniquement depuis les Actions Keeper.</p></Panel>
         </aside>
       </section>
 
       <section className={gcc.bottomRow} aria-label="Groupes de points d’accès">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Groupes de points d’accès</h3></div>
           <div className={gcc.heroBody}>
       {GROUPS.map((group) => {
@@ -179,7 +175,7 @@ export default async function ApiExplorerPage() {
           >
             {/* One card, one list. The rows already carry their own separator,
                 so the card only clips them — it adds no second frame. */}
-            <Card className="overflow-hidden">
+            <Panel tone="plain" className="overflow-hidden">
               {endpoints.map((endpoint) => (
                 <ExplorerRow
                   key={endpoint.id}
@@ -188,13 +184,13 @@ export default async function ApiExplorerPage() {
                   pathParams={pathParamsOf(endpoint.path)}
                 />
               ))}
-            </Card>
+            </Panel>
           </AdminSection>
         )
       })}
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           {AUTH_LEVELS.map((level) => (
             <article key={level.auth} className={gcc.infoCell}>
               <h3>{level.libelle}</h3>
@@ -206,7 +202,7 @@ export default async function ApiExplorerPage() {
             <p className={gcc.cellText}>Les lignes avec `:param` sont documentées mais pas appelables directement.</p>
           </article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Usage</h3>
           <p className={gcc.cellText}>Les lectures en direct affichent le statut, la durée et l’identifiant de requête de la réponse du backend.</p>
         </Panel>

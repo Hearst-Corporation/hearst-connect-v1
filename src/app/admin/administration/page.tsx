@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { ADMIN_SECONDARY, CLIENTS_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
@@ -13,7 +14,6 @@ export const dynamic = 'force-dynamic'
 
 const SCREEN_COUNT = ADMIN_SECONDARY.reduce((total, group) => total + group.entrees.length, 0)
 
-
 export default async function Page() {
   const session = await requireSession()
   const user = publicUser(session)
@@ -24,37 +24,37 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="État de l’administration">
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Compte</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(session.name)} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>E-mail</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(session.email)} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Rôle</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(session.role)} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Écrans secondaires</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(String(SCREEN_COUNT))} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Source du journal admin</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial('Non exposé')} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Surface <span>d’administration</span></p>
           <p className={gcc.decisionMeta}>Navigation et accès</p>
           <p className={gcc.decisionActionMuted}>Aucune valeur de repli</p>
@@ -62,7 +62,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Destinations principales">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Destinations principales d’administration</h2>
           </div>
@@ -83,15 +83,15 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Utilisateur</h3>
             <p className={gcc.cellText}>{user.name}</p>
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Rôle</h3>
             <p className={gcc.signalValue}>{user.role}</p>
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Couverture</h3>
             <p className={gcc.cellText}>Écrans secondaires regroupés ci-dessous.</p>
           </Panel>
@@ -99,7 +99,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Navigation secondaire">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
             <h3 className={gcc.cardTitle}>Écrans secondaires</h3>
           </div>
@@ -114,7 +114,7 @@ export default async function Page() {
             ))}
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           {ADMIN_SECONDARY.map((group) => (
             <article key={group.titre} className={gcc.infoCell}>
               <h3>{group.titre}</h3>
@@ -122,7 +122,7 @@ export default async function Page() {
             </article>
           ))}
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Contrats</h3>
           <p className={gcc.cellText}>Les rôles et l’audit d’administration restent non exposés.</p>
           <p className={gcc.cellText}>Aucune action de contrat intelligent n’est simulée ici.</p>

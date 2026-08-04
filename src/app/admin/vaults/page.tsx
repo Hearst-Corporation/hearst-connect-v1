@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { VaultDataTable } from '@/components/vaults/vault-data-table'
 import { VaultValueBreakdown } from '@/components/vaults/vault-value-breakdown'
 import { requireSession } from '@/lib/auth'
@@ -21,7 +22,7 @@ function VaultMetric({
   value: import('@/lib/vaults/model').Availability<string>
 }>) {
   return (
-    <Panel className={gcc.metricCard}>
+    <Panel tone="plain" className={gcc.metricCard}>
       <h2>{title}</h2>
       <div className={gcc.metricText}>
         <Reading value={value} className={gcc.metricValue} />
@@ -58,7 +59,7 @@ export default async function Page() {
         <VaultMetric title="Sources en direct" value={liveSources} />
         <VaultMetric title="Mouvements indexés" value={movements} />
         <VaultMetric title="Anomalies clients" value={exceptions} />
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>
             Registre <span>des coffres</span>
           </p>
@@ -70,15 +71,15 @@ export default async function Page() {
       <section className={gcc.mainRow} aria-label="Tableau des coffres et signaux">
         <VaultDataTable vaults={registry.vaults} />
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>État</h3>
             <Reading value={activeVaults} className={gcc.signalValue} />
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Couverture</h3>
             <Reading value={liveSources} className={gcc.signalValue} />
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Anomalies</h3>
             <Reading value={exceptions} className={gcc.signalValue} />
           </Panel>
@@ -87,7 +88,7 @@ export default async function Page() {
 
       <section className={gcc.bottomRow} aria-label="Répartition de la valeur des coffres">
         <VaultValueBreakdown vaults={registry.vaults} />
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Point d’accès du registre</h3>
             <p className={gcc.cellText}>`GET /api/v1/vault`</p>
@@ -105,7 +106,7 @@ export default async function Page() {
             <p className={gcc.cellText}>Aucun décompte de repli quand une source est indisponible.</p>
           </article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Activité des sources</h3>
           {registry.sources.map((source) => (
             <div key={source.endpointId} className={gcc.sourceRow}>

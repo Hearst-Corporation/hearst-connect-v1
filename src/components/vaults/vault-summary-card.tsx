@@ -1,4 +1,5 @@
-import { Absent, Panel, gcc } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
+import { Panel } from '@/components/compositions'
 import { VaultEntityLink } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { formatAddress, formatCurrency, formatDateTime, formatRelativeTime } from '@/lib/format'
@@ -129,7 +130,7 @@ export function VaultSummaryCard({ vault }: Readonly<{ vault: Vault }>) {
   )
 
   return (
-    <Panel className={gcc.heroChart}>
+    <Panel tone="plain" className={gcc.heroChart}>
       <div className={gcc.heroBody}>
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">

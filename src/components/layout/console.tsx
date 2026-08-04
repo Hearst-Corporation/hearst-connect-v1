@@ -16,30 +16,19 @@ import clsx from 'clsx'
  * an absence shows the word, the reason and the route, and never a number.
  */
 
-export function Panel({
-  children,
-  className,
-  as: Tag = 'article',
-  ...rest
-}: Readonly<{
-  children?: React.ReactNode
-  className?: string
-  as?: 'article' | 'section' | 'aside' | 'div'
-  /**
-   * Stable geometry anchor. The visual review measures the box of every
-   * structural element against the reference prototype; addressing them by
-   * CSS-module class name would break the moment a hash changes, so each
-   * structural element carries an explicit name instead.
-   */
-  'data-gcc'?: string
-}> &
-  Omit<React.HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
-  return (
-    <Tag {...rest} className={clsx(styles.panel, className)}>
-      {children}
-    </Tag>
-  )
-}
+/*
+ * `Panel` a été retiré d'ici le 2026-08-04 (HC-UI-CONVERGENCE-001).
+ *
+ * Il vit désormais dans `@/components/compositions/panel` — une seule surface
+ * canonique pour toute la console, avec la matière déclarée par un `tone`
+ * explicite au lieu d'un `className` deviné. Ce fichier ne garde que ce qui
+ * relève vraiment de la matière de la console : la grammaire de l'absence
+ * (`Absent`, `Reading`) et les classes du module CSS (`gcc`).
+ *
+ * L'ancre de géométrie `data-gcc` reste disponible : `Panel` accepte les
+ * attributs HTML arbitraires, donc les revues visuelles qui mesurent les boîtes
+ * par `[data-gcc='…']` continuent de fonctionner.
+ */
 
 /**
  * A named absence — rendered with Catalyst's `Badge`.

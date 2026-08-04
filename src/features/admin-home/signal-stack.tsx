@@ -1,7 +1,8 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { Panel } from '@/components/compositions'
 import { Subheading } from '@/components/catalyst/heading'
 import { Strong } from '@/components/catalyst/text'
-import { Absent, gcc, Panel } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**
@@ -28,7 +29,7 @@ export type Signal = Readonly<{
 
 function SignalPanel({ signal, compact }: Readonly<{ signal: Signal; compact: boolean }>) {
   return (
-    <Panel className={clsx(gcc.signalCard, compact && gcc.signalCompact)} data-gcc="signal-card">
+    <Panel tone="plain" className={clsx(gcc.signalCard, compact && gcc.signalCompact)} data-gcc="signal-card">
       <Subheading level={3} className={gcc.cardTitle}>
         {signal.title}
       </Subheading>

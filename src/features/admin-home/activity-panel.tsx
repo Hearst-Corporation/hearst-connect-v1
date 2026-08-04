@@ -1,9 +1,10 @@
 import { formatRelativeTime } from '@/lib/format'
+import { Panel } from '@/components/compositions'
 import { libelleMouvement } from '@/lib/mouvements'
 import { isAvailable, type Availability, type ClientException, type ClientIssue, type Movement } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
 import { Text, Strong } from '@/components/catalyst/text'
-import { Absent, gcc, Panel } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 
 /**
  * Présentation FR du type d'anomalie client. On ne rend plus l'identifiant
@@ -46,7 +47,7 @@ export function GreenInfoGrid({
   movements: Availability<readonly Movement[]>
 }>) {
   return (
-    <Panel as="section" className={gcc.infoGrid} aria-label="Operational detail" data-gcc="info-grid">
+    <Panel as="section" tone="plain" className={gcc.infoGrid} aria-label="Operational detail" data-gcc="info-grid">
       {/* ── Client exceptions ─────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
         <Subheading level={3} className={gcc.cardTitle}>Anomalies clients</Subheading>
@@ -134,7 +135,7 @@ export function GreenVaultPanel({
   estateValue: Availability<string>
 }>) {
   return (
-    <Panel className={gcc.vaultCard} aria-label="Vault register" data-gcc="vault-card">
+    <Panel tone="plain" className={gcc.vaultCard} aria-label="Vault register" data-gcc="vault-card">
       <Subheading level={3} className={gcc.cardTitle}>Registre des coffres</Subheading>
       {!isAvailable(vaultAbsence) ? (
         <Absent availability={vaultAbsence} showRoute={false} />

@@ -1,7 +1,8 @@
 import { EndpointSection } from '@/components/admin/endpoint-section'
+import { Panel } from '@/components/compositions'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import {
   AdminMetric,
@@ -18,7 +19,6 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'État du service' }
 export const dynamic = 'force-dynamic'
-
 
 /**
  * BAPI-03: the type now matches the ACTUAL non-enveloped /api/v1/runtime
@@ -195,12 +195,12 @@ export default async function RuntimePage() {
       rail={<ConsoleRail currentHref="/admin/runtime" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé de l’exécution">
-        <Panel className={gcc.metricCard}><h2>Santé</h2><div className={gcc.metricText}><Reading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Prêt</h2><div className={gcc.metricText}><Reading value={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Base de données</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Indexeur</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Environnement</h2><div className={gcc.metricText}><Reading value={editorial(r?.environment ?? 'Non renseigné')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Santé</h2><div className={gcc.metricText}><Reading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Prêt</h2><div className={gcc.metricText}><Reading value={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Base de données</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Indexeur</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Environnement</h2><div className={gcc.metricText}><Reading value={editorial(r?.environment ?? 'Non renseigné')} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>État <span>de l’exécution</span></p>
           <p className={gcc.decisionMeta}>{r?.serviceVersion ?? 'Version non renseignée'}</p>
           <p className={gcc.decisionActionMuted}>Matrice + sondes brutes</p>
@@ -208,7 +208,7 @@ export default async function RuntimePage() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Matrice d’exécution et déploiement">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Exécution et infrastructure</h2></div>
           <div className={gcc.heroBody}>
       {/*
@@ -271,14 +271,14 @@ export default async function RuntimePage() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Disponibilité</h3><p className={gcc.signalValue}>{formatUptime(r?.uptimeSeconds)}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Chaîne</h3><p className={gcc.signalValue}>{r?.contract?.chainId === undefined ? "—" : String(r.contract.chainId)}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Ordonnanceur</h3><p className={gcc.cellText}>{scheduler?.status ?? 'Non renseigné'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Disponibilité</h3><p className={gcc.signalValue}>{formatUptime(r?.uptimeSeconds)}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Chaîne</h3><p className={gcc.signalValue}>{r?.contract?.chainId === undefined ? "—" : String(r.contract.chainId)}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Ordonnanceur</h3><p className={gcc.cellText}>{scheduler?.status ?? 'Non renseigné'}</p></Panel>
         </aside>
       </section>
 
       <section className={gcc.bottomRow} aria-label="Réponses brutes de l’exécution">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Réponses brutes</h3></div>
           <div className={gcc.heroBody}>
       {/*
@@ -303,13 +303,13 @@ export default async function RuntimePage() {
       </AdminSection>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}><h3>Sonde de santé</h3><p className={gcc.cellText}>Point d’accès de vivacité</p></article>
           <article className={gcc.infoCell}><h3>Sonde de disponibilité</h3><p className={gcc.cellText}>Point d’accès de disponibilité</p></article>
           <article className={gcc.infoCell}><h3>Sonde d’exécution</h3><p className={gcc.cellText}>Charge utile de l’environnement et de l’ordonnanceur</p></article>
           <article className={gcc.infoCell}><h3>Contrat</h3><p className={gcc.cellText}>Aucune valeur de sonde n’est réécrite par le frontend</p></article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état des surfaces au niveau des points d’accès.</p>
         </Panel>

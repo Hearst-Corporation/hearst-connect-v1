@@ -1,8 +1,9 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
+import { MetricValue, Panel, PanelHeader, SideFact, SourceAttendue } from '@/components/compositions'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
@@ -69,70 +70,6 @@ type Factsheet = {
 const PAGE_REASONS = {
   ...MOTIF_SERIE,
   dynavault_not_deployed: 'ces conditions ne sont pas encore disponibles sur le contrat déployé',
-}
-
-function Card({
-  children,
-  className = '',
-}: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={clsx(gcc.wavePanel, className)}>{children}</Panel>
-}
-
-function CardHeader({
-  title,
-  hint,
-}: Readonly<{ title: string; hint: string }>) {
-  return (
-    <div className={gcc.heroHead}>
-      <h3 className={gcc.cardTitle}>{title}</h3>
-      <p className={gcc.cellText}>{hint}</p>
-    </div>
-  )
-}
-
-function HeroFigure({
-  valeur,
-  libelle,
-  unite,
-}: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
-  return (
-    <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
-    </div>
-  )
-}
-
-function SideFact({
-  libelle,
-  valeur,
-}: Readonly<{ libelle: string; valeur: string }>) {
-  return (
-    <div>
-      <p className={gcc.cellText}>{libelle}</p>
-      <p className={gcc.cellStrong}>{valeur}</p>
-    </div>
-  )
-}
-
-function SourceAttendue({
-  quoi,
-  detail,
-  requis,
-}: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
-  return (
-    <Panel className={gcc.wavePanel}>
-      <div className={gcc.heroHead}>
-        <h3 className={gcc.cardTitle}>{quoi}</h3>
-      </div>
-      <div className={gcc.heroBody}>
-        <p className={gcc.cellText}>{detail}</p>
-        {requis.map((item) => (
-          <p key={item} className={gcc.cellText}>{item}</p>
-        ))}
-      </div>
-    </Panel>
-  )
 }
 
 function stateOf(block: Resolved<unknown> | undefined, fallback: string): EtatSerie {
@@ -254,37 +191,37 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse du produit">
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Dépôt minimum</h2>
           <div className={gcc.metricText}>
             <Reading value={figure(formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 }))} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Durée</h2>
           <div className={gcc.metricText}>
             <Reading value={figure(readableDuration(terms?.productDurationMonths))} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Plafond du fonds</h2>
           <div className={gcc.metricText}>
             <Reading value={figure(formatCurrency(cap, { decimals: 0 }))} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Poches</h2>
           <div className={gcc.metricText}>
             <Reading value={pocketsCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Jalons de courbe</h2>
           <div className={gcc.metricText}>
             <Reading value={curveCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Fiche <span>produit</span></p>
           <p className={gcc.decisionMeta}>{curveConfigured ? 'Courbe de rémunération configurée' : 'Courbe de rémunération en attente'}</p>
           <p className={gcc.decisionActionMuted}>Aucune condition synthétique</p>
@@ -292,7 +229,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Détails du produit">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Fiche produit</h2>
           </div>
@@ -318,7 +255,7 @@ export default async function Page() {
           <AdminSection title="Conditions de souscription">
             <AdminGrid>
               <AdminCol span={5} md={4}>
-                <Card className="p-6">
+                <Panel tone="plain" className="p-6">
                   {/*
                     The deposit is the primary item; the duration and the cap
                     are the two facts that qualify it, stacked beside it at
@@ -332,7 +269,7 @@ export default async function Page() {
                     and stop where their text stops.
                   */}
                   <div className="flex flex-wrap items-end gap-x-8 gap-y-5">
-                    <HeroFigure
+                    <MetricValue
                       valeur={formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 })}
                       libelle="Dépôt minimum pour souscrire"
                     />
@@ -341,7 +278,7 @@ export default async function Page() {
                       <SideFact libelle="Plafond du fonds" valeur={formatCurrency(cap, { decimals: 0 })} />
                     </div>
                   </div>
-                </Card>
+                </Panel>
               </AdminCol>
 
               <AdminCol span={7} md={4}>
@@ -381,8 +318,8 @@ export default async function Page() {
 
               {hasPocketDetail ? (
                 <AdminCol span={6}>
-                  <Card>
-                    <CardHeader
+                  <Panel>
+                    <PanelHeader
                       title="Quelle part détient chaque poche ?"
                       hint="Ciblée par le contrat, constatée on-chain, et l’écart entre les deux"
                     />
@@ -428,7 +365,7 @@ export default async function Page() {
                         </tbody>
                       </table>
                     </div>
-                  </Card>
+                  </Panel>
                 </AdminCol>
               ) : null}
             </AdminGrid>
@@ -438,15 +375,15 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Couverture</h3>
             <p className={gcc.cellText}>{f === null ? 'Fiche produit indisponible' : 'Fiche produit disponible'}</p>
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Source d’allocation</h3>
             <p className={gcc.cellText}>{hasPocketDetail ? 'Poches lisibles' : 'Aucune poche lisible'}</p>
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Courbe de rémunération</h3>
             <p className={gcc.cellText}>{curveConfigured ? 'Configurée' : 'Non configurée'}</p>
           </Panel>
@@ -454,7 +391,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Notes du produit">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
             <h3 className={gcc.cardTitle}>Garde-fous</h3>
           </div>
@@ -464,7 +401,7 @@ export default async function Page() {
             <p className={gcc.cellText}>Toute absence reste explicite et sourcée.</p>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Point d’accès des conditions</h3>
             <p className={gcc.cellText}>`product-factsheet`</p>
@@ -482,7 +419,7 @@ export default async function Page() {
             <p className={gcc.cellText}>Aucun taux fictif lorsque la source n’est pas configurée.</p>
           </article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>État</h3>
           <p className={gcc.cellText}>{f === null ? 'Source de la fiche produit indisponible.' : 'Source de la fiche produit joignable.'}</p>
         </Panel>

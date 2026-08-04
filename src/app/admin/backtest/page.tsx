@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel, PanelHeader, SourceAttendue } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
@@ -12,42 +13,6 @@ import React from 'react'
 
 export const metadata: Metadata = { title: 'Backtests' }
 export const dynamic = 'force-dynamic'
-
-
-function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
-}
-
-function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
-  return (
-    <div className={gcc.heroHead}>
-      <h3 className={gcc.cardTitle}>{title}</h3>
-      <p className={gcc.cellText}>{hint}</p>
-    </div>
-  )
-}
-
-function SourceAttendue({
-  quoi,
-  detail,
-  requis,
-  action,
-}: Readonly<{ quoi: string; detail: string; requis: readonly string[]; action?: React.ReactNode }>) {
-  return (
-    <Panel className={gcc.wavePanel}>
-      <div className={gcc.heroHead}>
-        <h3 className={gcc.cardTitle}>{quoi}</h3>
-      </div>
-      <div className={gcc.heroBody}>
-        <p className={gcc.cellText}>{detail}</p>
-        {requis.map((item) => (
-          <p key={item} className={gcc.cellText}>{item}</p>
-        ))}
-        {action}
-      </div>
-    </Panel>
-  )
-}
 
 /**
  * Backtests — what the strategy would have produced in the past.
@@ -96,8 +61,8 @@ function ListeBacktests({ runs }: Readonly<{ runs: readonly Run[] }>) {
   return (
     <AdminGrid>
       <AdminCol span={8}>
-        <Card>
-          <CardHeader title="Quels backtests ont été exécutés ?" hint={`${runs.length} exécution${runs.length > 1 ? 's' : ''} conservée${runs.length > 1 ? 's' : ''}`} />
+        <Panel>
+          <PanelHeader title="Quels backtests ont été exécutés ?" hint={`${runs.length} exécution${runs.length > 1 ? 's' : ''} conservée${runs.length > 1 ? 's' : ''}`} />
           <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
             {runs.map((run, rank) => (
               <li
@@ -108,7 +73,7 @@ function ListeBacktests({ runs }: Readonly<{ runs: readonly Run[] }>) {
               </li>
             ))}
           </ul>
-        </Card>
+        </Panel>
       </AdminCol>
     </AdminGrid>
   )
@@ -177,27 +142,27 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé backtest">
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Exécutions</h2>
           <div className={gcc.metricText}><Reading value={runCountCell} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>État de la source</h2>
           <div className={gcc.metricText}><Reading value={editorial(response.ok ? 'Joignable' : 'Indisponible')} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Registre</h2>
           <div className={gcc.metricText}><Reading value={editorial(block?.status ?? 'Non renseigné')} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Courbe historique</h2>
           <div className={gcc.metricText}><Reading value={editorial(none ? 'Non disponible' : 'Disponible')} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Raison</h2>
           <div className={gcc.metricText}><Reading value={editorial(reason ?? 'Aucune')} className={gcc.metricValue} /></div>
         </Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>État <span>des backtests</span></p>
           <p className={gcc.decisionMeta}>{none ? 'Aucune exécution enregistrée' : 'Exécutions enregistrées'}</p>
           <p className={gcc.decisionActionMuted}>Aucune courbe projetée</p>
@@ -205,19 +170,19 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Contenu backtest">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Backtest historique</h2></div>
           <div className={gcc.heroBody}>{contenu}</div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Calcul</h3><p className={gcc.cellText}>Calculé uniquement par le backend.</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Lissage</h3><p className={gcc.cellText}>Aucune extrapolation dans l’interface.</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Repli</h3><p className={gcc.cellText}>L’absence reste explicite.</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Calcul</h3><p className={gcc.cellText}>Calculé uniquement par le backend.</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Lissage</h3><p className={gcc.cellText}>Aucune extrapolation dans l’interface.</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Repli</h3><p className={gcc.cellText}>L’absence reste explicite.</p></Panel>
         </aside>
       </section>
 
       <section className={gcc.bottomRow} aria-label="Notes backtest">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Prérequis</h3></div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>Période de référence</p>
@@ -225,13 +190,13 @@ export default async function Page() {
             <p className={gcc.cellText}>Exécution backend persistée avec horodatage</p>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>`backtest-historical`</p></article>
           <article className={gcc.infoCell}><h3>Modèle</h3><p className={gcc.cellText}>Aucune exécution simulée injectée.</p></article>
           <article className={gcc.infoCell}><h3>Affichage</h3><p className={gcc.cellText}>Liste des exécutions uniquement quand disponible.</p></article>
           <article className={gcc.infoCell}><h3>État</h3><p className={gcc.cellText}>État du registre affiché depuis la source.</p></article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état de préparation des points d’accès.</p>
         </Panel>

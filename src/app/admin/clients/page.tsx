@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Absent, Panel, Reading } from '@/components/layout/console'
+import { Absent, Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { publicUser } from '@/lib/session'
@@ -51,7 +52,7 @@ function ClientsMetric({
   value,
 }: Readonly<{ title: string; value: Availability<string> }>) {
   return (
-    <Panel className={gcc.metricCard}>
+    <Panel tone="plain" className={gcc.metricCard}>
       <h2>{title}</h2>
       <div className={gcc.metricText}>
         <Reading value={value} className={gcc.metricValue} />
@@ -91,7 +92,7 @@ export default async function Page() {
         <ClientsMetric title="Anomalies clients" value={clientExceptions} />
         <ClientsMetric title="Coffres joignables" value={reachableVaults} />
         <ClientsMetric title="Surface de couverture" value={editorial('Couverture des données')} />
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>État des <span>clients</span></p>
           <p className={gcc.decisionMeta}>Source non exposée</p>
           <p className={gcc.decisionActionMuted}>Annuaire indisponible</p>
@@ -99,7 +100,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Explication des clients">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Annuaire</h2>
           </div>
@@ -122,15 +123,15 @@ export default async function Page() {
         </Panel>
 
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Contrat de la source</h3>
             <Absent availability={clientDirectory} showRoute={false} />
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Contrat de conformité</h3>
             <Absent availability={complianceDirectory} showRoute={false} />
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Anomalies clients</h3>
             <Reading value={clientExceptions} className={gcc.signalValue} />
           </Panel>
@@ -138,7 +139,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Exigences client">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
             <h3 className={gcc.cardTitle}>Manquant à la source</h3>
           </div>
@@ -151,7 +152,7 @@ export default async function Page() {
           </div>
         </Panel>
 
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Point d’accès de l’annuaire</h3>
             <Absent availability={clientDirectory} showRoute={false} />
@@ -170,7 +171,7 @@ export default async function Page() {
           </article>
         </Panel>
 
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Activité des sources</h3>
           {registry.sources.slice(0, 6).map((source) => (
             <div key={source.endpointId} className={gcc.sourceRow}>

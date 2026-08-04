@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { Panel } from '@/components/compositions'
 import clsx from 'clsx'
 
-import { Absent, Panel, gcc } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
@@ -73,7 +74,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
 
   if (list === null || list.length === 0) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <h3 className={gcc.cardTitle}>Value by vault</h3>
         </div>
@@ -108,7 +109,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
   // an absence, not a chart of empty bars.
   if (ranked.length === 0) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <h3 className={gcc.cardTitle}>Value by vault</h3>
         </div>
@@ -132,7 +133,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
   const largest = ranked[0].atomic
 
   return (
-    <Panel className={gcc.wavePanel}>
+    <Panel tone="plain" className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <div>
           <h3 className={gcc.cardTitle}>Value by vault</h3>
