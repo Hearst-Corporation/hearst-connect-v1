@@ -10,6 +10,7 @@ import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
 import { publicUser } from '@/lib/session'
+import { allocationLisible, comptePoches } from '@/lib/vaults/pockets'
 import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
@@ -133,7 +134,7 @@ export default async function Page() {
   // dropped rather than rounded down to zero.
   const rawPockets = terms?.allocation?.pockets
   const pockets = rawPockets ?? []
-  const readablePockets = pockets.filter((p) => p.targetBps !== null && p.targetBps !== undefined && Number.isFinite(p.targetBps))
+  const readablePockets = pockets.filter(allocationLisible)
 
   const allocation: PocheAllocation[] = readablePockets.map((p) => ({
     poche:
@@ -168,31 +169,11 @@ export default async function Page() {
     reason: 'product_factsheet_unreachable',
   })
   /*
-   * Trois cas, et non deux (correction du 2026-08-04).
-   *
-   * Le garde ne testait que `rawPockets` absent, mais comptait
-   * `readablePockets` — la liste FILTRÉE sur `targetBps` lisible. Quand le
-   * service renvoyait des poches dont aucune n'avait d'allocation lisible,
-   * `readablePockets.length` valait 0 et partait en `available('0')` : la
-   * carte affichait « Poches → 0 » badgé comme mesure, pendant que la même
-   * page disait « Aucune poche lisible » deux blocs plus bas.
-   *
-   * C'est précisément le défaut que le commentaire VER-03 ci-dessus dit
-   * interdire. Un zéro affiché doit être un zéro MESURÉ ; ici il ne l'était
-   * pas, il venait d'un filtre qui n'avait rien retenu.
+   * La règle vit dans `lib/vaults/pockets.ts` : elle est trop facile à casser
+   * pour rester inline, et un test l'exerce sur les quatre cas (appel échoué,
+   * allocation absente, poches illisibles, poches lisibles).
    */
-  const pocketsCell: Availability<string> =
-    !response.ok
-      ? factsheetUnreadable
-      : rawPockets === null || rawPockets === undefined
-        ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'allocation_absent' })
-        : rawPockets.length > 0 && readablePockets.length === 0
-          ? unavailable({
-              endpoint: '/api/v1/product/factsheet',
-              status: 'PARTIAL',
-              reason: 'pocket_allocation_unreadable',
-            })
-          : available(String(readablePockets.length), { provenance: 'live', asOf: null })
+  const pocketsCell: Availability<string> = comptePoches(response.ok, rawPockets)
   const curveCell: Availability<string> =
     !response.ok || rawCurve === null || rawCurve === undefined
       ? (response.ok
