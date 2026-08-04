@@ -172,9 +172,9 @@ export function VaultSummaryCard({ vault }: Readonly<{ vault: Vault }>) {
           hint="Détenu par le coffre et placé dans aucune stratégie — pas de la marge de souscription."
         />
 
-        <TextField label="Created" value={CREATED_AT} />
+        <TextField label="Créé le" value={CREATED_AT} />
 
-        <TextField label="Last activity" value={lastActivity} />
+        <TextField label="Dernière activité" value={lastActivity} />
       </dl>
 
       <p className="mt-6 truncate border-t border-zinc-950/5 pt-3 font-mono text-[0.6875rem]/4 text-zinc-500 dark:border-console-line dark:text-zinc-500">

@@ -179,7 +179,7 @@ function LastRebalanceCell({ vault }: Readonly<{ vault: Vault }>) {
  */
 function PendingActionCell({ vault }: Readonly<{ vault: Vault }>) {
   if (vault.status !== 'ACTIVE') {
-    return <VaultEntityLink kind="vault" id={vault.id} label="Inspect vault" className="relative z-10" />
+    return <VaultEntityLink kind="vault" id={vault.id} label="Inspecter le coffre" className="relative z-10" />
   }
 
   const breaches = valueOf(requiresRebalancing(vault))

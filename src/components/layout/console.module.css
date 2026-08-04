@@ -368,7 +368,25 @@
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
-  overflow: hidden;
+  /*
+   * `overflow: hidden` retiré, et le libellé prend la place restante.
+   *
+   * Le badge d'état ne pouvait pas se réduire, alors il écrasait le libellé :
+   * mesuré sur /admin/vaults/[vaultId] à 768 px, « Rebalancing » rendu sur
+   * 10 px de large pour 264 de haut — un caractère par ligne. Le libellé est
+   * l'information ; c'est lui qui doit garder sa largeur.
+   */
+  overflow-x: hidden;
+}
+
+.sourceRow > :first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: break-word;
+}
+
+.sourceRow > :last-child {
+  flex: 0 0 auto;
 }
 
 .cellDivider {
