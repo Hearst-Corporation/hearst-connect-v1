@@ -1,8 +1,9 @@
 # Hearst Connect
 
 Front Next.js — vitrine marketing, écran de connexion, console d'administration.
-Interface bâtie **exclusivement** sur les kits officiels Tailwind Plus :
-[Catalyst](https://tailwindcss.com/plus/ui-kit) pour l'application, les UI Blocks Marketing pour la vitrine.
+Interface bâtie sur le kit officiel Tailwind Plus
+[Catalyst](https://tailwindcss.com/plus/ui-kit) pour les primitives interactives, et sur
+les UI Blocks Marketing pour la vitrine.
 
 ## Pile
 
@@ -10,29 +11,41 @@ Interface bâtie **exclusivement** sur les kits officiels Tailwind Plus :
 |---|---|
 | Framework | Next.js 16 (App Router, React 19, Turbopack) |
 | Langage | TypeScript strict |
+| Gestionnaire de paquets | **pnpm** — voir « Piège » ci-dessous |
 | Styles | Tailwind CSS v4 (`@theme` dans `src/styles/tailwind.css`) |
 | UI | Catalyst UI Kit officiel (`src/components/catalyst/`, vendoré tel quel) |
 | Vitrine | Tailwind Plus UI Blocks officiels, portés en TS (`src/components/marketing/`) |
-| Session | Cookie httpOnly signé HMAC-SHA256, sans dépendance externe |
+| Dataviz | Recharts (moteur unique) |
+| Session | Cookie httpOnly **chiffré AES-256-GCM** (`src/lib/session.ts`), sans dépendance externe |
 
 ## Démarrer
 
+> **Piège — ce dépôt est pnpm-only.** La CI Hearst échoue le job « gate » si un
+> `package-lock.json` apparaît. Ne jamais lancer `npm install` ici.
+
 ```bash
-cp .env.example .env.local     # puis remplir (voir plus bas)
-npm install
-npm run dev                    # http://localhost:3000
+cp .env.example .env.local          # puis remplir (voir plus bas)
+pnpm install --frozen-lockfile
+pnpm dev                            # http://localhost:3000
 ```
 
 ### Variables d'environnement
 
+Six clés, celles de `.env.example` et pas une de plus. Toutes sont lues par la porte
+unique `src/lib/env.ts` (`import 'server-only'`, validation fail-closed) ; aucune n'est
+préfixée `NEXT_PUBLIC_`, donc aucune ne sort du serveur.
+
 | Variable | Rôle |
 |---|---|
-| `AUTH_SECRET` | Clé de signature des sessions, 32 caractères minimum (`openssl rand -hex 32`) |
-| `ADRIEN_OWNER_EMAIL` | Adresse du compte propriétaire — défaut `adrien@hearstcorporation.io` |
+| `AUTH_SECRET` | Protection du cookie de session (32 caractères minimum — `openssl rand -hex 32`) |
+| `HEARST_API_URL` | Base du backend Hearst Connect — autorité d'authentification |
+| `ADRIEN_OWNER_EMAIL` | Adresse du compte propriétaire |
 | `ADRIEN_OWNER_PASSWORD` | Mot de passe du compte propriétaire |
+| `DEV_QUICK_LOGIN_EMAIL` | Connexion rapide, **développement local uniquement** |
+| `DEV_QUICK_LOGIN_PASSWORD` | Connexion rapide, **développement local uniquement** |
 
-Aucun secret n'est écrit dans le code : tout passe par `process.env`. `.env.local` est gitignoré,
-la production utilise les variables d'environnement du fournisseur.
+Aucun secret n'est écrit dans le code. `.env.local` est gitignoré ; la production utilise
+les variables du projet Vercel `hearst-connect-v1`.
 
 ## Structure
 
@@ -42,70 +55,116 @@ src/
 │   ├── layout.tsx              racine — polices Hearst, métadonnées, thème
 │   ├── (marketing)/            vitrine publique
 │   ├── (auth)/                 connexion
-│   └── admin/                  console d'administration protégée
-│       ├── page.tsx            Accueil — Green Command Center (cockpit validé)
-│       ├── clients/            annuaire (source en attente)
-│       ├── conformite/         file KYC/KYB (source en attente)
-│       ├── operations/         mouvements + rééquilibrage
-│       ├── administration/     hub produit et outils techniques
-│       ├── runtime/            matrice d'état infrastructure
-│       ├── api-explorer/       registre des 26 endpoints
-│       └── keeper/             actions maintenance admin
+│   ├── admin/                  console d'administration protégée (garde de session)
+│   └── design-lab/             bac à sable visuel — 404 en production (ARCH-02)
 ├── components/
-│   ├── catalyst/               kit officiel, NON modifié
+│   ├── catalyst/               kit officiel, NON modifié (cf. VENDOR.md)
 │   ├── marketing/              blocs vitrine Tailwind Plus
-│   └── admin/                  design system cockpit (surfaces, sections, charts)
+│   ├── admin/                  surfaces, typographie et charts de la console
+│   ├── vaults/                 tables et cartes du registre de coffres
+│   └── design-lab/
+│       └── green-command-center/   composition de la console (shell, rail, primitives)
 ├── lib/
-│   ├── backend/                callBackend, registre endpoints, keeper
-│   ├── session.ts              cookie session signé
-│   └── fonts.ts                Satoshi Variable (règle absolue — une seule famille)
-└── styles/tailwind.css         tokens zinc + accent (Catalyst), états sémantiques
+│   ├── backend/                callBackend, registre d'endpoints, keeper, sondes
+│   ├── vaults/                 modèle métier (Availability), registre, agrégats
+│   ├── env.ts                  porte unique des variables serveur
+│   ├── session.ts              cookie de session chiffré
+│   ├── format.ts               formatage centralisé (nombres, %, devises, dates)
+│   └── fonts.ts                Satoshi Variable (une seule famille)
+└── styles/tailwind.css         tokens `@theme` — surfaces, accent, états sémantiques
 ```
 
 ## Console d'administration
 
-Navigation principale (5 sections) : **Accueil · Clients · Conformité · Opérations · Administration**.
+Navigation principale (5 sections, `src/lib/admin-nav.ts`) :
+**Accueil · Clients · Conformité · Opérations · Administration**.
+Destinations secondaires groupées dans le même module.
 
-Chrome UI unifié (registre Qatar / Hearst Cockpit) sur toutes les pages admin :
-`PageHeader` · `CockpitSection` / `AdminSection` (bandeau sunken) · `Panel` / `AdminSurface` / `Card` (cartes raised) · typo zinc + accent.
+La console est rendue par le **Green Command Center**
+(`src/components/design-lab/green-command-center/`) : `GreenCommandCenterShell` et
+`GreenCommandRail` habillent toutes les routes admin. Elle est **sombre par
+construction** — le contrat de thème est documenté dans
+`docs/design-system/DESIGN-SYSTEM-NOTES.md`.
 
-État de migration cockpit green (`src/app/admin`), au 2026-07-30 :
-- **Shell green actif sur toutes les routes admin** via `GreenCommandCenterShell`/`GreenCommandRail`.
-- **Composition green complétée** : `/admin`, `/admin/clients`, `/admin/conformite`, `/admin/vaults`, `/admin/vaults/[vaultId]`, `/admin/administration`, `/admin/dashboard`, `/admin/operations`, `/admin/product`, `/admin/series-1`, `/admin/mining`, `/admin/btc`, `/admin/backtest`, `/admin/administration/produit`, `/admin/runtime`, `/admin/api-explorer`, `/admin/keeper`, `/admin/profile`.
-- **Composition contenu legacy** : terminée sur le périmètre `/admin` actuellement routé.
-- **Route legacy conservée** : `/admin/vault` redirige vers `/admin/vaults` (pas de rendu legacy maintenu).
-- **Layout de compatibilité** : `AdminShell` reste en fallback pour d'éventuelles routes admin futures non encore déclarées.
-- **26 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité
+- `/admin/vault` redirige vers `/admin/vaults` : le registre d'endpoints la nomme comme
+  `surface` de plusieurs routes backend, la redirection évite d'en faire des 404.
+- **26 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité.
+- Langue produit : **français** (migration HC-CONSOLE-FR-001), gardée par
+  `tests/language-regression.test.ts`.
 
-Revue visuelle : `docs/visual-reviews/HC-ADMIN-DASHBOARD-002/`
+Revues visuelles : `docs/visual-reviews/`.
 
 ## Ce qui est réel, ce qui ne l'est pas
 
-Le socle d'authentification est réel : session signée, cookie httpOnly, garde `/admin`.
+Le socle d'authentification est réel : le backend Hearst est l'autorité, la session est
+un cookie httpOnly chiffré, `/admin` est gardé côté serveur.
 
-Les **données métier admin** proviennent du backend Railway via `callBackend`. Absence de source =
-état nommé (`SourceAttendue`, `UnavailableState`) — jamais un zéro ni un exemple fictif
-(`npm run check:mocks`).
+Les **données métier admin** proviennent du backend via `callBackend`. Une absence de
+source reste une absence : état nommé (`unavailable`, « Indisponible », « Source
+attendue »), jamais un zéro ni un exemple fictif. Cette garantie est vérifiée en CI par
+`pnpm check:mocks` (job `truthful-data`), qui interdit notamment `Math.random()`, les
+jeux de démonstration et la coalescence `?? 0`.
 
 Organisations, dossiers KYC et files d'approbation : **pas encore exposés** par le backend.
-
 
 ## Commandes
 
 ```bash
-npm run dev              # développement
-npm run build            # build de production
-npm run check            # typecheck + lint + catalyst-doctor
-npm run check:catalyst   # vérifie qu'aucun design system étranger n'a fui ici
+pnpm dev                 # développement (port 3000)
+pnpm build               # build de production
+pnpm check               # gate canonique, en série (voir ci-dessous)
+pnpm test                # vitest
+pnpm e2e                 # Playwright — exige un backend joignable et .env.local
+```
+
+`pnpm check` enchaîne, dans l'ordre et en s'arrêtant au premier rouge :
+
+| Étape | Ce qu'elle garantit |
+|---|---|
+| `typecheck` | `tsc --noEmit` — TypeScript strict |
+| `lint` | `eslint` (`src/components/catalyst/**` volontairement ignoré) |
+| `check:mocks` | aucune donnée simulée dans le runtime (7 règles) |
+| `check:ds` | aucune couleur hexadécimale hors token dans les routes et modules |
+| `test` | `vitest run` |
+
+Outils de diagnostic, **non bloquants et hors gate** :
+
+```bash
+pnpm quality:dead        # knip — code potentiellement mort (indices, pas verdicts)
+pnpm quality:dup         # jscpd — duplication (seuil documenté dans le script)
+pnpm lint:fast           # oxlint, passe rapide complémentaire d'eslint
 ```
 
 ## Design system
 
-Palette dans `src/styles/tailwind.css` :
+La source normative des tokens est `src/styles/tailwind.css` (`@theme`).
 
-- **Tokens produit** : `brand-background`, `brand-surface`, `brand-accent` (or Hearst H≈45°), etc.
-- **États** : `success`, `warning`, `danger`, `info`, `neutral` — distincts de la marque
-- **Polices** : **Satoshi Variable** seule (`src/assets/fonts/`, Fontshare) — interface, titres, mono
-- **Composants admin** : `src/components/admin/surfaces.tsx` (AdminSurface, AdminMetric, AdminTable…)
+- **Accent** : un seul vert, la teinte Hearst mint, décliné en rampe
+  `--color-accent-50 … --color-accent-950`. La console (`.cockpit-theme`) et le thème
+  global n'attribuent pas les mêmes paliers — c'est voulu, la valeur d'accent perçue
+  reste la même.
+- **Surfaces** (console, sombre) : `--color-console-app` < `--color-console-shell` <
+  `--color-console-card` < `--color-console-card-top`, plus `--color-console-inset`
+  pour l'enfoncé.
+- **États sémantiques** : `--color-success-*`, `--color-warning-*`, `--color-danger-*`,
+  `--color-info-*` — distincts de l'accent. La couleur ne porte jamais seule un statut :
+  chaque état porte aussi un libellé.
+- **Polices** : **Satoshi Variable** seule (`src/assets/fonts/`) — interface, titres, mono.
+- **Charts** : tokens `--chart-*` (séries et statuts), consommés via `src/lib/chart-theme.ts`.
 
-Catalyst (`src/components/catalyst/`) : kit officiel **non modifié**. `npm run check:catalyst` vérifie l'absence de fuites de design system étranger.
+`pnpm check:ds` interdit tout hexadécimal brut hors `var(--token, #repli)` dans les
+routes et modules métier, ce qui empêche la réintroduction d'une couleur littérale.
+
+Catalyst (`src/components/catalyst/`) : kit officiel **non modifié**. Avant de créer une
+primitive générique, consulter `src/components/catalyst/VENDOR.md`.
+
+## Documentation
+
+| Document | Rôle |
+|---|---|
+| `CLAUDE.md` | Contrat de travail sur ce dépôt (stack, gates, secrets, pièges) |
+| `docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md` | Doctrine Design System |
+| `docs/design-system/DESIGN-SYSTEM-NOTES.md` | État vérifié du design system encodé dans le dépôt |
+| `docs/design-system/CONSOLE-FR-GLOSSARY.md` | Glossaire de la langue produit |
+| `docs/remediation/` | Suivi de la remédiation d'audit (historique) |
+| `docs/audits/` | Audits de propreté et plans de nettoyage |

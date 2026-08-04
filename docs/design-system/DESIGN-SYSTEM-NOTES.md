@@ -3,9 +3,15 @@
 > Ces notes documentent l'état RÉEL et VÉRIFIÉ du design system tel qu'il est
 > encodé dans le dépôt, en appui de la passe de convergence
 > (HC-DESIGN-SYSTEM-CONVERGENCE-001). La source normative des tokens est
-> `src/styles/tailwind.css` (`@theme`). Le document
-> `HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md` n'étant pas présent dans le
-> dépôt, ces notes s'appuient uniquement sur ce qui est prouvable dans le code.
+> `src/styles/tailwind.css` (`@theme`).
+>
+> **Mise à jour du 2026-08-04** : la doctrine
+> `HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md` **est désormais présente** dans
+> le dépôt (ajoutée par `6c5507f`, 713 lignes) — ces notes ont été rédigées
+> quand elle en était absente. Les deux documents ont des rôles distincts et
+> complémentaires : la **doctrine** dit ce qui *doit* être, ces **notes** disent
+> ce qui *est* réellement encodé et vérifié dans le code. En cas d'écart entre
+> les deux, l'écart est le travail à faire, pas une erreur de l'un des documents.
 
 ## Accent — un seul vert
 
@@ -78,33 +84,25 @@ de la console). Les animations d'entrée sont décoratives et désactivables.
   polar}` de §7.2 (renommage/déplacement de 6 charts fonctionnels) — reporté
   pour ne pas casser l'existant sans contrat de container arbitré.
 
-## Langue produit — français (doctrine §1) : mission dédiée requise
+## Langue produit — français (doctrine §1) : ✅ LIVRÉ
 
-La doctrine fixe le **français** comme langue produit. La console est
-actuellement en **anglais** (migration EN délibérée HC-UI-NORMALIZATION-001,
-gardée par `tests/language-regression.test.ts` qui INTERDIT le français).
+**Mise à jour du 2026-08-04.** La migration est **faite**, en une passe cohérente
+(mission HC-CONSOLE-FR-001, commit `8029d85`). La console est en français ; il
+n'y a pas d'état mixte FR/EN.
 
-La traduction est une **mission coordonnée**, pas une retouche : elle exige, en
-lockstep, (1) le vocabulaire de statut, (2) la nav + « Sign out », (3) le corps
-des 19 pages, (4) l'INVERSION de `language-regression.test.ts` (il faut qu'il
-impose le FR au lieu de l'interdire), (5) la mise à jour de `source-
-availability.test.tsx` et des assertions e2e (`veracity.spec.ts`) qui matchent
-les libellés anglais. Une traduction PARTIELLE laisse une console FR/EN mixte —
-non conforme à « cohérent » (§10). Elle n'est donc pas amorcée ici (un essai a
-été fait puis annulé pour préserver la cohérence).
+- `tests/language-regression.test.ts` a été **inversé** : il impose désormais le
+  français et interdit les anciens libellés anglais.
+- Les assertions de `truthful-rendering`, `source-availability`,
+  `layout-doctrine` et les e2e (`veracity`, `access-control`) ont suivi.
+- Le glossaire canonique — un concept, une traduction — vit dans
+  `docs/design-system/CONSOLE-FR-GLOSSARY.md`. **C'est lui la source**, la
+  version d'ancrage qui figurait ici a été retirée pour ne pas entretenir deux
+  glossaires concurrents.
 
-**Glossaire d'ancrage** (à valider avant la mission FR — dérivé du FR déjà
-présent dans la vitrine et `mouvements.ts`, à compléter) :
-
-| EN (actuel) | FR (proposé) |
-|---|---|
-| Live / Reference / Unavailable / Stale | En direct / Référence / Indisponible / Obsolète |
-| Sign out | Se déconnecter |
-| Home / Clients / Compliance / Operations / Runtime | Accueil / Clients / Conformité / Opérations / Exécution |
-| Data coverage | Couverture des données |
-| Vault / Estate | Coffre / Patrimoine |
-| Active vaults / Recent movements | Coffres actifs / Mouvements récents |
-| Deployed / Available capital | Capital déployé / Capital disponible |
+Véracité préservée : seuls les libellés d'**affichage** sont traduits. Les codes
+de statut backend (`LIVE`, `UNAVAILABLE`, `STALLED`…), les identifiants
+(`chainId`, `0x…`, « Series 1 »), les unités (BTC, bps, pt, %) et les `reason:`
+en snake_case restent **inchangés**.
 
 ## Compositions & structure de dossiers (doctrine §2, §7.2)
 
