@@ -18,18 +18,18 @@ import clsx from 'clsx'
  */
 
 const LG_SPAN = {
-  1: 'lg:col-span-1',
-  2: 'lg:col-span-2',
-  3: 'lg:col-span-3',
-  4: 'lg:col-span-4',
-  5: 'lg:col-span-5',
-  6: 'lg:col-span-6',
-  7: 'lg:col-span-7',
-  8: 'lg:col-span-8',
-  9: 'lg:col-span-9',
-  10: 'lg:col-span-10',
-  11: 'lg:col-span-11',
-  12: 'lg:col-span-12',
+  1: 'xl:col-span-1',
+  2: 'xl:col-span-2',
+  3: 'xl:col-span-3',
+  4: 'xl:col-span-4',
+  5: 'xl:col-span-5',
+  6: 'xl:col-span-6',
+  7: 'xl:col-span-7',
+  8: 'xl:col-span-8',
+  9: 'xl:col-span-9',
+  10: 'xl:col-span-10',
+  11: 'xl:col-span-11',
+  12: 'xl:col-span-12',
 } as const
 
 const MD_SPAN = {
@@ -81,7 +81,16 @@ export function AdminGrid({
         // "a giant card with tiny content", in the reviewer's words. Every
         // card now ends where its content ends. A caller that genuinely wants
         // two cards to share a baseline can pass `items-stretch`.
-        'grid grid-cols-4 items-start md:grid-cols-8 lg:grid-cols-12',
+        /*
+         * La grille à 12 colonnes s'active à `xl` (1280 px) et non `lg`
+         * (1024 px) — HC-VISUAL-LAYOUT-RECOVERY-001.
+         *
+         * À 1024 px, une colonne de 4/12 laissait ~85 px utiles : le titre du
+         * `ChartFrame` (« Quels types composent le journal ? ») s'y rendait sur
+         * 48 px de large pour 168 de haut, soit un mot par ligne. La grille à
+         * 8 colonnes tient jusqu'à 1280 px, où 4/12 redevient exploitable.
+         */
+        'grid grid-cols-4 items-start md:grid-cols-8 xl:grid-cols-12',
         gridGap,
         className,
       )}

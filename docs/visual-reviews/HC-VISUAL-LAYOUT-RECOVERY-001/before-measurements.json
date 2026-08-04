@@ -1,0 +1,3031 @@
+{
+  "consoleErrors": [],
+  "serverErrors": [],
+  "routes": {
+    "operations": {
+      "1440x900": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1440,
+        "clientWidthDoc": 1440,
+        "textesVerticalises": [
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 60,
+            "ratio": 15.55
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          }
+        ],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          },
+          {
+            "texte": "Jul 27, 2026, 9:45 PM",
+            "client": 159,
+            "scroll": 169
+          },
+          {
+            "texte": "L’électricité a été payée",
+            "client": 63,
+            "scroll": 67
+          },
+          {
+            "texte": "Quels types composent le journal ?",
+            "client": 69,
+            "scroll": 82
+          },
+          {
+            "texte": "Montant",
+            "client": 66,
+            "scroll": 69
+          },
+          {
+            "texte": "Investisseur",
+            "client": 66,
+            "scroll": 89
+          },
+          {
+            "texte": "Transaction",
+            "client": 66,
+            "scroll": 88
+          },
+          {
+            "texte": "49146828",
+            "client": 66,
+            "scroll": 70
+          },
+          {
+            "texte": "0xcf2e…da78",
+            "client": 66,
+            "scroll": 86
+          },
+          {
+            "texte": "49143867",
+            "client": 66,
+            "scroll": 69
+          },
+          {
+            "texte": "0x84e8…9c45",
+            "client": 66,
+            "scroll": 94
+          },
+          {
+            "texte": "49143866",
+            "client": 66,
+            "scroll": 71
+          },
+          {
+            "texte": "0xc50c…3022",
+            "client": 66,
+            "scroll": 93
+          },
+          {
+            "texte": "49143739",
+            "client": 66,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8d8a…de79",
+            "client": 66,
+            "scroll": 92
+          },
+          {
+            "texte": "49143734",
+            "client": 66,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8022…8149",
+            "client": 66,
+            "scroll": 93
+          },
+          {
+            "texte": "49143733",
+            "client": 66,
+            "scroll": 69
+          },
+          {
+            "texte": "0x2eb5…f66d",
+            "client": 66,
+            "scroll": 90
+          },
+          {
+            "texte": "49143728",
+            "client": 66,
+            "scroll": 69
+          },
+          {
+            "texte": "0x26d5…393b",
+            "client": 66,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 66,
+            "scroll": 89
+          },
+          {
+            "texte": "0x7e70…f285",
+            "client": 66,
+            "scroll": 88
+          },
+          {
+            "texte": "49142963",
+            "client": 66,
+            "scroll": 70
+          },
+          {
+            "texte": "0x2d2d…54a9",
+            "client": 66,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 66,
+            "scroll": 89
+          },
+          {
+            "texte": "0x6b99…ea40",
+            "client": 66,
+            "scroll": 94
+          },
+          {
+            "texte": "0xc962…2c04",
+            "client": 66,
+            "scroll": 94
+          },
+          {
+            "texte": "49134756",
+            "client": 66,
+            "scroll": 68
+          },
+          {
+            "texte": "0xecbb…d16f",
+            "client": 66,
+            "scroll": 85
+          },
+          {
+            "texte": "49134755",
+            "client": 66,
+            "scroll": 68
+          },
+          {
+            "texte": "0x40d5…134e",
+            "client": 66,
+            "scroll": 91
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody",
+            "axe": "y",
+            "scrollH": 733,
+            "clientH": 258,
+            "scrollW": 440,
+            "clientW": 440
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-wo",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 496,
+            "clientW": 400
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1440,
+            "h": 900,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1212,
+            "h": 132,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 15,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 19,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 256,
+            "h": 132,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1212,
+            "h": 409,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 928,
+            "h": 409,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 583,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 279,
+            "h": 538,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 270,
+            "h": 409,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1212,
+            "h": 304,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 442,
+            "h": 304,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 259,
+            "h": 671,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 117,
+            "h": 520,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 500,
+            "h": 304,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 270,
+            "h": 304,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1280x800": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1280,
+        "clientWidthDoc": 1280,
+        "textesVerticalises": [
+          {
+            "texte": "Types distincts",
+            "l": 25,
+            "h": 144,
+            "ratio": 5.84
+          },
+          {
+            "texte": "Premier mouvement enregistré",
+            "l": 25,
+            "h": 264,
+            "ratio": 10.7
+          },
+          {
+            "texte": "Dernier mouvement enregistré",
+            "l": 25,
+            "h": 264,
+            "ratio": 10.71
+          },
+          {
+            "texte": "Électricité payée · total",
+            "l": 25,
+            "h": 216,
+            "ratio": 8.76
+          },
+          {
+            "texte": "Dépôt · total",
+            "l": 25,
+            "h": 120,
+            "ratio": 4.86
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          }
+        ],
+        "textesEtroits": [
+          {
+            "texte": "Types distincts",
+            "l": 25
+          },
+          {
+            "texte": "Premier mouvement enregistré",
+            "l": 25
+          },
+          {
+            "texte": "Jul 26, 2026, 6:23 PM",
+            "l": 25
+          },
+          {
+            "texte": "Dernier mouvement enregistré",
+            "l": 25
+          },
+          {
+            "texte": "il y a 7 j",
+            "l": 25
+          },
+          {
+            "texte": "Électricité payée · total",
+            "l": 25
+          },
+          {
+            "texte": "$60,000",
+            "l": 25
+          },
+          {
+            "texte": "Dépôt · total",
+            "l": 25
+          },
+          {
+            "texte": "$10,100",
+            "l": 25
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          },
+          {
+            "texte": "Jul 27, 2026, 9:45 PM",
+            "client": 112,
+            "scroll": 169
+          },
+          {
+            "texte": "Aucune signalée",
+            "client": 112,
+            "scroll": 115
+          },
+          {
+            "texte": "Jul 26, 2026, 6:23 PM",
+            "client": 25,
+            "scroll": 169
+          },
+          {
+            "texte": "il y a 7 j",
+            "client": 25,
+            "scroll": 55
+          },
+          {
+            "texte": "$60,000",
+            "client": 25,
+            "scroll": 66
+          },
+          {
+            "texte": "$10,100",
+            "client": 25,
+            "scroll": 66
+          },
+          {
+            "texte": "Investisseur",
+            "client": 80,
+            "scroll": 89
+          },
+          {
+            "texte": "Transaction",
+            "client": 80,
+            "scroll": 88
+          },
+          {
+            "texte": "0xcf2e…da78",
+            "client": 80,
+            "scroll": 86
+          },
+          {
+            "texte": "0x84e8…9c45",
+            "client": 80,
+            "scroll": 94
+          },
+          {
+            "texte": "0xc50c…3022",
+            "client": 80,
+            "scroll": 93
+          },
+          {
+            "texte": "0x8d8a…de79",
+            "client": 80,
+            "scroll": 92
+          },
+          {
+            "texte": "0x8022…8149",
+            "client": 80,
+            "scroll": 93
+          },
+          {
+            "texte": "0x2eb5…f66d",
+            "client": 80,
+            "scroll": 90
+          },
+          {
+            "texte": "0x26d5…393b",
+            "client": 80,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 80,
+            "scroll": 89
+          },
+          {
+            "texte": "0x7e70…f285",
+            "client": 80,
+            "scroll": 88
+          },
+          {
+            "texte": "0x2d2d…54a9",
+            "client": 80,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 80,
+            "scroll": 89
+          },
+          {
+            "texte": "0x6b99…ea40",
+            "client": 80,
+            "scroll": 94
+          },
+          {
+            "texte": "0xc962…2c04",
+            "client": 80,
+            "scroll": 94
+          },
+          {
+            "texte": "0xecbb…d16f",
+            "client": 80,
+            "scroll": 85
+          },
+          {
+            "texte": "0x40d5…134e",
+            "client": 80,
+            "scroll": 91
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 156,
+            "clientH": 132,
+            "scrollW": 1052,
+            "clientW": 1052
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody",
+            "axe": "y",
+            "scrollH": 629,
+            "clientH": 122,
+            "scrollW": 524,
+            "clientW": 524
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-wo",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 566,
+            "clientW": 484
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1280,
+            "h": 800,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1052,
+            "h": 132,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 351,
+            "h": 82,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 351,
+            "h": 82,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 351,
+            "h": 82,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1052,
+            "h": 309,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 788,
+            "h": 309,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 489,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 233,
+            "h": 598,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 250,
+            "h": 309,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1052,
+            "h": 304,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 526,
+            "h": 168,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 315,
+            "h": 567,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 145,
+            "h": 472,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 1052,
+            "h": 136,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 526,
+            "h": 168,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1024x768": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1024,
+        "clientWidthDoc": 1024,
+        "textesVerticalises": [
+          {
+            "texte": "Dernier rééquilibrage",
+            "l": 27,
+            "h": 144,
+            "ratio": 5.4
+          },
+          {
+            "texte": "Temps écoulé",
+            "l": 27,
+            "h": 120,
+            "ratio": 4.5
+          },
+          {
+            "texte": "Demande en attente",
+            "l": 27,
+            "h": 168,
+            "ratio": 6.3
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          }
+        ],
+        "textesEtroits": [
+          {
+            "texte": "Dernier rééquilibrage",
+            "l": 27
+          },
+          {
+            "texte": "Jul 27, 2026, 9:45 PM",
+            "l": 27
+          },
+          {
+            "texte": "Temps écoulé",
+            "l": 27
+          },
+          {
+            "texte": "il y a 7 j",
+            "l": 27
+          },
+          {
+            "texte": "Demande en attente",
+            "l": 27
+          },
+          {
+            "texte": "Aucune signalée",
+            "l": 27
+          },
+          {
+            "texte": "L’électricité a été payée",
+            "l": 34
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          },
+          {
+            "texte": "Jul 27, 2026, 9:45 PM",
+            "client": 27,
+            "scroll": 169
+          },
+          {
+            "texte": "il y a 7 j",
+            "client": 27,
+            "scroll": 55
+          },
+          {
+            "texte": "Aucune signalée",
+            "client": 27,
+            "scroll": 115
+          },
+          {
+            "texte": "0x66dF…FaBa",
+            "client": 99,
+            "scroll": 101
+          },
+          {
+            "texte": "L’électricité a été payée",
+            "client": 34,
+            "scroll": 67
+          },
+          {
+            "texte": "Quels types composent le journal ?",
+            "client": 55,
+            "scroll": 82
+          },
+          {
+            "texte": "mouvements, par type",
+            "client": 55,
+            "scroll": 70
+          },
+          {
+            "texte": "Montant",
+            "client": 58,
+            "scroll": 69
+          },
+          {
+            "texte": "Investisseur",
+            "client": 58,
+            "scroll": 89
+          },
+          {
+            "texte": "Transaction",
+            "client": 58,
+            "scroll": 88
+          },
+          {
+            "texte": "49146828",
+            "client": 58,
+            "scroll": 70
+          },
+          {
+            "texte": "0xcf2e…da78",
+            "client": 58,
+            "scroll": 86
+          },
+          {
+            "texte": "49143867",
+            "client": 58,
+            "scroll": 69
+          },
+          {
+            "texte": "0x84e8…9c45",
+            "client": 58,
+            "scroll": 94
+          },
+          {
+            "texte": "49143866",
+            "client": 58,
+            "scroll": 71
+          },
+          {
+            "texte": "0xc50c…3022",
+            "client": 58,
+            "scroll": 93
+          },
+          {
+            "texte": "49143739",
+            "client": 58,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8d8a…de79",
+            "client": 58,
+            "scroll": 92
+          },
+          {
+            "texte": "49143734",
+            "client": 58,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8022…8149",
+            "client": 58,
+            "scroll": 93
+          },
+          {
+            "texte": "49143733",
+            "client": 58,
+            "scroll": 69
+          },
+          {
+            "texte": "0x2eb5…f66d",
+            "client": 58,
+            "scroll": 90
+          },
+          {
+            "texte": "49143728",
+            "client": 58,
+            "scroll": 69
+          },
+          {
+            "texte": "0x26d5…393b",
+            "client": 58,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 58,
+            "scroll": 89
+          },
+          {
+            "texte": "49143163",
+            "client": 58,
+            "scroll": 67
+          },
+          {
+            "texte": "0x7e70…f285",
+            "client": 58,
+            "scroll": 88
+          },
+          {
+            "texte": "49142963",
+            "client": 58,
+            "scroll": 70
+          },
+          {
+            "texte": "0x2d2d…54a9",
+            "client": 58,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 58,
+            "scroll": 89
+          },
+          {
+            "texte": "49134767",
+            "client": 58,
+            "scroll": 67
+          },
+          {
+            "texte": "0x6b99…ea40",
+            "client": 58,
+            "scroll": 94
+          },
+          {
+            "texte": "49134757",
+            "client": 58,
+            "scroll": 67
+          },
+          {
+            "texte": "0xc962…2c04",
+            "client": 58,
+            "scroll": 94
+          },
+          {
+            "texte": "49134756",
+            "client": 58,
+            "scroll": 68
+          },
+          {
+            "texte": "0xecbb…d16f",
+            "client": 58,
+            "scroll": 85
+          },
+          {
+            "texte": "49134755",
+            "client": 58,
+            "scroll": 68
+          },
+          {
+            "texte": "0x40d5…134e",
+            "client": 58,
+            "scroll": 91
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 156,
+            "clientH": 132,
+            "scrollW": 796,
+            "clientW": 796
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody",
+            "axe": "y",
+            "scrollH": 977,
+            "clientH": 122,
+            "scrollW": 396,
+            "clientW": 396
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-wo",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 459,
+            "clientW": 356
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1024,
+            "h": 768,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 796,
+            "h": 132,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 265,
+            "h": 82,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 265,
+            "h": 82,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 265,
+            "h": 82,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 796,
+            "h": 277,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 532,
+            "h": 277,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 319,
+            "h": 163,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 147,
+            "h": 850,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 250,
+            "h": 277,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 796,
+            "h": 304,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 398,
+            "h": 168,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 229,
+            "h": 915,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 103,
+            "h": 544,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 796,
+            "h": 136,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 398,
+            "h": 168,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "768x1024": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 768,
+        "clientWidthDoc": 768,
+        "textesVerticalises": [
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 60,
+            "ratio": 15.55
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          }
+        ],
+        "textesEtroits": [
+          {
+            "texte": "L’électricité a été payée",
+            "l": 32
+          },
+          {
+            "texte": "Type",
+            "l": 38
+          },
+          {
+            "texte": "Montant",
+            "l": 38
+          },
+          {
+            "texte": "Investisseur",
+            "l": 38
+          },
+          {
+            "texte": "Bloc",
+            "l": 38
+          },
+          {
+            "texte": "Transaction",
+            "l": 38
+          },
+          {
+            "texte": "Date",
+            "l": 38
+          },
+          {
+            "texte": "49146828",
+            "l": 38
+          },
+          {
+            "texte": "0xcf2e…da78",
+            "l": 38
+          },
+          {
+            "texte": "49143867",
+            "l": 38
+          },
+          {
+            "texte": "0x84e8…9c45",
+            "l": 38
+          },
+          {
+            "texte": "49143866",
+            "l": 38
+          },
+          {
+            "texte": "0xc50c…3022",
+            "l": 38
+          },
+          {
+            "texte": "49143739",
+            "l": 38
+          },
+          {
+            "texte": "0x8d8a…de79",
+            "l": 38
+          },
+          {
+            "texte": "49143734",
+            "l": 38
+          },
+          {
+            "texte": "0x8022…8149",
+            "l": 38
+          },
+          {
+            "texte": "49143733",
+            "l": 38
+          },
+          {
+            "texte": "0x2eb5…f66d",
+            "l": 38
+          },
+          {
+            "texte": "49143728",
+            "l": 38
+          },
+          {
+            "texte": "0x26d5…393b",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "0xf39F…2266",
+            "l": 38
+          },
+          {
+            "texte": "49143163",
+            "l": 38
+          },
+          {
+            "texte": "0x7e70…f285",
+            "l": 38
+          },
+          {
+            "texte": "49142963",
+            "l": 38
+          },
+          {
+            "texte": "0x2d2d…54a9",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          },
+          {
+            "texte": "0xf39F…2266",
+            "l": 38
+          },
+          {
+            "texte": "49134767",
+            "l": 38
+          },
+          {
+            "texte": "0x6b99…ea40",
+            "l": 38
+          },
+          {
+            "texte": "49134757",
+            "l": 38
+          },
+          {
+            "texte": "0xc962…2c04",
+            "l": 38
+          },
+          {
+            "texte": "49134756",
+            "l": 38
+          },
+          {
+            "texte": "0xecbb…d16f",
+            "l": 38
+          },
+          {
+            "texte": "49134755",
+            "l": 38
+          },
+          {
+            "texte": "0x40d5…134e",
+            "l": 38
+          }
+        ],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          },
+          {
+            "texte": "Jul 27, 2026, 9:45 PM",
+            "client": 45,
+            "scroll": 169
+          },
+          {
+            "texte": "il y a 7 j",
+            "client": 45,
+            "scroll": 55
+          },
+          {
+            "texte": "Aucune signalée",
+            "client": 45,
+            "scroll": 115
+          },
+          {
+            "texte": "Jul 26, 2026, 6:23 PM",
+            "client": 77,
+            "scroll": 169
+          },
+          {
+            "texte": "L’électricité a été payée",
+            "client": 32,
+            "scroll": 67
+          },
+          {
+            "texte": "Montant",
+            "client": 37,
+            "scroll": 69
+          },
+          {
+            "texte": "Investisseur",
+            "client": 37,
+            "scroll": 89
+          },
+          {
+            "texte": "Bloc",
+            "client": 37,
+            "scroll": 44
+          },
+          {
+            "texte": "Transaction",
+            "client": 37,
+            "scroll": 88
+          },
+          {
+            "texte": "Date",
+            "client": 38,
+            "scroll": 45
+          },
+          {
+            "texte": "49146828",
+            "client": 37,
+            "scroll": 70
+          },
+          {
+            "texte": "0xcf2e…da78",
+            "client": 37,
+            "scroll": 86
+          },
+          {
+            "texte": "49143867",
+            "client": 37,
+            "scroll": 69
+          },
+          {
+            "texte": "0x84e8…9c45",
+            "client": 37,
+            "scroll": 94
+          },
+          {
+            "texte": "49143866",
+            "client": 37,
+            "scroll": 71
+          },
+          {
+            "texte": "0xc50c…3022",
+            "client": 37,
+            "scroll": 93
+          },
+          {
+            "texte": "49143739",
+            "client": 37,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8d8a…de79",
+            "client": 37,
+            "scroll": 92
+          },
+          {
+            "texte": "49143734",
+            "client": 37,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8022…8149",
+            "client": 37,
+            "scroll": 93
+          },
+          {
+            "texte": "49143733",
+            "client": 37,
+            "scroll": 69
+          },
+          {
+            "texte": "0x2eb5…f66d",
+            "client": 37,
+            "scroll": 90
+          },
+          {
+            "texte": "49143728",
+            "client": 37,
+            "scroll": 69
+          },
+          {
+            "texte": "0x26d5…393b",
+            "client": 37,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 37,
+            "scroll": 89
+          },
+          {
+            "texte": "49143163",
+            "client": 37,
+            "scroll": 67
+          },
+          {
+            "texte": "0x7e70…f285",
+            "client": 37,
+            "scroll": 88
+          },
+          {
+            "texte": "49142963",
+            "client": 37,
+            "scroll": 70
+          },
+          {
+            "texte": "0x2d2d…54a9",
+            "client": 37,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 37,
+            "scroll": 89
+          },
+          {
+            "texte": "49134767",
+            "client": 37,
+            "scroll": 67
+          },
+          {
+            "texte": "0x6b99…ea40",
+            "client": 37,
+            "scroll": 94
+          },
+          {
+            "texte": "49134757",
+            "client": 37,
+            "scroll": 67
+          },
+          {
+            "texte": "0xc962…2c04",
+            "client": 37,
+            "scroll": 94
+          },
+          {
+            "texte": "49134756",
+            "client": 37,
+            "scroll": 68
+          },
+          {
+            "texte": "0xecbb…d16f",
+            "client": 37,
+            "scroll": 85
+          },
+          {
+            "texte": "49134755",
+            "client": 37,
+            "scroll": 68
+          },
+          {
+            "texte": "0x40d5…134e",
+            "client": 37,
+            "scroll": 91
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__workspace",
+            "axe": "y",
+            "scrollH": 1849,
+            "clientH": 1024,
+            "scrollW": 568,
+            "clientW": 568
+          },
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 156,
+            "clientH": 132,
+            "scrollW": 540,
+            "clientW": 540
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody",
+            "axe": "y",
+            "scrollH": 1433,
+            "clientH": 122,
+            "scrollW": 268,
+            "clientW": 268
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-wo",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 352,
+            "clientW": 228
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 768,
+            "h": 1024,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 540,
+            "h": 132,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 180,
+            "h": 82,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 180,
+            "h": 82,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 180,
+            "h": 82,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 540,
+            "h": 533,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 276,
+            "h": 533,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 234,
+            "h": 187,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 234,
+            "h": 578,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 250,
+            "h": 533,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 540,
+            "h": 304,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 168,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 228,
+            "h": 915,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 228,
+            "h": 432,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 540,
+            "h": 136,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 270,
+            "h": 168,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "375x812": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 375,
+        "clientWidthDoc": 375,
+        "textesVerticalises": [
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 40,
+            "ratio": 10.36
+          }
+        ],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [
+          {
+            "texte": "Montant",
+            "client": 51,
+            "scroll": 69
+          },
+          {
+            "texte": "Investisseur",
+            "client": 51,
+            "scroll": 89
+          },
+          {
+            "texte": "Transaction",
+            "client": 51,
+            "scroll": 88
+          },
+          {
+            "texte": "49146828",
+            "client": 51,
+            "scroll": 70
+          },
+          {
+            "texte": "0xcf2e…da78",
+            "client": 51,
+            "scroll": 86
+          },
+          {
+            "texte": "49143867",
+            "client": 51,
+            "scroll": 69
+          },
+          {
+            "texte": "0x84e8…9c45",
+            "client": 51,
+            "scroll": 94
+          },
+          {
+            "texte": "49143866",
+            "client": 51,
+            "scroll": 71
+          },
+          {
+            "texte": "0xc50c…3022",
+            "client": 51,
+            "scroll": 93
+          },
+          {
+            "texte": "49143739",
+            "client": 51,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8d8a…de79",
+            "client": 51,
+            "scroll": 92
+          },
+          {
+            "texte": "49143734",
+            "client": 51,
+            "scroll": 69
+          },
+          {
+            "texte": "0x8022…8149",
+            "client": 51,
+            "scroll": 93
+          },
+          {
+            "texte": "49143733",
+            "client": 51,
+            "scroll": 69
+          },
+          {
+            "texte": "0x2eb5…f66d",
+            "client": 51,
+            "scroll": 90
+          },
+          {
+            "texte": "49143728",
+            "client": 51,
+            "scroll": 69
+          },
+          {
+            "texte": "0x26d5…393b",
+            "client": 51,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 51,
+            "scroll": 89
+          },
+          {
+            "texte": "49143163",
+            "client": 51,
+            "scroll": 67
+          },
+          {
+            "texte": "0x7e70…f285",
+            "client": 51,
+            "scroll": 88
+          },
+          {
+            "texte": "49142963",
+            "client": 51,
+            "scroll": 70
+          },
+          {
+            "texte": "0x2d2d…54a9",
+            "client": 51,
+            "scroll": 93
+          },
+          {
+            "texte": "0xf39F…2266",
+            "client": 51,
+            "scroll": 89
+          },
+          {
+            "texte": "49134767",
+            "client": 51,
+            "scroll": 67
+          },
+          {
+            "texte": "0x6b99…ea40",
+            "client": 51,
+            "scroll": 94
+          },
+          {
+            "texte": "49134757",
+            "client": 51,
+            "scroll": 67
+          },
+          {
+            "texte": "0xc962…2c04",
+            "client": 51,
+            "scroll": 94
+          },
+          {
+            "texte": "49134756",
+            "client": 51,
+            "scroll": 68
+          },
+          {
+            "texte": "0xecbb…d16f",
+            "client": 51,
+            "scroll": 85
+          },
+          {
+            "texte": "49134755",
+            "client": 51,
+            "scroll": 68
+          },
+          {
+            "texte": "0x40d5…134e",
+            "client": 51,
+            "scroll": 91
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__workspace",
+            "axe": "y",
+            "scrollH": 1193,
+            "clientH": 577,
+            "scrollW": 375,
+            "clientW": 375
+          },
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 424,
+            "clientH": 269,
+            "scrollW": 355,
+            "clientW": 355
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody",
+            "axe": "y",
+            "scrollH": 1185,
+            "clientH": 33,
+            "scrollW": 353,
+            "clientW": 353
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-",
+            "axe": "x",
+            "scrollH": 120,
+            "clientH": 120,
+            "scrollW": 658,
+            "clientW": 375
+          },
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-wo",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 423,
+            "clientW": 313
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 375,
+            "h": 812,
+            "texte": 4382,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 355,
+            "h": 269,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 15,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 19,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 355,
+            "h": 106,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 313,
+            "h": 163,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 313,
+            "h": 510,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 355,
+            "h": 269,
+            "texte": 2876,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 313,
+            "h": 691,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 313,
+            "h": 408,
+            "texte": 382,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 355,
+            "h": 111,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "zoom200": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 720,
+        "clientWidthDoc": 720,
+        "textesVerticalises": [
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          },
+          {
+            "texte": "·",
+            "l": 4,
+            "h": 20,
+            "ratio": 5.18
+          }
+        ],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__workspace",
+            "axe": "y",
+            "scrollH": 716,
+            "clientH": 239,
+            "scrollW": 720,
+            "clientW": 720
+          },
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 424,
+            "clientH": 100,
+            "scrollW": 700,
+            "clientW": 700
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody",
+            "axe": "y",
+            "scrollH": 877,
+            "clientH": 12,
+            "scrollW": 698,
+            "clientW": 698
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-wo",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 711,
+            "clientW": 658
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 720,
+            "h": 450,
+            "texte": 4382,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 700,
+            "h": 100,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 15,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 19,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 700,
+            "h": 106,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 658,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 658,
+            "h": 450,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 700,
+            "h": 100,
+            "texte": 2876,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 658,
+            "h": 383,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 658,
+            "h": 408,
+            "texte": 382,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      }
+    },
+    "dashboard": {
+      "1440x900": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1440,
+        "clientWidthDoc": 1440,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "y",
+            "scrollH": 822,
+            "clientH": 359,
+            "scrollW": 926,
+            "clientW": 926
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 266,
+            "clientH": 258,
+            "scrollW": 720,
+            "clientW": 440
+          }
+        ],
+        "scrollablesHorizontaux": [],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1440,
+            "h": 900,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1212,
+            "h": 132,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 6,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 8,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 11,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 18,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 188,
+            "h": 132,
+            "texte": 21,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 256,
+            "h": 132,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1212,
+            "h": 409,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 928,
+            "h": 409,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 136,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 136,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 136,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1212,
+            "h": 304,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 442,
+            "h": 304,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 500,
+            "h": 304,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 151,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 270,
+            "h": 304,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1280x800": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1280,
+        "clientWidthDoc": 1280,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 148,
+            "clientH": 132,
+            "scrollW": 1052,
+            "clientW": 1052
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 822,
+            "clientH": 259,
+            "scrollW": 800,
+            "clientW": 786
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 266,
+            "clientH": 122,
+            "scrollW": 720,
+            "clientW": 524
+          }
+        ],
+        "scrollablesHorizontaux": [],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1280,
+            "h": 800,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1052,
+            "h": 132,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1052,
+            "h": 309,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 788,
+            "h": 309,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 155,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 155,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 155,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1052,
+            "h": 304,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 526,
+            "h": 168,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 1052,
+            "h": 136,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 526,
+            "h": 168,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1024x768": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1024,
+        "clientWidthDoc": 1024,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 148,
+            "clientH": 132,
+            "scrollW": 796,
+            "clientW": 796
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 822,
+            "clientH": 227,
+            "scrollW": 800,
+            "clientW": 530
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 266,
+            "clientH": 122,
+            "scrollW": 720,
+            "clientW": 396
+          }
+        ],
+        "scrollablesHorizontaux": [],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1024,
+            "h": 768,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 796,
+            "h": 132,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 796,
+            "h": 277,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 532,
+            "h": 277,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 139,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 139,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 139,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 796,
+            "h": 304,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 398,
+            "h": 168,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 796,
+            "h": 136,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 398,
+            "h": 168,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "768x1024": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 768,
+        "clientWidthDoc": 768,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [
+          {
+            "texte": "Couverture des données",
+            "client": 119,
+            "scroll": 155
+          }
+        ],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 148,
+            "clientH": 132,
+            "scrollW": 540,
+            "clientW": 540
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 822,
+            "clientH": 483,
+            "scrollW": 800,
+            "clientW": 274
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 266,
+            "clientH": 122,
+            "scrollW": 720,
+            "clientW": 268
+          }
+        ],
+        "scrollablesHorizontaux": [],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 768,
+            "h": 1024,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 540,
+            "h": 132,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 540,
+            "h": 533,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 276,
+            "h": 533,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 267,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 267,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 267,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 540,
+            "h": 304,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 168,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 540,
+            "h": 136,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 270,
+            "h": 168,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "375x812": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 375,
+        "clientWidthDoc": 375,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 424,
+            "clientH": 269,
+            "scrollW": 355,
+            "clientW": 355
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 822,
+            "clientH": 16,
+            "scrollW": 800,
+            "clientW": 353
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 266,
+            "clientH": 33,
+            "scrollW": 720,
+            "clientW": 353
+          }
+        ],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-",
+            "axe": "x",
+            "scrollH": 120,
+            "clientH": 120,
+            "scrollW": 658,
+            "clientW": 375
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 375,
+            "h": 812,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 355,
+            "h": 269,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 6,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 8,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 11,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 18,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 21,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 355,
+            "h": 106,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 355,
+            "h": 269,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 355,
+            "h": 111,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "zoom200": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 720,
+        "clientWidthDoc": 720,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [
+          {
+            "tag": "section",
+            "classe": "console-module__VWdHHW__metricsRow",
+            "axe": "y",
+            "scrollH": 424,
+            "clientH": 100,
+            "scrollW": 700,
+            "clientW": 700
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 822,
+            "clientH": 16,
+            "scrollW": 800,
+            "clientW": 698
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "xy",
+            "scrollH": 266,
+            "clientH": 12,
+            "scrollW": 720,
+            "clientW": 698
+          }
+        ],
+        "scrollablesHorizontaux": [],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 720,
+            "h": 450,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 700,
+            "h": 100,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 6,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 8,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 11,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 18,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 21,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 700,
+            "h": 106,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 700,
+            "h": 100,
+            "texte": 537,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      }
+    }
+  }
+}

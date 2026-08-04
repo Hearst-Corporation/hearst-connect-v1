@@ -44,7 +44,15 @@ export function CardHeader({
 }: Readonly<{ title: string; hint?: string; action?: React.ReactNode }>) {
   return (
     <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-3 sm:px-6">
-      <div className="min-w-0">
+      {/*
+        `wrap-break-word` : ce bloc titre sert aussi dans une colonne étroite
+        (le `ChartFrame` de « Quels types composent le journal ? » occupe un
+        tiers de la rangée, soit ~55 px utiles à 1024 px). `min-w-0` seul
+        autorise la compression mais pas le retour à la ligne d'un mot plus
+        large que sa boîte : le titre débordait alors de sa carte. Mesuré :
+        82 px de contenu pour 55 px disponibles.
+      */}
+      <div className="min-w-0 wrap-break-word">
         <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
         {hint ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{hint}</p> : null}
       </div>

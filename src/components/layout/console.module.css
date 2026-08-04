@@ -99,7 +99,15 @@
    * se voyait à la capture. 200 px suffit à « Administration », le libellé le
    * plus long, sans troncature.
    */
-  --gcc-rail-w: 200px;
+  /*
+   * 240 px et non 200 (HC-VISUAL-LAYOUT-RECOVERY-001). Mesuré : « Couverture
+   * des données » demande 155 px, et à 200 px de rail il n'en restait que 119
+   * une fois retirés l'icône, les gouttières et le padding — le libellé était
+   * coupé par le `truncate` de Catalyst. Élargir le rail est la correction
+   * juste : le kit vendoré n'est pas modifié, et abréger le libellé aurait
+   * changé ce que la navigation dit.
+   */
+  --gcc-rail-w: 240px;
 
   /*
    * ── UN SEUL ACCENT ────────────────────────────────────────────────────────
@@ -139,10 +147,23 @@
   --gcc-aside-w: 290px;
   --gcc-info-w: 560px;
 
-  width: 100vw;
-  height: 100dvh;
+  /*
+   * ── Hauteur : plancher, pas plafond (HC-VISUAL-LAYOUT-RECOVERY-001) ───────
+   *
+   * `height: 100dvh` + `overflow: hidden` faisait de la console un cockpit
+   * non défilant : tout contenu plus haut que l'écran était COUPÉ, pas rendu
+   * atteignable. Mesuré sur /admin/dashboard à 1440×900 : le tableau « Surface
+   * par surface » demandait 822 px dans un panneau de 359 — 463 px de contenu
+   * invisibles, et un défilement imbriqué pour les retrouver.
+   *
+   * `min-height` seul garde le cockpit identique quand le contenu tient
+   * (l'écran est rempli, rien ne défile), et laisse la page grandir sinon.
+   * Le défilement redevient celui du document : un seul, à l'endroit où on
+   * l'attend.
+   */
+  width: 100%;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
   background: var(--gcc-bg);
   color: var(--gcc-text);
   /*
@@ -181,13 +202,14 @@
   grid-template-columns: var(--gcc-rail-w) minmax(0, 1fr);
   align-items: stretch;
   width: 100%;
-  height: 100%;
-  min-height: 100%;
+  /* Plancher, pas plafond : cf. `.viewport`. Une hauteur figée ici couperait
+     le contenu que `.viewport` accepte désormais de laisser grandir. */
+  min-height: 100dvh;
   min-width: 0;
   background: var(--gcc-shell);
   border: 0;
   border-radius: 0;
-  overflow: hidden;
+  overflow-x: hidden;
   box-shadow: none;
 }
 
@@ -247,7 +269,17 @@
 .heroBody {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  /*
+   * `flex: 1 1 auto` faisait absorber au corps toute la hauteur du panneau,
+   * même quand son contenu ne la demandait pas : mesuré sur /admin/operations
+   * à 1440×900, un panneau de 835 px pour une carte de ~180 px, soit plus de
+   * 600 px de noir sous le texte. Un vide imposé se lit comme un chargement
+   * raté.
+   *
+   * `flex: 0 1 auto` : le corps prend la hauteur de son contenu et peut se
+   * réduire, sans jamais s'étirer pour remplir.
+   */
+  flex: 0 1 auto;
   min-height: 0;
   padding: 0 20px 16px;
   min-width: 0;
@@ -288,7 +320,17 @@
 /* Valeur lue : `Strong` du kit, en chiffres tabulaires. */
 .cellStrong {
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  /*
+   * `white-space: nowrap` retiré (HC-VISUAL-LAYOUT-RECOVERY-001).
+   *
+   * Il servait à ne pas couper un montant en deux — intention juste, portée
+   * trop large : `.cellStrong` porte aussi des libellés de phrase, et
+   * « L'électricité a été payée » (67 px) débordait alors d'une cellule de
+   * 63 px au lieu de passer à la ligne. Les nombres, eux, ne contiennent pas
+   * d'espace : le navigateur ne les coupe pas, `tabular-nums` suffit à les
+   * garder alignés.
+   */
+  overflow-wrap: break-word;
 }
 
 .signalValue {
@@ -572,22 +614,48 @@
    * étirait une table de trois lignes sur 691px de noir. `auto` supprime les
    * deux défauts d'un coup : chaque rangée prend ce que son contenu demande.
    */
-  height: 100%;
+  /*
+   * ── Rangées : minimum garanti, pas hauteur imposée ────────────────────────
+   *
+   * `grid-template-rows` figeait la première rangée à 132 px et la dernière à
+   * 304 px, la rangée centrale prenant le reste. Combiné à `height: 100%`,
+   * cela contraignait tout le contenu à la hauteur de l'écran — et ce qui
+   * dépassait était masqué par les `overflow: hidden` en aval.
+   *
+   * `minmax(var(--gcc-…), auto)` conserve exactement la même composition
+   * quand le contenu tient : les rangées gardent leur mesure de référence.
+   * Quand il ne tient pas, la rangée grandit au lieu de couper.
+   *
+   * UI-01 (défilement du workspace) reste satisfait, mais par le DOCUMENT :
+   * `.viewport` a désormais une `min-height` et non une `height`, donc la page
+   * défile d'un seul bloc. Un défilement de panneau DANS une page qui défile
+   * déjà cache son contenu à qui ne le devine pas.
+   */
   min-height: 0;
-  grid-template-rows: var(--gcc-metrics-h) minmax(0, 1fr) var(--gcc-bottom-h);
-  align-content: stretch;
+  /*
+   * `auto` sec, sans plancher. Les `minmax(--gcc-metrics-h, auto)` et
+   * `minmax(--gcc-bottom-h, auto)` d'une première tentative gardaient les
+   * mesures de référence comme MINIMUM : sur une page dont le contenu est
+   * court — /admin/operations quand le contrat n'expose pas son état de
+   * rééquilibrage — cela creusait 300 px de noir sous les panneaux. Un vide
+   * imposé se lit comme un chargement raté, exactement ce qu'on corrige.
+   *
+   * Les hauteurs de référence restent déclarées (`--gcc-metrics-h`,
+   * `--gcc-bottom-h`) : elles servent aux cartes elles-mêmes, pas à la grille.
+   */
+  grid-template-rows: auto auto auto;
+  align-content: start;
   gap: var(--gcc-gap);
   background: var(--gcc-workspace);
-  /*
-   * UI-01 : le workspace DÉFILE verticalement quand son contenu dépasse la
-   * hauteur du viewport (écran bas, zoom navigateur), au lieu d'être coupé par
-   * `overflow: hidden`. Sur un écran haut, les trois rangées remplissent
-   * exactement l'espace et rien ne défile — le cockpit reste identique. La
-   * coupe horizontale est conservée (les tables larges gèrent leur propre
-   * défilement, cf. WideTableScroll).
-   */
   overflow-x: hidden;
-  overflow-y: auto;
+  /*
+   * Conteneur de référence pour les rangées qui décident de leur nombre de
+   * colonnes : `.mainRow`, `.metricsRow`, `.bottomRow` mesurent la place que
+   * le workspace leur donne, et non la largeur de l'écran. C'est ce qui permet
+   * à la colonne latérale de passer sous le contenu principal au bon moment,
+   * indépendamment de la présence ou non du rail de navigation.
+   */
+  container-type: inline-size;
 }
 
 /* The one panel material every surface shares. */
@@ -611,9 +679,21 @@
    * lignes. Verrouillée à 132px, elle coupait 22px de la légende du seuil.
    */
   min-height: 0;
-  height: 100%;
+  /* `height: 100%` contredisait le commentaire ci-dessus : il verrouillait la
+     bande sur la rangée au lieu de la laisser suivre son contenu. Retiré. */
   min-width: 0;
-  align-items: stretch;
+  /*
+   * `stretch` alignait les six cartes sur la plus haute. Sur un écran large,
+   * les six ont un contenu comparable et l'effet est celui qu'on veut. Sous
+   * 1280 px la bande passe à trois colonnes, la carte de décision se retrouve
+   * à côté de deux cartes brèves, et celles-ci s'étiraient à sa hauteur :
+   * mesuré à 768 px, 167×268 px pour 15 caractères — un rectangle presque
+   * vide qui se lit comme un chargement raté.
+   *
+   * `start` laisse chaque carte finir où finit son contenu. Les cartes d'une
+   * même ligne restent alignées par le haut, ce qui est ce que l'œil suit.
+   */
+  align-items: start;
   overflow-x: hidden;
 }
 
@@ -629,9 +709,17 @@
 .metricCard h2 {
   margin: 0 0 10px;
   font-size: 12px;
-  line-height: 1;
+  /* `line-height: 1` supposait une seule ligne ; 1.25 laisse deux lignes
+     respirer sans changer la hauteur du cas courant. */
+  line-height: 1.25;
   font-weight: 700;
-  white-space: nowrap;
+  /*
+   * `white-space: nowrap` retiré : « Source de rééquilibrage » demande 133 px
+   * et la carte n'en offre que 121 à 768 px — le titre était coupé. Le laisser
+   * passer à la ligne dit la même chose sans rien perdre ; l'abréger aurait
+   * changé le libellé.
+   */
+  overflow-wrap: break-word;
   color: var(--gcc-text);
 }
 
@@ -833,11 +921,26 @@
  */
 .mainRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--gcc-aside-w);
+  /*
+   * La colonne latérale passe SOUS le contenu principal quand elle devient
+   * trop étroite pour son propre contenu. Le seuil de 62rem est celui à partir
+   * duquel `minmax(0,1fr) + 290px` laisse au panneau principal une largeur
+   * exploitable ; en dessous, deux colonnes serrées valent moins qu'une seule
+   * lisible. C'est la largeur du CONTENEUR qui décide, pas celle de l'écran.
+   */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--gcc-gap);
-  align-items: stretch;
+  align-items: start;
   min-height: 0;
-  overflow: hidden;
+  /* Plus d'`overflow: hidden` : il coupait le contenu au lieu de le laisser
+     participer au défilement de la page. */
+  overflow-x: hidden;
+}
+
+@container (min-width: 62rem) {
+  .mainRow {
+    grid-template-columns: minmax(0, 1fr) var(--gcc-aside-w);
+  }
 }
 
 .heroChart {
@@ -845,7 +948,9 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* Idem : la coupe horizontale reste (les tables larges gèrent leur propre
+     défilement), la coupe verticale est retirée. */
+  overflow-x: hidden;
 }
 
 
@@ -865,9 +970,19 @@
 
 .rightStack {
   display: grid;
-  grid-auto-rows: minmax(0, 1fr);
+  /*
+   * `minmax(0, 1fr)` donnait à chaque carte la même hauteur, quelle que soit
+   * la quantité de texte : mesuré à 768 px, deux cartes de 167×268 px pour
+   * 15 et 19 caractères — des rectangles presque vides que le lecteur prend
+   * pour un chargement raté.
+   *
+   * `auto` laisse chaque carte finir où finit son contenu. `align-content:
+   * start` évite qu'elles se répartissent l'espace restant en s'espaçant.
+   */
+  grid-auto-rows: auto;
+  align-content: start;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .signalCard {
@@ -927,10 +1042,11 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--gcc-info-w) var(--gcc-aside-w);
   gap: 0;
-  height: 100%;
+  /* Hauteur naturelle : `height: 100%` + `overflow: hidden` coupait les
+     panneaux du bas quand leur contenu dépassait la rangée. */
   min-height: 0;
   margin-top: 8px;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .wavePanel {
@@ -1188,7 +1304,9 @@
     grid-template-columns: minmax(0, 1fr) 500px 270px;
   }
   .mainRow {
-    grid-template-columns: minmax(0, 1fr) 270px;
+    /* Mesure seule : le NOMBRE de colonnes est décidé par la container query
+       sur `.workspace` (cf. `@container (min-width: 62rem)`). */
+    --gcc-aside-w: 270px;
   }
   .metricsRow {
     grid-template-columns: repeat(5, minmax(0, 1fr)) 270px;
@@ -1217,7 +1335,7 @@
     margin-left: 0;
   }
   .mainRow {
-    grid-template-columns: minmax(0, 1fr) 250px;
+    --gcc-aside-w: 250px;
     min-height: 0;
   }
   .bottomRow {
@@ -1250,17 +1368,22 @@
    * prévoit avec `StackedLayout` pour ce palier. Les libellés restent : les
    * tronquer reproduirait le défaut qu'on corrige.
    */
+  /*
+   * Même règle qu'au-dessus du palier : plancher, pas plafond. `height: 100dvh`
+   * + `overflow: hidden` enfermait la page dans l'écran et forçait le workspace
+   * à défiler à l'intérieur — deux barres imbriquées sur 375 px, et le contenu
+   * du bas inatteignable sans le deviner. Mesuré avant correction :
+   * workspace clientHeight 577 pour 1277 px de contenu.
+   */
   .viewport {
-    height: 100dvh;
     min-height: 100dvh;
-    overflow: hidden;
+    overflow-x: hidden;
   }
   .shell {
     display: flex;
     flex-direction: column;
-    height: 100%;
     min-height: 100dvh;
-    overflow: hidden;
+    overflow-x: hidden;
   }
 
   .rail {
@@ -1351,10 +1474,18 @@
     bottom: auto;
     width: 100%;
     min-height: 0;
-    grid-template-rows: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    /*
+     * `minmax(0, 1fr)` sur la rangée centrale l'écrasait à la hauteur restante
+     * (mesuré : clientHeight 0 pour 1198 px de contenu). `auto` la laisse
+     * prendre ce que son contenu demande — c'est la page qui défile.
+     */
+    grid-template-rows: auto auto auto;
     padding: 10px;
     gap: 10px;
-    overflow: auto;
+    /* Plus d'`overflow: auto` : le défilement appartient au document, pas au
+       workspace. Deux barres imbriquées sur un écran de 375 px rendaient le
+       contenu du bas inatteignable sans le deviner. */
+    overflow-x: hidden;
   }
   .metricsRow {
     height: auto;
@@ -1372,7 +1503,8 @@
     grid-column: span 2;
   }
   .mainRow {
-    grid-template-columns: 1fr;
+    /* Sous 760 px, une seule colonne quoi qu'il arrive. */
+    grid-template-columns: minmax(0, 1fr);
     min-height: 0;
   }
   .heroChart {

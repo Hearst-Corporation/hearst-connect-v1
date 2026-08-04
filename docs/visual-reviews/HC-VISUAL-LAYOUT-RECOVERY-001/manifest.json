@@ -1,0 +1,287 @@
+{
+  "mission": "HC-VISUAL-LAYOUT-RECOVERY-001",
+  "date": "2026-08-04",
+  "shaAvant": "bbc4c05",
+  "shaApres": "bbc4c055a2d868e4bf9ff9ae1b8ab361724883dd",
+  "branche": "fix/visual-layout-recovery-2026-08-04",
+  "routes": [
+    "/admin/operations",
+    "/admin/dashboard"
+  ],
+  "viewports": [
+    "1440x900",
+    "1280x800",
+    "1024x768",
+    "768x1024",
+    "375x812",
+    "zoom200 (720x450 @2x)"
+  ],
+  "backend": "réel (HEARST_API_URL) — indexeur STALLED, rebalancing UNAVAILABLE ; aucune donnée fabriquée",
+  "auth": "quick-login de développement ; le mot de passe propriétaire n'est jamais saisi dans un navigateur",
+  "erreursConsole": {
+    "avant": 0,
+    "apres": 0
+  },
+  "erreurs5xx": {
+    "avant": 0,
+    "apres": 0
+  },
+  "scrollsVerticauxImbriquesSupprimes": {
+    "avant": 31,
+    "apres": 0,
+    "supprimes": 31
+  },
+  "conteneursScrollablesAutorises": {
+    "verticaux": [],
+    "verticauxNote": "Aucun. Le défilement vertical appartient au document. Un panneau qui défile dans une page qui défile déjà cache son contenu à qui ne le devine pas.",
+    "horizontaux": [
+      "le conteneur de table de Catalyst (AdminTable), pour un tableau plus large que sa colonne"
+    ]
+  },
+  "comparaison": {
+    "operations": {
+      "1440x900": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 3,
+          "textesTronques": 32,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 1,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 15.55
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        }
+      },
+      "1280x800": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 8,
+          "textesTronques": 24,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 2,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 10.71
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        }
+      },
+      "1024x768": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 6,
+          "textesTronques": 39,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 2,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 10.36
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        }
+      },
+      "768x1024": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 3,
+          "textesTronques": 39,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 15.55
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        }
+      },
+      "375x812": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 3,
+          "textesTronques": 31,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 2,
+          "pireRatio": 10.36
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 2,
+          "pireRatio": 0
+        }
+      },
+      "zoom200": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 3,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 5.18
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        }
+      }
+    },
+    "dashboard": {
+      "1440x900": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 1,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 2,
+          "scrollablesHorizontaux": 0,
+          "pireRatio": 0
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        }
+      },
+      "1280x800": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 1,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 0,
+          "pireRatio": 0
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 2,
+          "pireRatio": 0
+        }
+      },
+      "1024x768": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 1,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 0,
+          "pireRatio": 0
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 2,
+          "pireRatio": 0
+        }
+      },
+      "768x1024": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 1,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 0,
+          "pireRatio": 0
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 2,
+          "pireRatio": 0
+        }
+      },
+      "375x812": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 1,
+          "pireRatio": 0
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 3,
+          "pireRatio": 0
+        }
+      },
+      "zoom200": {
+        "avant": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 3,
+          "scrollablesHorizontaux": 0,
+          "pireRatio": 0
+        },
+        "apres": {
+          "debordementGlobal": false,
+          "textesVerticalises": 0,
+          "textesTronques": 0,
+          "panneauxVides": 0,
+          "scrollablesVerticauxImbriques": 0,
+          "scrollablesHorizontaux": 2,
+          "pireRatio": 0
+        }
+      }
+    }
+  }
+}

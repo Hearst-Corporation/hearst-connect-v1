@@ -1,0 +1,2160 @@
+{
+  "consoleErrors": [],
+  "serverErrors": [],
+  "routes": {
+    "operations": {
+      "1440x900": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1440,
+        "clientWidthDoc": 1440,
+        "textesVerticalises": [],
+        "textesEtroits": [
+          {
+            "texte": "L’électricité a été payée",
+            "l": 36
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto -mx-(--gutte",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 805,
+            "clientW": 360
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1440,
+            "h": 3225,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1172,
+            "h": 167,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 180,
+            "h": 85,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 256,
+            "h": 167,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1172,
+            "h": 835,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 888,
+            "h": 835,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 846,
+            "h": 199,
+            "texte": 301,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 556,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 266,
+            "h": 558,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 270,
+            "h": 631,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1172,
+            "h": 2160,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 402,
+            "h": 2160,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 360,
+            "h": 418,
+            "texte": 193,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 232,
+            "h": 955,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 104,
+            "h": 560,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 360,
+            "h": 729,
+            "texte": 1079,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 500,
+            "h": 2160,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 1079,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 1079,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 1079,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 1079,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 270,
+            "h": 2160,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1280x800": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1280,
+        "clientWidthDoc": 1280,
+        "textesVerticalises": [],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto -mx-(--gutte",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 805,
+            "clientW": 464
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1280,
+            "h": 3346,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1012,
+            "h": 228,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 337,
+            "h": 85,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 337,
+            "h": 143,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1012,
+            "h": 995,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 748,
+            "h": 995,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 706,
+            "h": 295,
+            "texte": 301,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 463,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 219,
+            "h": 622,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 250,
+            "h": 687,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1012,
+            "h": 2060,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 506,
+            "h": 1832,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 464,
+            "h": 418,
+            "texte": 193,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 301,
+            "h": 627,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 139,
+            "h": 472,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 464,
+            "h": 729,
+            "texte": 1079,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 1012,
+            "h": 228,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 113,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 113,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 113,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 113,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 506,
+            "h": 1832,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1024x768": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1024,
+        "clientWidthDoc": 1024,
+        "textesVerticalises": [],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto -mx-(--gutte",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 805,
+            "clientW": 336
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1024,
+            "h": 4110,
+            "texte": 4382,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 756,
+            "h": 252,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 252,
+            "h": 85,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 252,
+            "h": 167,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 756,
+            "h": 1355,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 756,
+            "h": 990,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 714,
+            "h": 295,
+            "texte": 301,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 714,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 714,
+            "h": 450,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 756,
+            "h": 351,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 756,
+            "h": 2440,
+            "texte": 2876,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 378,
+            "h": 2164,
+            "texte": 2098,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 336,
+            "h": 418,
+            "texte": 193,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 336,
+            "h": 527,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 336,
+            "h": 408,
+            "texte": 382,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 336,
+            "h": 729,
+            "texte": 1079,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 756,
+            "h": 276,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 137,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 137,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 137,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 137,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 378,
+            "h": 2164,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "768x1024": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 768,
+        "clientWidthDoc": 768,
+        "textesVerticalises": [],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto -mx-(--gutte",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 805,
+            "clientW": 208
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 768,
+            "h": 4972,
+            "texte": 4376,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 500,
+            "h": 359,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 167,
+            "h": 85,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 167,
+            "h": 92,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 167,
+            "h": 268,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 500,
+            "h": 1495,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 500,
+            "h": 1098,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 458,
+            "h": 383,
+            "texte": 301,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 458,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 458,
+            "h": 470,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 500,
+            "h": 383,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 500,
+            "h": 3055,
+            "texte": 2870,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 2683,
+            "texte": 2092,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 208,
+            "h": 538,
+            "texte": 193,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 208,
+            "h": 839,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 208,
+            "h": 456,
+            "texte": 376,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 208,
+            "h": 768,
+            "texte": 1079,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 500,
+            "h": 372,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 185,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 185,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 185,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 185,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 250,
+            "h": 2683,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "375x812": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 375,
+        "clientWidthDoc": 375,
+        "textesVerticalises": [],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-",
+            "axe": "x",
+            "scrollH": 120,
+            "clientH": 120,
+            "scrollW": 658,
+            "clientW": 375
+          },
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto -mx-(--gutte",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 813,
+            "clientW": 313
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 375,
+            "h": 6145,
+            "texte": 4382,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 355,
+            "h": 457,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 15,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 19,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 355,
+            "h": 139,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 355,
+            "h": 2099,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 355,
+            "h": 1198,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 313,
+            "h": 423,
+            "texte": 301,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 313,
+            "h": 163,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 313,
+            "h": 510,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 178,
+            "h": 887,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 355,
+            "h": 3306,
+            "texte": 2876,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 355,
+            "h": 2352,
+            "texte": 2098,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 313,
+            "h": 442,
+            "texte": 193,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 313,
+            "h": 691,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 313,
+            "h": 408,
+            "texte": 382,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 313,
+            "h": 729,
+            "texte": 1079,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 355,
+            "h": 524,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 137,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 137,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 136,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 112,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 355,
+            "h": 430,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "zoom200": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 720,
+        "clientWidthDoc": 720,
+        "textesVerticalises": [],
+        "textesEtroits": [
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "Dépôt",
+            "l": 38
+          },
+          {
+            "texte": "$100",
+            "l": 36
+          }
+        ],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto -mx-(--gutte",
+            "axe": "x",
+            "scrollH": 626,
+            "clientH": 626,
+            "scrollW": 805,
+            "clientW": 658
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 720,
+            "h": 4906,
+            "texte": 4382,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 700,
+            "h": 433,
+            "texte": 217,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 12,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 27,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 34,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 15,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 19,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 700,
+            "h": 115,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 700,
+            "h": 1615,
+            "texte": 1139,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 700,
+            "h": 990,
+            "texte": 809,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 658,
+            "h": 295,
+            "texte": 301,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 658,
+            "h": 144,
+            "texte": 135,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 658,
+            "h": 450,
+            "texte": 360,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__signal",
+            "l": 350,
+            "h": 611,
+            "texte": 330,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 700,
+            "h": 2598,
+            "texte": 2876,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 700,
+            "h": 1872,
+            "texte": 2098,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 658,
+            "h": 290,
+            "texte": 193,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 658,
+            "h": 383,
+            "texte": 422,
+            "vide": false
+          },
+          {
+            "classe": "flex h-full flex-col rounded-xl bg-white shadow-lg ring-1 ri",
+            "l": 658,
+            "h": 408,
+            "texte": 382,
+            "vide": false
+          },
+          {
+            "classe": "rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:b",
+            "l": 658,
+            "h": 710,
+            "texte": 1079,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 700,
+            "h": 428,
+            "texte": 416,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 113,
+            "texte": 120,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 113,
+            "texte": 109,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 112,
+            "texte": 116,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 88,
+            "texte": 71,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 700,
+            "h": 298,
+            "texte": 362,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      }
+    },
+    "dashboard": {
+      "1440x900": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1440,
+        "clientWidthDoc": 1440,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 266,
+            "clientH": 266,
+            "scrollW": 720,
+            "clientW": 400
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1440,
+            "h": 1467,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1172,
+            "h": 220,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 256,
+            "h": 220,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1172,
+            "h": 872,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 888,
+            "h": 872,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 171,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 194,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 270,
+            "h": 170,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1172,
+            "h": 312,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 402,
+            "h": 312,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 500,
+            "h": 312,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 155,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 155,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 155,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 155,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 270,
+            "h": 312,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1280x800": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1280,
+        "clientWidthDoc": 1280,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 822,
+            "clientH": 822,
+            "scrollW": 800,
+            "clientW": 746
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 266,
+            "clientH": 266,
+            "scrollW": 720,
+            "clientW": 504
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1280,
+            "h": 1693,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 1012,
+            "h": 220,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 337,
+            "h": 143,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 1012,
+            "h": 872,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 748,
+            "h": 872,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 218,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 218,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 218,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 1012,
+            "h": 538,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 506,
+            "h": 312,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 1012,
+            "h": 226,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 112,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 112,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 112,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 506,
+            "h": 112,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 506,
+            "h": 312,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "1024x768": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 1024,
+        "clientWidthDoc": 1024,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 822,
+            "clientH": 822,
+            "scrollW": 800,
+            "clientW": 754
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 266,
+            "clientH": 266,
+            "scrollW": 720,
+            "clientW": 376
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 1024,
+            "h": 1931,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 756,
+            "h": 296,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 252,
+            "h": 220,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 756,
+            "h": 1032,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 756,
+            "h": 872,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 756,
+            "h": 146,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 756,
+            "h": 146,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 756,
+            "h": 146,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 756,
+            "h": 540,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 378,
+            "h": 312,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 756,
+            "h": 228,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 113,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 113,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 113,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 378,
+            "h": 113,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 378,
+            "h": 312,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "768x1024": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 768,
+        "clientWidthDoc": 768,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 822,
+            "clientH": 822,
+            "scrollW": 800,
+            "clientW": 498
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 266,
+            "clientH": 266,
+            "scrollW": 720,
+            "clientW": 248
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 768,
+            "h": 2026,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 500,
+            "h": 344,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 167,
+            "h": 268,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 500,
+            "h": 1033,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 500,
+            "h": 872,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 500,
+            "h": 147,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 500,
+            "h": 147,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 500,
+            "h": 147,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 500,
+            "h": 586,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 250,
+            "h": 312,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 500,
+            "h": 274,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 136,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 136,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 136,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 250,
+            "h": 136,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 250,
+            "h": 312,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "375x812": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 375,
+        "clientWidthDoc": 375,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-",
+            "axe": "x",
+            "scrollH": 120,
+            "clientH": 120,
+            "scrollW": 658,
+            "clientW": 375
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 822,
+            "clientH": 822,
+            "scrollW": 800,
+            "clientW": 353
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 266,
+            "clientH": 266,
+            "scrollW": 720,
+            "clientW": 353
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 375,
+            "h": 2722,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 355,
+            "h": 457,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 6,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 8,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 11,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 18,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 178,
+            "h": 106,
+            "texte": 21,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 355,
+            "h": 139,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 355,
+            "h": 1056,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 355,
+            "h": 872,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 355,
+            "h": 170,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 355,
+            "h": 170,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 355,
+            "h": 170,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 355,
+            "h": 926,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 355,
+            "h": 312,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 355,
+            "h": 452,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 113,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 113,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 112,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 354,
+            "h": 112,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 355,
+            "h": 162,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      },
+      "zoom200": {
+        "debordementGlobal": false,
+        "scrollWidthDoc": 720,
+        "clientWidthDoc": 720,
+        "textesVerticalises": [],
+        "textesEtroits": [],
+        "textesTronques": [],
+        "scrollablesVerticaux": [],
+        "scrollablesHorizontaux": [
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 822,
+            "clientH": 822,
+            "scrollW": 800,
+            "clientW": 698
+          },
+          {
+            "tag": "div",
+            "classe": "console-module__VWdHHW__heroBody overflow-x-auto",
+            "axe": "x",
+            "scrollH": 266,
+            "clientH": 266,
+            "scrollW": 720,
+            "clientW": 698
+          }
+        ],
+        "panneaux": [
+          {
+            "classe": "console-module__VWdHHW__shell",
+            "l": 720,
+            "h": 2506,
+            "texte": 2151,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__metricsRow",
+            "l": 700,
+            "h": 433,
+            "texte": 174,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 6,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 8,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 11,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 18,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__metric",
+            "l": 350,
+            "h": 106,
+            "texte": 21,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__decisi",
+            "l": 700,
+            "h": 115,
+            "texte": 110,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__mainRow",
+            "l": 700,
+            "h": 1032,
+            "texte": 1290,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__heroCh",
+            "l": 700,
+            "h": 872,
+            "texte": 987,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 700,
+            "h": 146,
+            "texte": 77,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 700,
+            "h": 146,
+            "texte": 136,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 700,
+            "h": 146,
+            "texte": 90,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__bottomRow",
+            "l": 700,
+            "h": 782,
+            "texte": 537,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__wavePa",
+            "l": 700,
+            "h": 312,
+            "texte": 184,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__infoGr",
+            "l": 700,
+            "h": 356,
+            "texte": 249,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 89,
+            "texte": 52,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 89,
+            "texte": 56,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 88,
+            "texte": 66,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__infoCell",
+            "l": 699,
+            "h": 88,
+            "texte": 75,
+            "vide": false
+          },
+          {
+            "classe": "console-module__VWdHHW__panel console-module__VWdHHW__vaultC",
+            "l": 700,
+            "h": 114,
+            "texte": 104,
+            "vide": false
+          }
+        ],
+        "panneauxVides": []
+      }
+    }
+  }
+}
