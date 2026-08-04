@@ -32,14 +32,16 @@ export {
 } from '@/components/charts/core/chart-theme'
 
 /* ── Cartésiens ───────────────────────────────────────────────────────────── */
-export { ProductionMensuelleChart } from '@/components/charts/cartesian/btc-production-chart'
-export { MiningProductionChart } from '@/components/charts/cartesian/mining-production-chart'
-export { DerivePochesChart } from '@/components/charts/cartesian/derive-poches-chart'
+export { ProductionMensuelleChart, type MoisProduction } from '@/components/charts/cartesian/btc-production-chart'
+export { MiningProductionChart, type MoisProduit } from '@/components/charts/cartesian/mining-production-chart'
+export { DerivePochesChart, type DerivePoche } from '@/components/charts/cartesian/derive-poches-chart'
 export {
   ReserveExpositionChart,
   VendingCurveChart,
+  type PointCourbe,
+  type PosteBitcoin,
 } from '@/components/charts/cartesian/product-charts'
 
 /* ── Polaires ─────────────────────────────────────────────────────────────── */
-export { AllocationChart } from '@/components/charts/polar/allocation-chart'
-export { DistributionBarChart } from '@/components/charts/polar/distribution-chart'
+export { AllocationChart, type PocheAllocation } from '@/components/charts/polar/allocation-chart'
+export { DistributionBarChart, type BarreRepartition } from '@/components/charts/polar/distribution-chart'

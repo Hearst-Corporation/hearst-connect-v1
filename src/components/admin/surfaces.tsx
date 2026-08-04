@@ -157,7 +157,7 @@ export function AdminMetric({
  * Historical alias of `ChartFrame` — same props, same render. Kept as a
  * re-export so the public name stays stable without duplicating the component.
  */
-export { ChartFrame as AdminChart } from '@/components/charts/core/chart-frame'
+export { ChartFrame as AdminChart } from '@/components/charts'
 
 /* ── AdminTable ─────────────────────────────────────────────────────────── */
 
