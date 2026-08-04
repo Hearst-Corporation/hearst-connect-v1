@@ -31,21 +31,81 @@
     "trackedPngCount": 98
   },
   "commands": [
-    { "command": "git rev-parse HEAD", "exit": 0, "result": "6c5507f37128dd094bb00fdffca9258f61b5ff6a" },
-    { "command": "git status --short", "exit": 0, "result": "clean" },
-    { "command": "git worktree list", "exit": 0, "result": "3 worktrees" },
-    { "command": "git ls-files | wc -l", "exit": 0, "result": "326" },
-    { "command": "git count-objects -vH", "exit": 0, "result": "36.07 MiB, 2129 loose objects, 0 packs" },
-    { "command": "pnpm install --frozen-lockfile", "exit": 0, "result": "lockfile respecte" },
-    { "command": "pnpm typecheck", "exit": 0, "result": "aucune erreur de type" },
-    { "command": "pnpm lint", "exit": 0, "result": "aucune violation" },
-    { "command": "pnpm check:mocks", "exit": 0, "result": "aucune donnee simulee (7 regles)" },
-    { "command": "pnpm check:ds", "exit": 0, "result": "aucun hex hors token" },
-    { "command": "pnpm test", "exit": 0, "result": "219 tests / 24 fichiers verts" },
-    { "command": "pnpm build", "exit": 0, "result": "25 routes generees" },
-    { "command": "pnpm exec knip", "exit": 1, "result": "18 fichiers, 54 exports, 13 types, 1 dep non listee" },
-    { "command": "pnpm quality:dup (jscpd)", "exit": 0, "result": "56 clones, 787 lignes, 3.42%" },
-    { "command": "pnpm e2e", "exit": null, "result": "NON EXECUTE - exige backend joignable + identifiants" }
+    {
+      "command": "git rev-parse HEAD",
+      "exit": 0,
+      "result": "6c5507f37128dd094bb00fdffca9258f61b5ff6a"
+    },
+    {
+      "command": "git status --short",
+      "exit": 0,
+      "result": "clean"
+    },
+    {
+      "command": "git worktree list",
+      "exit": 0,
+      "result": "3 worktrees"
+    },
+    {
+      "command": "git ls-files | wc -l",
+      "exit": 0,
+      "result": "326"
+    },
+    {
+      "command": "git count-objects -vH",
+      "exit": 0,
+      "result": "36.07 MiB, 2129 loose objects, 0 packs"
+    },
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "result": "lockfile respecte"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0,
+      "result": "aucune erreur de type"
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0,
+      "result": "aucune violation"
+    },
+    {
+      "command": "pnpm check:mocks",
+      "exit": 0,
+      "result": "aucune donnee simulee (7 regles)"
+    },
+    {
+      "command": "pnpm check:ds",
+      "exit": 0,
+      "result": "aucun hex hors token"
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0,
+      "result": "219 tests / 24 fichiers verts"
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0,
+      "result": "25 routes generees"
+    },
+    {
+      "command": "pnpm exec knip",
+      "exit": 1,
+      "result": "18 fichiers, 54 exports, 13 types, 1 dep non listee"
+    },
+    {
+      "command": "pnpm quality:dup (jscpd)",
+      "exit": 0,
+      "result": "56 clones, 787 lignes, 3.42%"
+    },
+    {
+      "command": "pnpm e2e",
+      "exit": null,
+      "result": "NON EXECUTE - exige backend joignable + identifiants"
+    }
   ],
   "findings": [
     {
@@ -62,7 +122,14 @@
         "verifie aux deux SHA (6c5507f et 8029d85)"
       ],
       "recommendation": "Supprimer la fonction. Aucun consommateur, aucun impact rendu.",
-      "relatedFindings": ["DEAD-NEW-002", "DUP-UI-001"]
+      "relatedFindings": [
+        "DEAD-NEW-002",
+        "DUP-UI-001"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "VerdictCard supprime, avec le type Tone et ses 3 tables, et l import next/link devenu inutile.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-002",
@@ -77,7 +144,13 @@
         "grep exhaustif: 1 reference = sa propre declaration"
       ],
       "recommendation": "Supprimer la fonction.",
-      "relatedFindings": ["DEAD-NEW-001"]
+      "relatedFindings": [
+        "DEAD-NEW-001"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "ExceptionBanner supprime.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-003",
@@ -92,7 +165,13 @@
         "grep exhaustif: 1 reference = sa propre declaration"
       ],
       "recommendation": "Supprimer. Note: src/app/admin/loading.tsx couvre deja l'etat de chargement au niveau route.",
-      "relatedFindings": ["DUP-UI-002"]
+      "relatedFindings": [
+        "DUP-UI-002"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "AdminLoadingState supprime. Indice concordant : etait reste en anglais apres la migration FR.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-004",
@@ -107,7 +186,13 @@
         "grep exhaustif: 2 references = declaration + son commentaire de section"
       ],
       "recommendation": "Supprimer la fonction et son bandeau de commentaire.",
-      "relatedFindings": ["DUP-UI-002"]
+      "relatedFindings": [
+        "DUP-UI-002"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "AdminActionPanel supprime, avec son bandeau de commentaire.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-005",
@@ -123,7 +208,13 @@
         "admin-nav.ts garde 4 importeurs pour ses autres exports - le fichier n'est PAS mort"
       ],
       "recommendation": "Supprimer la fonction. Verifier si le type IconeNav (aussi signale) devient orphelin.",
-      "relatedFindings": ["DEAD-NEW-013"]
+      "relatedFindings": [
+        "DEAD-NEW-013"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "entreeSecondaire supprime ; admin-nav.ts reste vivant (4 importeurs).",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-006",
@@ -138,7 +229,13 @@
         "grep exhaustif: 1 reference = sa propre declaration"
       ],
       "recommendation": "NE PAS supprimer avant le LOT C. format.ts est la cible de consolidation de 9 formatters locaux; supprimer ses helpers au moment ou l'on veut les adopter serait un mauvais arbitrage.",
-      "relatedFindings": ["DUP-LOGIC-001"]
+      "relatedFindings": [
+        "DUP-LOGIC-001"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "Volontairement NON supprime : format.ts est la cible du LOT C. Supprimer ses helpers au moment ou l on y route des appelants serait un contresens.",
+      "residualRisk": "A re-arbitrer apres le LOT D ; toujours 0 consommateur."
     },
     {
       "id": "DEAD-NEW-007",
@@ -154,7 +251,13 @@
         "formatDateTime (voisin) est utilise - seul formatDate est mort"
       ],
       "recommendation": "Idem DEAD-NEW-006: arbitrer apres le LOT C. vaults/overview.ts fabrique 3 Intl.DateTimeFormat a la main qui pourraient l'utiliser.",
-      "relatedFindings": ["DUP-LOGIC-001"]
+      "relatedFindings": [
+        "DUP-LOGIC-001"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "Idem DEAD-NEW-006. formatDateTime (voisin) est utilise ; seul formatDate reste mort.",
+      "residualRisk": "A re-arbitrer ; toujours 0 consommateur."
     },
     {
       "id": "DEAD-NEW-008",
@@ -170,7 +273,11 @@
         "le fichier garde 3 importeurs reels (pageMaxWidth, pageSectionGap, sectionContentGap, gridGap) - il n'est PAS orphelin"
       ],
       "recommendation": "Supprimer les 6 constantes. Abstraction partiellement adoptee: 6 tokens sur 9 n'ont jamais trouve preneur depuis HC-UI-NORMALIZATION-001.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "6 tokens d espacement supprimes ; les 4 reellement utilises conserves.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-009",
@@ -186,7 +293,14 @@
         "graphe d'imports: surface.tsx a 5 importeurs, mais TOUS pour surfaceRaised (4) ou RequirementList (2)"
       ],
       "recommendation": "Supprimer les 3 symboles ensemble (chaine de dependance interne). Le fichier survit avec surfaceRaised + RequirementList. Attention: un Panel homonyme et VIVANT existe dans green-command-center/primitives.tsx (31 importeurs) - ne pas confondre.",
-      "relatedFindings": ["DUP-UI-001", "DUP-UI-002"]
+      "relatedFindings": [
+        "DUP-UI-001",
+        "DUP-UI-002"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "3ccf9bc",
+      "verification": "surfaceSunken + Panel + PanelHeading supprimes ensemble (chaine liee) ; clsx retire. surfaceRaised et RequirementList conserves. Piege du Panel homonyme de primitives.tsx documente dans le code.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-010",
@@ -202,7 +316,11 @@
         "exemple: LOGIN_PATH declare auth.ts:22, consomme auth.ts:173"
       ],
       "recommendation": "Retirer le mot-cle 'export' uniquement, PAS le symbole. Distinction que knip ne fait pas: le code vit, seule l'exposition publique est superflue. Aucun changement de comportement.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "862012d",
+      "verification": "13 symboles : mot-cle export retire, code inchange. MOVEMENT_ROWS etait mal classe ici (0 consommateur meme interne) : supprime au LOT G (b69d300).",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DEAD-NEW-011",
@@ -217,7 +335,13 @@
         "verification manuelle: plusieurs sont des types de marque (branded types) d'un systeme d'identifiants coherent"
       ],
       "recommendation": "NE PAS supprimer en bloc. ClientId/DeploymentId/KeeperActionId/ComplianceReviewId font partie d'une famille de branded types dont d'autres membres (VaultId, StrategyId, MovementId) SONT utilises - retirer les inutilises casserait la symetrie d'un modele deliberé. Arbitrer type par type; EnvVarStatus/EnvVarReport et Tone sont les candidats les plus nets.",
-      "relatedFindings": ["DEAD-NEW-005"]
+      "relatedFindings": [
+        "DEAD-NEW-005"
+      ],
+      "resolutionStatus": "PARTIALLY_RESOLVED",
+      "resolutionCommit": "b9da70b",
+      "verification": "5 types de-exportes + 1 re-export mort retire (registry.ts:705). Les 5 branded types de model.ts sont CONSERVES : famille coherente (une entite, un type) dont le demantelement laisserait des trous. Decision ecrite dans le code.",
+      "residualRisk": "knip continuera de signaler 5 types : c est un choix assume, pas une dette."
     },
     {
       "id": "DEAD-NEW-012",
@@ -233,7 +357,13 @@
         "VENDOR.md documente la decision produit de conservation"
       ],
       "recommendation": "Aucune suppression. Classification: 9 VENDOR_USED produit + 2 VENDOR_USED interne + 16 VENDOR_AVAILABLE. Corriger VENDOR.md qui annonce 18 non-utilises au lieu de 16.",
-      "relatedFindings": ["DOC-004"]
+      "relatedFindings": [
+        "DOC-004"
+      ],
+      "resolutionStatus": "NO_ACTION",
+      "resolutionCommit": null,
+      "verification": "Catalyst : aucune suppression (kit vendore). Seul VENDOR.md corrige (18 -> 16).",
+      "residualRisk": "Toute suppression exige une decision Design System distincte."
     },
     {
       "id": "DEAD-NEW-013",
@@ -249,7 +379,11 @@
         "script de generation de captures, hors runtime"
       ],
       "recommendation": "Conserver. Un outil de documentation reference par son propre manifeste n'est pas du code mort: il appartient a une preuve de mission archivee.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "NO_ACTION",
+      "resolutionCommit": null,
+      "verification": "capture.mjs conserve : reference par son propre manifeste, artefact d une mission archivee.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DUP-UI-001",
@@ -267,7 +401,14 @@
         "ClientsMetric (clients/page.tsx:49) et ComplianceMetric (conformite/page.tsx:49) sont strictement identiques au nom pres"
       ],
       "recommendation": "Duplication ACCIDENTELLE, vraie opportunite de consolidation. ATTENTION: les Card locales enveloppent Panel du green command center (gcc.wavePanel, matiere near-black) alors que cockpit.Card applique surfaceRaised (matiere graphite) - ce ne sont PAS les memes surfaces visuelles. Cible correcte: extraire une Card unique vers green-command-center/primitives.tsx (qui porte deja Panel/Absent/Reading), PAS converger vers cockpit.Card. Exige une revue visuelle des 10 routes.",
-      "relatedFindings": ["DUP-UI-002", "DEAD-NEW-009"]
+      "relatedFindings": [
+        "DUP-UI-002",
+        "DEAD-NEW-009"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT D, hors perimetre (§7). Verifie intact : git diff sur src/components/design-lab/ est vide, les 10 Card locales sont en place.",
+      "residualRisk": "Risque eleve : touche 10 routes et le rendu. Exige une revue visuelle."
     },
     {
       "id": "DUP-UI-002",
@@ -283,7 +424,14 @@
         "surfaces.tsx: 481 lignes, 19 exports dont 4 morts et 4 simples re-exports de truthful.tsx (barrel file non declare)"
       ],
       "recommendation": "Duplication de TRANSITION (migration vocabulaire Admin* -> green command center en cours). Ne pas fusionner brutalement. Action minimale utile: documenter quelle famille est la cible dans DESIGN-SYSTEM-NOTES.md, pour que les routes cessent d'arbitrer au cas par cas en recreant des primitives locales.",
-      "relatedFindings": ["DUP-UI-001", "DEAD-NEW-009"]
+      "relatedFindings": [
+        "DUP-UI-001",
+        "DEAD-NEW-009"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT D.",
+      "residualRisk": "Duplication de transition ; documenter la cible reste l action la moins chere."
     },
     {
       "id": "DUP-LOGIC-001",
@@ -301,7 +449,14 @@
         "resolved.ts:94 duplique formatNumber a l'identique (toLocaleString + repli '—')"
       ],
       "recommendation": "Router les 9 sites vers format.ts. Ajouter un formatBtcFromSats() plutot qu'une 4e implementation locale. Gain de veracite: un formatage centralise propage correctement l'absence ('—') au lieu de risquer un 0. A traiter AVANT de supprimer formatCompactNumber/formatDate (DEAD-NEW-006/007).",
-      "relatedFindings": ["DEAD-NEW-006", "DEAD-NEW-007"]
+      "relatedFindings": [
+        "DEAD-NEW-006",
+        "DEAD-NEW-007"
+      ],
+      "resolutionStatus": "PARTIALLY_RESOLVED",
+      "resolutionCommit": "9a50936",
+      "verification": "5 sites strictement equivalents routes vers format.ts (partLisible, bitcoinProduit, numero de bloc, formatCount, 2 Intl.DateTimeFormat hisses). 4 sites NON consolides, raison ecrite sur place : sortie differente (toFixed vs formatPercent), precision assumee, ou conversion sur chaine vs flottante. Residu FR corrige : unknown date -> date inconnue. 14 tests ajoutes.",
+      "residualRisk": "btc/page.tsx conserve deux conversions sats->BTC divergentes ; les unifier change l affichage (arbitrage produit)."
     },
     {
       "id": "DUP-LOGIC-002",
@@ -317,7 +472,11 @@
         "deja identifie par le Lot 7 (DEAD-04/BAPI-07), tranche 'conserve + documente'"
       ],
       "recommendation": "CONFIRME SANS RECOMPTAGE - constat de la baseline, etat inchange. Duplication ACCEPTABLE en l'etat: fusionner un modele d'enveloppe backend et un modele de domaine metier produirait vraisemblablement une abstraction plus complexe que les deux reunies. Decision produit, pas d'audit.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "NO_ACTION",
+      "resolutionCommit": null,
+      "verification": "Constat de la baseline Lot 7, non recompte. Aucune action : fusionner deux modeles d absence produirait une abstraction plus complexe que les deux reunies.",
+      "residualRisk": "Decision produit."
     },
     {
       "id": "DUP-VISUAL-001",
@@ -334,7 +493,14 @@
         "check:ds interdit un hex brut hors token mais n'empeche pas un meme hex sous plusieurs tokens"
       ],
       "recommendation": "Converger vers la famille canonique console-*/accent-*. Dependance: traiter DS-VIOLATION-001 d'abord.",
-      "relatedFindings": ["CSS-DEAD-001", "DS-VIOLATION-001"]
+      "relatedFindings": [
+        "CSS-DEAD-001",
+        "DS-VIOLATION-001"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT E, interdit (§6). Aucun token modifie : git diff sur src/styles/ est vide.",
+      "residualRisk": "Depend de D2."
     },
     {
       "id": "DUP-ROUTE-001",
@@ -350,7 +516,13 @@
         "ARCH-02 a pose la garde notFound() en production, prouvee en prod reelle - le risque d'exposition est FERME"
       ],
       "recommendation": "Duplication de route reelle mais risque securite deja ferme. NUANCE IMPORTANTE: le dossier components/design-lab/ n'est PAS un laboratoire mort - il est importe par 18 routes admin et primitives.tsx a 31 importeurs. C'est le systeme de composition de toute la console sous un nom de dossier trompeur. Seule la ROUTE est dupliquee. Arbitrage produit: retirer la route sandbox (contenu identique a /admin) ou la conserver comme banc d'essai.",
-      "relatedFindings": ["DUP-UI-001"]
+      "relatedFindings": [
+        "DUP-UI-001"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT A, arbitrage produit. Route verifiee presente au build (25 routes).",
+      "residualRisk": "Risque securite deja ferme par ARCH-02."
     },
     {
       "id": "ROUTE-001",
@@ -365,7 +537,11 @@
         "aucune entree correspondante dans admin-nav.ts ni lien verifie depuis la vitrine"
       ],
       "recommendation": "NE PAS declarer morte. Une page d'inscription atteignable par URL directe peut etre un choix produit. A qualifier par le produit.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — a qualifier par le produit.",
+      "residualRisk": "Confiance LOW."
     },
     {
       "id": "CSS-DEAD-001",
@@ -381,7 +557,14 @@
         "--color-brand-* et --color-surface-* sont les tokens de l'ancien theme Hearst 'or' decrit dans le README (brand-accent, or Hearst H≈45°), systeme remplace par l'accent mint"
       ],
       "recommendation": "Supprimer les 20 declarations. Aucun consommateur, aucune construction dynamique de classe detectee dans le depot.",
-      "relatedFindings": ["DUP-VISUAL-001", "DOC-001"]
+      "relatedFindings": [
+        "DUP-VISUAL-001",
+        "DOC-001"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT E, interdit (§6).",
+      "residualRisk": "Ne pas supprimer avant D2 : truthful.tsx et surfaces.tsx maintiennent hearst-*/cockpit-*/neutral-* en vie, et check:ds ne l attraperait pas."
     },
     {
       "id": "CSS-DEAD-002",
@@ -397,7 +580,13 @@
         "ajoutes par le commit 56a9c0f au titre de la doctrine §7.5"
       ],
       "recommendation": "NE PAS supprimer. Indirection prevue par la doctrine mais non branchee: faire pointer chart-theme.ts vers --chart-positive/negative/warning au lieu des tokens de couleur directs. A brancher, pas a retirer.",
-      "relatedFindings": ["DOC-002"]
+      "relatedFindings": [
+        "DOC-002"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE. A BRANCHER, pas a supprimer : indirection prevue par la doctrine §7.5.",
+      "residualRisk": "Supprimer ces tokens defarait la doctrine."
     },
     {
       "id": "DS-VIOLATION-001",
@@ -414,7 +603,14 @@
         "la doctrine impose les etats semantiques success/warning/danger et les surfaces console-*"
       ],
       "recommendation": "PIEGE PRINCIPAL DU PLAN DE NETTOYAGE: ces 3 usages maintiennent en vie les familles hearst-*/cockpit-*/neutral-*, qui paraissent mortes a la lecture rapide. Les supprimer sans traiter d'abord ces 2 fichiers casserait le rendu SANS faire echouer aucune gate (check:ds n'interdit que les hex bruts, pas un utilitaire pointant vers un token disparu). Faire converger truthful.tsx/surfaces.tsx AVANT de toucher aux tokens.",
-      "relatedFindings": ["CSS-DEAD-001", "DUP-VISUAL-001"]
+      "relatedFindings": [
+        "CSS-DEAD-001",
+        "DUP-VISUAL-001"
+      ],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT D2, hors perimetre.",
+      "residualRisk": "PREREQUIS du LOT E : sans cette convergence, retirer les tokens casse le rendu sans faire rougir aucune gate."
     },
     {
       "id": "TEST-FIX-001",
@@ -430,7 +626,11 @@
         "la fixture affirme pourtant prouver que la regle DECLARED_FIXTURE 'mord vraiment: un gate qui ne casse jamais ne demontre rien'"
       ],
       "recommendation": "REWRITE, pas DELETE. Une preuve annoncee mais inexistante est pire qu'une absence de preuve. Ajouter un test qui passe la fixture a la regle DECLARED_FIXTURE et exige une violation. La fixture est bien concue; c'est le harnais qui manque.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "ff886b2",
+      "verification": "Cas A retenu : self-test ecrit (tests/check-no-mocks-gate.test.ts), la gate n est PAS modifiee. 3 tests dans les deux directions. Preuve que le test mord : en neutralisant la regex DECLARED_FIXTURE, le test echoue ; script restaure a l identique.",
+      "residualRisk": "Seules 2 des 7 regles de la gate sont couvertes."
     },
     {
       "id": "TEST-002",
@@ -446,7 +646,11 @@
         "aucun .skip, .only ni todo dans toute la suite"
       ],
       "recommendation": "KEEP. Tests de doctrine legitimes mais fragiles au renommage (chemins en dur). Surveiller, ne pas multiplier. Aucune action dans cette mission.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "NO_ACTION",
+      "resolutionCommit": null,
+      "verification": "Tests de doctrine conserves ; aucune modification (la mission interdit de toucher aux tests existants).",
+      "residualRisk": "Fragiles au renommage (chemins en dur)."
     },
     {
       "id": "DEP-001",
@@ -461,7 +665,11 @@
         "node -e sur node_modules/@playwright/test/package.json: dependencies = {\"playwright\":\"1.51.1\"} - le paquet est installe de toute facon en transitif"
       ],
       "recommendation": "Candidat au retrait de la declaration directe. Verifier avant que 'pnpm exec playwright install' reste operant via la dependance transitive. NE PAS retirer dans cette mission (interdit).",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "b69d300",
+      "verification": "playwright retire des devDependencies. Verifie apres : install --frozen-lockfile OK, playwright --version 1.51.1, 17 tests decouverts, execution identique a la baseline (10/7).",
+      "residualRisk": "E2E authentifie BLOCKED_ENVIRONMENT (pas de .env.local ni de backend)."
     },
     {
       "id": "DEP-002",
@@ -477,7 +685,11 @@
         "le paquet n'est pas installe et pnpm build passe (exit 0)"
       ],
       "recommendation": "Aucune action. Faux positif knip: une annotation de type n'est pas un import runtime.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "NO_ACTION",
+      "resolutionCommit": null,
+      "verification": "Faux positif knip confirme : postcss-load-config n apparait que dans une annotation JSDoc.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "SCRIPT-001",
@@ -493,7 +705,13 @@
         "depend d'une IP privee en dur (http://100.88.191.49:9010) et de Docker"
       ],
       "recommendation": "Remplacer 'npm run test:coverage' par 'pnpm run test:coverage'. Le script annonce une preuve qu'il ne peut pas produire hors du reseau prive.",
-      "relatedFindings": ["SCRIPT-002"]
+      "relatedFindings": [
+        "SCRIPT-002"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "b69d300",
+      "verification": "Reecrit en scripts/sonar.mjs : pnpm au lieu de npm, SONAR_HOST_URL obligatoire (plus d IP en dur), Docker et sonar-project.properties verifies, echec explicite. Verifie : sans variables, exit 1 avec SONAR_TOKEN manquant.",
+      "residualRisk": "Chemin nominal (scan reel) non execute : aucun serveur SonarQube joignable."
     },
     {
       "id": "SCRIPT-002",
@@ -510,7 +728,13 @@
         "aucun des 3 n'est documente dans CLAUDE.md"
       ],
       "recommendation": "quality:dup est utile en diagnostic mais trompeur comme 'gate' - un controle qualite qui ne peut pas echouer. Soit baisser le seuil pour qu'il morde, soit le documenter explicitement comme outil de diagnostic. Arbitrage a faire.",
-      "relatedFindings": ["SCRIPT-001"]
+      "relatedFindings": [
+        "SCRIPT-001"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "b69d300",
+      "verification": "quality:dup remplace par scripts/check-duplication.mjs, seuil 4 % (duplication mesuree 3,45 %), sortie chiffree, selftest prouvant les deux directions (49,79 % mord / 0 % passe). Detail conserve dans quality:dup:report. lint:fast CONSERVE : oxlint a trouve 3 residus morts qu eslint ne signale pas, corriges dans le meme commit.",
+      "residualRisk": "Le seuil de 4 % est un point de depart, a baisser a mesure que le LOT D resorbe la duplication."
     },
     {
       "id": "DOC-001",
@@ -528,7 +752,14 @@
         "l.16: session 'signee HMAC-SHA256' - passee en chiffrement AES-256-GCM par SEC-02"
       ],
       "recommendation": "PRIORITE 1 du plan. Gravite haute: un nouvel arrivant qui suit le README casse la CI. Zero risque code, valeur immediate.",
-      "relatedFindings": ["CSS-DEAD-001", "SCRIPT-001"]
+      "relatedFindings": [
+        "CSS-DEAD-001",
+        "SCRIPT-001"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "a6359dc",
+      "verification": "README.md reecrit : pnpm partout, check:catalyst retire, AdminShell retire, session AES-256-GCM, tokens brand-* remplaces, 6 variables d environnement reelles. Chaque commande citee a ete executee.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DOC-002",
@@ -543,7 +774,13 @@
         "l'exclusion et son commentaire de 3 lignes decrivent un 'jeu de donnees de demonstration'"
       ],
       "recommendation": "Retirer l'exclusion et son commentaire. Un depot dont la garantie centrale est l'absence de donnees simulees ne devrait pas documenter un jeu de demo dans sa config qualite.",
-      "relatedFindings": ["DOC-001"]
+      "relatedFindings": [
+        "DOC-001"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "a6359dc",
+      "verification": "Exclusion demo-data.ts retiree de sonar.cpd.exclusions.",
+      "residualRisk": "Non rejoue contre un serveur SonarQube reel (aucun joignable)."
     },
     {
       "id": "DOC-003",
@@ -559,7 +796,11 @@
         "les lots 4/5 y sont marques 'CONDITIONNE A LA DOCTRINE'"
       ],
       "recommendation": "Mettre a jour: la condition bloquante est levee. Impact reel - des lots sont marques bloques a tort.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "a6359dc",
+      "verification": "Encadre de statut HISTORIQUE ajoute en tete (SHA, date, source canonique) avec rectificatif ; contenu historique laisse intact.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "DOC-004",
@@ -576,7 +817,13 @@
         "CLAUDE.md: '14 fichiers de tests au 2026-07-28' - 24 aujourd'hui"
       ],
       "recommendation": "Corrections mineures. Les ecarts CLAUDE.md sont dates explicitement, donc de faible gravite.",
-      "relatedFindings": ["DEAD-NEW-012"]
+      "relatedFindings": [
+        "DEAD-NEW-012"
+      ],
+      "resolutionStatus": "RESOLVED",
+      "resolutionCommit": "a6359dc",
+      "verification": "VENDOR.md : 18 -> 16 primitives (link et navbar consommes dans le kit). CLAUDE.md : check:ds, 7 regles, 24 fichiers/231 tests mesures, worktrees.",
+      "residualRisk": "Aucun."
     },
     {
       "id": "ASSET-001",
@@ -592,7 +839,11 @@
         "series HC-GREEN-COMMAND-CENTER-SANDBOX-REWORK-001 a -006: six iterations de la meme capture a 4 resolutions, ~4,5 Mo"
       ],
       "recommendation": "La 4e paire est la plus problematique: deux captures du meme fichier presentees comme deux preuves differentes (chart-panel et mining-chart) dans une meme revue. KEEP pour les preuves finales; arbitrage produit pour les series de reprise intermediaires - une revue visuelle est une preuve d'audit, la supprimer releve de la gouvernance, pas de la proprete.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "DEFERRED",
+      "resolutionCommit": null,
+      "verification": "NON TRAITE — LOT A, arbitrage de gouvernance : une revue visuelle est une preuve d audit.",
+      "residualRisk": "19 Mo de captures, 4 paires identiques."
     },
     {
       "id": "WS-001",
@@ -608,7 +859,11 @@
         "seul non-suivi dans le worktree principal: .vscode/mcp.json"
       ],
       "recommendation": "Workspace propre. Un 'git gc' compacterait 2129 objets loose et reduirait nettement l'empreinte disque. Aucun parasite a supprimer.",
-      "relatedFindings": []
+      "relatedFindings": [],
+      "resolutionStatus": "NO_ACTION",
+      "resolutionCommit": null,
+      "verification": "Workspace deja propre ; aucun parasite. git gc non execute (operation de maintenance, sans effet sur le contenu).",
+      "residualRisk": "Aucun."
     }
   ],
   "limits": [
@@ -619,5 +874,14 @@
     "Tokens CSS: une classe Tailwind construite par concatenation echapperait aux 3 formes testees. Aucune construction de ce type trouvee, mais l'absence de preuve n'est pas une preuve.",
     "Poids des assets mesure sur le disque, pas sur l'historique git: supprimer un PNG ne reduit pas le depot clone tant que l'historique le porte.",
     "git count-objects a signale 'garbage found: .git/worktrees/hearst-connect-v1-hygiene/refs', lie au worktree d'audit lui-meme - sans consequence."
-  ]
+  ],
+  "shaTraceability": {
+    "initialAnalysis": "6c5507f37128dd094bb00fdffca9258f61b5ff6a",
+    "initialAnalysisNote": "Toutes les commandes (gates, build, knip, jscpd, graphe d imports, tokens, hachage assets) ont ete executees a ce SHA.",
+    "revalidation": "8029d85c7cea76255caaeb0b18f307701840a950",
+    "revalidationNote": "Constats re-verifies par grep/ls cibles a ce SHA lors de l audit ; les commandes completes n y ont PAS toutes ete rejouees a ce moment-la. Elles l ont ete au demarrage de HC-CODE-HYGIENE-CLEANUP-001 (baseline : 231 tests, 25 routes, knip 54 exports / 12 types, audit 6 vulns).",
+    "cleanup": "d47af1a",
+    "cleanupBranch": "cleanup/code-hygiene-safe-2026-08-04",
+    "cleanupReport": "docs/audits/CODE-HYGIENE-CLEANUP-001.md"
+  }
 }
