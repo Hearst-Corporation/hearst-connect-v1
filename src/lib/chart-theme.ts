@@ -106,7 +106,7 @@ export const chartTheme = {
 // Doctrine §7.5 : rampe de SÉRIES via les tokens `--chart-1..5` (grammaire
 // distincte des couleurs de statut). Les fallbacks conservent les couleurs
 // canoniques si les tokens ne sont pas résolus.
-export const CATEGORICAL_RAMP = [
+const CATEGORICAL_RAMP = [
   'var(--chart-1, var(--color-accent-400))',
   'var(--chart-2, var(--color-zinc-300))',
   'var(--chart-3, var(--color-zinc-400))',
@@ -166,7 +166,7 @@ export function chartHeight(kind: ChartKind, points: number): number {
  * observations to show one. Below that, the honest rendering is the value
  * itself — see `SingleObservation`.
  */
-export const MIN_POINTS_FOR_CHART = 2
+const MIN_POINTS_FOR_CHART = 2
 
 export function plottableAsChart(points: number): boolean {
   return points >= MIN_POINTS_FOR_CHART

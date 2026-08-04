@@ -28,7 +28,7 @@ import clsx from 'clsx'
  * rebalancing tolerance. Because it is a choice, it is written into the
  * caption of every row it colors — a reader can see the rule being applied.
  */
-export const SEUIL_ECART_SIGNALE_PT = 2
+const SEUIL_ECART_SIGNALE_PT = 2
 
 export type PocheAllocation = {
   readonly poche: string

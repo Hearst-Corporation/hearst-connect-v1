@@ -113,7 +113,7 @@ export function DataProvenance({
   )
 }
 
-export function FreshnessIndicator({
+function FreshnessIndicator({
   asOf,
   ageSeconds,
   stale,
