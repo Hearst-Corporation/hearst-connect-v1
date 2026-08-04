@@ -23,12 +23,6 @@
  */
 export const pageMaxWidth = 'max-w-[1280px]'
 
-/** Horizontal page inset. Identical left and right — owned by the shell, once. */
-export const pageInlinePadding = 'px-3 sm:px-4 lg:px-5'
-
-/** Vertical page inset. */
-export const pageBlockPadding = 'py-8 lg:py-10'
-
 /** Between top-level sections of a page. Sections are separated by space, not by boxes. */
 export const pageSectionGap = 'space-y-10'
 
@@ -38,11 +32,10 @@ export const sectionContentGap = 'space-y-6'
 /** The grid gutter, used by every `AdminGrid`. */
 export const gridGap = 'gap-6'
 
-/** Standard card/surface padding. */
-export const surfacePadding = 'p-6'
-
-/** Dense rows: toolbar, metric tile, probe result. */
-export const surfaceCompactPadding = 'p-4'
-
-export const tableCellPadding = 'px-4 py-3'
-export const toolbarPadding = 'px-4 py-3'
+/*
+ * Retirés le 2026-08-04 (LOT B) : `pageInlinePadding`, `pageBlockPadding`,
+ * `surfacePadding`, `surfaceCompactPadding`, `tableCellPadding` et
+ * `toolbarPadding`. Créés par HC-UI-NORMALIZATION-001, ils n'ont jamais trouvé
+ * de consommateur — les surfaces déclarent leur propre inset. Les quatre
+ * tokens ci-dessus sont, eux, réellement utilisés.
+ */

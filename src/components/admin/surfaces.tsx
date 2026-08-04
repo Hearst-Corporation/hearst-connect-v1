@@ -268,18 +268,6 @@ export function AdminErrorState({
   )
 }
 
-export function AdminLoadingState({ message = 'Chargement…' }: Readonly<{ message?: string }>) {
-  return (
-    <AdminSurface className="flex items-center gap-3 px-5 py-8">
-      <span
-        aria-hidden="true"
-        className="size-4 animate-pulse rounded-full bg-accent-500/60"
-      />
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">{message}</p>
-    </AdminSurface>
-  )
-}
-
 /**
  * Same state as `SourceAttendue`, in the surfaces vocabulary. One card, one
  * list — the ringed inner box that used to hold the requirements is gone.
@@ -356,41 +344,6 @@ export function AdminFilterBar({
           </li>
         ))}
       </ul>
-    </AdminSurface>
-  )
-}
-
-/* ── AdminActionPanel ─────────────────────────────────────────────────────── */
-
-export function AdminActionPanel({
-  title,
-  description,
-  confirmLabel,
-  danger,
-  disabled,
-  children,
-}: Readonly<{
-  title: string
-  description?: string
-  confirmLabel?: string
-  danger?: boolean
-  disabled?: boolean
-  children?: React.ReactNode
-}>) {
-  return (
-    <AdminSurface className="p-6">
-      <AdminSurfaceTitle>{title}</AdminSurfaceTitle>
-      {description ? <AdminBody className="mt-2">{description}</AdminBody> : null}
-      {children}
-      {confirmLabel ? (
-        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-          Sensitive action — confirmation required:{' '}
-          <span className={clsx(danger && 'text-danger-400', 'font-mono')}>{confirmLabel}</span>
-        </p>
-      ) : null}
-      {disabled ? (
-        <p className="mt-3 text-xs text-warning-400">Action disabled — insufficient permissions or configuration.</p>
-      ) : null}
     </AdminSurface>
   )
 }

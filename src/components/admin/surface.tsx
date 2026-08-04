@@ -1,5 +1,3 @@
-import clsx from 'clsx'
-
 /**
  * Surface grammar — the approved neutral-graphite system.
  *
@@ -17,31 +15,14 @@ import clsx from 'clsx'
 export const surfaceRaised =
   'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-console-card dark:shadow-[0_10px_28px_rgba(0,0,0,0.24)] dark:ring-console-line'
 
-export const surfaceSunken =
-  'rounded-xl bg-zinc-50/80 ring-1 ring-zinc-950/5 dark:bg-console-inset dark:ring-console-line-soft'
-
-export function Panel({
-  className,
-  inset = 'md',
-  tone = 'raised',
-  ...props
-}: {
-  inset?: 'none' | 'sm' | 'md' | 'lg'
-  tone?: 'raised' | 'sunken'
-} & React.ComponentPropsWithoutRef<'div'>) {
-  return (
-    <div
-      {...props}
-      className={clsx(
-        className,
-        tone === 'raised' ? surfaceRaised : surfaceSunken,
-        inset === 'sm' && 'p-4',
-        inset === 'md' && 'p-6',
-        inset === 'lg' && 'p-8',
-      )}
-    />
-  )
-}
+/*
+ * Retirés le 2026-08-04 (LOT B) : `surfaceSunken`, `Panel` et `PanelHeading`.
+ * Aucun appelant — les cinq modules qui importent ce fichier ne prennent que
+ * `surfaceRaised` ou `RequirementList`. Attention en lisant l'historique : un
+ * `Panel` homonyme et bien vivant existe dans
+ * `components/design-lab/green-command-center/primitives.tsx` (une trentaine
+ * d'importeurs) ; ce n'est pas celui-ci.
+ */
 
 /**
  * List of items a source still needs to provide.
@@ -63,15 +44,5 @@ export function RequirementList({ requis }: Readonly<{ requis: readonly string[]
         </li>
       ))}
     </ul>
-  )
-}
-
-/** Panel title block — spacing, no rule: a bordered header inside a bordered panel is a frame too many. */
-export function PanelHeading({ title, action }: Readonly<{ title: string; action?: React.ReactNode }>) {
-  return (
-    <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
-      <h3 className="text-base/6 font-semibold text-zinc-950 dark:text-white">{title}</h3>
-      {action}
-    </div>
   )
 }
