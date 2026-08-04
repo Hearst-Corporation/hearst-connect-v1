@@ -170,8 +170,8 @@ export function ConsoleRail({
             * La première version pointait `href="/admin/profile"` : le bouton
             * disait « Sign out » et ouvrait une page de profil. `SidebarItem`
             * sans `href` rend un `<button type="submit">`, ce qui déclenche le
-            * server action `logout` — exactement le montage de
-            * `src/app/admin/admin-shell.tsx`, à l'identique.
+            * server action `logout`. C'était déjà le montage de l'ancien
+            * `admin-shell.tsx` (supprimé au Lot 7), repris à l'identique.
             */}
           <SidebarSection>
             <form action={logout}>
