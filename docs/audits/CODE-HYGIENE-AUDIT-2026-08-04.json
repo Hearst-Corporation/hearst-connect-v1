@@ -880,8 +880,9 @@
     "initialAnalysisNote": "Toutes les commandes (gates, build, knip, jscpd, graphe d imports, tokens, hachage assets) ont ete executees a ce SHA.",
     "revalidation": "8029d85c7cea76255caaeb0b18f307701840a950",
     "revalidationNote": "Constats re-verifies par grep/ls cibles a ce SHA lors de l audit ; les commandes completes n y ont PAS toutes ete rejouees a ce moment-la. Elles l ont ete au demarrage de HC-CODE-HYGIENE-CLEANUP-001 (baseline : 231 tests, 25 routes, knip 54 exports / 12 types, audit 6 vulns).",
-    "cleanup": "d47af1a",
+    "cleanup": "9a50936",
     "cleanupBranch": "cleanup/code-hygiene-safe-2026-08-04",
-    "cleanupReport": "docs/audits/CODE-HYGIENE-CLEANUP-001.md"
+    "cleanupReport": "docs/audits/CODE-HYGIENE-CLEANUP-001.md",
+    "cleanupNote": "SHA du dernier commit de CODE (LOT C). Les gates, build, couverture, knip, jscpd, audit et e2e ont ete mesures sur cet arbre ; les commits suivants ne touchent que docs/audits/."
   }
 }

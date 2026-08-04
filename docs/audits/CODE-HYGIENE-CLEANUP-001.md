@@ -10,7 +10,7 @@
 |---|---|---|
 | **Analyse initiale** | `6c5507f` | Audit complet : toutes les commandes (gates, build, knip, jscpd, graphe d'imports, tokens, hachage des assets) exécutées à ce SHA. |
 | **Revalidation** | `8029d85` | Les constats de l'audit y avaient été re-vérifiés par `grep`/`ls` ciblés, **mais les commandes complètes n'y avaient pas été rejouées**. C'est fait dans cette mission : baseline mesurée avant toute correction (§ Baseline). |
-| **Nettoyage** | `8029d85` → `d47af1a` | Branche `cleanup/code-hygiene-safe-2026-08-04`, worktree dédié `/Users/adrienbeyondcrypto/Desktop/hearst-connect-v1-cleanup`. |
+| **Nettoyage** | `8029d85` → `9a50936` (code) → `bb07f71`+ (rapports) | Branche `cleanup/code-hygiene-safe-2026-08-04`, worktree dédié `/Users/adrienbeyondcrypto/Desktop/hearst-connect-v1-cleanup`. |
 
 Le worktree de l'audit (`hearst-connect-v1-hygiene`) et celui de la mission
 produit (`Herst Connect V1`) n'ont **pas** été touchés.
@@ -35,7 +35,7 @@ mesurés sur `6c5507f`.
 
 ## Résultat global
 
-| Mesure | Avant (`8029d85`) | Après (`d47af1a`) |
+| Mesure | Avant (`8029d85`) | Après (`9a50936`) |
 |---|---|---|
 | Tests | 231 (24 fichiers) | **248 (26 fichiers)** |
 | knip — exports inutilisés | 54 | **27** |
@@ -297,7 +297,7 @@ fait échouer.
 
 ---
 
-## Validation finale (`d47af1a`)
+## Validation finale (sur `9a50936`, dernier commit de code)
 
 | Commande | Exit | Résultat |
 |---|---|---|
@@ -386,4 +386,4 @@ indices et des vulnérabilités préexistantes) ; ce ne sont pas des gates.
 | `ff886b2` | **LOT F** — self-test de la gate anti-mocks |
 | `b69d300` | **LOT G** — dépendances et scripts qualité |
 | `9a50936` | **LOT C** — formatters consolidés |
-| `d47af1a` | rapports et checklist mis à jour |
+| `bb07f71` | rapports et checklist mis à jour |
