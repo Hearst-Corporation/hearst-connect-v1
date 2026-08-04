@@ -26,21 +26,14 @@
   --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 
-  /* ── Product tokens (Hearst corporate scene) ─────────────────────────────── */
-  --color-brand-background: #020611;
-  --color-brand-surface: #000000;
-  --color-brand-surface-raised: #18183a;
-  --color-brand-foreground: #ffffff;
-  --color-brand-muted: #b2b2b2;
-  --color-brand-border: #191919;
-  --color-brand-accent: #a7fb90;
-  --color-brand-accent-foreground: #000000;
-
-  /* ── Neutral — zinc re-tinted Hearst navy ────────────────────────────────── */
-  --color-neutral-50: #f8fafc;
-  --color-neutral-400: #b2b2b2;
-  --color-neutral-600: #7f7f7f;
-  --color-neutral-800: #191919;
+  /*
+   * Retirées le 2026-08-04 (LOT E) : les familles `--color-brand-*` (8 tokens)
+   * et `--color-neutral-*` (4). Elles portaient l'ancien thème « or Hearst »
+   * et un doublon de la rampe zinc ; aucune n'avait de consommateur, et leurs
+   * valeurs étaient déjà déclarées ailleurs (#a7fb90 vivait sous quatre noms).
+   * L'accent unique est la rampe `--color-accent-*`, les surfaces sont
+   * `--color-console-*`, les états sont success/warning/danger.
+   */
 
   --color-zinc-50: #f8fafc;
   --color-zinc-100: #f1f5f9;
@@ -54,13 +47,13 @@
   --color-zinc-900: #0b0e17;
   --color-zinc-950: #020611;
 
-  /* ── Named surfaces ───────────────────────────────────────────────────────── */
-  --color-surface-page: #020611;
-  --color-surface-panel: #000000;
-  --color-surface-sunken: #0b0e17;
-  --color-surface-raised: #18183a;
-  --color-hairline: #191919;
-  --color-border-control: #758696;
+  /*
+   * Retirées le 2026-08-04 (LOT E) : la famille `--color-surface-*` (4 tokens),
+   * plus `--color-hairline` et `--color-border-control`. Aucun consommateur.
+   * Les surfaces nommées de la console sont `--color-console-app`,
+   * `--color-console-card`, `--color-console-card-top`, `--color-console-inset` ;
+   * les filets sont `--color-console-line*`.
+   */
 
   /* ── Console surfaces — the approved neutral-graphite system ───────────────
    * Source of truth: "Hearst Adapted Design System" (neutral-lighter variant).
@@ -154,14 +147,13 @@
   --color-danger-950: #2c0a0a;
   --color-danger-ink: #2c0a0a;
 
-  --color-info-50: #eff6ff;
-  --color-info-300: #93c5fd;
-  --color-info-400: #60a5fa;
-  --color-info-500: #0082f3;
-  --color-info-600: #2563eb;
-  --color-info-700: #1d4ed8;
-  --color-info-950: #0b1b33;
-  --color-info-ink: #0a1b33;
+  /*
+   * Retirée le 2026-08-04 (LOT E) : la famille `--color-info-*` (8 tokens).
+   * Aucun consommateur. La console n'a PAS de quatrième teinte : elle est
+   * graphite neutre + accent mint + trois tons sémantiques
+   * (success/warning/danger). Un badge « pour information » se rend en
+   * graphite, ce que fait déjà `TONE_CLASS.info` dans `truthful.tsx`.
+   */
 
   /* ── Charts — tokens de dataviz (doctrine §7.5) ────────────────────────────
    * Deux grammaires distinctes : les couleurs de SÉRIES (`--chart-1..5`, une
@@ -183,19 +175,23 @@
   --chart-axis: var(--color-zinc-500);
   --chart-tooltip-surface: var(--color-zinc-800);
 
-  /* ── Alias compatibilité ─────────────────────────────────────────────────── */
-  --color-cockpit-deep: #020611;
-  --color-cockpit-page: #020611;
-  --color-cockpit-card: #000000;
+  /*
+   * ── Alias compatibilité — presque tous retirés ───────────────────────────
+   *
+   * Retirés le 2026-08-04 (LOT E) : les 7 `--color-hearst-*` et 4 des 5
+   * `--color-cockpit-*`. Les `hearst-*` de statut étaient des doublons exacts
+   * des tons sémantiques (#34d399 = success-400, #fb923c = warning-400,
+   * #f87171 = danger-400) ; leurs derniers consommateurs, `truthful.tsx` et
+   * `surfaces.tsx`, ont convergé au LOT D2.
+   *
+   * `--color-cockpit-inset` SURVIT, et c'est délibéré : il vaut #0b0e17 quand
+   * `--color-console-inset` vaut #202020 — ce ne sont pas des alias l'un de
+   * l'autre. Les trois surfaces enfoncées de `truthful.tsx` vivent dans un
+   * panneau dont le dégradé descend à #030304 ; un enfoncé à #202020 y serait
+   * plus CLAIR que son conteneur. Unifier le plan enfoncé de la console est une
+   * décision de design system (elle change le rendu), pas un renommage.
+   */
   --color-cockpit-inset: #0b0e17;
-  --color-cockpit-raised: #18183a;
-  --color-hearst-accent: #a7fb90;
-  --color-hearst-accent-light: #c1fcb1;
-  --color-hearst-ink: #000000;
-  --color-hearst-ok: #34d399;
-  --color-hearst-warn: #fb923c;
-  --color-hearst-bad: #f87171;
-  --color-hearst-info: #0082f3;
 }
 
 /*
