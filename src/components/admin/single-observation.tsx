@@ -13,7 +13,7 @@ import clsx from 'clsx'
  * micro-bar that situates it without pretending to a scale — plus a sentence
  * saying in words that no trend is measurable yet. When a second, and
  * preferably a third, ordered observation arrives, the caller switches to a
- * real chart (`plottableAsChart` in `@/lib/chart-theme` is the test).
+ * real chart (`plottableAsChart` in `@/components/charts/core/chart-theme` is the test).
  *
  * The micro-bar is deliberately full-width-at-100%: with one point there is
  * no scale to compare against, so it encodes nothing but "a value exists".

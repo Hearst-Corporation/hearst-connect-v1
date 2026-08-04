@@ -1,6 +1,6 @@
 'use client'
 
-import { categoricalColor, chartHeight, chartTheme } from '@/lib/chart-theme'
+import { categoricalColor, chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 

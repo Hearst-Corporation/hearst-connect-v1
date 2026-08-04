@@ -1,7 +1,7 @@
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { ADMIN_NAV, ADMIN_SECONDARY, ADMIN_SECONDARY_FLAT, hrefActif } from '@/lib/admin-nav'
 import { pageMaxWidth } from '@/lib/layout-tokens'
-import { chartHeight, plottableAsChart } from '@/lib/chart-theme'
+import { chartHeight, plottableAsChart } from '@/components/charts/core/chart-theme'
 import { render } from '@testing-library/react'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'

@@ -13,7 +13,7 @@ import {
   YAxis,
   type BarShapeProps,
 } from 'recharts'
-import { chartHeight, chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { formatCurrency, formatNumber } from '@/lib/format'
 
 /**
