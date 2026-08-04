@@ -30,3 +30,5 @@ jobs:
         run: pnpm run check:mocks
       - name: Convergence Design System (check:ds — hex hors tokens)
         run: pnpm run check:ds
+      - name: Frontières UI (check:ui — compositions, charts, Catalyst)
+        run: pnpm run check:ui
