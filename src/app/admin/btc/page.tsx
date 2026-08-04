@@ -11,7 +11,7 @@ import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { plottableAsChart } from '@/lib/chart-theme'
 import { available, editorial, unavailable } from '@/lib/vaults/model'
-import { formatCurrency, formatDateTime } from '@/lib/format'
+import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
 import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
 import { publicUser } from '@/lib/session'
@@ -163,8 +163,7 @@ function montantNumerique(atomique: string | null | undefined): number | null {
 
 /** A share reads as a percentage, never as raw basis points. */
 function partLisible(bps: number | null | undefined): string {
-  if (bps === null || bps === undefined || !Number.isFinite(bps)) return '—'
-  return `${(bps / 100).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`
+  return formatPercent(bps, { fromBps: true, maximumFractionDigits: 2 })
 }
 
 /* ── Satoshis ────────────────────────────────────────────────────────────── */
@@ -419,12 +418,19 @@ function buildBitcoinViewModel(reponse: Btc | null): VueBitcoin {
   const exposition = b?.exposure?.value
   const produit = b?.btcProduced?.value
 
-  const sats = produit?.totalSats
-  const satsNombre = sats === null || sats === undefined ? null : Number(sats)
-  const bitcoinProduit =
-    satsNombre === null || !Number.isFinite(satsNombre)
-      ? '—'
-      : (satsNombre / 100_000_000).toLocaleString('en-US', { maximumFractionDigits: 8 })
+  /*
+   * Rendu inchangé (`formatNumber` applique le même `toLocaleString('en-US')`
+   * et le même repli « — » que le code local qu'il remplace).
+   *
+   * NB : ce site utilise la division flottante, alors que le reste du fichier
+   * convertit les satoshis sur la CHAÎNE (`btcExactDepuisSats`) pour ne pas
+   * dériver au 8e chiffre. Les deux ne diffèrent pas sur les valeurs observées,
+   * mais l'affichage n'est pas le même (`1` ici, `1.00000000` là) : basculer
+   * change ce que l'écran montre, ce qui relève d'un arbitrage produit et non
+   * d'une passe de propreté. Signalé, non tranché ici.
+   */
+  const satsNombre = btcNombreDepuisSats(produit?.totalSats)
+  const bitcoinProduit = formatNumber(satsNombre, { maximumFractionDigits: 8 })
 
   const montantReserve = montantNumerique(reserve?.balanceUsdc)
   const montantExposition = montantNumerique(exposition?.valueUsdc)

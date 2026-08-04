@@ -112,6 +112,13 @@ export function VendingCurveChart({ points }: Readonly<{ points: readonly PointC
             {points.map((p) => (
               <tr key={p.mois}>
                 <th scope="row">Month {p.mois}</th>
+                {/*
+                  Conservé en `toFixed(2)` : ce tableau affiche « 3.50 % »
+                  (décimales fixes, espace avant le signe), là où `formatPercent`
+                  rendrait « 3.5% ». Router vers le formatter central changerait
+                  ce que la table montre — hors périmètre d'une passe de
+                  propreté. À arbitrer avec la convergence UI.
+                */}
                 <td>{p.taux.toFixed(2)} %</td>
               </tr>
             ))}

@@ -8,6 +8,8 @@
  * `null` is not `0`. An absence is not a data point.
  */
 
+import { formatNumber } from '@/lib/format'
+
 export type ResolvedStatus =
   | 'LIVE'
   | 'STALE'
@@ -91,5 +93,5 @@ export function hasDisplayableValue<T>(r: Resolved<T>): r is Resolved<T> & { val
  * "—", regardless of the caller.
  */
 export function formatCount(value: number | null | undefined): string {
-  return typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('en-US') : '—'
+  return formatNumber(value)
 }

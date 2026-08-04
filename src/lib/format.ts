@@ -38,15 +38,15 @@ export function formatCompactNumber(value: number | null | undefined): string {
 }
 
 export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return 'unknown date'
+  if (!iso) return 'date inconnue'
   const t = Date.parse(iso)
-  return Number.isNaN(t) ? 'unknown date' : new Date(t).toLocaleDateString(LOCALE, { dateStyle: 'medium' })
+  return Number.isNaN(t) ? 'date inconnue' : new Date(t).toLocaleDateString(LOCALE, { dateStyle: 'medium' })
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return 'unknown date'
+  if (!iso) return 'date inconnue'
   const t = Date.parse(iso)
-  return Number.isNaN(t) ? 'unknown date' : new Date(t).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
+  return Number.isNaN(t) ? 'date inconnue' : new Date(t).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 export function formatRelativeTime(iso: string | null | undefined): string {
