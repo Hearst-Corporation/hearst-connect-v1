@@ -1,7 +1,7 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { DerivePochesChart, type DerivePoche } from '@/components/admin/derive-poches-chart'
 import { DistributionBarChart } from '@/components/admin/distribution-chart'
 import { AdminChartSplit, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
@@ -865,9 +865,9 @@ export default async function Page() {
   const runtimeStatus = runtime.ok ? (runtime.data.indexerStatus ?? runtime.data.indexer?.status ?? 'NOT_REPORTED') : 'UNAVAILABLE'
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect — poste de pilotage opérations"
-      rail={<GreenCommandRail currentHref="/admin/operations" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/operations" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse des opérations">
         <Panel className={gcc.metricCard}>
@@ -972,6 +972,6 @@ export default async function Page() {
           />
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

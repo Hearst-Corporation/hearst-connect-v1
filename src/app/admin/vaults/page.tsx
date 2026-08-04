@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { VaultDataTable } from '@/components/vaults/vault-data-table'
 import { VaultValueBreakdown } from '@/components/vaults/vault-value-breakdown'
 import { requireSession } from '@/lib/auth'
@@ -48,9 +48,9 @@ export default async function Page() {
     isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0 ? 'Revue en attente' : 'Aucune revue en attente'
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage registre des coffres Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="État du registre des coffres">
         <VaultMetric title="Coffres actifs" value={activeVaults} />
@@ -115,6 +115,6 @@ export default async function Page() {
           ))}
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

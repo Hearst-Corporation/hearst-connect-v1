@@ -1,7 +1,7 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
-import styles from './green-command-center.module.css'
+import styles from './console.module.css'
 import clsx from 'clsx'
 
 /**

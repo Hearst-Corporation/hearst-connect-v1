@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
@@ -163,9 +163,9 @@ export default async function Page() {
       : available(`${Math.round((served / surfaces.length) * 100)}%`, { provenance: 'live', asOf: null })
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect — poste de pilotage couverture des données"
-      rail={<GreenCommandRail currentHref="/admin/dashboard" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/dashboard" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse de la couverture">
         <Panel className={gcc.metricCard}>
@@ -311,6 +311,6 @@ export default async function Page() {
           </div>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

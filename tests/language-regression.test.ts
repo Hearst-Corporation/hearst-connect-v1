@@ -18,7 +18,8 @@ import { describe, expect, it } from 'vitest'
 const ROOT = resolve(import.meta.dirname, '..')
 const ADMIN_APP = join(ROOT, 'src/app/admin')
 const ADMIN_COMPONENTS = join(ROOT, 'src/components/admin')
-const GREEN_SHELL = join(ROOT, 'src/components/design-lab/green-command-center')
+const CONSOLE_LAYOUT = join(ROOT, 'src/components/layout')
+const ADMIN_HOME = join(ROOT, 'src/features/admin-home')
 const VAULT_COMPONENTS = join(ROOT, 'src/components/vaults')
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -30,7 +31,7 @@ function walk(dir: string, out: string[] = []): string[] {
   return out
 }
 
-const ADMIN_SOURCES = [...walk(ADMIN_APP), ...walk(ADMIN_COMPONENTS), ...walk(GREEN_SHELL), ...walk(VAULT_COMPONENTS)].map(
+const ADMIN_SOURCES = [...walk(ADMIN_APP), ...walk(ADMIN_COMPONENTS), ...walk(CONSOLE_LAYOUT), ...walk(ADMIN_HOME), ...walk(VAULT_COMPONENTS)].map(
   (file) => ({ path: relative(ROOT, file), code: readFileSync(file, 'utf8') }),
 )
 
@@ -57,7 +58,7 @@ describe('la console est en français', () => {
     // On retire les commentaires : un commentaire de code peut encore citer
     // l'ancien libellé (« la première version disait Sign out ») sans que ce
     // soit un texte rendu.
-    const rail = stripComments(readFileSync(join(GREEN_SHELL, 'green-command-rail.tsx'), 'utf8'))
+    const rail = stripComments(readFileSync(join(CONSOLE_LAYOUT, 'console-rail.tsx'), 'utf8'))
     // Les intitulés de destinations, en français.
     expect(rail).toMatch(/label: 'Accueil'/)
     expect(rail).toMatch(/label: 'Conformité'/)
@@ -150,7 +151,7 @@ describe('un seul H1 canonique par page', () => {
     // document pour les lecteurs d'écran. C'est une exception documentée.
     const H1_EXEMPTIONS = new Set([
       'src/components/admin/typography.tsx',
-      'src/components/design-lab/green-command-center/green-command-center-shell.tsx',
+      'src/components/layout/console-shell.tsx',
     ])
     const offenders = ADMIN_SOURCES.filter(
       ({ path, code }) => !H1_EXEMPTIONS.has(path) && /<h1[\s>]/.test(code),

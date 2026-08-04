@@ -9,13 +9,13 @@ import {
   unavailable,
 } from '@/lib/vaults/model'
 import { estateOverview } from '@/lib/vaults/overview'
-import { GreenCommandCenterShell, gcc } from './green-command-center-shell'
-import { GreenCommandRail } from './green-command-rail'
-import { GreenDecisionPanel, GreenMetricStrip, type MetricCell } from './green-metric-strip'
-import { GreenHeroChartPanel } from './green-hero-chart-panel'
-import { GreenSignalStack, type Signal } from './green-signal-stack'
-import { GreenWavePanel } from './green-wave-panel'
-import { GreenInfoGrid, GreenVaultPanel } from './green-activity-panel'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { GreenDecisionPanel, GreenMetricStrip, type MetricCell } from './metric-strip'
+import { GreenHeroChartPanel } from '@/components/charts/core/hero-chart-panel'
+import { GreenSignalStack, type Signal } from './signal-stack'
+import { GreenWavePanel } from './wave-panel'
+import { GreenInfoGrid, GreenVaultPanel } from './activity-panel'
 
 function parseCount(value: string): number {
   const digits = value.replaceAll(/[^0-9]/g, '')
@@ -151,9 +151,9 @@ export function GreenAdminHomeDashboard({
       : 'Aucune revue en attente'
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect green command center — administration home laboratory"
-      rail={<GreenCommandRail currentHref="/admin" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin" userName={user.name} userRole={user.role} />}
     >
       <GreenMetricStrip
         cells={cells}
@@ -185,6 +185,6 @@ export function GreenAdminHomeDashboard({
           estateValue={overview.totalValueLocked}
         />
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

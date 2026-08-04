@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Absent, Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Absent, Panel, Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { publicUser } from '@/lib/session'
@@ -81,9 +81,9 @@ export default async function Page() {
   const reachableVaults = mapAvailability(registry.vaults, (rows) => formatNumber(rows.length))
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect — poste de pilotage clients"
-      rail={<GreenCommandRail currentHref="/admin/clients" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/clients" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="État des clients">
         <ClientsMetric title="Annuaire des clients" value={clientDirectory} />
@@ -180,6 +180,6 @@ export default async function Page() {
           ))}
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

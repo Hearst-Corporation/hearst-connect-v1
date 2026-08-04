@@ -21,7 +21,7 @@ import {
   WrenchScrewdriverIcon,
 } from '@heroicons/react/20/solid'
 import { logout } from '@/lib/actions'
-import { gcc } from './primitives'
+import { gcc } from './console'
 
 /**
  * Le rail de navigation — porté par Catalyst, habillé à l'accent du plateau.
@@ -87,7 +87,7 @@ const SURFACES = [
   { href: '/admin/runtime', label: 'Exécution', icon: WrenchScrewdriverIcon },
 ] as const
 
-export function GreenCommandRail({
+export function ConsoleRail({
   /** Le href de la destination courante. Une chaîne franchit la frontière. */
   currentHref = '/admin',
   /**

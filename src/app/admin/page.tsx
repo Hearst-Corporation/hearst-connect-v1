@@ -1,4 +1,4 @@
-import { GreenAdminHomeDashboard } from '@/components/design-lab/green-command-center/green-admin-home-dashboard'
+import { GreenAdminHomeDashboard } from '@/features/admin-home/admin-home-dashboard'
 import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
 import { loadAdminRegistry } from '@/lib/vaults/registry'

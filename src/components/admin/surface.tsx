@@ -20,7 +20,7 @@ export const surfaceRaised =
  * Aucun appelant — les cinq modules qui importent ce fichier ne prennent que
  * `surfaceRaised` ou `RequirementList`. Attention en lisant l'historique : un
  * `Panel` homonyme et bien vivant existe dans
- * `components/design-lab/green-command-center/primitives.tsx` (une trentaine
+ * `components/layout/console.tsx` (une trentaine
  * d'importeurs) ; ce n'est pas celui-ci.
  */
 

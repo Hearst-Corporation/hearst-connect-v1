@@ -22,7 +22,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Absent, gcc, Panel } from './primitives'
+import { Absent, gcc, Panel } from '@/components/layout/console'
 type TrendTooltipPoint = Readonly<{ label: string; value: number; detail: string }>
 
 function TrendTooltip({

@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { AdminSurfaceTitle } from '@/components/admin/typography'
@@ -94,9 +94,9 @@ export default async function ApiExplorerPage() {
   const user = publicUser(session)
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage explorateur d’API Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé explorateur d’API">
         <Panel className={gcc.metricCard}><h2>Total des points d’accès</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
@@ -211,6 +211,6 @@ export default async function ApiExplorerPage() {
           <p className={gcc.cellText}>Les lectures en direct affichent le statut, la durée et l’identifiant de requête de la réponse du backend.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

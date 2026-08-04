@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Absent, Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Absent, Panel, Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { DATA_COVERAGE_ENTRY } from '@/lib/admin-nav'
 import { formatNumber } from '@/lib/format'
@@ -79,9 +79,9 @@ export default async function Page() {
   })
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect — poste de pilotage conformité"
-      rail={<GreenCommandRail currentHref="/admin/conformite" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/conformite" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="État de la conformité">
         <ComplianceMetric title="Source de la file" value={queueSource} />
@@ -186,6 +186,6 @@ export default async function Page() {
           ))}
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

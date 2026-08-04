@@ -1,4 +1,4 @@
-import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
+import { Absent, Panel, gcc } from '@/components/layout/console'
 import { VaultEntityLink } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { formatAddress, formatCurrency, formatDateTime, formatRelativeTime } from '@/lib/format'
