@@ -91,7 +91,14 @@ export async function EndpointSection({
           </p>
         </div>
         {result.ok ? (
-          <div className="shrink-0">
+          /*
+             `shrink-0` retiré : il empêchait ce bloc de se réduire, alors
+             qu'il porte un horodatage et un motif de longueur variable.
+             Mesuré sur /admin/mining : 462 px de contenu dans une colonne de
+             301 px, coupés par l'`overflow-x` d'un ancêtre — donc du texte
+             perdu, sans barre de défilement pour le retrouver. `min-w-0`
+             l'autorise à passer à la ligne. */
+          <div className="min-w-0">
             <EnvelopeMetaLine meta={result.meta} />
           </div>
         ) : null}

@@ -54,24 +54,28 @@ export const libelleMouvement = (nom: string): string => LIBELLE_MOUVEMENT[nom] 
 export const phraseMouvement = (nom: string): string => PHRASE_MOUVEMENT[nom] ?? libelleMouvement(nom)
 
 /**
- * The service's machine reason codes, in English.
+ * Les codes de motif du service, rendus en phrase lisible.
  *
- * An unknown reason renders `undefined`: better to say nothing than to leak
- * a technical code into a business console.
+ * La console est en français : cette table traduit, elle ne recopie pas. Les
+ * CLÉS restent les codes bruts du backend — ce sont des identifiants, pas du
+ * texte d'interface, et les changer casserait la correspondance.
+ *
+ * Un motif inconnu rend `undefined` : mieux vaut ne rien dire que laisser
+ * fuir un code technique dans une console métier.
  */
 const MOTIF_LISIBLE: Record<string, string> = {
-  no_investor_record: 'no investor record is attached to this account',
-  engine_not_initialised: 'the mining engine has not been initialized yet',
-  dynavault_not_deployed: 'this feature is not open yet',
-  // The contract is reachable but exposes no read for this data: it's a
-  // capability missing from the source, not a pending deployment.
-  not_exposed_by_contract: 'the contract exposes no read for this data',
-  no_custody_provider_integrated: 'no custody provider is integrated yet',
-  no_events_indexed: 'no movement has been indexed yet',
-  no_runs_recorded: 'no backtest has been run yet',
-  db_error: 'the database did not respond',
-  rpc_error: 'the chain did not respond',
-  not_available: 'the data is not available',
+  no_investor_record: 'aucun dossier investisseur n’est rattaché à ce compte',
+  engine_not_initialised: 'le moteur de minage n’a pas encore été initialisé',
+  dynavault_not_deployed: 'cette fonction n’est pas encore ouverte',
+  // Le contrat répond mais n'expose aucune lecture pour cette donnée : c'est
+  // une capacité absente de la source, pas un déploiement en attente.
+  not_exposed_by_contract: 'le contrat n’expose aucune lecture pour cette donnée',
+  no_custody_provider_integrated: 'aucun prestataire de conservation n’est intégré',
+  no_events_indexed: 'aucun mouvement n’a encore été indexé',
+  no_runs_recorded: 'aucun backtest n’a encore été exécuté',
+  db_error: 'la base de données n’a pas répondu',
+  rpc_error: 'la chaîne n’a pas répondu',
+  not_available: 'la donnée n’est pas disponible',
 }
 
 export function motifLisible(motif: string | null | undefined): string | undefined {

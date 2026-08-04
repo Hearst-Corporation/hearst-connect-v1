@@ -47,7 +47,7 @@ function SignalPanel({ signal, compact }: Readonly<{ signal: Signal; compact: bo
 
 export function GreenSignalStack({ signals }: Readonly<{ signals: readonly Signal[] }>) {
   return (
-    <aside className={gcc.rightStack} aria-label="Capital and source signals" data-gcc="right-stack">
+    <aside className={gcc.rightStack} aria-label="Signaux de capital et de sources" data-gcc="right-stack">
       {signals.map((signal, index) => (
         <SignalPanel key={signal.id} signal={signal} compact={index > 0} />
       ))}

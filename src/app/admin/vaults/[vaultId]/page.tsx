@@ -199,7 +199,7 @@ export default async function Page({ params }: PageProps) {
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Vault operations">
+      <section className={gcc.bottomRow} aria-label="Opérations du coffre">
         <RebalancingQueue rows={scopedRebalancing} />
         {ledgerIsEmptyForThisVault ? (
           <Panel tone="plain" className={gcc.wavePanel}>

@@ -90,8 +90,17 @@ describe('12-column grid', () => {
      * de mise en page délibérée et mesurée.
      */
     expect(grid?.className).toContain('grid-cols-4')
-    expect(grid?.className).toContain('md:grid-cols-8')
-    expect(grid?.className).toMatch(/\b(lg|xl):grid-cols-12\b/)
+    /*
+     * L'échelle est 4 / 8 / 12 — c'est ELLE le contrat, pas l'unité qui la
+     * déclenche. Les paliers sont passés de `md:`/`xl:` (viewport) à
+     * `@[34rem]:`/`@[60rem]:` (conteneur) : une grille imbriquée dans une
+     * colonne dont la largeur dépend du rail et de l'aside ne peut pas se
+     * régler sur la taille de la fenêtre. Mesuré avant correction : 12
+     * colonnes ouvertes dans un conteneur de 748 px, soit 37 px par piste.
+     */
+    expect(grid?.className).toMatch(/(md:|@\[[\d.]+rem\]:)grid-cols-8/)
+    expect(grid?.className).toMatch(/(lg:|xl:|@\[[\d.]+rem\]:)grid-cols-12/)
+    expect(grid?.className).toContain('@container')
   })
 
   it('emits literal span classes Tailwind can actually see', () => {
@@ -106,8 +115,8 @@ describe('12-column grid', () => {
     // Même règle : le span du palier haut suit la grille (`xl` depuis
     // HC-VISUAL-LAYOUT-RECOVERY-001). C'est la classe LITTÉRALE qui compte —
     // Tailwind ne voit pas une classe construite par concaténation.
-    expect(col?.className).toMatch(/\b(lg|xl):col-span-5\b/)
-    expect(col?.className).toContain('md:col-span-4')
+    expect(col?.className).toMatch(/(lg:|xl:|@\[[\d.]+rem\]:)col-span-5/)
+    expect(col?.className).toMatch(/(md:|@\[[\d.]+rem\]:)col-span-4/)
     expect(col?.className).toContain('col-span-2')
   })
 })

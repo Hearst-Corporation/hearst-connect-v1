@@ -1,4 +1,4 @@
-import { formatNumber } from '@/lib/format'
+import { formatDateTime, formatNumber } from '@/lib/format'
 import type { CallTrace, EnvelopeMeta, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
@@ -121,7 +121,10 @@ function FreshnessIndicator({
   if (!asOf && ageSeconds === null) return null
   return (
     <span className={clsx('text-xs', stale ? 'text-warning-400' : 'text-zinc-500')}>
-      {asOf ? `au ${asOf}` : null}
+      {/* `formatDateTime` et non l'ISO brut : « au 2026-08-04T04:28:48.914Z »
+          est un format machine, illisible dans une console métier — et long de
+          173 px, ce qui contribuait au débordement du bloc de métadonnées. */}
+      {asOf ? `au ${formatDateTime(asOf)}` : null}
       {typeof ageSeconds === 'number' ? ` · ${ageSeconds}s` : null}
       {stale ? ' · fraîcheur insuffisante' : null}
     </span>
