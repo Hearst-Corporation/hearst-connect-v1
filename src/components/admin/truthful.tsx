@@ -55,9 +55,9 @@ const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
  * that is what it means.
  */
 const TONE_CLASS: Record<BadgeTone, string> = {
-  ok: 'bg-hearst-ok/15 text-hearst-ok ring-hearst-ok/30',
-  warn: 'bg-hearst-warn/15 text-hearst-warn ring-hearst-warn/30',
-  bad: 'bg-hearst-bad/20 text-hearst-bad ring-hearst-bad/40',
+  ok: 'bg-success-400/15 text-success-400 ring-success-400/30',
+  warn: 'bg-warning-400/15 text-warning-400 ring-warning-400/30',
+  bad: 'bg-danger-400/20 text-danger-400 ring-danger-400/40',
   info: 'bg-white/5 text-zinc-300 ring-console-line-strong',
   neutral: 'bg-white/5 text-zinc-400 ring-console-line-strong',
 }
@@ -105,7 +105,7 @@ export function DataProvenance({
       className={clsx(
         className,
         'text-xs',
-        conspicuous ? 'font-medium text-hearst-warn' : 'text-zinc-500',
+        conspicuous ? 'font-medium text-warning-400' : 'text-zinc-500',
       )}
     >
       {[label, source].filter(Boolean).join(' · ')}
@@ -120,7 +120,7 @@ function FreshnessIndicator({
 }: Readonly<{ asOf?: string | null; ageSeconds?: number | null; stale?: boolean }>) {
   if (!asOf && ageSeconds === null) return null
   return (
-    <span className={clsx('text-xs', stale ? 'text-hearst-warn' : 'text-zinc-500')}>
+    <span className={clsx('text-xs', stale ? 'text-warning-400' : 'text-zinc-500')}>
       {asOf ? `au ${asOf}` : null}
       {typeof ageSeconds === 'number' ? ` · ${ageSeconds}s` : null}
       {stale ? ' · fraîcheur insuffisante' : null}
@@ -179,12 +179,33 @@ export function EnvelopeMetaLine({ meta }: Readonly<{ meta: EnvelopeMeta | null 
       <StatusBadge status={meta.status} />
       <DataProvenance source={meta.source} />
       <FreshnessIndicator asOf={meta.generatedAt} ageSeconds={meta.freshnessSeconds} />
-      {meta.reason ? <span className="text-xs text-hearst-warn">{meta.reason}</span> : null}
+      {meta.reason ? <span className="text-xs text-warning-400">{meta.reason}</span> : null}
     </div>
   )
 }
 
 /* ── No-data states ──────────────────────────────────────────────────────── */
+
+/*
+ * `bg-cockpit-inset` est CONSERVÉ ici, et ce n'est pas un oubli de convergence
+ * (décision du 2026-08-04, LOT E).
+ *
+ * La famille `cockpit-*` est marquée « alias compatibilité » dans
+ * `tailwind.css`, et la tentation est de la remplacer par `console-inset`. Les
+ * valeurs ne sont pas les mêmes : `--color-cockpit-inset` vaut #0b0e17,
+ * `--color-console-inset` vaut #202020.
+ *
+ * Ces trois surfaces enfoncées vivent à l'intérieur d'un `.panel` du module de
+ * la console, dont le dégradé descend jusqu'à #030304. Un enfoncé à #0b0e17 s'y
+ * creuse ; un enfoncé à #202020 serait PLUS CLAIR que son conteneur — il
+ * ressortirait au lieu de s'enfoncer, et l'état « pas de données » se lirait
+ * comme une carte mise en avant.
+ *
+ * Converger ces trois usages suppose donc d'arbitrer la valeur du plan enfoncé
+ * de la console, ce qui change le rendu : c'est une décision de design system,
+ * pas un renommage de token. Tant qu'elle n'est pas prise, `--color-cockpit-inset`
+ * reste consommé et ne figure pas dans les candidats à la suppression.
+ */
 
 function StateShell({
   status,
