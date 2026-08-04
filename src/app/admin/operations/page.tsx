@@ -3,7 +3,7 @@ import { MetricValue, Panel, PanelHeader, SideFact } from '@/components/composit
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
 import { Reading } from '@/components/layout/console'
-import { AdminChartSplit, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
+import { AdminChartSplit, AdminTableSplit } from '@/components/admin/grid'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminBody, AdminCaption, AdminSurfaceHeader } from '@/components/admin/typography'
 import {
@@ -772,10 +772,44 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
 
       {/* No panel around the tiles. Each `AdminMetric` carries its own ring
           and background now, so the surface that used to hold them was a
-          frame drawn inside a frame. Four measurements, four columns, no
-          orphan in the last row. */}
-      <div>
-        <AdminMetricGrid count={4}>
+          frame drawn inside a frame.
+
+          ── Pourquoi PAS `AdminMetricGrid count={4}` ici (UI-OPS-LAYOUT-001) ──
+          Ce panneau vit dans l'`aside` de la page, large de 250 à 290 px.
+          `AdminMetricGrid count={4}` applique `grid-cols-2 lg:grid-cols-4`, et
+          `lg:` réagit à la largeur du VIEWPORT, pas à celle du conteneur : sur
+          un écran de 1440 px, la grille passait donc à 4 colonnes dans une
+          boîte de 270 px. Chaque colonne recevait ~55 px, et « toutes les 15 s »
+          se rendait sur 13 px de large pour 384 px de haut — un caractère par
+          ligne. Mesuré avant correction ; voir
+          `docs/visual-reviews/HC-UI-OPS-LAYOUT-001/`.
+
+          La grille ci-dessous compte ses colonnes d'après la largeur de SON
+          CONTENEUR, via une container query (`@container`) : une colonne par
+          défaut, deux seulement à partir de 24rem de large. C'est la bonne
+          unité de mesure ici — le panneau ne sait pas quelle taille fait
+          l'écran, il sait quelle place on lui donne.
+
+          Pourquoi pas `auto-fit` + `minmax` seul : le plancher se compare au
+          conteneur de la GRILLE, pas à la colonne obtenue. Sous 768 px,
+          `.rightStack` passe à deux colonnes et le panneau tombe à 178 px ;
+          `auto-fit` y tenait encore deux pistes de ~72 px, et les libellés —
+          rendus en MAJUSCULES avec un interlettrage de 0.08em, donc
+          « SYNCHRONISATION » indivisible — dépassaient de 7 à 12 px. Mesuré,
+          pas supposé.
+
+          Aucun texte n'est abrégé : seule la disposition change. */}
+      <div className="@container">
+        {/*
+          `wrap-break-word` sur les tuiles, et pas `break-all`.
+          La différence est le contrat : `break-word` ne coupe un mot QUE s'il
+          ne peut tenir autrement, alors que `break-all` couperait n'importe
+          quel mot n'importe où et rendrait tous les libellés illisibles. Ici il
+          ne sert qu'à un cas, mesuré : dans la colonne la plus étroite (178 px
+          de panneau moins ses paddings = 104 px utiles), « SYNCHRONISATION »
+          demande 116 px. Sans lui, ce mot déborde de sa tuile.
+        */}
+        <div className="grid grid-cols-1 gap-4 wrap-break-word @[24rem]:grid-cols-2">
           <AdminMetric label="Dernière synchronisation" value={ilYA(derniereSynchro)} hint={dateLisible(derniereSynchro)} />
           <AdminMetric label="Dernier bloc indexé" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
           <AdminMetric label="Intervalle d’interrogation" value={cadenceLisible(planificateur?.intervalMs)} />
@@ -786,7 +820,7 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
             value={formatCount(planificateur?.consecutiveErrors)}
             hint={baseDonneesLisible(runtime.data.db?.reachable)}
           />
-        </AdminMetricGrid>
+        </div>
         <AdminCaption className="mt-3">{retardLisible(runtime.data.contract?.indexerLagBlocks)}</AdminCaption>
       </div>
     </>
