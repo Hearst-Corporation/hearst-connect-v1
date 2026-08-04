@@ -190,6 +190,20 @@ export function combine<A extends Availability<unknown>, B extends Availability<
  * The encoding is URL-safe and round-trips, because it is also the route
  * segment of `/admin/vaults/[vaultId]`.
  */
+/*
+ * Famille d'identifiants marqués (branded types) — CONSERVÉE EN ENTIER.
+ *
+ * `knip` signale `ClientId`, `DeploymentId`, `KeeperActionId`,
+ * `ComplianceReviewId` et `ClientRef` comme inutilisés ; c'est exact
+ * aujourd'hui, et ce n'est pas une raison de les retirer (décision du
+ * 2026-08-04, LOT B3). Ces sept identifiants forment une grammaire : chaque
+ * entité du domaine a le sien, et c'est ce qui empêche de passer un
+ * identifiant de coffre là où un identifiant de client est attendu. Retirer
+ * ceux dont l'entité n'a pas encore de surface UI laisserait une famille à
+ * trous, dans laquelle la prochaine entité branchée serait typée `string`
+ * faute de modèle à suivre. Le coût de conservation est nul (types effacés à
+ * la compilation).
+ */
 declare const vaultIdBrand: unique symbol
 export type VaultId = string & { readonly [vaultIdBrand]: true }
 
