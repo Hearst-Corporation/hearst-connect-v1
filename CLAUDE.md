@@ -35,27 +35,39 @@ les propriétaires et administrateurs d'espaces Hearst.
 
 ## Gates & tests
 
-- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:mocks` → `test`, en série (le
-  premier rouge arrête tout). Pas de build dans la gate (le build vit dans le déploiement).
-- **Aucune gate de design (décision du 2026-07-31).** Le design est libre : pas de vérificateur
-  de design system, pas de Storybook obligatoire, pas de captures ni de revue visuelle imposées,
-  aucune palette ni token imposé. Le kit Catalyst (`src/components/catalyst/`) reste un **outil
-  disponible**, jamais une obligation ; il n'est pas modifié quand on l'utilise. La gate
-  `check:catalyst` et son script ont été supprimés à cette date.
+- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:mocks` → `check:ds` → `test`, en
+  série (le premier rouge arrête tout). Pas de build dans la gate (le build vit dans le
+  déploiement).
+- **Pas de gate de design *imposée* (décision du 2026-07-31).** Pas de Storybook obligatoire,
+  pas de captures ni de revue visuelle imposées, aucune bibliothèque de composants imposée. Le
+  kit Catalyst (`src/components/catalyst/`) reste un **outil disponible**, jamais une
+  obligation ; il n'est pas modifié quand on l'utilise. La gate `check:catalyst` et son script
+  ont été supprimés à cette date.
+  **Nuance ajoutée depuis (UI-04, 2026-08-03) :** une gate de *convergence des couleurs*
+  existe bel et bien, `check:ds` (`scripts/check-design-system.mjs`), et elle est bloquante en
+  CI. Elle n'impose pas un design : elle interdit un hexadécimal brut hors `var(--token, #repli)`
+  dans les routes et modules métier, pour qu'une couleur passe toujours par un token.
 - Ce que chaque étape garantit :
   - `typecheck` (`tsc --noEmit`) — TypeScript strict, aucune erreur de type.
   - `lint` (`eslint`) — `src/components/catalyst/**` volontairement ignoré.
   - **`check:mocks` (`scripts/check-no-mocks.mjs`) — gate anti-données-simulées, garantie
-    centrale du produit.** 5 règles sur le runtime (`src/app`, `components`, `features`, `hooks`,
+    centrale du produit.** 7 règles sur le runtime (`src/app`, `components`, `features`, `hooks`,
     `lib`, `services` ; les tests sont exclus, commentaires et littéraux retirés avant analyse) :
     `RANDOM` (pas de `Math.random()` — une valeur affichée ne se tire pas au sort) · `FAKER`
     (pas de dépendance faker) · `IMPORT_FROM_TESTS` (un fichier runtime n'importe pas une fixture
     / un jeu de démo) · `DECLARED_FIXTURE` (pas de `const mockData` / `demoData` / `chartData`…)
     · **`NULL_TO_ZERO`** (pas de `?? 0` ni `|| 0` : une valeur absente ne vaut pas zéro — passer
-    par `formatCount` ou afficher « — »). Si tu es tenté de contourner une de ces règles, c'est
-    presque toujours le code qu'il faut corriger, pas la gate.
-  - `test` (`vitest run`) — suite dans `tests/` (14 fichiers au 2026-07-28), dont
-    `truthful-rendering`, `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`.
+    par `formatCount` ou afficher « — »). Deux règles supplémentaires ajoutées au Lot 3 :
+    **`FORCED_AVAILABLE`** (pas d'objet `Availability` construit à la main en `available/manual`
+    — cause racine des P0 de véracité, cf. VER-10) · **`COUNT_FROM_EMPTY_FALLBACK`** (pas de
+    `?? [].length` : une source absente ne devient pas « 0 mesuré »). Si tu es tenté de
+    contourner une de ces règles, c'est presque toujours le code qu'il faut corriger, pas la gate.
+  - `check:ds` (`scripts/check-design-system.mjs`) — aucun hexadécimal brut hors token dans
+    `src/app`, `components/admin`, `components/vaults`, `components/marketing`. Sa propre preuve :
+    `node scripts/check-design-system.mjs --selftest`.
+  - `test` (`vitest run`) — suite dans `tests/` (24 fichiers / 231 tests, mesuré au 2026-08-04),
+    dont `truthful-rendering`, `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`,
+    `veracity-p0`, `language-regression`.
 - En complément de la gate, avant livraison : parcours réel (connexion → dashboard → déconnexion).
 
 ## Secrets
@@ -86,4 +98,7 @@ les propriétaires et administrateurs d'espaces Hearst.
 ## Git
 
 - Racine git réelle : ce dossier. Remote : `Hearst-Corporation/hearst-connect-v1`.
-- Worktrees déclarés : aucun au 2026-07-27.
+- Worktrees : plusieurs sont utilisés pour faire travailler des missions en parallèle sans
+  qu'elles se marchent dessus (au 2026-08-04 : le dossier principal, plus des worktrees de
+  sandbox, d'audit et de nettoyage). Vérifier l'état réel avec `git worktree list` avant
+  d'intervenir — ne jamais écrire dans le worktree d'une autre mission.

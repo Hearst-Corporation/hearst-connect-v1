@@ -33,10 +33,16 @@ primitive générique, vérifier ce catalogue.
 | `badge` | 1 |
 | `auth-layout` | 1 (écran de connexion) |
 
+### Consommés à l'intérieur du kit (pas par le produit)
+`link` (importé par 8 composants du kit : `button`, `badge`, `avatar`, `table`,
+`text`, `sidebar`, `navbar`, `dropdown`) et `navbar` (importé par
+`sidebar-layout` et `stacked-layout`). Ils ne sont donc **pas** inutilisés :
+les retirer casserait le kit. Knip ne les signale d'ailleurs pas.
+
 ### Vendorés mais non importés (conservés)
 `textarea`, `switch`, `stacked-layout`, `sidebar-layout`, `select`, `radio`,
-`pagination`, `navbar`, `listbox`, `link`, `dropdown`, `divider`, `dialog`,
-`description-list`, `combobox`, `checkbox`, `avatar`, `alert`.
+`pagination`, `listbox`, `dropdown`, `divider`, `dialog`,
+`description-list`, `combobox`, `checkbox`, `avatar`, `alert` — **16 fichiers**.
 
 Ces primitives restent disponibles : elles sont la réserve du kit pour les
 surfaces à venir (formulaires keeper, dialogues de confirmation, pagination des
@@ -56,8 +62,10 @@ Le kit n'est jamais réécrit ; il est **habillé** depuis l'extérieur :
 
 ## Dette connue
 
-- 18 primitives vendorées non encore utilisées — inventaire ci-dessus, à
-  mobiliser au lieu de recréer une primitive générique.
+- 16 primitives vendorées non encore utilisées — inventaire ci-dessus, à
+  mobiliser au lieu de recréer une primitive générique. (Corrigé le 2026-08-04 :
+  ce compte annonçait 18 en incluant `link` et `navbar`, qui sont en réalité
+  consommés à l'intérieur du kit.)
 - La consolidation des **compositions Hearst Connect** (PageShell, KpiRow,
   ChartPanel…) et la centralisation complète des **tokens** relèvent du Design
   System (doctrine `HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md`) et restent à

@@ -1,5 +1,26 @@
 # Remédiation audit 2026-08-03 — liste d'exécution
 
+> ## ⚠️ DOCUMENT HISTORIQUE — ne pas lire comme l'état courant
+>
+> | | |
+> |---|---|
+> | **Statut** | HISTORIQUE — figé à sa date de rédaction |
+> | **SHA de rédaction** | départ `4b49dbc`, dernières entrées jusqu'à `6de5275` et suivants |
+> | **Date** | 2026-08-03 |
+> | **Source canonique de l'état actuel** | `CLAUDE.md` (contrat de travail) · `README.md` (stack et commandes) · `docs/design-system/DESIGN-SYSTEM-NOTES.md` (design system) · `docs/audits/` (propreté) |
+>
+> **Rectificatif du 2026-08-04** — deux affirmations de ce document sont périmées ;
+> elles sont laissées telles quelles ci-dessous parce que c'est une trace de mission,
+> pas une documentation courante :
+>
+> 1. **Lot 4/5** affirme que `HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md`
+>    « n'est pas présent dans le dépôt ». **Il l'est** depuis le commit `6c5507f` :
+>    `docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md` (713 lignes).
+>    La condition qui bloquait les lots 4/5 est donc **levée**.
+> 2. **LANGUE PRODUIT (FR)** est marqué « BLOQUÉ (décision requise) ». La migration a
+>    été **livrée** par le commit `8029d85` (HC-CONSOLE-FR-001), avec inversion de
+>    `tests/language-regression.test.ts`, qui impose désormais le français.
+>
 > Backlog validé (audit Luc, SHA `4b49dbc`). Ceci n'est PAS un nouvel audit :
 > suivi d'implémentation uniquement. Les identifiants et gravités de l'audit
 > sont conservés tels quels. Vérification ponctuelle autorisée avant correction
