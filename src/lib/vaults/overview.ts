@@ -37,7 +37,6 @@ const BPS = BigInt(10000)
 
 /** The overview reads a short ledger window; the operations log owns the long one. */
 export const MOVEMENT_WINDOW = 12
-const MOVEMENT_ROWS = 8
 
 /* ── Denomination and totals ──────────────────────────────────────────────── */
 
