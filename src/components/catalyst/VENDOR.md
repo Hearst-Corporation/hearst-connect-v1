@@ -53,7 +53,7 @@ produit (kit vendoré intact), pas réintroduites.
 ## Adaptations / habillage
 
 Le kit n'est jamais réécrit ; il est **habillé** depuis l'extérieur :
-- Le green command center (`src/components/design-lab/green-command-center/`)
+- La console (`src/components/layout/`, `src/features/admin-home/`)
   enveloppe `Sidebar`, `Badge`, `Text`, `Heading`, `Table` et ne touche qu'à la
   **matière** (fond, accent, densité) via son module CSS et un contexte `.dark`.
   Le comportement (survol, focus, cible tactile, page courante) reste celui du kit.

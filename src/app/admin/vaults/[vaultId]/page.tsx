@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { ClientExceptionTable } from '@/components/vaults/client-exception-table'
 import { DeploymentQueue } from '@/components/vaults/deployment-queue'
 import { MovementLedger } from '@/components/vaults/movement-ledger'
@@ -124,9 +124,9 @@ export default async function Page({ params }: PageProps) {
       : 'Aucune revue en attente'
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage détail du coffre Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="État du détail du coffre">
         <Panel className={gcc.metricCard}>
@@ -234,6 +234,6 @@ export default async function Page({ params }: PageProps) {
           </Panel>
         </div>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

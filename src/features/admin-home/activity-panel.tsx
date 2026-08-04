@@ -3,7 +3,7 @@ import { libelleMouvement } from '@/lib/mouvements'
 import { isAvailable, type Availability, type ClientException, type ClientIssue, type Movement } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
 import { Text, Strong } from '@/components/catalyst/text'
-import { Absent, gcc, Panel } from './primitives'
+import { Absent, gcc, Panel } from '@/components/layout/console'
 
 /**
  * Présentation FR du type d'anomalie client. On ne rend plus l'identifiant

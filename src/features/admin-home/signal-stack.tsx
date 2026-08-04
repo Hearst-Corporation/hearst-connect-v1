@@ -1,7 +1,7 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
 import { Strong } from '@/components/catalyst/text'
-import { Absent, gcc, Panel } from './primitives'
+import { Absent, gcc, Panel } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**

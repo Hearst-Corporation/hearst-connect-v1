@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
 import { AdminMetric } from '@/components/admin/surfaces'
 import { requireSession } from '@/lib/auth'
@@ -167,9 +167,9 @@ export default async function Page() {
   const last = mouvements?.[0]?.occurredAt ?? null
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage series 1 Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé Series 1">
         <Panel className={gcc.metricCard}>
@@ -243,7 +243,7 @@ export default async function Page() {
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état au niveau des points d’accès.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }
 

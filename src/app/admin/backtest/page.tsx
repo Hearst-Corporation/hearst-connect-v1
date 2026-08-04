@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
@@ -172,9 +172,9 @@ export default async function Page() {
   }
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage backtests Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé backtest">
         <Panel className={gcc.metricCard}>
@@ -236,6 +236,6 @@ export default async function Page() {
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état de préparation des points d’accès.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

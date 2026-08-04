@@ -1,7 +1,7 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
@@ -215,9 +215,9 @@ export default async function Page() {
     factsheet.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect — poste de pilotage produit consolidé"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse produit consolidée">
         <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={hashrate ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh))) : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })} className={gcc.metricValue} /></div></Panel>
@@ -357,6 +357,6 @@ export default async function Page() {
           <p className={gcc.cellText}>Attribution, paliers de prise de profit et télémétrie restent explicites lorsqu’ils ne sont pas exposés.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

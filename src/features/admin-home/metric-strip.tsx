@@ -1,6 +1,6 @@
 import { isAvailable, signalOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
-import { Absent, gcc, Panel } from './primitives'
+import { Absent, gcc, Panel } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**

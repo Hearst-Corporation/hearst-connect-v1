@@ -17,7 +17,6 @@ const ADMIN_ROUTES = [
   '/admin/vaults',
   '/admin/operations',
   '/admin/api-explorer',
-  '/design-lab/admin-home-green',
 ]
 
 /** Reads dev credentials from .env.local without ever printing them. */

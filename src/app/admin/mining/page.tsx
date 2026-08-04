@@ -1,8 +1,8 @@
 import { MiningProductionChart, type MoisProduit } from '@/components/admin/charts/mining-production-chart'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { SingleObservation } from '@/components/admin/single-observation'
@@ -687,9 +687,9 @@ export default async function Page() {
     : unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE', reason: 'events_source_unreachable' })
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage minage Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé minage">
         <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={miningFigure(hashrateValue)} className={gcc.metricValue} /></div></Panel>
@@ -748,6 +748,6 @@ export default async function Page() {
           <p className={gcc.cellText}>Les métriques de minage on-chain et les lignes d’électricité restent liées dans les sections de la page.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

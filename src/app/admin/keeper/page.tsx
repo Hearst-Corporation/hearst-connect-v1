@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { StatusBadge } from '@/components/admin/truthful'
@@ -97,9 +97,9 @@ export default async function KeeperPage() {
   const actionMd = actionSpan === 12 ? (8 as const) : (4 as const)
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage keeper Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé keeper">
         <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(keeperEndpoints.length))} className={gcc.metricValue} /></div></Panel>
@@ -211,6 +211,6 @@ export default async function KeeperPage() {
           <p className={gcc.cellText}>N’utilisez Keeper que pour des requêtes d’écriture intentionnelles vers le backend.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

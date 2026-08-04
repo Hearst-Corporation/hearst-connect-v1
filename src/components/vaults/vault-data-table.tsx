@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import clsx from 'clsx'
 
-import { Absent, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
+import { Absent, Panel, gcc } from '@/components/layout/console'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'

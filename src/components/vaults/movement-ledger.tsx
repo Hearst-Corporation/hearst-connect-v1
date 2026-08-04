@@ -1,4 +1,4 @@
-import { Absent as Missing, Panel, gcc } from '@/components/design-lab/green-command-center/primitives'
+import { Absent as Missing, Panel, gcc } from '@/components/layout/console'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { explorerTxUrl } from '@/lib/explorer'
 import { formatAddress, formatCurrency, formatDateTime, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'

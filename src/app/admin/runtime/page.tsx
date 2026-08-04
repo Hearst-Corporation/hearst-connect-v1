@@ -1,7 +1,7 @@
 import { EndpointSection } from '@/components/admin/endpoint-section'
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import {
   AdminMetric,
@@ -190,9 +190,9 @@ export default async function RuntimePage() {
   })
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage exécution Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/runtime" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/runtime" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé de l’exécution">
         <Panel className={gcc.metricCard}><h2>Santé</h2><div className={gcc.metricText}><Reading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
@@ -314,6 +314,6 @@ export default async function RuntimePage() {
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état des surfaces au niveau des points d’accès.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

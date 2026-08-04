@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Absent, gcc, Panel } from './primitives'
+import { Absent, gcc, Panel } from '@/components/layout/console'
 
 /**
  * Les types de mouvement — en TABLE, plus en vague.

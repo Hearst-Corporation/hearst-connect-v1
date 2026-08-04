@@ -1,8 +1,8 @@
 import { AllocationChart, type PocheAllocation } from '@/components/admin/allocation-chart'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { VendingCurveChart, type PointCourbe } from '@/components/admin/product-charts'
@@ -249,9 +249,9 @@ export default async function Page() {
   const figure = (value: string): Availability<string> => (response.ok ? editorial(value) : factsheetUnreadable)
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Hearst Connect — poste de pilotage produit"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse du produit">
         <Panel className={gcc.metricCard}>
@@ -487,6 +487,6 @@ export default async function Page() {
           <p className={gcc.cellText}>{f === null ? 'Source de la fiche produit indisponible.' : 'Source de la fiche produit joignable.'}</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }

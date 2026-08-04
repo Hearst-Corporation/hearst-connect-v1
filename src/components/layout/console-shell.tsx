@@ -1,4 +1,4 @@
-import { gcc } from './primitives'
+import { gcc } from './console'
 
 /**
  * The full-screen shell.
@@ -23,7 +23,7 @@ import { gcc } from './primitives'
  * `/admin`, donc hors de ce div : il doit déclarer son propre contexte sombre.
  * `contents` fait que le div ne crée aucune boîte — il ne porte que la classe.
  */
-export function GreenCommandCenterShell({
+export function ConsoleShell({
   rail,
   children,
   label,

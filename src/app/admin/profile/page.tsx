@@ -1,6 +1,6 @@
-import { GreenCommandCenterShell, gcc } from '@/components/design-lab/green-command-center/green-command-center-shell'
-import { GreenCommandRail } from '@/components/design-lab/green-command-center/green-command-rail'
-import { Panel, Reading } from '@/components/design-lab/green-command-center/primitives'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { Panel, Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
@@ -141,9 +141,9 @@ export default async function Page() {
   const investorState = identite === null || identite === undefined ? 'Aucun dossier investisseur' : 'Dossier investisseur présent'
 
   return (
-    <GreenCommandCenterShell
+    <ConsoleShell
       label="Poste de pilotage profil Hearst Connect"
-      rail={<GreenCommandRail currentHref="/admin/administration" userName={railUserName} userRole={railUserRole} />}
+      rail={<ConsoleRail currentHref="/admin/administration" userName={railUserName} userRole={railUserRole} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé du profil">
         <Panel className={gcc.metricCard}><h2>Session</h2><div className={gcc.metricText}><Reading value={editorial(sessionState)} className={gcc.metricValue} /></div></Panel>
@@ -219,7 +219,7 @@ export default async function Page() {
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour les raisons d’état au niveau des points d’accès.</p>
         </Panel>
       </section>
-    </GreenCommandCenterShell>
+    </ConsoleShell>
   )
 }
 
