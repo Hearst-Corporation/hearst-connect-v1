@@ -62,16 +62,16 @@ export const chartTheme = {
   dataSeries: {
     brandPrimary: 'var(--color-accent-400)',
     brandSecondary: 'var(--color-accent-700)',
-    dataReference: 'var(--color-zinc-500)',
+    dataReference: 'var(--chart-neutral, var(--color-zinc-500))',
     neutralSurface: 'var(--color-zinc-800)',
     neutralRaised: 'var(--color-zinc-700)',
   },
 
   /** Reserved for meaning. Using one of these is a claim about state. */
   semantic: {
-    positive: 'var(--color-success-400)',
-    warning: 'var(--color-warning-400)',
-    critical: 'var(--color-danger-400)',
+    positive: 'var(--chart-positive, var(--color-success-400))',
+    warning: 'var(--chart-warning, var(--color-warning-400))',
+    critical: 'var(--chart-negative, var(--color-danger-400))',
   },
 
   /**
@@ -84,12 +84,12 @@ export const chartTheme = {
     primary: 'var(--color-accent-400)',
     primaryFill: 'var(--color-accent-400)',
     secondary: 'var(--color-accent-700)',
-    reference: 'var(--color-zinc-500)',
+    reference: 'var(--chart-neutral, var(--color-zinc-500))',
     tertiary: 'var(--color-zinc-600)',
     ghost: 'var(--color-zinc-700)',
-    positive: 'var(--color-success-400)',
-    warning: 'var(--color-warning-400)',
-    negative: 'var(--color-danger-400)',
+    positive: 'var(--chart-positive, var(--color-success-400))',
+    warning: 'var(--chart-warning, var(--color-warning-400))',
+    negative: 'var(--chart-negative, var(--color-danger-400))',
   },
 } as const
 
