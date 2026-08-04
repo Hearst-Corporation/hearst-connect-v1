@@ -1,0 +1,460 @@
+{
+  "mission": "HC-UI-CONVERGENCE-001",
+  "generatedAt": "2026-08-04",
+  "startSha": "b45e132",
+  "headSha": "252792e9473bf23991ec37b9a673252c48c823c8",
+  "purpose": "Liste destinée au LOT E. Elle ne contient que des CANDIDATS : aucun token n'a été supprimé, renommé ni fusionné par cette mission (§10 de la mission l'interdit).",
+  "method": {
+    "declaredTokens": 112,
+    "detection": "Trois formes testées pour chaque token : var(--token) dans CSS/TS/TSX, utilitaire Tailwind dérivé du nom (bg-/text-/ring-/border-/fill-/stroke-/from-/to-/via-/shadow-/outline-/decoration-/accent-/caret-/divide-/placeholder-), et chaîne littérale du nom de token pour un accès JS dynamique.",
+    "independentSecondProof": "Pour chaque candidat, le nombre de consommateurs au SHA de départ b45e132 est recalculé par `git grep` sur l'arbre d'origine — ce qui distingue « déjà mort avant » de « devenu mort par la convergence »."
+  },
+  "summary": {
+    "tokensWithoutConsumerAfterConvergence": 62,
+    "alreadyDeadBeforeConvergence": 62,
+    "becameDeadByConvergence": 0,
+    "finding": "La convergence UI n'a rendu AUCUN token orphelin. Les 62 candidats l'étaient déjà avant la mission : ils viennent de l'audit de propreté (familles brand-*, info-*, surface-*, et paliers de rampes inutilisés), pas du travail de convergence."
+  },
+  "warningForLotE": [
+    "Ne pas supprimer ces tokens sans traiter d'abord src/components/admin/truthful.tsx et src/components/admin/surfaces.tsx : ils consomment encore les familles hearst-*, cockpit-* et neutral-*, qui NE figurent donc pas dans cette liste.",
+    "check:ds n'interdit que les hexadécimaux bruts : un utilitaire Tailwind pointant vers un token supprimé ne ferait rougir AUCUNE gate, mais casserait le rendu.",
+    "Les tokens --chart-positive/negative/warning/neutral sont à BRANCHER (doctrine §7.5), pas à supprimer : chart-theme.ts référence encore les couleurs directement.",
+    "Une classe construite par concaténation échapperait aux trois formes testées. Aucune n'a été trouvée, mais l'absence de preuve n'est pas une preuve."
+  ],
+  "candidates": [
+    {
+      "token": "--chart-negative",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--chart-neutral",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--chart-positive",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--chart-warning",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-accent-100",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-accent-200",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-accent-800",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-accent-950",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-accent-soft",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-border-control",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-accent",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-accent-foreground",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-background",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-border",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-foreground",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-muted",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-surface",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-brand-surface-raised",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-cockpit-card",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-cockpit-deep",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-cockpit-page",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-cockpit-raised",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-console-card-top",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-console-section",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-console-shell",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-danger-300",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-danger-50",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-danger-600",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-danger-950",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-danger-ink",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-hairline",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-hearst-accent",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-hearst-accent-light",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-hearst-info",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-hearst-ink",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-300",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-400",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-50",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-500",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-600",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-700",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-950",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-info-ink",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-neutral-400",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-neutral-50",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-neutral-800",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-success-300",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-success-50",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-success-600",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-success-700",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-success-950",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-success-ink",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-surface-page",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-surface-panel",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-surface-raised",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-surface-sunken",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-warning-50",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-warning-950",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--color-warning-ink",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--font-display",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--font-mono",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    },
+    {
+      "token": "--font-sans",
+      "deadBeforeConvergence": true,
+      "consumersAtB45e132": 0,
+      "consumersAfter": 0,
+      "becameDeadByConvergence": false
+    }
+  ]
+}
