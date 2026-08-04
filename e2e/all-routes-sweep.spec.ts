@@ -121,7 +121,28 @@ async function mesurer(page: Page, ratioMax: number) {
         })
       }
       const e = el as HTMLElement
-      if (e.scrollWidth > e.clientWidth + 1 && cs.overflowX !== 'auto' && cs.overflowX !== 'scroll') {
+      /*
+       * Deux familles de faux positifs, écartées après relevé manuel :
+       *
+       *  · `sr-only` — clientWidth de 1 px par construction. Le contenu N'EST
+       *    PAS perdu : il est destiné aux lecteurs d'écran, pas à l'œil.
+       *  · `truncate` — l'ellipse est ici une décision de design, pas un
+       *    accident : l'adresse d'un coffre est abrégée à l'écran et reste
+       *    entière dans `title`. La signaler reviendrait à demander la
+       *    correction d'un choix délibéré.
+       *
+       * Ce qui reste est une vraie coupure : du texte qu'on voulait lisible et
+       * que la mise en page a rogné.
+       */
+      const srOnly = e.clientWidth <= 1 || e.clientHeight <= 1
+      const ellipseVoulue = cs.textOverflow === 'ellipsis'
+      if (
+        e.scrollWidth > e.clientWidth + 1 &&
+        cs.overflowX !== 'auto' &&
+        cs.overflowX !== 'scroll' &&
+        !srOnly &&
+        !ellipseVoulue
+      ) {
         tronques.push({ texte: texte.slice(0, 44), client: e.clientWidth, scroll: e.scrollWidth })
       }
     }

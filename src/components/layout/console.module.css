@@ -342,8 +342,25 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  align-items: flex-start;
+  /*
+   * `align-items: flex-start` était ici pour que le badge ne s'étire pas sur
+   * toute la largeur. Sur un conteneur en COLONNE, cette règle contraint
+   * chaque enfant à sa largeur de contenu minimale — pour la route, la plus
+   * longue « chaîne insécable », soit un caractère puisqu'elle porte
+   * `overflow-wrap: anywhere`. Mesuré sur /admin/vaults/[vaultId] en tablette :
+   * « /api/v1/deployments · no_deployment_ledger_endpoint » rendu sur 51 px de
+   * large et 192 px de haut (ratio 3,76), une colonne de lettres.
+   *
+   * `stretch` (le défaut) rend la largeur au texte ; le badge, lui, garde la
+   * sienne via `align-self` ci-dessous.
+   */
+  align-items: stretch;
   min-width: 0;
+}
+
+/* Le badge ne s'étire pas : c'est une pastille, pas une bannière. */
+.absentBlock > :first-child {
+  align-self: flex-start;
 }
 
 .healthText {

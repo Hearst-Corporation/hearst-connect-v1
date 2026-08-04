@@ -185,9 +185,9 @@ function PendingActionCell({ vault }: Readonly<{ vault: Vault }>) {
   const breaches = valueOf(requiresRebalancing(vault))
   if (breaches === null) return <Absent availability={vault.worstDriftBps} showRoute={false} />
   if (breaches) {
-    return <VaultEntityLink kind="keeper" id={vault.id} label="Review in Keeper" className="relative z-10" />
+    return <VaultEntityLink kind="keeper" id={vault.id} label="Traiter dans Keeper" className="relative z-10" />
   }
-  return <span className="text-zinc-500 dark:text-zinc-500">None</span>
+  return <span className="text-zinc-500 dark:text-zinc-500">Aucune</span>
 }
 
 /* ── Table ────────────────────────────────────────────────────────────────── */
@@ -229,8 +229,8 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
       <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
         <table className="w-full min-w-[980px] table-fixed text-left text-sm">
           <caption className="sr-only">
-            Vaults, their client, status, value, deployed and idle capital, strategies, allocation drift, last
-            rebalance and pending action.
+            Coffres, leur client, leur état, leur valeur, le capital déployé et disponible, les stratégies, l’écart
+            d’allocation, le dernier rééquilibrage et l’action en attente.
           </caption>
           <thead>
             <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
@@ -261,7 +261,15 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
               <th scope="col" className={HEAD_CELL}>
                 Dernier rééquilibrage
               </th>
-              <th scope="col" className={clsx(HEAD_CELL)}>
+              {/*
+                `table-fixed` répartit les dix colonnes à égalité : 98 px
+                chacune, soit 66 px utiles une fois le padding retiré. La
+                dernière porte le contenu le plus long (« Inspecter le coffre »,
+                114 px) et le tronquait sur les quatre viewports. Une largeur
+                explicite ici suffit — les autres colonnes se repartagent le
+                reste, et la table garde son défilement horizontal.
+              */}
+              <th scope="col" className={clsx(HEAD_CELL, 'w-[9.5rem]')}>
                 Action en attente
               </th>
             </tr>
