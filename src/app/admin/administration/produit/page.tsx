@@ -1,7 +1,8 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
+import { MetricValue, Panel } from '@/components/compositions'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
@@ -21,24 +22,6 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Vue produit consolidée' }
 export const dynamic = 'force-dynamic'
-
-
-function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
-}
-
-function HeroFigure({
-  valeur,
-  libelle,
-  unite,
-}: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
-  return (
-    <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
-    </div>
-  )
-}
 
 /**
  * Consolidated product view — one surface for six former pages.
@@ -220,12 +203,12 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse produit consolidée">
-        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={hashrate ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh))) : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={bitcoinProduit === null ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' }) : btcFigure(bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Répartition de la réserve</h2><div className={gcc.metricText}><Reading value={reserveSplitCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Points de courbe</h2><div className={gcc.metricText}><Reading value={curvePointsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Plafond du fonds</h2><div className={gcc.metricText}><Reading value={plafond ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={hashrate ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh))) : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={bitcoinProduit === null ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' }) : btcFigure(bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Répartition de la réserve</h2><div className={gcc.metricText}><Reading value={reserveSplitCell} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Points de courbe</h2><div className={gcc.metricText}><Reading value={curvePointsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Plafond du fonds</h2><div className={gcc.metricText}><Reading value={plafond ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Vue <span>consolidée</span></p>
           <p className={gcc.decisionMeta}>{b === null ? 'Source BTC indisponible' : 'Source BTC joignable'}</p>
           <p className={gcc.decisionActionMuted}>{courbeParametree ? 'Courbe configurée' : 'Courbe en attente des taux'}</p>
@@ -233,7 +216,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Détails produit consolidés">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Vue produit consolidée</h2>
           </div>
@@ -244,13 +227,13 @@ export default async function Page() {
           the remaining seven, and `count` keeps their row full. */}
       <AdminGrid>
         <AdminCol span={5}>
-          <Card className="h-full p-6">
-            <HeroFigure
+          <Panel tone="plain" className="h-full p-6">
+            <MetricValue
               valeur={hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—'}
               libelle="Hashrate renseigné"
               unite="TH/s"
             />
-          </Card>
+          </Panel>
         </AdminCol>
         <AdminCol span={7}>
           <AdminMetricGrid count={3} className="h-full">
@@ -332,27 +315,27 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Flux de backtest</h3><p className={gcc.cellText}>{backtest.ok ? (backtest.data.runs?.status ?? 'Non renseigné') : 'Indisponible'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Attribution</h3><p className={gcc.cellText}>{b?.attribution?.status ?? 'Non renseigné'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Télémétrie</h3><p className={gcc.cellText}>{m?.operationalTelemetry?.status ?? 'Non renseigné'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Flux de backtest</h3><p className={gcc.cellText}>{backtest.ok ? (backtest.data.runs?.status ?? 'Non renseigné') : 'Indisponible'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Attribution</h3><p className={gcc.cellText}>{b?.attribution?.status ?? 'Non renseigné'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Télémétrie</h3><p className={gcc.cellText}>{m?.operationalTelemetry?.status ?? 'Non renseigné'}</p></Panel>
         </aside>
       </section>
 
       <section className={gcc.bottomRow} aria-label="Notes consolidées">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Périmètre</h3></div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>Consolide la production, la réserve, les conditions de rémunération et les lectures manquantes.</p>
             <p className={gcc.cellText}>Aucune série n’est fabriquée lorsque la source est absente.</p>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}><h3>Points d’accès</h3><p className={gcc.cellText}>`mining`, `btc`, `product-factsheet`, `backtest-historical`</p></article>
           <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Hashrate + BTC produit</p></article>
           <article className={gcc.infoCell}><h3>Réserve</h3><p className={gcc.cellText}>Répartition réserve et exposition</p></article>
           <article className={gcc.infoCell}><h3>Rémunération</h3><p className={gcc.cellText}>Courbe de rémunération par mois</p></article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Lacunes du contrat</h3>
           <p className={gcc.cellText}>Attribution, paliers de prise de profit et télémétrie restent explicites lorsqu’ils ne sont pas exposés.</p>
         </Panel>

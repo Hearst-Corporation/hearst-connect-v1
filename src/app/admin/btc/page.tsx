@@ -1,8 +1,9 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
+import { CalmState, MetricValue, Panel, PanelHeader, SideFact, SourceAttendue } from '@/components/compositions'
 import { ProductionMensuelleChart, type MoisProduction } from '@/components/admin/charts/btc-production-chart'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { SingleObservation } from '@/components/admin/single-observation'
 import { AdminSection } from '@/components/admin/surfaces'
@@ -21,57 +22,6 @@ import React from 'react'
 
 export const metadata: Metadata = { title: 'Bitcoin' }
 export const dynamic = 'force-dynamic'
-
-function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
-}
-
-function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
-  return (
-    <div className={gcc.heroHead}>
-      <h3 className={gcc.cardTitle}>{title}</h3>
-      <p className={gcc.cellText}>{hint}</p>
-    </div>
-  )
-}
-
-function HeroFigure({ valeur, libelle, unite }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
-  return (
-    <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
-    </div>
-  )
-}
-
-function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
-  return (
-    <div>
-      <p className={gcc.cellText}>{libelle}</p>
-      <p className={gcc.cellStrong}>{valeur}</p>
-    </div>
-  )
-}
-
-function SourceAttendue({ quoi, detail, requis }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
-  return (
-    <Panel className={gcc.wavePanel}>
-      <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>{quoi}</h3></div>
-      <div className={gcc.heroBody}>
-        <p className={gcc.cellText}>{detail}</p>
-        {requis.map((item) => <p key={item} className={gcc.cellText}>{item}</p>)}
-      </div>
-    </Panel>
-  )
-}
-
-function CalmState({ message }: Readonly<{ message: string }>) {
-  return (
-    <Panel className={gcc.wavePanel}>
-      <div className={gcc.heroBody}><p className={gcc.cellText}>{message}</p></div>
-    </Panel>
-  )
-}
 
 /**
  * Bitcoin — what has been produced, at what pace, where the money sleeps,
@@ -328,8 +278,8 @@ function phrasePreuves(bloc: Resolu<readonly unknown[]>): string {
  */
 function PreuvesPubliees({ bloc }: Readonly<{ bloc: Resolu<readonly unknown[]> }>) {
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader
+    <Panel tone="plain" className="flex h-full flex-col">
+      <PanelHeader
         title="Quelles preuves de production ont été publiées ?"
         hint="Registre des preuves attachées au bitcoin produit"
       />
@@ -340,7 +290,7 @@ function PreuvesPubliees({ bloc }: Readonly<{ bloc: Resolu<readonly unknown[]> }
             amount to publishing a schema nobody has seen. The day a proof
             exists, its fields will be read. */}
       </div>
-    </Card>
+    </Panel>
   )
 }
 
@@ -384,13 +334,13 @@ function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: reado
   }
 
   return (
-    <Card className="py-1">
+    <Panel tone="plain" className="py-1">
       <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
         {evenements.map((e, index) => (
           <EvenementRow key={cleEvenement(e, index)} evenement={e} />
         ))}
       </ul>
-    </Card>
+    </Panel>
   )
 }
 
@@ -497,8 +447,8 @@ function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
     >
       <AdminGrid>
         <AdminCol span={proofColumn}>
-          <Card className="flex h-full flex-col p-6">
-            <HeroFigure valeur={vue.bitcoinProduit} libelle="Bitcoin produit à ce jour" unite="BTC" />
+          <Panel tone="plain" className="flex h-full flex-col p-6">
+            <MetricValue valeur={vue.bitcoinProduit} libelle="Bitcoin produit à ce jour" unite="BTC" />
             {/* Three facts, three columns — `AdminMetricGrid` picks a
                 column count that leaves no orphan on the last row, which
                 a hand-written `grid-cols-2` did not. */}
@@ -507,7 +457,7 @@ function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
               <SideFact libelle="Valeur exposée au marché" valeur={formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 })} />
               <SideFact libelle="Dernier rapport de production" valeur={formatDateTime(vue.produit?.lastReportTime)} />
             </AdminMetricGrid>
-          </Card>
+          </Panel>
         </AdminCol>
 
         {b.proofs === undefined ? null : (
@@ -564,8 +514,8 @@ function ReserveSection({ vue }: Readonly<{ vue: VueBitcoin }>) {
 
         {hasExposition ? (
           <AdminCol span={5}>
-            <Card className="flex h-full flex-col">
-              <CardHeader
+            <Panel tone="plain" className="flex h-full flex-col">
+              <PanelHeader
                 title="La part exposée respecte-t-elle sa cible ?"
                 hint="Comparaison entre la part visée par le contrat et celle observée on-chain"
               />
@@ -587,7 +537,7 @@ function ReserveSection({ vue }: Readonly<{ vue: VueBitcoin }>) {
                   </span>
                 </li>
               </ul>
-            </Card>
+            </Panel>
           </AdminCol>
         ) : null}
       </AdminGrid>
@@ -678,12 +628,12 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé bitcoin">
-        <Panel className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={btcFigure(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Réserve</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Exposition</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Rapports mensuels</h2><div className={gcc.metricText}><Reading value={monthlyReportsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Lignes d’événement</h2><div className={gcc.metricText}><Reading value={eventRowsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={btcFigure(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Réserve</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Exposition</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Rapports mensuels</h2><div className={gcc.metricText}><Reading value={monthlyReportsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Lignes d’événement</h2><div className={gcc.metricText}><Reading value={eventRowsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>Surface <span>bitcoin</span></p>
           <p className={gcc.decisionMeta}>{b === null ? 'Source indisponible' : 'Source disponible'}</p>
           <p className={gcc.decisionActionMuted}>Aucun rendement projeté</p>
@@ -691,7 +641,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Détails bitcoin">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Opérations bitcoin</h2></div>
           <div className={gcc.heroBody}>
       {b === null ? (
@@ -707,14 +657,14 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>État de la production</h3><p className={gcc.cellText}>{vue.moisProduction.length > 0 ? 'Rapporté' : 'En attente'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Répartition de la réserve</h3><p className={gcc.cellText}>{vue.postes.length > 0 ? 'Lisible' : 'Indisponible'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Flux d’événements</h3><p className={gcc.cellText}>{vue.fluxLisible ? 'Flux en direct' : 'Aucun flux'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>État de la production</h3><p className={gcc.cellText}>{vue.moisProduction.length > 0 ? 'Rapporté' : 'En attente'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Répartition de la réserve</h3><p className={gcc.cellText}>{vue.postes.length > 0 ? 'Lisible' : 'Indisponible'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Flux d’événements</h3><p className={gcc.cellText}>{vue.fluxLisible ? 'Flux en direct' : 'Aucun flux'}</p></Panel>
         </aside>
       </section>
 
       <section className={gcc.bottomRow} aria-label="Notes bitcoin">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Garde-fous</h3></div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>Un mois est affiché comme observation, pas comme tendance.</p>
@@ -722,13 +672,13 @@ export default async function Page() {
             <p className={gcc.cellText}>Aucun palier de prise de profit sans lecture du contrat.</p>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>`btc`</p></article>
           <article className={gcc.infoCell}><h3>Modèle de réserve</h3><p className={gcc.cellText}>Réserve contre exposition en USD.</p></article>
           <article className={gcc.infoCell}><h3>Modèle de production</h3><p className={gcc.cellText}>Satoshis convertis avec décimales exactes.</p></article>
           <article className={gcc.infoCell}><h3>Flux de mouvements</h3><p className={gcc.cellText}>Les mots de gravité et les pastilles restent alignés.</p></article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
           <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état de préparation des points d’accès et les raisons.</p>
         </Panel>

@@ -1,4 +1,5 @@
-import { Absent as Missing, Panel, gcc } from '@/components/layout/console'
+import { Absent as Missing, gcc } from '@/components/layout/console'
+import { Panel } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { explorerTxUrl } from '@/lib/explorer'
 import { formatAddress, formatCurrency, formatDateTime, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
@@ -224,7 +225,7 @@ export function MovementLedger({
 }>) {
   if (!isAvailable(movements)) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <Heading movements={movements} />
         </div>
@@ -240,7 +241,7 @@ export function MovementLedger({
   const all = movements.value
   if (all.length === 0) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <Heading movements={movements} />
         </div>
@@ -264,7 +265,7 @@ export function MovementLedger({
   const truncated = shown.length < all.length
 
   return (
-    <Panel className={gcc.wavePanel}>
+    <Panel tone="plain" className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <Heading movements={movements} />
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { Panel } from '@/components/compositions'
 import type { TrendPoint } from '@/lib/vaults/overview'
 import { Subheading } from '@/components/catalyst/heading'
 import { Text } from '@/components/catalyst/text'
@@ -22,7 +23,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Absent, gcc, Panel } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 type TrendTooltipPoint = Readonly<{ label: string; value: number; detail: string }>
 
 function TrendTooltip({
@@ -55,7 +56,7 @@ export function GreenHeroChartPanel({
   countLabel: Availability<string>
 }>) {
   return (
-    <Panel className={gcc.heroChart} aria-labelledby="gcc-hero-title" data-gcc="hero-chart">
+    <Panel tone="plain" className={gcc.heroChart} aria-labelledby="gcc-hero-title" data-gcc="hero-chart">
       <div className={gcc.heroHead}>
         <Subheading level={2} id="gcc-hero-title" className={gcc.cardTitle}>
           {title}

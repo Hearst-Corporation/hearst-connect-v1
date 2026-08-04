@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
@@ -168,37 +169,37 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/dashboard" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse de la couverture">
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Servi</h2>
           <div className={gcc.metricText}>
             <Reading value={servedCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Partiel</h2>
           <div className={gcc.metricText}>
             <Reading value={partialCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Non ouvert</h2>
           <div className={gcc.metricText}>
             <Reading value={notOpenedCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Surfaces totales</h2>
           <div className={gcc.metricText}>
             <Reading value={totalCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Taux de couverture</h2>
           <div className={gcc.metricText}>
             <Reading value={coverageCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>État de la <span>couverture</span></p>
           <p className={gcc.decisionMeta}>{aggregate === null ? 'Source du tableau de bord indisponible' : 'Source du tableau de bord joignable'}</p>
           <p className={gcc.decisionActionMuted}>Champ le plus dégradé d’abord, selon l’état du backend</p>
@@ -206,7 +207,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Tableau d’état des surfaces">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Surface par surface</h2>
           </div>
@@ -252,7 +253,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Activité des sources">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
             <h3 className={gcc.cardTitle}>Activité des sources</h3>
           </div>
@@ -277,7 +278,7 @@ export default async function Page() {
             </table>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Servi</h3>
             <p className={gcc.cellText}>Surfaces en direct avec une valeur exploitable.</p>
@@ -295,7 +296,7 @@ export default async function Page() {
             <p className={gcc.cellText}>Les états sont affichés exactement tels que le backend les rapporte.</p>
           </article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Liens clés</h3>
           <div className={gcc.sourceRow}>
             <Link href="/admin/operations" className="text-sm text-accent-300 underline underline-offset-2">

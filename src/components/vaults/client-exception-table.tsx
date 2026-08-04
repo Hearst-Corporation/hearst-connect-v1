@@ -1,6 +1,7 @@
 import clsx from 'clsx'
+import { Panel } from '@/components/compositions'
 
-import { Absent, Panel, gcc } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { formatAddress, formatDateTime, formatRelativeTime } from '@/lib/format'
 import { motifLisible } from '@/lib/mouvements'
@@ -228,7 +229,7 @@ export function ClientExceptionTable({
 }: Readonly<{ exceptions: Availability<readonly ClientException[]> }>) {
   if (!isAvailable(exceptions)) {
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <Heading exceptions={exceptions} />
         </div>
@@ -246,7 +247,7 @@ export function ClientExceptionTable({
     // Only reachable once a client directory exists. Until then the branch
     // above runs, and this sentence is never printed over an absent source.
     return (
-      <Panel className={gcc.wavePanel}>
+      <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
           <Heading exceptions={exceptions} />
         </div>
@@ -261,7 +262,7 @@ export function ClientExceptionTable({
   }
 
   return (
-    <Panel className={gcc.wavePanel}>
+    <Panel tone="plain" className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <Heading exceptions={exceptions} />
       </div>

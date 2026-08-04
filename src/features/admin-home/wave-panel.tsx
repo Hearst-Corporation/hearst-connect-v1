@@ -1,4 +1,5 @@
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { Panel } from '@/components/compositions'
 import type { BarPoint } from '@/lib/vaults/overview'
 import { Subheading } from '@/components/catalyst/heading'
 import {
@@ -9,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Absent, gcc, Panel } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 
 /**
  * Les types de mouvement — en TABLE, plus en vague.
@@ -30,7 +31,7 @@ export function GreenWavePanel({
   availability,
 }: Readonly<{ title: string; bars: readonly BarPoint[]; availability: Availability<unknown> }>) {
   return (
-    <Panel className={gcc.wavePanel} aria-label={title} data-gcc="wave-panel">
+    <Panel tone="plain" className={gcc.wavePanel} aria-label={title} data-gcc="wave-panel">
       <div className={gcc.heroHead}>
         <Subheading level={3} className={gcc.cardTitle}>
           {title}

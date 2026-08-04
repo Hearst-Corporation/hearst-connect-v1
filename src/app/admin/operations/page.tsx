@@ -1,7 +1,8 @@
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
+import { MetricValue, Panel, PanelHeader, SideFact } from '@/components/compositions'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { DerivePochesChart, type DerivePoche } from '@/components/admin/derive-poches-chart'
 import { DistributionBarChart } from '@/components/admin/distribution-chart'
 import { AdminChartSplit, AdminMetricGrid, AdminTableSplit } from '@/components/admin/grid'
@@ -41,37 +42,6 @@ import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Opérations' }
 export const dynamic = 'force-dynamic'
-
-function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={clsx(gcc.heroChart, className)}>{children}</Panel>
-}
-
-function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
-  return (
-    <div className={gcc.heroHead}>
-      <h3 className={gcc.cardTitle}>{title}</h3>
-      <p className={gcc.cellText}>{hint}</p>
-    </div>
-  )
-}
-
-function HeroFigure({ valeur, libelle, unite }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
-  return (
-    <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
-    </div>
-  )
-}
-
-function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
-  return (
-    <div>
-      <p className={gcc.cellText}>{libelle}</p>
-      <p className={gcc.cellStrong}>{valeur}</p>
-    </div>
-  )
-}
 
 /**
  * Operations — what happened, what drifted, what is waiting on a move.
@@ -407,12 +377,12 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
   const mesure = champ?.value
 
   return (
-    <Card className="p-6">
+    <Panel tone="chart" className="p-6">
       {/* Two declared tracks. The figure used to sit in a flex row where both
           it and the fact list asked for "whatever is left", so the gap between
           them moved with every value. The hero keeps its measure now. */}
       <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
-        <HeroFigure
+        <MetricValue
           valeur={ecartLisible(mesure?.driftBps)}
           libelle="Écart observé par rapport à l’allocation cible"
           unite="points de pourcentage"
@@ -432,7 +402,7 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
         Mesure indexée · {statutAffichage(champ?.status)} — aucun seuil de déclenchement n’est publié par le
         service : l’écart est donné brut, la décision reste humaine.
       </p>
-    </Card>
+    </Panel>
   )
 }
 
@@ -625,8 +595,8 @@ function LigneFil({ mouvement }: Readonly<{ mouvement: MouvementIndexe }>) {
 function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly MouvementIndexe[] }>) {
   const groupes = grouperParJour(mouvements)
   return (
-    <Card>
-      <CardHeader
+    <Panel tone="chart">
+      <PanelHeader
         title="Que s’est-il passé, et quand ?"
         hint={`Les ${mouvements.length} mouvements les plus récents, du plus récent au plus ancien`}
       />
@@ -644,7 +614,7 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
           </div>
         ))}
       </div>
-    </Card>
+    </Panel>
   )
 }
 
@@ -691,12 +661,12 @@ function EnTeteRegistre({
   const avecMontant = cumuls.filter((c) => c.montantAtomique !== null)
 
   return (
-    <Card className="p-6">
+    <Panel tone="chart" className="p-6">
       {/* Declared tracks again: the count anchors a fixed measure on the left,
           the facts fill the remaining one. These stay `SideFact`s rather than
           metric tiles — a formatted date at tile size truncates. */}
       <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
-        <HeroFigure valeur={formatCount(mouvements.length)} libelle="Mouvements enregistrés sur la chaîne" />
+        <MetricValue valeur={formatCount(mouvements.length)} libelle="Mouvements enregistrés sur la chaîne" />
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           <SideFact libelle="Types distincts" valeur={formatCount(cumuls.length)} />
           <SideFact libelle="Premier mouvement enregistré" valeur={dateLisible(premier)} />
@@ -708,7 +678,7 @@ function EnTeteRegistre({
           ))}
         </dl>
       </div>
-    </Card>
+    </Panel>
   )
 }
 
@@ -870,31 +840,31 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/operations" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Synthèse des opérations">
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Mouvements</h2>
           <div className={gcc.metricText}>
             <Reading value={movementCountCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Poches mesurées</h2>
           <div className={gcc.metricText}>
             <Reading value={pocketsMeasuredCell} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Source de rééquilibrage</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(rebalancingStatus)} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>Indexeur</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(runtimeStatus)} className={gcc.metricValue} />
           </div>
         </Panel>
-        <Panel className={gcc.metricCard}>
+        <Panel tone="plain" className={gcc.metricCard}>
           <h2>État du journal</h2>
           <div className={gcc.metricText}>
             <Reading
@@ -907,7 +877,7 @@ export default async function Page() {
             />
           </div>
         </Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>État des <span>opérations</span></p>
           <p className={gcc.decisionMeta}>Événements de la chaîne et fraîcheur de l’indexeur</p>
           <p className={gcc.decisionActionMuted}>Aucun point d’accès de file d’approbation</p>
@@ -915,7 +885,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Rééquilibrage et exécution">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>Rééquilibrage</h2>
           </div>
@@ -925,7 +895,7 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Fraîcheur de l’indexeur</h3>
             <SectionIndexation runtime={runtime} />
           </Panel>
@@ -933,7 +903,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Journal et approbations">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
             <h3 className={gcc.cardTitle}>Journal des mouvements</h3>
           </div>
@@ -941,7 +911,7 @@ export default async function Page() {
             <RegistreMouvements reponse={reponse} mouvements={mouvements} chainId={chainId} />
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Source de rééquilibrage</h3>
             <p className={gcc.cellText}>La lecture directe du contrat et la lecture indexée du tableau de bord sont affichées séparément.</p>
@@ -959,7 +929,7 @@ export default async function Page() {
             <p className={gcc.cellText}>Aucun seuil de déclenchement backend n’est inventé dans cette vue.</p>
           </article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Approbation en attente</h3>
           <AdminSourceAttendue
             quoi="Aucune file d’approbation ouverte"

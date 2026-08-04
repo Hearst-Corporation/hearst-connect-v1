@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { Panel } from '@/components/compositions'
 import clsx from 'clsx'
 
-import { Absent, Panel, gcc } from '@/components/layout/console'
+import { Absent, gcc } from '@/components/layout/console'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
@@ -199,7 +200,7 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
 
   if (list === null || list.length === 0) {
     return (
-      <Panel className={gcc.heroChart}>
+      <Panel tone="plain" className={gcc.heroChart}>
         <div className={gcc.heroHead}>
           <h3 className={gcc.cardTitle}>Registre des coffres</h3>
         </div>
@@ -219,7 +220,7 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
   }
 
   return (
-    <Panel className={gcc.heroChart}>
+    <Panel tone="plain" className={gcc.heroChart}>
       <div className={gcc.heroHead}>
         <h3 className={gcc.cardTitle}>Coffres</h3>
         <p className={gcc.cellText}>Threshold ±{THRESHOLD_POINTS} pt</p>

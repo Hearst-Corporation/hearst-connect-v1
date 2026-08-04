@@ -1,6 +1,7 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Absent, Panel, Reading } from '@/components/layout/console'
+import { Absent, Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { DATA_COVERAGE_ENTRY } from '@/lib/admin-nav'
 import { formatNumber } from '@/lib/format'
@@ -51,7 +52,7 @@ function ComplianceMetric({
   value,
 }: Readonly<{ title: string; value: Availability<string> }>) {
   return (
-    <Panel className={gcc.metricCard}>
+    <Panel tone="plain" className={gcc.metricCard}>
       <h2>{title}</h2>
       <div className={gcc.metricText}>
         <Reading value={value} className={gcc.metricValue} />
@@ -89,7 +90,7 @@ export default async function Page() {
         <ComplianceMetric title="Risque élevé" value={queueSource} />
         <ComplianceMetric title="Renouvellement dû" value={queueSource} />
         <ComplianceMetric title="Étapes du processus" value={stages} />
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>File de <span>conformité</span></p>
           <p className={gcc.decisionMeta}>Source non exposée</p>
           <p className={gcc.decisionActionMuted}>Aucun dossier soumis</p>
@@ -97,7 +98,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="File de revue">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}>
             <h2 className={gcc.cardTitle}>File de revue</h2>
           </div>
@@ -120,15 +121,15 @@ export default async function Page() {
         </Panel>
 
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Point d’accès de la file</h3>
             <Absent availability={queueSource} showRoute={false} />
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Anomalies clients</h3>
             <Reading value={clientExceptions} className={gcc.signalValue} />
           </Panel>
-          <Panel className={gcc.signalCard}>
+          <Panel tone="plain" className={gcc.signalCard}>
             <h3>Chemin de couverture</h3>
             <p className={gcc.cellText}>Suivez la disponibilité des points d’accès dans Couverture des données.</p>
           </Panel>
@@ -136,7 +137,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.bottomRow} aria-label="Détails de conformité">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
             <h3 className={gcc.cardTitle}>Parcours du dossier</h3>
           </div>
@@ -149,7 +150,7 @@ export default async function Page() {
           </div>
         </Panel>
 
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Lecture de la file</h3>
             <Absent availability={queueSource} showRoute={false} />
@@ -176,7 +177,7 @@ export default async function Page() {
           </article>
         </Panel>
 
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Activité des sources</h3>
           {registry.sources.slice(0, 6).map((source) => (
             <div key={source.endpointId} className={gcc.sourceRow}>

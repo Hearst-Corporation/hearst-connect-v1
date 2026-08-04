@@ -1,8 +1,9 @@
 import { MiningProductionChart, type MoisProduit } from '@/components/admin/charts/mining-production-chart'
+import { MetricValue, Panel, PanelHeader, SideFact, SourceAttendue } from '@/components/compositions'
 import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
-import { Panel, Reading } from '@/components/layout/console'
+import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
 import { EndpointSection } from '@/components/admin/endpoint-section'
 import { SingleObservation } from '@/components/admin/single-observation'
@@ -21,50 +22,6 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Mining' }
 export const dynamic = 'force-dynamic'
-
-
-function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
-}
-
-function CardHeader({ title, hint }: Readonly<{ title: string; hint: string }>) {
-  return (
-    <div className={gcc.heroHead}>
-      <h3 className={gcc.cardTitle}>{title}</h3>
-      <p className={gcc.cellText}>{hint}</p>
-    </div>
-  )
-}
-
-function HeroFigure({ valeur, libelle, unite }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
-  return (
-    <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>{libelle}{unite ? ` · ${unite}` : ''}</p>
-    </div>
-  )
-}
-
-function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
-  return (
-    <div>
-      <p className={gcc.cellText}>{libelle}</p>
-      <p className={gcc.cellStrong}>{valeur}</p>
-    </div>
-  )
-}
-
-function SourceAttendue({ quoi, detail, requis }: Readonly<{ quoi: string; detail: string; requis: readonly string[] }>) {
-  return (
-    <Panel className={gcc.wavePanel}>
-      <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>{quoi}</h3></div>
-      <div className={gcc.heroBody}>
-        <p className={gcc.cellText}>{detail}</p>
-        {requis.map((item) => <p key={item} className={gcc.cellText}>{item}</p>)}
-      </div>
-    </Panel>
-  )
-}
 
 /**
  * Mining — does production pay the bill?
@@ -425,8 +382,8 @@ function ProductionSection({
     >
       <AdminGrid>
         <AdminCol span={7}>
-          <Card className="flex h-full flex-col p-6">
-            <HeroFigure
+          <Panel tone="plain" className="flex h-full flex-col p-6">
+            <MetricValue
               valeur={dollarsLisibles(resume.seuil)}
               libelle="Prix du bitcoin qui couvre le mois"
               unite="$ / BTC"
@@ -439,7 +396,7 @@ function ProductionSection({
               <SideFact libelle="Facture mensuelle" valeur={dollarsLisibles(resume.factureMensuelle)} />
               <SideFact libelle="Total réglé à ce jour" valeur={dollarsLisibles(resume.totalRegle)} />
             </AdminMetricGrid>
-          </Card>
+          </Panel>
         </AdminCol>
 
         {/* The limit of the calculation sits BESIDE the figure, in its own
@@ -447,14 +404,14 @@ function ProductionSection({
             threshold without its "we don't know whether it's cleared"
             would read as a profitability verdict. */}
         <AdminCol span={5}>
-          <Card className="flex h-full flex-col p-6">
+          <Panel tone="plain" className="flex h-full flex-col p-6">
             <AdminSurfaceTitle>Comment ce seuil est calculé</AdminSurfaceTitle>
             <p className="mt-2 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
               C’est le quotient de deux mesures : le bitcoin attesté par le contrat pour le mois, et la facture
               d’électricité mensuelle. La console s’arrête là — le prix réel du bitcoin n’est publié par aucune
               route du service, elle ne dit donc pas si le seuil est franchi.
             </p>
-          </Card>
+          </Panel>
         </AdminCol>
       </AdminGrid>
 
@@ -488,8 +445,8 @@ function FleetSection({ resume }: Readonly<{ resume: ResumeMinage }>) {
     >
       <AdminGrid>
         <AdminCol span={7}>
-          <Card className="flex h-full flex-col p-6">
-            <HeroFigure
+          <Panel tone="plain" className="flex h-full flex-col p-6">
+            <MetricValue
               valeur={hashrateLisible(resume.releve)}
               libelle="Puissance de calcul rapportée"
               unite="TH/s"
@@ -499,12 +456,12 @@ function FleetSection({ resume }: Readonly<{ resume: ResumeMinage }>) {
               <SideFact libelle="Dernier relevé" valeur={dateLisible(resume.releve?.lastReportTime)} />
               <SideFact libelle="Ancienneté du relevé" valeur={ilYA(resume.releve?.lastReportTime)} />
             </AdminMetricGrid>
-          </Card>
+          </Panel>
         </AdminCol>
 
         <AdminCol span={5}>
-          <Card className="flex h-full flex-col">
-            <CardHeader title="La flotte tourne-t-elle ?" hint="Régime d’exploitation déclaré par le contrat" />
+          <Panel tone="plain" className="flex h-full flex-col">
+            <PanelHeader title="La flotte tourne-t-elle ?" hint="Régime d’exploitation déclaré par le contrat" />
             <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
               <LigneEtat
                 libelle="Flotte"
@@ -527,7 +484,7 @@ function FleetSection({ resume }: Readonly<{ resume: ResumeMinage }>) {
                 {modeContrat(resume.chaine)}
               </p>
             )}
-          </Card>
+          </Panel>
         </AdminCol>
       </AdminGrid>
     </AdminSection>
@@ -543,8 +500,8 @@ function ElectricitySection({ resume }: Readonly<{ resume: ResumeMinage }>) {
     >
       <AdminGrid>
         <AdminCol span={5}>
-          <Card className="flex h-full flex-col">
-            <CardHeader title="Où en est le paiement ?" hint="Ligne d’électricité lue depuis le contrat" />
+          <Panel tone="plain" className="flex h-full flex-col">
+            <PanelHeader title="Où en est le paiement ?" hint="Ligne d’électricité lue depuis le contrat" />
             <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
               <LigneEtat libelle="Facture du mois" valeur={dollarsLisibles(resume.factureMensuelle)} ton="neutre" />
               <LigneEtat libelle="Total réglé" valeur={dollarsLisibles(resume.totalRegle)} ton="neutre" />
@@ -569,17 +526,17 @@ function ElectricitySection({ resume }: Readonly<{ resume: ResumeMinage }>) {
                 ton="neutre"
               />
             </ul>
-          </Card>
+          </Panel>
         </AdminCol>
 
         <AdminCol span={7}>
-          <Card className="flex h-full flex-col">
-            <CardHeader
+          <Panel tone="plain" className="flex h-full flex-col">
+            <PanelHeader
               title="Ce que le contrat a attesté"
               hint="Relevés de minage et mouvements d’électricité, du plus récent au plus ancien"
             />
             <Attestations mouvements={resume.attestations} />
-          </Card>
+          </Panel>
         </AdminCol>
       </AdminGrid>
     </AdminSection>
@@ -692,12 +649,12 @@ export default async function Page() {
       rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
       <section className={gcc.metricsRow} aria-label="Résumé minage">
-        <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={miningFigure(hashrateValue)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={btcFigure(producedValue)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Facture mensuelle</h2><div className={gcc.metricText}><Reading value={miningFigure(billValue)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Attestations</h2><div className={gcc.metricText}><Reading value={attestationsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Seuil de couverture</h2><div className={gcc.metricText}><Reading value={editorial(dollarsLisibles(resume.seuil))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.decisionCardNeutral}>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={miningFigure(hashrateValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={btcFigure(producedValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Facture mensuelle</h2><div className={gcc.metricText}><Reading value={miningFigure(billValue)} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Attestations</h2><div className={gcc.metricText}><Reading value={attestationsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.metricCard}><h2>Seuil de couverture</h2><div className={gcc.metricText}><Reading value={editorial(dollarsLisibles(resume.seuil))} className={gcc.metricValue} /></div></Panel>
+        <Panel tone="plain" className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>État <span>du minage</span></p>
           <p className={gcc.decisionMeta}>{minage === null ? 'Source indisponible' : 'Source disponible'}</p>
           <p className={gcc.decisionActionMuted}>Aucune inférence du prix de marché</p>
@@ -705,7 +662,7 @@ export default async function Page() {
       </section>
 
       <section className={gcc.mainRow} aria-label="Détails minage">
-        <Panel className={gcc.heroChart}>
+        <Panel tone="plain" className={gcc.heroChart}>
           <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Opérations de minage</h2></div>
           <div className={gcc.heroBody}>
       {minage === null ? (
@@ -722,14 +679,14 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Flotte</h3><p className={gcc.cellText}>{texteBooleen(resume.exploitation?.fleetActive, 'En marche', 'Arrêtée')}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Délestage</h3><p className={gcc.cellText}>{texteBooleen(resume.exploitation?.curtailed, 'Actif', 'Inactif')}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Bénéficiaire électricité</h3><p className={gcc.cellText}>{adresseCourte(resume.electricite?.payee) ?? 'Non communiqué'}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Flotte</h3><p className={gcc.cellText}>{texteBooleen(resume.exploitation?.fleetActive, 'En marche', 'Arrêtée')}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Délestage</h3><p className={gcc.cellText}>{texteBooleen(resume.exploitation?.curtailed, 'Actif', 'Inactif')}</p></Panel>
+          <Panel tone="plain" className={gcc.signalCard}><h3>Bénéficiaire électricité</h3><p className={gcc.cellText}>{adresseCourte(resume.electricite?.payee) ?? 'Non communiqué'}</p></Panel>
         </aside>
       </section>
 
       <section className={gcc.bottomRow} aria-label="Notes minage">
-        <Panel className={gcc.wavePanel}>
+        <Panel tone="plain" className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Périmètre de calcul</h3></div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>Seuil = facture mensuelle / BTC produit dans le mois.</p>
@@ -737,13 +694,13 @@ export default async function Page() {
             <p className={gcc.cellText}>Le cadre de télémétrie d’exploitation reste explicite quand elle manque.</p>
           </div>
         </Panel>
-        <Panel as="section" className={gcc.infoGrid}>
+        <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}><h3>Points d’accès</h3><p className={gcc.cellText}>`mining`, `btc`, `series1-events`</p></article>
           <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Rapports mensuels de BTC uniquement.</p></article>
           <article className={gcc.infoCell}><h3>Électricité</h3><p className={gcc.cellText}>Facture et ligne de paiement du contrat.</p></article>
           <article className={gcc.infoCell}><h3>Télémétrie</h3><p className={gcc.cellText}>Non déduite de données sans rapport.</p></article>
         </Panel>
-        <Panel className={gcc.vaultCard}>
+        <Panel tone="plain" className={gcc.vaultCard}>
           <h3 className={gcc.cardTitle}>Lectures dédiées</h3>
           <p className={gcc.cellText}>Les métriques de minage on-chain et les lignes d’électricité restent liées dans les sections de la page.</p>
         </Panel>
