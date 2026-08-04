@@ -302,7 +302,20 @@ function EvenementRow({ evenement }: Readonly<{ evenement: Evenement }>) {
   return (
     <li className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
       <span aria-hidden="true" className={clsx('size-1.5 shrink-0 translate-y-[-1px] rounded-full', gravite.point)} />
-      <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">{nomLisible(evenement.name)}</span>
+      {/*
+        `basis-48` plutôt que le `basis-0` implicite de `flex-1`. La ligne
+        porte quatre éléments — libellé, catégorie, gravité, horodatage — et
+        `flex-1` seul laissait le libellé descendre SOUS la largeur de son mot
+        le plus long : mesuré en tablette, 62 px de place pour « Coût mensuel
+        d'électricité mis à jour » dont « électricité » en demande 70. Le mot
+        était coupé net.
+
+        Avec une base de 12rem, le libellé garde la largeur d'une ligne lisible
+        et c'est `flex-wrap` — déjà présent — qui renvoie les métadonnées à la
+        ligne suivante quand la place manque. Il peut toujours s'étirer
+        au-delà : `flex-1` est conservé.
+      */}
+      <span className="min-w-0 flex-1 basis-48 text-zinc-950 dark:text-white">{nomLisible(evenement.name)}</span>
       {evenement.category === null || evenement.category === undefined || evenement.category === '' ? null : (
         <span className="text-xs text-zinc-500 dark:text-zinc-400">{nomLisible(evenement.category)}</span>
       )}
