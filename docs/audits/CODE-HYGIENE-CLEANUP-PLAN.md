@@ -1,6 +1,34 @@
 # Plan de nettoyage — Hearst Connect V1
 
-> Dérivé de `CODE-HYGIENE-AUDIT-2026-08-04.md` (SHA audité `6c5507f`, re-vérifié à `8029d85`).
+> Dérivé de `CODE-HYGIENE-AUDIT-2026-08-04.md`. SHA d'analyse initiale `6c5507f`,
+> SHA de revalidation `8029d85`, SHA de nettoyage `d47af1a`.
+
+## État d'exécution au 2026-08-04
+
+Les lots **H, B, F, G et C** ont été exécutés par la mission
+**HC-CODE-HYGIENE-CLEANUP-001** (branche `cleanup/code-hygiene-safe-2026-08-04`).
+Compte rendu détaillé, preuves et exit codes : **`CODE-HYGIENE-CLEANUP-001.md`**.
+
+| Lot | État | Commit | Résultat |
+|---|---|---|---|
+| **H** — docs et README | ✅ **FAIT** | `a6359dc` | 6 documents alignés sur le code |
+| **B** — exports, types, helpers | ✅ **FAIT** | `3ccf9bc` `862012d` `b9da70b` | 208 lignes retirées ; knip 54→27 exports, 12→5 types |
+| **F** — fixture orpheline | ✅ **FAIT** | `ff886b2` | self-test écrit ; la preuve annoncée existe enfin |
+| **G** — dépendances et scripts | ✅ **FAIT** | `b69d300` | `playwright` retiré ; `sonar` et `quality:dup` réparés |
+| **C** — formatters | ✅ **FAIT (partiel, assumé)** | `9a50936` | 5 sites consolidés, 4 conservés avec justification |
+| **D** — convergence UI | ⬜ **OUVERT** | — | hors périmètre (§7 de la mission de nettoyage) |
+| **E** — CSS et tokens | ⬜ **OUVERT** | — | interdit (§6) ; **dépend de D2** |
+| **A** — routes et assets | ⬜ **OUVERT** | — | arbitrages produit |
+
+Mesures après nettoyage : **248 tests** (26 fichiers, contre 231/24), couverture
+**88,79 %**, duplication **3,41 %** (55 clones), **25 routes** au build (aucune
+perdue), `pnpm audit` **6 vulnérabilités** (identique à la baseline).
+
+Vérifié intact : `src/styles/` (aucun token touché), `src/components/design-lab/`
+(aucune modification), `src/components/catalyst/` (seul `VENDOR.md`, documentation).
+
+---
+
 > **Ce plan n'exécute rien.** Il découpe les constats en lots exécutables, avec leurs
 > dépendances, leurs preuves exigées et leurs conflits avec les missions en cours.
 
@@ -117,9 +145,31 @@ Gain réel mais petit ; à traiter seulement si le lot est ouvert.
 
 ---
 
-## LOT D — Convergence UI / Catalyst
+## LOT D — Convergence UI / Catalyst  ⬜ OUVERT
 
 Le plus gros gain du plan (~40 déclarations locales pour 5 contrats), et le plus risqué.
+
+> **Chemins confirmés au 2026-08-04** (re-vérifiés sur `d47af1a`, après le
+> nettoyage — ces comptages n'ont pas bougé, aucun lot exécuté n'y a touché) :
+>
+> | Primitive | Occurrences | Fichiers |
+> |---|---|---|
+> | `Card` | **10** | `admin/{btc,mining,product,operations,api-explorer,backtest,profile,keeper,series-1}/page.tsx` + `admin/administration/produit/page.tsx` |
+> | `CardHeader` | **7** | `btc`, `product`, `mining`, `operations`, `backtest`, `profile`, `series-1` |
+> | `HeroFigure` | **6** | `btc`, `mining`, `product`, `operations`, `administration/produit`, `series-1` |
+> | `SourceAttendue` | **6** | `btc`, `product`, `mining`, `backtest`, `profile`, `series-1` |
+> | `SideFact` | **4** | `btc`, `product`, `mining`, `operations` |
+> | `ClientsMetric` / `ComplianceMetric` | **2** | `admin/clients/page.tsx:49`, `admin/conformite/page.tsx:49` — identiques au nom près |
+>
+> Cibles existantes : `src/components/admin/cockpit.tsx` (`Card`, `CardHeader`,
+> `HeroFigure`, `SideFact`, `SourceAttendue`, `CalmState`) et
+> `src/components/design-lab/green-command-center/primitives.tsx` (`Panel`,
+> `Absent`, `Reading`).
+>
+> ⚠️ Rappel du piège : les `Card` locales enveloppent `Panel` (matière
+> near-black, `gcc.wavePanel`) tandis que `cockpit.Card` applique `surfaceRaised`
+> (graphite console). **Converger vers `cockpit.Card` changerait l'apparence des
+> 10 routes.**
 
 ### D1 — Primitives de route (10 routes)
 
@@ -161,7 +211,14 @@ primitives locales.
 
 ---
 
-## LOT E — CSS et tokens
+## LOT E — CSS et tokens  ⬜ OUVERT (interdit tant que D2 n'est pas fait)
+
+> **Vérifié sur `d47af1a`** : `git diff 8029d85 -- src/styles/` est **vide** —
+> aucun token n'a été modifié, fusionné ni renommé par la passe de nettoyage.
+> Les deux seuls fichiers qui maintiennent en vie les familles `hearst-*`,
+> `cockpit-*` et `neutral-*` restent **`src/components/admin/truthful.tsx`** et
+> **`src/components/admin/surfaces.tsx`** — ce sont eux, et eux seuls, que D2
+> doit faire converger avant que E1 devienne possible.
 
 ### E1 — Familles mortes (après D2)
 
