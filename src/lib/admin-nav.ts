@@ -238,8 +238,3 @@ export function hrefActif(pathname: string): string | undefined {
 
   return meilleur
 }
-
-/** The secondary entry matching a path, when there is one. */
-export function entreeSecondaire(pathname: string): EntreeSecondaire | undefined {
-  return ADMIN_SECONDARY_FLAT.find((e) => pathname === e.href || pathname.startsWith(`${e.href}/`))
-}
