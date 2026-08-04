@@ -81,9 +81,17 @@ describe('12-column grid', () => {
       </AdminGrid>,
     )
     const grid = container.firstElementChild
+    /*
+     * L'échelle est 4 / 8 / 12. Le palier haut est passé de `lg` (1024 px) à
+     * `xl` (1280 px) — HC-VISUAL-LAYOUT-RECOVERY-001 : à 1024 px, une colonne
+     * de 4/12 laissait ~85 px et le titre du ChartFrame s'y rendait sur 48 px
+     * de large pour 168 de haut. Ce qui est vérifié ici est l'ÉCHELLE, pas le
+     * nom du palier : asserter `lg:` faisait échouer le test sur une décision
+     * de mise en page délibérée et mesurée.
+     */
     expect(grid?.className).toContain('grid-cols-4')
     expect(grid?.className).toContain('md:grid-cols-8')
-    expect(grid?.className).toContain('lg:grid-cols-12')
+    expect(grid?.className).toMatch(/\b(lg|xl):grid-cols-12\b/)
   })
 
   it('emits literal span classes Tailwind can actually see', () => {
@@ -95,7 +103,10 @@ describe('12-column grid', () => {
       </AdminGrid>,
     )
     const col = container.firstElementChild?.firstElementChild
-    expect(col?.className).toContain('lg:col-span-5')
+    // Même règle : le span du palier haut suit la grille (`xl` depuis
+    // HC-VISUAL-LAYOUT-RECOVERY-001). C'est la classe LITTÉRALE qui compte —
+    // Tailwind ne voit pas une classe construite par concaténation.
+    expect(col?.className).toMatch(/\b(lg|xl):col-span-5\b/)
     expect(col?.className).toContain('md:col-span-4')
     expect(col?.className).toContain('col-span-2')
   })

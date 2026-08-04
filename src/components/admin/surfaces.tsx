@@ -184,12 +184,23 @@ export function AdminTable<T>({
     return empty ?? <AdminEmptyState title="Aucun élément" />
   }
 
+  /*
+   * `table-auto` et non `table-fixed` (HC-VISUAL-LAYOUT-RECOVERY-001).
+   *
+   * `table-fixed` répartit la largeur également entre les colonnes, sans
+   * regarder ce qu'elles contiennent. Sur le registre des mouvements — six
+   * colonnes dont un hash de transaction et une adresse — chaque colonne
+   * recevait 66 px, et « Investisseur » (89 px) comme « 0xcf2e…da78 » (86 px)
+   * débordaient de leur cellule. Mesuré à 1440×900 : 32 contenus tronqués sur
+   * la seule page Opérations.
+   *
+   * `table-auto` donne à chaque colonne la largeur que son contenu demande.
+   * `min-w-max` empêche la compression, et le conteneur de Catalyst gère alors
+   * un défilement HORIZONTAL — le seul justifié pour un tableau large, et le
+   * seul que cette passe conserve.
+   */
   return (
-    <CatalystTable
-      dense
-      grid
-      className="[&_table]:w-full [&_table]:table-fixed whitespace-normal wrap-break-word"
-    >
+    <CatalystTable dense grid className="[&_table]:w-full [&_table]:min-w-max [&_table]:table-auto">
       <CatalystTableHead>
         <CatalystTableRow>
           {columns.map((col) => (

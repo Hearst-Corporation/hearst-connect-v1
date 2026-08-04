@@ -1,11 +1,5 @@
-import { ChartFrame, DerivePochesChart, DistributionBarChart, plottableAsChart, type DerivePoche, type EtatSerie } from '@/components/charts'
-import { MetricValue, Panel, PanelHeader, SideFact } from '@/components/compositions'
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
-import { ConsoleRail } from '@/components/layout/console-rail'
-import { Reading } from '@/components/layout/console'
 import { AdminChartSplit, AdminTableSplit } from '@/components/admin/grid'
 import { SingleObservation } from '@/components/admin/single-observation'
-import { AdminBody, AdminCaption, AdminSurfaceHeader } from '@/components/admin/typography'
 import {
   AdminErrorState,
   AdminMetric,
@@ -15,6 +9,19 @@ import {
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin/surfaces'
+import { AdminBody, AdminCaption, AdminSurfaceHeader } from '@/components/admin/typography'
+import {
+  ChartFrame,
+  DerivePochesChart,
+  DistributionBarChart,
+  plottableAsChart,
+  type DerivePoche,
+  type EtatSerie,
+} from '@/components/charts'
+import { MetricValue, Panel, PanelHeader, SideFact } from '@/components/compositions'
+import { Reading } from '@/components/layout/console'
+import { ConsoleRail } from '@/components/layout/console-rail'
+import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { requireSession } from '@/lib/auth'
 import { callBackend, type BackendResult } from '@/lib/backend/client'
 import { explorerTxUrl } from '@/lib/explorer'
@@ -378,26 +385,32 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
       {/* Two declared tracks. The figure used to sit in a flex row where both
           it and the fact list asked for "whatever is left", so the gap between
           them moved with every value. The hero keeps its measure now. */}
-      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
-        <MetricValue
-          valeur={ecartLisible(mesure?.driftBps)}
-          libelle="Écart observé par rapport à l’allocation cible"
-          unite="points de pourcentage"
-        />
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-          <SideFact libelle="Dernier rééquilibrage" valeur={dateLisible(mesure?.lastRebalanceAt)} />
-          <SideFact libelle="Temps écoulé" valeur={ilYA(mesure?.lastRebalanceAt)} />
-          {/* `pending: null`: the service reports no request. We say so
-              explicitly rather than showing "0", which would read as a counter. */}
-          <SideFact
-            libelle="Demande en attente"
-            valeur={mesure?.pending === null || mesure?.pending === undefined ? 'Aucune signalée' : 'Une demande est ouverte'}
+      <div className="@container">
+        <div className="grid gap-x-10 gap-y-6 @[46rem]:grid-cols-[17rem_minmax(0,1fr)] @[46rem]:items-end">
+          <MetricValue
+            valeur={ecartLisible(mesure?.driftBps)}
+            libelle="Écart observé par rapport à l’allocation cible"
+            unite="points de pourcentage"
           />
-        </dl>
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 @[30rem]:grid-cols-2 @[46rem]:grid-cols-3">
+            <SideFact libelle="Dernier rééquilibrage" valeur={dateLisible(mesure?.lastRebalanceAt)} />
+            <SideFact libelle="Temps écoulé" valeur={ilYA(mesure?.lastRebalanceAt)} />
+            {/* `pending: null`: the service reports no request. We say so
+              explicitly rather than showing "0", which would read as a counter. */}
+            <SideFact
+              libelle="Demande en attente"
+              valeur={
+                mesure?.pending === null || mesure?.pending === undefined
+                  ? 'Aucune signalée'
+                  : 'Une demande est ouverte'
+              }
+            />
+          </dl>
+        </div>
       </div>
-      <p className="mt-5 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-console-line-soft dark:text-zinc-400">
-        Mesure indexée · {statutAffichage(champ?.status)} — aucun seuil de déclenchement n’est publié par le
-        service : l’écart est donné brut, la décision reste humaine.
+      <p className="dark:border-console-line-soft mt-5 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:text-zinc-400">
+        Mesure indexée · {statutAffichage(champ?.status)} — aucun seuil de déclenchement n’est publié par le service :
+        l’écart est donné brut, la décision reste humaine.
       </p>
     </Panel>
   )
@@ -413,10 +426,7 @@ const UNITE_DERIVE = 'en points de pourcentage'
  * which reads as a chart whose other series failed to load. `plottableAsChart`
  * is the test; below it the honest rendering is the measurement itself.
  */
-function CadreDerive({
-  derives,
-  etat,
-}: Readonly<{ derives: readonly DerivePoche[]; etat: EtatSerie }>) {
+function CadreDerive({ derives, etat }: Readonly<{ derives: readonly DerivePoche[]; etat: EtatSerie }>) {
   const seule = derives.at(0)
 
   if (etat.type === 'tracee' && !plottableAsChart(derives.length) && seule !== undefined) {
@@ -467,7 +477,7 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
           contract was queried, and whether it actually carries code. They
           stack in one column because this panel is four grid columns wide —
           the four-across row they used to sit in wrapped into ragged pairs. */}
-      <dl className="mt-5 space-y-3 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
+      <dl className="dark:border-console-line-soft mt-5 space-y-3 border-t border-zinc-950/5 pt-4">
         <SideFact libelle="Mode du contrat" valeur={contrat?.mode ?? '—'} />
         <SideFact libelle="Chaîne" valeur={chaineLisible(contrat?.chainId)} />
         <SideFact libelle="Contrat interrogé" valeur={adresseCourte(contrat?.contractAddress) ?? '—'} />
@@ -479,7 +489,7 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
 
       <Link
         href="/admin/keeper"
-        className="mt-5 inline-block text-sm text-accent-600 hover:underline dark:text-accent-400"
+        className="text-accent-600 dark:text-accent-400 mt-5 inline-block text-sm hover:underline"
       >
         Actions Keeper (rééquilibrage) →
       </Link>
@@ -503,7 +513,7 @@ function cellMontant(m: MouvementIndexe) {
     return <span className="text-zinc-500 dark:text-zinc-400">—</span>
   }
   return (
-    <span className="font-semibold text-accent-600 tabular-nums dark:text-accent-400">
+    <span className="text-accent-600 dark:text-accent-400 font-semibold tabular-nums">
       {montantUsdc(m.assetAmountAtomic)}
     </span>
   )
@@ -531,7 +541,7 @@ function renderTxHash(chainId: number | undefined, txHash: string) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-accent-600 hover:underline dark:text-accent-400"
+      className="text-accent-600 dark:text-accent-400 hover:underline"
     >
       {court}
     </a>
@@ -564,12 +574,20 @@ function detailRegistreVide(reason: string | null | undefined): string {
 /** One line of the feed: the time, the sentence, the actor, the amount. */
 function LigneFil({ mouvement }: Readonly<{ mouvement: MouvementIndexe }>) {
   const acteur = adresseCourte(mouvement.investorAddress)
+  /*
+   * Container query et non `sm:` : cette ligne est rendue dans le fil des
+   * mouvements, qui occupe les deux tiers d'une rangée — sa largeur ne suit
+   * pas celle de l'écran. À 1024 px, `sm:` était actif alors que la colonne
+   * ne faisait plus assez de place, et les phrases (« Les métriques de minage
+   * ont été transmises ») débordaient de leur cellule. Sous 32rem de
+   * conteneur, les trois éléments s'empilent au lieu de se serrer.
+   */
   return (
-    <li className="grid gap-x-4 gap-y-1 px-5 py-3 sm:grid-cols-[4rem_1fr_auto] sm:items-baseline">
+    <li className="@container grid gap-x-4 gap-y-1 px-5 py-3 @[32rem]:grid-cols-[4rem_minmax(0,1fr)_auto] @[32rem]:items-baseline">
       <span className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">
         {heureLisible(mouvement.occurredAt)}
       </span>
-      <span className="min-w-0 text-sm text-zinc-950 dark:text-white">
+      <span className="min-w-0 wrap-break-word text-sm text-zinc-950 dark:text-white">
         {phraseMouvement(mouvement.eventName)}
         {acteur === null ? null : (
           <span className="ml-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{acteur}</span>
@@ -597,13 +615,13 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
         title="Que s’est-il passé, et quand ?"
         hint={`Les ${mouvements.length} mouvements les plus récents, du plus récent au plus ancien`}
       />
-      <div className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+      <div className="dark:divide-console-line-soft divide-y divide-zinc-950/5">
         {groupes.map((groupe) => (
           <div key={groupe.jour}>
-            <p className="bg-zinc-50/80 px-5 py-2 text-xs font-medium text-zinc-500 first-letter:uppercase dark:bg-console-inset dark:text-zinc-400">
+            <p className="dark:bg-console-inset bg-zinc-50/80 px-5 py-2 text-xs font-medium text-zinc-500 first-letter:uppercase dark:text-zinc-400">
               {groupe.jour}
             </p>
-            <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+            <ul className="dark:divide-console-line-soft divide-y divide-zinc-950/5">
               {groupe.mouvements.map((m) => (
                 <LigneFil key={m.id} mouvement={m} />
               ))}
@@ -662,18 +680,20 @@ function EnTeteRegistre({
       {/* Declared tracks again: the count anchors a fixed measure on the left,
           the facts fill the remaining one. These stay `SideFact`s rather than
           metric tiles — a formatted date at tile size truncates. */}
-      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
-        <MetricValue valeur={formatCount(mouvements.length)} libelle="Mouvements enregistrés sur la chaîne" />
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          <SideFact libelle="Types distincts" valeur={formatCount(cumuls.length)} />
-          <SideFact libelle="Premier mouvement enregistré" valeur={dateLisible(premier)} />
-          <SideFact libelle="Dernier mouvement enregistré" valeur={ilYA(dernier)} />
-          {/* Totals are given by type only: summing a deposit and an
+      <div className="@container">
+        <div className="grid gap-x-10 gap-y-6 @[46rem]:grid-cols-[17rem_minmax(0,1fr)] @[46rem]:items-end">
+          <MetricValue valeur={formatCount(mouvements.length)} libelle="Mouvements enregistrés sur la chaîne" />
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 @[30rem]:grid-cols-2 @[46rem]:grid-cols-3">
+            <SideFact libelle="Types distincts" valeur={formatCount(cumuls.length)} />
+            <SideFact libelle="Premier mouvement enregistré" valeur={dateLisible(premier)} />
+            <SideFact libelle="Dernier mouvement enregistré" valeur={ilYA(dernier)} />
+            {/* Totals are given by type only: summing a deposit and an
               electricity payment would produce a total that means nothing. */}
-          {avecMontant.map((c) => (
-            <SideFact key={c.nom} libelle={`${c.nom} · total`} valeur={montantUsdc(c.montantAtomique)} />
-          ))}
-        </dl>
+            {avecMontant.map((c) => (
+              <SideFact key={c.nom} libelle={`${c.nom} · total`} valeur={montantUsdc(c.montantAtomique)} />
+            ))}
+          </dl>
+        </div>
       </div>
     </Panel>
   )
@@ -810,7 +830,11 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
           demande 116 px. Sans lui, ce mot déborde de sa tuile.
         */}
         <div className="grid grid-cols-1 gap-4 wrap-break-word @[24rem]:grid-cols-2">
-          <AdminMetric label="Dernière synchronisation" value={ilYA(derniereSynchro)} hint={dateLisible(derniereSynchro)} />
+          <AdminMetric
+            label="Dernière synchronisation"
+            value={ilYA(derniereSynchro)}
+            hint={dateLisible(derniereSynchro)}
+          />
           <AdminMetric label="Dernier bloc indexé" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
           <AdminMetric label="Intervalle d’interrogation" value={cadenceLisible(planificateur?.intervalMs)} />
           {/* An error counter measured at zero IS information; it doesn't come
@@ -863,7 +887,9 @@ export default async function Page() {
   // Status readouts (not measured counts): a backend state string, or a named
   // absence. Editorial provenance keeps them from being badged "Live".
   const rebalancingStatus = rebalancing.ok ? (rebalancing.data.rebalancing?.status ?? 'UNAVAILABLE') : 'UNAVAILABLE'
-  const runtimeStatus = runtime.ok ? (runtime.data.indexerStatus ?? runtime.data.indexer?.status ?? 'NOT_REPORTED') : 'UNAVAILABLE'
+  const runtimeStatus = runtime.ok
+    ? (runtime.data.indexerStatus ?? runtime.data.indexer?.status ?? 'NOT_REPORTED')
+    : 'UNAVAILABLE'
 
   return (
     <ConsoleShell
@@ -902,14 +928,20 @@ export default async function Page() {
               value={
                 reponse.ok && reponse.data.events
                   ? editorial(statutAffichage(reponse.data.events.status))
-                  : unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE', reason: 'events_source_unreachable' })
+                  : unavailable({
+                      endpoint: '/api/v1/series1/events',
+                      status: 'UNAVAILABLE',
+                      reason: 'events_source_unreachable',
+                    })
               }
               className={gcc.metricValue}
             />
           </div>
         </Panel>
         <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>État des <span>opérations</span></p>
+          <p className={gcc.decisionTitle}>
+            État des <span>opérations</span>
+          </p>
           <p className={gcc.decisionMeta}>Événements de la chaîne et fraîcheur de l’indexeur</p>
           <p className={gcc.decisionActionMuted}>Aucun point d’accès de file d’approbation</p>
         </Panel>
@@ -922,7 +954,11 @@ export default async function Page() {
           </div>
           <div className={clsx(gcc.heroBody, 'gap-3')}>
             <SyntheseDerive dashboard={dashboard} />
-            <AdminChartSplit className="items-start" chart={<CadreDerive derives={derives} etat={etatDerive} />} aside={<LectureOnChain rebalancing={rebalancing} />} />
+            <AdminChartSplit
+              className="items-start"
+              chart={<CadreDerive derives={derives} etat={etatDerive} />}
+              aside={<LectureOnChain rebalancing={rebalancing} />}
+            />
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
@@ -945,15 +981,21 @@ export default async function Page() {
         <Panel as="section" tone="plain" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
             <h3>Source de rééquilibrage</h3>
-            <p className={gcc.cellText}>La lecture directe du contrat et la lecture indexée du tableau de bord sont affichées séparément.</p>
+            <p className={gcc.cellText}>
+              La lecture directe du contrat et la lecture indexée du tableau de bord sont affichées séparément.
+            </p>
           </article>
           <article className={gcc.infoCell}>
             <h3>Source du journal</h3>
-            <p className={gcc.cellText}>Point d’accès des événements Series 1 uniquement ; aucun événement synthétique n’est généré.</p>
+            <p className={gcc.cellText}>
+              Point d’accès des événements Series 1 uniquement ; aucun événement synthétique n’est généré.
+            </p>
           </article>
           <article className={gcc.infoCell}>
             <h3>Santé de l’indexeur</h3>
-            <p className={gcc.cellText}>L’ordonnanceur d’exécution et les horodatages de synchronisation déterminent l’état de fraîcheur.</p>
+            <p className={gcc.cellText}>
+              L’ordonnanceur d’exécution et les horodatages de synchronisation déterminent l’état de fraîcheur.
+            </p>
           </article>
           <article className={gcc.infoCell}>
             <h3>Seuil</h3>
