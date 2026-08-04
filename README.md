@@ -131,9 +131,24 @@ Outils de diagnostic, **non bloquants et hors gate** :
 
 ```bash
 pnpm quality:dead        # knip — code potentiellement mort (indices, pas verdicts)
-pnpm quality:dup         # jscpd — duplication (seuil documenté dans le script)
+pnpm quality:dup         # duplication : exit 1 au-dessus du seuil (4 %, cf. scripts/check-duplication.mjs)
+pnpm quality:dup:report  # le détail clone par clone
 pnpm lint:fast           # oxlint, passe rapide complémentaire d'eslint
 ```
+
+`quality:dup` **échoue réellement** au-dessus de son seuil ; sa propre preuve est
+`node scripts/check-duplication.mjs --selftest`. Quand il rougit, la réponse est
+de retirer la duplication, pas de monter le seuil.
+
+Analyse SonarQube (facultative, hors CI) :
+
+```bash
+SONAR_TOKEN=… SONAR_HOST_URL=https://… pnpm sonar
+```
+
+Les deux variables sont obligatoires — aucune adresse de serveur n'est codée en
+dur — et Docker est requis (le scanner est distribué en image). Chaque prérequis
+manquant produit un message qui nomme ce qui manque.
 
 ## Design system
 

@@ -2,13 +2,12 @@ import { Absent as Missing, Panel, gcc } from '@/components/design-lab/green-com
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { explorerTxUrl } from '@/lib/explorer'
 import { formatAddress, formatCurrency, formatDateTime, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
-import { libelleMouvement, motifLisible, phraseMouvement } from '@/lib/mouvements'
+import { libelleMouvement, phraseMouvement } from '@/lib/mouvements'
 import {
   isAvailable,
   parseVaultId,
   type Availability,
   type Movement,
-  type Unavailable,
   type Vault,
   type VaultId,
 } from '@/lib/vaults/model'
@@ -57,19 +56,6 @@ const MUTED_CLASS = 'text-zinc-500 dark:text-zinc-400'
  * the cell says so on hover rather than passing the scale off as measured.
  */
 const DOCUMENTED_DECIMALS = 6
-
-const ABSENCE_SENTENCE: Record<string, string> = {
-  no_events_indexed: 'The ledger was queried and has indexed no movement yet — that is not an outage.',
-}
-
-function absenceSentence(state: Unavailable): string {
-  const known = state.reason === null ? undefined : ABSENCE_SENTENCE[state.reason]
-  if (known !== undefined) return known
-  const motif = motifLisible(state.reason)
-  return motif === undefined
-    ? 'The movement ledger is unavailable — the service returned no indexed events.'
-    : `The movement ledger is unavailable — ${motif}.`
-}
 
 /* ── Cells ────────────────────────────────────────────────────────────────── */
 
