@@ -206,7 +206,7 @@ const CELL = 'px-4 py-2 align-top'
 function Heading({ movements }: Readonly<{ movements: Availability<readonly Movement[]> }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <h3 className={gcc.cardTitle}>Movement ledger</h3>
+      <h3 className={gcc.cardTitle}>Journal des mouvements</h3>
       <Missing availability={movements} showRoute={false} />
     </div>
   )
@@ -272,7 +272,7 @@ export function MovementLedger({
 
       <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
         <table className="w-full min-w-[980px] table-fixed text-left text-sm">
-          <caption className="sr-only">Movement ledger: chronological on-chain events for the estate.</caption>
+          <caption className="sr-only">Journal des mouvements : événements on-chain du patrimoine, par ordre chronologique.</caption>
           <thead>
             <tr className={clsx('border-b border-zinc-950/10 text-xs dark:border-console-line', MUTED_CLASS)}>
               {HEADERS.map((h) => (

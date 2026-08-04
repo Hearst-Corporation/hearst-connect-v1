@@ -279,7 +279,7 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
 }
 
 /** Collapsed raw JSON — the technical evidence stays available, never forced. */
-export function RawJsonPanel({ label = 'Raw response', data }: Readonly<{ label?: string; data: unknown }>) {
+export function RawJsonPanel({ label = 'Réponse brute', data }: Readonly<{ label?: string; data: unknown }>) {
   return (
     <details className="mt-4 rounded-lg bg-cockpit-inset">
       <summary className="cursor-pointer px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white">{label}</summary>

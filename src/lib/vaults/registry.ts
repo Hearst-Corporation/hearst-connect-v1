@@ -575,9 +575,9 @@ function buildVaults(
   sources.push(
     sourceHealth(
       'vault',
-      'Vault',
+      'Coffre',
       vaultRes.ok && isAvailable(snapshot),
-      vaultRes.ok ? null : 'No response',
+      vaultRes.ok ? null : 'Aucune réponse',
       isAvailable(snapshot) ? snapshot.asOf : null,
     ),
   )
@@ -601,7 +601,7 @@ function buildVaults(
   sources.push(
     sourceHealth(
       'vault-strategies',
-      'Strategies',
+      'Stratégies',
       isAvailable(strategiesBloc),
       null,
       isAvailable(strategiesBloc) ? strategiesBloc.asOf : null,
@@ -610,7 +610,7 @@ function buildVaults(
 
   const rwaBloc = fromResolu(rwaRes.ok ? rwaRes.data.pockets : undefined, '/api/v1/rwa-vault')
   sources.push(
-    sourceHealth('rwa-vault', 'RWA pockets', isAvailable(rwaBloc), null, isAvailable(rwaBloc) ? rwaBloc.asOf : null),
+    sourceHealth('rwa-vault', 'Poches RWA', isAvailable(rwaBloc), null, isAvailable(rwaBloc) ? rwaBloc.asOf : null),
   )
 
   const rebalancingBloc = fromResolu(
@@ -620,9 +620,9 @@ function buildVaults(
   sources.push(
     sourceHealth(
       'rebalancing-status',
-      'Rebalancing',
+      'Rééquilibrage',
       isAvailable(rebalancingBloc),
-      rebalRes.ok ? (rebalRes.data.rebalancing?.reason ?? null) : 'No response',
+      rebalRes.ok ? (rebalRes.data.rebalancing?.reason ?? null) : 'Aucune réponse',
       null,
     ),
   )
@@ -641,7 +641,7 @@ function buildMovements(
 ): Availability<readonly Movement[]> {
   const eventsBloc = fromResolu(eventsRes.ok ? eventsRes.data.events : undefined, '/api/v1/series1/events')
   sources.push(
-    sourceHealth('series1-events', 'Ledger', isAvailable(eventsBloc), null, isAvailable(eventsBloc) ? eventsBloc.asOf : null),
+    sourceHealth('series1-events', 'Journal', isAvailable(eventsBloc), null, isAvailable(eventsBloc) ? eventsBloc.asOf : null),
   )
   return mapAvailability(eventsBloc, (bruts) => construireMouvements(bruts, vaultParContrat))
 }
@@ -654,7 +654,7 @@ function buildClientExceptions(
   const identityBloc = fromResolu(dashboardRes.ok ? dashboardRes.data.identity : undefined, '/api/v1/dashboard')
   const identityReason = dashboardRes.ok ? (dashboardRes.data.identity?.reason ?? null) : null
   sources.push(
-    sourceHealth('dashboard', 'Investor record', isAvailable(identityBloc), identityReason, null),
+    sourceHealth('dashboard', 'Dossier investisseur', isAvailable(identityBloc), identityReason, null),
   )
   return exceptionsClients(identityBloc, identityReason, compteLabel)
 }

@@ -36,7 +36,11 @@ export function SiteHeader() {
             </a>
           ))}
         </div>
-        <div className="flex flex-1 items-center justify-end gap-x-6">
+        {/* `max-sm:hidden` : sous 640 px, l'appel à l'action laisse la place au
+            bouton de menu, qui mène à la même destination. Les deux ensemble
+            demandaient 416 px de contenu dans 375 px de viewport — le nav
+            débordait de 24 px et la page défilait horizontalement. */}
+        <div className="flex flex-1 items-center justify-end gap-x-6 max-sm:hidden">
           <ThemeToggle className="max-lg:hidden" />
           <Link href="/login" className="hidden text-sm/6 font-semibold text-zinc-900 lg:block dark:text-white">
             Se connecter

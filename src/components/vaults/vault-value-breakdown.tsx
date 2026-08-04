@@ -76,7 +76,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
     return (
       <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
-          <h3 className={gcc.cardTitle}>Value by vault</h3>
+          <h3 className={gcc.cardTitle}>Valeur par coffre</h3>
         </div>
         <div className={gcc.heroBody}>
           <p className={gcc.cellText}>{texteAbsence(list)}</p>
@@ -111,7 +111,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
     return (
       <Panel tone="plain" className={gcc.wavePanel}>
         <div className={gcc.heroHead}>
-          <h3 className={gcc.cardTitle}>Value by vault</h3>
+          <h3 className={gcc.cardTitle}>Valeur par coffre</h3>
         </div>
         <div className={gcc.heroBody}>
           <p className={gcc.cellText}>The register lists vaults, but none carried a readable total.</p>
@@ -136,7 +136,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
     <Panel tone="plain" className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <div>
-          <h3 className={gcc.cardTitle}>Value by vault</h3>
+          <h3 className={gcc.cardTitle}>Valeur par coffre</h3>
         </div>
         <div className="text-right">
           <p className={gcc.cellText}>Readable total</p>

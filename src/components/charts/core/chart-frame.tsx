@@ -76,7 +76,7 @@ export function ChartFrame({
           </p>
           {expectedSource?.length ? (
             <div className="mt-1 w-full max-w-sm">
-              <AdminLabel>Expected source</AdminLabel>
+              <AdminLabel>Source attendue</AdminLabel>
               <RequirementList requis={expectedSource as string[]} />
             </div>
           ) : null}
