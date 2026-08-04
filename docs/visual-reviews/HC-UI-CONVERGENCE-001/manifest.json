@@ -1,7 +1,7 @@
 {
   "mission": "HC-UI-CONVERGENCE-001",
   "date": "2026-08-04",
-  "sha": "f63499181735e77471e072a03faa87c0bbf2f11b",
+  "sha": "2c297d02983f355141980f45c75186926f544b02",
   "branch": "refactor/ui-convergence-2026-08-04",
   "backend": "réel (HEARST_API_URL) — aucune donnée fabriquée",
   "auth": "quick-login de développement ; le mot de passe propriétaire n'est jamais saisi dans un navigateur",
@@ -46,8 +46,8 @@
       "consoleErrors": 0,
       "networkErrors": 0,
       "reducedMotion": "respecté — aucune animation ajoutée par cette mission",
-      "bytes": 280612,
-      "sha256": "a003041c3805c25d"
+      "bytes": 280381,
+      "sha256": "e2ca0883e90bade6"
     },
     {
       "file": "admin-product-desktop.png",
@@ -205,5 +205,10 @@
       "bytes": 76293,
       "sha256": "5bae3f9ab40f4a43"
     }
-  ]
+  ],
+  "lotE": {
+    "note": "Captures régénérées après le LOT E (retrait de 31 tokens sans consommateur + branchement des tokens --chart-*). Rendu inchangé.",
+    "tokensBefore": 112,
+    "tokensAfter": 88
+  }
 }
