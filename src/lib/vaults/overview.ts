@@ -38,6 +38,23 @@ const BPS = BigInt(10000)
 /** The overview reads a short ledger window; the operations log owns the long one. */
 export const MOVEMENT_WINDOW = 12
 
+/*
+ * Étiquettes d'axe de la courbe d'activité. Ces deux formateurs étaient
+ * construits À CHAQUE point et à chaque tour de boucle de regroupement ;
+ * `Intl.DateTimeFormat` est coûteux à instancier et n'a aucune raison de l'être
+ * plus d'une fois. Même locale, mêmes options, donc rendu strictement
+ * identique. Ils restent locaux à ce module : ce sont des étiquettes de
+ * graphique, pas le formatage de date du produit (`formatDate` /
+ * `formatDateTime` dans `lib/format.ts`), qui a d'autres options.
+ */
+const JOUR = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
+const JOUR_HEURE = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
 /* ── Denomination and totals ──────────────────────────────────────────────── */
 
 export type Denomination = Readonly<{ symbol: string; decimals: number }>
@@ -160,14 +177,9 @@ export function recentActivityTrend(
             if (!Number.isFinite(raw)) return null
             const occurredAt = movement.occurredAt as string
             return {
-              label: new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(occurredAt)),
+              label: JOUR.format(new Date(occurredAt)),
               value: raw / 10 ** asset.value.decimals,
-              detail: new Intl.DateTimeFormat('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              }).format(new Date(occurredAt)),
+              detail: JOUR_HEURE.format(new Date(occurredAt)),
             }
           })
           .filter((point): point is TrendPoint => point !== null)
@@ -186,7 +198,7 @@ export function recentActivityTrend(
     if (movement.occurredAt === null) continue
     const timestamp = Date.parse(movement.occurredAt)
     if (Number.isNaN(timestamp)) continue
-    const bucket = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(timestamp))
+    const bucket = JOUR.format(new Date(timestamp))
     const current = buckets.get(bucket)
     if (current === undefined) {
       buckets.set(bucket, { order: timestamp, label: bucket, value: 1, detail: bucket })

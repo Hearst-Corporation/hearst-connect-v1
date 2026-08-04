@@ -363,7 +363,7 @@ function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
           </span>
         ) : null}
         {bloc === null || bloc === undefined || bloc === '' ? null : (
-          <span className="tabular-nums">bloc {Number(bloc).toLocaleString('en-US')}</span>
+          <span className="tabular-nums">bloc {formatNumber(Number(bloc))}</span>
         )}
         <span>{dateLisible(mouvement.occurredAt)}</span>
       </div>
