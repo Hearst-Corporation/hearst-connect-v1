@@ -362,7 +362,12 @@ const MATRIX_DOT: Record<string, string> = {
   sain: 'bg-success-500',
   attention: 'bg-warning-500',
   critique: 'bg-danger-500',
-  neutre: 'bg-neutral-600',
+  // `zinc-500` et non `neutral-600` : même valeur (#7f7f7f dans le thème
+  // global), mais `neutral-*` était la dernière survivance d'une famille de
+  // tokens parallèle. Les trois autres pastilles parlent déjà la grammaire
+  // sémantique du produit ; celle-ci parlait un autre dialecte pour la même
+  // couleur.
+  neutre: 'bg-zinc-500',
 }
 
 export function AdminStatusMatrix({ rows, title }: Readonly<{ rows: readonly StatusMatrixRow[]; title?: string }>) {

@@ -42,8 +42,20 @@ describe('étiquetage des provenances non live', () => {
   it('rend une fixture backend visible, jamais silencieuse', () => {
     const { container } = render(<DataProvenance provenance="fixture" />)
     expect(container.textContent).toMatch(/Fixture backend/)
-    // Marquage voyant : la fixture ne se fond pas dans le texte neutre.
-    expect(container.querySelector('.text-hearst-warn')).not.toBeNull()
+
+    /*
+     * Marquage voyant : la fixture ne se fond pas dans le texte neutre.
+     *
+     * Ce qui est vérifié est le CONTRAT — « cette provenance porte la couleur
+     * d'avertissement » — et non un nom de classe précis. L'assertion visait
+     * `.text-hearst-warn` ; le token a été renommé en `warning-400` au LOT E
+     * (même valeur #fb923c, famille sémantique canonique), et le test tombait
+     * alors que le comportement n'avait pas bougé. Il accepte désormais la
+     * famille d'avertissement, quel que soit son palier, et refuse toujours un
+     * rendu en texte neutre.
+     */
+    const marqueur = container.querySelector('[class*="text-warning-"]')
+    expect(marqueur).not.toBeNull()
   })
 })
 
