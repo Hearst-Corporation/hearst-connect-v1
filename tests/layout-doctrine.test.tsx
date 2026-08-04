@@ -80,7 +80,16 @@ describe('12-column grid', () => {
         <AdminCol span={4}>aside</AdminCol>
       </AdminGrid>,
     )
-    const grid = container.firstElementChild
+    /*
+     * Deux nœuds depuis la correction du 2026-08-04 : l'enveloppe DÉCLARE le
+     * conteneur, la grille l'INTERROGE. Les réunir était le défaut — un
+     * élément en `container-type: inline-size` ne s'interroge pas lui-même,
+     * `@[60rem]:` remontait au conteneur au-dessus (`.workspace`, 1200 px) et
+     * une grille de 360 px ouvrait ses 12 colonnes : douze pistes de 8 px.
+     */
+    const enveloppe = container.firstElementChild
+    const grid = enveloppe?.firstElementChild
+    expect(enveloppe?.className).toContain('@container')
     /*
      * L'échelle est 4 / 8 / 12. Le palier haut est passé de `lg` (1024 px) à
      * `xl` (1280 px) — HC-VISUAL-LAYOUT-RECOVERY-001 : à 1024 px, une colonne
@@ -100,7 +109,11 @@ describe('12-column grid', () => {
      */
     expect(grid?.className).toMatch(/(md:|@\[[\d.]+rem\]:)grid-cols-8/)
     expect(grid?.className).toMatch(/(lg:|xl:|@\[[\d.]+rem\]:)grid-cols-12/)
-    expect(grid?.className).toContain('@container')
+    /*
+     * Le conteneur et la requête ne doivent PAS revenir sur le même nœud :
+     * c'est exactement le défaut corrigé, et il est invisible à la lecture.
+     */
+    expect(grid?.className).not.toContain('@container')
   })
 
   it('emits literal span classes Tailwind can actually see', () => {
@@ -111,7 +124,8 @@ describe('12-column grid', () => {
         </AdminCol>
       </AdminGrid>,
     )
-    const col = container.firstElementChild?.firstElementChild
+    // enveloppe (`@container`) → grille → colonne.
+    const col = container.firstElementChild?.firstElementChild?.firstElementChild
     // Même règle : le span du palier haut suit la grille (`xl` depuis
     // HC-VISUAL-LAYOUT-RECOVERY-001). C'est la classe LITTÉRALE qui compte —
     // Tailwind ne voit pas une classe construite par concaténation.
