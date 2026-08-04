@@ -309,7 +309,7 @@ export function AdminToolbar({
 
 /* ── AdminFilterBar ───────────────────────────────────────────────────────── */
 
-export type AdminFilterItem = {
+type AdminFilterItem = {
   id: string
   label: string
   count?: string | null

@@ -702,4 +702,10 @@ export async function loadVault(
   return { registry, vault: liste.find((v) => v.id === id) ?? null }
 }
 
-export type { ClientRef, Deployment } from '@/lib/vaults/model'
+/*
+ * Retiré le 2026-08-04 (LOT B3) : `export type { ClientRef, Deployment } from
+ * '@/lib/vaults/model'`. Ce ré-export n'avait aucun consommateur — les modules
+ * qui ont besoin de ces types les importent directement depuis `model.ts`
+ * (p. ex. `components/vaults/deployment-queue.tsx`). Deux chemins d'import
+ * pour un même type ne servent qu'à faire diverger les conventions.
+ */

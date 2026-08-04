@@ -17,7 +17,7 @@ import { stateForHttpFailure } from './http-failure'
  *   - the backend's statuses and provenances are passed through as-is.
  */
 
-export type EnvelopeStatus = 'LIVE' | 'SNAPSHOT' | 'STALE' | 'SIMULATED' | 'NOT_CONFIGURED' | 'UNAVAILABLE'
+type EnvelopeStatus = 'LIVE' | 'SNAPSHOT' | 'STALE' | 'SIMULATED' | 'NOT_CONFIGURED' | 'UNAVAILABLE'
 
 export type EnvelopeMeta = {
   status: EnvelopeStatus

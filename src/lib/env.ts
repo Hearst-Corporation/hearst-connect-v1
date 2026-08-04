@@ -17,9 +17,9 @@ import 'server-only'
  * content.
  */
 
-export type EnvVarStatus = 'ok' | 'missing' | 'invalid'
+type EnvVarStatus = 'ok' | 'missing' | 'invalid'
 
-export type EnvVarReport = {
+type EnvVarReport = {
   name: string
   status: EnvVarStatus
   /** Role of the variable, displayable in the UI. */

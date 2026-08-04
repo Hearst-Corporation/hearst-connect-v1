@@ -34,7 +34,7 @@ import {
  * are on one of them, so you always know where you are.
  */
 
-export type IconeNav = typeof HomeIcon
+type IconeNav = typeof HomeIcon
 
 export type EntreeNav = Readonly<{
   libelle: string
