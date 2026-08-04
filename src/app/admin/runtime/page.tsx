@@ -16,7 +16,7 @@ import { publicUser } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Service Status' }
+export const metadata: Metadata = { title: 'État du service' }
 export const dynamic = 'force-dynamic'
 
 
@@ -75,21 +75,21 @@ function statusFromRaw(raw: string | undefined): 'LIVE' | 'PARTIAL' | 'UNAVAILAB
 function statusLabel(raw: string | undefined): string {
   switch (raw) {
     case 'ready':
-      return 'Reachable'
+      return 'Joignable'
     case 'CONFIGURED':
-      return 'Configured'
+      return 'Configuré'
     case 'RUNNING':
-      return 'Running'
+      return 'En cours'
     case 'running':
-      return 'Active'
+      return 'Actif'
     case 'NOT_CONFIGURED':
-      return 'Not configured'
+      return 'Non configuré'
     case 'unreachable':
-      return 'Unreachable'
+      return 'Injoignable'
     case 'disabled':
-      return 'Disabled'
+      return 'Désactivé'
     default:
-      return raw ?? 'Not reported'
+      return raw ?? 'Non renseigné'
   }
 }
 
@@ -100,12 +100,12 @@ function latencyDetail(ms: number | null | undefined): string | undefined {
 
 function blockDetail(block: number | null | undefined): string | undefined {
   if (block === null || block === undefined) return undefined
-  return `block ${formatNumber(block)}`
+  return `bloc ${formatNumber(block)}`
 }
 
 function errorsDetail(n: number | undefined): string {
-  if (n !== undefined && n > 0) return `${n} error(s)`
-  return 'no errors'
+  if (n !== undefined && n > 0) return `${n} erreur(s)`
+  return 'aucune erreur'
 }
 
 function intervalDetail(ms: number | null | undefined): string | null {
@@ -126,42 +126,42 @@ function buildMatrix(input: {
   return [
     {
       id: 'health',
-      label: 'Liveness (health)',
+      label: 'Vivacité (health)',
       status: healthOk ? 'LIVE' : 'UNAVAILABLE',
-      detail: healthOk ? 'HTTP 200' : 'No response',
+      detail: healthOk ? 'HTTP 200' : 'Aucune réponse',
       ton: healthOk ? 'sain' : 'critique',
     },
     {
       id: 'ready',
-      label: 'Readiness (ready)',
+      label: 'Disponibilité (ready)',
       status: readyLive ? 'LIVE' : 'UNAVAILABLE',
       detail: readyOk ? readyDb : undefined,
       ton: readyLive ? 'sain' : 'critique',
     },
     {
       id: 'db',
-      label: 'Database',
+      label: 'Base de données',
       status: statusFromRaw(r?.databaseStatus),
       detail: latencyDetail(r?.db?.latencyMs),
       ton: statusTone(r?.databaseStatus),
     },
     {
       id: 'contract',
-      label: 'Contract',
+      label: 'Contrat',
       status: statusFromRaw(r?.contractStatus),
       detail: statusLabel(r?.contractStatus),
       ton: statusTone(r?.contractStatus),
     },
     {
       id: 'indexer',
-      label: 'Indexer',
+      label: 'Indexeur',
       status: statusFromRaw(r?.indexerStatus),
       detail: blockDetail(scheduler?.lastIndexedBlock),
       ton: statusTone(r?.indexerStatus),
     },
     {
       id: 'scheduler',
-      label: 'Scheduler',
+      label: 'Ordonnanceur',
       status: statusFromRaw(scheduler?.status),
       detail: errorsDetail(scheduler?.consecutiveErrors),
       ton: statusTone(scheduler?.status),
@@ -191,25 +191,25 @@ export default async function RuntimePage() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect runtime cockpit"
+      label="Poste de pilotage exécution Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/runtime" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Runtime summary">
-        <Panel className={gcc.metricCard}><h2>Health</h2><div className={gcc.metricText}><Reading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Ready</h2><div className={gcc.metricText}><Reading value={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Database</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Indexer</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Environment</h2><div className={gcc.metricText}><Reading value={editorial(r?.environment ?? 'Not reported')} className={gcc.metricValue} /></div></Panel>
+      <section className={gcc.metricsRow} aria-label="Résumé de l’exécution">
+        <Panel className={gcc.metricCard}><h2>Santé</h2><div className={gcc.metricText}><Reading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Prêt</h2><div className={gcc.metricText}><Reading value={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Base de données</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.databaseStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Indexeur</h2><div className={gcc.metricText}><Reading value={editorial(statusLabel(r?.indexerStatus))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Environnement</h2><div className={gcc.metricText}><Reading value={editorial(r?.environment ?? 'Non renseigné')} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Runtime <span>state</span></p>
-          <p className={gcc.decisionMeta}>{r?.serviceVersion ?? 'Version not reported'}</p>
-          <p className={gcc.decisionActionMuted}>Matrix + raw probes</p>
+          <p className={gcc.decisionTitle}>État <span>de l’exécution</span></p>
+          <p className={gcc.decisionMeta}>{r?.serviceVersion ?? 'Version non renseignée'}</p>
+          <p className={gcc.decisionActionMuted}>Matrice + sondes brutes</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Runtime matrix and deployment">
+      <section className={gcc.mainRow} aria-label="Matrice d’exécution et déploiement">
         <Panel className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Runtime and infrastructure</h2></div>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Exécution et infrastructure</h2></div>
           <div className={gcc.heroBody}>
       {/*
         The matrix is a single full-width list card and is therefore the section's
@@ -218,7 +218,7 @@ export default async function RuntimePage() {
         section's H2 already names it, and an H3 repeating it inside the card was
         a second header for one piece of content.
       */}
-      <AdminSection title="Status Matrix" description="Dependencies and operational probes">
+      <AdminSection title="Matrice d’état" description="Dépendances et sondes opérationnelles">
         <AdminStatusMatrix rows={matrix} />
       </AdminSection>
 
@@ -240,12 +240,12 @@ export default async function RuntimePage() {
         as provenance on a page whose job is technical verification.
       */}
       <AdminSection
-        title="Deployment"
-        description="Version, environment, and scheduler settings as reported by the runtime probe"
+        title="Déploiement"
+        description="Version, environnement et paramètres de l’ordonnanceur tels que rapportés par la sonde d’exécution"
       >
         <AdminGrid>
           <AdminCol span={4} md={4}>
-            <AdminMetric label="Environment" value={r?.environment ?? null} hint="environment" />
+            <AdminMetric label="Environnement" value={r?.environment ?? null} hint="environment" />
           </AdminCol>
           <AdminCol span={4} md={4}>
             <AdminMetric label="Version" value={r?.serviceVersion ?? null} hint="version" />
@@ -254,14 +254,14 @@ export default async function RuntimePage() {
             <AdminMetric label="Commit" value={r?.commitSha ?? null} hint="commitSha" />
           </AdminCol>
           <AdminCol span={4} md={4}>
-            <AdminMetric label="Uptime" value={formatUptime(r?.uptimeSeconds)} hint="uptimeSeconds" />
+            <AdminMetric label="Disponibilité" value={formatUptime(r?.uptimeSeconds)} hint="uptimeSeconds" />
           </AdminCol>
           <AdminCol span={4} md={4}>
-            <AdminMetric label="Chain" value={r?.contract?.chainId ?? null} hint="chainId" />
+            <AdminMetric label="Chaîne" value={r?.contract?.chainId ?? null} hint="chainId" />
           </AdminCol>
           <AdminCol span={4} md={4}>
             <AdminMetric
-              label="Indexer Interval"
+              label="Intervalle de l’indexeur"
               value={intervalDetail(scheduler?.intervalMs)}
               hint="indexerScheduler.intervalMs"
             />
@@ -271,15 +271,15 @@ export default async function RuntimePage() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Uptime</h3><p className={gcc.signalValue}>{formatUptime(r?.uptimeSeconds)}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Chain</h3><p className={gcc.signalValue}>{r?.contract?.chainId === undefined ? "—" : String(r.contract.chainId)}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Scheduler</h3><p className={gcc.cellText}>{scheduler?.status ?? 'Not reported'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Disponibilité</h3><p className={gcc.signalValue}>{formatUptime(r?.uptimeSeconds)}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Chaîne</h3><p className={gcc.signalValue}>{r?.contract?.chainId === undefined ? "—" : String(r.contract.chainId)}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Ordonnanceur</h3><p className={gcc.cellText}>{scheduler?.status ?? 'Non renseigné'}</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Runtime raw responses">
+      <section className={gcc.bottomRow} aria-label="Réponses brutes de l’exécution">
         <Panel className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Raw responses</h3></div>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Réponses brutes</h3></div>
           <div className={gcc.heroBody}>
       {/*
         Raw payloads. The runtime probe carries the whole deployment picture and
@@ -288,30 +288,30 @@ export default async function RuntimePage() {
         rather than a bare `lg:grid-cols-2`, which left the runtime block and the
         pair on two unrelated grids.
       */}
-      <AdminSection title="Raw Responses" description="Full payload for technical verification">
+      <AdminSection title="Réponses brutes" description="Charge utile complète pour vérification technique">
         <AdminGrid>
           <AdminCol span={12}>
-            <EndpointSection endpointId="runtime" title="Runtime" />
+            <EndpointSection endpointId="runtime" title="Exécution" />
           </AdminCol>
           <AdminCol span={6} md={4}>
-            <EndpointSection endpointId="health" title="Health" />
+            <EndpointSection endpointId="health" title="Santé" />
           </AdminCol>
           <AdminCol span={6} md={4}>
-            <EndpointSection endpointId="ready" title="Ready" />
+            <EndpointSection endpointId="ready" title="Prêt" />
           </AdminCol>
         </AdminGrid>
       </AdminSection>
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Health probe</h3><p className={gcc.cellText}>Liveness endpoint</p></article>
-          <article className={gcc.infoCell}><h3>Ready probe</h3><p className={gcc.cellText}>Readiness endpoint</p></article>
-          <article className={gcc.infoCell}><h3>Runtime probe</h3><p className={gcc.cellText}>Environment and scheduler payload</p></article>
-          <article className={gcc.infoCell}><h3>Contract</h3><p className={gcc.cellText}>No probe value is rewritten by frontend</p></article>
+          <article className={gcc.infoCell}><h3>Sonde de santé</h3><p className={gcc.cellText}>Point d’accès de vivacité</p></article>
+          <article className={gcc.infoCell}><h3>Sonde de disponibilité</h3><p className={gcc.cellText}>Point d’accès de disponibilité</p></article>
+          <article className={gcc.infoCell}><h3>Sonde d’exécution</h3><p className={gcc.cellText}>Charge utile de l’environnement et de l’ordonnanceur</p></article>
+          <article className={gcc.infoCell}><h3>Contrat</h3><p className={gcc.cellText}>Aucune valeur de sonde n’est réécrite par le frontend</p></article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Coverage path</h3>
-          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint-level surface status.</p>
+          <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
+          <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état des surfaces au niveau des points d’accès.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

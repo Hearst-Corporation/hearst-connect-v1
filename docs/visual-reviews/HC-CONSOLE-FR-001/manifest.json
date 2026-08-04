@@ -1,0 +1,28 @@
+{
+  "id": "HC-CONSOLE-FR-001",
+  "title": "Traduction française cohérente de la console d'administration",
+  "branch": "remediation/audit-2026-08-03",
+  "shaStart": "6c5507f",
+  "date": "2026-08-04",
+  "doctrine": "docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md (§1 : langue produit = français)",
+  "glossary": "docs/design-system/CONSOLE-FR-GLOSSARY.md",
+  "auth": "connexion rapide dev (backend réel ; mot de passe owner jamais saisi)",
+  "server": "next dev 16.2.12 @ localhost:3000",
+  "theme": "console dark-only (contrat documenté HC-DESIGN-SYSTEM-CONVERGENCE-001)",
+  "reducedMotion": "respecté",
+  "expectedText": "français uniquement ; codes techniques (LIVE, UNAVAILABLE, chainId, 0x…, Series 1, BTC, bps, pt) conservés",
+  "shots": [
+    { "file": "admin-desktop-1440x900.png", "route": "/admin", "viewport": "1440x900", "state": "live+unavailable", "console": "clean", "text": "Accueil, Coffres actifs, Mouvements récents, En direct, Se déconnecter, File de décisions" },
+    { "file": "admin-laptop-1280x800.png", "route": "/admin", "viewport": "1280x800", "state": "live+unavailable", "console": "clean" },
+    { "file": "admin-mobile-375x812.png", "route": "/admin", "viewport": "375x812", "state": "nav mobile + Se déconnecter visible", "console": "clean" },
+    { "file": "dashboard-fr.png", "route": "/admin/dashboard", "viewport": "1440x900", "state": "couverture honnête", "console": "clean", "text": "Servi / Partiel / Non ouvert / Taux de couverture" },
+    { "file": "operations-fr.png", "route": "/admin/operations", "viewport": "1440x900", "state": "indexeur STALLED nommé", "console": "clean" },
+    { "file": "product-fr.png", "route": "/admin/product", "viewport": "1440x900", "state": "fiche produit", "console": "clean" },
+    { "file": "vaults-table-fr.png", "route": "/admin/vaults", "viewport": "1440x900", "state": "table FR (Coffre/État/Déployé/Disponible)", "console": "clean" },
+    { "file": "runtime-fr.png", "route": "/admin/runtime", "viewport": "1440x900", "state": "Version 0.1.0 / Chaîne 31337", "console": "clean" },
+    { "file": "chart-fr.png", "route": "/admin/mining", "viewport": "1440x900", "state": "chart : état honnête si données absentes", "console": "clean" },
+    { "file": "form-fr.png", "route": "/admin/keeper", "viewport": "1440x900", "state": "formulaire keeper FR", "console": "clean" },
+    { "file": "unavailable-fr.png", "route": "/admin/clients", "viewport": "1440x900", "state": "annuaire indisponible (état honnête)", "console": "clean" },
+    { "file": "error-fr.png", "route": "/admin/inexistante-xyz", "viewport": "1440x900", "state": "route inexistante", "console": "clean" }
+  ]
+}

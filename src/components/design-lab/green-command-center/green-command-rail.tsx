@@ -69,10 +69,10 @@ import { gcc } from './primitives'
  * Deux surfaces secondaires s'y ajoutent plus bas, sous leur propre intitulé.
  */
 const DESTINATIONS = [
-  { href: '/admin', label: 'Home', icon: HomeIcon },
+  { href: '/admin', label: 'Accueil', icon: HomeIcon },
   { href: '/admin/clients', label: 'Clients', icon: BuildingOffice2Icon },
-  { href: '/admin/conformite', label: 'Compliance', icon: ShieldCheckIcon },
-  { href: '/admin/operations', label: 'Operations', icon: ArrowsRightLeftIcon },
+  { href: '/admin/conformite', label: 'Conformité', icon: ShieldCheckIcon },
+  { href: '/admin/operations', label: 'Opérations', icon: ArrowsRightLeftIcon },
   { href: '/admin/administration', label: 'Administration', icon: UsersIcon },
 ] as const
 
@@ -83,8 +83,8 @@ const DESTINATIONS = [
  * 900 px ne lit pas comme une colonne meublée, à dégradé pourtant identique.
  */
 const SURFACES = [
-  { href: '/admin/dashboard', label: 'Data coverage', icon: PresentationChartLineIcon },
-  { href: '/admin/runtime', label: 'Runtime', icon: WrenchScrewdriverIcon },
+  { href: '/admin/dashboard', label: 'Couverture des données', icon: PresentationChartLineIcon },
+  { href: '/admin/runtime', label: 'Exécution', icon: WrenchScrewdriverIcon },
 ] as const
 
 export function GreenCommandRail({
@@ -161,7 +161,7 @@ export function GreenCommandRail({
             </div>
             <div className={gcc.brandText}>
               <div className={gcc.brandName}>{userName}</div>
-              <div className={gcc.brandSub}>Role: {userRole}</div>
+              <div className={gcc.brandSub}>Rôle : {userRole}</div>
             </div>
           </div>
           {/*
@@ -177,7 +177,7 @@ export function GreenCommandRail({
             <form action={logout}>
               <SidebarItem type="submit" className={gcc.railItem}>
                 <ArrowRightStartOnRectangleIcon data-slot="icon" />
-                <SidebarLabel>Sign out</SidebarLabel>
+                <SidebarLabel>Se déconnecter</SidebarLabel>
               </SidebarItem>
             </form>
           </SidebarSection>

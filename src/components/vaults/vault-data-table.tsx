@@ -161,7 +161,7 @@ function LastRebalanceCell({ vault }: Readonly<{ vault: Vault }>) {
   const rebalancing = valueOf(vault.rebalancing)
   if (rebalancing === null) return <Absent availability={vault.rebalancing} showRoute={false} />
   if (rebalancing.lastRebalanceAt === null) {
-    return <span className="text-zinc-500 dark:text-zinc-500">Not reported</span>
+    return <span className="text-zinc-500 dark:text-zinc-500">Non renseigné</span>
   }
   return (
     <span className="tabular-nums text-zinc-600 dark:text-zinc-300">
@@ -201,7 +201,7 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
     return (
       <Panel className={gcc.heroChart}>
         <div className={gcc.heroHead}>
-          <h3 className={gcc.cardTitle}>Vault registry</h3>
+          <h3 className={gcc.cardTitle}>Registre des coffres</h3>
         </div>
         <div className={gcc.heroBody}>
           <p className={gcc.cellText}>
@@ -221,7 +221,7 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
   return (
     <Panel className={gcc.heroChart}>
       <div className={gcc.heroHead}>
-        <h3 className={gcc.cardTitle}>Vaults</h3>
+        <h3 className={gcc.cardTitle}>Coffres</h3>
         <p className={gcc.cellText}>Threshold ±{THRESHOLD_POINTS} pt</p>
       </div>
 
@@ -234,34 +234,34 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
           <thead>
             <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
               <th scope="col" className={clsx(HEAD_CELL)}>
-                Vault
+                Coffre
               </th>
               <th scope="col" className={HEAD_CELL}>
                 Client
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Status
+                État
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Total value
+                Valeur totale
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Deployed
+                Déployé
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Available
+                Disponible
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Strategies
+                Stratégies
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Allocation drift
+                Écart d’allocation
               </th>
               <th scope="col" className={HEAD_CELL}>
-                Last rebalance
+                Dernier rééquilibrage
               </th>
               <th scope="col" className={clsx(HEAD_CELL)}>
-                Pending action
+                Action en attente
               </th>
             </tr>
           </thead>

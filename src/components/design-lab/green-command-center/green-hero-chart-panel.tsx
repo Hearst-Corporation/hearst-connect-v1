@@ -137,8 +137,8 @@ export function GreenHeroChartPanel({
               <caption className={gcc.srOnly}>{title} data table fallback</caption>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Day</TableHeader>
-                  <TableHeader>Movements</TableHeader>
+                  <TableHeader>Jour</TableHeader>
+                  <TableHeader>Mouvements</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>

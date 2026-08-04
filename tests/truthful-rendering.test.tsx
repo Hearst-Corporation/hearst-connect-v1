@@ -29,19 +29,19 @@ describe('null ne devient jamais zéro', () => {
 })
 
 describe('étiquetage des provenances non live', () => {
-  it('affiche « Backend simulation » pour SIMULATED', () => {
+  it('affiche « Simulé (backend) » pour SIMULATED', () => {
     render(<StatusBadge status="SIMULATED" />)
-    expect(screen.getByText('Backend simulation')).toBeDefined()
+    expect(screen.getByText('Simulé (backend)')).toBeDefined()
   })
 
-  it('affiche « Manual source » pour manual', () => {
+  it('affiche « Source manuelle » pour manual', () => {
     render(<DataProvenance provenance="manual" />)
-    expect(screen.getByText(/Manual source/)).toBeDefined()
+    expect(screen.getByText(/Source manuelle/)).toBeDefined()
   })
 
   it('rend une fixture backend visible, jamais silencieuse', () => {
     const { container } = render(<DataProvenance provenance="fixture" />)
-    expect(container.textContent).toMatch(/Backend fixture/)
+    expect(container.textContent).toMatch(/Fixture backend/)
     // Marquage voyant : la fixture ne se fond pas dans le texte neutre.
     expect(container.querySelector('.text-hearst-warn')).not.toBeNull()
   })
@@ -50,7 +50,7 @@ describe('étiquetage des provenances non live', () => {
 describe('les états sont distincts les uns des autres', () => {
   it('EMPTY est une réponse réussie sans contenu, pas une erreur', () => {
     render(<EmptyState />)
-    expect(screen.getByText('Empty response')).toBeDefined()
+    expect(screen.getByText('Réponse vide')).toBeDefined()
     expect(screen.queryByText('Error')).toBeNull()
   })
 

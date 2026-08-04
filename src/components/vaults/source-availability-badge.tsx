@@ -37,12 +37,12 @@ import clsx from 'clsx'
  * header say the same thing at two lengths instead of two different things.
  */
 const PROVENANCE_LABEL: Record<Provenance, { short: string; long: string }> = {
-  live: { short: 'Live', long: 'Live source' },
-  db: { short: 'Database', long: 'Database' },
-  indexed: { short: 'Indexed', long: 'Indexed source' },
-  manual: { short: 'Manual', long: 'Manual entry' },
-  chain: { short: 'On-chain', long: 'On-chain read' },
-  unknown: { short: 'Source not stated', long: 'Source not stated by the service' },
+  live: { short: 'En direct', long: 'Source en direct' },
+  db: { short: 'Base', long: 'Base de données' },
+  indexed: { short: 'Indexé', long: 'Source indexée' },
+  manual: { short: 'Manuel', long: 'Saisie manuelle' },
+  chain: { short: 'On-chain', long: 'Lecture on-chain' },
+  unknown: { short: 'Source non précisée', long: 'Source non précisée par le service' },
 }
 
 /* ── Reasons ──────────────────────────────────────────────────────────────── */
@@ -56,24 +56,24 @@ const PROVENANCE_LABEL: Record<Provenance, { short: string; long: string }> = {
  * the service's mouth, which is the same defect as inventing a number.
  */
 const REASON_TEXT: Record<string, string> = {
-  field_absent_from_response: 'The response carried no such field.',
-  ledger_carries_no_pocket: 'The ledger records no pocket for this movement.',
-  no_client_directory_endpoint: 'The service exposes no client directory.',
-  no_contract_address_reported: 'The service reported no contract address.',
-  no_creation_timestamp: 'The contract publishes no creation timestamp.',
-  no_deployment_ledger_endpoint: 'The service exposes no deployment ledger.',
-  no_investor_record: 'This account is attached to no investor record.',
-  no_pocket_share_readable: 'No pocket share could be read.',
-  no_readable_pocket_drift: 'No pocket drift could be read.',
-  no_share_to_cross_check_against: 'No share was reported to cross-check the amount against.',
-  no_snapshot_timestamp: 'The snapshot carried no timestamp.',
-  no_vault_allocation_readable: 'No vault allocation could be read.',
-  not_exposed_by_contract: 'The contract does not expose it.',
-  pocket_assets_contradicts_reported_share: 'The reported amount contradicts the pocket’s own share.',
-  pocket_assets_not_comparable: 'The reported amount could not be compared with the pocket’s share.',
-  pocket_assets_not_reported: 'The service reported no amount for this pocket.',
-  service_did_not_respond: 'The service did not respond.',
-  some_pocket_shares_unreadable: 'Some pocket shares could not be read.',
+  field_absent_from_response: 'La réponse ne contenait pas ce champ.',
+  ledger_carries_no_pocket: 'Le journal n’enregistre aucune poche pour ce mouvement.',
+  no_client_directory_endpoint: 'Le service n’expose aucun annuaire client.',
+  no_contract_address_reported: 'Le service n’a communiqué aucune adresse de contrat.',
+  no_creation_timestamp: 'Le contrat ne publie aucune date de création.',
+  no_deployment_ledger_endpoint: 'Le service n’expose aucun journal de déploiement.',
+  no_investor_record: 'Ce compte n’est rattaché à aucun dossier investisseur.',
+  no_pocket_share_readable: 'Aucune part de poche n’a pu être lue.',
+  no_readable_pocket_drift: 'Aucun écart de poche n’a pu être lu.',
+  no_share_to_cross_check_against: 'Aucune part n’a été communiquée pour recouper le montant.',
+  no_snapshot_timestamp: 'L’instantané ne portait aucune date.',
+  no_vault_allocation_readable: 'Aucune allocation de coffre n’a pu être lue.',
+  not_exposed_by_contract: 'Le contrat ne l’expose pas.',
+  pocket_assets_contradicts_reported_share: 'Le montant communiqué contredit la part propre de la poche.',
+  pocket_assets_not_comparable: 'Le montant communiqué n’a pas pu être comparé à la part de la poche.',
+  pocket_assets_not_reported: 'Le service n’a communiqué aucun montant pour cette poche.',
+  service_did_not_respond: 'Le service n’a pas répondu.',
+  some_pocket_shares_unreadable: 'Certaines parts de poche n’ont pas pu être lues.',
 }
 
 type Reason = Readonly<{ text: string; verbatim: boolean }>
@@ -119,7 +119,7 @@ function resolveAvailabilityState<T>(availability: Availability<T>): Availabilit
 }
 
 function resolveAvailabilityLabel<T>(availability: Availability<T>, compact: boolean): string {
-  if (!isAvailable(availability)) return 'Unavailable'
+  if (!isAvailable(availability)) return 'Indisponible'
   return compact ? PROVENANCE_LABEL[availability.provenance].short : PROVENANCE_LABEL[availability.provenance].long
 }
 
@@ -131,13 +131,13 @@ function resolveAvailabilityDetail<T>(availability: Availability<T>, compact: bo
 
   const freshness = availability.asOf === null ? null : formatRelativeTime(availability.asOf)
   if (compact) {
-    return [freshness, availability.stale ? 'stale' : null]
+    return [freshness, availability.stale ? 'obsolète' : null]
       .filter((part): part is string => part !== null)
       .join(' · ')
   }
 
-  if (freshness === null) return availability.stale ? 'stale' : null
-  return [`as of ${freshness}`, availability.stale ? 'stale' : null]
+  if (freshness === null) return availability.stale ? 'obsolète' : null
+  return [`au ${freshness}`, availability.stale ? 'obsolète' : null]
     .filter((part): part is string => part !== null)
     .join(' · ')
 }
@@ -145,13 +145,13 @@ function resolveAvailabilityDetail<T>(availability: Availability<T>, compact: bo
 function resolveAvailabilityTitle<T>(availability: Availability<T>): string | undefined {
   if (!isAvailable(availability)) {
     const reason = readReason(availability.reason)
-    return ['Unavailable', reason === null ? null : reason.text, availability.endpoint]
+    return ['Indisponible', reason === null ? null : reason.text, availability.endpoint]
       .filter((part): part is string => part !== null)
       .join(' · ')
   }
 
   const exact = availability.asOf === null ? null : formatDateTime(availability.asOf)
-  return [PROVENANCE_LABEL[availability.provenance].long, exact === null ? null : `as of ${exact}`, availability.stale ? 'stale' : null]
+  return [PROVENANCE_LABEL[availability.provenance].long, exact === null ? null : `au ${exact}`, availability.stale ? 'obsolète' : null]
     .filter((part): part is string => part !== null)
     .join(' · ')
 }
@@ -237,7 +237,7 @@ function UnavailableBadge({
         title={title}
       >
         <Dot filled={false} />
-        <span className="shrink-0 font-medium text-zinc-600 dark:text-zinc-300">Unavailable</span>
+        <span className="shrink-0 font-medium text-zinc-600 dark:text-zinc-300">Indisponible</span>
         {detail === null ? null : (
           <span className={clsx('truncate', link !== null && 'font-mono text-[0.6875rem]')}>{detail}</span>
         )}
@@ -254,7 +254,7 @@ function UnavailableBadge({
         )}
       >
         <Dot filled={false} />
-        Unavailable
+        Indisponible
       </span>
       {reason === null ? null : (
         <span

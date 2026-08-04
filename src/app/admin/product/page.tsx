@@ -15,7 +15,7 @@ import { available, editorial, unavailable, type Availability } from '@/lib/vaul
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Product Sheet' }
+export const metadata: Metadata = { title: 'Fiche produit' }
 export const dynamic = 'force-dynamic'
 
 /**
@@ -68,7 +68,7 @@ type Factsheet = {
 
 const PAGE_REASONS = {
   ...MOTIF_SERIE,
-  dynavault_not_deployed: 'these terms are not yet available on the deployed contract',
+  dynavault_not_deployed: 'ces conditions ne sont pas encore disponibles sur le contrat déployé',
 }
 
 function Card({
@@ -146,8 +146,8 @@ function stateOf(block: Resolved<unknown> | undefined, fallback: string): EtatSe
  */
 function readableDuration(months: number | null | undefined): string {
   if (months === null || months === undefined || !Number.isFinite(months)) return '—'
-  if (months <= 0) return 'No fixed term'
-  return `${formatNumber(months)} months`
+  if (months <= 0) return 'Aucune durée fixe'
+  return `${formatNumber(months)} mois`
 }
 
 /**
@@ -176,13 +176,13 @@ function readableShare(bps: number | null | undefined): string {
 
 function curveState(points: readonly PointCourbe[], curveConfigured: boolean, vendingCurve: Resolved<unknown> | undefined): EtatSerie {
   if (points.length === 0) {
-    return stateOf(vendingCurve, 'The reward terms have not been transmitted yet.')
+    return stateOf(vendingCurve, 'Les conditions de rémunération n’ont pas encore été transmises.')
   }
   if (curveConfigured) return { type: 'tracee' }
   return {
     type: 'attendue',
     explication:
-      'The product’s five milestones are defined, but no rate has been recorded for any of them yet. The curve will render as soon as they are.',
+      'Les cinq jalons du produit sont définis, mais aucun taux n’a encore été enregistré pour l’un d’eux. La courbe s’affichera dès qu’ils le seront.',
   }
 }
 
@@ -203,7 +203,7 @@ export default async function Page() {
   const allocation: PocheAllocation[] = readablePockets.map((p) => ({
     poche:
       p.label === null || p.label === undefined || p.label === ''
-        ? (p.pocket ?? 'Unnamed pocket')
+        ? (p.pocket ?? 'Poche sans nom')
         : p.label,
     cible: Number(p.targetBps) / 100,
     reel:
@@ -250,51 +250,51 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect product cockpit"
+      label="Hearst Connect — poste de pilotage produit"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Product summary">
+      <section className={gcc.metricsRow} aria-label="Synthèse du produit">
         <Panel className={gcc.metricCard}>
-          <h2>Minimum deposit</h2>
+          <h2>Dépôt minimum</h2>
           <div className={gcc.metricText}>
             <Reading value={figure(formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 }))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Duration</h2>
+          <h2>Durée</h2>
           <div className={gcc.metricText}>
             <Reading value={figure(readableDuration(terms?.productDurationMonths))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Fund cap</h2>
+          <h2>Plafond du fonds</h2>
           <div className={gcc.metricText}>
             <Reading value={figure(formatCurrency(cap, { decimals: 0 }))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Pockets</h2>
+          <h2>Poches</h2>
           <div className={gcc.metricText}>
             <Reading value={pocketsCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Curve milestones</h2>
+          <h2>Jalons de courbe</h2>
           <div className={gcc.metricText}>
             <Reading value={curveCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Product <span>sheet</span></p>
-          <p className={gcc.decisionMeta}>{curveConfigured ? 'Reward curve configured' : 'Reward curve pending'}</p>
-          <p className={gcc.decisionActionMuted}>No synthetic terms</p>
+          <p className={gcc.decisionTitle}>Fiche <span>produit</span></p>
+          <p className={gcc.decisionMeta}>{curveConfigured ? 'Courbe de rémunération configurée' : 'Courbe de rémunération en attente'}</p>
+          <p className={gcc.decisionActionMuted}>Aucune condition synthétique</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Product details">
+      <section className={gcc.mainRow} aria-label="Détails du produit">
         <Panel className={gcc.heroChart}>
           <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Product sheet</h2>
+            <h2 className={gcc.cardTitle}>Fiche produit</h2>
           </div>
           <div className={gcc.heroBody}>
 
@@ -304,9 +304,9 @@ export default async function Page() {
         <AdminGrid>
           <AdminCol span={7} md={6}>
             <SourceAttendue
-              quoi="The product sheet could not be read"
-              detail="The service did not respond. No terms are shown rather than showing stale ones."
-              requis={['A response from the service']}
+              quoi="La fiche produit n’a pas pu être lue"
+              detail="Le service n’a pas répondu. Aucune condition n’est affichée plutôt que d’en montrer d’obsolètes."
+              requis={['Une réponse du service']}
             />
           </AdminCol>
         </AdminGrid>
@@ -315,7 +315,7 @@ export default async function Page() {
           {/* ── Subscription terms ──────────────────────────────────────────
               The amount and the rate that pays it are one subject, so they
               share a row instead of stacking into two full-width bands. */}
-          <AdminSection title="Subscription terms">
+          <AdminSection title="Conditions de souscription">
             <AdminGrid>
               <AdminCol span={5} md={4}>
                 <Card className="p-6">
@@ -334,11 +334,11 @@ export default async function Page() {
                   <div className="flex flex-wrap items-end gap-x-8 gap-y-5">
                     <HeroFigure
                       valeur={formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 })}
-                      libelle="Minimum deposit to subscribe"
+                      libelle="Dépôt minimum pour souscrire"
                     />
                     <div className="grid min-w-0 gap-y-3">
-                      <SideFact libelle="Product duration" valeur={readableDuration(terms?.productDurationMonths)} />
-                      <SideFact libelle="Fund cap" valeur={formatCurrency(cap, { decimals: 0 })} />
+                      <SideFact libelle="Durée du produit" valeur={readableDuration(terms?.productDurationMonths)} />
+                      <SideFact libelle="Plafond du fonds" valeur={formatCurrency(cap, { decimals: 0 })} />
                     </div>
                   </div>
                 </Card>
@@ -346,8 +346,8 @@ export default async function Page() {
 
               <AdminCol span={7} md={4}>
                 <ChartFrame
-                  question="How does the reward rate evolve over the product's duration?"
-                  unite="in percent, per month"
+                  question="Comment le taux de rémunération évolue-t-il sur la durée du produit ?"
+                  unite="en pourcentage, par mois"
                   etat={curveState(points, curveConfigured, f.vendingCurve)}
                 >
                   <VendingCurveChart points={points} />
@@ -363,16 +363,16 @@ export default async function Page() {
               row instead of two. When there is no detail to show, the frame
               takes the full twelve columns rather than leaving half a row
               stranded. */}
-          <AdminSection title="Target allocation">
+          <AdminSection title="Allocation cible">
             <AdminGrid>
               <AdminCol span={hasPocketDetail ? 6 : 12}>
                 <ChartFrame
-                  question="Is the money placed where it should be?"
-                  unite="in percent of the portfolio"
+                  question="L’argent est-il placé là où il devrait l’être ?"
+                  unite="en pourcentage du portefeuille"
                   etat={
                     allocation.length > 0
                       ? { type: 'tracee' }
-                      : stateOf(f.terms, 'No target allocation has been recorded in the product’s terms yet.')
+                      : stateOf(f.terms, 'Aucune allocation cible n’a encore été enregistrée dans les conditions du produit.')
                   }
                 >
                   <AllocationChart poches={allocation} />
@@ -383,24 +383,24 @@ export default async function Page() {
                 <AdminCol span={6}>
                   <Card>
                     <CardHeader
-                      title="What share does each pocket hold?"
-                      hint="Targeted by the contract, observed on-chain, and the gap between the two"
+                      title="Quelle part détient chaque poche ?"
+                      hint="Ciblée par le contrat, constatée on-chain, et l’écart entre les deux"
                     />
                     <div className="overflow-x-hidden">
                       <table className="w-full table-fixed text-sm">
                         <thead>
                           <tr className="border-b border-zinc-950/10 text-left text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
                             <th scope="col" className="px-4 py-2.5 font-medium">
-                              Pocket
+                              Poche
                             </th>
                             <th scope="col" className="px-4 py-2.5 text-right font-medium">
-                              Target
+                              Cible
                             </th>
                             <th scope="col" className="px-4 py-2.5 text-right font-medium">
-                              Actual
+                              Constaté
                             </th>
                             <th scope="col" className="px-4 py-2.5 text-right font-medium">
-                              Variance
+                              Écart
                             </th>
                           </tr>
                         </thead>
@@ -416,7 +416,7 @@ export default async function Page() {
                               <tr key={p.pocket ?? p.label ?? String(index)}>
                                 <th scope="row" className="px-4 py-2.5 text-left font-normal text-zinc-200">
                                   {p.label === null || p.label === undefined || p.label === ''
-                                    ? (p.pocket ?? 'Unnamed pocket')
+                                    ? (p.pocket ?? 'Poche sans nom')
                                     : p.label}
                                 </th>
                                 <td className="px-4 py-2.5 text-right text-zinc-400 tabular-nums">{readableShare(target)}</td>
@@ -439,52 +439,52 @@ export default async function Page() {
         </Panel>
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Coverage</h3>
-            <p className={gcc.cellText}>{f === null ? 'Factsheet unavailable' : 'Factsheet available'}</p>
+            <h3>Couverture</h3>
+            <p className={gcc.cellText}>{f === null ? 'Fiche produit indisponible' : 'Fiche produit disponible'}</p>
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Allocation source</h3>
-            <p className={gcc.cellText}>{hasPocketDetail ? 'Readable pockets' : 'No readable pocket'}</p>
+            <h3>Source d’allocation</h3>
+            <p className={gcc.cellText}>{hasPocketDetail ? 'Poches lisibles' : 'Aucune poche lisible'}</p>
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Vending curve</h3>
-            <p className={gcc.cellText}>{curveConfigured ? 'Configured' : 'Not configured'}</p>
+            <h3>Courbe de rémunération</h3>
+            <p className={gcc.cellText}>{curveConfigured ? 'Configurée' : 'Non configurée'}</p>
           </Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Product notes">
+      <section className={gcc.bottomRow} aria-label="Notes du produit">
         <Panel className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Guardrails</h3>
+            <h3 className={gcc.cardTitle}>Garde-fous</h3>
           </div>
           <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>No interpolated rewards when all milestones are zero.</p>
-            <p className={gcc.cellText}>No synthetic target allocation when pockets are unreadable.</p>
-            <p className={gcc.cellText}>All absences remain explicit and sourced.</p>
+            <p className={gcc.cellText}>Aucune rémunération interpolée lorsque tous les jalons sont à zéro.</p>
+            <p className={gcc.cellText}>Aucune allocation cible synthétique lorsque les poches sont illisibles.</p>
+            <p className={gcc.cellText}>Toute absence reste explicite et sourcée.</p>
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
-            <h3>Terms endpoint</h3>
+            <h3>Point d’accès des conditions</h3>
             <p className={gcc.cellText}>`product-factsheet`</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Allocation view</h3>
-            <p className={gcc.cellText}>Target vs observed by pocket.</p>
+            <h3>Vue d’allocation</h3>
+            <p className={gcc.cellText}>Cible vs constaté par poche.</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Curve view</h3>
-            <p className={gcc.cellText}>Monthly reward rate milestones.</p>
+            <h3>Vue de la courbe</h3>
+            <p className={gcc.cellText}>Jalons du taux de rémunération mensuel.</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Threshold</h3>
-            <p className={gcc.cellText}>No fake rate when source is not configured.</p>
+            <h3>Seuil</h3>
+            <p className={gcc.cellText}>Aucun taux fictif lorsque la source n’est pas configurée.</p>
           </article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Status</h3>
-          <p className={gcc.cellText}>{f === null ? 'Product factsheet source unavailable.' : 'Product factsheet source reachable.'}</p>
+          <h3 className={gcc.cardTitle}>État</h3>
+          <p className={gcc.cellText}>{f === null ? 'Source de la fiche produit indisponible.' : 'Source de la fiche produit joignable.'}</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

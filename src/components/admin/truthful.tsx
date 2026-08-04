@@ -29,18 +29,20 @@ const STATUS_TONE: Record<ResolvedStatus | 'SNAPSHOT', BadgeTone> = {
   ERROR: 'bad',
 }
 
+// Présentation FR des statuts (glossaire). Le statut TECHNIQUE (clé) est
+// inchangé : seule la présentation utilisateur est traduite.
 const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
-  LIVE: 'Live',
-  SNAPSHOT: 'Snapshot',
-  STALE: 'Stale',
-  PARTIAL: 'Partial',
-  EMPTY: 'Empty',
-  SIMULATED: 'Backend simulation',
-  NOT_CONFIGURED: 'Not configured',
-  UNAVAILABLE: 'Unavailable',
-  NOT_SUPPORTED: 'Not supported',
-  PERMISSION_DENIED: 'Access denied',
-  ERROR: 'Error',
+  LIVE: 'En direct',
+  SNAPSHOT: 'Instantané',
+  STALE: 'Données obsolètes',
+  PARTIAL: 'Partiel',
+  EMPTY: 'Aucune donnée',
+  SIMULATED: 'Simulé (backend)',
+  NOT_CONFIGURED: 'Non configuré',
+  UNAVAILABLE: 'Indisponible',
+  NOT_SUPPORTED: 'Non pris en charge',
+  PERMISSION_DENIED: 'Accès refusé',
+  ERROR: 'Erreur',
 }
 
 /**
@@ -82,11 +84,11 @@ export function StatusBadge({
 /* ── Provenance and freshness ────────────────────────────────────────────── */
 
 const PROVENANCE_LABEL: Record<string, string> = {
-  live: 'Live source',
-  db: 'Database',
-  indexed: 'Indexed',
-  manual: 'Manual source',
-  fixture: 'Backend fixture — not a live source',
+  live: 'Source en direct',
+  db: 'Base de données',
+  indexed: 'Indexé',
+  manual: 'Source manuelle',
+  fixture: 'Fixture backend — pas une source réelle',
 }
 
 export function DataProvenance({
@@ -119,9 +121,9 @@ export function FreshnessIndicator({
   if (!asOf && ageSeconds === null) return null
   return (
     <span className={clsx('text-xs', stale ? 'text-hearst-warn' : 'text-zinc-500')}>
-      {asOf ? `as of ${asOf}` : null}
+      {asOf ? `au ${asOf}` : null}
       {typeof ageSeconds === 'number' ? ` · ${ageSeconds}s` : null}
-      {stale ? ' · insufficient freshness' : null}
+      {stale ? ' · fraîcheur insuffisante' : null}
     </span>
   )
 }
@@ -143,7 +145,7 @@ export function ResolvedValue({
 
   if (!displayable) {
     return (
-      <span className={clsx(className, 'text-zinc-500')} title={status ? STATUS_LABEL[status] : 'No value received'}>
+      <span className={clsx(className, 'text-zinc-500')} title={status ? STATUS_LABEL[status] : 'Aucune valeur reçue'}>
         —
       </span>
     )
@@ -161,7 +163,7 @@ export function ResolvedValue({
 
 export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
   const bits = [
-    trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'no response',
+    trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'aucune réponse',
     `${trace.durationMs}ms`,
     trace.requestId ? `req ${trace.requestId}` : null,
     trace.rateLimitRemaining !== null ? `quota ${trace.rateLimitRemaining}` : null,
@@ -201,7 +203,7 @@ function StateShell({
 }
 
 export function EmptyState({ reason }: Readonly<{ reason?: string | null }>) {
-  return <StateShell status="EMPTY" title="Empty response" reason={reason ?? 'The backend responded with no items.'} />
+  return <StateShell status="EMPTY" title="Réponse vide" reason={reason ?? 'Le backend a répondu sans aucun élément.'} />
 }
 
 export function UnavailableState({ state, children }: Readonly<{ state: Resolved<unknown>; children?: React.ReactNode }>) {

@@ -68,7 +68,7 @@ export function Absent({
   return (
     <span className={styles.absentBlock}>
       <Badge color="zinc" className={clsx(onAccent && styles.absentOnAccent)}>
-        {status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
+        {status === 'NOT_EXPOSED' ? 'Non exposé' : 'Indisponible'}
       </Badge>
       {showRoute && route !== '' && (
         <Text className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>{route}</Text>

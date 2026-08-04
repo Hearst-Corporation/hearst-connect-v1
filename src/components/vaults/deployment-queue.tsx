@@ -180,7 +180,7 @@ function ledgerColumns(
   return [
     {
       key: 'vault',
-      header: 'Vault',
+      header: 'Coffre',
       cell: (row) => (
         <VaultEntityLink
           kind="vault"
@@ -205,7 +205,7 @@ function ledgerColumns(
     },
     {
       key: 'amount',
-      header: 'Amount',
+      header: 'Montant',
       className: 'text-right tabular-nums',
       cell: (row) => {
         if (row.amountAtomic === null || !isAvailable(asset)) {
@@ -220,7 +220,7 @@ function ledgerColumns(
     },
     {
       key: 'strategy',
-      header: 'Strategy',
+      header: 'Stratégie',
       cell: (row) =>
         row.strategyId === null ? (
           <Unreadable note="The ledger did not say which strategy received this deployment." />
@@ -230,7 +230,7 @@ function ledgerColumns(
     },
     {
       key: 'requested',
-      header: 'Requested',
+      header: 'Demandé',
       cell: (row) =>
         row.requestedAt === null ? (
           <Unreadable note="No request timestamp on this entry." />
@@ -240,7 +240,7 @@ function ledgerColumns(
     },
     {
       key: 'confirmed',
-      header: 'Confirmed',
+      header: 'Confirmé',
       cell: (row) =>
         row.confirmedAt === null ? (
           <Unreadable note="Not confirmed, or no confirmation timestamp published." />
@@ -250,7 +250,7 @@ function ledgerColumns(
     },
     {
       key: 'status',
-      header: 'Status',
+      header: 'État',
       cell: (row) => (
         <span
           className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_TONE[row.status]}`}
@@ -366,10 +366,10 @@ export function DeploymentQueue({
     <Panel className={gcc.wavePanel}>
       <div className={gcc.heroHead}>
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-          <h3 className={gcc.cardTitle}>Deployments</h3>
+          <h3 className={gcc.cardTitle}>Déploiements</h3>
           <div className="grid min-w-0 grid-cols-1 gap-2.5 text-right sm:grid-cols-3">
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-              <p className={gcc.cellText}>Deployed</p>
+              <p className={gcc.cellText}>Déployé</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
                 {deployedValue ?? 'Unavailable'}
               </p>

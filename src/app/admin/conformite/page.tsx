@@ -11,7 +11,7 @@ import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Compliance' }
+export const metadata: Metadata = { title: 'Conformité' }
 export const dynamic = 'force-dynamic'
 
 /**
@@ -31,19 +31,19 @@ export const dynamic = 'force-dynamic'
  */
 
 const SEGMENTS = [
-  { id: 'a-verifier', label: 'To review', hint: 'Case received, review not started' },
-  { id: 'en-attente', label: 'Pending', hint: 'Document or response awaited from client' },
-  { id: 'risque-eleve', label: 'High risk', hint: 'Sanctions, PEP, or adverse media signal' },
-  { id: 'a-renouveler', label: 'Due for renewal', hint: 'Verification has reached its due date' },
-  { id: 'termine', label: 'Completed', hint: 'Decision rendered and logged' },
+  { id: 'a-verifier', label: 'À vérifier', hint: 'Dossier reçu, revue non commencée' },
+  { id: 'en-attente', label: 'En attente', hint: 'Document ou réponse attendu du client' },
+  { id: 'risque-eleve', label: 'Risque élevé', hint: 'Signal de sanctions, PPE ou médias défavorables' },
+  { id: 'a-renouveler', label: 'À renouveler', hint: 'La vérification a atteint son échéance' },
+  { id: 'termine', label: 'Terminé', hint: 'Décision rendue et journalisée' },
 ] as const
 
 /** What the backend still owes this screen. */
 const MISSING_FROM_SOURCE = [
-  'Reading cases with status, age, and due date',
-  'Detail: beneficial owners, documents, sanctions and PEP checks',
-  'Decision actions only if exposed by the backend',
-  'Analyst assignment and decision log',
+  'Lecture des dossiers avec état, ancienneté et échéance',
+  'Détail : bénéficiaires effectifs, documents, contrôles sanctions et PPE',
+  'Actions de décision uniquement si exposées par le backend',
+  'Affectation d’analyste et journal des décisions',
 ] as const
 
 function ComplianceMetric({
@@ -80,40 +80,40 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect compliance cockpit"
+      label="Hearst Connect — poste de pilotage conformité"
       rail={<GreenCommandRail currentHref="/admin/conformite" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Compliance status">
-        <ComplianceMetric title="Queue source" value={queueSource} />
-        <ComplianceMetric title="Cases" value={queueSource} />
-        <ComplianceMetric title="High risk" value={queueSource} />
-        <ComplianceMetric title="Due renewal" value={queueSource} />
-        <ComplianceMetric title="Process stages" value={stages} />
+      <section className={gcc.metricsRow} aria-label="État de la conformité">
+        <ComplianceMetric title="Source de la file" value={queueSource} />
+        <ComplianceMetric title="Dossiers" value={queueSource} />
+        <ComplianceMetric title="Risque élevé" value={queueSource} />
+        <ComplianceMetric title="Renouvellement dû" value={queueSource} />
+        <ComplianceMetric title="Étapes du processus" value={stages} />
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Compliance <span>queue</span></p>
-          <p className={gcc.decisionMeta}>Source not exposed</p>
-          <p className={gcc.decisionActionMuted}>No case submitted</p>
+          <p className={gcc.decisionTitle}>File de <span>conformité</span></p>
+          <p className={gcc.decisionMeta}>Source non exposée</p>
+          <p className={gcc.decisionActionMuted}>Aucun dossier soumis</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Compliance queue">
+      <section className={gcc.mainRow} aria-label="File de revue">
         <Panel className={gcc.heroChart}>
           <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Review queue</h2>
+            <h2 className={gcc.cardTitle}>File de revue</h2>
           </div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>
-              The backend currently exposes no compliance review queue endpoint. Cases are therefore not rendered as zero and no placeholder queue is shown.
+              Le backend n’expose actuellement aucun point d’accès de file de revue de conformité. Les dossiers ne sont donc pas affichés comme zéro et aucune file de substitution n’est présentée.
             </p>
             <p className={gcc.cellText}>
-              The journey remains defined so the page can switch to live cases without layout change once the source opens.
+              Le parcours reste défini afin que la page puisse basculer vers des dossiers en direct sans changement de mise en page dès que la source s’ouvre.
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               <Link href={DATA_COVERAGE_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
                 {DATA_COVERAGE_ENTRY.libelle}
               </Link>
               <Link href="/admin/operations" className="text-sm text-accent-300 underline underline-offset-2">
-                Operations
+                Opérations
               </Link>
             </div>
           </div>
@@ -121,24 +121,24 @@ export default async function Page() {
 
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Queue endpoint</h3>
+            <h3>Point d’accès de la file</h3>
             <Absent availability={queueSource} showRoute={false} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Client exceptions</h3>
+            <h3>Anomalies clients</h3>
             <Reading value={clientExceptions} className={gcc.signalValue} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Coverage path</h3>
-            <p className={gcc.cellText}>Track endpoint readiness in Data coverage.</p>
+            <h3>Chemin de couverture</h3>
+            <p className={gcc.cellText}>Suivez la disponibilité des points d’accès dans Couverture des données.</p>
           </Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Compliance details">
+      <section className={gcc.bottomRow} aria-label="Détails de conformité">
         <Panel className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Case journey</h3>
+            <h3 className={gcc.cardTitle}>Parcours du dossier</h3>
           </div>
           <div className={gcc.heroBody}>
             {SEGMENTS.map((segment, index) => (
@@ -151,15 +151,15 @@ export default async function Page() {
 
         <Panel as="section" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
-            <h3>Queue read</h3>
+            <h3>Lecture de la file</h3>
             <Absent availability={queueSource} showRoute={false} />
           </article>
           <article className={gcc.infoCell}>
-            <h3>Review actions</h3>
+            <h3>Actions de revue</h3>
             <Absent availability={queueSource} showRoute={false} />
           </article>
           <article className={gcc.infoCell}>
-            <h3>Mandatory fields</h3>
+            <h3>Champs obligatoires</h3>
             {MISSING_FROM_SOURCE.slice(0, 2).map((item) => (
               <p key={item} className={gcc.cellText}>
                 {item}
@@ -167,7 +167,7 @@ export default async function Page() {
             ))}
           </article>
           <article className={gcc.infoCell}>
-            <h3>Decision trail</h3>
+            <h3>Trace de décision</h3>
             {MISSING_FROM_SOURCE.slice(2).map((item) => (
               <p key={item} className={gcc.cellText}>
                 {item}
@@ -177,7 +177,7 @@ export default async function Page() {
         </Panel>
 
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Source activity</h3>
+          <h3 className={gcc.cardTitle}>Activité des sources</h3>
           {registry.sources.slice(0, 6).map((source) => (
             <div key={source.endpointId} className={gcc.sourceRow}>
               <p className={gcc.cellText}>{source.label}</p>

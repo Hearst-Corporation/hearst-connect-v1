@@ -11,7 +11,7 @@ import { activeVaultCount } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Vault registry' }
+export const metadata: Metadata = { title: 'Registre des coffres' }
 export const dynamic = 'force-dynamic'
 
 function VaultMetric({
@@ -46,68 +46,68 @@ export default async function Page() {
   const movements = measuredCount(registry.movements)
   const exceptions = measuredCount(registry.clientExceptions)
   const decisionLabel =
-    isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0 ? 'Review pending' : 'No pending review'
+    isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0 ? 'Revue en attente' : 'Aucune revue en attente'
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect vault registry cockpit"
+      label="Poste de pilotage registre des coffres Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Vault registry status">
-        <VaultMetric title="Active vaults" value={activeVaults} />
-        <VaultMetric title="Vaults listed" value={totalVaults} />
-        <VaultMetric title="Live sources" value={liveSources} />
-        <VaultMetric title="Indexed movements" value={movements} />
-        <VaultMetric title="Client exceptions" value={exceptions} />
+      <section className={gcc.metricsRow} aria-label="État du registre des coffres">
+        <VaultMetric title="Coffres actifs" value={activeVaults} />
+        <VaultMetric title="Coffres répertoriés" value={totalVaults} />
+        <VaultMetric title="Sources en direct" value={liveSources} />
+        <VaultMetric title="Mouvements indexés" value={movements} />
+        <VaultMetric title="Anomalies clients" value={exceptions} />
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>
-            Vault <span>registry</span>
+            Registre <span>des coffres</span>
           </p>
-          <p className={gcc.decisionMeta}>Operational view</p>
+          <p className={gcc.decisionMeta}>Vue opérationnelle</p>
           <p className={gcc.decisionActionMuted}>{decisionLabel}</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Vault table and signals">
+      <section className={gcc.mainRow} aria-label="Tableau des coffres et signaux">
         <VaultDataTable vaults={registry.vaults} />
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Status</h3>
+            <h3>État</h3>
             <Reading value={activeVaults} className={gcc.signalValue} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Coverage</h3>
+            <h3>Couverture</h3>
             <Reading value={liveSources} className={gcc.signalValue} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Exceptions</h3>
+            <h3>Anomalies</h3>
             <Reading value={exceptions} className={gcc.signalValue} />
           </Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Vault value breakdown">
+      <section className={gcc.bottomRow} aria-label="Répartition de la valeur des coffres">
         <VaultValueBreakdown vaults={registry.vaults} />
         <Panel as="section" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
-            <h3>Registry endpoint</h3>
+            <h3>Point d’accès du registre</h3>
             <p className={gcc.cellText}>`GET /api/v1/vault`</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Threshold</h3>
-            <p className={gcc.cellText}>Console threshold ±2,00 pt</p>
+            <h3>Seuil</h3>
+            <p className={gcc.cellText}>Seuil de la console ±2,00 pt</p>
           </article>
           <article className={gcc.infoCell}>
             <h3>Navigation</h3>
-            <p className={gcc.cellText}>Detail pages in `/admin/vaults/{'{vaultId}'}`</p>
+            <p className={gcc.cellText}>Pages de détail dans `/admin/vaults/{'{vaultId}'}`</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Data contract</h3>
-            <p className={gcc.cellText}>No fallback count when a source is unavailable.</p>
+            <h3>Contrat de données</h3>
+            <p className={gcc.cellText}>Aucun décompte de repli quand une source est indisponible.</p>
           </article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Source activity</h3>
+          <h3 className={gcc.cardTitle}>Activité des sources</h3>
           {registry.sources.map((source) => (
             <div key={source.endpointId} className={gcc.sourceRow}>
               <p className={gcc.cellText}>{source.label}</p>

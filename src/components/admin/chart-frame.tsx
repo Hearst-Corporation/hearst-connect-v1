@@ -30,9 +30,9 @@ const TON_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
 }
 
 const LIBELLE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
-  vide: 'No data for this period',
-  attendue: 'Waiting on the source',
-  indisponible: 'Data unavailable',
+  vide: 'Aucune donnée pour cette période',
+  attendue: 'En attente de la source',
+  indisponible: 'Donnée indisponible',
 }
 
 export function ChartFrame({

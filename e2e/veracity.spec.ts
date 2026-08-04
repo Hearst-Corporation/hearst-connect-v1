@@ -54,12 +54,11 @@ test.describe('data coverage tells the truth (VER-01)', () => {
     await page.goto('/admin/dashboard')
     const body = await page.locator('body').innerText()
 
-    // Wherever a metric is unavailable, it must read "Unavailable"/"Reference",
-    // and any "Live" badge must accompany a real value, never a bare absence.
-    // We assert the honest vocabulary is present and that no metric shows the
-    // contradiction the audit found ("0" next to a green Live badge with no data).
-    const hasHonestStates = /Unavailable|Reference|Not (yet )?open|Served/i.test(body)
-    expect(hasHonestStates).toBeTruthy()
+    // La console est en français (HC-CONSOLE-FR-001) : le vocabulaire d'état
+    // honnête est « Indisponible » / « Référence » / « Non ouvert » / « Servi »,
+    // et un badge « En direct » n'accompagne jamais une absence nue.
+    const hasHonestStates = /Indisponible|Référence|Non ouvert|Servi|Partiel/i.test(body)
+    expect(hasHonestStates, `états honnêtes attendus en français, corps: ${body.slice(0, 200)}`).toBeTruthy()
   })
 })
 

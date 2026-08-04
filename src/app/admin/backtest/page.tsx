@@ -82,13 +82,13 @@ type BacktestResponse = { readonly runs?: Resolved<readonly Run[]> }
 
 function detailBacktestVide(reason: string | undefined): string {
   if (reason === undefined) {
-    return 'The service answered, and its register holds no run. Nothing is plotted until a first backtest exists: an invented historical performance would read as a promise of return.'
+    return 'Le service a répondu, et son registre ne contient aucune exécution. Rien n’est tracé tant qu’un premier backtest n’existe pas : une performance historique inventée se lirait comme une promesse de rendement.'
   }
-  return `The service answered, and no run is available: ${reason}. Nothing is plotted in the meantime — an invented historical performance would read as a promise of return.`
+  return `Le service a répondu, et aucune exécution n’est disponible : ${reason}. Rien n’est tracé entre-temps — une performance historique inventée se lirait comme une promesse de rendement.`
 }
 
 function labelRun(run: Run): string {
-  if (run.label === null || run.label === undefined || run.label === '') return 'Unlabeled run'
+  if (run.label === null || run.label === undefined || run.label === '') return 'Exécution sans libellé'
   return run.label
 }
 
@@ -97,7 +97,7 @@ function ListeBacktests({ runs }: Readonly<{ runs: readonly Run[] }>) {
     <AdminGrid>
       <AdminCol span={8}>
         <Card>
-          <CardHeader title="Which backtests have been run?" hint={`${runs.length} run${runs.length > 1 ? 's' : ''} kept`} />
+          <CardHeader title="Quels backtests ont été exécutés ?" hint={`${runs.length} exécution${runs.length > 1 ? 's' : ''} conservée${runs.length > 1 ? 's' : ''}`} />
           <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
             {runs.map((run, rank) => (
               <li
@@ -134,9 +134,9 @@ export default async function Page() {
       <AdminGrid>
         <AdminCol span={7} md={6}>
           <SourceAttendue
-            quoi="Backtests could not be read"
-            detail="The service did not respond to the request. This silence is not read as proof that no backtest exists — it means the register could not be consulted at all."
-            requis={['A response from the service']}
+            quoi="Les backtests n’ont pas pu être lus"
+            detail="Le service n’a pas répondu à la requête. Ce silence n’est pas interprété comme la preuve qu’aucun backtest n’existe — il signifie que le registre n’a pas pu être consulté du tout."
+            requis={['Une réponse du service']}
           />
         </AdminCol>
       </AdminGrid>
@@ -146,19 +146,19 @@ export default async function Page() {
       <AdminGrid>
         <AdminCol span={7} md={6}>
           <SourceAttendue
-            quoi="No backtest has been run to date"
+            quoi="Aucun backtest n’a été exécuté à ce jour"
             detail={detailBacktestVide(reason)}
             requis={[
-              'A reference period, with a start and an end date',
-              'The price history of the portfolio assets over that period',
-              'One execution of the calculation by the service, kept with its timestamp',
+              'Une période de référence, avec une date de début et de fin',
+              'L’historique de prix des actifs du portefeuille sur cette période',
+              'Une exécution du calcul par le service, conservée avec son horodatage',
             ]}
             action={
               block === undefined ? undefined : (
                 // The status slot carries what the service actually reported
                 // about its register — a real field, not a reassurance.
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Register status returned by the service:{' '}
+                  État du registre renvoyé par le service :{' '}
                   <span className="font-mono text-zinc-700 dark:text-zinc-300">{block.status}</span>
                 </p>
               )
@@ -173,67 +173,67 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect backtests cockpit"
+      label="Poste de pilotage backtests Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Backtest summary">
+      <section className={gcc.metricsRow} aria-label="Résumé backtest">
         <Panel className={gcc.metricCard}>
-          <h2>Runs</h2>
+          <h2>Exécutions</h2>
           <div className={gcc.metricText}><Reading value={runCountCell} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Source status</h2>
-          <div className={gcc.metricText}><Reading value={editorial(response.ok ? 'Reachable' : 'Unavailable')} className={gcc.metricValue} /></div>
+          <h2>État de la source</h2>
+          <div className={gcc.metricText}><Reading value={editorial(response.ok ? 'Joignable' : 'Indisponible')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Registry</h2>
-          <div className={gcc.metricText}><Reading value={editorial(block?.status ?? 'Not reported')} className={gcc.metricValue} /></div>
+          <h2>Registre</h2>
+          <div className={gcc.metricText}><Reading value={editorial(block?.status ?? 'Non renseigné')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Historical curve</h2>
-          <div className={gcc.metricText}><Reading value={editorial(none ? 'Not available' : 'Available')} className={gcc.metricValue} /></div>
+          <h2>Courbe historique</h2>
+          <div className={gcc.metricText}><Reading value={editorial(none ? 'Non disponible' : 'Disponible')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Reason</h2>
-          <div className={gcc.metricText}><Reading value={editorial(reason ?? 'None')} className={gcc.metricValue} /></div>
+          <h2>Raison</h2>
+          <div className={gcc.metricText}><Reading value={editorial(reason ?? 'Aucune')} className={gcc.metricValue} /></div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Backtests <span>state</span></p>
-          <p className={gcc.decisionMeta}>{none ? 'No run recorded' : 'Runs recorded'}</p>
-          <p className={gcc.decisionActionMuted}>No projected curve</p>
+          <p className={gcc.decisionTitle}>État <span>des backtests</span></p>
+          <p className={gcc.decisionMeta}>{none ? 'Aucune exécution enregistrée' : 'Exécutions enregistrées'}</p>
+          <p className={gcc.decisionActionMuted}>Aucune courbe projetée</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Backtest content">
+      <section className={gcc.mainRow} aria-label="Contenu backtest">
         <Panel className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Backtest historical</h2></div>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Backtest historique</h2></div>
           <div className={gcc.heroBody}>{contenu}</div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Computation</h3><p className={gcc.cellText}>Computed by backend only.</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Smoothing</h3><p className={gcc.cellText}>No extrapolation in UI.</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Fallback</h3><p className={gcc.cellText}>Absence remains explicit.</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Calcul</h3><p className={gcc.cellText}>Calculé uniquement par le backend.</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Lissage</h3><p className={gcc.cellText}>Aucune extrapolation dans l’interface.</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Repli</h3><p className={gcc.cellText}>L’absence reste explicite.</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Backtest notes">
+      <section className={gcc.bottomRow} aria-label="Notes backtest">
         <Panel className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Requirements</h3></div>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Prérequis</h3></div>
           <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Reference period</p>
-            <p className={gcc.cellText}>Price history over period</p>
-            <p className={gcc.cellText}>Backend run persisted with timestamp</p>
+            <p className={gcc.cellText}>Période de référence</p>
+            <p className={gcc.cellText}>Historique de prix sur la période</p>
+            <p className={gcc.cellText}>Exécution backend persistée avec horodatage</p>
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Endpoint</h3><p className={gcc.cellText}>`backtest-historical`</p></article>
-          <article className={gcc.infoCell}><h3>Model</h3><p className={gcc.cellText}>No mock run injected.</p></article>
-          <article className={gcc.infoCell}><h3>Display</h3><p className={gcc.cellText}>Runs list only when available.</p></article>
-          <article className={gcc.infoCell}><h3>Status</h3><p className={gcc.cellText}>Registry status shown from source.</p></article>
+          <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>`backtest-historical`</p></article>
+          <article className={gcc.infoCell}><h3>Modèle</h3><p className={gcc.cellText}>Aucune exécution simulée injectée.</p></article>
+          <article className={gcc.infoCell}><h3>Affichage</h3><p className={gcc.cellText}>Liste des exécutions uniquement quand disponible.</p></article>
+          <article className={gcc.infoCell}><h3>État</h3><p className={gcc.cellText}>État du registre affiché depuis la source.</p></article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Coverage path</h3>
-          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint readiness.</p>
+          <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
+          <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état de préparation des points d’accès.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

@@ -150,25 +150,25 @@ export function VaultSummaryCard({ vault }: Readonly<{ vault: Vault }>) {
         <NodeField
           label="Client"
           availability={client}
-          hint={isAvailable(client) ? undefined : 'No client directory is exposed today.'}
+          hint={isAvailable(client) ? undefined : 'Aucun annuaire client n’est exposé à ce jour.'}
         >
           {isAvailable(client) ? (
             <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
           ) : null}
         </NodeField>
 
-        <TextField label="Total value" value={amountOf(vault, vault.totalAssetsAtomic)} />
+        <TextField label="Valeur totale" value={amountOf(vault, vault.totalAssetsAtomic)} />
 
         <TextField
-          label="Deployed"
+          label="Déployé"
           value={amountOf(vault, deployedAtomic(vault))}
-          hint="The pockets' summed share of the vault."
+          hint="La part cumulée des poches du coffre."
         />
 
         <TextField
-          label="Available (idle in vault)"
+          label="Disponible (au repos dans le coffre)"
           value={amountOf(vault, idleAtomic(vault))}
-          hint="Held by the vault and placed in no strategy — not subscription headroom."
+          hint="Détenu par le coffre et placé dans aucune stratégie — pas de la marge de souscription."
         />
 
         <TextField label="Created" value={CREATED_AT} />

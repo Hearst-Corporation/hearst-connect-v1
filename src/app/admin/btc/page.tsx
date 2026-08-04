@@ -246,34 +246,34 @@ function etatProductionDe(bloc: ChampResolu | undefined, moisRetenus: number): E
     return {
       type: 'vide',
       explication:
-        'Production reports were successfully queried: no usable month appears yet. The series will appear at the first report.',
+        'Les rapports de production ont bien été interrogés : aucun mois exploitable n’apparaît encore. La série apparaîtra au premier rapport.',
     }
   }
-  return etatDe(bloc, 'Monthly production reports are not yet transmitted by the service.')
+  return etatDe(bloc, 'Les rapports de production mensuels ne sont pas encore transmis par le service.')
 }
 
 function contexteObservationDe(cumulProduction: string | null): string {
   if (cumulProduction === null) {
-    return 'Bitcoin attested by the service for this month, to the satoshi.'
+    return 'Bitcoin attesté par le service pour ce mois, au satoshi près.'
   }
-  return `Bitcoin attested by the service for this month, to the satoshi. Cumulative since inception: ${cumulProduction} BTC.`
+  return `Bitcoin attesté par le service pour ce mois, au satoshi près. Cumul depuis l’origine : ${cumulProduction} BTC.`
 }
 
 /** Severity decides the color AND the word: a colorblind reader gets the same state. */
 const GRAVITE: Record<string, { readonly mot: string; readonly point: string; readonly texte: string }> = {
-  critical: { mot: 'Critical', point: 'bg-danger-500', texte: 'text-danger-400' },
-  error: { mot: 'Anomaly', point: 'bg-danger-500', texte: 'text-danger-400' },
-  warning: { mot: 'Worth watching', point: 'bg-warning-500', texte: 'text-warning-400' },
-  warn: { mot: 'Worth watching', point: 'bg-warning-500', texte: 'text-warning-400' },
+  critical: { mot: 'Critique', point: 'bg-danger-500', texte: 'text-danger-400' },
+  error: { mot: 'Anomalie', point: 'bg-danger-500', texte: 'text-danger-400' },
+  warning: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400' },
+  warn: { mot: 'À surveiller', point: 'bg-warning-500', texte: 'text-warning-400' },
   // Informational is NEUTRAL, not blue: a fourth hue for "nothing to do about
   // this" made the calm rows compete with the ones that need a decision.
-  info: { mot: 'For your information', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
-  notice: { mot: 'For your information', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
+  info: { mot: 'Pour information', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
+  notice: { mot: 'Pour information', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
 }
 
 function graviteLisible(brut: string | null | undefined) {
-  if (typeof brut !== 'string') return { mot: 'Unclassified', point: 'bg-zinc-600', texte: 'text-zinc-400' }
-  return GRAVITE[brut.toLowerCase()] ?? { mot: 'Unclassified', point: 'bg-zinc-600', texte: 'text-zinc-400' }
+  if (typeof brut !== 'string') return { mot: 'Non classé', point: 'bg-zinc-600', texte: 'text-zinc-400' }
+  return GRAVITE[brut.toLowerCase()] ?? { mot: 'Non classé', point: 'bg-zinc-600', texte: 'text-zinc-400' }
 }
 
 /**
@@ -288,14 +288,14 @@ function graviteLisible(brut: string | null | undefined) {
  * renders "Take Profit Executed" rather than a jumble.
  */
 function nomLisible(brut: string | null | undefined): string {
-  if (typeof brut !== 'string' || brut === '') return 'Untitled event'
+  if (typeof brut !== 'string' || brut === '') return 'Événement sans titre'
   const traduit = LIBELLE_MOUVEMENT[brut]
   if (traduit !== undefined) return traduit
   const decoupe = brut
     .replace(/[_-]+/g, ' ')
     .replace(/([a-z\d])([A-Z])/g, '$1 $2')
     .trim()
-  return decoupe === '' ? 'Untitled event' : decoupe
+  return decoupe === '' ? 'Événement sans titre' : decoupe
 }
 
 /* ── Proof registry ──────────────────────────────────────────────────────── */
@@ -311,15 +311,15 @@ function nomLisible(brut: string | null | undefined): string {
 function phrasePreuves(bloc: Resolu<readonly unknown[]>): string {
   if (bloc.status !== 'LIVE' || bloc.value === null) {
     const motif = motifLisible(bloc.reason)
-    if (motif === undefined) return 'The proof registry could not be queried.'
-    return `The proof registry could not be queried: ${motif}.`
+    if (motif === undefined) return 'Le registre des preuves n’a pas pu être interrogé.'
+    return `Le registre des preuves n’a pas pu être interrogé : ${motif}.`
   }
   if (bloc.value.length === 0) {
-    return "The registry was queried and is empty: no proof has been published yet. This isn't a missing source — the table responds, it simply has nothing to show for now."
+    return 'Le registre a été interrogé et il est vide : aucune preuve n’a encore été publiée. Ce n’est pas une source manquante — la table répond, elle n’a simplement rien à montrer pour l’instant.'
   }
   const nombre = bloc.value.length
-  const accord = nombre > 1 ? 'proofs are recorded' : 'proof is recorded'
-  return `${nombre} ${accord} in the registry.`
+  const accord = nombre > 1 ? 'preuves enregistrées' : 'preuve enregistrée'
+  return `${nombre} ${accord} dans le registre.`
 }
 
 /**
@@ -331,8 +331,8 @@ function PreuvesPubliees({ bloc }: Readonly<{ bloc: Resolu<readonly unknown[]> }
   return (
     <Card className="flex h-full flex-col">
       <CardHeader
-        title="What production proofs have been published?"
-        hint="Registry of proofs attached to the bitcoin produced"
+        title="Quelles preuves de production ont été publiées ?"
+        hint="Registre des preuves attachées au bitcoin produit"
       />
       <div className="px-5 pb-5 sm:px-6">
         <p className="max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">{phrasePreuves(bloc)}</p>
@@ -380,7 +380,7 @@ function EvenementRow({ evenement }: Readonly<{ evenement: Evenement }>) {
 function CeQuiSestPasse({ evenements, statutLive }: Readonly<{ evenements: readonly Evenement[]; statutLive: boolean }>) {
   if (evenements.length === 0) {
     return statutLive ? (
-      <CalmState message="No bitcoin movement has been recorded. Nothing requires attention." />
+      <CalmState message="Aucun mouvement bitcoin n’a été enregistré. Rien ne requiert d’attention." />
     ) : null
   }
 
@@ -429,8 +429,8 @@ function buildBitcoinViewModel(reponse: Btc | null): VueBitcoin {
   const montantReserve = montantNumerique(reserve?.balanceUsdc)
   const montantExposition = montantNumerique(exposition?.valueUsdc)
   const postes: PosteBitcoin[] = []
-  if (montantReserve !== null) postes.push({ poste: 'Reserve', montant: montantReserve, accent: false })
-  if (montantExposition !== null) postes.push({ poste: 'Exposure', montant: montantExposition, accent: true })
+  if (montantReserve !== null) postes.push({ poste: 'Réserve', montant: montantReserve, accent: false })
+  if (montantExposition !== null) postes.push({ poste: 'Exposition', montant: montantExposition, accent: true })
 
   const evenements = b?.events?.value
   const listeEvenements = evenements ?? []
@@ -468,7 +468,7 @@ function resolveReserveState(postes: readonly PosteBitcoin[]): EtatSerie {
   return {
     type: 'attendue',
     explication:
-      'Neither the reserve nor the exposed value could be read on-chain. Nothing is plotted rather than a breakdown at zero.',
+      'Ni la réserve ni la valeur exposée n’ont pu être lues on-chain. Rien n’est tracé plutôt qu’une répartition à zéro.',
   }
 }
 
@@ -486,20 +486,20 @@ function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
 
   return (
     <AdminSection
-      title="What the fund has produced"
-      description="Bitcoin attested by the contract since inception, and the pace at which it accumulates."
+      title="Ce que le fonds a produit"
+      description="Bitcoin attesté par le contrat depuis l’origine, et le rythme auquel il s’accumule."
     >
       <AdminGrid>
         <AdminCol span={proofColumn}>
           <Card className="flex h-full flex-col p-6">
-            <HeroFigure valeur={vue.bitcoinProduit} libelle="Bitcoin produced to date" unite="BTC" />
+            <HeroFigure valeur={vue.bitcoinProduit} libelle="Bitcoin produit à ce jour" unite="BTC" />
             {/* Three facts, three columns — `AdminMetricGrid` picks a
                 column count that leaves no orphan on the last row, which
                 a hand-written `grid-cols-2` did not. */}
             <AdminMetricGrid count={3} className="mt-6">
-              <SideFact libelle="Dormant reserve" valeur={formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 })} />
-              <SideFact libelle="Value exposed to the market" valeur={formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 })} />
-              <SideFact libelle="Last production report" valeur={formatDateTime(vue.produit?.lastReportTime)} />
+              <SideFact libelle="Réserve dormante" valeur={formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 })} />
+              <SideFact libelle="Valeur exposée au marché" valeur={formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 })} />
+              <SideFact libelle="Dernier rapport de production" valeur={formatDateTime(vue.produit?.lastReportTime)} />
             </AdminMetricGrid>
           </Card>
         </AdminCol>
@@ -515,8 +515,8 @@ function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
           observations the frame shows the value itself rather than a
           single bar adrift in a plot area. */}
       <ChartFrame
-        question="At what pace is bitcoin being produced?"
-        unite="in bitcoin, per reported month"
+        question="À quel rythme le bitcoin est-il produit ?"
+        unite="en bitcoin, par mois rapporté"
         etat={resolveProductionState(b, vue.moisProduction.length)}
       >
         {singleMonth === null ? (
@@ -527,7 +527,7 @@ function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
             unite="BTC"
             periode={singleMonth.libelle}
             contexte={vue.contexteObservation}
-            note="Only one month has been reported so far. A pace is the gap between two months, and there is no second month yet — the chart appears with the next report."
+            note="Un seul mois a été rapporté à ce jour. Un rythme est l’écart entre deux mois, et il n’y a pas encore de deuxième mois — le graphique apparaîtra au prochain rapport."
           />
         )}
       </ChartFrame>
@@ -538,18 +538,18 @@ function ProductionSection({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
 function ReserveSection({ vue }: Readonly<{ vue: VueBitcoin }>) {
   const hasExposition = vue.exposition !== null && vue.exposition !== undefined
   const pouch = vue.exposition?.pouch
-  const pouchLabel = pouch === null || pouch === undefined || pouch === '' ? 'Not reported' : pouch
+  const pouchLabel = pouch === null || pouch === undefined || pouch === '' ? 'Non renseigné' : pouch
 
   return (
     <AdminSection
-      title="Where the money sits"
-      description="The same two amounts read as a split: what sleeps in reserve, and what is exposed to the market."
+      title="Où se trouve l’argent"
+      description="Les deux mêmes montants lus comme une répartition : ce qui dort en réserve, et ce qui est exposé au marché."
     >
       <AdminGrid>
         <AdminCol span={hasExposition ? 7 : 12}>
           <ChartFrame
-            question="Where does the money sit?"
-            unite="in dollars"
+            question="Où se trouve l’argent ?"
+            unite="en dollars"
             etat={resolveReserveState(vue.postes)}
           >
             <ReserveExpositionChart postes={vue.postes} />
@@ -560,22 +560,22 @@ function ReserveSection({ vue }: Readonly<{ vue: VueBitcoin }>) {
           <AdminCol span={5}>
             <Card className="flex h-full flex-col">
               <CardHeader
-                title="Does the exposed share respect its target?"
-                hint="Comparison between the share targeted by the contract and the one observed on-chain"
+                title="La part exposée respecte-t-elle sa cible ?"
+                hint="Comparaison entre la part visée par le contrat et celle observée on-chain"
               />
               <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
                 <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Exposed pouch</span>
+                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Poche exposée</span>
                   <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">{pouchLabel}</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Target share</span>
+                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Part cible</span>
                   <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
                     {partLisible(vue.exposition?.targetBps)}
                   </span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Observed share</span>
+                  <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Part observée</span>
                   <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">
                     {partLisible(vue.exposition?.actualBps)}
                   </span>
@@ -598,8 +598,8 @@ function BitcoinBody({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
       {/* ── What happened ──────────────────────────────────────────────── */}
       {vue.fluxLisible ? (
         <AdminSection
-          title="What happened recently"
-          description="Movements and alerts reported by the service, most recent first."
+          title="Ce qui s’est passé récemment"
+          description="Mouvements et alertes rapportés par le service, du plus récent au plus ancien."
         >
           {resolveMovementState(vue.evenements, vue.fluxLisible, b)}
         </AdminSection>
@@ -611,32 +611,32 @@ function BitcoinBody({ vue, b }: Readonly<{ vue: VueBitcoin; b: Btc }>) {
           in the deployed contract. Saying it once in the section
           description avoids repeating it under each frame. */}
       <AdminSection
-        title="What the source doesn't expose"
-        description="These three views are built and ready. They remain without a series not due to an incident, but because the corresponding read doesn't exist in the source: the exact reason is noted under each one. The day the contract exposes it, the series replaces the sentence and the layout doesn't move."
+        title="Ce que la source n’expose pas"
+        description="Ces trois vues sont construites et prêtes. Elles restent sans série non pas à cause d’un incident, mais parce que la lecture correspondante n’existe pas dans la source : la raison exacte est notée sous chacune. Le jour où le contrat l’expose, la série remplace la phrase et la mise en page ne bouge pas."
       >
         <AdminGrid>
           <AdminCol span={4}>
             <ChartFrame
-              question="Where does the bitcoin yield come from?"
-              unite="as a percentage of total"
-              etat={etatDe(b.attribution, 'The contract exposes no breakdown of bitcoin yield.')}
+              question="D’où provient le rendement bitcoin ?"
+              unite="en pourcentage du total"
+              etat={etatDe(b.attribution, 'Le contrat n’expose aucune ventilation du rendement bitcoin.')}
             />
           </AdminCol>
           <AdminCol span={4}>
             <ChartFrame
-              question="Where is the bitcoin held?"
-              unite="in bitcoin, by custody location"
+              question="Où le bitcoin est-il conservé ?"
+              unite="en bitcoin, par lieu de conservation"
               etat={etatDe(
                 b.custody,
-                'No custodian is integrated: no custody location has been declared to date.',
+                'Aucun conservateur n’est intégré : aucun lieu de conservation n’a été déclaré à ce jour.',
               )}
             />
           </AdminCol>
           <AdminCol span={4}>
             <ChartFrame
-              question="At what prices are profits taken?"
-              unite="in dollars, per tier"
-              etat={etatDe(b.takeProfitTiers, 'The contract exposes no take-profit tiers.')}
+              question="À quels prix les profits sont-ils pris ?"
+              unite="en dollars, par palier"
+              etat={etatDe(b.takeProfitTiers, 'Le contrat n’expose aucun palier de prise de profit.')}
             />
           </AdminCol>
         </AdminGrid>
@@ -668,32 +668,32 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect bitcoin cockpit"
+      label="Poste de pilotage bitcoin Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Bitcoin summary">
-        <Panel className={gcc.metricCard}><h2>Produced BTC</h2><div className={gcc.metricText}><Reading value={btcFigure(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Reserve</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Exposure</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Monthly reports</h2><div className={gcc.metricText}><Reading value={monthlyReportsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Event rows</h2><div className={gcc.metricText}><Reading value={eventRowsCell} className={gcc.metricValue} /></div></Panel>
+      <section className={gcc.metricsRow} aria-label="Résumé bitcoin">
+        <Panel className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={btcFigure(vue.bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Réserve</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Exposition</h2><div className={gcc.metricText}><Reading value={btcFigure(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Rapports mensuels</h2><div className={gcc.metricText}><Reading value={monthlyReportsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Lignes d’événement</h2><div className={gcc.metricText}><Reading value={eventRowsCell} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Bitcoin <span>surface</span></p>
-          <p className={gcc.decisionMeta}>{b === null ? 'Source unavailable' : 'Source available'}</p>
-          <p className={gcc.decisionActionMuted}>No projected yield</p>
+          <p className={gcc.decisionTitle}>Surface <span>bitcoin</span></p>
+          <p className={gcc.decisionMeta}>{b === null ? 'Source indisponible' : 'Source disponible'}</p>
+          <p className={gcc.decisionActionMuted}>Aucun rendement projeté</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Bitcoin details">
+      <section className={gcc.mainRow} aria-label="Détails bitcoin">
         <Panel className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Bitcoin operations</h2></div>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Opérations bitcoin</h2></div>
           <div className={gcc.heroBody}>
       {b === null ? (
         // One card, stated once — no section wrapper around a single surface.
         <SourceAttendue
-          quoi="Bitcoin state could not be read"
-          detail="The service did not respond. No value is shown rather than a stale one."
-          requis={['A response from the service']}
+          quoi="L’état bitcoin n’a pas pu être lu"
+          detail="Le service n’a pas répondu. Aucune valeur n’est affichée plutôt qu’une valeur obsolète."
+          requis={['Une réponse du service']}
         />
       ) : (
         <BitcoinBody vue={vue} b={b} />
@@ -701,30 +701,30 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Production state</h3><p className={gcc.cellText}>{vue.moisProduction.length > 0 ? 'Reported' : 'Pending'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Reserve split</h3><p className={gcc.cellText}>{vue.postes.length > 0 ? 'Readable' : 'Unavailable'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Events stream</h3><p className={gcc.cellText}>{vue.fluxLisible ? 'Live feed' : 'No feed'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>État de la production</h3><p className={gcc.cellText}>{vue.moisProduction.length > 0 ? 'Rapporté' : 'En attente'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Répartition de la réserve</h3><p className={gcc.cellText}>{vue.postes.length > 0 ? 'Lisible' : 'Indisponible'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Flux d’événements</h3><p className={gcc.cellText}>{vue.fluxLisible ? 'Flux en direct' : 'Aucun flux'}</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Bitcoin notes">
+      <section className={gcc.bottomRow} aria-label="Notes bitcoin">
         <Panel className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Guardrails</h3></div>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Garde-fous</h3></div>
           <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>One month is displayed as observation, not trend.</p>
-            <p className={gcc.cellText}>No custody chart when provider is not integrated.</p>
-            <p className={gcc.cellText}>No take-profit tiers without contract read.</p>
+            <p className={gcc.cellText}>Un mois est affiché comme observation, pas comme tendance.</p>
+            <p className={gcc.cellText}>Aucun graphique de conservation quand le prestataire n’est pas intégré.</p>
+            <p className={gcc.cellText}>Aucun palier de prise de profit sans lecture du contrat.</p>
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Endpoint</h3><p className={gcc.cellText}>`btc`</p></article>
-          <article className={gcc.infoCell}><h3>Reserve model</h3><p className={gcc.cellText}>Reserve vs exposure in USD.</p></article>
-          <article className={gcc.infoCell}><h3>Production model</h3><p className={gcc.cellText}>Satoshis converted with exact decimals.</p></article>
-          <article className={gcc.infoCell}><h3>Movement feed</h3><p className={gcc.cellText}>Severity words and dots stay aligned.</p></article>
+          <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>`btc`</p></article>
+          <article className={gcc.infoCell}><h3>Modèle de réserve</h3><p className={gcc.cellText}>Réserve contre exposition en USD.</p></article>
+          <article className={gcc.infoCell}><h3>Modèle de production</h3><p className={gcc.cellText}>Satoshis convertis avec décimales exactes.</p></article>
+          <article className={gcc.infoCell}><h3>Flux de mouvements</h3><p className={gcc.cellText}>Les mots de gravité et les pastilles restent alignés.</p></article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Coverage path</h3>
-          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint readiness and reasons.</p>
+          <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
+          <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour l’état de préparation des points d’accès et les raisons.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

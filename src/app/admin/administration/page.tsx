@@ -20,88 +20,88 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect administration cockpit"
+      label="Hearst Connect — poste de pilotage administration"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Administration status">
+      <section className={gcc.metricsRow} aria-label="État de l’administration">
         <Panel className={gcc.metricCard}>
-          <h2>Account</h2>
+          <h2>Compte</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(session.name)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Email</h2>
+          <h2>E-mail</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(session.email)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Role</h2>
+          <h2>Rôle</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(session.role)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Secondary screens</h2>
+          <h2>Écrans secondaires</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(String(SCREEN_COUNT))} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Admin log source</h2>
+          <h2>Source du journal admin</h2>
           <div className={gcc.metricText}>
-            <Reading value={editorial('Not exposed')} className={gcc.metricValue} />
+            <Reading value={editorial('Non exposé')} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Administration <span>surface</span></p>
-          <p className={gcc.decisionMeta}>Navigation and access</p>
-          <p className={gcc.decisionActionMuted}>No data fallback</p>
+          <p className={gcc.decisionTitle}>Surface <span>d’administration</span></p>
+          <p className={gcc.decisionMeta}>Navigation et accès</p>
+          <p className={gcc.decisionActionMuted}>Aucune valeur de repli</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Primary destinations">
+      <section className={gcc.mainRow} aria-label="Destinations principales">
         <Panel className={gcc.heroChart}>
           <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Primary administration destinations</h2>
+            <h2 className={gcc.cardTitle}>Destinations principales d’administration</h2>
           </div>
           <div className={gcc.heroBody}>
             <div className={gcc.sourceRow}>
               <Link href={VAULT_REGISTRY_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
                 {VAULT_REGISTRY_ENTRY.libelle}
               </Link>
-              <span className={gcc.cellText}>Registry</span>
+              <span className={gcc.cellText}>Registre</span>
             </div>
             <div className={gcc.sourceRow}>
               <Link href={CLIENTS_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
-                Client directory
+                Annuaire des clients
               </Link>
-              <span className={gcc.cellText}>Directory</span>
+              <span className={gcc.cellText}>Annuaire</span>
             </div>
-            <p className={gcc.cellText}>Administration log is not exposed by backend endpoints.</p>
+            <p className={gcc.cellText}>Le journal d’administration n’est pas exposé par les points d’accès du backend.</p>
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Viewer</h3>
+            <h3>Utilisateur</h3>
             <p className={gcc.cellText}>{user.name}</p>
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Role</h3>
+            <h3>Rôle</h3>
             <p className={gcc.signalValue}>{user.role}</p>
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Coverage</h3>
-            <p className={gcc.cellText}>Secondary screens grouped below.</p>
+            <h3>Couverture</h3>
+            <p className={gcc.cellText}>Écrans secondaires regroupés ci-dessous.</p>
           </Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Secondary navigation">
+      <section className={gcc.bottomRow} aria-label="Navigation secondaire">
         <Panel className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Secondary screens</h3>
+            <h3 className={gcc.cardTitle}>Écrans secondaires</h3>
           </div>
           <div className={gcc.heroBody}>
             {ADMIN_SECONDARY.flatMap((group) => group.entrees).map((entry) => (
@@ -123,9 +123,9 @@ export default async function Page() {
           ))}
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Contracts</h3>
-          <p className={gcc.cellText}>Roles and administration audit remain not exposed.</p>
-          <p className={gcc.cellText}>No smart-contract action is simulated here.</p>
+          <h3 className={gcc.cardTitle}>Contrats</h3>
+          <p className={gcc.cellText}>Les rôles et l’audit d’administration restent non exposés.</p>
+          <p className={gcc.cellText}>Aucune action de contrat intelligent n’est simulée ici.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

@@ -1,0 +1,88 @@
+[
+ {
+  "route": "/admin",
+  "viewport": "1440x900",
+  "name": "admin-desktop-1440x900.png",
+  "console": "clean",
+  "note": "accueil FR"
+ },
+ {
+  "route": "/admin/dashboard",
+  "viewport": "",
+  "name": "dashboard-fr.png",
+  "console": "clean",
+  "note": "couverture des données FR"
+ },
+ {
+  "route": "/admin/operations",
+  "viewport": "",
+  "name": "operations-fr.png",
+  "console": "clean",
+  "note": "opérations FR"
+ },
+ {
+  "route": "/admin/product",
+  "viewport": "",
+  "name": "product-fr.png",
+  "console": "clean",
+  "note": "fiche produit FR"
+ },
+ {
+  "route": "/admin/vaults",
+  "viewport": "",
+  "name": "vaults-table-fr.png",
+  "console": "clean",
+  "note": "registre des coffres FR"
+ },
+ {
+  "route": "/admin/runtime",
+  "viewport": "",
+  "name": "runtime-fr.png",
+  "console": "clean",
+  "note": "état du service FR"
+ },
+ {
+  "route": "/admin/mining",
+  "viewport": "",
+  "name": "chart-fr.png",
+  "console": "clean",
+  "note": "chart : état honnête FR"
+ },
+ {
+  "route": "/admin/keeper",
+  "viewport": "",
+  "name": "form-fr.png",
+  "console": "clean",
+  "note": "formulaire keeper FR"
+ },
+ {
+  "route": "/admin/clients",
+  "viewport": "",
+  "name": "unavailable-fr.png",
+  "console": "clean",
+  "note": "état indisponible FR"
+ },
+ {
+  "route": "/admin",
+  "viewport": "1280x800",
+  "name": "admin-laptop-1280x800.png",
+  "console": "clean",
+  "note": "laptop FR"
+ },
+ {
+  "route": "/admin",
+  "viewport": "375x812",
+  "name": "admin-mobile-375x812.png",
+  "console": "clean",
+  "note": "mobile FR + déconnexion"
+ },
+ {
+  "route": "/admin/inexistante-xyz",
+  "viewport": "",
+  "name": "error-fr.png",
+  "console": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "note": "route inexistante"
+ }
+]
