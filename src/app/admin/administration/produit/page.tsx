@@ -1,4 +1,4 @@
-import { ChartFrame, type EtatSerie } from '@/components/admin/chart-frame'
+import { ChartFrame, type EtatSerie } from '@/components/charts/core/chart-frame'
 import { MetricValue, Panel } from '@/components/compositions'
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
 import { ConsoleRail } from '@/components/layout/console-rail'
@@ -11,7 +11,7 @@ import {
   VendingCurveChart,
   type PointCourbe,
   type PosteBitcoin,
-} from '@/components/admin/product-charts'
+} from '@/components/charts/cartesian/product-charts'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber } from '@/lib/format'

@@ -1,7 +1,7 @@
 import { AdminLabel } from '@/components/admin/typography'
 import { RequirementList } from '@/components/admin/surface'
 import clsx from 'clsx'
-import { Card, CardHeader } from './cockpit'
+import { Card, CardHeader } from '@/components/admin/cockpit'
 
 /**
  * Common frame for every chart in the product.

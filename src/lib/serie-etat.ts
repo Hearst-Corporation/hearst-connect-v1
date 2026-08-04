@@ -1,4 +1,4 @@
-import type { EtatSerie } from '@/components/admin/chart-frame'
+import type { EtatSerie } from '@/components/charts/core/chart-frame'
 
 /**
  * Chart-frame state decision from a `Resolved` field returned by the

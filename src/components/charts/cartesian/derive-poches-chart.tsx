@@ -1,6 +1,6 @@
 'use client'
 
-import { chartHeight, chartTheme } from '@/lib/chart-theme'
+import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { formatNumber } from '@/lib/format'
 import {
   Bar,
