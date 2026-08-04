@@ -70,7 +70,7 @@ function vaultShortLabel(id: VaultId): string {
 function Absent({ title }: Readonly<{ title: string }>) {
   return (
     <span className={MUTED_CLASS} title={title}>
-      Unavailable
+      Indisponible
     </span>
   )
 }

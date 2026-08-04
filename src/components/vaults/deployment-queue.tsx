@@ -50,7 +50,7 @@ const INLINE_LINK =
 function Unreadable({ note }: Readonly<{ note: string }>) {
   return (
     <span className="text-zinc-500 dark:text-zinc-400" title={note}>
-      Unavailable
+      Indisponible
     </span>
   )
 }

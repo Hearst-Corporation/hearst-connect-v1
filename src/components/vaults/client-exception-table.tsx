@@ -185,7 +185,15 @@ function TimestampCell({ value }: Readonly<{ value: Availability<string> }>) {
 
 const COLUMNS: readonly ExceptionColumn[] = [
   { key: 'client', header: 'Client', cell: (row) => <ClientCell row={row} /> },
-  { key: 'issue', header: 'Problème', cell: (row) => <IssueCell row={row} /> },
+  /*
+   * Largeur explicite : `table-fixed` donnait 143 px aux six colonnes à
+   * égalité, soit 119 px utiles, quand « Aucun dossier investisseur » en
+   * demande 166. Le libellé porte `whitespace-nowrap` — précisément pour ne
+   * pas se verticaliser — donc il était coupé net au lieu de revenir à la
+   * ligne. C'est la colonne qui manquait de place, pas le texte qui était trop
+   * long : les autres colonnes se repartagent le reste.
+   */
+  { key: 'issue', header: 'Problème', className: 'w-[12rem]', cell: (row) => <IssueCell row={row} /> },
   { key: 'vault', header: 'Coffre lié', cell: (row) => <RelatedVaultCell row={row} /> },
   { key: 'compliance', header: 'Conformité', cell: (row) => <TextOrSource value={row.compliance} /> },
   {
@@ -268,7 +276,9 @@ export function ClientExceptionTable({
       </div>
       <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
         <table className="w-full min-w-[860px] table-fixed text-left text-sm">
-          <caption className="sr-only">Client exceptions: client, issue, related vault, compliance and last activity.</caption>
+          <caption className="sr-only">
+            Exceptions clients : client, problème, coffre lié, conformité et dernière activité.
+          </caption>
           <thead>
             <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
               {COLUMNS.map((column) => (
