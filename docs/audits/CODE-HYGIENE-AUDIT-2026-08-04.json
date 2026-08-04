@@ -1,0 +1,623 @@
+{
+  "audit": "CODE-HYGIENE-AUDIT-2026-08-04",
+  "repository": "Hearst-Corporation/hearst-connect-v1",
+  "auditedSha": "6c5507f37128dd094bb00fdffca9258f61b5ff6a",
+  "branchHeadAtStart": "8029d85c7cea76255caaeb0b18f307701840a950",
+  "branch": "audit/code-hygiene-2026-08-04",
+  "worktree": "/Users/adrienbeyondcrypto/Desktop/hearst-connect-v1-hygiene",
+  "date": "2026-08-04",
+  "baseline": "docs/remediation/AUDIT-2026-08-03-REMEDIATION.md (audit Luc, depart 4b49dbc)",
+  "scope": "AUDIT ONLY. Aucun fichier produit modifie, deplace, renomme ou supprime. Seuls les 3 rapports docs/audits/ ont ete ecrits.",
+  "metrics": {
+    "trackedFilesExamined": 326,
+    "srcTsFiles": 131,
+    "testFiles": 25,
+    "deadCandidates": 21,
+    "orphanApplicationFiles": 0,
+    "linesPotentiallyRemovable": 180,
+    "assetsPotentiallyRemovableBytes": 13600000,
+    "exactClonesJscpd": 56,
+    "duplicatedLinesJscpd": 787,
+    "duplicatedRatioJscpd": "3.42%",
+    "semanticDuplicateFamilies": 9,
+    "cssTokensDeclared": 112,
+    "cssTokensWithoutConsumer": 60,
+    "suspectDependencies": 1,
+    "suspectScripts": 2,
+    "suspectTestsFixtures": 3,
+    "safeDeleteCandidates": 14,
+    "needsArbitration": 11,
+    "docsSizeBytes": 19922944,
+    "trackedPngCount": 98
+  },
+  "commands": [
+    { "command": "git rev-parse HEAD", "exit": 0, "result": "6c5507f37128dd094bb00fdffca9258f61b5ff6a" },
+    { "command": "git status --short", "exit": 0, "result": "clean" },
+    { "command": "git worktree list", "exit": 0, "result": "3 worktrees" },
+    { "command": "git ls-files | wc -l", "exit": 0, "result": "326" },
+    { "command": "git count-objects -vH", "exit": 0, "result": "36.07 MiB, 2129 loose objects, 0 packs" },
+    { "command": "pnpm install --frozen-lockfile", "exit": 0, "result": "lockfile respecte" },
+    { "command": "pnpm typecheck", "exit": 0, "result": "aucune erreur de type" },
+    { "command": "pnpm lint", "exit": 0, "result": "aucune violation" },
+    { "command": "pnpm check:mocks", "exit": 0, "result": "aucune donnee simulee (7 regles)" },
+    { "command": "pnpm check:ds", "exit": 0, "result": "aucun hex hors token" },
+    { "command": "pnpm test", "exit": 0, "result": "219 tests / 24 fichiers verts" },
+    { "command": "pnpm build", "exit": 0, "result": "25 routes generees" },
+    { "command": "pnpm exec knip", "exit": 1, "result": "18 fichiers, 54 exports, 13 types, 1 dep non listee" },
+    { "command": "pnpm quality:dup (jscpd)", "exit": 0, "result": "56 clones, 787 lignes, 3.42%" },
+    { "command": "pnpm e2e", "exit": null, "result": "NON EXECUTE - exige backend joignable + identifiants" }
+  ],
+  "findings": [
+    {
+      "id": "DEAD-NEW-001",
+      "category": "dead-export",
+      "path": "src/components/admin/cockpit.tsx",
+      "symbol": "VerdictCard",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 54,
+      "evidence": [
+        "knip: unused export cockpit.tsx:85",
+        "grep exhaustif src+tests+e2e+scripts+docs: 1 reference = sa propre declaration",
+        "verifie aux deux SHA (6c5507f et 8029d85)"
+      ],
+      "recommendation": "Supprimer la fonction. Aucun consommateur, aucun impact rendu.",
+      "relatedFindings": ["DEAD-NEW-002", "DUP-UI-001"]
+    },
+    {
+      "id": "DEAD-NEW-002",
+      "category": "dead-export",
+      "path": "src/components/admin/cockpit.tsx",
+      "symbol": "ExceptionBanner",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 24,
+      "evidence": [
+        "knip: unused export cockpit.tsx:139",
+        "grep exhaustif: 1 reference = sa propre declaration"
+      ],
+      "recommendation": "Supprimer la fonction.",
+      "relatedFindings": ["DEAD-NEW-001"]
+    },
+    {
+      "id": "DEAD-NEW-003",
+      "category": "dead-export",
+      "path": "src/components/admin/surfaces.tsx",
+      "symbol": "AdminLoadingState",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 14,
+      "evidence": [
+        "knip: unused export surfaces.tsx:271",
+        "grep exhaustif: 1 reference = sa propre declaration"
+      ],
+      "recommendation": "Supprimer. Note: src/app/admin/loading.tsx couvre deja l'etat de chargement au niveau route.",
+      "relatedFindings": ["DUP-UI-002"]
+    },
+    {
+      "id": "DEAD-NEW-004",
+      "category": "dead-export",
+      "path": "src/components/admin/surfaces.tsx",
+      "symbol": "AdminActionPanel",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 34,
+      "evidence": [
+        "knip: unused export surfaces.tsx:365",
+        "grep exhaustif: 2 references = declaration + son commentaire de section"
+      ],
+      "recommendation": "Supprimer la fonction et son bandeau de commentaire.",
+      "relatedFindings": ["DUP-UI-002"]
+    },
+    {
+      "id": "DEAD-NEW-005",
+      "category": "dead-export",
+      "path": "src/lib/admin-nav.ts",
+      "symbol": "entreeSecondaire",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 12,
+      "evidence": [
+        "knip: unused export admin-nav.ts:243",
+        "grep exhaustif: 1 reference = sa propre declaration",
+        "admin-nav.ts garde 4 importeurs pour ses autres exports - le fichier n'est PAS mort"
+      ],
+      "recommendation": "Supprimer la fonction. Verifier si le type IconeNav (aussi signale) devient orphelin.",
+      "relatedFindings": ["DEAD-NEW-013"]
+    },
+    {
+      "id": "DEAD-NEW-006",
+      "category": "dead-export",
+      "path": "src/lib/format.ts",
+      "symbol": "formatCompactNumber",
+      "confidence": "CERTAIN",
+      "risk": "DELETE_AFTER_TEST",
+      "lines": 4,
+      "evidence": [
+        "knip: unused export format.ts:35",
+        "grep exhaustif: 1 reference = sa propre declaration"
+      ],
+      "recommendation": "NE PAS supprimer avant le LOT C. format.ts est la cible de consolidation de 9 formatters locaux; supprimer ses helpers au moment ou l'on veut les adopter serait un mauvais arbitrage.",
+      "relatedFindings": ["DUP-LOGIC-001"]
+    },
+    {
+      "id": "DEAD-NEW-007",
+      "category": "dead-export",
+      "path": "src/lib/format.ts",
+      "symbol": "formatDate",
+      "confidence": "CERTAIN",
+      "risk": "DELETE_AFTER_TEST",
+      "lines": 5,
+      "evidence": [
+        "knip: unused export format.ts:40",
+        "grep exhaustif: 1 reference = sa propre declaration",
+        "formatDateTime (voisin) est utilise - seul formatDate est mort"
+      ],
+      "recommendation": "Idem DEAD-NEW-006: arbitrer apres le LOT C. vaults/overview.ts fabrique 3 Intl.DateTimeFormat a la main qui pourraient l'utiliser.",
+      "relatedFindings": ["DUP-LOGIC-001"]
+    },
+    {
+      "id": "DEAD-NEW-008",
+      "category": "dead-export",
+      "path": "src/lib/layout-tokens.ts",
+      "symbol": "pageInlinePadding, pageBlockPadding, surfacePadding, surfaceCompactPadding, tableCellPadding, toolbarPadding",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 6,
+      "evidence": [
+        "knip: 6 unused exports layout-tokens.ts:27,30,42,45,47,48",
+        "grep exhaustif: 1 reference chacun (sa declaration) + 1 mention dans docs/visual-reviews/HC-UI-NORMALIZATION-001/REVIEW.md (prose, pas code)",
+        "le fichier garde 3 importeurs reels (pageMaxWidth, pageSectionGap, sectionContentGap, gridGap) - il n'est PAS orphelin"
+      ],
+      "recommendation": "Supprimer les 6 constantes. Abstraction partiellement adoptee: 6 tokens sur 9 n'ont jamais trouve preneur depuis HC-UI-NORMALIZATION-001.",
+      "relatedFindings": []
+    },
+    {
+      "id": "DEAD-NEW-009",
+      "category": "dead-export",
+      "path": "src/components/admin/surface.tsx",
+      "symbol": "surfaceSunken + Panel + PanelHeading",
+      "confidence": "HIGH",
+      "risk": "DELETE_AFTER_TEST",
+      "lines": 45,
+      "evidence": [
+        "knip: unused exports surface.tsx:20 (surfaceSunken), :23 (Panel), :70 (PanelHeading)",
+        "grep: surfaceSunken a 2 references, la 2e etant a l'interieur de Panel qui est lui-meme sans appelant",
+        "graphe d'imports: surface.tsx a 5 importeurs, mais TOUS pour surfaceRaised (4) ou RequirementList (2)"
+      ],
+      "recommendation": "Supprimer les 3 symboles ensemble (chaine de dependance interne). Le fichier survit avec surfaceRaised + RequirementList. Attention: un Panel homonyme et VIVANT existe dans green-command-center/primitives.tsx (31 importeurs) - ne pas confondre.",
+      "relatedFindings": ["DUP-UI-001", "DUP-UI-002"]
+    },
+    {
+      "id": "DEAD-NEW-010",
+      "category": "superfluous-export",
+      "path": "src/lib/theme.ts, src/lib/chart-theme.ts, src/lib/mouvements.ts, src/lib/backend/auth.ts, src/lib/statut-affichage.ts, src/lib/vaults/overview.ts, src/components/logo.tsx, src/components/admin/allocation-chart.tsx, src/components/admin/truthful.tsx, src/components/admin/surfaces.tsx",
+      "symbol": "THEME_STORAGE_KEY, currentTheme, CATEGORICAL_RAMP, MIN_POINTS_FOR_CHART, PHRASE_MOUVEMENT, MOTIF_LISIBLE, LOGIN_PATH, estStatutAffichage, MOVEMENT_ROWS, Mark, SEUIL_ECART_SIGNALE_PT, FreshnessIndicator, AdminEmptyState",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 13,
+      "evidence": [
+        "knip les signale comme 'unused exports'",
+        "grep exhaustif: chacun EST consomme, mais uniquement dans son propre fichier",
+        "exemple: LOGIN_PATH declare auth.ts:22, consomme auth.ts:173"
+      ],
+      "recommendation": "Retirer le mot-cle 'export' uniquement, PAS le symbole. Distinction que knip ne fait pas: le code vit, seule l'exposition publique est superflue. Aucun changement de comportement.",
+      "relatedFindings": []
+    },
+    {
+      "id": "DEAD-NEW-011",
+      "category": "dead-type",
+      "path": "src/components/admin/cockpit.tsx, src/components/admin/surfaces.tsx, src/lib/admin-nav.ts, src/lib/backend/client.ts, src/lib/env.ts, src/lib/vaults/model.ts, src/lib/vaults/registry.ts",
+      "symbol": "Tone, AdminFilterItem, IconeNav, EnvelopeStatus, EnvVarStatus, EnvVarReport, ClientId, DeploymentId, KeeperActionId, ComplianceReviewId, ClientRef (x2), Deployment",
+      "confidence": "MEDIUM",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 13,
+      "evidence": [
+        "knip: 13 unused exported types",
+        "verification manuelle: plusieurs sont des types de marque (branded types) d'un systeme d'identifiants coherent"
+      ],
+      "recommendation": "NE PAS supprimer en bloc. ClientId/DeploymentId/KeeperActionId/ComplianceReviewId font partie d'une famille de branded types dont d'autres membres (VaultId, StrategyId, MovementId) SONT utilises - retirer les inutilises casserait la symetrie d'un modele deliberé. Arbitrer type par type; EnvVarStatus/EnvVarReport et Tone sont les candidats les plus nets.",
+      "relatedFindings": ["DEAD-NEW-005"]
+    },
+    {
+      "id": "DEAD-NEW-012",
+      "category": "vendor-classification",
+      "path": "src/components/catalyst/",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "KEEP_VENDOR",
+      "lines": 0,
+      "evidence": [
+        "knip liste 18 fichiers 'morts' dont 17 Catalyst",
+        "graphe d'imports independant: 16 non importes hors kit; link.tsx (8 importeurs internes) et navbar.tsx (2 importeurs internes) SONT consommes dans le kit",
+        "VENDOR.md documente la decision produit de conservation"
+      ],
+      "recommendation": "Aucune suppression. Classification: 9 VENDOR_USED produit + 2 VENDOR_USED interne + 16 VENDOR_AVAILABLE. Corriger VENDOR.md qui annonce 18 non-utilises au lieu de 16.",
+      "relatedFindings": ["DOC-004"]
+    },
+    {
+      "id": "DEAD-NEW-013",
+      "category": "dead-file-candidate",
+      "path": "docs/dashboard-vision/render/capture.mjs",
+      "symbol": null,
+      "confidence": "LOW",
+      "risk": "NEEDS_PRODUCT_DECISION",
+      "lines": 0,
+      "evidence": [
+        "knip: unused file",
+        "reference dans docs/dashboard-vision/manifest.json:202 comme artefact de la mission DASHBOARD-VISION-001",
+        "script de generation de captures, hors runtime"
+      ],
+      "recommendation": "Conserver. Un outil de documentation reference par son propre manifeste n'est pas du code mort: il appartient a une preuve de mission archivee.",
+      "relatedFindings": []
+    },
+    {
+      "id": "DUP-UI-001",
+      "category": "duplicate-ui-primitive",
+      "path": "src/app/admin/{btc,mining,product,operations,api-explorer,backtest,profile,keeper,administration/produit,series-1}/page.tsx",
+      "symbol": "Card, CardHeader, HeroFigure, SourceAttendue, SideFact",
+      "confidence": "CERTAIN",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 120,
+      "evidence": [
+        "inventaire exhaustif: Card redeclare dans 10 routes, CardHeader dans 7, SourceAttendue dans 6, HeroFigure dans 6, SideFact dans 4",
+        "comparaison textuelle: implementation de Card BYTE-IDENTIQUE dans 9 routes sur 10 (seule operations/page.tsx diverge avec clsx(gcc.heroChart, className))",
+        "jscpd confirme les blocs (clone de 96L administration/produit <-> mining, 30L backtest <-> operations, etc.)",
+        "les canoniques existent deja: cockpit.tsx exporte Card/CardHeader/HeroFigure/SideFact/SourceAttendue",
+        "ClientsMetric (clients/page.tsx:49) et ComplianceMetric (conformite/page.tsx:49) sont strictement identiques au nom pres"
+      ],
+      "recommendation": "Duplication ACCIDENTELLE, vraie opportunite de consolidation. ATTENTION: les Card locales enveloppent Panel du green command center (gcc.wavePanel, matiere near-black) alors que cockpit.Card applique surfaceRaised (matiere graphite) - ce ne sont PAS les memes surfaces visuelles. Cible correcte: extraire une Card unique vers green-command-center/primitives.tsx (qui porte deja Panel/Absent/Reading), PAS converger vers cockpit.Card. Exige une revue visuelle des 10 routes.",
+      "relatedFindings": ["DUP-UI-002", "DEAD-NEW-009"]
+    },
+    {
+      "id": "DUP-UI-002",
+      "category": "duplicate-composition",
+      "path": "src/components/admin/surface.tsx, src/components/admin/surfaces.tsx, src/components/admin/truthful.tsx, src/components/design-lab/green-command-center/primitives.tsx",
+      "symbol": "Panel/AdminSurface/Panel, AdminEmptyState/EmptyState/Absent, SourceAttendue/AdminSourceAttendue, PanelHeading/CardHeader",
+      "confidence": "HIGH",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 0,
+      "evidence": [
+        "3 vocabulaires de surface coexistent pour le meme contrat (voir tableau rapport 6.2)",
+        "surface.tsx: 77 lignes dont seuls surfaceRaised (4 importeurs) et RequirementList (2) servent",
+        "surfaces.tsx: 481 lignes, 19 exports dont 4 morts et 4 simples re-exports de truthful.tsx (barrel file non declare)"
+      ],
+      "recommendation": "Duplication de TRANSITION (migration vocabulaire Admin* -> green command center en cours). Ne pas fusionner brutalement. Action minimale utile: documenter quelle famille est la cible dans DESIGN-SYSTEM-NOTES.md, pour que les routes cessent d'arbitrer au cas par cas en recreant des primitives locales.",
+      "relatedFindings": ["DUP-UI-001", "DEAD-NEW-009"]
+    },
+    {
+      "id": "DUP-LOGIC-001",
+      "category": "duplicate-formatter",
+      "path": "src/app/admin/btc/page.tsx, src/app/admin/administration/produit/page.tsx, src/app/admin/series-1/page.tsx, src/components/admin/product-charts.tsx, src/lib/resolved.ts, src/lib/vaults/overview.ts",
+      "symbol": "toFixed / toLocaleString / Intl.NumberFormat / Intl.DateTimeFormat locaux",
+      "confidence": "CERTAIN",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 25,
+      "evidence": [
+        "grep: 9 sites formatent a la main hors src/lib/format.ts",
+        "format.ts se declare explicitement 'single source of truth' et expose formatPercent/formatNumber/formatCurrency",
+        "le litteral 'en-US' est recopie a 9 endroits alors que format.ts declare const LOCALE = 'en-US'",
+        "btc/page.tsx contient DEUX conversions sats->BTC (l.189 et l.427); administration/produit/page.tsx en contient une TROISIEME (bitcoinProduitDe)",
+        "resolved.ts:94 duplique formatNumber a l'identique (toLocaleString + repli '—')"
+      ],
+      "recommendation": "Router les 9 sites vers format.ts. Ajouter un formatBtcFromSats() plutot qu'une 4e implementation locale. Gain de veracite: un formatage centralise propage correctement l'absence ('—') au lieu de risquer un 0. A traiter AVANT de supprimer formatCompactNumber/formatDate (DEAD-NEW-006/007).",
+      "relatedFindings": ["DEAD-NEW-006", "DEAD-NEW-007"]
+    },
+    {
+      "id": "DUP-LOGIC-002",
+      "category": "duplicate-model",
+      "path": "src/lib/resolved.ts, src/lib/vaults/model.ts, src/lib/backend/resolved-mapper.ts",
+      "symbol": "Resolved<T> vs Availability<T>",
+      "confidence": "HIGH",
+      "risk": "NEEDS_PRODUCT_DECISION",
+      "lines": 0,
+      "evidence": [
+        "deux vocabulaires d'absence: resolved.ts (10 importeurs) et vaults/model.ts (39 importeurs)",
+        "resolved-mapper.ts est le pont concu entre les deux: 0 importeur runtime, seul tests/resolved.test.ts l'exerce",
+        "deja identifie par le Lot 7 (DEAD-04/BAPI-07), tranche 'conserve + documente'"
+      ],
+      "recommendation": "CONFIRME SANS RECOMPTAGE - constat de la baseline, etat inchange. Duplication ACCEPTABLE en l'etat: fusionner un modele d'enveloppe backend et un modele de domaine metier produirait vraisemblablement une abstraction plus complexe que les deux reunies. Decision produit, pas d'audit.",
+      "relatedFindings": []
+    },
+    {
+      "id": "DUP-VISUAL-001",
+      "category": "duplicate-token-value",
+      "path": "src/styles/tailwind.css",
+      "symbol": "20 valeurs hex portees par 2 a 7 tokens",
+      "confidence": "CERTAIN",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 0,
+      "evidence": [
+        "#000000 porte par 7 tokens (accent-ink, black, brand-accent-foreground, brand-surface, cockpit-card, hearst-ink, surface-panel)",
+        "#020611 par 5, #18183a par 4, #a7fb90 par 4 (accent-300, accent-400, brand-accent, hearst-accent)",
+        "l'accent #a7fb90 sous 4 noms contredit DESIGN-SYSTEM-NOTES.md ('#a7fb90 est l'unique accent')",
+        "check:ds interdit un hex brut hors token mais n'empeche pas un meme hex sous plusieurs tokens"
+      ],
+      "recommendation": "Converger vers la famille canonique console-*/accent-*. Dependance: traiter DS-VIOLATION-001 d'abord.",
+      "relatedFindings": ["CSS-DEAD-001", "DS-VIOLATION-001"]
+    },
+    {
+      "id": "DUP-ROUTE-001",
+      "category": "duplicate-route",
+      "path": "src/app/design-lab/admin-home-green/page.tsx",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "NEEDS_PRODUCT_DECISION",
+      "lines": 160,
+      "evidence": [
+        "src/app/admin/page.tsx et design-lab/admin-home-green/page.tsx rendent le MEME composant GreenAdminHomeDashboard avec le meme appel loadAdminRegistry",
+        "manifeste du build reel: les 2 routes sont generees",
+        "ARCH-02 a pose la garde notFound() en production, prouvee en prod reelle - le risque d'exposition est FERME"
+      ],
+      "recommendation": "Duplication de route reelle mais risque securite deja ferme. NUANCE IMPORTANTE: le dossier components/design-lab/ n'est PAS un laboratoire mort - il est importe par 18 routes admin et primitives.tsx a 31 importeurs. C'est le systeme de composition de toute la console sous un nom de dossier trompeur. Seule la ROUTE est dupliquee. Arbitrage produit: retirer la route sandbox (contenu identique a /admin) ou la conserver comme banc d'essai.",
+      "relatedFindings": ["DUP-UI-001"]
+    },
+    {
+      "id": "ROUTE-001",
+      "category": "unqualified-route",
+      "path": "src/app/(auth)/register/page.tsx",
+      "symbol": null,
+      "confidence": "LOW",
+      "risk": "UNKNOWN_EXTERNAL_CONSUMER",
+      "lines": 0,
+      "evidence": [
+        "manifeste du build: route statique /register generee",
+        "aucune entree correspondante dans admin-nav.ts ni lien verifie depuis la vitrine"
+      ],
+      "recommendation": "NE PAS declarer morte. Une page d'inscription atteignable par URL directe peut etre un choix produit. A qualifier par le produit.",
+      "relatedFindings": []
+    },
+    {
+      "id": "CSS-DEAD-001",
+      "category": "dead-css-token",
+      "path": "src/styles/tailwind.css",
+      "symbol": "--color-brand-* (8), --color-info-* (8), --color-surface-* (4)",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 20,
+      "evidence": [
+        "chaque token teste sous 3 formes: var(--token) dans CSS/TS/TSX, utilitaire Tailwind derive (bg-/text-/ring-/border-/fill-/stroke-/from-/to-/shadow-), chaine litterale (acces JS dynamique)",
+        "0 consommateur sous quelque forme que ce soit pour les 3 familles",
+        "--color-brand-* et --color-surface-* sont les tokens de l'ancien theme Hearst 'or' decrit dans le README (brand-accent, or Hearst H≈45°), systeme remplace par l'accent mint"
+      ],
+      "recommendation": "Supprimer les 20 declarations. Aucun consommateur, aucune construction dynamique de classe detectee dans le depot.",
+      "relatedFindings": ["DUP-VISUAL-001", "DOC-001"]
+    },
+    {
+      "id": "CSS-DEAD-002",
+      "category": "unwired-css-token",
+      "path": "src/styles/tailwind.css:178-181",
+      "symbol": "--chart-positive, --chart-negative, --chart-warning, --chart-neutral",
+      "confidence": "HIGH",
+      "risk": "NEEDS_PRODUCT_DECISION",
+      "lines": 4,
+      "evidence": [
+        "0 consommateur: chart-theme.ts reference directement --color-success-400 / --color-warning-400 / --color-danger-400",
+        "les tokens --chart-1..5, --chart-grid, --chart-axis, --chart-tooltip-surface SONT consommes par chart-theme.ts",
+        "ajoutes par le commit 56a9c0f au titre de la doctrine §7.5"
+      ],
+      "recommendation": "NE PAS supprimer. Indirection prevue par la doctrine mais non branchee: faire pointer chart-theme.ts vers --chart-positive/negative/warning au lieu des tokens de couleur directs. A brancher, pas a retirer.",
+      "relatedFindings": ["DOC-002"]
+    },
+    {
+      "id": "DS-VIOLATION-001",
+      "category": "layer-violation",
+      "path": "src/components/admin/truthful.tsx, src/components/admin/surfaces.tsx",
+      "symbol": "bg-hearst-ok/warn/bad, text-hearst-warn, bg-cockpit-inset, bg-neutral-600",
+      "confidence": "CERTAIN",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 10,
+      "evidence": [
+        "truthful.tsx:56-58,106,121,180 utilise la famille hearst-* (doublon de success/warning/danger)",
+        "truthful.tsx:194,226,258 utilise bg-cockpit-inset au lieu de console-inset",
+        "surfaces.tsx:412 utilise bg-neutral-600",
+        "la doctrine impose les etats semantiques success/warning/danger et les surfaces console-*"
+      ],
+      "recommendation": "PIEGE PRINCIPAL DU PLAN DE NETTOYAGE: ces 3 usages maintiennent en vie les familles hearst-*/cockpit-*/neutral-*, qui paraissent mortes a la lecture rapide. Les supprimer sans traiter d'abord ces 2 fichiers casserait le rendu SANS faire echouer aucune gate (check:ds n'interdit que les hex bruts, pas un utilitaire pointant vers un token disparu). Faire converger truthful.tsx/surfaces.tsx AVANT de toucher aux tokens.",
+      "relatedFindings": ["CSS-DEAD-001", "DUP-VISUAL-001"]
+    },
+    {
+      "id": "TEST-FIX-001",
+      "category": "orphan-fixture",
+      "path": "tests/fixtures/violating-module.txt",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 5,
+      "evidence": [
+        "grep exhaustif sur tests, scripts, src, e2e, vitest.config.mts, package.json: 0 reference",
+        "check-no-mocks.mjs ne scanne que src/** et ne lit que .ts/.tsx - il ne peut structurellement pas voir un .txt sous tests/",
+        "la fixture affirme pourtant prouver que la regle DECLARED_FIXTURE 'mord vraiment: un gate qui ne casse jamais ne demontre rien'"
+      ],
+      "recommendation": "REWRITE, pas DELETE. Une preuve annoncee mais inexistante est pire qu'une absence de preuve. Ajouter un test qui passe la fixture a la regle DECLARED_FIXTURE et exige une violation. La fixture est bien concue; c'est le harnais qui manque.",
+      "relatedFindings": []
+    },
+    {
+      "id": "TEST-002",
+      "category": "doctrine-test-fragility",
+      "path": "tests/layout-doctrine.test.tsx, tests/auth-doctrine.test.ts, tests/language-regression.test.ts",
+      "symbol": null,
+      "confidence": "MEDIUM",
+      "risk": "KEEP_ENTRYPOINT",
+      "lines": 0,
+      "evidence": [
+        "3 tests lisent la source via readFileSync (4, 2 et 3 occurrences) et assertent sur des motifs",
+        "ils MORDENT reellement: language-regression a du etre reecrit par le commit FR 8029d85, preuve qu'il n'est pas vacue",
+        "aucun .skip, .only ni todo dans toute la suite"
+      ],
+      "recommendation": "KEEP. Tests de doctrine legitimes mais fragiles au renommage (chemins en dur). Surveiller, ne pas multiplier. Aucune action dans cette mission.",
+      "relatedFindings": []
+    },
+    {
+      "id": "DEP-001",
+      "category": "redundant-dependency",
+      "path": "package.json",
+      "symbol": "playwright (devDependencies)",
+      "confidence": "MEDIUM",
+      "risk": "DELETE_AFTER_TEST",
+      "lines": 1,
+      "evidence": [
+        "grep: 0 import de 'playwright' dans e2e/, tests/ ou playwright.config.ts - tous importent '@playwright/test'",
+        "node -e sur node_modules/@playwright/test/package.json: dependencies = {\"playwright\":\"1.51.1\"} - le paquet est installe de toute facon en transitif"
+      ],
+      "recommendation": "Candidat au retrait de la declaration directe. Verifier avant que 'pnpm exec playwright install' reste operant via la dependance transitive. NE PAS retirer dans cette mission (interdit).",
+      "relatedFindings": []
+    },
+    {
+      "id": "DEP-002",
+      "category": "false-positive",
+      "path": "postcss.config.mjs",
+      "symbol": "postcss-load-config",
+      "confidence": "CERTAIN",
+      "risk": "KEEP_ENTRYPOINT",
+      "lines": 0,
+      "evidence": [
+        "knip: 'unlisted dependency postcss-load-config postcss.config.mjs:1:10'",
+        "la seule occurrence est une annotation de type JSDoc: /** @type {import('postcss-load-config').Config} */",
+        "le paquet n'est pas installe et pnpm build passe (exit 0)"
+      ],
+      "recommendation": "Aucune action. Faux positif knip: une annotation de type n'est pas un import runtime.",
+      "relatedFindings": []
+    },
+    {
+      "id": "SCRIPT-001",
+      "category": "dead-script",
+      "path": "package.json",
+      "symbol": "sonar",
+      "confidence": "CERTAIN",
+      "risk": "REFACTOR_REQUIRED",
+      "lines": 1,
+      "evidence": [
+        "le script fait 'npm run test:coverage' dans un depot pnpm-only",
+        "CLAUDE.md, section 'Pieges connus': 'La CI Hearst est pnpm-only. Ne jamais faire npm install ici'",
+        "depend d'une IP privee en dur (http://100.88.191.49:9010) et de Docker"
+      ],
+      "recommendation": "Remplacer 'npm run test:coverage' par 'pnpm run test:coverage'. Le script annonce une preuve qu'il ne peut pas produire hors du reseau prive.",
+      "relatedFindings": ["SCRIPT-002"]
+    },
+    {
+      "id": "SCRIPT-002",
+      "category": "misleading-script",
+      "path": "package.json",
+      "symbol": "quality:dup, quality:dead, lint:fast",
+      "confidence": "HIGH",
+      "risk": "NEEDS_PRODUCT_DECISION",
+      "lines": 3,
+      "evidence": [
+        "quality:dup: 'jscpd src --threshold 100' - exit 0 constate malgre 56 clones detectes; le seuil 100% ne peut jamais faire echouer",
+        "quality:dead: alias strict de 'knip', n'apporte rien que 'pnpm exec knip' ne fasse",
+        "lint:fast: 'oxlint src' non documente, non appele en CI, non appele par check, redondant avec lint",
+        "aucun des 3 n'est documente dans CLAUDE.md"
+      ],
+      "recommendation": "quality:dup est utile en diagnostic mais trompeur comme 'gate' - un controle qualite qui ne peut pas echouer. Soit baisser le seuil pour qu'il morde, soit le documenter explicitement comme outil de diagnostic. Arbitrage a faire.",
+      "relatedFindings": ["SCRIPT-001"]
+    },
+    {
+      "id": "DOC-001",
+      "category": "stale-documentation",
+      "path": "README.md",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 0,
+      "evidence": [
+        "l.22-23,96-99: 'npm install' / 'npm run dev' / 'npm run check' - le depot est pnpm-only, piege CI n1 de CLAUDE.md",
+        "l.99,111: 'npm run check:catalyst' - gate SUPPRIMEE le 2026-07-31 (CLAUDE.md l.44)",
+        "l.83: 'AdminShell reste en fallback' - SUPPRIME au Lot 7 (commit 8c89a39)",
+        "l.107: tokens brand-background/brand-surface/brand-accent 'or Hearst H≈45°' - famille MORTE (cf. CSS-DEAD-001), l'accent est mint #a7fb90",
+        "l.16: session 'signee HMAC-SHA256' - passee en chiffrement AES-256-GCM par SEC-02"
+      ],
+      "recommendation": "PRIORITE 1 du plan. Gravite haute: un nouvel arrivant qui suit le README casse la CI. Zero risque code, valeur immediate.",
+      "relatedFindings": ["CSS-DEAD-001", "SCRIPT-001"]
+    },
+    {
+      "id": "DOC-002",
+      "category": "stale-configuration",
+      "path": "sonar-project.properties:32-36",
+      "symbol": "sonar.cpd.exclusions=src/lib/demo-data.ts",
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 5,
+      "evidence": [
+        "ls src/lib/demo-data.ts: No such file or directory (aux deux SHA)",
+        "l'exclusion et son commentaire de 3 lignes decrivent un 'jeu de donnees de demonstration'"
+      ],
+      "recommendation": "Retirer l'exclusion et son commentaire. Un depot dont la garantie centrale est l'absence de donnees simulees ne devrait pas documenter un jeu de demo dans sa config qualite.",
+      "relatedFindings": ["DOC-001"]
+    },
+    {
+      "id": "DOC-003",
+      "category": "stale-documentation",
+      "path": "docs/remediation/AUDIT-2026-08-03-REMEDIATION.md:107-117",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 0,
+      "evidence": [
+        "affirme que HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md 'n'est pas present dans le depot (cherche: absent de src/, racine, docs/)'",
+        "le fichier existe: docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md, 713 lignes, ajoute par 6c5507f",
+        "les lots 4/5 y sont marques 'CONDITIONNE A LA DOCTRINE'"
+      ],
+      "recommendation": "Mettre a jour: la condition bloquante est levee. Impact reel - des lots sont marques bloques a tort.",
+      "relatedFindings": []
+    },
+    {
+      "id": "DOC-004",
+      "category": "stale-documentation",
+      "path": "src/components/catalyst/VENDOR.md:59, CLAUDE.md",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 0,
+      "evidence": [
+        "VENDOR.md: '18 primitives vendorees non encore utilisees' - le compte exact est 16 (link et navbar sont consommes dans le kit)",
+        "CLAUDE.md: 'Worktrees declares: aucun au 2026-07-27' - 3 worktrees existent",
+        "CLAUDE.md: gate decrite sans check:ds alors que le script check l'inclut",
+        "CLAUDE.md: '14 fichiers de tests au 2026-07-28' - 24 aujourd'hui"
+      ],
+      "recommendation": "Corrections mineures. Les ecarts CLAUDE.md sont dates explicitement, donc de faible gravite.",
+      "relatedFindings": ["DEAD-NEW-012"]
+    },
+    {
+      "id": "ASSET-001",
+      "category": "duplicate-asset",
+      "path": "docs/visual-reviews/",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "NEEDS_PRODUCT_DECISION",
+      "lines": 0,
+      "evidence": [
+        "4 paires de PNG au hash git identique (meme blob): HC-DESIGN-SYSTEM-CONVERGENCE-001/console-desktop-1440x900.png = HC-FULL-REMEDIATION-001/desktop-1440x900.png; login-dark = login; console-laptop = laptop; et chart-panel-1440x900.png = mining-chart-1440x900.png DANS LA MEME REVUE",
+        "docs/ pese 19 Mo dont 19,1 Mo pour visual-reviews seul (98 PNG) - plus lourd que tout le code",
+        "series HC-GREEN-COMMAND-CENTER-SANDBOX-REWORK-001 a -006: six iterations de la meme capture a 4 resolutions, ~4,5 Mo"
+      ],
+      "recommendation": "La 4e paire est la plus problematique: deux captures du meme fichier presentees comme deux preuves differentes (chart-panel et mining-chart) dans une meme revue. KEEP pour les preuves finales; arbitrage produit pour les series de reprise intermediaires - une revue visuelle est une preuve d'audit, la supprimer releve de la gouvernance, pas de la proprete.",
+      "relatedFindings": []
+    },
+    {
+      "id": "WS-001",
+      "category": "workspace-hygiene",
+      "path": ".git",
+      "symbol": null,
+      "confidence": "CERTAIN",
+      "risk": "SAFE_DELETE",
+      "lines": 0,
+      "evidence": [
+        "git count-objects -vH: 36,07 MiB, 2129 objets LOOSE, 0 pack",
+        "aucun lockfile concurrent, aucun .env suivi hors .env.example, aucun .DS_Store/.bak/.old/.tmp suivi, aucun artefact de build suivi",
+        "seul non-suivi dans le worktree principal: .vscode/mcp.json"
+      ],
+      "recommendation": "Workspace propre. Un 'git gc' compacterait 2129 objets loose et reduirait nettement l'empreinte disque. Aucun parasite a supprimer.",
+      "relatedFindings": []
+    }
+  ],
+  "limits": [
+    "pnpm e2e non execute: exige un backend Hearst joignable et des identifiants. Les 17 tests Playwright n'ont pas ete rejoues.",
+    "Aucune analyse au rendu: selecteurs CSS jamais rendus et branches conditionnelles inatteignables non prouvables statiquement. Le module CSS de 1410 lignes du green command center n'a pas ete audite classe par classe.",
+    "Consommation externe non verifiable: le depot ne publie pas de paquet; l'absence de consommateur interne a ete traitee comme suffisante pour un export applicatif, avec classement 'candidat' en cas de doute.",
+    "Analyse a 6c5507f alors que la branche est a 8029d85. Tous les constats re-verifies a HEAD, mais un commit produit peut atterrir pendant la redaction.",
+    "Tokens CSS: une classe Tailwind construite par concatenation echapperait aux 3 formes testees. Aucune construction de ce type trouvee, mais l'absence de preuve n'est pas une preuve.",
+    "Poids des assets mesure sur le disque, pas sur l'historique git: supprimer un PNG ne reduit pas le depot clone tant que l'historique le porte.",
+    "git count-objects a signale 'garbage found: .git/worktrees/hearst-connect-v1-hygiene/refs', lie au worktree d'audit lui-meme - sans consequence."
+  ]
+}
