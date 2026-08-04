@@ -113,7 +113,7 @@
           "ratio": 0.08
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 196,
           "hauteur": 32,
           "scrollWidth": 196,
@@ -121,12 +121,12 @@
           "ratio": 0.16
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 82,
           "hauteur": 30,
           "scrollWidth": 0,
           "clientWidth": 0,
-          "ratio": 0.37
+          "ratio": 0.36
         },
         {
           "texte": "Base de données : joignable",
@@ -257,7 +257,7 @@
           "ratio": 0.09
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 176,
           "hauteur": 32,
           "scrollWidth": 176,
@@ -265,12 +265,12 @@
           "ratio": 0.18
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 82,
           "hauteur": 30,
           "scrollWidth": 0,
           "clientWidth": 0,
-          "ratio": 0.37
+          "ratio": 0.36
         },
         {
           "texte": "Base de données : joignable",
@@ -291,9 +291,9 @@
       ]
     },
     "tablet": {
-      "largeurRegion": 250,
-      "scrollWidthRegion": 248,
-      "clientWidthRegion": 248,
+      "largeurRegion": 500,
+      "scrollWidthRegion": 498,
+      "clientWidthRegion": 498,
       "deborde": false,
       "boites": [
         {
@@ -306,27 +306,27 @@
         },
         {
           "texte": "Le journal ci-dessus ne vaut que ce que ",
-          "largeur": 208,
-          "hauteur": 72,
-          "scrollWidth": 208,
-          "clientWidth": 208,
-          "ratio": 0.35
+          "largeur": 409,
+          "hauteur": 24,
+          "scrollWidth": 409,
+          "clientWidth": 409,
+          "ratio": 0.06
         },
         {
           "texte": "Dernière synchronisation",
-          "largeur": 176,
-          "hauteur": 32,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.18
+          "largeur": 189,
+          "hauteur": 16,
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.08
         },
         {
           "texte": "il y a 5 j",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 32,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.18
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.17
         },
         {
           "texte": "il y a 5 j",
@@ -338,27 +338,27 @@
         },
         {
           "texte": "Jul 29, 2026, 10:41 PM",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 20,
-          "scrollWidth": 176,
-          "clientWidth": 176,
+          "scrollWidth": 189,
+          "clientWidth": 189,
           "ratio": 0.11
         },
         {
           "texte": "Dernier bloc indexé",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 16,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.09
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.08
         },
         {
           "texte": "—",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 32,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.18
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.17
         },
         {
           "texte": "—",
@@ -370,19 +370,19 @@
         },
         {
           "texte": "Intervalle d’interrogation",
-          "largeur": 176,
-          "hauteur": 32,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.18
+          "largeur": 189,
+          "hauteur": 16,
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.08
         },
         {
           "texte": "toutes les 15 s",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 32,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.18
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.17
         },
         {
           "texte": "toutes les 15 s",
@@ -394,43 +394,43 @@
         },
         {
           "texte": "Erreurs consécutives",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 16,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.09
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.08
         },
         {
-          "texte": "30,178",
-          "largeur": 176,
+          "texte": "30,403",
+          "largeur": 189,
           "hauteur": 32,
-          "scrollWidth": 176,
-          "clientWidth": 176,
-          "ratio": 0.18
+          "scrollWidth": 189,
+          "clientWidth": 189,
+          "ratio": 0.17
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 82,
           "hauteur": 30,
           "scrollWidth": 0,
           "clientWidth": 0,
-          "ratio": 0.37
+          "ratio": 0.36
         },
         {
           "texte": "Base de données : joignable",
-          "largeur": 176,
+          "largeur": 189,
           "hauteur": 20,
-          "scrollWidth": 176,
-          "clientWidth": 176,
+          "scrollWidth": 189,
+          "clientWidth": 189,
           "ratio": 0.11
         },
         {
           "texte": "Retard de l’indexeur : non renseigné par",
-          "largeur": 208,
-          "hauteur": 40,
-          "scrollWidth": 208,
-          "clientWidth": 208,
-          "ratio": 0.19
+          "largeur": 458,
+          "hauteur": 20,
+          "scrollWidth": 458,
+          "clientWidth": 458,
+          "ratio": 0.04
         }
       ]
     },
@@ -545,7 +545,7 @@
           "ratio": 0.31
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 104,
           "hauteur": 32,
           "scrollWidth": 104,
@@ -553,12 +553,12 @@
           "ratio": 0.31
         },
         {
-          "texte": "30,178",
+          "texte": "30,403",
           "largeur": 82,
           "hauteur": 30,
           "scrollWidth": 0,
           "clientWidth": 0,
-          "ratio": 0.37
+          "ratio": 0.36
         },
         {
           "texte": "Base de données : joignable",
