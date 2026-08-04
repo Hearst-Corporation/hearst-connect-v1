@@ -1,7 +1,7 @@
 # Plan de nettoyage — Hearst Connect V1
 
 > Dérivé de `CODE-HYGIENE-AUDIT-2026-08-04.md`. SHA d'analyse initiale `6c5507f`,
-> SHA de revalidation `8029d85`, SHA de nettoyage `d47af1a`.
+> SHA de revalidation `8029d85`, SHA de code final `9a50936`.
 
 ## État d'exécution au 2026-08-04
 
@@ -149,7 +149,7 @@ Gain réel mais petit ; à traiter seulement si le lot est ouvert.
 
 Le plus gros gain du plan (~40 déclarations locales pour 5 contrats), et le plus risqué.
 
-> **Chemins confirmés au 2026-08-04** (re-vérifiés sur `d47af1a`, après le
+> **Chemins confirmés au 2026-08-04** (re-vérifiés sur `9a50936`, après le
 > nettoyage — ces comptages n'ont pas bougé, aucun lot exécuté n'y a touché) :
 >
 > | Primitive | Occurrences | Fichiers |
@@ -213,7 +213,7 @@ primitives locales.
 
 ## LOT E — CSS et tokens  ⬜ OUVERT (interdit tant que D2 n'est pas fait)
 
-> **Vérifié sur `d47af1a`** : `git diff 8029d85 -- src/styles/` est **vide** —
+> **Vérifié sur `9a50936`** : `git diff 8029d85 -- src/styles/` est **vide** —
 > aucun token n'a été modifié, fusionné ni renommé par la passe de nettoyage.
 > Les deux seuls fichiers qui maintiennent en vie les familles `hearst-*`,
 > `cockpit-*` et `neutral-*` restent **`src/components/admin/truthful.tsx`** et
