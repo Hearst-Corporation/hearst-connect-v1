@@ -992,6 +992,12 @@
   }
 }
 
+@container (max-width: 62rem) {
+  .rightStack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .heroChart {
   min-width: 0;
   min-height: 0;
@@ -1596,5 +1602,54 @@
     grid-area: vault;
     min-height: 0;
     border-left: 0;
+  }
+}
+
+/*
+ * ── Le trou entre 760 px et 1280 px de viewport ────────────────────────────
+ *
+ * Les paliers ci-dessus mesurent le VIEWPORT, alors que la place réellement
+ * disponible est celle de `.workspace` — le viewport MOINS le rail. Les deux
+ * ne varient pas ensemble, et l'écart ouvre un trou.
+ *
+ * Mesuré sur /admin/vaults/[vaultId] à 768 px de viewport : rail 240,
+ * workspace 528. Le palier `max-width: 1280px` divise `.bottomRow` en 2×250,
+ * `.rightStack` redivise en 2×125 — et « /api/v1/deployments ·
+ * no_deployment_ledger_endpoint » se rendait dans 51 px de large sur 192 px de
+ * haut (ratio 3,76), une colonne de lettres. Le palier suivant, à 760 px,
+ * arrive huit pixels trop tard : la tablette tombe exactement entre les deux.
+ *
+ * Ce bloc vient EN DERNIER volontairement. `@media` et `@container` ont la
+ * même spécificité : à égalité, c'est l'ordre du fichier qui tranche. Placé
+ * plus haut, il était écrasé par le palier viewport qu'il doit corriger.
+ *
+ * Ce n'est pas un palier de plus, c'est le bon référentiel : la question n'a
+ * jamais été « quelle taille fait l'écran » mais « reste-t-il la place de
+ * couper en deux ». `.mainRow` la posait déjà correctement.
+ *
+ * Le seuil de 50rem (800 px de workspace) a été relevé par mesure successive,
+ * pas choisi : à 38rem le trou se déplaçait à 900 px de viewport (panneau
+ * 138 px, ratio 2,63), à 46rem il restait à 1024 px (169 px, ratio 1,26).
+ * Sous 800 px de workspace, deux panneaux côte à côte n'ont plus la place
+ * d'être lus. Vérifié à 375 / 640 / 768 / 900 / 1024 / 1280 / 1440 px de
+ * viewport : pire ratio 0,81, contre 10,06 avant correction.
+ */
+@container (max-width: 50rem) {
+  .bottomRow {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'wave' 'info' 'vault';
+  }
+  .wavePanel {
+    grid-area: wave;
+    min-height: 0;
+  }
+  .infoGrid {
+    grid-area: info;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+  .vaultCard {
+    grid-area: vault;
+    min-height: 0;
   }
 }
