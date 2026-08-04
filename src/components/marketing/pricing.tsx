@@ -86,7 +86,7 @@ export function Pricing() {
                   type="radio"
                   className="absolute inset-0 appearance-none rounded-full"
                 />
-                <span className="text-zinc-500 group-has-checked:text-white dark:text-zinc-400">Mensuel</span>
+                <span className="text-zinc-600 group-has-checked:text-accent-ink dark:text-zinc-400">Mensuel</span>
               </label>
               <label className="group relative rounded-full px-2.5 py-1 has-checked:bg-accent-400">
                 <input
@@ -95,7 +95,7 @@ export function Pricing() {
                   type="radio"
                   className="absolute inset-0 appearance-none rounded-full"
                 />
-                <span className="text-zinc-500 group-has-checked:text-white dark:text-zinc-400">Annuel</span>
+                <span className="text-zinc-600 group-has-checked:text-accent-ink dark:text-zinc-400">Annuel</span>
               </label>
             </div>
           </fieldset>

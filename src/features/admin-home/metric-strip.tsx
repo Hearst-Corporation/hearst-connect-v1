@@ -113,7 +113,7 @@ export function GreenMetricStrip({
   decision,
 }: Readonly<{ cells: readonly MetricCell[]; decision: React.ReactNode }>) {
   return (
-    <section className={gcc.metricsRow} aria-label="Estate summary metrics" data-gcc="metrics-row">
+    <section className={gcc.metricsRow} aria-label="Synthèse du patrimoine" data-gcc="metrics-row">
       {cells.map((cell) => (
         <MetricPanel key={cell.id} cell={cell} />
       ))}

@@ -53,7 +53,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-zinc-700 dark:text-zinc-400"
+            className="-mr-1.5 -my-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-zinc-700 dark:text-zinc-400"
           >
             <span className="sr-only">Ouvrir le menu</span>
             <Bars3Icon aria-hidden="true" className="size-6" />

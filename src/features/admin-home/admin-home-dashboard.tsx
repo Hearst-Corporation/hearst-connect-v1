@@ -152,7 +152,7 @@ export function GreenAdminHomeDashboard({
 
   return (
     <ConsoleShell
-      label="Hearst Connect green command center — administration home laboratory"
+      label="Hearst Connect — accueil de la console d’administration"
       rail={<ConsoleRail currentHref="/admin" userName={user.name} userRole={user.role} />}
     >
       <GreenMetricStrip

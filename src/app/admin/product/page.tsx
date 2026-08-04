@@ -167,12 +167,32 @@ export default async function Page() {
     status: 'UNAVAILABLE',
     reason: 'product_factsheet_unreachable',
   })
+  /*
+   * Trois cas, et non deux (correction du 2026-08-04).
+   *
+   * Le garde ne testait que `rawPockets` absent, mais comptait
+   * `readablePockets` — la liste FILTRÉE sur `targetBps` lisible. Quand le
+   * service renvoyait des poches dont aucune n'avait d'allocation lisible,
+   * `readablePockets.length` valait 0 et partait en `available('0')` : la
+   * carte affichait « Poches → 0 » badgé comme mesure, pendant que la même
+   * page disait « Aucune poche lisible » deux blocs plus bas.
+   *
+   * C'est précisément le défaut que le commentaire VER-03 ci-dessus dit
+   * interdire. Un zéro affiché doit être un zéro MESURÉ ; ici il ne l'était
+   * pas, il venait d'un filtre qui n'avait rien retenu.
+   */
   const pocketsCell: Availability<string> =
-    !response.ok || rawPockets === null || rawPockets === undefined
-      ? (response.ok
-          ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'allocation_absent' })
-          : factsheetUnreadable)
-      : available(String(readablePockets.length), { provenance: 'live', asOf: null })
+    !response.ok
+      ? factsheetUnreadable
+      : rawPockets === null || rawPockets === undefined
+        ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'allocation_absent' })
+        : rawPockets.length > 0 && readablePockets.length === 0
+          ? unavailable({
+              endpoint: '/api/v1/product/factsheet',
+              status: 'PARTIAL',
+              reason: 'pocket_allocation_unreadable',
+            })
+          : available(String(readablePockets.length), { provenance: 'live', asOf: null })
   const curveCell: Availability<string> =
     !response.ok || rawCurve === null || rawCurve === undefined
       ? (response.ok

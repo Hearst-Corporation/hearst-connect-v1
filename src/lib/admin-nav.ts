@@ -97,7 +97,7 @@ export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
   libelle: 'Registre des coffres',
   href: '/admin/vaults',
   icone: CircleStackIcon,
-  detail: 'Every vault, its client, allocation and pending operations',
+  detail: 'Chaque coffre, son client, son allocation et ses opérations en attente',
 }
 
 /**
@@ -109,7 +109,7 @@ export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
   libelle: 'Couverture des données',
   href: '/admin/dashboard',
   icone: TableCellsIcon,
-  detail: 'What the service actually serves, surface by surface',
+  detail: 'Ce que le service sert réellement, surface par surface',
 }
 
 /**
@@ -127,19 +127,19 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         libelle: 'Journal Série 1',
         href: '/admin/series-1',
         icone: Squares2X2Icon,
-        detail: 'The indexed on-chain log for Series 1',
+        detail: 'Le journal on-chain indexé de la Série 1',
       },
       {
         libelle: 'Fiche produit',
         href: '/admin/product',
         icone: DocumentTextIcon,
-        detail: 'Subscription terms, duration, and fund cap',
+        detail: 'Conditions de souscription, durée et plafond du fonds',
       },
       {
         libelle: 'Vue produit consolidée',
         href: '/admin/administration/produit',
         icone: TableCellsIcon,
-        detail: 'Production, reserve, and compensation on a single screen',
+        detail: 'Production, réserve et rémunération sur un seul écran',
       },
     ],
   },
@@ -150,19 +150,19 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         libelle: 'Minage',
         href: '/admin/mining',
         icone: CpuChipIcon,
-        detail: 'Fleet capacity and attested production',
+        detail: 'Capacité de la flotte et production attestée',
       },
       {
         libelle: 'Bitcoin',
         href: '/admin/btc',
         icone: CubeIcon,
-        detail: 'Bitcoin produced, month by month',
+        detail: 'Bitcoin produit, mois par mois',
       },
       {
         libelle: 'Backtests',
         href: '/admin/backtest',
         icone: PresentationChartLineIcon,
-        detail: 'What the strategy would have produced in the past',
+        detail: 'Ce que la stratégie aurait produit par le passé',
       },
     ],
   },
@@ -173,31 +173,31 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         libelle: 'État du service',
         href: '/admin/runtime',
         icone: SignalIcon,
-        detail: 'Dependency probes, deployment, and raw responses',
+        detail: 'Sondes de dépendances, déploiement et réponses brutes',
       },
       {
         libelle: 'Actions Keeper',
         href: '/admin/keeper',
         icone: WrenchScrewdriverIcon,
-        detail: 'Operational actions exposed by the service',
+        detail: 'Actions d’exploitation exposées par le service',
       },
       {
         libelle: "Explorateur d'API",
         href: '/admin/api-explorer',
         icone: CommandLineIcon,
-        detail: 'Every endpoint, called live, with its trace',
+        detail: 'Chaque point d’accès, appelé en direct, avec sa trace',
       },
       DATA_COVERAGE_ENTRY,
     ],
   },
   {
-    titre: 'Account',
+    titre: 'Compte',
     entrees: [
       {
         libelle: 'Votre compte',
         href: '/admin/profile',
         icone: IdentificationIcon,
-        detail: 'The investor record linked to this account, if one exists',
+        detail: 'Le dossier investisseur rattaché à ce compte, s’il en existe un',
       },
     ],
   },

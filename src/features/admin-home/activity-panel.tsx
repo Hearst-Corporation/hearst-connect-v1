@@ -47,13 +47,13 @@ export function GreenInfoGrid({
   movements: Availability<readonly Movement[]>
 }>) {
   return (
-    <Panel as="section" tone="plain" className={gcc.infoGrid} aria-label="Operational detail" data-gcc="info-grid">
+    <Panel as="section" tone="plain" className={gcc.infoGrid} aria-label="Détail opérationnel" data-gcc="info-grid">
       {/* ── Client exceptions ─────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
         <Subheading level={3} className={gcc.cardTitle}>Anomalies clients</Subheading>
         {isAvailable(exceptions) ? (
           exceptions.value.length === 0 ? (
-            <Text className={gcc.cellText}>None</Text>
+            <Text className={gcc.cellText}>Aucune anomalie</Text>
           ) : (
             exceptions.value.slice(0, 3).map((exception) => (
               <Text key={`${exception.clientLabel}-${exception.issue}`} className={gcc.cellText}>
@@ -105,7 +105,7 @@ export function GreenInfoGrid({
         <Subheading level={3} className={gcc.cardTitle}>Activité récente</Subheading>
         {isAvailable(movements) ? (
           movements.value.length === 0 ? (
-            <Text className={gcc.cellText}>None</Text>
+            <Text className={gcc.cellText}>Aucune activité</Text>
           ) : (
             movements.value.slice(0, 3).map((movement) => (
               <Text key={movement.id} className={gcc.cellText}>
@@ -135,12 +135,12 @@ export function GreenVaultPanel({
   estateValue: Availability<string>
 }>) {
   return (
-    <Panel tone="plain" className={gcc.vaultCard} aria-label="Vault register" data-gcc="vault-card">
+    <Panel tone="plain" className={gcc.vaultCard} aria-label="Registre des coffres" data-gcc="vault-card">
       <Subheading level={3} className={gcc.cardTitle}>Registre des coffres</Subheading>
       {!isAvailable(vaultAbsence) ? (
         <Absent availability={vaultAbsence} showRoute={false} />
       ) : vaultLines.length === 0 ? (
-        <Text className={gcc.cellText}>None</Text>
+        <Text className={gcc.cellText}>Aucun coffre</Text>
       ) : (
         vaultLines.slice(0, 2).map((line) => (
           <div className={gcc.vaultLine} key={line.id}>

@@ -18,29 +18,29 @@ import clsx from 'clsx'
  */
 
 const LG_SPAN = {
-  1: 'xl:col-span-1',
-  2: 'xl:col-span-2',
-  3: 'xl:col-span-3',
-  4: 'xl:col-span-4',
-  5: 'xl:col-span-5',
-  6: 'xl:col-span-6',
-  7: 'xl:col-span-7',
-  8: 'xl:col-span-8',
-  9: 'xl:col-span-9',
-  10: 'xl:col-span-10',
-  11: 'xl:col-span-11',
-  12: 'xl:col-span-12',
+  1: '@[60rem]:col-span-1',
+  2: '@[60rem]:col-span-2',
+  3: '@[60rem]:col-span-3',
+  4: '@[60rem]:col-span-4',
+  5: '@[60rem]:col-span-5',
+  6: '@[60rem]:col-span-6',
+  7: '@[60rem]:col-span-7',
+  8: '@[60rem]:col-span-8',
+  9: '@[60rem]:col-span-9',
+  10: '@[60rem]:col-span-10',
+  11: '@[60rem]:col-span-11',
+  12: '@[60rem]:col-span-12',
 } as const
 
 const MD_SPAN = {
-  1: 'md:col-span-1',
-  2: 'md:col-span-2',
-  3: 'md:col-span-3',
-  4: 'md:col-span-4',
-  5: 'md:col-span-5',
-  6: 'md:col-span-6',
-  7: 'md:col-span-7',
-  8: 'md:col-span-8',
+  1: '@[34rem]:col-span-1',
+  2: '@[34rem]:col-span-2',
+  3: '@[34rem]:col-span-3',
+  4: '@[34rem]:col-span-4',
+  5: '@[34rem]:col-span-5',
+  6: '@[34rem]:col-span-6',
+  7: '@[34rem]:col-span-7',
+  8: '@[34rem]:col-span-8',
 } as const
 
 const BASE_SPAN = {
@@ -82,15 +82,24 @@ export function AdminGrid({
         // card now ends where its content ends. A caller that genuinely wants
         // two cards to share a baseline can pass `items-stretch`.
         /*
-         * La grille à 12 colonnes s'active à `xl` (1280 px) et non `lg`
-         * (1024 px) — HC-VISUAL-LAYOUT-RECOVERY-001.
+         * ── La grille mesure son CONTENEUR, pas la fenêtre ──────────────────
          *
-         * À 1024 px, une colonne de 4/12 laissait ~85 px utiles : le titre du
-         * `ChartFrame` (« Quels types composent le journal ? ») s'y rendait sur
-         * 48 px de large pour 168 de haut, soit un mot par ligne. La grille à
-         * 8 colonnes tient jusqu'à 1280 px, où 4/12 redevient exploitable.
+         * Elle utilisait `md:` / `xl:`, des paliers de VIEWPORT, alors qu'elle
+         * est presque toujours imbriquée dans une colonne dont la largeur
+         * dépend du rail (200 px) et de la colonne latérale (290 px). Mesuré
+         * sur /admin/administration/produit : à 1280 px de fenêtre, la grille
+         * ouvrait 12 colonnes dans un conteneur de 748 px — une piste de 37 px,
+         * et un titre de graphique rendu sur 4 lignes dans 171 px.
+         *
+         * Un premier correctif avait déplacé le palier de `lg` à `xl`. Il a
+         * soigné le cas 1024 et laissé revenir le même défaut à 1280 : aucune
+         * valeur de viewport ne peut décrire une largeur de conteneur. D'où
+         * `@container`, la technique que `.mainRow` emploie déjà.
+         *
+         * Les seuils : 4 colonnes par défaut, 8 à partir de 34rem de conteneur,
+         * 12 à partir de 60rem — mesurés pour qu'une piste reste lisible.
          */
-        'grid grid-cols-4 items-start md:grid-cols-8 xl:grid-cols-12',
+        '@container grid grid-cols-4 items-start @[34rem]:grid-cols-8 @[60rem]:grid-cols-12',
         gridGap,
         className,
       )}

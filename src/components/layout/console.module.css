@@ -775,12 +775,26 @@
 .metricValue {
   font-size: 15px;
   font-weight: 700;
-  line-height: 1.05;
+  /* 1.05 supposait une seule ligne ; 1.3 laisse deux lignes respirer sans
+     changer la hauteur du cas courant (un nombre). */
+  line-height: 1.3;
   color: var(--gcc-text);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /*
+   * `white-space: nowrap` + `text-overflow: ellipsis` retirés.
+   *
+   * La règle était écrite pour des NOMBRES — d'où `tabular-nums` — mais ces
+   * cartes portent aussi des phrases construites par `editorial()` : une
+   * adresse e-mail, « Aucun dossier investisseur », « Le disjoncteur du
+   * backend s'applique », l'URL du backend. Toutes étaient coupées à
+   * l'ellipse, à TOUS les viewports y compris 1440 px (mesuré : 134 px
+   * disponibles pour 200 px de contenu).
+   *
+   * Une absence nommée tronquée en « Aucun dossier investi… » perd exactement
+   * l'information que la doctrine de véracité cherche à rendre explicite.
+   * Les nombres, eux, ne contiennent pas d'espace : rien ne les coupe.
+   */
+  overflow-wrap: break-word;
 }
 
 /*
@@ -1045,6 +1059,15 @@
   /* Hauteur naturelle : `height: 100%` + `overflow: hidden` coupait les
      panneaux du bas quand leur contenu dépassait la rangée. */
   min-height: 0;
+  /*
+   * `align-items: start` — oublié ici alors que `.metricsRow` et `.mainRow`
+   * l'ont déjà. Sans lui, les trois panneaux de la rangée prennent la hauteur
+   * du plus haut : sur /admin/api-explorer, le panneau des 26 points d'accès
+   * fait 4 420 px, et ses deux voisins s'étiraient à la même hauteur pour
+   * 147 et 748 caractères de contenu — près de 4 000 px de noir sous le texte,
+   * qui se lit comme un chargement raté.
+   */
+  align-items: start;
   margin-top: 8px;
   overflow-x: hidden;
 }

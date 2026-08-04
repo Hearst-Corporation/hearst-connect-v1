@@ -368,24 +368,26 @@ export function DeploymentQueue({
       <div className={gcc.heroHead}>
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <h3 className={gcc.cardTitle}>Déploiements</h3>
-          <div className="grid min-w-0 grid-cols-1 gap-2.5 text-right sm:grid-cols-3">
+          <div className="@container min-w-0">
+            <div className="grid grid-cols-1 gap-2.5 text-right @[22rem]:grid-cols-3">
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
               <p className={gcc.cellText}>Déployé</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
-                {deployedValue ?? 'Unavailable'}
+                {deployedValue ?? 'Indisponible'}
               </p>
             </div>
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-              <p className={gcc.cellText}>Undeployed</p>
+              <p className={gcc.cellText}>Non déployé</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
-                {idleValue ?? 'Unavailable'}
+                {idleValue ?? 'Indisponible'}
               </p>
             </div>
             <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
               <p className={gcc.cellText}>Ratio</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-950 dark:text-white">
-                {ratioValue ?? 'Unavailable'}
+                {ratioValue ?? 'Indisponible'}
               </p>
+            </div>
             </div>
           </div>
         </div>

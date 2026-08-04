@@ -11,17 +11,23 @@ export type ChampResolu<T = unknown> = {
   readonly reason?: string | null
 }
 
-/** Machine reasons → sentence, for frames waiting on a source. */
+/**
+ * Codes de motif → phrase, pour les cadres en attente de source.
+ *
+ * Les clés sont les codes bruts du backend et ne changent pas ; seules les
+ * phrases sont traduites, la console étant en français.
+ */
 export const MOTIF_SERIE: Record<string, string> = {
-  dynavault_not_deployed: 'this measure is not open yet on the deployed contract',
-  // The contract responds, but exposes no read for this data: a new
-  // deployment won't change that. Not to be confused with the reason above.
-  not_exposed_by_contract: 'the contract exposes no read for this data',
-  no_custody_provider_integrated: 'no custody provider is integrated yet',
-  not_available: 'the source is not wired up yet',
-  not_configured: 'the source is not configured yet',
-  db_error: 'the database did not respond',
-  rpc_error: 'the chain did not respond',
+  dynavault_not_deployed: 'cette mesure n’est pas encore ouverte sur le contrat déployé',
+  // Le contrat répond, mais n'expose aucune lecture pour cette donnée : un
+  // nouveau déploiement n'y changera rien. À ne pas confondre avec le motif
+  // ci-dessus.
+  not_exposed_by_contract: 'le contrat n’expose aucune lecture pour cette donnée',
+  no_custody_provider_integrated: 'aucun prestataire de conservation n’est intégré',
+  not_available: 'la source n’est pas encore raccordée',
+  not_configured: 'la source n’est pas encore configurée',
+  db_error: 'la base de données n’a pas répondu',
+  rpc_error: 'la chaîne n’a pas répondu',
 }
 
 export function explicationSerie(
