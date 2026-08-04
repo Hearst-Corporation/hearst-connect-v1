@@ -180,7 +180,7 @@ export function DerivePochesChart({ poches }: Readonly<{ poches: readonly Derive
           on a non-table wrapper. */}
       <div className="sr-only">
         <table>
-          <caption>Drift between target allocation and actual allocation, by pocket, in percentage points</caption>
+          <caption>Écart entre allocation cible et allocation constatée, par poche, en points de pourcentage</caption>
           <thead>
             <tr>
               <th scope="col">Pocket</th>

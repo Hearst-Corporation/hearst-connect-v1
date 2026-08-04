@@ -82,7 +82,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
           <p className={gcc.cellText}>{texteAbsence(list)}</p>
           <Absent availability={vaults} showRoute />
           <Link href={entityHref('source', 'vault')} className="text-sm text-accent-300 underline underline-offset-2">
-            Data coverage
+            Couverture des données
           </Link>
         </div>
       </Panel>
@@ -114,7 +114,7 @@ function texteAbsence(list: readonly Vault[] | null): string {
           <h3 className={gcc.cardTitle}>Valeur par coffre</h3>
         </div>
         <div className={gcc.heroBody}>
-          <p className={gcc.cellText}>The register lists vaults, but none carried a readable total.</p>
+          <p className={gcc.cellText}>Le registre liste des coffres, mais aucun ne portait de total lisible.</p>
           {unmeasured.map((vault) => (
             <div key={vault.id} className={gcc.sourceRow}>
               <span className={gcc.cellText}>{vault.label}</span>

@@ -91,7 +91,7 @@ const ISSUE_SENTENCE: Record<ClientIssue, string> = {
  */
 const ABSENCE_SENTENCE: Record<string, string> = {
   no_client_directory_endpoint:
-    'The client directory is not exposed by the service, so client exceptions cannot be enumerated.',
+    'L’annuaire client n’est pas exposé par le service : les exceptions clients ne peuvent pas être énumérées.',
 }
 
 function absenceSentence(state: Unavailable): string {
@@ -99,8 +99,8 @@ function absenceSentence(state: Unavailable): string {
   if (known !== undefined) return known
   const motif = motifLisible(state.reason)
   return motif === undefined
-    ? 'Client exceptions are unavailable — the service did not enumerate clients.'
-    : `Client exceptions are unavailable — ${motif}.`
+    ? 'Exceptions clients indisponibles — le service n’a pas énuméré les clients.'
+    : `Exceptions clients indisponibles — ${motif}.`
 }
 
 /* ── Cells ────────────────────────────────────────────────────────────────── */
@@ -244,7 +244,7 @@ export function ClientExceptionTable({
         <div className={gcc.heroBody}>
           <p className={gcc.cellText}>{absenceSentence(exceptions)}</p>
           <Link href={DATA_COVERAGE_HREF} className={LINK_CLASS}>
-            Data coverage
+            Couverture des données
           </Link>
         </div>
       </Panel>

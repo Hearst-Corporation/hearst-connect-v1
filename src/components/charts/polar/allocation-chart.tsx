@@ -54,7 +54,7 @@ export function AllocationChart({ poches }: Readonly<{ poches: readonly PocheAll
     // canvas: an absence does not need a viewport-tall box to be believed.
     return (
       <p className="px-5 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">
-        No pocket balance could be read on-chain. Nothing is plotted rather than a zeroed-out split.
+        Aucun solde de poche n’a pu être lu on-chain. Rien n’est tracé, plutôt qu’une répartition mise à zéro.
       </p>
     )
   }
