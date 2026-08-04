@@ -33,7 +33,7 @@ export const LIBELLE_MOUVEMENT: Record<string, string> = {
 }
 
 /** Full sentence: for an event feed that reads like a narrative. */
-export const PHRASE_MOUVEMENT: Record<string, string> = {
+const PHRASE_MOUVEMENT: Record<string, string> = {
   Deposit: 'Un dépôt a été enregistré',
   Redeem: 'Un rachat a été enregistré',
   StrategyAdded: 'Une stratégie a été ajoutée au coffre',
@@ -59,7 +59,7 @@ export const phraseMouvement = (nom: string): string => PHRASE_MOUVEMENT[nom] ??
  * An unknown reason renders `undefined`: better to say nothing than to leak
  * a technical code into a business console.
  */
-export const MOTIF_LISIBLE: Record<string, string> = {
+const MOTIF_LISIBLE: Record<string, string> = {
   no_investor_record: 'no investor record is attached to this account',
   engine_not_initialised: 'the mining engine has not been initialized yet',
   dynavault_not_deployed: 'this feature is not open yet',

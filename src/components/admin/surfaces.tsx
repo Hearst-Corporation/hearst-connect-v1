@@ -239,7 +239,7 @@ export function AdminStatus({
  * block with 40px of vertical padding announced an outage, when all it had
  * to say was "nothing here yet".
  */
-export function AdminEmptyState({
+function AdminEmptyState({
   title,
   description,
   children,

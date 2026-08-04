@@ -8,10 +8,10 @@
  * Tailwind's `dark` variant (see src/styles/tailwind.css) reads both.
  */
 
-export const THEME_STORAGE_KEY = 'theme'
+const THEME_STORAGE_KEY = 'theme'
 
 /** The theme actually displayed right now. */
-export function currentTheme(): 'light' | 'dark' {
+function currentTheme(): 'light' | 'dark' {
   const root = document.documentElement
   if (root.classList.contains('dark')) return 'dark'
   if (root.classList.contains('light')) return 'light'

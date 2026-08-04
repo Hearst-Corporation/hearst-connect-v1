@@ -46,7 +46,7 @@ const STATUTS_AFFICHABLES: Record<StatutAffichage, true> = {
 const STATUT_INCONNU: StatutAffichage = 'UNAVAILABLE'
 
 /** True if the string is exactly one of the displayable statuses. */
-export function estStatutAffichage(valeur: string): valeur is StatutAffichage {
+function estStatutAffichage(valeur: string): valeur is StatutAffichage {
   return Object.hasOwn(STATUTS_AFFICHABLES, valeur)
 }
 

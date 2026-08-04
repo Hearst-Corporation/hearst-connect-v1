@@ -19,7 +19,7 @@ import type { Role } from '@/lib/session'
 export type BackendRole = 'investor' | 'admin'
 
 /** Canonical path of the backend's login route. */
-export const LOGIN_PATH = '/api/v1/auth/login'
+const LOGIN_PATH = '/api/v1/auth/login'
 
 /** Maximum duration of a login attempt, in milliseconds. */
 const LOGIN_TIMEOUT_MS = 10_000
