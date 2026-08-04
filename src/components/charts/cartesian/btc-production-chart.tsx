@@ -126,7 +126,7 @@ export function ProductionMensuelleChart({
           the sr-only 1px clip only holds on a non-table wrapper. */}
       <div className="sr-only">
         <table>
-          <caption>Bitcoin produced per recorded month, with cumulative total at month end</caption>
+          <caption>Bitcoin produit par mois enregistré, avec le cumul en fin de mois</caption>
           <thead>
             <tr>
               <th scope="col">Month</th>

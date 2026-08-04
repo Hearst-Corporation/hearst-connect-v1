@@ -828,8 +828,16 @@
    * Une absence nommée tronquée en « Aucun dossier investi… » perd exactement
    * l'information que la doctrine de véracité cherche à rendre explicite.
    * Les nombres, eux, ne contiennent pas d'espace : rien ne les coupe.
+   *
+   * `anywhere` et non `break-word` : les deux coupent un mot trop long, mais
+   * `break-word` ne compte PAS le point de coupure dans le calcul de la
+   * largeur minimale. La carte se dimensionnait donc comme si le mot tenait,
+   * puis le cassait — relevé sur la capture desktop de /admin/backtest :
+   * « NOT_CONFIGURE / D », un code de statut rendu illisible pour un caractère.
+   * Avec `anywhere`, la carte réserve d'abord la place, et ces codes tiennent
+   * sur une ligne.
    */
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 /*

@@ -72,7 +72,7 @@ export function GreenHeroChartPanel({
         {isAvailable(trend) ? (
           <>
             {trend.value.length === 0 ? (
-              <Text className={gcc.cellText}>No ordered activity points are currently available.</Text>
+              <Text className={gcc.cellText}>Aucun point d’activité ordonné n’est disponible actuellement.</Text>
             ) : (
               <div className={gcc.heroChartBody} role="img" aria-label={`${title} line chart`}>
                 <ResponsiveContainer width="100%" height="100%">

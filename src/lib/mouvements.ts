@@ -83,6 +83,38 @@ export function motifLisible(motif: string | null | undefined): string | undefin
   return MOTIF_LISIBLE[motif]
 }
 
+/**
+ * Présentation FR de l'état d'une source, pour le panneau « Activité des
+ * sources » que cinq pages affichent.
+ *
+ * Le code TECHNIQUE est inchangé — il vient du backend et reste la valeur qui
+ * circule. Seule la présentation est traduite : les pages rendaient
+ * `source.status.toLowerCase()`, donc « unavailable », « live », « partial »
+ * en clair dans une console française. Relevé sur la capture desktop de
+ * /admin/vaults : cinq lignes « unavailable » et une « live ».
+ *
+ * Un code inconnu retombe sur lui-même plutôt que sur une phrase inventée :
+ * mieux vaut un code brut visible qu'un état requalifié à tort.
+ */
+const ETAT_SOURCE_LISIBLE: Record<string, string> = {
+  LIVE: 'en direct',
+  EMPTY: 'aucune donnée',
+  PARTIAL: 'partiel',
+  NOT_EXPOSED: 'non exposé',
+  NOT_CONFIGURED: 'non configuré',
+  NOT_SUPPORTED: 'non pris en charge',
+  PERMISSION_DENIED: 'accès refusé',
+  STALE: 'obsolète',
+  SIMULATED: 'simulé (backend)',
+  ERROR: 'erreur',
+  UNAVAILABLE: 'indisponible',
+}
+
+export function etatSourceLisible(etat: string | null | undefined): string {
+  if (typeof etat !== 'string' || etat === '') return '—'
+  return ETAT_SOURCE_LISIBLE[etat.toUpperCase()] ?? etat.toLowerCase()
+}
+
 /** USDC at six decimals — a thin wrapper over the shared formatter. */
 export function montantUsdc(atomique: string | null | undefined, decimales = 2): string {
   return formatCurrency(atomique, { decimals: decimales })

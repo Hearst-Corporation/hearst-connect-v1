@@ -85,7 +85,7 @@ export function MiningProductionChart({ mois }: Readonly<{ mois: readonly MoisPr
           wrapper. */}
       <div className="sr-only">
         <table>
-          <caption>Bitcoin produced per operating month, as attested by the contract</caption>
+          <caption>Bitcoin produit par mois d’exploitation, tel qu’attesté par le contrat</caption>
           <thead>
             <tr>
               <th scope="col">Month</th>

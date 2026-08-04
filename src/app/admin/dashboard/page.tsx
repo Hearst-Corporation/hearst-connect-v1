@@ -4,7 +4,7 @@ import { ConsoleRail } from '@/components/layout/console-rail'
 import { Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
-import { motifLisible } from '@/lib/mouvements'
+import { motifLisible, etatSourceLisible } from '@/lib/mouvements'
 import { publicUser } from '@/lib/session'
 import { available, unavailable, type Availability } from '@/lib/vaults/model'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
@@ -270,7 +270,7 @@ export default async function Page() {
                 {registry.sources.map((source: SourceActivityRow) => (
                   <tr key={source.endpointId}>
                     <td className={BODY_CELL}>{source.label}</td>
-                    <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{source.status.toLowerCase()}</td>
+                    <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{etatSourceLisible(source.status)}</td>
                     <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{source.detail ?? '—'}</td>
                   </tr>
                 ))}

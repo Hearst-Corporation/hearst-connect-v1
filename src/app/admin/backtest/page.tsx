@@ -5,7 +5,7 @@ import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
-import { motifLisible } from '@/lib/mouvements'
+import { motifLisible, etatSourceLisible } from '@/lib/mouvements'
 import { publicUser } from '@/lib/session'
 import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
@@ -152,7 +152,21 @@ export default async function Page() {
         </Panel>
         <Panel tone="plain" className={gcc.metricCard}>
           <h2>Registre</h2>
-          <div className={gcc.metricText}><Reading value={editorial(block?.status ?? 'Non renseigné')} className={gcc.metricValue} /></div>
+          {/*
+            Le code brut du service était rendu tel quel — « NOT_CONFIGURED »,
+            seul mot anglais parmi quatre cartes françaises, et trop long pour
+            les 134 px de la carte : il se cassait en « NOT_CONFIGURE / D ».
+            Le code technique reste ce qui circule ; c'est sa PRÉSENTATION qui
+            est traduite, comme sur les cinq autres surfaces qui l'affichent.
+            Il demeure lisible en clair sous le tableau, à la ligne « État du
+            registre renvoyé par le service ».
+          */}
+          <div className={gcc.metricText}>
+            <Reading
+              value={editorial(block?.status === undefined ? 'Non renseigné' : etatSourceLisible(block.status))}
+              className={gcc.metricValue}
+            />
+          </div>
         </Panel>
         <Panel tone="plain" className={gcc.metricCard}>
           <h2>Courbe historique</h2>

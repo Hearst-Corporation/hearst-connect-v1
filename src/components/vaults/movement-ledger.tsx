@@ -79,7 +79,7 @@ function TimeCell({ movement }: Readonly<{ movement: Movement }>) {
   return (
     <>
       {movement.occurredAt === null ? (
-        <Absent title="The ledger reported no timestamp for this event." />
+        <Absent title="Le journal n’a rapporté aucun horodatage pour cet événement." />
       ) : (
         <span className="tabular-nums text-zinc-700 dark:text-zinc-300" title={formatDateTime(movement.occurredAt)}>
           {formatRelativeTime(movement.occurredAt)}
@@ -94,7 +94,7 @@ function TimeCell({ movement }: Readonly<{ movement: Movement }>) {
 
 function VaultCell({ movement, vault }: Readonly<{ movement: Movement; vault: Vault | undefined }>) {
   if (movement.vaultId === null) {
-    return <Absent title="The event names a contract this console does not recognise as a vault." />
+    return <Absent title="L’événement désigne un contrat que cette console ne reconnaît pas comme un coffre." />
   }
   return (
     <VaultEntityLink
@@ -107,7 +107,7 @@ function VaultCell({ movement, vault }: Readonly<{ movement: Movement; vault: Va
 
 function ClientCell({ movement }: Readonly<{ movement: Movement }>) {
   if (movement.investorAddress === null) {
-    return <Absent title="The event carries no investor address." />
+    return <Absent title="L’événement ne porte aucune adresse d’investisseur." />
   }
   // The address IS the client-side identity here — there is no directory to
   // resolve it to a name, and the link goes where that absence is explained.
@@ -143,10 +143,10 @@ function AmountCell({ movement, vault }: Readonly<{ movement: Movement; vault: V
 }
 
 function TransactionCell({ movement }: Readonly<{ movement: Movement }>) {
-  if (movement.txHash === null) return <Absent title="The event carries no transaction hash." />
+  if (movement.txHash === null) return <Absent title="L’événement ne porte aucun hash de transaction." />
 
   const short = formatHash(movement.txHash)
-  if (short === null) return <Absent title="The event carries no transaction hash." />
+  if (short === null) return <Absent title="L’événement ne porte aucun hash de transaction." />
 
   const url = explorerTxUrl(movement.chainId ?? undefined, movement.txHash)
 

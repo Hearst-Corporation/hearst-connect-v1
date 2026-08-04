@@ -54,7 +54,7 @@ export function DistributionBarChart({
   unit = '',
 }: Readonly<{ barres: readonly BarreRepartition[]; unit?: string }>) {
   if (barres.length === 0) {
-    return <p className="px-5 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">No data to display.</p>
+    return <p className="px-5 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">Aucune donnée à afficher.</p>
   }
 
   const data: BarreAvecFill[] = [...barres]

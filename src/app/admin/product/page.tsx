@@ -380,7 +380,22 @@ export default async function Page() {
           </Panel>
           <Panel tone="plain" className={gcc.signalCard}>
             <h3>Source d’allocation</h3>
-            <p className={gcc.cellText}>{hasPocketDetail ? 'Poches lisibles' : 'Aucune poche lisible'}</p>
+            {/*
+              Trois cas, et non deux. « Aucune poche lisible » était dit aussi
+              bien quand la source déclare ZÉRO poche que quand elle en déclare
+              sans qu'aucune soit exploitable — deux faits opposés sous la même
+              phrase. Relu sur la capture desktop : le KPI affichait « Poches
+              → 0 » à côté de « Aucune poche lisible », et les deux ensemble se
+              lisent comme une contradiction alors qu'ils étaient tous deux
+              exacts. Un zéro mesuré se dit comme un zéro mesuré.
+            */}
+            <p className={gcc.cellText}>
+              {hasPocketDetail
+                ? 'Poches lisibles'
+                : pockets.length === 0
+                  ? 'Aucune poche déclarée par la source'
+                  : 'Poches déclarées, aucune allocation lisible'}
+            </p>
           </Panel>
           <Panel tone="plain" className={gcc.signalCard}>
             <h3>Courbe de rémunération</h3>

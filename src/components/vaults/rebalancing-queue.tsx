@@ -245,7 +245,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
         <div className={gcc.heroBody}>
           <Absent availability={rows} showRoute />
           <Link href={COVERAGE_HREF} className={ROW_LINK}>
-            Data coverage
+            Couverture des données
           </Link>
         </div>
       </Panel>
@@ -267,7 +267,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
         <div className={gcc.heroBody}>
           <p className={gcc.cellText}>Aucune poche</p>
           <Link href={COVERAGE_HREF} className={ROW_LINK}>
-            Data coverage
+            Couverture des données
           </Link>
         </div>
       </Panel>
@@ -312,7 +312,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] table-fixed text-left text-sm">
-          <caption className="sr-only">Rebalancing queue: vault, strategy, target and actual share, variance and last rebalance.</caption>
+          <caption className="sr-only">File de rééquilibrage : coffre, stratégie, part cible et constatée, écart et dernier rééquilibrage.</caption>
             <thead>
               <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
                 {COLUMNS.map((column) => (

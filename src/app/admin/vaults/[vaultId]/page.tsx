@@ -1,4 +1,5 @@
 import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { etatSourceLisible } from '@/lib/mouvements'
 import { Panel } from '@/components/compositions'
 import { ConsoleRail } from '@/components/layout/console-rail'
 import { Reading } from '@/components/layout/console'
@@ -223,7 +224,7 @@ export default async function Page({ params }: PageProps) {
             {registry.sources.slice(0, 4).map((source) => (
               <div key={source.endpointId} className={gcc.sourceRow}>
                 <p className={gcc.cellText}>{source.label}</p>
-                <span className={gcc.cellStrong}>{source.status.toLowerCase()}</span>
+                <span className={gcc.cellStrong}>{etatSourceLisible(source.status)}</span>
               </div>
             ))}
           </Panel>

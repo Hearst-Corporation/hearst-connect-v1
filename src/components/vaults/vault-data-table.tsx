@@ -84,7 +84,7 @@ function DeployedCell({ vault }: Readonly<{ vault: Vault }>) {
       <MoneyCell vault={vault} reading={deployedAtomic(vault)} />
       {bps === null ? null : (
         <span className="mt-0.5 block text-xs tabular-nums text-zinc-500 dark:text-zinc-500">
-          {formatPercent(bps, { fromBps: true })} of total
+          {formatPercent(bps, { fromBps: true })} du total
         </span>
       )}
     </>
@@ -146,7 +146,7 @@ function DriftCell({ vault }: Readonly<{ vault: Vault }>) {
         'tabular-nums',
         breached ? 'font-medium text-warning-600 dark:text-warning-400' : 'text-zinc-950 dark:text-white',
       )}
-      title={breached ? `Beyond this console's ±${THRESHOLD_POINTS} pt threshold` : undefined}
+      title={breached ? `Au-delà du seuil de ±${THRESHOLD_POINTS} pt de cette console` : undefined}
     >
       {driftPoints(bps)}
     </span>
@@ -212,7 +212,7 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
           </p>
           <Absent availability={vaults} showRoute />
           <Link href={entityHref('source', 'vault')} className="text-sm text-accent-300 underline underline-offset-2">
-            Data coverage
+            Couverture des données
           </Link>
         </div>
       </Panel>
@@ -223,11 +223,24 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
     <Panel tone="plain" className={gcc.heroChart}>
       <div className={gcc.heroHead}>
         <h3 className={gcc.cardTitle}>Coffres</h3>
-        <p className={gcc.cellText}>Threshold ±{THRESHOLD_POINTS} pt</p>
+        <p className={gcc.cellText}>Seuil ±{THRESHOLD_POINTS} pt</p>
       </div>
 
       <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
-        <table className="w-full min-w-[980px] table-fixed text-left text-sm">
+        {/*
+          `min-w` porté de 980 px à 1120 px. La colonne « Action en attente »
+          a reçu une largeur explicite de 9,5rem (152 px) pour cesser de
+          tronquer « Inspecter le coffre » ; avec un minimum resté à 980, cette
+          largeur était prise sur les neuf autres colonnes, qui se sont
+          resserrées jusqu'à casser leurs en-têtes en deux — relevé sur la
+          capture desktop : « Écart d'allocatio / n », « Dernier rééquilibra /
+          ge », et l'action elle-même coupée au bord droit du panneau.
+
+          1120 = 152 pour l'action + 968 pour les neuf autres. Le conteneur
+          garde `overflow-x-auto` : sur un écran plus étroit la table défile,
+          ce qui est le comportement voulu pour dix colonnes de données.
+        */}
+        <table className="w-full min-w-[1120px] table-fixed text-left text-sm">
           <caption className="sr-only">
             Coffres, leur client, leur état, leur valeur, le capital déployé et disponible, les stratégies, l’écart
             d’allocation, le dernier rééquilibrage et l’action en attente.
@@ -338,7 +351,7 @@ export function VaultDataTable({ vaults }: Readonly<{ vaults: Availability<reado
         </table>
         <div className="mt-3">
           <Link href={entityHref('source', 'vault')} className="text-sm text-accent-300 underline underline-offset-2">
-            Data coverage
+            Couverture des données
           </Link>
         </div>
       </div>
