@@ -1,0 +1,582 @@
+{
+  "consoleErrors": [],
+  "networkErrors": [],
+  "mesures": {
+    "desktop": {
+      "largeurRegion": 270,
+      "scrollWidthRegion": 268,
+      "clientWidthRegion": 268,
+      "deborde": false,
+      "boites": [
+        {
+          "texte": "Indexeur : STALLED",
+          "largeur": 124,
+          "hauteur": 20,
+          "scrollWidth": 124,
+          "clientWidth": 124,
+          "ratio": 0.16
+        },
+        {
+          "texte": "Le journal ci-dessus ne vaut que ce que ",
+          "largeur": 228,
+          "hauteur": 48,
+          "scrollWidth": 228,
+          "clientWidth": 228,
+          "ratio": 0.21
+        },
+        {
+          "texte": "Dernière synchronisation",
+          "largeur": 196,
+          "hauteur": 16,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.08
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 196,
+          "hauteur": 32,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.16
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 79,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.38
+        },
+        {
+          "texte": "Jul 29, 2026, 10:41 PM",
+          "largeur": 196,
+          "hauteur": 20,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.1
+        },
+        {
+          "texte": "Dernier bloc indexé",
+          "largeur": 196,
+          "hauteur": 16,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.08
+        },
+        {
+          "texte": "—",
+          "largeur": 196,
+          "hauteur": 32,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.16
+        },
+        {
+          "texte": "—",
+          "largeur": 28,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 1.07
+        },
+        {
+          "texte": "Intervalle d’interrogation",
+          "largeur": 196,
+          "hauteur": 16,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.08
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 196,
+          "hauteur": 32,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.16
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 150,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.2
+        },
+        {
+          "texte": "Erreurs consécutives",
+          "largeur": 196,
+          "hauteur": 16,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.08
+        },
+        {
+          "texte": "30,178",
+          "largeur": 196,
+          "hauteur": 32,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.16
+        },
+        {
+          "texte": "30,178",
+          "largeur": 82,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.37
+        },
+        {
+          "texte": "Base de données : joignable",
+          "largeur": 196,
+          "hauteur": 20,
+          "scrollWidth": 196,
+          "clientWidth": 196,
+          "ratio": 0.1
+        },
+        {
+          "texte": "Retard de l’indexeur : non renseigné par",
+          "largeur": 228,
+          "hauteur": 40,
+          "scrollWidth": 228,
+          "clientWidth": 228,
+          "ratio": 0.18
+        }
+      ]
+    },
+    "laptop": {
+      "largeurRegion": 250,
+      "scrollWidthRegion": 248,
+      "clientWidthRegion": 248,
+      "deborde": false,
+      "boites": [
+        {
+          "texte": "Indexeur : STALLED",
+          "largeur": 124,
+          "hauteur": 20,
+          "scrollWidth": 124,
+          "clientWidth": 124,
+          "ratio": 0.16
+        },
+        {
+          "texte": "Le journal ci-dessus ne vaut que ce que ",
+          "largeur": 208,
+          "hauteur": 72,
+          "scrollWidth": 208,
+          "clientWidth": 208,
+          "ratio": 0.35
+        },
+        {
+          "texte": "Dernière synchronisation",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 79,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.38
+        },
+        {
+          "texte": "Jul 29, 2026, 10:41 PM",
+          "largeur": 176,
+          "hauteur": 20,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.11
+        },
+        {
+          "texte": "Dernier bloc indexé",
+          "largeur": 176,
+          "hauteur": 16,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.09
+        },
+        {
+          "texte": "—",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "—",
+          "largeur": 28,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 1.07
+        },
+        {
+          "texte": "Intervalle d’interrogation",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 150,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.2
+        },
+        {
+          "texte": "Erreurs consécutives",
+          "largeur": 176,
+          "hauteur": 16,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.09
+        },
+        {
+          "texte": "30,178",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "30,178",
+          "largeur": 82,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.37
+        },
+        {
+          "texte": "Base de données : joignable",
+          "largeur": 176,
+          "hauteur": 20,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.11
+        },
+        {
+          "texte": "Retard de l’indexeur : non renseigné par",
+          "largeur": 208,
+          "hauteur": 40,
+          "scrollWidth": 208,
+          "clientWidth": 208,
+          "ratio": 0.19
+        }
+      ]
+    },
+    "tablet": {
+      "largeurRegion": 250,
+      "scrollWidthRegion": 248,
+      "clientWidthRegion": 248,
+      "deborde": false,
+      "boites": [
+        {
+          "texte": "Indexeur : STALLED",
+          "largeur": 124,
+          "hauteur": 20,
+          "scrollWidth": 124,
+          "clientWidth": 124,
+          "ratio": 0.16
+        },
+        {
+          "texte": "Le journal ci-dessus ne vaut que ce que ",
+          "largeur": 208,
+          "hauteur": 72,
+          "scrollWidth": 208,
+          "clientWidth": 208,
+          "ratio": 0.35
+        },
+        {
+          "texte": "Dernière synchronisation",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 79,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.38
+        },
+        {
+          "texte": "Jul 29, 2026, 10:41 PM",
+          "largeur": 176,
+          "hauteur": 20,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.11
+        },
+        {
+          "texte": "Dernier bloc indexé",
+          "largeur": 176,
+          "hauteur": 16,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.09
+        },
+        {
+          "texte": "—",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "—",
+          "largeur": 28,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 1.07
+        },
+        {
+          "texte": "Intervalle d’interrogation",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 150,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.2
+        },
+        {
+          "texte": "Erreurs consécutives",
+          "largeur": 176,
+          "hauteur": 16,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.09
+        },
+        {
+          "texte": "30,178",
+          "largeur": 176,
+          "hauteur": 32,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.18
+        },
+        {
+          "texte": "30,178",
+          "largeur": 82,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.37
+        },
+        {
+          "texte": "Base de données : joignable",
+          "largeur": 176,
+          "hauteur": 20,
+          "scrollWidth": 176,
+          "clientWidth": 176,
+          "ratio": 0.11
+        },
+        {
+          "texte": "Retard de l’indexeur : non renseigné par",
+          "largeur": 208,
+          "hauteur": 40,
+          "scrollWidth": 208,
+          "clientWidth": 208,
+          "ratio": 0.19
+        }
+      ]
+    },
+    "mobile": {
+      "largeurRegion": 178,
+      "scrollWidthRegion": 176,
+      "clientWidthRegion": 176,
+      "deborde": false,
+      "boites": [
+        {
+          "texte": "Indexeur : STALLED",
+          "largeur": 124,
+          "hauteur": 20,
+          "scrollWidth": 124,
+          "clientWidth": 124,
+          "ratio": 0.16
+        },
+        {
+          "texte": "Le journal ci-dessus ne vaut que ce que ",
+          "largeur": 136,
+          "hauteur": 96,
+          "scrollWidth": 136,
+          "clientWidth": 136,
+          "ratio": 0.71
+        },
+        {
+          "texte": "Dernière synchronisation",
+          "largeur": 104,
+          "hauteur": 48,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.46
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 104,
+          "hauteur": 32,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.31
+        },
+        {
+          "texte": "il y a 5 j",
+          "largeur": 79,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.38
+        },
+        {
+          "texte": "Jul 29, 2026, 10:41 PM",
+          "largeur": 104,
+          "hauteur": 40,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.39
+        },
+        {
+          "texte": "Dernier bloc indexé",
+          "largeur": 104,
+          "hauteur": 32,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.31
+        },
+        {
+          "texte": "—",
+          "largeur": 104,
+          "hauteur": 32,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.31
+        },
+        {
+          "texte": "—",
+          "largeur": 28,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 1.07
+        },
+        {
+          "texte": "Intervalle d’interrogation",
+          "largeur": 104,
+          "hauteur": 48,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.46
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 104,
+          "hauteur": 64,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.62
+        },
+        {
+          "texte": "toutes les 15 s",
+          "largeur": 98,
+          "hauteur": 62,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.63
+        },
+        {
+          "texte": "Erreurs consécutives",
+          "largeur": 104,
+          "hauteur": 32,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.31
+        },
+        {
+          "texte": "30,178",
+          "largeur": 104,
+          "hauteur": 32,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.31
+        },
+        {
+          "texte": "30,178",
+          "largeur": 82,
+          "hauteur": 30,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "ratio": 0.37
+        },
+        {
+          "texte": "Base de données : joignable",
+          "largeur": 104,
+          "hauteur": 40,
+          "scrollWidth": 104,
+          "clientWidth": 104,
+          "ratio": 0.39
+        },
+        {
+          "texte": "Retard de l’indexeur : non renseigné par",
+          "largeur": 136,
+          "hauteur": 40,
+          "scrollWidth": 136,
+          "clientWidth": 136,
+          "ratio": 0.3
+        }
+      ]
+    }
+  }
+}

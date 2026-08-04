@@ -1,0 +1,182 @@
+{
+  "mission": "HC-UI-OPS-LAYOUT-001",
+  "date": "2026-08-04",
+  "route": "/admin/operations",
+  "composant": "SectionIndexation — panneau « Fraîcheur de l’indexeur »",
+  "shaAvant": "f457a0a",
+  "shaApres": "f457a0ae91bdfe1b273ff558981729b7cdf55526",
+  "branche": "fix/ui-operations-layout-2026-08-04",
+  "etatBackend": "réel (HEARST_API_URL) — indexeur STALLED, dernière synchronisation « il y a 5 j », aucune donnée fabriquée",
+  "auth": "quick-login de développement ; le mot de passe propriétaire n’est jamais saisi dans un navigateur",
+  "texteAttendu": [
+    "Dernière synchronisation",
+    "il y a 5 j",
+    "Dernier bloc indexé",
+    "Intervalle d’interrogation",
+    "toutes les 15 s",
+    "Erreurs consécutives"
+  ],
+  "erreursConsole": {
+    "before": 0,
+    "after": 0
+  },
+  "erreursReseau": {
+    "before": 3,
+    "after": 0,
+    "note": "Les ERR_ABORTED sur /login et /_next/static/ sont exclus : navigation qui remplace une requête en cours, pas une ressource manquante."
+  },
+  "zoom200": {
+    "file": "after-zoom200.png",
+    "viewportLogique": "720x450 @2x",
+    "deborde": false,
+    "textesVerticalises": 0,
+    "textesTronques": 0
+  },
+  "captures": [
+    {
+      "viewport": "1440x900",
+      "nom": "desktop",
+      "before": {
+        "file": "before-desktop.png",
+        "sha256": "d02434d70d4af565",
+        "mesure": {
+          "largeurPanneauPx": 270,
+          "debordeHorizontalement": true,
+          "textesVerticalises": 9,
+          "pireRatioHauteurLargeur": 29.54,
+          "pireExemple": "toutes les 15 s rendu 13x384px",
+          "textesTronques": [
+            "Dernière synchronisation",
+            "il y a 5 j",
+            "Jul 29, 2026, 10:41 PM",
+            "Dernier bloc indexé",
+            "—",
+            "Intervalle d’interrogation",
+            "toutes les 15 s",
+            "Erreurs consécutives",
+            "30,134",
+            "Base de données : joignable"
+          ]
+        }
+      },
+      "after": {
+        "file": "after-desktop.png",
+        "sha256": "e6d96e1e6b43d3f8",
+        "mesure": {
+          "largeurPanneauPx": 270,
+          "debordeHorizontalement": false,
+          "textesVerticalises": 0,
+          "pireRatioHauteurLargeur": 1.07,
+          "pireExemple": null,
+          "textesTronques": []
+        }
+      }
+    },
+    {
+      "viewport": "1280x800",
+      "nom": "laptop",
+      "before": {
+        "file": "before-laptop.png",
+        "sha256": "790ffd5ea548cdd5",
+        "mesure": {
+          "largeurPanneauPx": 250,
+          "debordeHorizontalement": true,
+          "textesVerticalises": 13,
+          "pireRatioHauteurLargeur": 48,
+          "pireExemple": "toutes les 15 s rendu 8x384px",
+          "textesTronques": [
+            "Dernière synchronisation",
+            "il y a 5 j",
+            "Jul 29, 2026, 10:41 PM",
+            "Dernier bloc indexé",
+            "—",
+            "Intervalle d’interrogation",
+            "toutes les 15 s",
+            "Erreurs consécutives",
+            "30,134",
+            "Base de données : joignable"
+          ]
+        }
+      },
+      "after": {
+        "file": "after-laptop.png",
+        "sha256": "f974b4f9ea5f68db",
+        "mesure": {
+          "largeurPanneauPx": 250,
+          "debordeHorizontalement": false,
+          "textesVerticalises": 0,
+          "pireRatioHauteurLargeur": 1.07,
+          "pireExemple": null,
+          "textesTronques": []
+        }
+      }
+    },
+    {
+      "viewport": "768x1024",
+      "nom": "tablet",
+      "before": {
+        "file": "before-tablet.png",
+        "sha256": "e50e4161141c5131",
+        "mesure": {
+          "largeurPanneauPx": 250,
+          "debordeHorizontalement": false,
+          "textesVerticalises": 0,
+          "pireRatioHauteurLargeur": 1.5,
+          "pireExemple": null,
+          "textesTronques": [
+            "Dernière synchronisation",
+            "Intervalle d’interrogation",
+            "Erreurs consécutives"
+          ]
+        }
+      },
+      "after": {
+        "file": "after-tablet.png",
+        "sha256": "fb2b67153418891f",
+        "mesure": {
+          "largeurPanneauPx": 250,
+          "debordeHorizontalement": false,
+          "textesVerticalises": 0,
+          "pireRatioHauteurLargeur": 1.07,
+          "pireExemple": null,
+          "textesTronques": []
+        }
+      }
+    },
+    {
+      "viewport": "375x812",
+      "nom": "mobile",
+      "before": {
+        "file": "before-mobile.png",
+        "sha256": "0bc1370d3bfe6b29",
+        "mesure": {
+          "largeurPanneauPx": 178,
+          "debordeHorizontalement": true,
+          "textesVerticalises": 8,
+          "pireRatioHauteurLargeur": 11.08,
+          "pireExemple": "toutes les 15 s rendu 23x254px",
+          "textesTronques": [
+            "Dernière synchronisation",
+            "Jul 29, 2026, 10:41 PM",
+            "Dernier bloc indexé",
+            "Intervalle d’interrogation",
+            "Erreurs consécutives",
+            "Base de données : joignable"
+          ]
+        }
+      },
+      "after": {
+        "file": "after-mobile.png",
+        "sha256": "0bc1370d3bfe6b29",
+        "mesure": {
+          "largeurPanneauPx": 178,
+          "debordeHorizontalement": false,
+          "textesVerticalises": 0,
+          "pireRatioHauteurLargeur": 1.07,
+          "pireExemple": null,
+          "textesTronques": []
+        }
+      }
+    }
+  ]
+}
