@@ -20,10 +20,10 @@ describe('primary navigation', () => {
   it('offers exactly five primary destinations', () => {
     expect(ADMIN_NAV).toHaveLength(5)
     expect(ADMIN_NAV.map((e) => e.libelle)).toEqual([
-      'Home',
+      'Accueil',
       'Clients',
-      'Compliance',
-      'Operations',
+      'Conformité',
+      'Opérations',
       'Administration',
     ])
   })

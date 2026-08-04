@@ -19,7 +19,7 @@ import { publicUser } from '@/lib/session'
 import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Consolidated product view' }
+export const metadata: Metadata = { title: 'Vue produit consolidée' }
 export const dynamic = 'force-dynamic'
 
 
@@ -115,10 +115,10 @@ function postesReserveExposition(
 ): PosteBitcoin[] {
   const postes: PosteBitcoin[] = []
   if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
-    postes.push({ poste: 'Reserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
+    postes.push({ poste: 'Réserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
   }
   if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
-    postes.push({ poste: 'Exposure', montant: Number(expositionUsdc) / 1_000_000, accent: true })
+    postes.push({ poste: 'Exposition', montant: Number(expositionUsdc) / 1_000_000, accent: true })
   }
   return postes
 }
@@ -140,13 +140,13 @@ function etatCourbe(
   vendingCurve: Resolu<unknown> | undefined,
 ): EtatSerie {
   if (points.length === 0) {
-    return etatDe(vendingCurve, 'The product terms have not been transmitted yet.')
+    return etatDe(vendingCurve, 'Les conditions du produit n’ont pas encore été transmises.')
   }
   if (courbeParametree) return { type: 'tracee' }
   return {
     type: 'attendue',
     explication:
-      "The product's five maturities are defined, but no rate has been recorded yet. The curve will appear once they are.",
+      'Les cinq échéances du produit sont définies, mais aucun taux n’a encore été enregistré. La courbe apparaîtra dès qu’ils le seront.',
   }
 }
 
@@ -159,8 +159,8 @@ function ReserveChart({
       <SingleObservation
         valeur={formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
         periode={seulPoste.poste}
-        contexte="The other position could not be read on-chain."
-        note="Only one of the two positions is readable — reserve and exposure cannot be compared yet."
+        contexte="L’autre position n’a pas pu être lue on-chain."
+        note="Une seule des deux positions est lisible — réserve et exposition ne peuvent pas encore être comparées."
       />
     )
   }
@@ -216,26 +216,26 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect consolidated product cockpit"
+      label="Hearst Connect — poste de pilotage produit consolidé"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Consolidated product summary">
+      <section className={gcc.metricsRow} aria-label="Synthèse produit consolidée">
         <Panel className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={hashrate ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh))) : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Bitcoin produced</h2><div className={gcc.metricText}><Reading value={bitcoinProduit === null ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' }) : btcFigure(bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Reserve split</h2><div className={gcc.metricText}><Reading value={reserveSplitCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Curve points</h2><div className={gcc.metricText}><Reading value={curvePointsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Fund cap</h2><div className={gcc.metricText}><Reading value={plafond ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={bitcoinProduit === null ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' }) : btcFigure(bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Répartition de la réserve</h2><div className={gcc.metricText}><Reading value={reserveSplitCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Points de courbe</h2><div className={gcc.metricText}><Reading value={curvePointsCell} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Plafond du fonds</h2><div className={gcc.metricText}><Reading value={plafond ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Consolidated <span>view</span></p>
-          <p className={gcc.decisionMeta}>{b === null ? 'BTC source unavailable' : 'BTC source reachable'}</p>
-          <p className={gcc.decisionActionMuted}>{courbeParametree ? 'Curve configured' : 'Curve waiting on rates'}</p>
+          <p className={gcc.decisionTitle}>Vue <span>consolidée</span></p>
+          <p className={gcc.decisionMeta}>{b === null ? 'Source BTC indisponible' : 'Source BTC joignable'}</p>
+          <p className={gcc.decisionActionMuted}>{courbeParametree ? 'Courbe configurée' : 'Courbe en attente des taux'}</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Consolidated product details">
+      <section className={gcc.mainRow} aria-label="Détails produit consolidés">
         <Panel className={gcc.heroChart}>
           <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Consolidated product view</h2>
+            <h2 className={gcc.cardTitle}>Vue produit consolidée</h2>
           </div>
           <div className={gcc.heroBody}>
       {/* ── What the fund produces ──────────────────────────────────────────
@@ -247,20 +247,20 @@ export default async function Page() {
           <Card className="h-full p-6">
             <HeroFigure
               valeur={hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—'}
-              libelle="Reported hashrate"
+              libelle="Hashrate renseigné"
               unite="TH/s"
             />
           </Card>
         </AdminCol>
         <AdminCol span={7}>
           <AdminMetricGrid count={3} className="h-full">
-            <AdminMetric label="Bitcoin produced" value={bitcoinProduit} unit="BTC" />
+            <AdminMetric label="BTC produit" value={bitcoinProduit} unit="BTC" />
             <AdminMetric
-              label="Monthly electricity cost"
+              label="Coût mensuel d’électricité"
               value={ouRien(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 }))}
             />
             <AdminMetric
-              label="Fund cap"
+              label="Plafond du fonds"
               value={plafond ? ouRien(formatCurrency(plafond, { decimals: 0 })) : null}
             />
           </AdminMetricGrid>
@@ -269,15 +269,15 @@ export default async function Page() {
 
       {/* ── Where the money sits, and what it pays ─────────────────────── */}
       <AdminSection
-        title="Reserve and reward"
-        description="The two readings the product is actually measured on today: how its capital is split, and what the contract pays over its maturities."
+        title="Réserve et rémunération"
+        description="Les deux lectures sur lesquelles le produit est réellement mesuré aujourd’hui : comment son capital est réparti, et ce que le contrat paie sur ses échéances."
       >
         <AdminGrid>
           <AdminCol span={6}>
             <ChartFrame
-              question="Where does the fund's money sit?"
-              unite="in dollars"
-              etat={postes.length > 0 ? { type: 'tracee' } : { type: 'attendue', explication: 'Neither the reserve nor the exposure could be read on-chain.' }}
+              question="Où se trouve l’argent du fonds ?"
+              unite="en dollars"
+              etat={postes.length > 0 ? { type: 'tracee' } : { type: 'attendue', explication: 'Ni la réserve ni l’exposition n’ont pu être lues on-chain.' }}
             >
               <ReserveChart postes={postes} seulPoste={seulPoste} />
             </ChartFrame>
@@ -285,8 +285,8 @@ export default async function Page() {
 
           <AdminCol span={6}>
             <ChartFrame
-              question="How does the reward evolve over time?"
-              unite="in percent, per month"
+              question="Comment la rémunération évolue-t-elle dans le temps ?"
+              unite="en pourcentage, par mois"
               etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
             >
               <VendingCurveChart points={points} />
@@ -297,34 +297,34 @@ export default async function Page() {
 
       {/* ── Frames waiting on their source ─────────────────────────────── */}
       <AdminSection
-        title="Not measurable yet"
-        description="Three views whose question, axis and unit are already decided. None of them draws anything until the service supplies its series — a placeholder curve would read as a measurement."
+        title="Pas encore mesurable"
+        description="Trois vues dont la question, l’axe et l’unité sont déjà décidés. Aucune ne trace quoi que ce soit tant que le service ne fournit pas sa série — une courbe de substitution se lirait comme une mesure."
       >
         {/* Three equal thirds. Each frame states its own reason for waiting;
             the heading above states, once, why they are grouped. */}
         <AdminGrid>
           <AdminCol span={4}>
             <ChartFrame
-              question="How does performance compare to history?"
-              unite="in percent"
+              question="Comment la performance se compare-t-elle à l’historique ?"
+              unite="en pourcentage"
               etat={etatDe(
                 backtest.ok ? backtest.data.runs : undefined,
-                'No backtest has been run on this deployment yet.',
+                'Aucun backtest n’a encore été exécuté sur ce déploiement.',
               )}
             />
           </AdminCol>
           <AdminCol span={4}>
             <ChartFrame
-              question="Where does the yield come from?"
-              unite="as a percentage of total"
-              etat={etatDe(b?.attribution, 'The yield breakdown has not been calculated yet.')}
+              question="D’où provient le rendement ?"
+              unite="en pourcentage du total"
+              etat={etatDe(b?.attribution, 'La ventilation du rendement n’a pas encore été calculée.')}
             />
           </AdminCol>
           <AdminCol span={4}>
             <ChartFrame
-              question="How does the fleet perform over time?"
-              unite="in TH/s"
-              etat={etatDe(m?.operationalTelemetry, 'Operational telemetry has not been transmitted yet.')}
+              question="Comment la flotte performe-t-elle dans le temps ?"
+              unite="en TH/s"
+              etat={etatDe(m?.operationalTelemetry, 'La télémétrie opérationnelle n’a pas encore été transmise.')}
             />
           </AdminCol>
         </AdminGrid>
@@ -332,29 +332,29 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Backtest feed</h3><p className={gcc.cellText}>{backtest.ok ? (backtest.data.runs?.status ?? 'Not reported') : 'Unavailable'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Attribution</h3><p className={gcc.cellText}>{b?.attribution?.status ?? 'Not reported'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Telemetry</h3><p className={gcc.cellText}>{m?.operationalTelemetry?.status ?? 'Not reported'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Flux de backtest</h3><p className={gcc.cellText}>{backtest.ok ? (backtest.data.runs?.status ?? 'Non renseigné') : 'Indisponible'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Attribution</h3><p className={gcc.cellText}>{b?.attribution?.status ?? 'Non renseigné'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Télémétrie</h3><p className={gcc.cellText}>{m?.operationalTelemetry?.status ?? 'Non renseigné'}</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Consolidated notes">
+      <section className={gcc.bottomRow} aria-label="Notes consolidées">
         <Panel className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Scope</h3></div>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Périmètre</h3></div>
           <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Consolidates production, reserve, reward terms, and missing reads.</p>
-            <p className={gcc.cellText}>No series is fabricated when source is absent.</p>
+            <p className={gcc.cellText}>Consolide la production, la réserve, les conditions de rémunération et les lectures manquantes.</p>
+            <p className={gcc.cellText}>Aucune série n’est fabriquée lorsque la source est absente.</p>
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Endpoints</h3><p className={gcc.cellText}>`mining`, `btc`, `product-factsheet`, `backtest-historical`</p></article>
-          <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Hashrate + BTC produced</p></article>
-          <article className={gcc.infoCell}><h3>Reserve</h3><p className={gcc.cellText}>Reserve and exposure split</p></article>
-          <article className={gcc.infoCell}><h3>Reward</h3><p className={gcc.cellText}>Vending curve by month</p></article>
+          <article className={gcc.infoCell}><h3>Points d’accès</h3><p className={gcc.cellText}>`mining`, `btc`, `product-factsheet`, `backtest-historical`</p></article>
+          <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Hashrate + BTC produit</p></article>
+          <article className={gcc.infoCell}><h3>Réserve</h3><p className={gcc.cellText}>Répartition réserve et exposition</p></article>
+          <article className={gcc.infoCell}><h3>Rémunération</h3><p className={gcc.cellText}>Courbe de rémunération par mois</p></article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Contract gaps</h3>
-          <p className={gcc.cellText}>Attribution, take-profit tiers, and telemetry stay explicit when not exposed.</p>
+          <h3 className={gcc.cardTitle}>Lacunes du contrat</h3>
+          <p className={gcc.cellText}>Attribution, paliers de prise de profit et télémétrie restent explicites lorsqu’ils ne sont pas exposés.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

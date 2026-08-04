@@ -41,9 +41,9 @@ export const dynamic = 'force-dynamic'
  */
 
 const MISSING_FROM_SOURCE = [
-  'Client directory endpoint',
-  'Client id on each vault',
-  'Per-client compliance status',
+  'Point d’accès de l’annuaire des clients',
+  'Identifiant client sur chaque coffre',
+  'État de conformité par client',
 ] as const
 
 function ClientsMetric({
@@ -82,33 +82,33 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect clients cockpit"
+      label="Hearst Connect — poste de pilotage clients"
       rail={<GreenCommandRail currentHref="/admin/clients" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Client status">
-        <ClientsMetric title="Client directory" value={clientDirectory} />
-        <ClientsMetric title="Compliance source" value={complianceDirectory} />
-        <ClientsMetric title="Client exceptions" value={clientExceptions} />
-        <ClientsMetric title="Reachable vaults" value={reachableVaults} />
-        <ClientsMetric title="Coverage surface" value={editorial('Data coverage')} />
+      <section className={gcc.metricsRow} aria-label="État des clients">
+        <ClientsMetric title="Annuaire des clients" value={clientDirectory} />
+        <ClientsMetric title="Source de conformité" value={complianceDirectory} />
+        <ClientsMetric title="Anomalies clients" value={clientExceptions} />
+        <ClientsMetric title="Coffres joignables" value={reachableVaults} />
+        <ClientsMetric title="Surface de couverture" value={editorial('Couverture des données')} />
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Clients <span>status</span></p>
-          <p className={gcc.decisionMeta}>Source not exposed</p>
-          <p className={gcc.decisionActionMuted}>Directory unavailable</p>
+          <p className={gcc.decisionTitle}>État des <span>clients</span></p>
+          <p className={gcc.decisionMeta}>Source non exposée</p>
+          <p className={gcc.decisionActionMuted}>Annuaire indisponible</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Clients explanation">
+      <section className={gcc.mainRow} aria-label="Explication des clients">
         <Panel className={gcc.heroChart}>
           <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Directory</h2>
+            <h2 className={gcc.cardTitle}>Annuaire</h2>
           </div>
           <div className={gcc.heroBody}>
             <p className={gcc.cellText}>
-              No endpoint enumerates organizations today. This page keeps the client surface visible without inventing rows or fallback counts.
+              Aucun point d’accès n’énumère les organisations aujourd’hui. Cette page garde la surface client visible sans inventer de lignes ni de comptes de repli.
             </p>
             <p className={gcc.cellText}>
-              Reach client context through vault ownership while the directory endpoint is not exposed.
+              Accédez au contexte client via la propriété des coffres tant que le point d’accès de l’annuaire n’est pas exposé.
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               <Link href={VAULT_REGISTRY_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
@@ -123,24 +123,24 @@ export default async function Page() {
 
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Source contract</h3>
+            <h3>Contrat de la source</h3>
             <Absent availability={clientDirectory} showRoute={false} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Compliance contract</h3>
+            <h3>Contrat de conformité</h3>
             <Absent availability={complianceDirectory} showRoute={false} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Client exceptions</h3>
+            <h3>Anomalies clients</h3>
             <Reading value={clientExceptions} className={gcc.signalValue} />
           </Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Client requirements">
+      <section className={gcc.bottomRow} aria-label="Exigences client">
         <Panel className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Missing from source</h3>
+            <h3 className={gcc.cardTitle}>Manquant à la source</h3>
           </div>
           <div className={gcc.heroBody}>
             {MISSING_FROM_SOURCE.map((item) => (
@@ -153,25 +153,25 @@ export default async function Page() {
 
         <Panel as="section" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
-            <h3>Directory endpoint</h3>
+            <h3>Point d’accès de l’annuaire</h3>
             <Absent availability={clientDirectory} showRoute={false} />
           </article>
           <article className={gcc.infoCell}>
-            <h3>Compliance endpoint</h3>
+            <h3>Point d’accès de conformité</h3>
             <Absent availability={complianceDirectory} showRoute={false} />
           </article>
           <article className={gcc.infoCell}>
-            <h3>Vault path</h3>
-            <p className={gcc.cellText}>Use the vault registry to reach client-linked vault context.</p>
+            <h3>Chemin des coffres</h3>
+            <p className={gcc.cellText}>Utilisez le registre des coffres pour atteindre le contexte des coffres liés à un client.</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Coverage path</h3>
-            <p className={gcc.cellText}>Use Data coverage for endpoint-level status and reasons.</p>
+            <h3>Chemin de couverture</h3>
+            <p className={gcc.cellText}>Utilisez Couverture des données pour l’état et les motifs au niveau des points d’accès.</p>
           </article>
         </Panel>
 
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Source activity</h3>
+          <h3 className={gcc.cardTitle}>Activité des sources</h3>
           {registry.sources.slice(0, 6).map((source) => (
             <div key={source.endpointId} className={gcc.sourceRow}>
               <p className={gcc.cellText}>{source.label}</p>

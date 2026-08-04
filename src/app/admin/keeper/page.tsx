@@ -16,7 +16,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { KeeperForm } from './keeper-form'
 
-export const metadata: Metadata = { title: 'Keeper Actions' }
+export const metadata: Metadata = { title: 'Actions Keeper' }
 export const dynamic = 'force-dynamic'
 
 
@@ -86,9 +86,9 @@ export default async function KeeperPage() {
 
   let disabledReason: string | null = null
   if (!isAdmin) {
-    disabledReason = `The ${session.role} role does not grant access to Keeper actions.`
+    disabledReason = `Le rôle ${session.role} ne donne pas accès aux actions Keeper.`
   } else if (!backendConfigured) {
-    disabledReason = 'HEARST_API_URL is not set: no request can be issued.'
+    disabledReason = 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
   }
 
   // An even count pairs up cleanly; anything else stays full width rather
@@ -98,71 +98,71 @@ export default async function KeeperPage() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect keeper cockpit"
+      label="Poste de pilotage keeper Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Keeper summary">
+      <section className={gcc.metricsRow} aria-label="Résumé keeper">
         <Panel className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(keeperEndpoints.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={editorial(session.role)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Backend URL</h2><div className={gcc.metricText}><Reading value={editorial(backendConfigured ? 'Configured' : 'Not set')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Authorization</h2><div className={gcc.metricText}><Reading value={editorial(isAdmin ? 'Admin access' : 'Restricted')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Keeper enabled</h2><div className={gcc.metricText}><Reading value={editorial('Backend circuit breaker applies')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Rôle</h2><div className={gcc.metricText}><Reading value={editorial(session.role)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>URL du backend</h2><div className={gcc.metricText}><Reading value={editorial(backendConfigured ? 'Configuré' : 'Non défini')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Autorisation</h2><div className={gcc.metricText}><Reading value={editorial(isAdmin ? 'Accès administrateur' : 'Restreint')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Keeper activé</h2><div className={gcc.metricText}><Reading value={editorial('Le disjoncteur du backend s’applique')} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Keeper <span>actions</span></p>
-          <p className={gcc.decisionMeta}>{disabledReason ? 'Actions inert' : 'Actions available'}</p>
-          <p className={gcc.decisionActionMuted}>Explicit CONFIRM required</p>
+          <p className={gcc.decisionTitle}>Actions <span>Keeper</span></p>
+          <p className={gcc.decisionMeta}>{disabledReason ? 'Actions inertes' : 'Actions disponibles'}</p>
+          <p className={gcc.decisionActionMuted}>Confirmation explicite requise</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Keeper scope and readiness">
+      <section className={gcc.mainRow} aria-label="Périmètre et disponibilité keeper">
         <Panel className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Keeper actions</h2></div>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Actions Keeper</h2></div>
           <div className={gcc.heroBody}>
-      <AdminSection title="Scope" description="These routes log a request — they sign nothing">
+      <AdminSection title="Périmètre" description="Ces routes journalisent une requête — elles ne signent rien">
         <AdminGrid>
           <AdminCol span={8}>
             <Card className="p-6">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <StatusBadge status="NOT_SUPPORTED" />
-                <AdminSurfaceTitle as="p">None of these routes signs a transaction</AdminSurfaceTitle>
+                <AdminSurfaceTitle as="p">Aucune de ces routes ne signe une transaction</AdminSurfaceTitle>
               </div>
               <p className="mt-3 max-w-prose text-sm/6 text-zinc-600 dark:text-zinc-300">
-                The backend has no on-chain write helper: these routes log a request, they produce neither a
-                signature nor a transaction hash. Three of them currently return an HTTP 501 with a{' '}
-                <span className="font-mono">KeeperActionResult</span>. This console will never display a
-                fabricated hash.
+                Le backend n’a aucun assistant d’écriture on-chain : ces routes journalisent une requête, elles ne
+                produisent ni signature ni hash de transaction. Trois d’entre elles renvoient actuellement un HTTP 501 avec un{' '}
+                <span className="font-mono">KeeperActionResult</span>. Cette console n’affichera jamais un
+                hash fabriqué.
               </p>
               <p className="mt-2 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
-                Two additional safeguards on the backend side: a quota of 5 requests per minute per user, and the{' '}
-                <span className="font-mono">KEEPER_ENABLED</span> circuit breaker — disabled by default, it
-                returns 503 <span className="font-mono">NOT_CONFIGURED</span>.
+                Deux garde-fous supplémentaires côté backend : un quota de 5 requêtes par minute et par utilisateur, et le disjoncteur{' '}
+                <span className="font-mono">KEEPER_ENABLED</span> — désactivé par défaut, il
+                renvoie 503 <span className="font-mono">NOT_CONFIGURED</span>.
               </p>
             </Card>
           </AdminCol>
 
           <AdminCol span={4} as="aside">
             <Card className="p-5">
-              <AdminSurfaceTitle as="p">Can these run right now?</AdminSurfaceTitle>
+              <AdminSurfaceTitle as="p">Peuvent-elles s’exécuter maintenant ?</AdminSurfaceTitle>
               <dl className="mt-4 space-y-3">
                 <Prerequisite
-                  libelle="Your role"
+                  libelle="Votre rôle"
                   valeur={session.role}
                   satisfait={isAdmin}
                 />
                 <Prerequisite
-                  libelle="Service address"
-                  valeur={backendConfigured ? 'Configured' : 'Not set'}
+                  libelle="Adresse du service"
+                  valeur={backendConfigured ? 'Configuré' : 'Non défini'}
                   satisfait={backendConfigured}
                 />
               </dl>
               {disabledReason ? (
                 <p className="mt-4 border-t border-zinc-950/5 pt-3 text-xs leading-relaxed text-warning-400 dark:border-console-line">
-                  Actions inert: {disabledReason}
+                  Actions inertes : {disabledReason}
                 </p>
               ) : (
                 <p className="mt-4 border-t border-zinc-950/5 pt-3 text-xs leading-relaxed text-zinc-500 dark:border-console-line dark:text-zinc-400">
-                  Both prerequisites are met. The service may still refuse a call — its circuit breaker and its
-                  quota are checked on its side, and its answer is shown under the action that triggered it.
+                  Les deux prérequis sont satisfaits. Le service peut tout de même refuser un appel — son disjoncteur et son
+                  quota sont vérifiés de son côté, et sa réponse est affichée sous l’action qui l’a déclenché.
                 </p>
               )}
             </Card>
@@ -172,19 +172,19 @@ export default async function KeeperPage() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Role gate</h3><p className={gcc.cellText}>{isAdmin ? 'Satisfied' : 'Not satisfied'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Service address</h3><p className={gcc.cellText}>{backendConfigured ? 'Configured' : 'Missing'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Disabled reason</h3><p className={gcc.cellText}>{disabledReason ?? 'None'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Contrôle du rôle</h3><p className={gcc.cellText}>{isAdmin ? 'Satisfait' : 'Non satisfait'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Adresse du service</h3><p className={gcc.cellText}>{backendConfigured ? 'Configuré' : 'Manquant'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Raison de désactivation</h3><p className={gcc.cellText}>{disabledReason ?? 'Aucune'}</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Keeper forms">
+      <section className={gcc.bottomRow} aria-label="Formulaires keeper">
         <Panel className={gcc.wavePanel}>
           <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Actions</h3></div>
           <div className={gcc.heroBody}>
       <AdminSection
         title="Actions"
-        description={`${keeperEndpoints.length} routes exposed by the service. Nothing leaves this page until the word CONFIRM has been typed into the action's own field.`}
+        description={`${keeperEndpoints.length} routes exposées par le service. Rien ne quitte cette page tant que le mot CONFIRM n’a pas été saisi dans le champ propre à l’action.`}
       >
         <AdminGrid>
           {keeperEndpoints.map((endpoint) => (
@@ -201,14 +201,14 @@ export default async function KeeperPage() {
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Confirmation</h3><p className={gcc.cellText}>Each form requires typing `CONFIRM`.</p></article>
-          <article className={gcc.infoCell}><h3>No signature</h3><p className={gcc.cellText}>Requests do not generate on-chain signatures.</p></article>
-          <article className={gcc.infoCell}><h3>Quota</h3><p className={gcc.cellText}>Backend enforces request rate limits.</p></article>
-          <article className={gcc.infoCell}><h3>Result</h3><p className={gcc.cellText}>Backend response is rendered as-is.</p></article>
+          <article className={gcc.infoCell}><h3>Confirmation</h3><p className={gcc.cellText}>Chaque formulaire exige la saisie de `CONFIRM`.</p></article>
+          <article className={gcc.infoCell}><h3>Aucune signature</h3><p className={gcc.cellText}>Les requêtes ne génèrent aucune signature on-chain.</p></article>
+          <article className={gcc.infoCell}><h3>Quota</h3><p className={gcc.cellText}>Le backend applique des limites de débit des requêtes.</p></article>
+          <article className={gcc.infoCell}><h3>Résultat</h3><p className={gcc.cellText}>La réponse du backend est rendue telle quelle.</p></article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Operational note</h3>
-          <p className={gcc.cellText}>Use Keeper for intentional backend write requests only.</p>
+          <h3 className={gcc.cardTitle}>Note opérationnelle</h3>
+          <p className={gcc.cellText}>N’utilisez Keeper que pour des requêtes d’écriture intentionnelles vers le backend.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>

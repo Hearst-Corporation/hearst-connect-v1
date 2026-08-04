@@ -205,13 +205,13 @@ function StatusCell({ movement }: Readonly<{ movement: Movement }>) {
 /* ── Table shell ──────────────────────────────────────────────────────────── */
 
 const HEADERS: readonly { key: string; label: string; className?: string }[] = [
-  { key: 'time', label: 'Time', className: 'whitespace-normal break-words' },
-  { key: 'vault', label: 'Vault' },
+  { key: 'time', label: 'Heure', className: 'whitespace-normal break-words' },
+  { key: 'vault', label: 'Coffre' },
   { key: 'type', label: 'Type' },
   { key: 'client', label: 'Client' },
-  { key: 'amount', label: 'Amount', className: 'text-right' },
+  { key: 'amount', label: 'Montant', className: 'text-right' },
   { key: 'transaction', label: 'Transaction' },
-  { key: 'status', label: 'Status', className: 'whitespace-normal break-words' },
+  { key: 'status', label: 'État', className: 'whitespace-normal break-words' },
 ]
 
 const CELL = 'px-4 py-2 align-top'

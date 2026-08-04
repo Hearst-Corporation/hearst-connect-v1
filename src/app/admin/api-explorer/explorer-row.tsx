@@ -7,8 +7,8 @@ import { useActionState } from 'react'
 
 function authLabelFor(auth: BackendEndpoint['auth']): string {
   if (auth === 'public') return 'public'
-  if (auth === 'admin') return 'admin required'
-  return 'session required'
+  if (auth === 'admin') return 'admin requis'
+  return 'session requise'
 }
 
 function CopyButton({ text }: Readonly<{ text: string }>) {
@@ -18,7 +18,7 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
       onClick={() => navigator.clipboard.writeText(text)}
       className="rounded border border-zinc-950/10 dark:border-console-line px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
     >
-      Copy
+      Copier
     </button>
   )
 }
@@ -28,12 +28,12 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
  * `null` when the route reads as-is.
  */
 function unrunnableLabel(method: BackendEndpoint['method'], pathParams: readonly string[]): string | null {
-  if (method === 'POST') return 'Keeper action — Keeper page'
+  if (method === 'POST') return 'Action Keeper — page Keeper'
   // The registry's caveat already says where the value comes from: here we
   // only announce that it's missing, without repeating it.
   if (pathParams.length > 0) {
     const params = pathParams.map((name) => `:${name}`).join(', ')
-    return `parameter ${params} required — not enterable here`
+    return `paramètre ${params} requis — non saisissable ici`
   }
   return null
 }
@@ -67,7 +67,7 @@ export function ExplorerRow({
               disabled={pending}
               className="rounded border border-zinc-950/10 dark:border-console-line px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
             >
-              {pending ? 'Calling…' : 'Run'}
+              {pending ? 'Appel…' : 'Exécuter'}
             </button>
           )}
         </form>
@@ -81,7 +81,7 @@ export function ExplorerRow({
           <div className="mb-2 flex items-center gap-2">
             <CopyButton text={outcome.rawJson} />
             {outcome.metaStatus ? (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">envelope: {outcome.metaStatus}</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">enveloppe : {outcome.metaStatus}</span>
             ) : null}
           </div>
           <AdminProbeResult
@@ -94,13 +94,13 @@ export function ExplorerRow({
       ) : null}
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (token redacted)</summary>
+        <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (jeton masqué)</summary>
         <pre className="mt-1 overflow-x-auto rounded bg-zinc-50/80 dark:bg-console-inset p-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{curl}</pre>
       </details>
 
       {isKeeper ? (
         <p className="mt-2 text-xs text-warning-400">
-          Action with side effects — run and confirm from /admin/keeper only.
+          Action à effet de bord — à exécuter et confirmer depuis /admin/keeper uniquement.
         </p>
       ) : null}
     </div>

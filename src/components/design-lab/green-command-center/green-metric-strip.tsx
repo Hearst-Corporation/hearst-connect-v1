@@ -8,11 +8,14 @@ import clsx from 'clsx'
  * and staleness — not by mere presence. "Live" is reserved for a fresh backend
  * reading; an editorial value reads "Reference", a stale one reads "Stale".
  */
+// Vocabulaire de statut en français (glossaire CONSOLE-FR-GLOSSARY.md). Le
+// libellé reste fidèle au statut technique réel : « En direct » n'apparaît que
+// pour une lecture backend fraîche, jamais pour une valeur éditoriale ou absente.
 const SIGNAL_LABEL: Record<Signal, string> = {
-  live: 'Live',
-  stale: 'Stale',
-  editorial: 'Reference',
-  absent: 'Unavailable',
+  live: 'En direct',
+  stale: 'Données obsolètes',
+  editorial: 'Référence',
+  absent: 'Indisponible',
 }
 
 function signalClasses(signal: Signal): { text: string; dot: string; hollow: boolean } {
@@ -80,16 +83,16 @@ export function GreenDecisionPanel({
   return (
     <Panel
       className={useStrongGreen ? gcc.decisionCardStrong : gcc.decisionCardNeutral}
-      aria-label="Decision queue"
+      aria-label="File de décisions"
       data-gcc="decision-card"
     >
       <div className={gcc.decisionTitle}>
-        DECISION <span>QUEUE</span>
+        FILE DE <span>DÉCISIONS</span>
       </div>
       <div className={gcc.decisionMeta}>
         {isAvailable(pending) ? (
           <>
-            <b>{pending.value}</b> ITEMS PENDING
+            <b>{pending.value}</b> EN ATTENTE
           </>
         ) : (
           <Absent availability={pending} onAccent showRoute={false} />

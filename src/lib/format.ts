@@ -54,12 +54,12 @@ export function formatRelativeTime(iso: string | null | undefined): string {
   const t = Date.parse(iso)
   if (Number.isNaN(t)) return '—'
   const minutes = Math.round((Date.now() - t) / 60_000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 1) return "à l'instant"
+  if (minutes < 60) return `il y a ${minutes} min`
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return `il y a ${hours} h`
   const days = Math.round(hours / 24)
-  return days < 31 ? `${days}d ago` : `${Math.round(days / 30)}mo ago`
+  return days < 31 ? `il y a ${days} j` : `il y a ${Math.round(days / 30)} mois`
 }
 
 export function formatAddress(address: string | null | undefined): string | null {

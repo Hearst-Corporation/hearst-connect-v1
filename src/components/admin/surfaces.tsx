@@ -143,7 +143,7 @@ export function AdminMetric({
             {unit ? <span className="ml-1 text-sm/6 font-medium text-zinc-500 dark:text-zinc-400">{unit}</span> : null}
           </span>
         ) : (
-          <span className={clsx(adminTypography.numericStandard, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'No value'}>—</span>
+          <span className={clsx(adminTypography.numericStandard, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'Aucune valeur'}>—</span>
         )}
       </p>
       {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
@@ -181,7 +181,7 @@ export function AdminTable<T>({
   empty?: React.ReactNode
 }>) {
   if (rows.length === 0) {
-    return empty ?? <AdminEmptyState title="No items" />
+    return empty ?? <AdminEmptyState title="Aucun élément" />
   }
 
   return (
@@ -268,7 +268,7 @@ export function AdminErrorState({
   )
 }
 
-export function AdminLoadingState({ message = 'Loading…' }: Readonly<{ message?: string }>) {
+export function AdminLoadingState({ message = 'Chargement…' }: Readonly<{ message?: string }>) {
   return (
     <AdminSurface className="flex items-center gap-3 px-5 py-8">
       <span
@@ -294,7 +294,7 @@ export function AdminSourceAttendue({
       <AdminSurfaceTitle as="p">{quoi}</AdminSurfaceTitle>
       <AdminBody className="mt-1.5 max-w-prose">{detail}</AdminBody>
       <div className="mt-4 max-w-prose">
-        <AdminLabel>Expected source</AdminLabel>
+        <AdminLabel>Source attendue</AdminLabel>
         <RequirementList requis={requis} />
       </div>
     </div>
@@ -332,7 +332,7 @@ export type AdminFilterItem = {
 
 export function AdminFilterBar({
   items,
-  ariaLabel = 'Filters',
+  ariaLabel = 'Filtres',
 }: Readonly<{
   items: readonly AdminFilterItem[]
   ariaLabel?: string
@@ -467,7 +467,7 @@ export function AdminProbeResult({
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">Raw JSON</summary>
+          <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">JSON brut</summary>
           <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-zinc-950 dark:text-white/80">{rawJson}</pre>
         </details>
       ) : null}

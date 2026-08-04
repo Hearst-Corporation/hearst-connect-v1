@@ -62,21 +62,21 @@ type ExceptionColumn = Readonly<{
  * wired into the loader tomorrow cannot reach the screen as a raw enum name.
  */
 const ISSUE_LABEL: Record<ClientIssue, string> = {
-  NO_VAULT_ASSIGNED: 'No vault assigned',
-  COMPLIANCE_REVIEW_PENDING: 'Compliance review pending',
-  VAULT_INACTIVE: 'Vault inactive',
-  DEPLOYMENT_BLOCKED: 'Deployment blocked',
-  MISSING_INVESTOR_RECORD: 'No investor record',
-  NO_ACTIVE_STRATEGY: 'No active strategy',
+  NO_VAULT_ASSIGNED: 'Aucun coffre attribué',
+  COMPLIANCE_REVIEW_PENDING: 'Revue de conformité en attente',
+  VAULT_INACTIVE: 'Coffre inactif',
+  DEPLOYMENT_BLOCKED: 'Déploiement bloqué',
+  MISSING_INVESTOR_RECORD: 'Aucun dossier investisseur',
+  NO_ACTIVE_STRATEGY: 'Aucune stratégie active',
 }
 
 const ISSUE_SENTENCE: Record<ClientIssue, string> = {
-  NO_VAULT_ASSIGNED: 'No vault is attached to this client, so nothing can be deployed for them.',
-  COMPLIANCE_REVIEW_PENDING: 'A compliance review is open and holds this client back from operating.',
-  VAULT_INACTIVE: 'The vault attached to this client is not active on its chain.',
-  DEPLOYMENT_BLOCKED: 'A deployment requested for this client has not confirmed.',
-  MISSING_INVESTOR_RECORD: 'The service reports no investor record attached to this account.',
-  NO_ACTIVE_STRATEGY: 'The vault attached to this client has no strategy taking capital.',
+  NO_VAULT_ASSIGNED: 'Aucun coffre n’est rattaché à ce client : rien ne peut être déployé pour lui.',
+  COMPLIANCE_REVIEW_PENDING: 'Une revue de conformité est ouverte et empêche ce client d’opérer.',
+  VAULT_INACTIVE: 'Le coffre rattaché à ce client n’est pas actif sur sa chaîne.',
+  DEPLOYMENT_BLOCKED: 'Un déploiement demandé pour ce client n’a pas été confirmé.',
+  MISSING_INVESTOR_RECORD: 'Le service ne signale aucun dossier investisseur rattaché à ce compte.',
+  NO_ACTIVE_STRATEGY: 'Le coffre rattaché à ce client n’a aucune stratégie mobilisant du capital.',
 }
 
 /* ── Absence wording ──────────────────────────────────────────────────────── */
@@ -154,7 +154,7 @@ function RelatedVaultCell({ row }: Readonly<{ row: ClientException }>) {
   // carries no vault reference. Saying "Unavailable" would report a source
   // problem where there is none.
   if (row.relatedVaultId === null) {
-    return <span className="text-zinc-500 dark:text-zinc-400">Not linked to a vault</span>
+    return <span className="text-zinc-500 dark:text-zinc-400">Non rattaché à un coffre</span>
   }
   return (
     <VaultEntityLink
@@ -184,12 +184,12 @@ function TimestampCell({ value }: Readonly<{ value: Availability<string> }>) {
 
 const COLUMNS: readonly ExceptionColumn[] = [
   { key: 'client', header: 'Client', cell: (row) => <ClientCell row={row} /> },
-  { key: 'issue', header: 'Issue', cell: (row) => <IssueCell row={row} /> },
-  { key: 'vault', header: 'Related vault', cell: (row) => <RelatedVaultCell row={row} /> },
-  { key: 'compliance', header: 'Compliance', cell: (row) => <TextOrSource value={row.compliance} /> },
+  { key: 'issue', header: 'Problème', cell: (row) => <IssueCell row={row} /> },
+  { key: 'vault', header: 'Coffre lié', cell: (row) => <RelatedVaultCell row={row} /> },
+  { key: 'compliance', header: 'Conformité', cell: (row) => <TextOrSource value={row.compliance} /> },
   {
     key: 'activity',
-    header: 'Last activity',
+    header: 'Dernière activité',
     className: 'whitespace-nowrap',
     cell: (row) => <TimestampCell value={row.lastActivityAt} />,
   },
@@ -215,7 +215,7 @@ const BODY_CELL = 'px-3 py-2 align-top'
 function Heading({ exceptions }: Readonly<{ exceptions: Availability<readonly ClientException[]> }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <h3 className={gcc.cardTitle}>Client exceptions</h3>
+      <h3 className={gcc.cardTitle}>Anomalies clients</h3>
       <Absent availability={exceptions} showRoute={false} />
     </div>
   )

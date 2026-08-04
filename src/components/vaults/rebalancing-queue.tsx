@@ -113,12 +113,12 @@ function ordered(rows: readonly RebalancingRow[]): readonly RebalancingRow[] {
 const COLUMNS: readonly RebalancingColumn[] = [
   {
     key: 'vault',
-    header: 'Vault',
+    header: 'Coffre',
     cell: (row) => <VaultEntityLink kind="vault" id={row.vaultId} label={row.vaultLabel} />,
   },
   {
     key: 'strategy',
-    header: 'Strategy',
+    header: 'Stratégie',
     cell: (row) => {
       const pocket = pocketOf(row)
       return (
@@ -133,7 +133,7 @@ const COLUMNS: readonly RebalancingColumn[] = [
   },
   {
     key: 'target',
-    header: 'Target',
+    header: 'Cible',
     className: 'text-right tabular-nums',
     cell: (row) => (
       <span className="text-zinc-950 dark:text-zinc-300">
@@ -143,7 +143,7 @@ const COLUMNS: readonly RebalancingColumn[] = [
   },
   {
     key: 'actual',
-    header: 'Actual',
+    header: 'Constaté',
     className: 'text-right tabular-nums',
     cell: (row) =>
       row.actualBps === null ? (
@@ -156,7 +156,7 @@ const COLUMNS: readonly RebalancingColumn[] = [
   },
   {
     key: 'variance',
-    header: 'Variance',
+    header: 'Écart',
     className: 'text-right tabular-nums',
     cell: (row) => {
       const drift = driftPoints(row.varianceBps)
@@ -175,7 +175,7 @@ const COLUMNS: readonly RebalancingColumn[] = [
   },
   {
     key: 'threshold',
-    header: 'Threshold',
+    header: 'Seuil',
     className: 'text-right tabular-nums',
     cell: (row) => (
       <span className="text-zinc-500 dark:text-zinc-400">
@@ -185,7 +185,7 @@ const COLUMNS: readonly RebalancingColumn[] = [
   },
   {
     key: 'last-rebalance',
-    header: 'Last rebalance',
+    header: 'Dernier rééquilibrage',
     cell: (row) => {
       // An available reading that carries an empty string is the contract
       // answering without a date — still an absence, not a blank cell.
@@ -264,7 +264,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
           <h3 className={gcc.cardTitle}>Rebalancing</h3>
         </div>
         <div className={gcc.heroBody}>
-          <p className={gcc.cellText}>No pockets</p>
+          <p className={gcc.cellText}>Aucune poche</p>
           <Link href={COVERAGE_HREF} className={ROW_LINK}>
             Data coverage
           </Link>
@@ -305,7 +305,7 @@ export function RebalancingQueue({ rows }: Readonly<{ rows: Availability<readonl
             </p>
           </div>
           <div className="rounded-lg bg-zinc-50/70 px-2.5 py-1.5 ring-1 ring-zinc-950/5 dark:bg-white/3 dark:ring-white/5">
-            <p className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">Threshold</p>
+            <p className="text-[0.6875rem]/4 uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">Seuil</p>
             <p className="mt-1 text-sm font-medium tabular-nums text-zinc-950 dark:text-white">±{THRESHOLD_POINTS} pt</p>
           </div>
         </div>

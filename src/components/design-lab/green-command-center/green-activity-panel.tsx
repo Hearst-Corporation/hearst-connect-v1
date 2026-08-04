@@ -1,9 +1,23 @@
 import { formatRelativeTime } from '@/lib/format'
 import { libelleMouvement } from '@/lib/mouvements'
-import { isAvailable, type Availability, type ClientException, type Movement } from '@/lib/vaults/model'
+import { isAvailable, type Availability, type ClientException, type ClientIssue, type Movement } from '@/lib/vaults/model'
 import { Subheading } from '@/components/catalyst/heading'
 import { Text, Strong } from '@/components/catalyst/text'
 import { Absent, gcc, Panel } from './primitives'
+
+/**
+ * Présentation FR du type d'anomalie client. On ne rend plus l'identifiant
+ * technique « décapitalisé » (`missing investor record`) : c'est un code, pas
+ * un texte pour l'utilisateur.
+ */
+const ISSUE_LABEL_FR: Record<ClientIssue, string> = {
+  NO_VAULT_ASSIGNED: 'aucun coffre attribué',
+  COMPLIANCE_REVIEW_PENDING: 'revue de conformité en attente',
+  VAULT_INACTIVE: 'coffre inactif',
+  DEPLOYMENT_BLOCKED: 'déploiement bloqué',
+  MISSING_INVESTOR_RECORD: 'aucun dossier investisseur',
+  NO_ACTIVE_STRATEGY: 'aucune stratégie active',
+}
 
 /**
  * The 2×2 information grid at the bottom centre — the reference's four cells,
@@ -35,14 +49,14 @@ export function GreenInfoGrid({
     <Panel as="section" className={gcc.infoGrid} aria-label="Operational detail" data-gcc="info-grid">
       {/* ── Client exceptions ─────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <Subheading level={3} className={gcc.cardTitle}>Client exceptions</Subheading>
+        <Subheading level={3} className={gcc.cardTitle}>Anomalies clients</Subheading>
         {isAvailable(exceptions) ? (
           exceptions.value.length === 0 ? (
             <Text className={gcc.cellText}>None</Text>
           ) : (
             exceptions.value.slice(0, 3).map((exception) => (
               <Text key={`${exception.clientLabel}-${exception.issue}`} className={gcc.cellText}>
-                {exception.clientLabel} · {exception.issue.toLowerCase().replaceAll('_', ' ')}
+                {exception.clientLabel} · {ISSUE_LABEL_FR[exception.issue] ?? exception.issue}
               </Text>
             ))
           )
@@ -53,22 +67,22 @@ export function GreenInfoGrid({
 
       {/* ── Deployment queue ──────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <Subheading level={3} className={gcc.cardTitle}>Deployment queue</Subheading>
+        <Subheading level={3} className={gcc.cardTitle}>File de déploiement</Subheading>
         {isAvailable(deployments) ? (
-          <Text className={gcc.cellText}>Readable</Text>
+          <Text className={gcc.cellText}>Lisible</Text>
         ) : (
           <>
             <Text className={gcc.cellText}>
-              {deployments.status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
+              {deployments.status === 'NOT_EXPOSED' ? 'Non exposé' : 'Indisponible'}
             </Text>
-            <Text className={gcc.cellText}>Deployment ledger unavailable</Text>
+            <Text className={gcc.cellText}>Journal de déploiement indisponible</Text>
           </>
         )}
       </article>
 
       {/* ── Source health ─────────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <Subheading level={3} className={gcc.cardTitle}>Source health</Subheading>
+        <Subheading level={3} className={gcc.cardTitle}>Santé des sources</Subheading>
         <div className={gcc.health}>
           <span className={gcc.healthIcon} aria-hidden="true">
             ₿
@@ -87,7 +101,7 @@ export function GreenInfoGrid({
 
       {/* ── Recent activity ──────────────────────────────────────────────── */}
       <article className={gcc.infoCell} data-gcc="info-cell">
-        <Subheading level={3} className={gcc.cardTitle}>Recent activity</Subheading>
+        <Subheading level={3} className={gcc.cardTitle}>Activité récente</Subheading>
         {isAvailable(movements) ? (
           movements.value.length === 0 ? (
             <Text className={gcc.cellText}>None</Text>
@@ -121,7 +135,7 @@ export function GreenVaultPanel({
 }>) {
   return (
     <Panel className={gcc.vaultCard} aria-label="Vault register" data-gcc="vault-card">
-      <Subheading level={3} className={gcc.cardTitle}>Vault register</Subheading>
+      <Subheading level={3} className={gcc.cardTitle}>Registre des coffres</Subheading>
       {!isAvailable(vaultAbsence) ? (
         <Absent availability={vaultAbsence} showRoute={false} />
       ) : vaultLines.length === 0 ? (
@@ -132,14 +146,14 @@ export function GreenVaultPanel({
             <span aria-hidden="true">↳</span>
             <div className={gcc.vaultLineText}>
               <Strong className={gcc.cellStrong}>{line.label}</Strong>
-              <Text className={gcc.cellText}>Readable · {line.detail}</Text>
+              <Text className={gcc.cellText}>Lisible · {line.detail}</Text>
             </div>
           </div>
         ))
       )}
 
       <div className={gcc.vaultEstate}>
-        <Text className={gcc.cellText}>Estate value</Text>
+        <Text className={gcc.cellText}>Valeur du patrimoine</Text>
         {isAvailable(estateValue) ? (
           <Strong className={gcc.cellStrong}>{estateValue.value}</Strong>
         ) : (

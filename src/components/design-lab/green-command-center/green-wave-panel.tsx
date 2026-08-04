@@ -43,7 +43,7 @@ export function GreenWavePanel({
             <TableHead>
               <TableRow>
                 <TableHeader>Type</TableHeader>
-                <TableHeader>Count</TableHeader>
+                <TableHeader>Nombre</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>

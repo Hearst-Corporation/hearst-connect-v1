@@ -27,7 +27,7 @@ export default function AdminLoading() {
           textTransform: 'uppercase',
         }}
       >
-        Loading surface…
+        Chargement de la surface…
       </p>
     </main>
   )

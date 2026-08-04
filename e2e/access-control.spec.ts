@@ -148,7 +148,7 @@ test.describe('logout', () => {
   test('logout clears the session and back button does not resurrect it', async ({ page }) => {
     await quickLogin(page)
     await page.goto('/admin/operations')
-    await page.getByRole('button', { name: /sign out|déconnexion/i }).first().click()
+    await page.getByRole('button', { name: /déconnec|sign out/i }).first().click()
     await page.waitForURL((u) => u.pathname.startsWith('/login'), { timeout: 30_000 })
 
     const cookie = (await page.context().cookies()).find((c) => c.name === 'hearst_session')

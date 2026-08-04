@@ -22,11 +22,11 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
       {needsMetrics ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">hashrateTh — integer ≥ 0</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">hashrateTh — entier ≥ 0</span>
             <input name="hashrateTh" type="number" min={0} step={1} required className={fieldClass} />
           </label>
           <label className="block">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">btcEarnedSats — integer ≥ 0</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">btcEarnedSats — entier ≥ 0</span>
             <input name="btcEarnedSats" type="number" min={0} step={1} required className={fieldClass} />
           </label>
         </div>
@@ -34,8 +34,8 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
 
       <label className="block">
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          Type <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> to submit the
-          request
+          Saisissez <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> pour envoyer la
+          requête
         </span>
         <input
           name="confirm"
@@ -61,13 +61,13 @@ function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
   return (
     <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Backend response:{' '}
+        Réponse du backend :{' '}
         <span className="font-mono text-zinc-950 dark:text-white">
           {outcome.result?.status ?? outcome.stateReason ?? '—'}
         </span>
       </p>
       {outcome.result?.reason ? (
-        <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">reason: {outcome.result.reason}</p>
+        <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">raison : {outcome.result.reason}</p>
       ) : null}
       <ProblemState problem={outcome.problem} keeper={outcome.result} />
       {outcome.trace ? (
@@ -118,7 +118,7 @@ export function KeeperForm({
             disabled={pending}
             className="rounded-lg bg-accent-400 px-3 py-1.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
           >
-            {pending ? 'Sending…' : 'Submit request'}
+            {pending ? 'Envoi…' : 'Envoyer la requête'}
           </button>
         </form>
       )}

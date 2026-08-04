@@ -57,10 +57,10 @@ export const CLIENTS_ENTRY: EntreeNav = {
 
 /** The five primary destinations rendered in the sidebar. */
 export const ADMIN_NAV: readonly EntreeNav[] = [
-  { libelle: 'Home', href: '/admin', icone: HomeIcon },
+  { libelle: 'Accueil', href: '/admin', icone: HomeIcon },
   CLIENTS_ENTRY,
-  { libelle: 'Compliance', href: '/admin/conformite', icone: ShieldCheckIcon },
-  { libelle: 'Operations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
+  { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },
+  { libelle: 'Opérations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
   { libelle: 'Administration', href: '/admin/administration', icone: UsersIcon },
 ]
 
@@ -94,7 +94,7 @@ export type GroupeSecondaire = Readonly<{
  * Exporting the entry, not the string, keeps the route written down once.
  */
 export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
-  libelle: 'Vault registry',
+  libelle: 'Registre des coffres',
   href: '/admin/vaults',
   icone: CircleStackIcon,
   detail: 'Every vault, its client, allocation and pending operations',
@@ -106,7 +106,7 @@ export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
  * an absence may link here once, so its route is named here too.
  */
 export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
-  libelle: 'Data coverage',
+  libelle: 'Couverture des données',
   href: '/admin/dashboard',
   icone: TableCellsIcon,
   detail: 'What the service actually serves, surface by surface',
@@ -124,19 +124,19 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
     entrees: [
       VAULT_REGISTRY_ENTRY,
       {
-        libelle: 'Series 1 Log',
+        libelle: 'Journal Série 1',
         href: '/admin/series-1',
         icone: Squares2X2Icon,
         detail: 'The indexed on-chain log for Series 1',
       },
       {
-        libelle: 'Product Sheet',
+        libelle: 'Fiche produit',
         href: '/admin/product',
         icone: DocumentTextIcon,
         detail: 'Subscription terms, duration, and fund cap',
       },
       {
-        libelle: 'Consolidated product view',
+        libelle: 'Vue produit consolidée',
         href: '/admin/administration/produit',
         icone: TableCellsIcon,
         detail: 'Production, reserve, and compensation on a single screen',
@@ -147,7 +147,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
     titre: 'Production',
     entrees: [
       {
-        libelle: 'Mining',
+        libelle: 'Minage',
         href: '/admin/mining',
         icone: CpuChipIcon,
         detail: 'Fleet capacity and attested production',
@@ -170,19 +170,19 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
     titre: 'Service',
     entrees: [
       {
-        libelle: 'Service Status',
+        libelle: 'État du service',
         href: '/admin/runtime',
         icone: SignalIcon,
         detail: 'Dependency probes, deployment, and raw responses',
       },
       {
-        libelle: 'Keeper Actions',
+        libelle: 'Actions Keeper',
         href: '/admin/keeper',
         icone: WrenchScrewdriverIcon,
         detail: 'Operational actions exposed by the service',
       },
       {
-        libelle: 'API Explorer',
+        libelle: "Explorateur d'API",
         href: '/admin/api-explorer',
         icone: CommandLineIcon,
         detail: 'Every endpoint, called live, with its trace',
@@ -194,7 +194,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
     titre: 'Account',
     entrees: [
       {
-        libelle: 'Your account',
+        libelle: 'Votre compte',
         href: '/admin/profile',
         icone: IdentificationIcon,
         detail: 'The investor record linked to this account, if one exists',

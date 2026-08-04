@@ -56,34 +56,34 @@ export function GreenAdminHomeDashboard({
   const cells: readonly MetricCell[] = [
     {
       id: 'vaults-active',
-      title: 'Active vaults',
+      title: 'Coffres actifs',
       value: overview.activeVaults,
       glyph: '₿',
     },
     {
       id: 'breached',
-      title: `Above console threshold (±${thresholdPoints} pt)`,
+      title: `Au-dessus du seuil console (±${thresholdPoints} pt)`,
       value: overview.breachedPockets,
       glyph: '●',
       hollow: true,
     },
     {
       id: 'movements',
-      title: 'Recent movements',
+      title: 'Mouvements récents',
       value: overview.recentMovements,
       glyph: '↯',
       hollow: true,
     },
     {
       id: 'sources',
-      title: 'Live sources',
+      title: 'Sources en direct',
       value: mapAvailability(overview.liveSources, (value) => value.replace('/', ' / ')),
       glyph: '◔',
       hollow: true,
     },
     {
       id: 'estate',
-      title: 'Estate value',
+      title: 'Valeur du patrimoine',
       value: overview.totalValueLocked,
       glyph: '⌁',
     },
@@ -113,23 +113,23 @@ export function GreenAdminHomeDashboard({
   const signals: readonly Signal[] = [
     {
       id: 'capital-deployed',
-      title: 'Capital deployed',
+      title: 'Capital déployé',
       value: overview.deployedCapital,
     },
-    { id: 'capital-available', title: 'Available capital', value: overview.availableCapital },
+    { id: 'capital-available', title: 'Capital disponible', value: overview.availableCapital },
     {
       id: 'deployment-ratio',
-      title: 'Deployment ratio',
+      title: 'Taux de déploiement',
       value: overview.deploymentRatio,
     },
     {
       id: 'rebalancing',
-      title: 'Rebalancing state',
+      title: 'État du rééquilibrage',
       value: mapAvailability(registry.rebalancing, (rows) => formatNumber(rows.length)),
     },
     {
       id: 'denomination',
-      title: 'Denomination',
+      title: 'Dénomination',
       value: mapAvailability(overview.asset, (asset) => `${asset.symbol} · ${formatNumber(asset.decimals)} dp`),
     },
   ]
@@ -145,10 +145,10 @@ export function GreenAdminHomeDashboard({
 
   const decisionActionable = isAvailable(pendingDecisions) && parseCount(pendingDecisions.value) > 0
   const decisionHint = !isAvailable(pendingDecisions)
-    ? 'Queue unavailable'
+    ? 'File indisponible'
     : decisionActionable
-      ? 'Review now'
-      : 'No pending review'
+      ? 'À examiner'
+      : 'Aucune revue en attente'
 
   return (
     <GreenCommandCenterShell
@@ -162,17 +162,17 @@ export function GreenAdminHomeDashboard({
         }
       />
 
-      <section className={gcc.mainRow} aria-label="Activity and capital" data-gcc="main-row">
+      <section className={gcc.mainRow} aria-label="Activité et capital" data-gcc="main-row">
         <GreenHeroChartPanel
-          title="Recent activity"
+          title="Activité récente"
           trend={overview.recentTrend}
           countLabel={overview.recentMovements}
         />
         <GreenSignalStack signals={signals} />
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Movement types, operational detail and vault register" data-gcc="bottom-row">
-        <GreenWavePanel title="Movement types" bars={overview.movementBars} availability={registry.movements} />
+      <section className={gcc.bottomRow} aria-label="Types de mouvement, détail opérationnel et registre des coffres" data-gcc="bottom-row">
+        <GreenWavePanel title="Types de mouvement" bars={overview.movementBars} availability={registry.movements} />
         <GreenInfoGrid
           exceptions={registry.clientExceptions}
           deployments={registry.deployments}

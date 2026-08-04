@@ -23,14 +23,14 @@ export type LoginFailure = BackendLoginFailure | 'missing_fields'
  * that would let one distinguish "unknown email" from "wrong password".
  */
 const FAILURE_MESSAGES: Record<LoginFailure, string> = {
-  missing_fields: 'Enter your email and password.',
-  invalid_credentials: 'Incorrect email or password.',
-  forbidden: 'This account does not open access to the administration console.',
-  rate_limited: 'Too many login attempts. Wait a minute before trying again.',
-  unavailable: 'The authentication service is temporarily unreachable. Try again shortly.',
-  malformed_response: 'The authentication service responded unexpectedly. Login did not complete.',
-  server_error: 'Login failed on the service side. Try again shortly.',
-  not_configured: 'No authentication service is configured on this deployment.',
+  missing_fields: 'Saisissez votre adresse e-mail et votre mot de passe.',
+  invalid_credentials: 'Adresse e-mail ou mot de passe incorrect.',
+  forbidden: 'Ce compte n’ouvre pas l’accès à la console d’administration.',
+  rate_limited: 'Trop de tentatives de connexion. Attendez une minute avant de réessayer.',
+  unavailable: 'Le service d’authentification est momentanément injoignable. Réessayez dans un instant.',
+  malformed_response: 'Le service d’authentification a répondu de façon inattendue. La connexion n’a pas abouti.',
+  server_error: 'La connexion a échoué côté service. Réessayez dans un instant.',
+  not_configured: 'Aucun service d’authentification n’est configuré sur ce déploiement.',
 }
 
 export function loginErrorMessage(reason: LoginFailure): string {

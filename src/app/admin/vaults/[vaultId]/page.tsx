@@ -49,9 +49,9 @@ type PageProps = Readonly<{ params: Promise<{ vaultId: string }> }>
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { vaultId } = await params
   const parsed = parseVaultId(vaultId)
-  if (parsed === null) return { title: 'Vault' }
+  if (parsed === null) return { title: 'Coffre' }
   const short = formatAddress(parsed.contractAddress)
-  return { title: short === null ? 'Vault' : `Vault ${short}` }
+  return { title: short === null ? 'Coffre' : `Coffre ${short}` }
 }
 
 function amountOf(vault: Vault, atomic: Availability<string | bigint>): Availability<string> {
@@ -118,81 +118,81 @@ export default async function Page({ params }: PageProps) {
   const strategiesCount = mapAvailability(vault.strategies, (rows) => formatNumber(rows.length))
   const actionState = requiresRebalancing(vault)
   const actionLabel = !isAvailable(actionState)
-    ? 'Action unavailable'
+    ? 'Action indisponible'
     : actionState.value
-      ? 'Rebalance review'
-      : 'No pending review'
+      ? 'Revue de rééquilibrage'
+      : 'Aucune revue en attente'
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect vault detail cockpit"
+      label="Poste de pilotage détail du coffre Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Vault detail status">
+      <section className={gcc.metricsRow} aria-label="État du détail du coffre">
         <Panel className={gcc.metricCard}>
-          <h2>Vault</h2>
+          <h2>Coffre</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(vault.label)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Status</h2>
+          <h2>État</h2>
           <div className={gcc.metricText}>
             <Reading value={activeStatus} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Total value</h2>
+          <h2>Valeur totale</h2>
           <div className={gcc.metricText}>
             <Reading value={totalValue} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Deployed / idle</h2>
+          <h2>Déployé / disponible</h2>
           <div className={gcc.metricText}>
             <Reading value={deployedValue} className={gcc.metricValue} />
             <Reading value={idleValue} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Strategy pockets</h2>
+          <h2>Poches de stratégie</h2>
           <div className={gcc.metricText}>
             <Reading value={strategiesCount} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
           <p className={gcc.decisionTitle}>
-            Action <span>state</span>
+            État <span>de l’action</span>
           </p>
           <p className={gcc.decisionMeta}>{actionLabel}</p>
           <p className={gcc.decisionActionMuted}>{formatAddress(vault.contractAddress) ?? vault.contractAddress}</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Vault summary and key signals">
+      <section className={gcc.mainRow} aria-label="Résumé du coffre et signaux clés">
         <VaultSummaryCard vault={vault} />
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Current drift</h3>
+            <h3>Écart courant</h3>
             <Reading value={driftValue} className={gcc.signalValue} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Last rebalance</h3>
+            <h3>Dernier rééquilibrage</h3>
             <Reading value={lastRebalanceReading(vault)} className={gcc.signalValue} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Utilization</h3>
+            <h3>Utilisation</h3>
             <Reading
               value={mapAvailability(vault.utilizationBps, (bps) => formatPercent(bps, { fromBps: true, maximumFractionDigits: 2 }))}
               className={gcc.signalValue}
             />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>TVL cap</h3>
+            <h3>Plafond TVL</h3>
             <Reading value={amountOf(vault, vault.tvlCapAtomic)} className={gcc.signalValue} />
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Capacity remaining</h3>
+            <h3>Capacité restante</h3>
             <Reading value={amountOf(vault, vault.capacityRemainingAtomic)} className={gcc.signalValue} />
           </Panel>
         </aside>
@@ -203,11 +203,11 @@ export default async function Page({ params }: PageProps) {
         {ledgerIsEmptyForThisVault ? (
           <Panel className={gcc.wavePanel}>
             <div className={gcc.heroHead}>
-              <h3 className={gcc.cardTitle}>Movements</h3>
+              <h3 className={gcc.cardTitle}>Mouvements</h3>
             </div>
             <div className={gcc.heroBody}>
               <p className={gcc.cellText}>
-                The ledger answered but no movement is attributed to this vault.
+                Le journal a répondu mais aucun mouvement n’est attribué à ce coffre.
               </p>
             </div>
           </Panel>
@@ -218,7 +218,7 @@ export default async function Page({ params }: PageProps) {
           <DeploymentQueue deployments={scopedDeployments} vaults={scopedVaults} />
           <ClientExceptionTable exceptions={registry.clientExceptions} />
           <Panel className={gcc.signalCard}>
-            <h3>Source activity</h3>
+            <h3>Activité des sources</h3>
             {registry.sources.slice(0, 4).map((source) => (
               <div key={source.endpointId} className={gcc.sourceRow}>
                 <p className={gcc.cellText}>{source.label}</p>
@@ -227,7 +227,7 @@ export default async function Page({ params }: PageProps) {
             ))}
           </Panel>
           <Panel className={gcc.signalCard}>
-            <h3>Viewer</h3>
+            <h3>Utilisateur</h3>
             <p className={gcc.cellText}>{session.name}</p>
             <p className={gcc.cellText}>{session.email}</p>
             <VaultStatusBadge status={vault.status} />

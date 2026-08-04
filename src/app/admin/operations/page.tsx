@@ -39,7 +39,7 @@ import clsx from 'clsx'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Operations' }
+export const metadata: Metadata = { title: 'Opérations' }
 export const dynamic = 'force-dynamic'
 
 function Card({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
@@ -202,7 +202,7 @@ function instantDe(iso: string | null | undefined): number | null {
 
 function jourLisible(iso: string | null): string {
   const t = instantDe(iso)
-  if (t === null) return 'unknown date'
+  if (t === null) return 'date inconnue'
   return new Date(t).toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',
@@ -255,15 +255,15 @@ function chaineLisible(chainId: number | null | undefined): string {
 
 function retardLisible(blocs: number | null | undefined): string {
   if (typeof blocs !== 'number' || !Number.isFinite(blocs)) {
-    return 'Indexer lag: not reported by the contract.'
+    return 'Retard de l’indexeur : non renseigné par le contrat.'
   }
-  return `Indexer lag reported by the contract: ${formatCount(blocs)} block(s).`
+  return `Retard de l’indexeur renseigné par le contrat : ${formatCount(blocs)} bloc(s).`
 }
 
 function cadenceLisible(intervalMs: number | null | undefined): string {
   if (typeof intervalMs !== 'number' || !Number.isFinite(intervalMs)) return '—'
-  if (intervalMs < 60_000) return `every ${Math.round(intervalMs / 1000)}s`
-  return `every ${Math.round(intervalMs / 60_000)}min`
+  if (intervalMs < 60_000) return `toutes les ${Math.round(intervalMs / 1000)} s`
+  return `toutes les ${Math.round(intervalMs / 60_000)} min`
 }
 
 /**
@@ -275,9 +275,9 @@ function cadenceLisible(intervalMs: number | null | undefined): string {
  * measured.
  */
 function baseDonneesLisible(reachable: boolean | null | undefined): string {
-  if (reachable === true) return 'Database: reachable'
-  if (reachable === false) return 'Database: unreachable'
-  return 'Database: not reported'
+  if (reachable === true) return 'Base de données : joignable'
+  if (reachable === false) return 'Base de données : injoignable'
+  return 'Base de données : non renseignée'
 }
 
 /**
@@ -286,8 +286,8 @@ function baseDonneesLisible(reachable: boolean | null | undefined): string {
  */
 function phraseIndisponibilite(motif: string | null | undefined): string {
   const lisible = motifLisible(motif)
-  if (lisible !== undefined) return `Reason given by the service: ${lisible}.`
-  return 'The service does not specify a reason.'
+  if (lisible !== undefined) return `Motif donné par le service : ${lisible}.`
+  return 'Le service ne précise aucun motif.'
 }
 
 /* ── Ledger: real aggregates ──────────────────────────────────────────────── */
@@ -386,12 +386,12 @@ function etatDeriveDe(dashboard: BackendResult<Dashboard>, derives: readonly Der
   if (!dashboard.ok) {
     return {
       type: 'indisponible',
-      explication: 'The service did not respond. No drift is shown rather than a stale value.',
+      explication: 'Le service n’a pas répondu. Aucun écart n’est affiché plutôt qu’une valeur obsolète.',
     }
   }
   if (derives.length > 0) return { type: 'tracee' }
 
-  const defaut = 'No pocket reports both its target and its observed share.'
+  const defaut = 'Aucune poche ne renseigne à la fois sa cible et sa part constatée.'
   const etat = etatSerieDe(dashboard.data.allocation, defaut)
   return etat.type === 'tracee' ? { type: 'attendue', explication: defaut } : etat
 }
@@ -400,7 +400,7 @@ function etatDeriveDe(dashboard: BackendResult<Dashboard>, derives: readonly Der
 
 function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashboard> }>) {
   if (!dashboard.ok) {
-    return <AdminErrorState state={dashboard.state} title="Drift measurement unavailable" />
+    return <AdminErrorState state={dashboard.state} title="Mesure de l’écart indisponible" />
   }
 
   const champ = dashboard.data.rebalancing
@@ -414,30 +414,30 @@ function SyntheseDerive({ dashboard }: Readonly<{ dashboard: BackendResult<Dashb
       <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
         <HeroFigure
           valeur={ecartLisible(mesure?.driftBps)}
-          libelle="Observed drift from target allocation"
-          unite="percentage points"
+          libelle="Écart observé par rapport à l’allocation cible"
+          unite="points de pourcentage"
         />
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-          <SideFact libelle="Last rebalance" valeur={dateLisible(mesure?.lastRebalanceAt)} />
-          <SideFact libelle="Time since" valeur={ilYA(mesure?.lastRebalanceAt)} />
+          <SideFact libelle="Dernier rééquilibrage" valeur={dateLisible(mesure?.lastRebalanceAt)} />
+          <SideFact libelle="Temps écoulé" valeur={ilYA(mesure?.lastRebalanceAt)} />
           {/* `pending: null`: the service reports no request. We say so
               explicitly rather than showing "0", which would read as a counter. */}
           <SideFact
-            libelle="Pending request"
-            valeur={mesure?.pending === null || mesure?.pending === undefined ? 'None reported' : 'A request is open'}
+            libelle="Demande en attente"
+            valeur={mesure?.pending === null || mesure?.pending === undefined ? 'Aucune signalée' : 'Une demande est ouverte'}
           />
         </dl>
       </div>
       <p className="mt-5 border-t border-zinc-950/5 pt-4 text-xs text-zinc-500 dark:border-console-line-soft dark:text-zinc-400">
-        Indexed measurement · {statutAffichage(champ?.status)} — no trigger threshold is published by the
-        service: the drift is given raw, the decision stays human.
+        Mesure indexée · {statutAffichage(champ?.status)} — aucun seuil de déclenchement n’est publié par le
+        service : l’écart est donné brut, la décision reste humaine.
       </p>
     </Card>
   )
 }
 
-const QUESTION_DERIVE = 'Which pocket is drifting from its target?'
-const UNITE_DERIVE = 'in percentage points'
+const QUESTION_DERIVE = 'Quelle poche s’écarte de sa cible ?'
+const UNITE_DERIVE = 'en points de pourcentage'
 
 /**
  * The drift, plotted — or stated, when there is only one of it.
@@ -457,10 +457,10 @@ function CadreDerive({
       <ChartFrame question={QUESTION_DERIVE} unite={UNITE_DERIVE} etat={etat}>
         <SingleObservation
           valeur={ecartSigneLisible(seule.ecart)}
-          unite="points"
+          unite="pt"
           periode={seule.poche}
-          contexte={`Target ${partLisible(seule.cible)}% · observed ${partLisible(seule.constate)}%`}
-          note="Only one pocket reports both its target and its observed share — there is no distribution to plot yet."
+          contexte={`Cible ${partLisible(seule.cible)} % · constaté ${partLisible(seule.constate)} %`}
+          note="Une seule poche renseigne à la fois sa cible et sa part constatée — il n’y a pas encore de distribution à tracer."
         />
       </ChartFrame>
     )
@@ -475,7 +475,7 @@ function CadreDerive({
 
 function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<RebalancingStatus> }>) {
   if (!rebalancing.ok) {
-    return <AdminErrorState state={rebalancing.state} title="Rebalancing state unavailable" />
+    return <AdminErrorState state={rebalancing.state} title="État de rééquilibrage indisponible" />
   }
 
   const champ = rebalancing.data.rebalancing
@@ -486,13 +486,13 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
     <AdminSurface padding>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <AdminStatus status={statutAffichage(champ?.status)} />
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Direct contract read</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Lecture directe du contrat</p>
       </div>
 
       <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">
         {lisible
-          ? 'The contract exposes a rebalancing state: see the detail below.'
-          : 'The deployed contract exposes no rebalancing state. This is not a service outage: the read capability is absent from the source.'}
+          ? 'Le contrat expose un état de rééquilibrage : voir le détail ci-dessous.'
+          : 'Le contrat déployé n’expose aucun état de rééquilibrage. Il ne s’agit pas d’une panne de service : la capacité de lecture est absente de la source.'}
       </p>
       {lisible ? null : <AdminCaption className="mt-1">{phraseIndisponibilite(champ?.reason)}</AdminCaption>}
 
@@ -501,12 +501,12 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
           stack in one column because this panel is four grid columns wide —
           the four-across row they used to sit in wrapped into ragged pairs. */}
       <dl className="mt-5 space-y-3 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
-        <SideFact libelle="Contract mode" valeur={contrat?.mode ?? '—'} />
-        <SideFact libelle="Chain" valeur={chaineLisible(contrat?.chainId)} />
-        <SideFact libelle="Contract queried" valeur={adresseCourte(contrat?.contractAddress) ?? '—'} />
+        <SideFact libelle="Mode du contrat" valeur={contrat?.mode ?? '—'} />
+        <SideFact libelle="Chaîne" valeur={chaineLisible(contrat?.chainId)} />
+        <SideFact libelle="Contrat interrogé" valeur={adresseCourte(contrat?.contractAddress) ?? '—'} />
         <SideFact
-          libelle="Code present at address"
-          valeur={contrat?.codePresence === 'present' ? 'Yes' : (contrat?.codePresence ?? '—')}
+          libelle="Code présent à l’adresse"
+          valeur={contrat?.codePresence === 'present' ? 'Oui' : (contrat?.codePresence ?? '—')}
         />
       </dl>
 
@@ -514,7 +514,7 @@ function LectureOnChain({ rebalancing }: Readonly<{ rebalancing: BackendResult<R
         href="/admin/keeper"
         className="mt-5 inline-block text-sm text-accent-600 hover:underline dark:text-accent-400"
       >
-        Keeper actions (rebalancing) →
+        Actions Keeper (rééquilibrage) →
       </Link>
     </AdminSurface>
   )
@@ -574,9 +574,9 @@ function renderTxHash(chainId: number | undefined, txHash: string) {
 function colonnesMouvements(chainId: number | undefined): readonly AdminTableColumn<MouvementIndexe>[] {
   return [
     { key: 'type', header: 'Type', cell: cellType },
-    { key: 'montant', header: 'Amount', cell: cellMontant },
-    { key: 'adresse', header: 'Investor', mono: true, cell: cellAdresse },
-    { key: 'bloc', header: 'Block', mono: true, cell: cellBloc },
+    { key: 'montant', header: 'Montant', cell: cellMontant },
+    { key: 'adresse', header: 'Investisseur', mono: true, cell: cellAdresse },
+    { key: 'bloc', header: 'Bloc', mono: true, cell: cellBloc },
     {
       key: 'hash',
       header: 'Transaction',
@@ -589,9 +589,9 @@ function colonnesMouvements(chainId: number | undefined): readonly AdminTableCol
 
 function detailRegistreVide(reason: string | null | undefined): string {
   if (reason === 'no_events_indexed') {
-    return 'The ledger was queried and is empty — not an outage.'
+    return 'Le journal a été interrogé et est vide — pas une panne.'
   }
-  return 'The ledger returns no movement.'
+  return 'Le journal ne renvoie aucun mouvement.'
 }
 
 /** One line of the feed: the time, the sentence, the actor, the amount. */
@@ -627,8 +627,8 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
   return (
     <Card>
       <CardHeader
-        title="What happened, and when?"
-        hint={`The ${mouvements.length} most recent movements, newest first`}
+        title="Que s’est-il passé, et quand ?"
+        hint={`Les ${mouvements.length} mouvements les plus récents, du plus récent au plus ancien`}
       />
       <div className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
         {groupes.map((groupe) => (
@@ -655,8 +655,8 @@ function FilChronologique({ mouvements }: Readonly<{ mouvements: readonly Mouvem
  * lone bar in a plot area reads as a chart with data missing.
  */
 function RepartitionParType({ cumuls }: Readonly<{ cumuls: readonly CumulType[] }>) {
-  const question = 'Which types make up the ledger?'
-  const unite = 'movements, by type'
+  const question = 'Quels types composent le journal ?'
+  const unite = 'mouvements, par type'
   const majeur = cumuls.at(0)
 
   if (!plottableAsChart(cumuls.length)) {
@@ -665,10 +665,10 @@ function RepartitionParType({ cumuls }: Readonly<{ cumuls: readonly CumulType[] 
       <ChartFrame question={question} unite={unite} etat={{ type: 'tracee' }}>
         <SingleObservation
           valeur={formatCount(majeur.nombre)}
-          unite="movements"
+          unite="mouvements"
           periode={majeur.nom}
-          contexte="Every movement recorded so far carries this type."
-          note="A single type has been recorded — there is no distribution to plot yet."
+          contexte="Tout mouvement enregistré jusqu’ici porte ce type."
+          note="Un seul type a été enregistré — il n’y a pas encore de distribution à tracer."
         />
       </ChartFrame>
     )
@@ -696,11 +696,11 @@ function EnTeteRegistre({
           the facts fill the remaining one. These stay `SideFact`s rather than
           metric tiles — a formatted date at tile size truncates. */}
       <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-end">
-        <HeroFigure valeur={formatCount(mouvements.length)} libelle="Movements recorded on chain" />
+        <HeroFigure valeur={formatCount(mouvements.length)} libelle="Mouvements enregistrés sur la chaîne" />
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          <SideFact libelle="Distinct types" valeur={formatCount(cumuls.length)} />
-          <SideFact libelle="First movement recorded" valeur={dateLisible(premier)} />
-          <SideFact libelle="Last movement recorded" valeur={ilYA(dernier)} />
+          <SideFact libelle="Types distincts" valeur={formatCount(cumuls.length)} />
+          <SideFact libelle="Premier mouvement enregistré" valeur={dateLisible(premier)} />
+          <SideFact libelle="Dernier mouvement enregistré" valeur={ilYA(dernier)} />
           {/* Totals are given by type only: summing a deposit and an
               electricity payment would produce a total that means nothing. */}
           {avecMontant.map((c) => (
@@ -728,9 +728,9 @@ function RegistreMouvements({
   if (!mouvements || mouvements.length === 0) {
     return (
       <AdminSourceAttendue
-        quoi="No movement recorded"
+        quoi="Aucun mouvement enregistré"
         detail={detailRegistreVide(reponse.data.events?.reason)}
-        requis={['A first movement recorded on the chain']}
+        requis={['Un premier mouvement enregistré sur la chaîne']}
       />
     )
   }
@@ -757,8 +757,8 @@ function RegistreMouvements({
       <AdminSurface>
         <AdminSurfaceHeader
           className="px-5 pt-5 sm:px-6"
-          title="Detailed ledger"
-          description="Every movement with its block, transaction, and the address involved — the verifiable version."
+          title="Journal détaillé"
+          description="Chaque mouvement avec son bloc, sa transaction et l’adresse impliquée — la version vérifiable."
         />
         <AdminTable rows={recents} keyFn={(m) => m.id} columns={colonnesMouvements(chainId)} />
       </AdminSurface>
@@ -770,25 +770,25 @@ function RegistreMouvements({
 
 /** The state carries a word as much as a color: the tint alone is never enough. */
 const ETAT_INDEXEUR: Record<string, { readonly mot: string; readonly point: string; readonly texte: string }> = {
-  RUNNING: { mot: 'Running', point: 'bg-success-500', texte: 'text-success-400' },
+  RUNNING: { mot: 'En cours d’exécution', point: 'bg-success-500', texte: 'text-success-400' },
   // Idle is not an incident and not a success — it stays neutral rather than
   // spending a fourth hue on "nothing is happening, and that is fine".
-  IDLE: { mot: 'Idle', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
-  DEGRADED: { mot: 'Degraded', point: 'bg-warning-500', texte: 'text-warning-400' },
-  STOPPED: { mot: 'Stopped', point: 'bg-danger-500', texte: 'text-danger-400' },
-  ERROR: { mot: 'Error', point: 'bg-danger-500', texte: 'text-danger-400' },
+  IDLE: { mot: 'Au repos', point: 'bg-zinc-400 dark:bg-zinc-500', texte: 'text-zinc-600 dark:text-zinc-300' },
+  DEGRADED: { mot: 'Dégradé', point: 'bg-warning-500', texte: 'text-warning-400' },
+  STOPPED: { mot: 'Arrêté', point: 'bg-danger-500', texte: 'text-danger-400' },
+  ERROR: { mot: 'Erreur', point: 'bg-danger-500', texte: 'text-danger-400' },
 }
 
 function etatIndexeur(brut: string | null | undefined) {
   if (typeof brut !== 'string' || brut === '') {
-    return { mot: 'Not reported', point: 'bg-zinc-600', texte: 'text-zinc-400' }
+    return { mot: 'Non renseigné', point: 'bg-zinc-600', texte: 'text-zinc-400' }
   }
   return ETAT_INDEXEUR[brut.toUpperCase()] ?? { mot: brut, point: 'bg-zinc-600', texte: 'text-zinc-400' }
 }
 
 function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtime> }>) {
   if (!runtime.ok) {
-    return <AdminErrorState state={runtime.state} title="Indexing state unavailable" />
+    return <AdminErrorState state={runtime.state} title="État de l’indexation indisponible" />
   }
 
   const planificateur = runtime.data.indexerScheduler
@@ -799,8 +799,8 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
     <>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span aria-hidden="true" className={clsx('size-2 shrink-0 rounded-full', etat.point)} />
-        <p className={clsx('text-sm font-medium', etat.texte)}>Indexer: {etat.mot}</p>
-        <AdminBody>The ledger above is only as good as this sync.</AdminBody>
+        <p className={clsx('text-sm font-medium', etat.texte)}>Indexeur : {etat.mot}</p>
+        <AdminBody>Le journal ci-dessus ne vaut que ce que vaut cette synchronisation.</AdminBody>
       </div>
 
       {/* No panel around the tiles. Each `AdminMetric` carries its own ring
@@ -809,13 +809,13 @@ function SectionIndexation({ runtime }: Readonly<{ runtime: BackendResult<Runtim
           orphan in the last row. */}
       <div>
         <AdminMetricGrid count={4}>
-          <AdminMetric label="Last sync" value={ilYA(derniereSynchro)} hint={dateLisible(derniereSynchro)} />
-          <AdminMetric label="Last indexed block" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
-          <AdminMetric label="Polling interval" value={cadenceLisible(planificateur?.intervalMs)} />
+          <AdminMetric label="Dernière synchronisation" value={ilYA(derniereSynchro)} hint={dateLisible(derniereSynchro)} />
+          <AdminMetric label="Dernier bloc indexé" value={nombreDeChaine(planificateur?.lastIndexedBlock)} />
+          <AdminMetric label="Intervalle d’interrogation" value={cadenceLisible(planificateur?.intervalMs)} />
           {/* An error counter measured at zero IS information; it doesn't come
               from an absence collapsed into zero. */}
           <AdminMetric
-            label="Consecutive errors"
+            label="Erreurs consécutives"
             value={formatCount(planificateur?.consecutiveErrors)}
             hint={baseDonneesLisible(runtime.data.db?.reachable)}
           />
@@ -866,36 +866,36 @@ export default async function Page() {
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect operations cockpit"
+      label="Hearst Connect — poste de pilotage opérations"
       rail={<GreenCommandRail currentHref="/admin/operations" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Operations summary">
+      <section className={gcc.metricsRow} aria-label="Synthèse des opérations">
         <Panel className={gcc.metricCard}>
-          <h2>Movements</h2>
+          <h2>Mouvements</h2>
           <div className={gcc.metricText}>
             <Reading value={movementCountCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Pockets measured</h2>
+          <h2>Poches mesurées</h2>
           <div className={gcc.metricText}>
             <Reading value={pocketsMeasuredCell} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Rebalancing source</h2>
+          <h2>Source de rééquilibrage</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(rebalancingStatus)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Indexer</h2>
+          <h2>Indexeur</h2>
           <div className={gcc.metricText}>
             <Reading value={editorial(runtimeStatus)} className={gcc.metricValue} />
           </div>
         </Panel>
         <Panel className={gcc.metricCard}>
-          <h2>Ledger status</h2>
+          <h2>État du journal</h2>
           <div className={gcc.metricText}>
             <Reading
               value={
@@ -908,16 +908,16 @@ export default async function Page() {
           </div>
         </Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Operations <span>state</span></p>
-          <p className={gcc.decisionMeta}>Chain events and indexer freshness</p>
-          <p className={gcc.decisionActionMuted}>No approval queue endpoint</p>
+          <p className={gcc.decisionTitle}>État des <span>opérations</span></p>
+          <p className={gcc.decisionMeta}>Événements de la chaîne et fraîcheur de l’indexeur</p>
+          <p className={gcc.decisionActionMuted}>Aucun point d’accès de file d’approbation</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Rebalancing and runtime">
+      <section className={gcc.mainRow} aria-label="Rééquilibrage et exécution">
         <Panel className={gcc.heroChart}>
           <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Rebalancing</h2>
+            <h2 className={gcc.cardTitle}>Rééquilibrage</h2>
           </div>
           <div className={clsx(gcc.heroBody, 'gap-3')}>
             <SyntheseDerive dashboard={dashboard} />
@@ -926,16 +926,16 @@ export default async function Page() {
         </Panel>
         <aside className={gcc.rightStack}>
           <Panel className={gcc.signalCard}>
-            <h3>Indexer freshness</h3>
+            <h3>Fraîcheur de l’indexeur</h3>
             <SectionIndexation runtime={runtime} />
           </Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Ledger and approvals">
+      <section className={gcc.bottomRow} aria-label="Journal et approbations">
         <Panel className={gcc.wavePanel}>
           <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Movement ledger</h3>
+            <h3 className={gcc.cardTitle}>Journal des mouvements</h3>
           </div>
           <div className={gcc.heroBody}>
             <RegistreMouvements reponse={reponse} mouvements={mouvements} chainId={chainId} />
@@ -943,31 +943,31 @@ export default async function Page() {
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
           <article className={gcc.infoCell}>
-            <h3>Rebalancing source</h3>
-            <p className={gcc.cellText}>Direct contract read and indexed dashboard read are rendered separately.</p>
+            <h3>Source de rééquilibrage</h3>
+            <p className={gcc.cellText}>La lecture directe du contrat et la lecture indexée du tableau de bord sont affichées séparément.</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Ledger source</h3>
-            <p className={gcc.cellText}>Series 1 events endpoint only; no synthetic event is generated.</p>
+            <h3>Source du journal</h3>
+            <p className={gcc.cellText}>Point d’accès des événements Series 1 uniquement ; aucun événement synthétique n’est généré.</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Indexer health</h3>
-            <p className={gcc.cellText}>Runtime scheduler and sync timestamps drive freshness status.</p>
+            <h3>Santé de l’indexeur</h3>
+            <p className={gcc.cellText}>L’ordonnanceur d’exécution et les horodatages de synchronisation déterminent l’état de fraîcheur.</p>
           </article>
           <article className={gcc.infoCell}>
-            <h3>Threshold</h3>
-            <p className={gcc.cellText}>No backend trigger threshold is invented in this view.</p>
+            <h3>Seuil</h3>
+            <p className={gcc.cellText}>Aucun seuil de déclenchement backend n’est inventé dans cette vue.</p>
           </article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Pending approval</h3>
+          <h3 className={gcc.cardTitle}>Approbation en attente</h3>
           <AdminSourceAttendue
-            quoi="No approval queue open"
-            detail="DistributionApproval, VaultDeploymentApproval, and ProposalSignature exist in the database but are not yet exposed over HTTP."
+            quoi="Aucune file d’approbation ouverte"
+            detail="DistributionApproval, VaultDeploymentApproval et ProposalSignature existent dans la base de données mais ne sont pas encore exposés en HTTP."
             requis={[
-              'Reading pending requests and received signatures',
-              'Approve/reject action with logging',
-              'Compliance check attached to each request',
+              'Lecture des demandes en attente et des signatures reçues',
+              'Action d’approbation/rejet avec journalisation',
+              'Contrôle de conformité attaché à chaque demande',
             ]}
           />
         </Panel>

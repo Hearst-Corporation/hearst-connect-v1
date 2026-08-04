@@ -10,7 +10,7 @@ import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
-export const metadata: Metadata = { title: 'Your Account' }
+export const metadata: Metadata = { title: 'Votre compte' }
 export const dynamic = 'force-dynamic'
 
 
@@ -77,9 +77,9 @@ type Identite = {
 type ReponseProfil = { readonly identity?: Resolu<Identite> }
 
 const LIBELLE_ROLE: Record<Role, string> = {
-  OWNER: 'Space owner',
-  ADMIN: 'Administrator',
-  MEMBER: 'Member',
+  OWNER: 'Propriétaire de l’espace',
+  ADMIN: 'Administrateur',
+  MEMBER: 'Membre',
 }
 
 function DossierInvestisseur({
@@ -90,9 +90,9 @@ function DossierInvestisseur({
   if (!ok) {
     return (
       <SourceAttendue
-        quoi="The investor record could not be read"
-        detail="The service did not respond to the request. This silence doesn't mean no record exists."
-        requis={['A response from the service']}
+        quoi="Le dossier investisseur n’a pas pu être lu"
+        detail="Le service n’a pas répondu à la requête. Ce silence ne signifie pas qu’aucun dossier n’existe."
+        requis={['Une réponse du service']}
       />
     )
   }
@@ -100,16 +100,16 @@ function DossierInvestisseur({
   if (identite === null || identite === undefined) {
     const suffixe =
       motif === undefined
-        ? 'The service was reached: it finds no record attached to this account.'
-        : `The service was reached: ${motif}.`
+        ? 'Le service a été joint : il ne trouve aucun dossier rattaché à ce compte.'
+        : `Le service a été joint : ${motif}.`
     return (
       <SourceAttendue
-        quoi="No investor record is attached to this account"
-        detail={`${suffixe} This is the normal case for an admin account — administering the space and subscribing to the fund are two distinct things, and one doesn't imply the other. No record is shown here rather than an empty one, which would look like a lost record.`}
+        quoi="Aucun dossier investisseur n’est rattaché à ce compte"
+        detail={`${suffixe} C’est le cas normal pour un compte administrateur — administrer l’espace et souscrire au fonds sont deux choses distinctes, et l’une n’implique pas l’autre. Aucun dossier n’est affiché ici plutôt qu’un dossier vide, qui ressemblerait à un dossier perdu.`}
         requis={[
-          'A fund subscription made with this email address',
-          'A know-your-customer file reviewed and approved',
-          'A wallet address attached to the record',
+          'Une souscription au fonds effectuée avec cette adresse e-mail',
+          'Un dossier de connaissance client examiné et approuvé',
+          'Une adresse de portefeuille rattachée au dossier',
         ]}
       />
     )
@@ -117,12 +117,12 @@ function DossierInvestisseur({
 
   return (
     <Card>
-      <CardHeader title="Investor record" hint="Passed through from the service, unedited" />
+      <CardHeader title="Dossier investisseur" hint="Transmis tel quel par le service, sans édition" />
       <dl className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-        <Ligne libelle="Record name" valeur={identite.displayName} />
-        <Ligne libelle="Email address" valeur={identite.email} />
-        <Ligne libelle="Wallet" valeur={identite.walletAddress} mono />
-        <Ligne libelle="Know-your-customer" valeur={identite.kycStatus} />
+        <Ligne libelle="Nom du dossier" valeur={identite.displayName} />
+        <Ligne libelle="Adresse e-mail" valeur={identite.email} />
+        <Ligne libelle="Portefeuille" valeur={identite.walletAddress} mono />
+        <Ligne libelle="Connaissance client" valeur={identite.kycStatus} />
         <Ligne libelle="Qualification" valeur={identite.accreditation} />
       </dl>
     </Card>
@@ -131,55 +131,55 @@ function DossierInvestisseur({
 
 export default async function Page() {
   const [session, reponse] = await Promise.all([getSession(), callBackend<ReponseProfil>('profile')])
-  const railUserName = session?.name ?? 'Hearst user'
+  const railUserName = session?.name ?? 'Utilisateur Hearst'
   const railUserRole = session?.role ?? 'MEMBER'
 
   const bloc = reponse.ok ? reponse.data.identity : undefined
   const identite = bloc?.value
   const motif = motifLisible(bloc?.reason)
-  const sessionState = session === null ? 'No valid session' : 'Session active'
-  const investorState = identite === null || identite === undefined ? 'No investor record' : 'Investor record present'
+  const sessionState = session === null ? 'Aucune session valide' : 'Session active'
+  const investorState = identite === null || identite === undefined ? 'Aucun dossier investisseur' : 'Dossier investisseur présent'
 
   return (
     <GreenCommandCenterShell
-      label="Hearst Connect profile cockpit"
+      label="Poste de pilotage profil Hearst Connect"
       rail={<GreenCommandRail currentHref="/admin/administration" userName={railUserName} userRole={railUserRole} />}
     >
-      <section className={gcc.metricsRow} aria-label="Profile summary">
+      <section className={gcc.metricsRow} aria-label="Résumé du profil">
         <Panel className={gcc.metricCard}><h2>Session</h2><div className={gcc.metricText}><Reading value={editorial(sessionState)} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Name</h2><div className={gcc.metricText}><Reading value={editorial(session?.name ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Email</h2><div className={gcc.metricText}><Reading value={editorial(session?.email ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Role</h2><div className={gcc.metricText}><Reading value={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} className={gcc.metricValue} /></div></Panel>
-        <Panel className={gcc.metricCard}><h2>Investor record</h2><div className={gcc.metricText}><Reading value={editorial(investorState)} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Nom</h2><div className={gcc.metricText}><Reading value={editorial(session?.name ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>E-mail</h2><div className={gcc.metricText}><Reading value={editorial(session?.email ?? '—')} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Rôle</h2><div className={gcc.metricText}><Reading value={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} className={gcc.metricValue} /></div></Panel>
+        <Panel className={gcc.metricCard}><h2>Dossier investisseur</h2><div className={gcc.metricText}><Reading value={editorial(investorState)} className={gcc.metricValue} /></div></Panel>
         <Panel className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Account <span>identity</span></p>
-          <p className={gcc.decisionMeta}>{reponse.ok ? 'Profile endpoint reachable' : 'Profile endpoint unavailable'}</p>
-          <p className={gcc.decisionActionMuted}>Session and investor are distinct</p>
+          <p className={gcc.decisionTitle}>Identité <span>du compte</span></p>
+          <p className={gcc.decisionMeta}>{reponse.ok ? 'Point d’accès profil joignable' : 'Point d’accès profil indisponible'}</p>
+          <p className={gcc.decisionActionMuted}>La session et l’investisseur sont distincts</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Profile identity">
+      <section className={gcc.mainRow} aria-label="Identité du profil">
         <Panel className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Your account</h2></div>
+          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Votre compte</h2></div>
           <div className={gcc.heroBody}>
       <AdminSection
-        title="Identity"
-        description="Two things live here and they are not the same. The account is what signs you in; the investor record is what links a person to a position in the fund. One does not imply the other."
+        title="Identité"
+        description="Deux choses vivent ici et elles ne sont pas identiques. Le compte est ce qui vous connecte ; le dossier investisseur est ce qui relie une personne à une position dans le fonds. L’un n’implique pas l’autre."
       >
         <AdminGrid>
           {/* ── A. The signed-in account: the one certainty on this page ──── */}
           <AdminCol span={5}>
             <Card>
-              <CardHeader title="Signed in as" hint="Read from your session, not from the service" />
+              <CardHeader title="Connecté en tant que" hint="Lu depuis votre session, pas depuis le service" />
               {session === null ? (
                 <p className="px-5 py-6 text-sm text-danger-400 sm:px-6">
-                  No valid session was found. Sign in again to view your account.
+                  Aucune session valide n’a été trouvée. Reconnectez-vous pour consulter votre compte.
                 </p>
               ) : (
                 <dl className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                  <Ligne libelle="Name" valeur={session.name} />
-                  <Ligne libelle="Email address" valeur={session.email} />
-                  <Ligne libelle="Role" valeur={LIBELLE_ROLE[session.role]} />
+                  <Ligne libelle="Nom" valeur={session.name} />
+                  <Ligne libelle="Adresse e-mail" valeur={session.email} />
+                  <Ligne libelle="Rôle" valeur={LIBELLE_ROLE[session.role]} />
                 </dl>
               )}
             </Card>
@@ -194,29 +194,29 @@ export default async function Page() {
           </div>
         </Panel>
         <aside className={gcc.rightStack}>
-          <Panel className={gcc.signalCard}><h3>Profile source</h3><p className={gcc.cellText}>{reponse.ok ? 'Reachable' : 'Unavailable'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Investor reason</h3><p className={gcc.cellText}>{motif ?? 'None reported'}</p></Panel>
-          <Panel className={gcc.signalCard}><h3>Role mapping</h3><p className={gcc.cellText}>Session role does not imply subscription.</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Source du profil</h3><p className={gcc.cellText}>{reponse.ok ? 'Joignable' : 'Indisponible'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Raison investisseur</h3><p className={gcc.cellText}>{motif ?? 'Aucune signalée'}</p></Panel>
+          <Panel className={gcc.signalCard}><h3>Correspondance des rôles</h3><p className={gcc.cellText}>Le rôle de session n’implique pas de souscription.</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Profile notes">
+      <section className={gcc.bottomRow} aria-label="Notes du profil">
         <Panel className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Data doctrine</h3></div>
+          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Doctrine des données</h3></div>
           <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Admin identity and investor identity are rendered separately.</p>
-            <p className={gcc.cellText}>Absence of investor record is explicit, never implied as outage.</p>
+            <p className={gcc.cellText}>L’identité administrateur et l’identité investisseur sont rendues séparément.</p>
+            <p className={gcc.cellText}>L’absence de dossier investisseur est explicite, jamais présentée comme une panne.</p>
           </div>
         </Panel>
         <Panel as="section" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Session source</h3><p className={gcc.cellText}>`getSession()`</p></article>
-          <article className={gcc.infoCell}><h3>Profile source</h3><p className={gcc.cellText}>`profile` backend endpoint</p></article>
-          <article className={gcc.infoCell}><h3>Investor fields</h3><p className={gcc.cellText}>Name, email, wallet, KYC, accreditation</p></article>
-          <article className={gcc.infoCell}><h3>Fallback</h3><p className={gcc.cellText}>No fabricated investor row</p></article>
+          <article className={gcc.infoCell}><h3>Source de session</h3><p className={gcc.cellText}>`getSession()`</p></article>
+          <article className={gcc.infoCell}><h3>Source du profil</h3><p className={gcc.cellText}>Point d’accès backend `profile`</p></article>
+          <article className={gcc.infoCell}><h3>Champs investisseur</h3><p className={gcc.cellText}>Nom, e-mail, portefeuille, KYC, accréditation</p></article>
+          <article className={gcc.infoCell}><h3>Repli</h3><p className={gcc.cellText}>Aucune ligne investisseur fabriquée</p></article>
         </Panel>
         <Panel className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Coverage path</h3>
-          <p className={gcc.cellText}>Use `/admin/dashboard` for endpoint-level status reasons.</p>
+          <h3 className={gcc.cardTitle}>Chemin de couverture</h3>
+          <p className={gcc.cellText}>Utilisez `/admin/dashboard` pour les raisons d’état au niveau des points d’accès.</p>
         </Panel>
       </section>
     </GreenCommandCenterShell>
