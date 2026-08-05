@@ -95,7 +95,7 @@ src/
 │   ├── admin/                  shell console (`application-layout`), helpers de page
 │   ├── vaults/                 tables et cartes du registre de coffres
 │   ├── charts/                 frontière dataviz (Recharts, MUI X)
-│   ├── compositions/           blocs UI métier réutilisables
+│   ├── compositions/           blocs UI réutilisables (`CockpitPage`, `StatGrid`, `ChartFrame`…)
 │   └── layout/                 shell espace (`console-shell`, hors rebuild console)
 ├── features/
 │   └── admin-home/             tableau de bord accueil console
@@ -111,9 +111,14 @@ src/
 
 ## Console d'administration
 
-Navigation principale (5 sections, `src/lib/admin-nav.ts`) :
-**Accueil · Clients · Conformité · Opérations · Administration**.
-Destinations secondaires groupées dans le même module.
+Navigation principale (`src/lib/admin-nav.ts`) :
+**Accueil · Coffres · Clients · Conformité · Opérations** dans la sidebar gauche,
+plus les hubs **Journal Série 1 · Produit · Service**. Les sous-menus horizontaux
+n’apparaissent que pour **Service** (État du service · Couverture des données).
+
+Surface produit canonique : **`/admin/produit`** (fusion mining, btc, fiche produit,
+backtests). Les anciennes routes (`/admin/product`, `/admin/mining`, etc.) redirigent.
+Keeper et Explorateur d’API restent accessibles depuis `/admin/runtime`, hors menu.
 
 Le shell console est le **Catalyst SidebarLayout**
 (`src/components/admin/application-layout.tsx`) : rail, navbar mobile et compte
@@ -124,7 +129,8 @@ utilisateur. **Toutes les pages `/admin/**` sont en Catalyst pur**
 
 - `/admin/vault` redirige vers `/admin/vaults` : le registre d'endpoints la nomme comme
   `surface` de plusieurs routes backend, la redirection évite d'en faire des 404.
-- **31 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité (dont `/clients`, `/deployments`, `/compliance`, `/events/rebalancing`, trigger indexeur admin).
+- **33 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité (dont `/clients`, `/deployments`, `/compliance`, `/events/rebalancing`, trigger indexeur et création de compte admin).
+- `/admin/client-simulator/new` — formulaire POST `/api/v1/admin/users` (création de compte simulé, fail-closed CONFIRM).
 - Langue produit : **français** (migration HC-CONSOLE-FR-001), gardée par
   `tests/language-regression.test.ts`.
 - Lecture LIVE : badge vert **« En direct »** via `AdminReading` / `Reading` +

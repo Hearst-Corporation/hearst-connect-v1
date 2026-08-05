@@ -11,10 +11,11 @@ import { Card, CardHeader } from '@/components/admin/cockpit'
  * the title, the unit, the provenance, and the state of the data at render
  * time.
  *
- * An unavailable chart shows its title, its source state, and a concise
- * message — never a fake set of axes pretending data exists, and never a
- * viewport-tall box to say that nothing exists. The empty state is sized to
- * its sentence (`hauteur` in px), not to a global chart height.
+ * When the source is unreachable (`indisponible`), only the title and a
+ * concise message are shown. Otherwise the chart slot always renders — the
+ * adapter draws axes and data when present, or an empty canvas when not.
+ * Context for a short or pending series lives in a caption below the slot,
+ * not in place of it.
  */
 
 export type EtatSerie =
@@ -63,9 +64,7 @@ export function ChartFrame({
     <Card className="flex h-full flex-col">
       <CardHeader title={question} hint={unite} />
 
-      {etat.type === 'tracee' ? (
-        children
-      ) : (
+      {etat.type === 'indisponible' ? (
         <div
           className={clsx('flex flex-col items-start gap-2 px-5 pb-5 sm:px-6')}
           style={hauteur === undefined ? undefined : { minHeight: hauteur }}
@@ -90,6 +89,22 @@ export function ChartFrame({
             </button>
           ) : null}
         </div>
+      ) : (
+        <>
+          {children}
+          {etat.type !== 'tracee' ? (
+            <p
+              className={clsx(
+                'max-w-prose px-5 pb-5 text-xs leading-relaxed sm:px-6',
+                TON_ETAT[etat.type],
+              )}
+            >
+              <span className="font-medium">{LIBELLE_ETAT[etat.type]}</span>
+              {' — '}
+              {etat.explication}
+            </p>
+          ) : null}
+        </>
       )}
     </Card>
   )

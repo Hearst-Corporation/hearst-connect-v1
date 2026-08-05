@@ -2,30 +2,19 @@ import {
   ArrowsRightLeftIcon,
   BuildingOffice2Icon,
   CircleStackIcon,
-  CommandLineIcon,
-  CpuChipIcon,
-  CubeIcon,
   DocumentTextIcon,
   HomeIcon,
   IdentificationIcon,
-  PresentationChartLineIcon,
   ShieldCheckIcon,
   SignalIcon,
   Squares2X2Icon,
   TableCellsIcon,
-  WrenchScrewdriverIcon,
 } from '@heroicons/react/20/solid'
 
 /**
- * Console navigation — four primary destinations, and only four.
- *
- * The previous flat list carried fourteen entries. Fourteen equally-weighted
- * choices is not navigation, it is an index: nothing is primary when
- * everything is. "API Explorer" and "Home" cannot be peers.
- *
- * The four questions someone actually opens this console for — where do we
- * stand, who are the clients, are we compliant, what moved. Every other
- * screen is listed in the secondary sidebar groups.
+ * Console navigation — cinq destinations primaires dans la sidebar,
+ * hubs de section (Journal, Produit, Service) et sous-menus horizontaux
+ * dans le corps quand la section en porte plusieurs.
  */
 
 type IconeNav = typeof HomeIcon
@@ -36,22 +25,22 @@ export type EntreeNav = Readonly<{
   icone: IconeNav
 }>
 
-/**
- * The client directory, named once.
- *
- * It is a primary destination AND one of the seven entry points Administration
- * has to expose, so two files need its route. Exporting the entry rather than
- * the string keeps `/admin/clients` written down in exactly one place.
- */
 export const CLIENTS_ENTRY: EntreeNav = {
   libelle: 'Clients',
   href: '/admin/clients',
   icone: BuildingOffice2Icon,
 }
 
-/** The five primary destinations rendered in the sidebar. */
+export const VAULTS_ENTRY: EntreeNav = {
+  libelle: 'Coffres',
+  href: '/admin/vaults',
+  icone: CircleStackIcon,
+}
+
+/** Les cinq destinations primaires rendues dans la sidebar. */
 export const ADMIN_NAV: readonly EntreeNav[] = [
   { libelle: 'Accueil', href: '/admin', icone: HomeIcon },
+  VAULTS_ENTRY,
   CLIENTS_ENTRY,
   { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },
   { libelle: 'Opérations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
@@ -63,7 +52,6 @@ export type EntreeSecondaire = Readonly<{
   libelle: string
   href: string
   icone: IconeNav
-  /** What this screen carries that no other one does. */
   detail: string
 }>
 
@@ -72,20 +60,6 @@ export type GroupeSecondaire = Readonly<{
   entrees: readonly EntreeSecondaire[]
 }>
 
-/**
- * The vault registry — the spine of the vault-centric console.
- *
- * It replaced `/admin/vault`, which showed THE vault: one screen bound to
- * whichever contract the service happened to answer with. The console is
- * organised around vaults as a set, so the registry lists every vault the
- * service exposes, with the client it belongs to, how it is allocated, and
- * what is pending on it — and each row opens `/admin/vaults/{vaultId}`.
- *
- * It is exported on its own because two other screens link straight to it:
- * Administration features it, and Clients bridges to it (a client can only be
- * reached through the vault it holds while no directory endpoint exists).
- * Exporting the entry, not the string, keeps the route written down once.
- */
 export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
   libelle: 'Registre des coffres',
   href: '/admin/vaults',
@@ -93,11 +67,13 @@ export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
   detail: 'Chaque coffre, son client, son allocation et ses opérations en attente',
 }
 
-/**
- * Data coverage — the one screen that explains, surface by surface, what the
- * service actually serves and what it answers 404 for. Every screen rendering
- * an absence may link here once, so its route is named here too.
- */
+export const PRODUIT_ENTRY: EntreeSecondaire = {
+  libelle: 'Produit',
+  href: '/admin/produit',
+  icone: DocumentTextIcon,
+  detail: 'Production, réserve, rémunération et backtests sur un seul écran',
+}
+
 export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
   libelle: 'Couverture des données',
   href: '/admin/dashboard',
@@ -106,58 +82,25 @@ export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
 }
 
 /**
- * Everything that is not a primary destination, grouped by subject.
- *
- * Administration renders this list; nothing else should hard-code these
- * routes, so adding a screen means adding one entry here.
+ * Groupes pour la sous-navigation horizontale et les hubs latéraux.
+ * Les anciennes routes (`/admin/mining`, `/admin/product`, etc.) redirigent
+ * vers `/admin/produit` — elles ne figurent plus ici.
  */
 export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
   {
     titre: 'Portfolio',
     entrees: [
-      VAULT_REGISTRY_ENTRY,
       {
         libelle: 'Journal Série 1',
         href: '/admin/series-1',
         icone: Squares2X2Icon,
         detail: 'Le journal on-chain indexé de la Série 1',
       },
-      {
-        libelle: 'Fiche produit',
-        href: '/admin/product',
-        icone: DocumentTextIcon,
-        detail: 'Conditions de souscription, durée et plafond du fonds',
-      },
-      {
-        libelle: 'Vue produit consolidée',
-        href: '/admin/administration/produit',
-        icone: TableCellsIcon,
-        detail: 'Production, réserve et rémunération sur un seul écran',
-      },
     ],
   },
   {
     titre: 'Production',
-    entrees: [
-      {
-        libelle: 'Minage',
-        href: '/admin/mining',
-        icone: CpuChipIcon,
-        detail: 'Capacité de la flotte et production attestée',
-      },
-      {
-        libelle: 'Bitcoin',
-        href: '/admin/btc',
-        icone: CubeIcon,
-        detail: 'Bitcoin produit, mois par mois',
-      },
-      {
-        libelle: 'Backtests',
-        href: '/admin/backtest',
-        icone: PresentationChartLineIcon,
-        detail: 'Ce que la stratégie aurait produit par le passé',
-      },
-    ],
+    entrees: [PRODUIT_ENTRY],
   },
   {
     titre: 'Service',
@@ -167,18 +110,6 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         href: '/admin/runtime',
         icone: SignalIcon,
         detail: 'Sondes de dépendances, déploiement et réponses brutes',
-      },
-      {
-        libelle: 'Actions Keeper',
-        href: '/admin/keeper',
-        icone: WrenchScrewdriverIcon,
-        detail: 'Actions d’exploitation exposées par le service',
-      },
-      {
-        libelle: "Explorateur d'API",
-        href: '/admin/api-explorer',
-        icone: CommandLineIcon,
-        detail: 'Chaque point d’accès, appelé en direct, avec sa trace',
       },
       DATA_COVERAGE_ENTRY,
     ],
@@ -196,26 +127,67 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
   },
 ]
 
-/** Flat view of the secondary destinations — for lookups, not for rendering. */
 export const ADMIN_SECONDARY_FLAT: readonly EntreeSecondaire[] = ADMIN_SECONDARY.flatMap(
   (g) => g.entrees,
 )
 
-/**
- * Active entry: the LONGEST declared path that prefixes the current page.
- *
- * The longest, not the first match, because `/admin` prefixes every page in
- * the console — without this rule it would stay lit everywhere.
- *
- * A secondary screen resolves to Administration: the sidebar must never go
- * dark just because the current page is not one of the five.
- *
- * The `startsWith(`${href}/`)` half is what carries the vault entity routes:
- * `/admin/vaults` is the declared entry, and `/admin/vaults/31337-0x66df…`
- * is a child of it, so opening one vault keeps Administration lit instead of
- * dropping the sidebar back to Home — `/admin` prefixes it too, and without
- * this rule the longest-match loop would light Home on every vault page.
- */
+export type HubSection = Readonly<{
+  titre: string
+  libelle: string
+  href: string
+  icone: IconeNav
+}>
+
+export const ADMIN_SECTION_HUBS: readonly HubSection[] = [
+  {
+    titre: 'Portfolio',
+    libelle: 'Journal Série 1',
+    href: '/admin/series-1',
+    icone: Squares2X2Icon,
+  },
+  {
+    titre: 'Production',
+    libelle: 'Produit',
+    href: '/admin/produit',
+    icone: DocumentTextIcon,
+  },
+  {
+    titre: 'Service',
+    libelle: 'Service',
+    href: '/admin/runtime',
+    icone: SignalIcon,
+  },
+]
+
+export function groupeSecondaireActif(pathname: string): GroupeSecondaire | undefined {
+  return ADMIN_SECONDARY.find(
+    (groupe) =>
+      groupe.titre !== 'Compte' &&
+      groupe.entrees.some(
+        (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
+      ),
+  )
+}
+
+export function sousMenusCorps(pathname: string): readonly EntreeSecondaire[] | undefined {
+  const groupe = groupeSecondaireActif(pathname)
+  if (groupe === undefined || groupe.entrees.length <= 1) return undefined
+  return groupe.entrees
+}
+
+export function hrefCorpsActif(pathname: string): string | undefined {
+  const sousMenus = sousMenusCorps(pathname)
+  if (sousMenus === undefined) return undefined
+
+  let meilleur: string | undefined
+  for (const entree of sousMenus) {
+    const correspond = pathname === entree.href || pathname.startsWith(`${entree.href}/`)
+    if (!correspond) continue
+    if (meilleur === undefined || entree.href.length > meilleur.length) meilleur = entree.href
+  }
+  return meilleur
+}
+
 export function hrefActif(pathname: string): string | undefined {
   let meilleur: string | undefined
   for (const entree of ADMIN_NAV) {

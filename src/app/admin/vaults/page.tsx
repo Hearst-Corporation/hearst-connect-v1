@@ -1,4 +1,4 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
 import {
@@ -8,13 +8,19 @@ import {
 } from '@/components/catalyst/description-list'
 import { Text } from '@/components/catalyst/text'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import {
+  Callout,
+  DataTableShell,
+  SectionCard,
+  StatCard,
+  StatGrid,
+} from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { requireSession } from '@/lib/auth'
@@ -125,59 +131,41 @@ export default async function Page() {
         description="Vue opérationnelle sur les coffres, leurs sources et les signaux du registre — sans décompte de repli quand une source est indisponible."
       />
 
-      <DescriptionList>
-        <DescriptionTerm>Coffres actifs</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={activeVaults} />
-        </DescriptionDetails>
-        <DescriptionTerm>Coffres répertoriés</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={totalVaults} />
-        </DescriptionDetails>
-        <DescriptionTerm>Sources en direct</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={liveSources} />
-        </DescriptionDetails>
-        <DescriptionTerm>Mouvements indexés</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={movements} />
-        </DescriptionDetails>
-        <DescriptionTerm>Clients</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={clientsCount} />
-        </DescriptionDetails>
-        <DescriptionTerm>Déploiements</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={deploymentsCount} />
-        </DescriptionDetails>
-        <DescriptionTerm>Conformité</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={complianceCount} />
-        </DescriptionDetails>
-        <DescriptionTerm>Anomalies clients</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={exceptions} />
-        </DescriptionDetails>
-        <DescriptionTerm>État du registre</DescriptionTerm>
-        <DescriptionDetails>{decisionLabel}</DescriptionDetails>
-      </DescriptionList>
-
-      <AdminSectionHeading
-        title="Coffres"
-        description="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
-      />
+      <StatGrid label="Signaux du registre" columns={4}>
+        <StatCard titre="Coffres actifs" valeur={activeVaults} />
+        <StatCard titre="Coffres répertoriés" valeur={totalVaults} />
+        <StatCard titre="Sources en direct" valeur={liveSources} />
+        <StatCard titre="Mouvements indexés" valeur={movements} />
+        <StatCard titre="Clients" valeur={clientsCount} />
+        <StatCard titre="Déploiements" valeur={deploymentsCount} />
+        <StatCard titre="Conformité" valeur={complianceCount} />
+        <StatCard titre="Anomalies clients" valeur={exceptions} hint={decisionLabel} />
+      </StatGrid>
 
       {vaultList === null ? (
-        <Text>
-          La lecture du registre n’a pas abouti.{' '}
-          <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
-            Couverture des données
-          </Link>
-        </Text>
+        <SectionCard
+          title="Coffres"
+          hint="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
+        >
+          <Callout tone="warning" title="Lecture du registre indisponible">
+            La lecture du registre n’a pas abouti.{' '}
+            <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
+              Couverture des données
+            </Link>
+          </Callout>
+        </SectionCard>
       ) : vaultList.length === 0 ? (
-        <Text>Le service a répondu sans coffre dans le registre.</Text>
+        <DataTableShell
+          title="Coffres"
+          description="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
+          calme="Le service a répondu sans coffre dans le registre."
+        />
       ) : (
-        <Table>
+        <DataTableShell
+          title="Coffres"
+          description="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
+          count={`${formatNumber(vaultList.length)} coffre(s)`}
+        >
           <TableHead>
             <TableRow>
               <TableHeader>Coffre</TableHeader>
@@ -262,81 +250,82 @@ export default async function Page() {
               )
             })}
           </TableBody>
-        </Table>
+        </DataTableShell>
       )}
 
-      <AdminSectionHeading title="Valeur par coffre" />
       {breakdown.kind === 'absent' ? (
-        <Text>
-          La lecture des coffres n’a pas abouti.{' '}
-          <Link href={entityHref('source', 'vault')}>Couverture des données</Link>
-        </Text>
+        <SectionCard title="Valeur par coffre">
+          <Callout tone="warning" title="Lecture des coffres indisponible">
+            La lecture des coffres n’a pas abouti.{' '}
+            <Link href={entityHref('source', 'vault')}>Couverture des données</Link>
+          </Callout>
+        </SectionCard>
       ) : breakdown.kind === 'empty' ? (
-        <Text>Le service a répondu sans coffre.</Text>
+        <DataTableShell title="Valeur par coffre" calme="Le service a répondu sans coffre." />
       ) : breakdown.ranked.length === 0 ? (
-        <Text>
-          Le registre liste des coffres, mais aucun ne portait de total lisible.
+        <SectionCard
+          title="Valeur par coffre"
+          hint="Le registre liste des coffres, mais aucun ne portait de total lisible."
+        >
           {breakdown.unmeasured.map((vault) => (
-            <span key={vault.id} className="mt-2 block">
+            <p key={vault.id} className="mt-2">
               {vault.label} —{' '}
               {!isAvailable(vault.totalAssetsAtomic) ? (
                 <AdminReading value={absentReading(vault.totalAssetsAtomic)} />
               ) : null}
-            </span>
+            </p>
           ))}
-        </Text>
+        </SectionCard>
       ) : (
-        <>
-          <DescriptionList className="mb-4">
-            <DescriptionTerm>Total lisible</DescriptionTerm>
-            <DescriptionDetails>
-              {formatCurrency(breakdown.total.toString(), {
-                fromAtomic: assetScale(breakdown.ranked[0].vault),
-              })}
-            </DescriptionDetails>
-          </DescriptionList>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Coffre</TableHeader>
-                <TableHeader>Valeur</TableHeader>
-                <TableHeader>Part du total</TableHeader>
-                <TableHeader>État</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {breakdown.ranked.map(({ vault, atomic }) => {
-                const percent =
-                  breakdown.total > ZERO ? Number((atomic * BPS) / breakdown.total) / 100 : null
-                return (
-                  <TableRow key={vault.id}>
-                    <TableCell>
-                      <Link href={entityHref('vault', vault.id)} className="font-medium">
-                        {vault.label}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {formatCurrency(atomic.toString(), { fromAtomic: assetScale(vault) })}
-                    </TableCell>
-                    <TableCell>{percent === null ? '—' : formatPercent(percent)}</TableCell>
-                    <TableCell>
-                      <VaultStatusBadge status={vault.status} />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-          {breakdown.unmeasured.length > 0 ? (
-            <Text className="mt-4">
-              Exclus du total : {formatNumber(breakdown.unmeasured.length)} coffre(s) illisible(s).
-            </Text>
-          ) : null}
-        </>
+        <DataTableShell
+          title="Valeur par coffre"
+          description={`Total lisible : ${formatCurrency(breakdown.total.toString(), {
+            fromAtomic: assetScale(breakdown.ranked[0].vault),
+          })}`}
+          count={`${formatNumber(breakdown.ranked.length)} coffre(s) mesuré(s)`}
+        >
+          <TableHead>
+            <TableRow>
+              <TableHeader>Coffre</TableHeader>
+              <TableHeader>Valeur</TableHeader>
+              <TableHeader>Part du total</TableHeader>
+              <TableHeader>État</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {breakdown.ranked.map(({ vault, atomic }) => {
+              const percent =
+                breakdown.total > ZERO ? Number((atomic * BPS) / breakdown.total) / 100 : null
+              return (
+                <TableRow key={vault.id}>
+                  <TableCell>
+                    <Link href={entityHref('vault', vault.id)} className="font-medium">
+                      {vault.label}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {formatCurrency(atomic.toString(), { fromAtomic: assetScale(vault) })}
+                  </TableCell>
+                  <TableCell>{percent === null ? '—' : formatPercent(percent)}</TableCell>
+                  <TableCell>
+                    <VaultStatusBadge status={vault.status} />
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </DataTableShell>
       )}
+      {breakdown.kind === 'rows' && breakdown.ranked.length > 0 && breakdown.unmeasured.length > 0 ? (
+        <Callout tone="info">
+          Exclus du total : {formatNumber(breakdown.unmeasured.length)} coffre(s) illisible(s).
+        </Callout>
+      ) : null}
 
-      <AdminSectionHeading title="Activité des sources" />
-      <Table>
+      <DataTableShell
+        title="Activité des sources"
+        count={`${formatNumber(registry.sources.length)} source(s)`}
+      >
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
@@ -351,21 +340,22 @@ export default async function Page() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </DataTableShell>
 
-      <AdminSectionHeading title="Contrat de données" />
-      <DescriptionList>
-        <DescriptionTerm>Point d’accès du registre</DescriptionTerm>
-        <DescriptionDetails className="font-mono text-sm">GET /api/v1/vault</DescriptionDetails>
-        <DescriptionTerm>Seuil</DescriptionTerm>
-        <DescriptionDetails>Seuil de la console ±2,00 pt</DescriptionDetails>
-        <DescriptionTerm>Navigation</DescriptionTerm>
-        <DescriptionDetails>Pages de détail dans `/admin/vaults/{'{vaultId}'}`</DescriptionDetails>
-        <DescriptionTerm>Principe</DescriptionTerm>
-        <DescriptionDetails>
-          Aucun décompte de repli quand une source est indisponible.
-        </DescriptionDetails>
-      </DescriptionList>
+      <SectionCard title="Contrat de données" eyebrow="Registre">
+        <DescriptionList>
+          <DescriptionTerm>Point d’accès du registre</DescriptionTerm>
+          <DescriptionDetails className="font-mono text-sm">GET /api/v1/vault</DescriptionDetails>
+          <DescriptionTerm>Seuil</DescriptionTerm>
+          <DescriptionDetails>Seuil de la console ±2,00 pt</DescriptionDetails>
+          <DescriptionTerm>Navigation</DescriptionTerm>
+          <DescriptionDetails>Pages de détail dans `/admin/vaults/{'{vaultId}'}`</DescriptionDetails>
+          <DescriptionTerm>Principe</DescriptionTerm>
+          <DescriptionDetails>
+            Aucun décompte de repli quand une source est indisponible.
+          </DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
     </div>
   )
 }

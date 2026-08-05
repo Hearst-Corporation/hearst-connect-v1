@@ -22,11 +22,11 @@ export { plottableAsChart } from '@/components/charts/core/chart-theme'
 
 /* ── Cartésiens ───────────────────────────────────────────────────────────── */
 export { ProductionMensuelleChart, type MoisProduction } from '@/components/charts/cartesian/btc-production-chart'
-export {
-  ReserveExpositionChart,
-  type PosteBitcoin,
-} from '@/components/charts/cartesian/product-charts'
+export { ReserveExpositionChart, type PosteBitcoin } from '@/components/charts/cartesian/product-charts'
 
 /* ── MUI X ────────────────────────────────────────────────────────────────── */
+export { HearstActivityChart, type PointActivite } from '@/components/charts/mui-x/activity-chart'
+export { HearstAllocationChart, type PosteAllocation } from '@/components/charts/mui-x/allocation-chart'
+export { HearstCourbeChart, type PointCourbe } from '@/components/charts/mui-x/courbe-chart'
 export { MuiDistributionChart, type DistributionItem } from '@/components/charts/mui-x/distribution-chart'
 export { MuiSparkline } from '@/components/charts/mui-x/sparkline'

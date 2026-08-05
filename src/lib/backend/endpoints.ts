@@ -229,7 +229,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/mining',
     category: 'business',
     auth: 'session',
-    surface: '/admin/mining',
+    surface: '/admin/produit',
     summary: 'Mining aggregate.',
   }),
   defineEndpoint({
@@ -237,27 +237,27 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/mining/metrics/onchain',
     category: 'business',
     auth: 'session',
-    surface: '/admin/mining',
+    surface: '/admin/produit',
     summary: 'Mining metrics read on-chain.',
     caveat:
-      'Lecture directe on-chain, distincte de l’agrégat `mining` : `/admin/mining` compare les deux et signale tout écart.',
+      'Lecture directe on-chain, distincte de l’agrégat `mining` : `/admin/produit` compare les deux et signale tout écart.',
   }),
   defineEndpoint({
     id: 'mining-electricity',
     path: '/api/v1/mining/electricity',
     category: 'business',
     auth: 'session',
-    surface: '/admin/mining',
+    surface: '/admin/produit',
     summary: 'Mining electricity line item.',
     caveat:
-      'Lecture dédiée du poste électricité, distincte de `mining.electricity` : `/admin/mining` réconcilie les deux.',
+      'Lecture dédiée du poste électricité, distincte de `mining.electricity` : `/admin/produit` réconcilie les deux.',
   }),
   defineEndpoint({
     id: 'btc',
     path: '/api/v1/btc',
     category: 'business',
     auth: 'session',
-    surface: '/admin/btc',
+    surface: '/admin/produit',
     summary: 'BTC aggregate.',
   }),
   defineEndpoint({
@@ -265,7 +265,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/product/factsheet',
     category: 'business',
     auth: 'session',
-    surface: '/admin/product',
+    surface: '/admin/produit',
     summary: 'Product factsheet and terms.',
     caveat:
       '`minimumDepositUsdc` is in whole USDC here, not to be confused with the dashboard\'s `subscription.minimumDeposit`.',
@@ -275,7 +275,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/backtest/historical',
     category: 'business',
     auth: 'session',
-    surface: '/admin/backtest',
+    surface: '/admin/produit',
     summary: 'Historical backtest series computed by the backend.',
     caveat: 'Data produced by the backend: the frontend derives no projection from it.',
   }),
@@ -323,6 +323,18 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     enveloped: false,
     summary: 'Triggers a Series 1 indexer run (admin only).',
     caveat: 'Operational trigger — not a business fact. Not a Keeper write.',
+  }),
+  defineEndpoint({
+    id: 'admin-users',
+    method: 'POST',
+    path: '/api/v1/admin/users',
+    category: 'probe',
+    auth: 'admin',
+    surface: '/admin/client-simulator/new',
+    enveloped: false,
+    summary: 'Crée un compte utilisateur (admin choisit le rôle).',
+    caveat:
+      'Corps strict `{ email, password, role }` — le mot de passe n’est jamais restitué. Réponse 201 `{ user: { id, email, role } }`.',
   }),
 
   // ── Keeper actions ─────────────────────────────────────────────────────────

@@ -21,12 +21,8 @@ export function MuiDistributionChart({
   items,
   unit = '',
 }: Readonly<{ items: readonly DistributionItem[]; unit?: string }>) {
-  if (items.length === 0) {
-    return <p className="px-5 pb-5 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">Aucune donnée à afficher.</p>
-  }
-
   const sortedItems = [...items].sort((a, b) => b.value - a.value)
-  const height = chartHeight('rows', sortedItems.length)
+  const height = chartHeight('rows', Math.max(sortedItems.length, 1))
 
   return (
     <div className="px-5 pb-5 sm:px-6">

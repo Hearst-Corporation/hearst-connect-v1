@@ -1,5 +1,4 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
-import { AdminReading } from '@/components/admin/reading'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -8,13 +7,18 @@ import {
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import {
+  StatCard,
+  StatGrid,
+  SectionCard,
+  DataTableShell,
+} from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
 import { availabilityFromResolu } from '@/lib/backend/availability'
@@ -152,43 +156,29 @@ export default async function Page() {
         description="Quelles surfaces produit sont réellement servies aujourd’hui. Les états sont affichés exactement tels que le backend les rapporte — champ le plus dégradé d’abord."
       />
 
-      <DescriptionList>
-        <DescriptionTerm>Servi</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={servedCell} />
-        </DescriptionDetails>
-        <DescriptionTerm>Partiel</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={partialCell} />
-        </DescriptionDetails>
-        <DescriptionTerm>Non ouvert</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={notOpenedCell} />
-        </DescriptionDetails>
-        <DescriptionTerm>Surfaces totales</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={totalCell} />
-        </DescriptionDetails>
-        <DescriptionTerm>Taux de couverture</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={coverageCell} />
-        </DescriptionDetails>
-        <DescriptionTerm>État de la source</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={sourceState} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <StatGrid label="Couverture des surfaces" columns={3}>
+        <StatCard titre="Servi" valeur={servedCell} showRoute />
+        <StatCard titre="Partiel" valeur={partialCell} showRoute />
+        <StatCard titre="Non ouvert" valeur={notOpenedCell} showRoute />
+        <StatCard titre="Surfaces totales" valeur={totalCell} showRoute />
+        <StatCard titre="Taux de couverture" valeur={coverageCell} showRoute />
+        <StatCard titre="État de la source" valeur={sourceState} showRoute />
+      </StatGrid>
 
-      <AdminSectionHeading
-        title="Surface par surface"
-        description="Dix-huit surfaces dans une seule liste, ordonnées par palier. Aucun statut n’est requalifié côté front."
-      />
       {aggregate === null ? (
-        <Text>
-          Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.
-        </Text>
+        <SectionCard
+          title="Surface par surface"
+          hint="Dix-huit surfaces dans une seule liste, ordonnées par palier. Aucun statut n’est requalifié côté front."
+        >
+          <Text>
+            Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.
+          </Text>
+        </SectionCard>
       ) : (
-        <Table>
+        <DataTableShell
+          title="Surface par surface"
+          description="Dix-huit surfaces dans une seule liste, ordonnées par palier. Aucun statut n’est requalifié côté front."
+        >
           <TableHead>
             <TableRow>
               <TableHeader>Surface</TableHeader>
@@ -205,23 +195,26 @@ export default async function Page() {
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+        </DataTableShell>
       )}
 
-      <AdminSectionHeading title="Signification des paliers" />
-      <DescriptionList>
-        {TIER_ORDER.map((tier) => (
-          <div key={tier} className="contents">
-            <DescriptionTerm>{TIER_TITLE[tier]}</DescriptionTerm>
-            <DescriptionDetails>
-              {countIn(surfaces, tier)} — {TIER_EXPLANATION[tier]}
-            </DescriptionDetails>
-          </div>
-        ))}
-      </DescriptionList>
+      <SectionCard title="Signification des paliers">
+        <DescriptionList>
+          {TIER_ORDER.map((tier) => (
+            <div key={tier} className="contents">
+              <DescriptionTerm>{TIER_TITLE[tier]}</DescriptionTerm>
+              <DescriptionDetails>
+                {countIn(surfaces, tier)} — {TIER_EXPLANATION[tier]}
+              </DescriptionDetails>
+            </div>
+          ))}
+        </DescriptionList>
+      </SectionCard>
 
-      <AdminSectionHeading title="Activité des sources" />
-      <Table>
+      <DataTableShell
+        title="Activité des sources"
+        description="État des points d’accès backend, tel que le registre les rapporte."
+      >
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
@@ -238,21 +231,22 @@ export default async function Page() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </DataTableShell>
 
-      <AdminSectionHeading title="Liens clés" />
-      <Text>
-        <Link href="/admin/operations" className="underline">
-          Opérations
-        </Link>
-        {' — '}
-        Exécution et mouvements de la chaîne.{' '}
-        <Link href="/admin/runtime" className="underline">
-          Exécution
-        </Link>
-        {' — '}
-        État de l’indexeur et de l’ordonnanceur.
-      </Text>
+      <SectionCard title="Liens clés">
+        <Text>
+          <Link href="/admin/operations" className="underline">
+            Opérations
+          </Link>
+          {' — '}
+          Exécution et mouvements de la chaîne.{' '}
+          <Link href="/admin/runtime" className="underline">
+            Exécution
+          </Link>
+          {' — '}
+          État de l’indexeur et de l’ordonnanceur.
+        </Text>
+      </SectionCard>
     </div>
   )
 }

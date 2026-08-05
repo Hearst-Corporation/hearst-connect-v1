@@ -30,17 +30,13 @@ const VIEWPORTS = [
 const PUBLIQUES = ['/', '/login', '/register'] as const
 const ADMIN = [
   '/admin',
-  '/admin/administration/produit',
+  '/admin/produit',
   '/admin/api-explorer',
-  '/admin/backtest',
-  '/admin/btc',
   '/admin/clients',
   '/admin/conformite',
   '/admin/dashboard',
   '/admin/keeper',
-  '/admin/mining',
   '/admin/operations',
-  '/admin/product',
   '/admin/profile',
   '/admin/runtime',
   '/admin/series-1',

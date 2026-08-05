@@ -1,7 +1,7 @@
 # Passation agent — Hearst Connect V1
 
 > **À coller en tête de mission pour le prochain agent.**  
-> Dernière mise à jour : 2026-08-05. Branche de travail : **`main` uniquement**.
+> Dernière mise à jour : 2026-08-05 (navigation consolidée, `/admin/produit`). Branche de travail : **`feat/mui-x-dataviz-charts`** → merge `main` après gate.
 
 ---
 
@@ -85,8 +85,9 @@ Registre : **31 endpoints** dans `src/lib/backend/endpoints.ts`.
 | `loadAdminRegistry` | appelle vault, strategies, rwa, rebalancing, series1-events, dashboard, **clients, deployments, compliance** |
 | `/admin/clients` | table annuaire (vide LIVE = « vide », plus de copy « non exposé ») |
 | `/admin/conformite` | table file KYC |
-| `/admin/operations` | + **events-rebalancing** |
-| `/admin/runtime` | + formulaire **trigger indexer** (`admin-indexer-trigger`) |
+| `/admin/operations` | + **events-rebalancing** (layout `CockpitPage`) |
+| `/admin/produit` | surface consolidée mining + btc + factsheet + backtests |
+| `/admin/runtime` | + formulaire **trigger indexer** ; liens Keeper / API Explorer |
 | `vault.client` | `EMPTY` / `vault_owner_not_reported` (pas `NOT_EXPOSED`) |
 
 ### Données qui sortent aujourd’hui

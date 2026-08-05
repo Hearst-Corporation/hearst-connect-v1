@@ -109,14 +109,6 @@ export function ProductionMensuelleChart({
   mois,
   cumulBtc,
 }: Readonly<{ mois: readonly MoisProduction[]; cumulBtc: string | null }>) {
-  if (mois.length === 0) {
-    return (
-      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
-        No production month can be read from the data. Nothing is plotted rather than showing a bar at zero.
-      </p>
-    )
-  }
-
   return (
     <div className="px-3 pb-5 sm:px-4">
       {/* The only version readable by screen readers and keyboard navigation.
@@ -149,7 +141,7 @@ export function ProductionMensuelleChart({
       {/* Height in pixels, derived from the month count. A short series gets a
           short canvas — that is the whole fix to the "one thin bar floating in
           a plot" defect. */}
-      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('columns', mois.length) }}>
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('columns', Math.max(mois.length, 1)) }}>
         <ResponsiveContainer width="100%" height="100%">
           {/* `left` stays negative: the YAxis reserves 64px of its own width
               for the tick labels, and without this offset the plot area

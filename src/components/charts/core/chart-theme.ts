@@ -21,6 +21,8 @@
  * observations instead; a chart is never taller than its information value.
  */
 
+import { formatNumber } from '@/lib/format'
+
 export const chartTheme = {
   /**
    * Legacy class-based heights. Prefer `chartHeight()` — these remain for
@@ -162,12 +164,23 @@ export function chartHeight(kind: ChartKind, points: number): number {
 }
 
 /**
- * A series can only be plotted as a trend once it has enough ordered
- * observations to show one. Below that, the honest rendering is the value
- * itself — see `SingleObservation`.
+ * Whether the chart slot should render (axes + canvas), even when the series
+ * is short or empty. A placeholder stays visible so the layout never collapses
+ * to a text-only absence where a chart is expected.
  */
-const MIN_POINTS_FOR_CHART = 2
+export function plottableAsChart(_points: number): boolean {
+  return true
+}
 
-export function plottableAsChart(points: number): boolean {
-  return points >= MIN_POINTS_FOR_CHART
+/**
+ * Shared percent formatter for chart adapters (sr-only tables, tooltips,
+ * axis labels). `null` reads as "not read" (`—`), never `0 %` — a chart
+ * adapter never invents the value it was not handed. Deliberately not
+ * `formatPercent` from `lib/format.ts`: that one has no space before `%`
+ * and defaults to 1 decimal — chart adapters use a space and 2 decimals,
+ * so this wraps `formatNumber` with the chart-specific literal instead.
+ */
+export function formatChartPercent(value: number | null): string {
+  if (value === null) return '—'
+  return `${formatNumber(value, { maximumFractionDigits: 2 })} %`
 }

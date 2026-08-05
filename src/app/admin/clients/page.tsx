@@ -1,15 +1,19 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
-import { AdminReading } from '@/components/admin/reading'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import {
+  StatCard,
+  StatGrid,
+  SectionCard,
+  DataTableShell,
+} from '@/components/compositions'
 import { DATA_COVERAGE_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
@@ -58,40 +62,27 @@ export default async function Page() {
         description="Annuaire issu de GET /api/v1/clients (rôle admin). Une liste vide reste vide — aucune ligne inventée."
       />
 
-      <DescriptionList>
-        <DescriptionTerm>Annuaire des clients</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={clientDirectory} />
-        </DescriptionDetails>
-        <DescriptionTerm>Clients recensés</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={clientCount} />
-        </DescriptionDetails>
-        <DescriptionTerm>Source de conformité</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={complianceDirectory} />
-        </DescriptionDetails>
-        <DescriptionTerm>Anomalies clients</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={clientExceptions} />
-        </DescriptionDetails>
-        <DescriptionTerm>Coffres joignables</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={reachableVaults} />
-        </DescriptionDetails>
-        <DescriptionTerm>Surface de couverture</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial('Couverture des données')} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <StatGrid label="Indicateurs clients" columns={3}>
+        <StatCard titre="Annuaire des clients" valeur={clientDirectory} showRoute />
+        <StatCard titre="Clients recensés" valeur={clientCount} showRoute />
+        <StatCard titre="Source de conformité" valeur={complianceDirectory} showRoute />
+        <StatCard titre="Anomalies clients" valeur={clientExceptions} showRoute />
+        <StatCard titre="Coffres joignables" valeur={reachableVaults} showRoute />
+        <StatCard titre="Surface de couverture" valeur={editorial('Couverture des données')} />
+      </StatGrid>
 
-      <AdminSectionHeading title="Annuaire" description="Source /api/v1/clients uniquement." />
       {clients === null ? (
-        <Text>L’annuaire n’a pas pu être lu.</Text>
+        <SectionCard title="Annuaire" hint="Source /api/v1/clients uniquement.">
+          <Text>L’annuaire n’a pas pu être lu.</Text>
+        </SectionCard>
       ) : clients.length === 0 ? (
-        <Text>Aucun investisseur en base pour cet annuaire.</Text>
+        <DataTableShell
+          title="Annuaire"
+          description="Source /api/v1/clients uniquement."
+          calme="Aucun investisseur en base pour cet annuaire."
+        />
       ) : (
-        <Table>
+        <DataTableShell title="Annuaire" description="Source /api/v1/clients uniquement.">
           <TableHead>
             <TableRow>
               <TableHeader>Identifiant</TableHeader>
@@ -106,7 +97,7 @@ export default async function Page() {
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+        </DataTableShell>
       )}
 
       <Text>
@@ -120,22 +111,24 @@ export default async function Page() {
         </Link>
       </Text>
 
-      <AdminSectionHeading title="Manquant à la source" />
-      <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
-        {MISSING_FROM_SOURCE.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
+      <SectionCard title="Manquant à la source">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+          {MISSING_FROM_SOURCE.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </SectionCard>
 
-      <AdminSectionHeading title="Activité des sources" />
-      <DescriptionList>
-        {registry.sources.slice(0, 6).map((source) => (
-          <div key={source.endpointId} className="contents">
-            <DescriptionTerm>{source.label}</DescriptionTerm>
-            <DescriptionDetails>{etatSourceLisible(source.status)}</DescriptionDetails>
-          </div>
-        ))}
-      </DescriptionList>
+      <SectionCard title="Activité des sources">
+        <DescriptionList>
+          {registry.sources.slice(0, 6).map((source) => (
+            <div key={source.endpointId} className="contents">
+              <DescriptionTerm>{source.label}</DescriptionTerm>
+              <DescriptionDetails>{etatSourceLisible(source.status)}</DescriptionDetails>
+            </div>
+          ))}
+        </DescriptionList>
+      </SectionCard>
     </div>
   )
 }

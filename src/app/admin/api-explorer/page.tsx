@@ -1,11 +1,11 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
-import { AdminReading } from '@/components/admin/reading'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import {
   DescriptionDetails,
   DescriptionList,
   DescriptionTerm,
 } from '@/components/catalyst/description-list'
 import { Text } from '@/components/catalyst/text'
+import { SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
@@ -72,7 +72,7 @@ function countBy(filter: (e: BackendEndpoint) => boolean): string {
 }
 
 /**
- * Explorateur d’API — Catalyst pur.
+ * Explorateur d’API — blocs de composition autour des lignes clientes.
  * Registre BACKEND_ENDPOINTS, sondes en direct via ExplorerRow.
  */
 export default async function ApiExplorerPage() {
@@ -90,71 +90,55 @@ export default async function ApiExplorerPage() {
         description="Inventaire du registre backend, groupé par type d’action. Les lectures sûres peuvent être appelées en direct ; aucun secret n’est rendu."
       />
 
-      <DescriptionList>
-        <DescriptionTerm>Total des points d’accès</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(formatNumber(BACKEND_ENDPOINTS.length))} />
-        </DescriptionDetails>
-        <DescriptionTerm>Lectures sûres</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(safeReadsCount)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Contexte IA</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(aiContextCount)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Actions</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(actionsCount)} />
-        </DescriptionDetails>
-        <DescriptionTerm>URL de base</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(baseUrlLabel)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Rôle de session</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(session.role)} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <StatGrid label="Inventaire du registre backend" columns={3}>
+        <StatCard titre="Total des points d’accès" valeur={editorial(formatNumber(BACKEND_ENDPOINTS.length))} />
+        <StatCard titre="Lectures sûres" valeur={editorial(safeReadsCount)} />
+        <StatCard titre="Contexte IA" valeur={editorial(aiContextCount)} />
+        <StatCard titre="Actions" valeur={editorial(actionsCount)} />
+        <StatCard titre="URL de base" valeur={editorial(baseUrlLabel)} />
+        <StatCard titre="Rôle de session" valeur={editorial(session.role)} />
+      </StatGrid>
 
-      <AdminSectionHeading title="Ce qu’une ligne vous permet de faire" />
-      <Text>
-        Une lecture sûre peut être appelée en direct depuis sa propre ligne. La réponse arrive avec son statut HTTP,
-        sa durée et son identifiant de requête, et elle est affichée telle que le backend l’a renvoyée — rien n’est
-        mis en cache, arrondi ni réécrit au retour.
-      </Text>
-      <Text>
-        Deux types de ligne ne portent aucun bouton, et le disent plutôt que d’en offrir un qui ne pourrait jamais
-        aboutir : un POST, qui relève des Actions Keeper et de son étape de confirmation, et un chemin contenant un{' '}
-        <span className="font-mono">:parameter</span>, dont la valeur légitime provient d’une réponse antérieure
-        plutôt que d’un champ de texte.
-      </Text>
+      <SectionCard title="Ce qu’une ligne vous permet de faire">
+        <Text>
+          Une lecture sûre peut être appelée en direct depuis sa propre ligne. La réponse arrive avec son statut HTTP,
+          sa durée et son identifiant de requête, et elle est affichée telle que le backend l’a renvoyée — rien n’est
+          mis en cache, arrondi ni réécrit au retour.
+        </Text>
+        <Text className="mt-4">
+          Deux types de ligne ne portent aucun bouton, et le disent plutôt que d’en offrir un qui ne pourrait jamais
+          aboutir : un POST, qui relève des Actions Keeper et de son étape de confirmation, et un chemin contenant un{' '}
+          <span className="font-mono">:parameter</span>, dont la valeur légitime provient d’une réponse antérieure
+          plutôt que d’un champ de texte.
+        </Text>
+      </SectionCard>
 
-      <AdminSectionHeading title="Autorisation" />
-      <DescriptionList>
-        {AUTH_LEVELS.map((level) => (
-          <div key={level.auth} className="contents">
-            <DescriptionTerm>
-              {level.libelle}{' '}
-              <span className="font-normal text-zinc-500">
-                ({formatNumber(BACKEND_ENDPOINTS.filter((e) => e.auth === level.auth).length)})
-              </span>
-            </DescriptionTerm>
-            <DescriptionDetails>{level.detail}</DescriptionDetails>
-          </div>
-        ))}
-      </DescriptionList>
+      <SectionCard title="Autorisation">
+        <DescriptionList>
+          {AUTH_LEVELS.map((level) => (
+            <div key={level.auth} className="contents">
+              <DescriptionTerm>
+                {level.libelle}{' '}
+                <span className="font-normal text-zinc-500">
+                  ({formatNumber(BACKEND_ENDPOINTS.filter((e) => e.auth === level.auth).length)})
+                </span>
+              </DescriptionTerm>
+              <DescriptionDetails>{level.detail}</DescriptionDetails>
+            </div>
+          ))}
+        </DescriptionList>
+      </SectionCard>
 
       {GROUPS.map((group) => {
         const endpoints = BACKEND_ENDPOINTS.filter(group.filter)
         if (endpoints.length === 0) return null
 
         return (
-          <div key={group.id}>
-            <AdminSectionHeading
-              title={`${group.title} — ${formatNumber(endpoints.length)}`}
-              description={group.description}
-            />
+          <SectionCard
+            key={group.id}
+            title={`${group.title} — ${formatNumber(endpoints.length)}`}
+            hint={group.description}
+          >
             <div className="overflow-hidden rounded-lg ring-1 ring-zinc-950/5 dark:ring-white/10">
               {endpoints.map((endpoint) => (
                 <ExplorerRow
@@ -165,15 +149,16 @@ export default async function ApiExplorerPage() {
                 />
               ))}
             </div>
-          </div>
+          </SectionCard>
         )
       })}
 
-      <AdminSectionHeading title="Paramètres de chemin" />
-      <Text>
-        Les lignes avec <span className="font-mono">:param</span> sont documentées mais pas appelables directement —
-        la valeur légitime provient d’une réponse antérieure du backend.
-      </Text>
+      <SectionCard title="Paramètres de chemin">
+        <Text>
+          Les lignes avec <span className="font-mono">:param</span> sont documentées mais pas appelables directement —
+          la valeur légitime provient d’une réponse antérieure du backend.
+        </Text>
+      </SectionCard>
     </div>
   )
 }
