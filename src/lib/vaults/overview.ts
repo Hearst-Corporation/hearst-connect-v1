@@ -132,10 +132,7 @@ export function sumAcrossVaults(
 }
 
 /** An atomic total, rendered as money only once its denomination is known too. */
-export function asMoney(
-  total: Availability<bigint>,
-  asset: Availability<Denomination>,
-): Availability<string> {
+export function asMoney(total: Availability<bigint>, asset: Availability<Denomination>): Availability<string> {
   return combine(total, asset, (raw, denom) =>
     formatCurrency(raw.toString(), { decimals: 0, fromAtomic: 10 ** denom.decimals }),
   )
@@ -153,9 +150,7 @@ export type BarPoint = Readonly<{ label: string; value: number }>
 export type TrendPoint = Readonly<{ label: string; value: number; detail: string }>
 
 /** How many movements of each type the window holds. Empty when unreadable. */
-export function movementTypeBars(
-  movements: Availability<readonly { eventName: string }[]>,
-): readonly BarPoint[] {
+export function movementTypeBars(movements: Availability<readonly { eventName: string }[]>): readonly BarPoint[] {
   if (!isAvailable(movements)) return []
   const counts = new Map<string, number>()
   for (const movement of movements.value) {
@@ -163,9 +158,7 @@ export function movementTypeBars(
     const previous = counts.get(label)
     counts.set(label, previous === undefined ? 1 : previous + 1)
   }
-  return [...counts.entries()]
-    .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value)
+  return [...counts.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value)
 }
 
 /**
@@ -183,27 +176,26 @@ export function recentActivityTrend(
 ): Availability<readonly TrendPoint[]> {
   if (!isAvailable(movements)) return movements
 
-  const moneyPoints =
-    isAvailable(asset)
-      ? movements.value
-          .filter((movement) => movement.occurredAt !== null && movement.assetAmountAtomic !== null)
-          .slice()
-          .sort((a, b) => Date.parse(a.occurredAt ?? '') - Date.parse(b.occurredAt ?? ''))
-          .slice(-8)
-          .map((movement) => {
-            const raw = Number(movement.assetAmountAtomic)
-            if (!Number.isFinite(raw)) return null
-            const occurredAt = movement.occurredAt as string
-            return {
-              label: JOUR.format(new Date(occurredAt)),
-              value: raw / 10 ** asset.value.decimals,
-              detail: JOUR_HEURE.format(new Date(occurredAt)),
-            }
-          })
-          .filter((point): point is TrendPoint => point !== null)
-      : []
+  const moneyPoints = isAvailable(asset)
+    ? movements.value
+        .filter((movement) => movement.occurredAt !== null && movement.assetAmountAtomic !== null)
+        .slice()
+        .sort((a, b) => Date.parse(a.occurredAt ?? '') - Date.parse(b.occurredAt ?? ''))
+        .slice(-8)
+        .map((movement) => {
+          const raw = Number(movement.assetAmountAtomic)
+          if (!Number.isFinite(raw)) return null
+          const occurredAt = movement.occurredAt as string
+          return {
+            label: JOUR.format(new Date(occurredAt)),
+            value: raw / 10 ** asset.value.decimals,
+            detail: JOUR_HEURE.format(new Date(occurredAt)),
+          }
+        })
+        .filter((point): point is TrendPoint => point !== null)
+    : []
 
-  if (moneyPoints.length >= 2) {
+  if (moneyPoints.length > 0) {
     return available(moneyPoints, {
       provenance: movements.provenance,
       asOf: movements.asOf,
@@ -226,15 +218,50 @@ export function recentActivityTrend(
   }
 
   const countPoints = [...buckets.values()].sort((a, b) => a.order - b.order)
-  if (countPoints.length >= 2) {
-    return available(countPoints, {
-      provenance: movements.provenance,
-      asOf: movements.asOf,
-      stale: movements.stale,
-    })
+  return available(countPoints, {
+    provenance: movements.provenance,
+    asOf: movements.asOf,
+    stale: movements.stale,
+  })
+}
+
+/**
+ * Movements bucketed as a count per day — the count-only half of
+ * `recentActivityTrend`, exposed on its own for surfaces that have no
+ * denomination to read (the Series 1 journal shows a movement count, never an
+ * amount, because its rows span asset types whose decimals differ).
+ *
+ * Same discipline: a day with no movement is simply not a bucket — no gap is
+ * back-filled at zero. Below two ordered buckets there is no trend to draw, and
+ * that is returned as a named `PARTIAL / not_enough_ordered_points` absence
+ * rather than a single point pretending to a slope. Fully pure — no clock.
+ */
+export function movementCountTrend(
+  movements: Availability<readonly { readonly occurredAt?: string | null }[]>,
+): Availability<readonly TrendPoint[]> {
+  if (!isAvailable(movements)) return movements
+
+  const buckets = new Map<string, { order: number; point: TrendPoint }>()
+  for (const movement of movements.value) {
+    const occurredAt = movement.occurredAt
+    if (occurredAt === null || occurredAt === undefined) continue
+    const timestamp = Date.parse(occurredAt)
+    if (Number.isNaN(timestamp)) continue
+    const label = JOUR.format(new Date(timestamp))
+    const current = buckets.get(label)
+    if (current === undefined) {
+      buckets.set(label, { order: timestamp, point: { label, value: 1, detail: label } })
+      continue
+    }
+    buckets.set(label, { order: current.order, point: { ...current.point, value: current.point.value + 1 } })
   }
 
-  return unavailable({ endpoint: '/api/v1/series1/events', status: 'PARTIAL', reason: 'not_enough_ordered_points' })
+  const points = [...buckets.values()].sort((a, b) => a.order - b.order).map((b) => b.point)
+  return available(points, {
+    provenance: movements.provenance,
+    asOf: movements.asOf,
+    stale: movements.stale,
+  })
 }
 
 /**

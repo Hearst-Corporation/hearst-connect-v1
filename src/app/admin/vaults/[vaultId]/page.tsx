@@ -1,20 +1,11 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { Link } from '@/components/catalyst/link'
-import {
-  DescriptionDetails,
-  DescriptionList,
-  DescriptionTerm,
-} from '@/components/catalyst/description-list'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
+import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
+import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { requireSession } from '@/lib/auth'
@@ -220,14 +211,12 @@ export default async function Page({ params }: PageProps) {
   const client = vault.client
 
   const rebalancingList = isAvailable(scopedRebalancing) ? scopedRebalancing.value : null
+  const orderedRebalancingList = rebalancingList === null ? null : orderedRebalancing(rebalancingList)
   const movementList = isAvailable(scopedMovements) ? scopedMovements.value.slice(0, 12) : null
   const exceptions = registry.clientExceptions
 
-  const strategyIndex = isAvailable(vault.strategies)
-    ? indexStrategiePrimaire(vault.strategies.value.length)
-    : null
-  const strategyDetailRes =
-    strategyIndex === null ? null : await loadStrategyDetail(strategyIndex)
+  const strategyIndex = isAvailable(vault.strategies) ? indexStrategiePrimaire(vault.strategies.value.length) : null
+  const strategyDetailRes = strategyIndex === null ? null : await loadStrategyDetail(strategyIndex)
   const strategyDetailState = lectureStrategieDetail(strategyIndex, strategyDetailRes)
   const strategyDetailLabel = libelleStrategieDetail(strategyDetailRes)
   const strategyDetailHttp = statutHttpStrategieDetail(strategyDetailRes)
@@ -236,10 +225,7 @@ export default async function Page({ params }: PageProps) {
     <div className="space-y-10">
       <AdminPageHeader
         title={vault.label}
-        description={[
-          vault.chainId === null ? null : `chain ${vault.chainId}`,
-          address ?? vault.contractAddress,
-        ]
+        description={[vault.chainId === null ? null : `chain ${vault.chainId}`, address ?? vault.contractAddress]
           .filter((part) => part !== null)
           .join(' · ')}
       />
@@ -248,263 +234,262 @@ export default async function Page({ params }: PageProps) {
         <VaultStatusBadge status={vault.status} />
       </div>
 
-      <DescriptionList>
-        <DescriptionTerm>État</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={activeStatus} />
-        </DescriptionDetails>
-        <DescriptionTerm>Valeur totale</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={totalValue} />
-        </DescriptionDetails>
-        <DescriptionTerm>Déployé</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={deployedValue} />
-        </DescriptionDetails>
-        <DescriptionTerm>Disponible (au repos)</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={idleValue} />
-        </DescriptionDetails>
-        <DescriptionTerm>Poches de stratégie</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={strategiesCount} />
-        </DescriptionDetails>
-        <DescriptionTerm>Écart courant</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={driftValue} />
-        </DescriptionDetails>
-        <DescriptionTerm>Dernier rééquilibrage</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={lastRebalanceReading(vault)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Utilisation</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading
-            value={mapAvailability(vault.utilizationBps, (bps) =>
-              formatPercent(bps, { fromBps: true, maximumFractionDigits: 2 }),
-            )}
-          />
-        </DescriptionDetails>
-        <DescriptionTerm>Plafond TVL</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={amountOf(vault, vault.tvlCapAtomic)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Capacité restante</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={amountOf(vault, vault.capacityRemainingAtomic)} />
-        </DescriptionDetails>
-      </DescriptionList>
-
-      <AdminSectionHeading title="Résumé du coffre" />
-      <DescriptionList>
-        <DescriptionTerm>Client</DescriptionTerm>
-        <DescriptionDetails>
-          {isAvailable(client) ? (
-            <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
-          ) : (
-            <AdminReading
-              value={absentReading(client)}
-              emptyLabel={
-                client.reason === 'vault_owner_not_reported'
-                  ? 'Propriétaire non reporté sur le coffre'
-                  : 'Indisponible'
-              }
-            />
+      <StatGrid label="Indicateurs du coffre" columns={4}>
+        <StatCard titre="État" valeur={activeStatus} />
+        <StatCard titre="Valeur totale" valeur={totalValue} showRoute />
+        <StatCard titre="Déployé" valeur={deployedValue} showRoute />
+        <StatCard titre="Disponible (au repos)" valeur={idleValue} showRoute />
+        <StatCard titre="Poches de stratégie" valeur={strategiesCount} />
+        <StatCard titre="Écart courant" valeur={driftValue} />
+        <StatCard
+          titre="Utilisation"
+          valeur={mapAvailability(vault.utilizationBps, (bps) =>
+            formatPercent(bps, { fromBps: true, maximumFractionDigits: 2 }),
           )}
-        </DescriptionDetails>
-        <DescriptionTerm>Créé le</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={CREATED_AT} />
-        </DescriptionDetails>
-        <DescriptionTerm>Dernière activité</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={lastActivity} />
-        </DescriptionDetails>
-        <DescriptionTerm>Identifiant</DescriptionTerm>
-        <DescriptionDetails className="font-mono text-sm">{vault.id}</DescriptionDetails>
-      </DescriptionList>
+        />
+        <StatCard titre="Dernier rééquilibrage" valeur={lastRebalanceReading(vault)} />
+        <StatCard titre="Plafond TVL" valeur={amountOf(vault, vault.tvlCapAtomic)} showRoute />
+        <StatCard titre="Capacité restante" valeur={amountOf(vault, vault.capacityRemainingAtomic)} showRoute />
+      </StatGrid>
 
-      <AdminSectionHeading
+      <SectionCard title="Résumé du coffre">
+        <DescriptionList>
+          <DescriptionTerm>Client</DescriptionTerm>
+          <DescriptionDetails>
+            {isAvailable(client) ? (
+              <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
+            ) : (
+              <AdminReading
+                value={absentReading(client)}
+                emptyLabel={
+                  client.reason === 'vault_owner_not_reported'
+                    ? 'Propriétaire non reporté sur le coffre'
+                    : 'Indisponible'
+                }
+              />
+            )}
+          </DescriptionDetails>
+          <DescriptionTerm>Créé le</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={CREATED_AT} />
+          </DescriptionDetails>
+          <DescriptionTerm>Dernière activité</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={lastActivity} />
+          </DescriptionDetails>
+          <DescriptionTerm>Identifiant</DescriptionTerm>
+          <DescriptionDetails className="font-mono text-sm">{vault.id}</DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
+
+      <SectionCard
         title="Détail contrat (stratégie index 0)"
-        description="Route `strategy-detail` — index primaire = position 0 du registre stratégies (pas un sélecteur multi-index)."
-      />
-      <DescriptionList>
-        <DescriptionTerm>Interrogation HTTP</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={strategyDetailHttp} />
-        </DescriptionDetails>
-        <DescriptionTerm>État du champ strategy</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={strategyDetailState} />
-        </DescriptionDetails>
-        <DescriptionTerm>Libellé lu</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={strategyDetailLabel} />
-        </DescriptionDetails>
-      </DescriptionList>
+        hint="Route `strategy-detail` — index primaire = position 0 du registre stratégies (pas un sélecteur multi-index)."
+      >
+        <DescriptionList>
+          <DescriptionTerm>Interrogation HTTP</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={strategyDetailHttp} />
+          </DescriptionDetails>
+          <DescriptionTerm>État du champ strategy</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={strategyDetailState} />
+          </DescriptionDetails>
+          <DescriptionTerm>Libellé lu</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={strategyDetailLabel} />
+          </DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
 
-      <AdminSectionHeading
-        title="Rééquilibrage"
-        description="Écart d’allocation par poche, tel que rapporté par le service."
-      />
       {!isAvailable(scopedRebalancing) ? (
-        <Text>
-          <AdminReading value={absentReading(scopedRebalancing)} />
-          {' '}
-          <Link href={entityHref('source', 'rebalancing-status')}>Couverture des données</Link>
-        </Text>
+        <SectionCard title="Rééquilibrage" hint="Écart d’allocation par poche, tel que rapporté par le service.">
+          <Text>
+            <AdminReading value={absentReading(scopedRebalancing)} />{' '}
+            <Link href={entityHref('source', 'rebalancing-status')}>Couverture des données</Link>
+          </Text>
+        </SectionCard>
       ) : rebalancingList !== null && rebalancingList.length === 0 ? (
-        <Text>Aucune poche mesurée pour ce coffre.</Text>
-      ) : rebalancingList !== null ? (
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Stratégie</TableHeader>
-              <TableHeader>Cible</TableHeader>
-              <TableHeader>Constaté</TableHeader>
-              <TableHeader>Écart</TableHeader>
-              <TableHeader>Dernier rééquilibrage</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {orderedRebalancing(rebalancingList).map((row) => {
-              const pocket = pocketOf(row)
-              const drift = driftPointsNullable(row.varianceBps)
-              return (
-                <TableRow key={row.strategyId}>
-                  <TableCell>
-                    <VaultEntityLink
-                      kind="strategy"
-                      id={row.strategyId}
-                      label={row.strategyLabel}
-                      sub={pocket !== null && pocket !== row.strategyLabel ? pocket : undefined}
-                    />
-                  </TableCell>
-                  <TableCell>{formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })}</TableCell>
-                  <TableCell>
-                    {row.actualBps === null
-                      ? 'Indisponible'
-                      : formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell className="tabular-nums">{drift ?? 'Indisponible'}</TableCell>
-                  <TableCell>
-                    {isAvailable(row.lastRebalanceAt) && row.lastRebalanceAt.value !== ''
-                      ? formatDateTime(row.lastRebalanceAt.value)
-                      : 'Indisponible'}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      ) : null}
-
-      <AdminSectionHeading
-        title="Mouvements"
-        description="Source series1-events — indexation uniquement."
-      />
-      {!isAvailable(scopedMovements) ? (
-        <Text>
-          Le journal des mouvements n’a pas pu être lu.{' '}
-          <Link href={entityHref('source', 'data-coverage')}>Couverture des données</Link>
-        </Text>
-      ) : ledgerIsEmptyForThisVault ? (
-        <Text>Le journal a répondu mais aucun mouvement n’est attribué à ce coffre.</Text>
-      ) : movementList !== null && movementList.length > 0 ? (
+        <DataTableShell
+          title="Rééquilibrage"
+          description="Écart d’allocation par poche, tel que rapporté par le service."
+          calme="Aucune poche mesurée pour ce coffre."
+        />
+      ) : orderedRebalancingList !== null ? (
         <>
-          <Table>
+          <ChartFrame
+            question="Comment l’allocation se répartit-elle par poche ?"
+            unite="en pourcentage — cible visée contre part constatée"
+            etat={{ type: 'tracee' }}
+          >
+            <HearstAllocationChart
+              postes={orderedRebalancingList.map<PosteAllocation>((row) => ({
+                label: row.strategyLabel,
+                ciblePct: row.targetBps / 100,
+                constatePct: row.actualBps === null ? null : row.actualBps / 100,
+              }))}
+            />
+          </ChartFrame>
+          <DataTableShell
+            title="Rééquilibrage"
+            description="Écart d’allocation par poche, tel que rapporté par le service — les chiffres exacts que le graphique situe."
+            className="mt-6"
+          >
             <TableHead>
               <TableRow>
-                <TableHeader>Heure</TableHeader>
-                <TableHeader>Type</TableHeader>
-                <TableHeader>Client</TableHeader>
-                <TableHeader>Montant</TableHeader>
-                <TableHeader>Transaction</TableHeader>
-                <TableHeader>État</TableHeader>
+                <TableHeader>Stratégie</TableHeader>
+                <TableHeader>Cible</TableHeader>
+                <TableHeader>Constaté</TableHeader>
+                <TableHeader>Écart</TableHeader>
+                <TableHeader>Dernier rééquilibrage</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
-              {movementList.map((movement) => {
-                const txShort =
-                  movement.txHash === null ? null : formatHash(movement.txHash)
-                const txUrl = explorerTxUrl(movement.chainId ?? undefined, movement.txHash ?? undefined)
+              {orderedRebalancingList.map((row) => {
+                const pocket = pocketOf(row)
+                const drift = driftPointsNullable(row.varianceBps)
                 return (
-                  <TableRow key={movement.id} id={`movement-${movement.id}`}>
-                    <TableCell title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}>
-                      {movement.occurredAt === null ? 'Indisponible' : formatRelativeTime(movement.occurredAt)}
-                    </TableCell>
-                    <TableCell title={phraseMouvement(movement.eventName)}>
-                      {libelleMouvement(movement.eventName)}
-                    </TableCell>
+                  <TableRow key={row.strategyId}>
                     <TableCell>
-                      {movement.investorAddress === null ? (
-                        'Indisponible'
-                      ) : (
-                        <VaultEntityLink
-                          kind="client"
-                          id={movement.investorAddress}
-                          label={formatAddress(movement.investorAddress) ?? movement.investorAddress}
-                          className="font-mono"
-                        />
-                      )}
+                      <VaultEntityLink
+                        kind="strategy"
+                        id={row.strategyId}
+                        label={row.strategyLabel}
+                        sub={pocket !== null && pocket !== row.strategyLabel ? pocket : undefined}
+                      />
                     </TableCell>
-                    <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {txShort === null ? (
-                        'Indisponible'
-                      ) : txUrl === null ? (
-                        txShort
-                      ) : (
-                        <a href={txUrl} target="_blank" rel="noopener noreferrer" className="text-accent-600 dark:text-accent-400">
-                          {txShort}
-                        </a>
-                      )}
-                    </TableCell>
+                    <TableCell>{formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })}</TableCell>
                     <TableCell>
-                      Indexé
-                      {movement.indexedAt === null ? null : (
-                        <div className="text-xs text-zinc-500" title={formatDateTime(movement.indexedAt)}>
-                          {formatRelativeTime(movement.indexedAt)}
-                        </div>
-                      )}
+                      {row.actualBps === null
+                        ? 'Indisponible'
+                        : formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="tabular-nums">{drift ?? 'Indisponible'}</TableCell>
+                    <TableCell>
+                      {isAvailable(row.lastRebalanceAt) && row.lastRebalanceAt.value !== ''
+                        ? formatDateTime(row.lastRebalanceAt.value)
+                        : 'Indisponible'}
                     </TableCell>
                   </TableRow>
                 )
               })}
             </TableBody>
-          </Table>
-          <Text className="mt-2 text-sm text-zinc-500">
-            {formatNumber(movementList.length)} affiché(s) — indexation uniquement.
-          </Text>
+          </DataTableShell>
         </>
+      ) : null}
+
+      {!isAvailable(scopedMovements) ? (
+        <SectionCard title="Mouvements" hint="Source series1-events — indexation uniquement.">
+          <Text>
+            Le journal des mouvements n’a pas pu être lu.{' '}
+            <Link href={entityHref('source', 'data-coverage')}>Couverture des données</Link>
+          </Text>
+        </SectionCard>
+      ) : ledgerIsEmptyForThisVault ? (
+        <DataTableShell
+          title="Mouvements"
+          description="Source series1-events — indexation uniquement."
+          calme="Le journal a répondu mais aucun mouvement n’est attribué à ce coffre."
+        />
+      ) : movementList !== null && movementList.length > 0 ? (
+        <DataTableShell
+          title="Mouvements"
+          description="Source series1-events — indexation uniquement."
+          count={`${formatNumber(movementList.length)} affiché(s)`}
+        >
+          <TableHead>
+            <TableRow>
+              <TableHeader>Heure</TableHeader>
+              <TableHeader>Type</TableHeader>
+              <TableHeader>Client</TableHeader>
+              <TableHeader>Montant</TableHeader>
+              <TableHeader>Transaction</TableHeader>
+              <TableHeader>État</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {movementList.map((movement) => {
+              const txShort = movement.txHash === null ? null : formatHash(movement.txHash)
+              const txUrl = explorerTxUrl(movement.chainId ?? undefined, movement.txHash ?? undefined)
+              return (
+                <TableRow key={movement.id} id={`movement-${movement.id}`}>
+                  <TableCell title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}>
+                    {movement.occurredAt === null ? 'Indisponible' : formatRelativeTime(movement.occurredAt)}
+                  </TableCell>
+                  <TableCell title={phraseMouvement(movement.eventName)}>
+                    {libelleMouvement(movement.eventName)}
+                  </TableCell>
+                  <TableCell>
+                    {movement.investorAddress === null ? (
+                      'Indisponible'
+                    ) : (
+                      <VaultEntityLink
+                        kind="client"
+                        id={movement.investorAddress}
+                        label={formatAddress(movement.investorAddress) ?? movement.investorAddress}
+                        className="font-mono"
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {txShort === null ? (
+                      'Indisponible'
+                    ) : txUrl === null ? (
+                      txShort
+                    ) : (
+                      <a
+                        href={txUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent-600 dark:text-accent-400"
+                      >
+                        {txShort}
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    Indexé
+                    {movement.indexedAt === null ? null : (
+                      <div className="text-xs text-zinc-500" title={formatDateTime(movement.indexedAt)}>
+                        {formatRelativeTime(movement.indexedAt)}
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </DataTableShell>
       ) : (
-        <Text>Aucun mouvement indexé pour ce coffre.</Text>
+        <DataTableShell
+          title="Mouvements"
+          description="Source series1-events — indexation uniquement."
+          calme="Aucun mouvement indexé pour ce coffre."
+        />
       )}
 
-      <AdminSectionHeading title="Déploiements" />
-      <DescriptionList>
-        <DescriptionTerm>Capital déployé</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={amountOf(vault, deployedAtomic(vault))} />
-        </DescriptionDetails>
-        <DescriptionTerm>Capital au repos</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={amountOf(vault, idleAtomic(vault))} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <SectionCard title="Déploiements">
+        <StatGrid label="Capital du coffre" columns={2}>
+          <StatCard titre="Capital déployé" valeur={deployedValue} showRoute as="h3" />
+          <StatCard titre="Capital au repos" valeur={idleValue} showRoute as="h3" />
+        </StatGrid>
+      </SectionCard>
       {!isAvailable(scopedDeployments) ? (
-        <Text>
-          {scopedDeployments.status === 'NOT_EXPOSED'
-            ? 'Le registre des déploiements n’est pas exposé par le service.'
-            : scopedDeployments.status === 'EMPTY'
-              ? 'Le registre des déploiements est vide côté service.'
-              : 'La lecture du registre des déploiements a échoué.'}{' '}
-          <Link href={entityHref('source', 'deployments')}>Couverture des données</Link>
-        </Text>
+        <SectionCard title="Registre des déploiements">
+          <Text>
+            {scopedDeployments.status === 'NOT_EXPOSED'
+              ? 'Le registre des déploiements n’est pas exposé par le service.'
+              : scopedDeployments.status === 'EMPTY'
+                ? 'Le registre des déploiements est vide côté service.'
+                : 'La lecture du registre des déploiements a échoué.'}{' '}
+            <Link href={entityHref('source', 'deployments')}>Couverture des données</Link>
+          </Text>
+        </SectionCard>
       ) : scopedDeployments.value.length === 0 ? (
-        <Text>Aucun déploiement enregistré pour ce coffre.</Text>
+        <DataTableShell title="Registre des déploiements" calme="Aucun déploiement enregistré pour ce coffre." />
       ) : (
-        <Table>
+        <DataTableShell title="Registre des déploiements">
           <TableHead>
             <TableRow>
               <TableHeader>Référence</TableHeader>
@@ -518,9 +503,7 @@ export default async function Page({ params }: PageProps) {
           <TableBody>
             {scopedDeployments.value.map((deployment) => (
               <TableRow key={deployment.id}>
-                <TableCell className="font-mono text-sm">
-                  {deployment.reference ?? deployment.id}
-                </TableCell>
+                <TableCell className="font-mono text-sm">{deployment.reference ?? deployment.id}</TableCell>
                 <TableCell>
                   <AdminReading
                     value={mapAvailability(deployment.clientLabel, (label) => label)}
@@ -540,21 +523,23 @@ export default async function Page({ params }: PageProps) {
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+        </DataTableShell>
       )}
 
-      <AdminSectionHeading title="Anomalies clients" />
       {!isAvailable(exceptions) ? (
-        <Text>
-          {absenceSentence(exceptions)}{' '}
-          <Link href={entityHref('source', 'data-coverage')}>Couverture des données</Link>
-        </Text>
+        <SectionCard title="Anomalies clients">
+          <Callout tone="warning">
+            {absenceSentence(exceptions)}{' '}
+            <Link href={entityHref('source', 'data-coverage')}>Couverture des données</Link>
+          </Callout>
+        </SectionCard>
       ) : exceptions.value.length === 0 ? (
-        <Text>
-          Le service a énuméré ses clients et aucun n’est en état d’exception.
-        </Text>
+        <DataTableShell
+          title="Anomalies clients"
+          calme="Le service a énuméré ses clients et aucun n’est en état d’exception."
+        />
       ) : (
-        <Table>
+        <DataTableShell title="Anomalies clients">
           <TableHead>
             <TableRow>
               <TableHeader>Client</TableHeader>
@@ -592,13 +577,11 @@ export default async function Page({ params }: PageProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  {!isAvailable(row.compliance) ? (
-                    'Indisponible'
-                  ) : row.compliance.value === '' ? (
-                    '—'
-                  ) : (
-                    row.compliance.value
-                  )}
+                  {!isAvailable(row.compliance)
+                    ? 'Indisponible'
+                    : row.compliance.value === ''
+                      ? '—'
+                      : row.compliance.value}
                 </TableCell>
                 <TableCell>
                   {!isAvailable(row.lastActivityAt) || row.lastActivityAt.value === ''
@@ -611,11 +594,10 @@ export default async function Page({ params }: PageProps) {
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+        </DataTableShell>
       )}
 
-      <AdminSectionHeading title="Activité des sources" />
-      <Table>
+      <DataTableShell title="Activité des sources">
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
@@ -630,19 +612,20 @@ export default async function Page({ params }: PageProps) {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </DataTableShell>
 
-      <AdminSectionHeading title="Utilisateur connecté" />
-      <DescriptionList>
-        <DescriptionTerm>Nom</DescriptionTerm>
-        <DescriptionDetails>{session.name}</DescriptionDetails>
-        <DescriptionTerm>Courriel</DescriptionTerm>
-        <DescriptionDetails>{session.email}</DescriptionDetails>
-        <DescriptionTerm>État du coffre</DescriptionTerm>
-        <DescriptionDetails>
-          <VaultStatusBadge status={vault.status} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <SectionCard title="Utilisateur connecté">
+        <DescriptionList>
+          <DescriptionTerm>Nom</DescriptionTerm>
+          <DescriptionDetails>{session.name}</DescriptionDetails>
+          <DescriptionTerm>Courriel</DescriptionTerm>
+          <DescriptionDetails>{session.email}</DescriptionDetails>
+          <DescriptionTerm>État du coffre</DescriptionTerm>
+          <DescriptionDetails>
+            <VaultStatusBadge status={vault.status} />
+          </DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
     </div>
   )
 }

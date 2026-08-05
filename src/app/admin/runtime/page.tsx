@@ -1,19 +1,24 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
-import { AdminReading } from '@/components/admin/reading'
+import { AdminPageHeader } from '@/components/admin/page-header'
+import { Link } from '@/components/catalyst/link'
 import {
   DescriptionDetails,
   DescriptionList,
   DescriptionTerm,
 } from '@/components/catalyst/description-list'
-import { Text } from '@/components/catalyst/text'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import {
+  Callout,
+  DataTableShell,
+  SectionCard,
+  StatCard,
+  StatGrid,
+} from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -153,38 +158,31 @@ export default async function RuntimePage() {
         description="Vivacité, disponibilité et charge utile de l’exécution — chaque valeur provient des sondes backend, sans réécriture frontend."
       />
 
-      <DescriptionList>
-        <DescriptionTerm>Santé</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} />
-        </DescriptionDetails>
-        <DescriptionTerm>Prêt</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} />
-        </DescriptionDetails>
-        <DescriptionTerm>Base de données</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(runtimeStatusLabel(r?.databaseStatus))} />
-        </DescriptionDetails>
-        <DescriptionTerm>Indexeur</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(runtimeStatusLabel(r?.indexerStatus))} />
-        </DescriptionDetails>
-        <DescriptionTerm>Environnement</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(r?.environment ?? 'Non renseigné')} />
-        </DescriptionDetails>
-        <DescriptionTerm>Version</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(r?.serviceVersion ?? 'Non renseignée')} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        Actions d’exploitation à effet de bord :{' '}
+        <Link href="/admin/keeper" className="font-medium text-zinc-950 underline dark:text-white">
+          Actions Keeper
+        </Link>
+        . Explorateur technique :{' '}
+        <Link href="/admin/api-explorer" className="font-medium text-zinc-950 underline dark:text-white">
+          Explorateur d’API
+        </Link>
+        .
+      </p>
 
-      <AdminSectionHeading
+      <StatGrid label="Sondes de service" columns={3}>
+        <StatCard titre="Santé" valeur={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} hint="Vivacité (health)" />
+        <StatCard titre="Prêt" valeur={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} hint="Disponibilité (ready)" />
+        <StatCard titre="Base de données" valeur={editorial(runtimeStatusLabel(r?.databaseStatus))} />
+        <StatCard titre="Indexeur" valeur={editorial(runtimeStatusLabel(r?.indexerStatus))} />
+        <StatCard titre="Environnement" valeur={editorial(r?.environment ?? 'Non renseigné')} />
+        <StatCard titre="Version" valeur={editorial(r?.serviceVersion ?? 'Non renseignée')} />
+      </StatGrid>
+
+      <DataTableShell
         title="Matrice d’état"
         description="Dépendances et sondes opérationnelles."
-      />
-      <Table>
+      >
         <TableHead>
           <TableRow>
             <TableHeader>Composant</TableHeader>
@@ -201,12 +199,12 @@ export default async function RuntimePage() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </DataTableShell>
 
-      <AdminSectionHeading
+      <SectionCard
         title="Déploiement"
-        description="Version, environnement et paramètres de l’ordonnanceur tels que rapportés par la sonde d’exécution."
-      />
+        hint="Version, environnement et paramètres de l’ordonnanceur tels que rapportés par la sonde d’exécution."
+      >
       <DescriptionList>
         <DescriptionTerm>Environnement</DescriptionTerm>
         <DescriptionDetails>{r?.environment ?? '—'}</DescriptionDetails>
@@ -223,8 +221,9 @@ export default async function RuntimePage() {
         <DescriptionTerm>Intervalle de l’indexeur</DescriptionTerm>
         <DescriptionDetails>{intervalDetail(scheduler?.intervalMs)}</DescriptionDetails>
       </DescriptionList>
+      </SectionCard>
 
-      <AdminSectionHeading title="Contrat" />
+      <SectionCard title="Contrat">
       <DescriptionList>
         <DescriptionTerm>Mode</DescriptionTerm>
         <DescriptionDetails>{r?.contract?.mode ?? '—'}</DescriptionDetails>
@@ -241,8 +240,9 @@ export default async function RuntimePage() {
         <DescriptionTerm>État du contrat</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
       </DescriptionList>
+      </SectionCard>
 
-      <AdminSectionHeading title="Ordonnanceur" />
+      <SectionCard title="Ordonnanceur">
       <DescriptionList>
         <DescriptionTerm>État</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
@@ -253,43 +253,54 @@ export default async function RuntimePage() {
         <DescriptionTerm>Erreurs consécutives</DescriptionTerm>
         <DescriptionDetails>{errorsDetail(scheduler?.consecutiveErrors)}</DescriptionDetails>
       </DescriptionList>
+      </SectionCard>
 
-      <AdminSectionHeading
+      <SectionCard
         title="Déclenchement indexeur"
-        description="POST /api/v1/admin/indexer/trigger — admin uniquement. Inefficace tant que le RPC chaîne est down."
-      />
-      <IndexerTriggerForm />
+        hint="POST /api/v1/admin/indexer/trigger — admin uniquement. Inefficace tant que le RPC chaîne est down."
+      >
+        <IndexerTriggerForm />
+      </SectionCard>
 
-      <AdminSectionHeading
+      <SectionCard
         title="Réponses brutes"
-        description="Charge utile complète pour vérification technique — aucune valeur de sonde n’est réécrite par le frontend."
-      />
-      <AdminSectionHeading title="Exécution (runtime)" />
-      {runtime.ok ? (
-        <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
-          {jsonLisible(runtime.data)}
-        </pre>
-      ) : (
-        <Text>La sonde d’exécution n’a pas répondu.</Text>
-      )}
+        hint="Charge utile complète pour vérification technique — aucune valeur de sonde n’est réécrite par le frontend."
+      >
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-zinc-500">Exécution (runtime)</h3>
+            {runtime.ok ? (
+              <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+                {jsonLisible(runtime.data)}
+              </pre>
+            ) : (
+              <Callout tone="danger">La sonde d’exécution n’a pas répondu.</Callout>
+            )}
+          </div>
 
-      <AdminSectionHeading title="Santé (health)" />
-      {health.ok ? (
-        <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
-          {jsonLisible(health.data)}
-        </pre>
-      ) : (
-        <Text>La sonde de vivacité n’a pas répondu.</Text>
-      )}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-zinc-500">Santé (health)</h3>
+            {health.ok ? (
+              <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+                {jsonLisible(health.data)}
+              </pre>
+            ) : (
+              <Callout tone="danger">La sonde de vivacité n’a pas répondu.</Callout>
+            )}
+          </div>
 
-      <AdminSectionHeading title="Prêt (ready)" />
-      {ready.ok ? (
-        <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
-          {jsonLisible(ready.data)}
-        </pre>
-      ) : (
-        <Text>La sonde de disponibilité n’a pas répondu.</Text>
-      )}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-zinc-500">Prêt (ready)</h3>
+            {ready.ok ? (
+              <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+                {jsonLisible(ready.data)}
+              </pre>
+            ) : (
+              <Callout tone="danger">La sonde de disponibilité n’a pas répondu.</Callout>
+            )}
+          </div>
+        </div>
+      </SectionCard>
     </div>
   )
 }

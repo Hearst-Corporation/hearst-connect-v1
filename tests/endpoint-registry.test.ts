@@ -1,7 +1,7 @@
 import { BACKEND_ENDPOINTS, endpointById, endpointsByCategory, resolvePath } from '@/lib/backend/endpoints'
 import { describe, expect, it } from 'vitest'
 
-/** Les 32 routes du contrat backend, listées ici indépendamment du registre. */
+/** Les 33 routes du contrat backend, listées ici indépendamment du registre. */
 const CONTRACT_PATHS = [
   'GET /health',
   'GET /ready',
@@ -31,6 +31,7 @@ const CONTRACT_PATHS = [
   'POST /api/v1/mining/metrics/report',
   'POST /api/v1/mining/electricity/pay',
   'POST /api/v1/admin/indexer/trigger',
+  'POST /api/v1/admin/users',
   'POST /api/v1/rebalancing/execute',
   'POST /api/v1/rwa-vault',
   'POST /api/v1/btc-deposit/initiate',
@@ -38,10 +39,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 32 routes du contrat', () => {
+  it('couvre exactement les 33 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(32)
+    expect(BACKEND_ENDPOINTS).toHaveLength(33)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -58,7 +59,7 @@ describe('registre des endpoints', () => {
   })
 
   it('répartit les catégories conformément au contrat', () => {
-    expect(endpointsByCategory('probe')).toHaveLength(5)
+    expect(endpointsByCategory('probe')).toHaveLength(6)
     expect(endpointsByCategory('business')).toHaveLength(18)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(6)
@@ -69,6 +70,7 @@ describe('registre des endpoints', () => {
     expect(bare).toEqual(
       [
         'admin-indexer-trigger',
+        'admin-users',
         'auth-login',
         'ai-context-btc',
         'ai-context-dashboard',
@@ -119,11 +121,11 @@ describe('registre des endpoints', () => {
     }
   })
 
-  it('réconcilie les lectures mining dédiées sur /admin/mining (F-07)', () => {
+  it('réconcilie les lectures mining dédiées sur /admin/produit (F-07)', () => {
     for (const id of ['mining-onchain', 'mining-electricity']) {
       const endpoint = endpointById(id)
-      expect(endpoint.surface).toBe('/admin/mining')
-      expect(endpoint.caveat).toMatch(/admin\/mining/i)
+      expect(endpoint.surface).toBe('/admin/produit')
+      expect(endpoint.caveat).toMatch(/admin\/produit/i)
     }
   })
 

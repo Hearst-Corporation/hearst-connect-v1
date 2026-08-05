@@ -1,5 +1,4 @@
-import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
-import { AdminReading } from '@/components/admin/reading'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -7,6 +6,7 @@ import {
 } from '@/components/catalyst/description-list'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
+import { Callout, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, type Role } from '@/lib/session'
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: 'Votre compte' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Votre compte — Catalyst pur.
+ * Votre compte — blocs de composition.
  * Deux identités distinctes : session admin et dossier investisseur.
  */
 
@@ -61,113 +61,92 @@ export default async function Page() {
         description="Deux choses vivent ici et elles ne sont pas identiques. Le compte est ce qui vous connecte ; le dossier investisseur est ce qui relie une personne à une position dans le fonds."
       />
 
-      <DescriptionList>
-        <DescriptionTerm>Session</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(sessionState)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Nom</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(session?.name ?? '—')} />
-        </DescriptionDetails>
-        <DescriptionTerm>E-mail</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(session?.email ?? '—')} />
-        </DescriptionDetails>
-        <DescriptionTerm>Rôle</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} />
-        </DescriptionDetails>
-        <DescriptionTerm>Dossier investisseur</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(investorState)} />
-        </DescriptionDetails>
-        <DescriptionTerm>Source du profil</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} />
-        </DescriptionDetails>
-      </DescriptionList>
+      <StatGrid label="Aperçu du compte" columns={3}>
+        <StatCard titre="Session" valeur={editorial(sessionState)} />
+        <StatCard titre="Nom" valeur={editorial(session?.name ?? '—')} />
+        <StatCard titre="E-mail" valeur={editorial(session?.email ?? '—')} />
+        <StatCard titre="Rôle" valeur={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} />
+        <StatCard titre="Dossier investisseur" valeur={editorial(investorState)} />
+        <StatCard titre="Source du profil" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} />
+      </StatGrid>
 
-      <AdminSectionHeading
-        title="Connecté en tant que"
-        description="Lu depuis votre session, pas depuis le service."
-      />
-      {session === null ? (
-        <Text>
-          Aucune session valide n’a été trouvée. Reconnectez-vous pour consulter votre compte.
-        </Text>
-      ) : (
-        <DescriptionList>
-          <DescriptionTerm>Nom</DescriptionTerm>
-          <DescriptionDetails>{session.name}</DescriptionDetails>
-          <DescriptionTerm>Adresse e-mail</DescriptionTerm>
-          <DescriptionDetails>{session.email}</DescriptionDetails>
-          <DescriptionTerm>Rôle</DescriptionTerm>
-          <DescriptionDetails>{LIBELLE_ROLE[session.role]}</DescriptionDetails>
-        </DescriptionList>
-      )}
+      <SectionCard title="Connecté en tant que" hint="Lu depuis votre session, pas depuis le service.">
+        {session === null ? (
+          <Callout tone="warning" title="Aucune session valide">
+            Aucune session valide n’a été trouvée. Reconnectez-vous pour consulter votre compte.
+          </Callout>
+        ) : (
+          <DescriptionList>
+            <DescriptionTerm>Nom</DescriptionTerm>
+            <DescriptionDetails>{session.name}</DescriptionDetails>
+            <DescriptionTerm>Adresse e-mail</DescriptionTerm>
+            <DescriptionDetails>{session.email}</DescriptionDetails>
+            <DescriptionTerm>Rôle</DescriptionTerm>
+            <DescriptionDetails>{LIBELLE_ROLE[session.role]}</DescriptionDetails>
+          </DescriptionList>
+        )}
+      </SectionCard>
 
-      <AdminSectionHeading
-        title="Dossier investisseur"
-        description="Transmis tel quel par le service, sans édition."
-      />
-      {!reponse.ok ? (
-        <Text>
-          Le dossier investisseur n’a pas pu être lu. Le service n’a pas répondu à la requête — ce silence ne
-          signifie pas qu’aucun dossier n’existe.
-        </Text>
-      ) : identite === null || identite === undefined ? (
-        <>
-          <Text>
-            Aucun dossier investisseur n’est rattaché à ce compte.
-            {motif === undefined
-              ? ' Le service a été joint : il ne trouve aucun dossier rattaché à ce compte.'
-              : ` Le service a été joint : ${motif}.`}
-          </Text>
-          <Text className="mt-4">
-            C’est le cas normal pour un compte administrateur — administrer l’espace et souscrire au fonds sont deux
-            choses distinctes, et l’une n’implique pas l’autre. Aucun dossier n’est affiché ici plutôt qu’un dossier
-            vide, qui ressemblerait à un dossier perdu.
-          </Text>
-          <AdminSectionHeading title="Pour qu’un dossier apparaisse" />
-          <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
-            <li>Une souscription au fonds effectuée avec cette adresse e-mail</li>
-            <li>Un dossier de connaissance client examiné et approuvé</li>
-            <li>Une adresse de portefeuille rattachée au dossier</li>
-          </ul>
-        </>
-      ) : (
+      <SectionCard title="Dossier investisseur" hint="Transmis tel quel par le service, sans édition.">
+        {!reponse.ok ? (
+          <Callout tone="warning" title="Dossier illisible">
+            Le dossier investisseur n’a pas pu être lu. Le service n’a pas répondu à la requête — ce silence ne
+            signifie pas qu’aucun dossier n’existe.
+          </Callout>
+        ) : identite === null || identite === undefined ? (
+          <>
+            <Text>
+              Aucun dossier investisseur n’est rattaché à ce compte.
+              {motif === undefined
+                ? ' Le service a été joint : il ne trouve aucun dossier rattaché à ce compte.'
+                : ` Le service a été joint : ${motif}.`}
+            </Text>
+            <Text className="mt-4">
+              C’est le cas normal pour un compte administrateur — administrer l’espace et souscrire au fonds sont deux
+              choses distinctes, et l’une n’implique pas l’autre. Aucun dossier n’est affiché ici plutôt qu’un dossier
+              vide, qui ressemblerait à un dossier perdu.
+            </Text>
+            <Text className="mt-4 font-medium text-zinc-700 dark:text-zinc-300">Pour qu’un dossier apparaisse</Text>
+            <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+              <li>Une souscription au fonds effectuée avec cette adresse e-mail</li>
+              <li>Un dossier de connaissance client examiné et approuvé</li>
+              <li>Une adresse de portefeuille rattachée au dossier</li>
+            </ul>
+          </>
+        ) : (
+          <DescriptionList>
+            <DescriptionTerm>Nom du dossier</DescriptionTerm>
+            <DescriptionDetails>{valeurLisible(identite.displayName)}</DescriptionDetails>
+            <DescriptionTerm>Adresse e-mail</DescriptionTerm>
+            <DescriptionDetails>{valeurLisible(identite.email)}</DescriptionDetails>
+            <DescriptionTerm>Portefeuille</DescriptionTerm>
+            <DescriptionDetails className="font-mono text-sm">
+              {valeurLisible(identite.walletAddress)}
+            </DescriptionDetails>
+            <DescriptionTerm>Connaissance client</DescriptionTerm>
+            <DescriptionDetails>{valeurLisible(identite.kycStatus)}</DescriptionDetails>
+            <DescriptionTerm>Qualification</DescriptionTerm>
+            <DescriptionDetails>{valeurLisible(identite.accreditation)}</DescriptionDetails>
+          </DescriptionList>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Notes">
         <DescriptionList>
-          <DescriptionTerm>Nom du dossier</DescriptionTerm>
-          <DescriptionDetails>{valeurLisible(identite.displayName)}</DescriptionDetails>
-          <DescriptionTerm>Adresse e-mail</DescriptionTerm>
-          <DescriptionDetails>{valeurLisible(identite.email)}</DescriptionDetails>
-          <DescriptionTerm>Portefeuille</DescriptionTerm>
-          <DescriptionDetails className="font-mono text-sm">
-            {valeurLisible(identite.walletAddress)}
+          <DescriptionTerm>Raison investisseur</DescriptionTerm>
+          <DescriptionDetails>{motif ?? 'Aucune signalée'}</DescriptionDetails>
+          <DescriptionTerm>Correspondance des rôles</DescriptionTerm>
+          <DescriptionDetails>Le rôle de session n’implique pas de souscription.</DescriptionDetails>
+          <DescriptionTerm>Chemin de couverture</DescriptionTerm>
+          <DescriptionDetails>
+            <Link href="/admin/dashboard" className="underline">
+              Couverture des données
+            </Link>
+            {' — '}
+            raisons d’état au niveau des points d’accès.
           </DescriptionDetails>
-          <DescriptionTerm>Connaissance client</DescriptionTerm>
-          <DescriptionDetails>{valeurLisible(identite.kycStatus)}</DescriptionDetails>
-          <DescriptionTerm>Qualification</DescriptionTerm>
-          <DescriptionDetails>{valeurLisible(identite.accreditation)}</DescriptionDetails>
         </DescriptionList>
-      )}
-
-      <AdminSectionHeading title="Notes" />
-      <DescriptionList>
-        <DescriptionTerm>Raison investisseur</DescriptionTerm>
-        <DescriptionDetails>{motif ?? 'Aucune signalée'}</DescriptionDetails>
-        <DescriptionTerm>Correspondance des rôles</DescriptionTerm>
-        <DescriptionDetails>Le rôle de session n’implique pas de souscription.</DescriptionDetails>
-        <DescriptionTerm>Chemin de couverture</DescriptionTerm>
-        <DescriptionDetails>
-          <Link href="/admin/dashboard" className="underline">
-            Couverture des données
-          </Link>
-          {' — '}
-          raisons d’état au niveau des points d’accès.
-        </DescriptionDetails>
-      </DescriptionList>
+      </SectionCard>
     </div>
   )
 }

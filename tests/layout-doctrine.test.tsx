@@ -1,5 +1,14 @@
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
-import { ADMIN_NAV, ADMIN_SECONDARY, ADMIN_SECONDARY_FLAT, hrefActif } from '@/lib/admin-nav'
+import {
+  ADMIN_NAV,
+  ADMIN_SECONDARY,
+  ADMIN_SECONDARY_FLAT,
+  ADMIN_SECTION_HUBS,
+  groupeSecondaireActif,
+  hrefActif,
+  hrefCorpsActif,
+  sousMenusCorps,
+} from '@/lib/admin-nav'
 import { pageMaxWidth } from '@/lib/layout-tokens'
 import { chartHeight, plottableAsChart } from '@/components/charts/core/chart-theme'
 import { render } from '@testing-library/react'
@@ -17,28 +26,46 @@ import { describe, expect, it } from 'vitest'
  */
 
 describe('primary navigation', () => {
-  it('offers exactly four primary destinations', () => {
-    expect(ADMIN_NAV).toHaveLength(4)
-    expect(ADMIN_NAV.map((e) => e.libelle)).toEqual(['Accueil', 'Clients', 'Conformité', 'Opérations'])
+  it('offers exactly five primary destinations', () => {
+    expect(ADMIN_NAV).toHaveLength(5)
+    expect(ADMIN_NAV.map((e) => e.libelle)).toEqual([
+      'Accueil',
+      'Coffres',
+      'Clients',
+      'Conformité',
+      'Opérations',
+    ])
   })
 
-  it('keeps every demoted destination reachable in the secondary sidebar', () => {
+  it('keeps consolidated and service destinations reachable via nav or redirects', () => {
+    const reachable = new Set([
+      ...ADMIN_NAV.map((e) => e.href),
+      ...ADMIN_SECTION_HUBS.map((h) => h.href),
+      ...ADMIN_SECONDARY_FLAT.map((e) => e.href),
+      '/admin/produit',
+    ])
     const demoted = [
-      // `/admin/vault` (one screen bound to whichever contract answered) was
-      // replaced by the vault REGISTRY when the console moved to the vault
-      // operating model. The old path now redirects here.
-      '/admin/vaults',
       '/admin/series-1',
-      '/admin/mining',
-      '/admin/btc',
-      '/admin/product',
-      '/admin/backtest',
+      '/admin/produit',
       '/admin/runtime',
-      '/admin/keeper',
-      '/admin/api-explorer',
+      '/admin/dashboard',
     ]
-    const reachable = new Set(ADMIN_SECONDARY_FLAT.map((e) => e.href))
     for (const href of demoted) expect(reachable.has(href)).toBe(true)
+  })
+
+  it('highlights the longest matching body sub-nav entry', () => {
+    expect(hrefCorpsActif('/admin/vaults/abc')).toBeUndefined()
+    expect(hrefCorpsActif('/admin/runtime')).toBe('/admin/runtime')
+    expect(hrefCorpsActif('/admin/dashboard')).toBe('/admin/dashboard')
+  })
+
+  it('exposes horizontal sub-menus only for multi-entry sections', () => {
+    expect(sousMenusCorps('/admin/runtime')?.map((e) => e.href)).toEqual([
+      '/admin/runtime',
+      '/admin/dashboard',
+    ])
+    expect(sousMenusCorps('/admin/produit')).toBeUndefined()
+    expect(groupeSecondaireActif('/admin/produit')?.titre).toBe('Production')
   })
 
   it('does not force a primary highlight on secondary screens', () => {
@@ -228,9 +255,9 @@ describe('one brand palette', () => {
 })
 
 describe('chart sizing', () => {
-  it('refuses to call a single observation a trend', () => {
-    expect(plottableAsChart(0)).toBe(false)
-    expect(plottableAsChart(1)).toBe(false)
+  it('always keeps the chart slot open, even for a short or empty series', () => {
+    expect(plottableAsChart(0)).toBe(true)
+    expect(plottableAsChart(1)).toBe(true)
     expect(plottableAsChart(2)).toBe(true)
   })
 

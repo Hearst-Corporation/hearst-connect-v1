@@ -2,6 +2,7 @@ import {
   asMoney,
   denomination,
   estateOverview,
+  movementCountTrend,
   movementTypeBars,
   recentActivityTrend,
   sumAcrossVaults,
@@ -185,15 +186,58 @@ describe('recentActivityTrend', () => {
     expect(points?.every((p) => p.value === 1)).toBe(true)
   })
 
-  it('reports a named absence rather than drawing a single-point line', () => {
+  it('returns a single-day count when only one bucket exists', () => {
     const trend = recentActivityTrend(available([movement()]), unavailable({}))
-    expect(isAvailable(trend)).toBe(false)
-    expect(trend).toMatchObject({ status: 'PARTIAL', reason: 'not_enough_ordered_points' })
+    expect(isAvailable(trend)).toBe(true)
+    expect(valueOf(trend)?.length).toBe(1)
   })
 
   it('stays unavailable when the ledger itself is', () => {
     const trend = recentActivityTrend(unavailable({ endpoint: '/api/v1/series1/events' }), available({ symbol: 'USDC', decimals: 6 }))
     expect(isAvailable(trend)).toBe(false)
+  })
+})
+
+describe('movementCountTrend', () => {
+  it('buckets one count per day, in chronological order', () => {
+    const trend = movementCountTrend(
+      available([
+        { occurredAt: '2026-07-28T09:00:00.000Z' },
+        { occurredAt: '2026-07-27T10:00:00.000Z' },
+        { occurredAt: '2026-07-27T18:00:00.000Z' },
+      ]),
+    )
+    const points = valueOf(trend)
+    expect(points?.length).toBe(2)
+    // Jul 27 (two movements) precedes Jul 28 (one) — ordered by real timestamp.
+    expect(points?.[0]?.value).toBe(2)
+    expect(points?.[1]?.value).toBe(1)
+  })
+
+  it('ignores rows without a parseable timestamp — no gap is back-filled at zero', () => {
+    const trend = movementCountTrend(
+      available([
+        { occurredAt: '2026-07-27T10:00:00.000Z' },
+        { occurredAt: null },
+        { occurredAt: 'not-a-date' },
+        { occurredAt: '2026-07-28T10:00:00.000Z' },
+      ]),
+    )
+    const points = valueOf(trend)
+    expect(points?.length).toBe(2)
+    expect(points?.every((p) => p.value === 1)).toBe(true)
+  })
+
+  it('returns a single-day bucket when only one day is recorded', () => {
+    const trend = movementCountTrend(available([{ occurredAt: '2026-07-27T10:00:00.000Z' }]))
+    expect(isAvailable(trend)).toBe(true)
+    expect(valueOf(trend)?.length).toBe(1)
+  })
+
+  it('propagates the ledger absence untouched — never a zero series', () => {
+    const trend = movementCountTrend(unavailable({ endpoint: '/api/v1/series1/events', status: 'UNAVAILABLE' }))
+    expect(isAvailable(trend)).toBe(false)
+    expect(trend).toMatchObject({ status: 'UNAVAILABLE' })
   })
 })
 
@@ -223,11 +267,12 @@ describe('estateOverview', () => {
     }
   })
 
-  it('counts a readable but empty movement window without inventing a curve', () => {
+  it('counts a readable but empty movement window and keeps the trend slot open', () => {
     const overview = estateOverview(registry({ movements: available([]) }))
     expect(valueOf(overview.recentMovements)).toBe('0')
     expect(overview.movementBars).toEqual([])
-    expect(isAvailable(overview.recentTrend)).toBe(false)
+    expect(isAvailable(overview.recentTrend)).toBe(true)
+    expect(valueOf(overview.recentTrend)).toEqual([])
   })
 
   it('treats 0/0 deployed+idle as absent, not 0% (F-08)', () => {

@@ -1,5 +1,6 @@
 'use client'
 
+import { AdminBodyNav } from '@/components/admin/body-nav'
 import { Avatar } from '@/components/catalyst/avatar'
 import {
   Dropdown,
@@ -26,7 +27,8 @@ import { Logo } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {
   ADMIN_NAV,
-  ADMIN_SECONDARY,
+  ADMIN_SECTION_HUBS,
+  groupeSecondaireActif,
   hrefActif,
 } from '@/lib/admin-nav'
 import type { SessionUser } from '@/lib/session'
@@ -58,17 +60,16 @@ function AccountMenu({ anchor }: Readonly<{ anchor: 'top start' | 'bottom end' }
 }
 
 /**
- * Shell console — Catalyst SidebarLayout, câblé sur `ADMIN_NAV`.
- *
- * Les destinations vivent ici (module client) : les icônes Heroicons ne
- * traversent pas la frontière serveur → client.
+ * Shell console — menu principal vertical à gauche, sous-menus horizontaux
+ * dans le corps via `AdminBodyNav` quand la section active en porte.
  */
 export function AdminApplicationLayout({
   user,
   children,
 }: Readonly<{ user: SessionUser; children: React.ReactNode }>) {
   const pathname = usePathname()
-  const current = hrefActif(pathname) ?? '/admin'
+  const groupeActif = groupeSecondaireActif(pathname)
+  const primaireActif = hrefActif(pathname)
   const initials = user.name
     .split(/\s+/)
     .filter(Boolean)
@@ -102,32 +103,37 @@ export function AdminApplicationLayout({
 
           <SidebarBody>
             <SidebarSection>
-              {ADMIN_NAV.map((entry) => {
-                const Icon = entry.icone
+              {ADMIN_NAV.map((entree) => {
+                const Icone = entree.icone
                 return (
-                  <SidebarItem key={entry.href} href={entry.href} current={current === entry.href}>
-                    <Icon />
-                    <SidebarLabel>{entry.libelle}</SidebarLabel>
+                  <SidebarItem
+                    key={entree.href}
+                    href={entree.href}
+                    current={groupeActif === undefined && primaireActif === entree.href}
+                  >
+                    <Icone />
+                    <SidebarLabel>{entree.libelle}</SidebarLabel>
                   </SidebarItem>
                 )
               })}
             </SidebarSection>
 
-            {ADMIN_SECONDARY.map((group) => (
-              <SidebarSection key={group.titre} className="max-lg:hidden">
-                <SidebarHeading>{group.titre}</SidebarHeading>
-                {group.entrees.map((entry) => {
-                  const Icon = entry.icone
-                  const active = pathname === entry.href || pathname.startsWith(`${entry.href}/`)
-                  return (
-                    <SidebarItem key={entry.href} href={entry.href} current={active}>
-                      <Icon />
-                      <SidebarLabel>{entry.libelle}</SidebarLabel>
-                    </SidebarItem>
-                  )
-                })}
-              </SidebarSection>
-            ))}
+            <SidebarSection className="max-lg:hidden">
+              <SidebarHeading>Sections</SidebarHeading>
+              {ADMIN_SECTION_HUBS.map((hub) => {
+                const Icone = hub.icone
+                return (
+                  <SidebarItem
+                    key={hub.href}
+                    href={hub.href}
+                    current={groupeActif?.titre === hub.titre}
+                  >
+                    <Icone />
+                    <SidebarLabel>{hub.libelle}</SidebarLabel>
+                  </SidebarItem>
+                )
+              })}
+            </SidebarSection>
 
             <SidebarSpacer />
           </SidebarBody>
@@ -154,6 +160,7 @@ export function AdminApplicationLayout({
         </Sidebar>
       }
     >
+      <AdminBodyNav />
       {children}
     </SidebarLayout>
   )

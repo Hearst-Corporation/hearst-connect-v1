@@ -13,3 +13,21 @@
 export { Panel, PanelBody, PanelHeader, type PanelTone } from '@/components/compositions/panel'
 export { KpiRow, MetricCard, MetricValue, SideFact } from '@/components/compositions/metric'
 export { CalmState, SourceAttendue } from '@/components/compositions/empty-state'
+export { CockpitPage } from '@/components/compositions/cockpit-page'
+
+/*
+ * Blocs « haut de gamme » (niveau 2bis) — surfaces prêtes à l'emploi composées
+ * des primitives ci-dessus. Le mouvement d'entrée vit dans `motion.tsx`
+ * (`FadeIn`), le seul fragment client ; les blocs restent rendus côté serveur.
+ */
+export {
+  StatCard,
+  StatGrid,
+  SectionCard,
+  DataTableShell,
+  Toolbar,
+  Callout,
+  type DeltaTone,
+  type CalloutTone,
+} from '@/components/compositions/blocks'
+export { FadeIn } from '@/components/compositions/motion'

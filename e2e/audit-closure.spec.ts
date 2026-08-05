@@ -8,7 +8,7 @@ import { test, expect, type Page } from '@playwright/test'
 const ROUTES_AUDIT = [
   '/admin/dashboard',
   '/admin/runtime',
-  '/admin/mining',
+  '/admin/produit',
   '/admin/vaults',
 ] as const
 
@@ -37,10 +37,10 @@ test.describe('audit closure — vérité affichée', () => {
     await expect(page.getByRole('cell', { name: 'Indexeur', exact: true })).toBeVisible()
   })
 
-  test('mining réconcilie les lectures dédiées', async ({ page }) => {
-    await page.goto('/admin/mining')
-    await expect(page.getByText('Lectures dédiées et cohérence')).toBeVisible()
-    await expect(page.getByText('Cohérence facture mensuelle')).toBeVisible()
+  test('produit affiche la vue consolidée', async ({ page }) => {
+    await page.goto('/admin/produit')
+    await expect(page.getByRole('heading', { name: 'Vue produit consolidée' })).toBeVisible()
+    await expect(page.getByText('Lectures consolidées du produit')).toBeVisible()
   })
 })
 
