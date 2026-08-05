@@ -38,21 +38,21 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
 
 ## Stack & environnement
 
-- Next.js 16.2.6 (App Router, Turbopack) · React 19.2.6 · TypeScript strict · Tailwind CSS v4.
+- Next.js 16.2.12 (App Router, Turbopack) · React 19.2.6 · TypeScript strict · Tailwind CSS v4.
 - Package manager : **pnpm** (`pnpm-lock.yaml`, `packageManager: pnpm@11.9.0`) · dev :
   `pnpm dev` · **port : 4105**. Aucun `package-lock.json` : n'en régénère pas un (voir
   « Pièges connus » — la CI Hearst est pnpm-only).
 - Aucune base de données ici, et **aucune donnée de démonstration** : le contenu vient du backend
   Hearst Connect via `src/lib/backend/` (client serveur unique, `HEARST_API_URL`). Une absence
   reste une absence — état nommé (`NOT_CONFIGURED`, `UNAVAILABLE`…), jamais une valeur de repli.
-- Session : cookie httpOnly signé HMAC-SHA256 maison (`src/lib/session.ts`). Il porte l'identité
+- Session : cookie httpOnly chiffré AES-256-GCM maison (`src/lib/session.ts`). Il porte l'identité
   ET le jeton porteur émis par le backend — donc jamais lisible côté client.
 - Variables d'environnement serveur : **une seule porte**, `src/lib/env.ts` (`import 'server-only'`,
   validation fail-closed). Aucun autre module ne lit `process.env` pour ces clés.
 
 ## Gates & tests
 
-- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:mocks` → `check:ds` → `check:ui` → `test`, en
+- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:mocks` → `check:truthful-data` → `check:ds` → `check:ui` → `test`, en
   série (le premier rouge arrête tout). Pas de build dans la gate (le build vit dans le
   déploiement).
 - **Pas de gate de design *imposée* (décision du 2026-07-31).** Pas de Storybook obligatoire,
@@ -81,10 +81,13 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
     — cause racine des P0 de véracité, cf. VER-10) · **`COUNT_FROM_EMPTY_FALLBACK`** (pas de
     `?? [].length` : une source absente ne devient pas « 0 mesuré »). Si tu es tenté de
     contourner une de ces règles, c'est presque toujours le code qu'il faut corriger, pas la gate.
+  - **`check:truthful-data` (`scripts/check-truthful-data.mjs`) — aucun faux live, seuil
+    hardcodé ni `stale:false` forcé dans le runtime.**
   - `check:ds` (`scripts/check-design-system.mjs`) — aucun hexadécimal brut hors token dans
     `src/app`, `components/admin`, `components/vaults`, `components/marketing`. Sa propre preuve :
     `node scripts/check-design-system.mjs --selftest`.
-  - `test` (`vitest run`) — suite dans `tests/` (24 fichiers / 231 tests, mesuré au 2026-08-04),
+  - `check:ui` (`scripts/check-ui-boundaries.mjs`) — frontières compositions / charts / Catalyst.
+  - `test` (`vitest run`) — suite dans `tests/` (40 fichiers / 315 tests, mesuré au 2026-08-05),
     dont `truthful-rendering`, `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`,
     `veracity-p0`, `language-regression`.
 - En complément de la gate, avant livraison : parcours réel (connexion → dashboard → déconnexion).
