@@ -52,3 +52,7 @@ Fingerprint : `aab91b616c7a` ×5.
 
 ## Loop
 Heartbeat 8 min armé (`AGENT_LOOP_WAKE_hc_surfaces`) — re-probe + smoke à chaque tick.
+
+
+## Spec
+SSOT mapping : `docs/ENDPOINT-MAPPING.md` (brouillon chat 2026-08-04 non autoritatif).
