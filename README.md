@@ -136,8 +136,8 @@ utilisateur. **Toutes les pages `/admin/**` sont en Catalyst pur**
 - Lecture LIVE : badge vert **« En direct »** via `AdminReading` / `Reading` +
   `signalOf` (provenance backend réelle, jamais une valeur éditoriale).
 
-Point de reprise Git avant le rebuild Catalyst : tag `recovery/pre-catalyst-console`.
-Branche de travail courante : **`main`** (plus `rebuild/catalyst-console`).
+Point de reprise Git : commit `834bbf8` sur **`main`** (cockpit + nav consolidée).
+Branche de travail courante : **`main`** uniquement.
 
 Revues visuelles : `docs/visual-reviews/`.
 Passation agent : `docs/PASSATION-AGENT.md`.

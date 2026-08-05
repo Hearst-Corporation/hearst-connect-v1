@@ -1,7 +1,7 @@
 # Passation agent — Hearst Connect V1
 
 > **À coller en tête de mission pour le prochain agent.**  
-> Dernière mise à jour : 2026-08-05 (navigation consolidée, `/admin/produit`). Branche de travail : **`feat/mui-x-dataviz-charts`** → merge `main` après gate.
+> Dernière mise à jour : 2026-08-05 (navigation consolidée, `/admin/produit`). Branche de travail : **`main` uniquement**.
 
 ---
 
