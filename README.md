@@ -236,7 +236,7 @@ Validation : `pnpm check` · e2e : `pnpm e2e e2e/audit-closure.spec.ts`
 | Document | Rôle |
 |---|---|
 | `CLAUDE.md` | Contrat de travail sur ce dépôt (stack, gates, secrets, pièges, architecture) |
-| `docs/ENDPOINT-MAPPING.md` | **Spécification** mapping backend → front (SSOT, remplace le brouillon 2026-08-04) |
+| `docs/ENDPOINT-MAPPING.md` | **Spec backend** → matrice de conformité front (ne contredit pas le contrat back) |
 | `docs/PASSATION-AGENT.md` | État opérationnel pour le prochain agent (GPU1 interdit, Railway, main) |
 | `docs/PASSATION-LOOP-NOTE.md` | Checklist loop cohérence surfaces / chiffres ×5 |
 | `.cursor/rules/30-no-gpu1.mdc` | **Règle absolue** — GPU1 interdit ; backend = GitHub + Railway |
