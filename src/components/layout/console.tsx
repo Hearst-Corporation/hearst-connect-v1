@@ -8,12 +8,11 @@ import clsx from 'clsx'
  * The laboratory's shared primitives: the panel material, and the one way an
  * absence is rendered inside this composition.
  *
- * The console's own `SourceAvailabilityBadge` is deliberately NOT reused here.
- * It is a Catalyst-styled badge built for the graphite console — dropped onto
- * this near-black prototype it reads as a foreign element and, worse, its
- * padding would break the 7px caption rhythm the reference geometry depends
- * on. The CONTRACT it enforces is what matters, and that contract is kept:
- * an absence shows the word, the reason and the route, and never a number.
+ * The console's own source-availability badge was deliberately NOT reused here.
+ * It was a Catalyst-styled badge built for the graphite console — dropped onto
+ * this near-black prototype it read as a foreign element. The CONTRACT it
+ * enforced is what matters, and that contract is kept: an absence shows the
+ * word, the reason and the route, and never a number.
  */
 
 /*
@@ -46,7 +45,7 @@ import clsx from 'clsx'
  * `onAccent` still exists: on the light accent card a `zinc` badge would sit
  * light-on-light, so the ink flips there.
  */
-export function Absent({
+function Absent({
   availability,
   onAccent = false,
   showRoute = false,

@@ -1,44 +1,35 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
-import { Panel } from '@/components/compositions'
-import { ConsoleRail } from '@/components/layout/console-rail'
-import { Reading } from '@/components/layout/console'
+import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
+import { AdminReading } from '@/components/admin/reading'
+import {
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from '@/components/catalyst/description-list'
+import { Link } from '@/components/catalyst/link'
+import { Text } from '@/components/catalyst/text'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/catalyst/table'
 import { requireSession } from '@/lib/auth'
-import { callBackend } from '@/lib/backend/client'
+import { callBackend, statusFromMeta } from '@/lib/backend/client'
+import { availabilityFromResolu } from '@/lib/backend/availability'
 import { motifLisible, etatSourceLisible } from '@/lib/mouvements'
-import { publicUser } from '@/lib/session'
-import { available, unavailable, type Availability } from '@/lib/vaults/model'
+import { mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
-import clsx from 'clsx'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Couverture des données' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Data Coverage — which product surfaces are actually served.
- *
- * The aggregate returned by the service describes eighteen business
- * surfaces, each with its own status. This is THE question this page
- * answers: what can we rely on today, and what's missing elsewhere, and why.
- *
- * Three choices govern it:
- *
- * 1. We don't show the raw payload. A screen of JSON teaches nothing to
- *    someone who has to decide.
- *
- * 2. We don't requalify any status. The service computes the overall status
- *    worst-field-first: a single degraded surface pulls down the whole. This
- *    is documented behavior — we explain it rather than fix it. A frontend
- *    that "improves" an upstream status lies to its reader.
- *
- * 3. Eighteen surfaces are ONE list, not three framed panels. The rejected
- *    version put each status tier in its own card, so the reader compared
- *    boxes instead of rows, and a tier holding two surfaces got the same
- *    frame as a tier holding twelve. The surfaces now share a single table
- *    ordered by tier, with the meaning of each tier — and how many surfaces
- *    it holds — in a deliberate secondary column beside it.
+ * Couverture des données — Catalyst pur.
+ * Source : dashboard (agrégat des surfaces) + registre admin.
  */
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
@@ -46,7 +37,6 @@ type ResolvedField = { readonly status: string; readonly value: unknown; readonl
 const isResolvedField = (v: unknown): v is ResolvedField =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
-/** The business name of each surface. An unknown key keeps its key. */
 const SURFACE_NAME: Record<string, string> = {
   identity: 'Identité de l’investisseur',
   position: 'Position détenue',
@@ -70,8 +60,6 @@ const SURFACE_NAME: Record<string, string> = {
 
 const surfaceName = (key: string): string => SURFACE_NAME[key] ?? key
 
-/* ── The three status tiers ──────────────────────────────────────────────── */
-
 type CoverageTier = 'served' | 'partial' | 'notOpened'
 
 const TIER_TITLE: Record<CoverageTier, string> = {
@@ -87,24 +75,6 @@ const TIER_EXPLANATION: Record<CoverageTier, string> = {
   notOpened: 'Ces surfaces ne sont pas encore ouvertes. Rien n’en est attendu pour l’instant.',
 }
 
-/**
- * Colour here is a claim about state, which is exactly what these three tiers
- * are — so the semantic palette is spent where it means something. An
- * ordinary dataset would get the mint ramp instead.
- */
-const TIER_DOT: Record<CoverageTier, string> = {
-  served: 'bg-success-500',
-  partial: 'bg-warning-500',
-  notOpened: 'bg-zinc-500',
-}
-
-const TIER_TEXT: Record<CoverageTier, string> = {
-  served: 'text-success-400',
-  partial: 'text-warning-400',
-  notOpened: 'text-zinc-500 dark:text-zinc-400',
-}
-
-/** The ranking follows the status declared by the service, without reinterpreting it. */
 function tierFromStatus(status: string): CoverageTier {
   if (status === 'LIVE') return 'served'
   if (status === 'PARTIAL' || status === 'STALE' || status === 'SNAPSHOT' || status === 'EMPTY') return 'partial'
@@ -124,12 +94,8 @@ type SourceActivityRow = {
 const countIn = (surfaces: readonly Surface[], tier: CoverageTier): number =>
   surfaces.filter((s) => s.tier === tier).length
 
-const HEAD_CELL = 'px-3 py-2 font-medium whitespace-normal break-words'
-const BODY_CELL = 'px-3 py-2 align-top'
-
 export default async function Page() {
   const session = await requireSession()
-  const user = publicUser(session)
   const response = await callBackend<Record<string, unknown>>('dashboard')
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
   const aggregate = response.ok ? response.data : null
@@ -147,12 +113,20 @@ export default async function Page() {
           }))
   const ordered = TIER_ORDER.flatMap((tier) => surfaces.filter((surface) => surface.tier === tier))
 
-  // VER-01: when the aggregate could not be read, coverage is NOT measurable —
-  // it is not "0 served / 0%". Only a readable aggregate yields real counts,
-  // and a readable-but-empty aggregate yields an honest zero.
-  const coverageUnreadable = unavailable({ endpoint: '/api/v1/admin/dashboard', status: 'UNAVAILABLE', reason: 'dashboard_source_unreachable' })
+  const coverageUnreadable = unavailable({
+    endpoint: '/api/v1/admin/dashboard',
+    status: 'UNAVAILABLE',
+    reason: 'dashboard_source_unreachable',
+  })
+  const dashboardEndpoint = '/api/v1/dashboard'
+  const dashboardBloc =
+    response.ok && aggregate !== null
+      ? { status: response.meta?.status ?? 'LIVE', value: aggregate, reason: null }
+      : null
+  const dashboardSource = availabilityFromResolu(dashboardBloc, dashboardEndpoint)
+
   const asCount = (n: number): Availability<string> =>
-    aggregate === null ? coverageUnreadable : available(String(n), { provenance: 'live', asOf: null })
+    aggregate === null ? coverageUnreadable : mapAvailability(dashboardSource, () => String(n))
   const served = countIn(surfaces, 'served')
   const servedCell = asCount(served)
   const partialCell = asCount(countIn(surfaces, 'partial'))
@@ -161,157 +135,124 @@ export default async function Page() {
   const coverageCell: Availability<string> =
     aggregate === null || surfaces.length === 0
       ? coverageUnreadable
-      : available(`${Math.round((served / surfaces.length) * 100)}%`, { provenance: 'live', asOf: null })
+      : mapAvailability(dashboardSource, () => `${Math.round((served / surfaces.length) * 100)}%`)
+
+  const sourceState: Availability<string> = response.ok
+    ? mapAvailability(dashboardSource, () => etatSourceLisible(statusFromMeta(response.meta)))
+    : unavailable({
+        endpoint: dashboardEndpoint,
+        status: 'UNAVAILABLE',
+        reason: 'dashboard_source_unreachable',
+      })
 
   return (
-    <ConsoleShell
-      label="Hearst Connect — poste de pilotage couverture des données"
-      rail={<ConsoleRail currentHref="/admin/dashboard" userName={user.name} userRole={user.role} />}
-    >
-      <section className={gcc.metricsRow} aria-label="Synthèse de la couverture">
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Servi</h2>
-          <div className={gcc.metricText}>
-            <Reading value={servedCell} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Partiel</h2>
-          <div className={gcc.metricText}>
-            <Reading value={partialCell} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Non ouvert</h2>
-          <div className={gcc.metricText}>
-            <Reading value={notOpenedCell} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Surfaces totales</h2>
-          <div className={gcc.metricText}>
-            <Reading value={totalCell} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Taux de couverture</h2>
-          <div className={gcc.metricText}>
-            <Reading value={coverageCell} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>État de la <span>couverture</span></p>
-          <p className={gcc.decisionMeta}>{aggregate === null ? 'Source du tableau de bord indisponible' : 'Source du tableau de bord joignable'}</p>
-          <p className={gcc.decisionActionMuted}>Champ le plus dégradé d’abord, selon l’état du backend</p>
-        </Panel>
-      </section>
+    <div className="space-y-10">
+      <AdminPageHeader
+        title="Couverture des données"
+        description="Quelles surfaces produit sont réellement servies aujourd’hui. Les états sont affichés exactement tels que le backend les rapporte — champ le plus dégradé d’abord."
+      />
 
-      <section className={gcc.mainRow} aria-label="Tableau d’état des surfaces">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Surface par surface</h2>
+      <DescriptionList>
+        <DescriptionTerm>Servi</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={servedCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>Partiel</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={partialCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>Non ouvert</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={notOpenedCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>Surfaces totales</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={totalCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>Taux de couverture</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={coverageCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>État de la source</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={sourceState} />
+        </DescriptionDetails>
+      </DescriptionList>
+
+      <AdminSectionHeading
+        title="Surface par surface"
+        description="Dix-huit surfaces dans une seule liste, ordonnées par palier. Aucun statut n’est requalifié côté front."
+      />
+      {aggregate === null ? (
+        <Text>
+          Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.
+        </Text>
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Surface</TableHeader>
+              <TableHeader>État</TableHeader>
+              <TableHeader>Motif</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {ordered.map((surface) => (
+              <TableRow key={surface.key}>
+                <TableCell className="font-medium">{surface.name}</TableCell>
+                <TableCell>{TIER_TITLE[surface.tier]}</TableCell>
+                <TableCell className="text-zinc-500">{surface.reason ?? '—'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      <AdminSectionHeading title="Signification des paliers" />
+      <DescriptionList>
+        {TIER_ORDER.map((tier) => (
+          <div key={tier} className="contents">
+            <DescriptionTerm>{TIER_TITLE[tier]}</DescriptionTerm>
+            <DescriptionDetails>
+              {countIn(surfaces, tier)} — {TIER_EXPLANATION[tier]}
+            </DescriptionDetails>
           </div>
-          <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
-            {aggregate === null ? (
-              <p className={gcc.cellText}>Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.</p>
-            ) : (
-              <table className="w-full min-w-[760px] table-fixed text-left text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
-                    <th className={HEAD_CELL}>Surface</th>
-                    <th className={HEAD_CELL}>État</th>
-                    <th className={HEAD_CELL}>Motif</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                  {ordered.map((surface) => (
-                    <tr key={surface.key}>
-                      <td className={BODY_CELL}>{surface.name}</td>
-                      <td className={clsx(BODY_CELL, TIER_TEXT[surface.tier])}>
-                        <span className="inline-flex items-center gap-2">
-                          <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', TIER_DOT[surface.tier])} />
-                          {TIER_TITLE[surface.tier]}
-                        </span>
-                      </td>
-                      <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{surface.reason ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </Panel>
-        <aside className={gcc.rightStack}>
-          {TIER_ORDER.map((tier) => (
-            <Panel key={tier} className={gcc.signalCard}>
-              <h3>{TIER_TITLE[tier]}</h3>
-              <p className={gcc.signalValue}>{countIn(surfaces, tier)}</p>
-              <p className={gcc.cellText}>{TIER_EXPLANATION[tier]}</p>
-            </Panel>
+        ))}
+      </DescriptionList>
+
+      <AdminSectionHeading title="Activité des sources" />
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableHeader>Source</TableHeader>
+            <TableHeader>État</TableHeader>
+            <TableHeader>Détail</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {registry.sources.map((source: SourceActivityRow) => (
+            <TableRow key={source.endpointId}>
+              <TableCell className="font-medium">{source.label}</TableCell>
+              <TableCell>{etatSourceLisible(source.status)}</TableCell>
+              <TableCell className="text-zinc-500">{source.detail ?? '—'}</TableCell>
+            </TableRow>
           ))}
-        </aside>
-      </section>
+        </TableBody>
+      </Table>
 
-      <section className={gcc.bottomRow} aria-label="Activité des sources">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Activité des sources</h3>
-          </div>
-          <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
-            <table className="w-full min-w-[680px] table-fixed text-left text-sm">
-              <thead>
-                <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
-                  <th className={HEAD_CELL}>Source</th>
-                  <th className={HEAD_CELL}>État</th>
-                  <th className={HEAD_CELL}>Détail</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
-                {registry.sources.map((source: SourceActivityRow) => (
-                  <tr key={source.endpointId}>
-                    <td className={BODY_CELL}>{source.label}</td>
-                    <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{etatSourceLisible(source.status)}</td>
-                    <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{source.detail ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}>
-            <h3>Servi</h3>
-            <p className={gcc.cellText}>Surfaces en direct avec une valeur exploitable.</p>
-          </article>
-          <article className={gcc.infoCell}>
-            <h3>Partiel</h3>
-            <p className={gcc.cellText}>Une réponse existe mais la valeur est incomplète.</p>
-          </article>
-          <article className={gcc.infoCell}>
-            <h3>Non ouvert</h3>
-            <p className={gcc.cellText}>Le point d’accès ou la capacité n’est pas encore exposé.</p>
-          </article>
-          <article className={gcc.infoCell}>
-            <h3>Contrat</h3>
-            <p className={gcc.cellText}>Les états sont affichés exactement tels que le backend les rapporte.</p>
-          </article>
-        </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Liens clés</h3>
-          <div className={gcc.sourceRow}>
-            <Link href="/admin/operations" className="text-sm text-accent-300 underline underline-offset-2">
-              Opérations
-            </Link>
-            <span className={gcc.cellText}>Exécution et mouvements de la chaîne</span>
-          </div>
-          <div className={gcc.sourceRow}>
-            <Link href="/admin/runtime" className="text-sm text-accent-300 underline underline-offset-2">
-              Exécution
-            </Link>
-            <span className={gcc.cellText}>État de l’indexeur et de l’ordonnanceur</span>
-          </div>
-        </Panel>
-      </section>
-    </ConsoleShell>
+      <AdminSectionHeading title="Liens clés" />
+      <Text>
+        <Link href="/admin/operations" className="underline">
+          Opérations
+        </Link>
+        {' — '}
+        Exécution et mouvements de la chaîne.{' '}
+        <Link href="/admin/runtime" className="underline">
+          Exécution
+        </Link>
+        {' — '}
+        État de l’indexeur et de l’ordonnanceur.
+      </Text>
+    </div>
   )
 }

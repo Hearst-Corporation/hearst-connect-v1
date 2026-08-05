@@ -1,13 +1,16 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
-import { Panel } from '@/components/compositions'
-import { ConsoleRail } from '@/components/layout/console-rail'
-import { Reading } from '@/components/layout/console'
+import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
+import { AdminReading } from '@/components/admin/reading'
+import {
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from '@/components/catalyst/description-list'
+import { Link } from '@/components/catalyst/link'
+import { Text } from '@/components/catalyst/text'
 import { ADMIN_SECONDARY, CLIENTS_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
-import { publicUser } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Administration' }
 export const dynamic = 'force-dynamic'
@@ -16,118 +19,62 @@ const SCREEN_COUNT = ADMIN_SECONDARY.reduce((total, group) => total + group.entr
 
 export default async function Page() {
   const session = await requireSession()
-  const user = publicUser(session)
 
   return (
-    <ConsoleShell
-      label="Hearst Connect — poste de pilotage administration"
-      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
-    >
-      <section className={gcc.metricsRow} aria-label="État de l’administration">
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Compte</h2>
-          <div className={gcc.metricText}>
-            <Reading value={editorial(session.name)} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>E-mail</h2>
-          <div className={gcc.metricText}>
-            <Reading value={editorial(session.email)} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Rôle</h2>
-          <div className={gcc.metricText}>
-            <Reading value={editorial(session.role)} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Écrans secondaires</h2>
-          <div className={gcc.metricText}>
-            <Reading value={editorial(String(SCREEN_COUNT))} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.metricCard}>
-          <h2>Source du journal admin</h2>
-          <div className={gcc.metricText}>
-            <Reading value={editorial('Non exposé')} className={gcc.metricValue} />
-          </div>
-        </Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Surface <span>d’administration</span></p>
-          <p className={gcc.decisionMeta}>Navigation et accès</p>
-          <p className={gcc.decisionActionMuted}>Aucune valeur de repli</p>
-        </Panel>
-      </section>
+    <div className="space-y-10">
+      <AdminPageHeader
+        title="Administration"
+        description="Compte connecté et destinations secondaires de la console. Le journal d’administration n’est pas exposé par le backend."
+      />
 
-      <section className={gcc.mainRow} aria-label="Destinations principales">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Destinations principales d’administration</h2>
-          </div>
-          <div className={gcc.heroBody}>
-            <div className={gcc.sourceRow}>
-              <Link href={VAULT_REGISTRY_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
-                {VAULT_REGISTRY_ENTRY.libelle}
-              </Link>
-              <span className={gcc.cellText}>Registre</span>
-            </div>
-            <div className={gcc.sourceRow}>
-              <Link href={CLIENTS_ENTRY.href} className="text-sm text-accent-300 underline underline-offset-2">
-                Annuaire des clients
-              </Link>
-              <span className={gcc.cellText}>Annuaire</span>
-            </div>
-            <p className={gcc.cellText}>Le journal d’administration n’est pas exposé par les points d’accès du backend.</p>
-          </div>
-        </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}>
-            <h3>Utilisateur</h3>
-            <p className={gcc.cellText}>{user.name}</p>
-          </Panel>
-          <Panel tone="plain" className={gcc.signalCard}>
-            <h3>Rôle</h3>
-            <p className={gcc.signalValue}>{user.role}</p>
-          </Panel>
-          <Panel tone="plain" className={gcc.signalCard}>
-            <h3>Couverture</h3>
-            <p className={gcc.cellText}>Écrans secondaires regroupés ci-dessous.</p>
-          </Panel>
-        </aside>
-      </section>
+      <DescriptionList>
+        <DescriptionTerm>Compte</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(session.name)} />
+        </DescriptionDetails>
+        <DescriptionTerm>E-mail</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(session.email)} />
+        </DescriptionDetails>
+        <DescriptionTerm>Rôle</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(session.role)} />
+        </DescriptionDetails>
+        <DescriptionTerm>Écrans secondaires</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(String(SCREEN_COUNT))} />
+        </DescriptionDetails>
+        <DescriptionTerm>Source du journal admin</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial('Non exposé')} />
+        </DescriptionDetails>
+      </DescriptionList>
 
-      <section className={gcc.bottomRow} aria-label="Navigation secondaire">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}>
-            <h3 className={gcc.cardTitle}>Écrans secondaires</h3>
-          </div>
-          <div className={gcc.heroBody}>
-            {ADMIN_SECONDARY.flatMap((group) => group.entrees).map((entry) => (
-              <div key={entry.href} className={gcc.sourceRow}>
-                <Link href={entry.href} className="text-sm text-accent-300 underline underline-offset-2">
+      <Text>
+        <Link href={VAULT_REGISTRY_ENTRY.href} className="underline">
+          {VAULT_REGISTRY_ENTRY.libelle}
+        </Link>
+        {' · '}
+        <Link href={CLIENTS_ENTRY.href} className="underline">
+          {CLIENTS_ENTRY.libelle}
+        </Link>
+      </Text>
+
+      <AdminSectionHeading title="Écrans secondaires" />
+      <DescriptionList>
+        {ADMIN_SECONDARY.flatMap((group) =>
+          group.entrees.map((entry) => (
+            <div key={entry.href} className="contents">
+              <DescriptionTerm>
+                <Link href={entry.href} className="underline">
                   {entry.libelle}
                 </Link>
-                <span className={gcc.cellText}>{entry.detail}</span>
-              </div>
-            ))}
-          </div>
-        </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          {ADMIN_SECONDARY.map((group) => (
-            <article key={group.titre} className={gcc.infoCell}>
-              <h3>{group.titre}</h3>
-              <p className={gcc.cellText}>{group.entrees.length} destinations</p>
-            </article>
-          ))}
-        </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Contrats</h3>
-          <p className={gcc.cellText}>Les rôles et l’audit d’administration restent non exposés.</p>
-          <p className={gcc.cellText}>Aucune action de contrat intelligent n’est simulée ici.</p>
-        </Panel>
-      </section>
-    </ConsoleShell>
+              </DescriptionTerm>
+              <DescriptionDetails>{entry.detail}</DescriptionDetails>
+            </div>
+          )),
+        )}
+      </DescriptionList>
+    </div>
   )
 }

@@ -1,5 +1,5 @@
 import { formatDateTime, formatNumber } from '@/lib/format'
-import type { CallTrace, EnvelopeMeta, KeeperActionResult, Problem } from '@/lib/backend/client'
+import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
@@ -10,8 +10,6 @@ import clsx from 'clsx'
  * None of these components fabricate a value, round an absence to zero, or
  * requalify a status. `SIMULATED` only exists if the backend said so.
  */
-
-/* ── Status badge ────────────────────────────────────────────────────────── */
 
 type BadgeTone = 'ok' | 'warn' | 'bad' | 'info' | 'neutral'
 
@@ -29,8 +27,6 @@ const STATUS_TONE: Record<ResolvedStatus | 'SNAPSHOT', BadgeTone> = {
   ERROR: 'bad',
 }
 
-// Présentation FR des statuts (glossaire). Le statut TECHNIQUE (clé) est
-// inchangé : seule la présentation utilisateur est traduite.
 const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
   LIVE: 'En direct',
   SNAPSHOT: 'Instantané',
@@ -45,15 +41,6 @@ const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
   ERROR: 'Erreur',
 }
 
-/**
- * Four tones, and only one of them is a hue you have to act on.
- *
- * `info` used to be blue. The approved system has no blue in it — the console
- * is neutral graphite plus the brand mint plus three semantic tones, and a
- * badge that means "this is fine, just so you know" has no business carrying
- * a fourth hue. It reads as graphite now, exactly like `neutral`, because
- * that is what it means.
- */
 const TONE_CLASS: Record<BadgeTone, string> = {
   ok: 'bg-success-400/15 text-success-400 ring-success-400/30',
   warn: 'bg-warning-400/15 text-warning-400 ring-warning-400/30',
@@ -74,14 +61,11 @@ export function StatusBadge({
         TONE_CLASS[STATUS_TONE[status]],
       )}
     >
-      {/* The dot isn't the only marker: the label carries the information. */}
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
       {STATUS_LABEL[status]}
     </span>
   )
 }
-
-/* ── Provenance and freshness ────────────────────────────────────────────── */
 
 const PROVENANCE_LABEL: Record<string, string> = {
   live: 'Source en direct',
@@ -113,30 +97,6 @@ export function DataProvenance({
   )
 }
 
-function FreshnessIndicator({
-  asOf,
-  ageSeconds,
-  stale,
-}: Readonly<{ asOf?: string | null; ageSeconds?: number | null; stale?: boolean }>) {
-  if (!asOf && ageSeconds === null) return null
-  return (
-    <span className={clsx('text-xs', stale ? 'text-warning-400' : 'text-zinc-500')}>
-      {/* `formatDateTime` et non l'ISO brut : « au 2026-08-04T04:28:48.914Z »
-          est un format machine, illisible dans une console métier — et long de
-          173 px, ce qui contribuait au débordement du bloc de métadonnées. */}
-      {asOf ? `au ${formatDateTime(asOf)}` : null}
-      {typeof ageSeconds === 'number' ? ` · ${ageSeconds}s` : null}
-      {stale ? ' · fraîcheur insuffisante' : null}
-    </span>
-  )
-}
-
-/* ── Resolved value ───────────────────────────────────────────────────────── */
-
-/**
- * Renders a backend value, or its state. A missing value shows '—': never
- * 0, never 0%, never an estimate.
- */
 export function ResolvedValue({
   value,
   status,
@@ -162,8 +122,6 @@ export function ResolvedValue({
   )
 }
 
-/* ── Call metadata ────────────────────────────────────────────────────────── */
-
 export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
   const bits = [
     trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'aucune réponse',
@@ -174,41 +132,6 @@ export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
 
   return <p className="font-mono text-xs break-all text-zinc-500">{bits.join(' · ')}</p>
 }
-
-export function EnvelopeMetaLine({ meta }: Readonly<{ meta: EnvelopeMeta | null }>) {
-  if (!meta) return null
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <StatusBadge status={meta.status} />
-      <DataProvenance source={meta.source} />
-      <FreshnessIndicator asOf={meta.generatedAt} ageSeconds={meta.freshnessSeconds} />
-      {meta.reason ? <span className="text-xs text-warning-400">{meta.reason}</span> : null}
-    </div>
-  )
-}
-
-/* ── No-data states ──────────────────────────────────────────────────────── */
-
-/*
- * `bg-cockpit-inset` est CONSERVÉ ici, et ce n'est pas un oubli de convergence
- * (décision du 2026-08-04, LOT E).
- *
- * La famille `cockpit-*` est marquée « alias compatibilité » dans
- * `tailwind.css`, et la tentation est de la remplacer par `console-inset`. Les
- * valeurs ne sont pas les mêmes : `--color-cockpit-inset` vaut #0b0e17,
- * `--color-console-inset` vaut #202020.
- *
- * Ces trois surfaces enfoncées vivent à l'intérieur d'un `.panel` du module de
- * la console, dont le dégradé descend jusqu'à #030304. Un enfoncé à #0b0e17 s'y
- * creuse ; un enfoncé à #202020 serait PLUS CLAIR que son conteneur — il
- * ressortirait au lieu de s'enfoncer, et l'état « pas de données » se lirait
- * comme une carte mise en avant.
- *
- * Converger ces trois usages suppose donc d'arbitrer la valeur du plan enfoncé
- * de la console, ce qui change le rendu : c'est une décision de design system,
- * pas un renommage de token. Tant qu'elle n'est pas prise, `--color-cockpit-inset`
- * reste consommé et ne figure pas dans les candidats à la suppression.
- */
 
 function StateShell({
   status,
@@ -244,7 +167,6 @@ export function UnavailableState({ state, children }: Readonly<{ state: Resolved
   )
 }
 
-/** Renders a backend `Problem` as-is — the machine code is authoritative. */
 export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | null; keeper?: KeeperActionResult | null }>) {
   if (!problem && !keeper) return null
 
@@ -275,15 +197,5 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
         </>
       ) : null}
     </dl>
-  )
-}
-
-/** Collapsed raw JSON — the technical evidence stays available, never forced. */
-export function RawJsonPanel({ label = 'Réponse brute', data }: Readonly<{ label?: string; data: unknown }>) {
-  return (
-    <details className="mt-4 rounded-lg bg-cockpit-inset">
-      <summary className="cursor-pointer px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white">{label}</summary>
-      <pre className="overflow-x-auto px-4 pb-4 font-mono text-xs text-zinc-300">{JSON.stringify(data, null, 2)}</pre>
-    </details>
   )
 }

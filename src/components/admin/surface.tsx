@@ -26,11 +26,6 @@ export const surfaceRaised =
 
 /**
  * List of items a source still needs to provide.
- *
- * Two surfaces render it with different layouts (`SourceAttendue`, centered,
- * in `cockpit.tsx`; `AdminSourceAttendue`, left-aligned, in `surfaces.tsx`).
- * Only the list itself was identical: it lives here, both wrappers stay with
- * their respective owners.
  */
 export function RequirementList({ requis }: Readonly<{ requis: readonly string[] }>) {
   return (

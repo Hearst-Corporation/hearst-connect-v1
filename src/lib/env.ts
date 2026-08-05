@@ -121,7 +121,7 @@ export function devQuickLoginAvailable(): boolean {
  */
 function environmentReport(): EnvVarReport[] {
   return [
-    readUrl('HEARST_API_URL', 'Hearst Connect backend base — authentication authority.'),
+    readUrl('HEARST_API_URL', 'Hearst Connect backend base (Railway) — authentication authority. GPU1 / connect-api.hearst.app forbidden.'),
     readSecret('AUTH_SECRET', 'Frontend session cookie protection, only.'),
   ]
 }

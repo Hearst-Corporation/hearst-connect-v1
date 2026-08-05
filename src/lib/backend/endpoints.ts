@@ -132,6 +132,42 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     summary: 'Indexed Series 1 events.',
   }),
   defineEndpoint({
+    id: 'events-rebalancing',
+    path: '/api/v1/events/rebalancing',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin/operations',
+    summary: 'Indexed rebalancing events (Rebalance, VaultSwapped, strategy changes).',
+    caveat: 'DB-only read model — indexer is the sole writer.',
+  }),
+  defineEndpoint({
+    id: 'clients',
+    path: '/api/v1/clients',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/clients',
+    summary: 'Client directory from the Investor table.',
+    caveat: 'Admin role required — enumerates on-book investors only.',
+  }),
+  defineEndpoint({
+    id: 'deployments',
+    path: '/api/v1/deployments',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/vaults',
+    summary: 'Deployment ledger from Position rows.',
+    caveat: 'Admin role required — on-book subscriptions, not on-chain deposits.',
+  }),
+  defineEndpoint({
+    id: 'compliance',
+    path: '/api/v1/compliance',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/conformite',
+    summary: 'Compliance review queue from KYC state.',
+    caveat: 'Admin role required — investors whose KYC is not approved.',
+  }),
+  defineEndpoint({
     id: 'vault',
     path: '/api/v1/vault',
     category: 'business',
@@ -190,6 +226,8 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'session',
     surface: '/admin/mining',
     summary: 'Mining metrics read on-chain.',
+    caveat:
+      'Lecture directe on-chain, distincte de l’agrégat `mining` : `/admin/mining` compare les deux et signale tout écart.',
   }),
   defineEndpoint({
     id: 'mining-electricity',
@@ -198,6 +236,8 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'session',
     surface: '/admin/mining',
     summary: 'Mining electricity line item.',
+    caveat:
+      'Lecture dédiée du poste électricité, distincte de `mining.electricity` : `/admin/mining` réconcilie les deux.',
   }),
   defineEndpoint({
     id: 'btc',
@@ -257,6 +297,19 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     enveloped: false,
     summary: 'Mining domain AI context.',
     caveat: CAVEAT_AI,
+  }),
+
+  // ── Admin ops ──────────────────────────────────────────────────────────────
+  defineEndpoint({
+    id: 'admin-indexer-trigger',
+    method: 'POST',
+    path: '/api/v1/admin/indexer/trigger',
+    category: 'keeper',
+    auth: 'admin',
+    surface: '/admin/runtime',
+    enveloped: false,
+    summary: 'Triggers a Series 1 indexer run (admin only).',
+    caveat: 'Operational trigger — not a business fact.',
   }),
 
   // ── Keeper actions ─────────────────────────────────────────────────────────

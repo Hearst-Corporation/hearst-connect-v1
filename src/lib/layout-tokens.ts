@@ -23,9 +23,6 @@
  */
 export const pageMaxWidth = 'max-w-[1280px]'
 
-/** Between top-level sections of a page. Sections are separated by space, not by boxes. */
-export const pageSectionGap = 'space-y-10'
-
 /** Between content blocks inside one section. */
 export const sectionContentGap = 'space-y-6'
 

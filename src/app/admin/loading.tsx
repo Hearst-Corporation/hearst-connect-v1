@@ -1,34 +1,20 @@
+import { Text } from '@/components/catalyst/text'
+
 /**
- * Admin loading state (UI-06).
- *
- * Shown while an admin server component streams. It is a NAMED "loading" state,
- * distinct from empty / unavailable / error — it never renders placeholder
- * figures that could be mistaken for data. A single quiet line, honest about
- * what is happening.
+ * État de chargement admin — slot contenu du SidebarLayout Catalyst.
+ * État nommé « loading », distinct de vide / indisponible / erreur :
+ * aucune figure placeholder.
  */
 export default function AdminLoading() {
   return (
-    <main
-      style={{
-        minHeight: '100dvh',
-        display: 'grid',
-        placeItems: 'center',
-        background: 'var(--color-console-app, #101010)',
-        color: 'var(--color-zinc-400, #b3b3b3)',
-      }}
+    <div
+      className="flex min-h-[50vh] items-center justify-center"
       aria-busy="true"
       aria-live="polite"
     >
-      <p
-        style={{
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-          fontSize: '0.8rem',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-        }}
-      >
-        Chargement de la surface…
-      </p>
-    </main>
+      <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+        Chargement…
+      </Text>
+    </div>
   )
 }

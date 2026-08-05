@@ -1,4 +1,5 @@
-import { available, unavailable, type Availability } from '@/lib/vaults/model'
+import { availabilityFromResolu, type BlocResolu } from '@/lib/backend/availability'
+import { mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
 
 /**
  * Le compte des poches d'allocation, sans jamais fabriquer un zéro.
@@ -25,6 +26,10 @@ export type PocheAllocationSource = {
   readonly targetBps?: number | null
 }
 
+type TermsAllocation = {
+  readonly allocation?: { readonly pockets?: readonly PocheAllocationSource[] | null } | null
+}
+
 /** Une allocation n'est lisible que si sa cible est un nombre fini. */
 export function allocationLisible(poche: PocheAllocationSource): boolean {
   return poche.targetBps !== null && poche.targetBps !== undefined && Number.isFinite(poche.targetBps)
@@ -45,11 +50,12 @@ const ENDPOINT = '/api/v1/product/factsheet'
  */
 export function comptePoches(
   reponseOk: boolean,
-  poches: readonly PocheAllocationSource[] | null | undefined,
+  termsBloc: BlocResolu<TermsAllocation> | null | undefined,
 ): Availability<string> {
   if (!reponseOk) {
     return unavailable({ endpoint: ENDPOINT, status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
   }
+  const poches = termsBloc?.value?.allocation?.pockets
   if (poches === null || poches === undefined) {
     return unavailable({ endpoint: ENDPOINT, status: 'PARTIAL', reason: 'allocation_absent' })
   }
@@ -57,5 +63,5 @@ export function comptePoches(
   if (poches.length > 0 && lisibles.length === 0) {
     return unavailable({ endpoint: ENDPOINT, status: 'PARTIAL', reason: 'pocket_allocation_unreadable' })
   }
-  return available(String(lisibles.length), { provenance: 'live', asOf: null })
+  return mapAvailability(availabilityFromResolu(termsBloc, ENDPOINT), () => String(lisibles.length))
 }

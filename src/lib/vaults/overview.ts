@@ -38,6 +38,24 @@ const BPS = BigInt(10000)
 /** The overview reads a short ledger window; the operations log owns the long one. */
 export const MOVEMENT_WINDOW = 12
 
+function deploymentRatioBpsFrom(
+  deployedCapitalAtomic: Availability<bigint>,
+  availableCapitalAtomic: Availability<bigint>,
+): Availability<number> {
+  if (deployedCapitalAtomic.kind !== 'available' || availableCapitalAtomic.kind !== 'available') {
+    return combine(deployedCapitalAtomic, availableCapitalAtomic, () => 0)
+  }
+  const total = deployedCapitalAtomic.value + availableCapitalAtomic.value
+  if (total === ZERO) {
+    return unavailable({ endpoint: '/api/v1/vault', status: 'EMPTY', reason: 'no_deployed_capital' })
+  }
+  return available(Number((deployedCapitalAtomic.value * BPS) / total), {
+    provenance: 'indexed',
+    stale: deployedCapitalAtomic.stale || availableCapitalAtomic.stale,
+    asOf: deployedCapitalAtomic.asOf ?? availableCapitalAtomic.asOf,
+  })
+}
+
 /*
  * Étiquettes d'axe de la courbe d'activité. Ces deux formateurs étaient
  * construits À CHAQUE point et à chaque tour de boucle de regroupement ;
@@ -281,11 +299,7 @@ export function estateOverview(registry: AdminRegistry): EstateOverview {
   const deployedCapitalAtomic = sumAcrossVaults(vaults, deployedAtomic)
   const availableCapitalAtomic = sumAcrossVaults(vaults, idleAtomic)
 
-  const deploymentRatioBps = combine(deployedCapitalAtomic, availableCapitalAtomic, (deployed, idle) => {
-    const total = deployed + idle
-    if (total === ZERO) return 0
-    return Number((deployed * BPS) / total)
-  })
+  const deploymentRatioBps = deploymentRatioBpsFrom(deployedCapitalAtomic, availableCapitalAtomic)
 
   return {
     asset,

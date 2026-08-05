@@ -1,6 +1,7 @@
 import { gcc, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
 import { Panel } from '@/components/compositions/panel'
+import { MuiSparkline } from '@/components/charts'
 import clsx from 'clsx'
 
 /**
@@ -66,23 +67,30 @@ export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur
 export function MetricCard({
   titre,
   valeur,
+  trend,
   as: Tag = 'h2',
   showRoute = false,
   className,
 }: Readonly<{
   titre: string
   valeur: Availability<string>
+  trend?: number[]
   as?: 'h2' | 'h3'
   /** Affiche la route backend qui répondrait, quand la valeur est absente. */
   showRoute?: boolean
   className?: string
 }>) {
   return (
-    <Panel tone="metric" className={className}>
+    <Panel tone="metric" className={clsx('flex flex-col gap-3', className)}>
       <Tag>{titre}</Tag>
       <div className={gcc.metricText}>
         <Reading value={valeur} className={gcc.metricValue} showRoute={showRoute} />
       </div>
+      {trend && trend.length >= 2 && (
+        <div className="mt-auto pt-2">
+          <MuiSparkline data={trend} height={24} />
+        </div>
+      )}
     </Panel>
   )
 }

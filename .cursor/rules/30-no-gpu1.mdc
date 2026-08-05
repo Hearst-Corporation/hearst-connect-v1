@@ -1,0 +1,37 @@
+---
+description: Interdiction absolue GPU1 — backend Hearst Connect = GitHub + Railway uniquement
+alwaysApply: true
+---
+
+# RÈGLE ABSOLUE — NE JAMAIS TOUCHER GPU1
+
+Ce dépôt (**hearst-connect-v1**, front) ne gère **pas** l'hôte GPU1. Toute action
+GPU1 est **interdite** pour les agents et les opérations depuis ce workspace.
+
+## Backend canonique (seule cible)
+
+| Élément | Valeur |
+|---|---|
+| Code source | `Hearst-Corporation/hearst-connect-backend` sur **GitHub** (`main`) |
+| Runtime prod | **Railway** — `https://hearst-connect-backend-production.up.railway.app` |
+| Variable front | `HEARST_API_URL` (voir `.env.example`) |
+| Déploiement backend | Push GitHub → Railway (auto) ou `railway redeploy` sur le service `hearst-connect-backend` |
+
+## Interdit — sans exception
+
+- SSH vers GPU1 (`gpu1`, `gpu1-tailscale`, `comput3@`, `100.88.191.49`, `192.168.1.200`)
+- Déclencher ou documenter comme cible le workflow GPU1 `deploy.yml` du backend
+- Utiliser `connect-api.hearst.app` comme URL de backend pour ce produit
+- Exécuter `deploy-gpu1.sh`, `docker` sur GPU1, ou toute manip infra GPU1
+- Proposer GPU1 comme solution de déploiement, debug ou « remise en ligne » backend
+
+## Si le backend est down
+
+1. Vérifier Railway (`railway service status`, logs, redeploy)
+2. Vérifier le commit sur GitHub `hearst-connect-backend` `main`
+3. **Ne pas** basculer vers GPU1 ni modifier `HEARST_API_URL` vers `connect-api.hearst.app`
+
+## Front (ce repo)
+
+- Déploiement : Vercel projet **`hearst-connect-v1`** uniquement
+- Jamais `hearst-connect` / `app.hearst.app`

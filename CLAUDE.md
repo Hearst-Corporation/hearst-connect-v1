@@ -19,11 +19,28 @@ les propriétaires et administrateurs d'espaces Hearst.
   aucun rapport avec ce repo. Ne jamais y déployer depuis ici.
 - Ce repo déploie sur le projet Vercel **`hearst-connect-v1`** et lui seul.
 
+## Architecture front ↔ back (canonique)
+
+| Couche | Cible |
+|---|---|
+| **Ce repo** | Front Next.js → Vercel **`hearst-connect-v1`** |
+| **Code backend** | GitHub `Hearst-Corporation/hearst-connect-backend` (`main`) |
+| **Runtime backend** | **Railway** `https://hearst-connect-backend-production.up.railway.app` via `HEARST_API_URL` |
+| **Déploiement backend** | Push `main` sur GitHub → Railway (auto) ; secours CLI : `railway` projet `radiant-recreation`, service `hearst-connect-backend` |
+
+### RÈGLE ABSOLUE — GPU1 INTERDIT
+
+**Ne jamais toucher GPU1** depuis ce dépôt ni pour le compte de Hearst Connect :
+pas de SSH (`gpu1`, `comput3@`, Tailscale/LAN), pas de workflow `deploy.yml` GPU1,
+pas de `connect-api.hearst.app` comme URL backend, pas de `deploy-gpu1.sh`.
+GPU1 n'est **pas** le runtime de ce produit. En cas de panne backend : Railway +
+GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
+
 ## Stack & environnement
 
 - Next.js 16.2.6 (App Router, Turbopack) · React 19.2.6 · TypeScript strict · Tailwind CSS v4.
 - Package manager : **pnpm** (`pnpm-lock.yaml`, `packageManager: pnpm@11.9.0`) · dev :
-  `pnpm dev` · **port : 3000**. Aucun `package-lock.json` : n'en régénère pas un (voir
+  `pnpm dev` · **port : 4105**. Aucun `package-lock.json` : n'en régénère pas un (voir
   « Pièges connus » — la CI Hearst est pnpm-only).
 - Aucune base de données ici, et **aucune donnée de démonstration** : le contenu vient du backend
   Hearst Connect via `src/lib/backend/` (client serveur unique, `HEARST_API_URL`). Une absence
@@ -35,7 +52,7 @@ les propriétaires et administrateurs d'espaces Hearst.
 
 ## Gates & tests
 
-- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:mocks` → `check:ds` → `test`, en
+- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:mocks` → `check:ds` → `check:ui` → `test`, en
   série (le premier rouge arrête tout). Pas de build dans la gate (le build vit dans le
   déploiement).
 - **Pas de gate de design *imposée* (décision du 2026-07-31).** Pas de Storybook obligatoire,
@@ -50,6 +67,8 @@ les propriétaires et administrateurs d'espaces Hearst.
 - Ce que chaque étape garantit :
   - `typecheck` (`tsc --noEmit`) — TypeScript strict, aucune erreur de type.
   - `lint` (`eslint`) — `src/components/catalyst/**` volontairement ignoré.
+  - **`check:no-gpu1` (`scripts/check-no-gpu1.mjs`) — interdit GPU1 / connect-api comme
+    cible backend dans le code et la config opérationnelle. Backend = GitHub + Railway.**
   - **`check:mocks` (`scripts/check-no-mocks.mjs`) — gate anti-données-simulées, garantie
     centrale du produit.** 7 règles sur le runtime (`src/app`, `components`, `features`, `hooks`,
     `lib`, `services` ; les tests sont exclus, commentaires et littéraux retirés avant analyse) :
@@ -94,6 +113,8 @@ les propriétaires et administrateurs d'espaces Hearst.
   `hearst-connect` / `app.hearst.app` le 2026-07-27).
 - Le dossier s'appelle « Herst Connect V1 » (sans le `a`) ; le produit, le repo et le projet
   Vercel s'écrivent **Hearst**.
+- **GPU1 est hors périmètre** pour Hearst Connect (front et backend vu depuis ici). Voir
+  « RÈGLE ABSOLUE — GPU1 INTERDIT » ci-dessus.
 
 ## Git
 

@@ -91,6 +91,7 @@ describe('VER-05 — the overview surfaces the same honest count', () => {
     clients: unavailable({}),
     clientExceptions: unavailable({}),
     deployments: unavailable({}),
+    compliance: unavailable({}),
     movements: available([]),
     rebalancing: unavailable({}),
     sources: [],

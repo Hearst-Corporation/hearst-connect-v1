@@ -16,3 +16,16 @@ lire dans cet ordre :
 
 Les règles locales complètent — sans les affaiblir — la doctrine et les règles globales.
 <!-- HEARST-GOVERNANCE:END -->
+
+## Règle absolue — GPU1 interdit
+
+Ce dépôt (**hearst-connect-v1**) ne touche **jamais** GPU1 : pas de SSH, pas de
+`connect-api.hearst.app`, pas de déploiement via le workflow GPU1 du backend.
+
+**Backend canonique** : code sur GitHub `Hearst-Corporation/hearst-connect-backend`,
+runtime sur **Railway** (`HEARST_API_URL` dans `.env.example`). Déploiement backend
+= push `main` GitHub → Railway.
+
+**Front** : Vercel `hearst-connect-v1` uniquement.
+
+Détail opérationnel : `.cursor/rules/30-no-gpu1.mdc` et section Architecture du `README.md`.

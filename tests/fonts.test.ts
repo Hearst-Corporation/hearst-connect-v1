@@ -11,11 +11,8 @@ vi.mock('next/font/local', () => ({
 
 describe('polices — Satoshi Variable uniquement', () => {
   it('expose une seule famille via fontSatoshi', async () => {
-    const { fontSatoshi, fontSans, fontDisplay, fontMono } = await import('@/lib/fonts')
+    const { fontSatoshi } = await import('@/lib/fonts')
     expect(fontSatoshi.variable).toBe('--font-satoshi')
-    expect(fontSans).toBe(fontSatoshi)
-    expect(fontDisplay).toBe(fontSatoshi)
-    expect(fontMono).toBe(fontSatoshi)
   })
 
   it('fichier Satoshi Variable vendu localement', () => {

@@ -55,6 +55,52 @@ function envelope<T>(data: T) {
   return { data, meta: meta() }
 }
 
+function trace(httpStatus: number | null = 200) {
+  return {
+    endpointId: 'test',
+    path: '/test',
+    startedAt: Date.now(),
+    durationMs: 1,
+    httpStatus,
+    requestId: 'req-test',
+    rateLimitRemaining: null,
+  }
+}
+
+function adminEndpointsResponse(mode: 'live-empty' | 'not-exposed' = 'live-empty') {
+  if (mode === 'not-exposed') {
+    const fail = {
+      ok: false as const,
+      problem: null,
+      keeper: null,
+      trace: trace(404),
+      state: {
+        status: 'UNAVAILABLE' as const,
+        value: null,
+        provenance: 'unknown' as const,
+        freshness: { asOf: null, ageSeconds: null, stale: false },
+      },
+    }
+    return { clients: fail, deployments: fail, compliance: fail }
+  }
+  const fresh = { asOf: '2026-07-28T08:00:00.000Z', ageSeconds: 0, stale: false }
+  const bloc = { status: 'LIVE', value: [], provenance: 'db', freshness: fresh }
+  const ok = (data: object) => ({ ok: true as const, data, meta: meta(), trace: trace() })
+  return {
+    clients: ok({ clients: bloc }),
+    deployments: ok({ deployments: bloc }),
+    compliance: ok({ reviews: bloc }),
+  }
+}
+
+function adminEndpoint(endpointId: string, mode: 'live-empty' | 'not-exposed' = 'live-empty') {
+  const pack = adminEndpointsResponse(mode)
+  if (endpointId === 'clients') return pack.clients
+  if (endpointId === 'deployments') return pack.deployments
+  if (endpointId === 'compliance') return pack.compliance
+  return null
+}
+
 const ADDRESS = '0x66dF4fFD1312604cd0c8567d79eBEe259D1FFaBa'
 const VAULT_ID = `31337-${ADDRESS.toLowerCase()}`
 
@@ -231,8 +277,11 @@ describe('loadAdminRegistry', () => {
               return { ok: true, data: eventsResponse().data, meta: meta(), trace: {} as never }
             case 'dashboard':
               return { ok: true, data: dashboardResponse().data, meta: meta(), trace: {} as never }
-            default:
+            default: {
+              const admin = adminEndpoint(endpointId)
+              if (admin) return admin
               throw new Error(`Unexpected endpoint: ${endpointId}`)
+            }
           }
         }),
       }
@@ -272,6 +321,8 @@ describe('loadAdminRegistry', () => {
           if (endpointId === 'vault') {
             return { ok: true, data: envelope({ runtime: {} }).data, meta: meta(), trace: {} as never }
           }
+          const admin = adminEndpoint(endpointId)
+          if (admin) return admin
           return { ok: true, data: {}, meta: meta(), trace: {} as never }
         }),
       }
@@ -352,8 +403,11 @@ describe('loadAdminRegistry', () => {
               return { ok: true, data: eventsResponse().data, meta: meta(), trace: {} as never }
             case 'dashboard':
               return { ok: true, data: dashboardResponse().data, meta: meta(), trace: {} as never }
-            default:
+            default: {
+              const admin = adminEndpoint(endpointId)
+              if (admin) return admin
               throw new Error(`Unexpected endpoint: ${endpointId}`)
+            }
           }
         }),
       }
@@ -405,8 +459,11 @@ describe('loadAdminRegistry', () => {
               return { ok: true, data: eventsResponse().data, meta: meta(), trace: {} as never }
             case 'dashboard':
               return { ok: true, data: dashboardResponse().data, meta: meta(), trace: {} as never }
-            default:
+            default: {
+              const admin = adminEndpoint(endpointId)
+              if (admin) return admin
               throw new Error(`Unexpected endpoint: ${endpointId}`)
+            }
           }
         }),
       }
@@ -443,8 +500,11 @@ describe('loadAdminRegistry', () => {
               return { ok: true, data: eventsResponse().data, meta: meta(), trace: {} as never }
             case 'dashboard':
               return { ok: true, data: dashboardResponse().data, meta: meta(), trace: {} as never }
-            default:
+            default: {
+              const admin = adminEndpoint(endpointId, 'not-exposed')
+              if (admin) return admin
               throw new Error(`Unexpected endpoint: ${endpointId}`)
+            }
           }
         }),
       }
@@ -481,8 +541,11 @@ describe('loadAdminRegistry', () => {
               return { ok: true, data: eventsResponse().data, meta: meta(), trace: {} as never }
             case 'dashboard':
               return { ok: true, data: dashboardResponse().data, meta: meta(), trace: {} as never }
-            default:
+            default: {
+              const admin = adminEndpoint(endpointId)
+              if (admin) return admin
               throw new Error(`Unexpected endpoint: ${endpointId}`)
+            }
           }
         }),
       }
