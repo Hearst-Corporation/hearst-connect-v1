@@ -110,6 +110,9 @@ export default async function Page() {
   )
   const movements = measuredCount(registry.movements)
   const exceptions = measuredCount(registry.clientExceptions)
+  const clientsCount = measuredCount(registry.clients)
+  const deploymentsCount = measuredCount(registry.deployments)
+  const complianceCount = measuredCount(registry.compliance)
   const decisionLabel =
     isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0
       ? 'Revue en attente'
@@ -141,6 +144,18 @@ export default async function Page() {
         <DescriptionTerm>Mouvements indexés</DescriptionTerm>
         <DescriptionDetails>
           <AdminReading value={movements} />
+        </DescriptionDetails>
+        <DescriptionTerm>Clients</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={clientsCount} />
+        </DescriptionDetails>
+        <DescriptionTerm>Déploiements</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={deploymentsCount} />
+        </DescriptionDetails>
+        <DescriptionTerm>Conformité</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={complianceCount} />
         </DescriptionDetails>
         <DescriptionTerm>Anomalies clients</DescriptionTerm>
         <DescriptionDetails>

@@ -304,12 +304,12 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     id: 'admin-indexer-trigger',
     method: 'POST',
     path: '/api/v1/admin/indexer/trigger',
-    category: 'keeper',
+    category: 'probe',
     auth: 'admin',
     surface: '/admin/runtime',
     enveloped: false,
     summary: 'Triggers a Series 1 indexer run (admin only).',
-    caveat: 'Operational trigger — not a business fact.',
+    caveat: 'Operational trigger — not a business fact. Not a Keeper write.',
   }),
 
   // ── Keeper actions ─────────────────────────────────────────────────────────

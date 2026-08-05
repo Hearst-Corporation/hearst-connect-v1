@@ -21,11 +21,11 @@ import {
 } from '@/lib/vaults/model'
 import { estateOverview } from '@/lib/vaults/overview'
 
-function parseCount(value: string): number {
+function parseCount(value: string): number | null {
   const digits = value.replaceAll(/[^0-9]/g, '')
-  if (digits === '') return 0
+  if (digits === '') return null
   const count = Number.parseInt(digits, 10)
-  return Number.isFinite(count) ? count : 0
+  return Number.isFinite(count) ? count : null
 }
 
 /**
@@ -57,9 +57,11 @@ export function AdminHomeDashboard({
 
   const decisionHint = !isAvailable(pendingDecisions)
     ? 'File indisponible'
-    : parseCount(pendingDecisions.value) > 0
-      ? 'À examiner'
-      : 'Aucune revue en attente'
+    : (() => {
+        const count = parseCount(pendingDecisions.value)
+        if (count === null) return 'Compte illisible'
+        return count > 0 ? 'À examiner' : 'Aucune revue en attente'
+      })()
 
   return (
     <div className="space-y-10">
@@ -84,6 +86,18 @@ export function AdminHomeDashboard({
         <DescriptionTerm>Sources en direct</DescriptionTerm>
         <DescriptionDetails>
           <AdminReading value={mapAvailability(overview.liveSources, (v) => v.replace('/', ' / '))} />
+        </DescriptionDetails>
+        <DescriptionTerm>Clients recensés</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={mapAvailability(registry.clients, (rows) => formatNumber(rows.length))} />
+        </DescriptionDetails>
+        <DescriptionTerm>Déploiements</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={mapAvailability(registry.deployments, (rows) => formatNumber(rows.length))} />
+        </DescriptionDetails>
+        <DescriptionTerm>Dossiers conformité</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={mapAvailability(registry.compliance, (rows) => formatNumber(rows.length))} />
         </DescriptionDetails>
         <DescriptionTerm>Valeur du patrimoine</DescriptionTerm>
         <DescriptionDetails>

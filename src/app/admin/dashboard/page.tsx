@@ -114,7 +114,7 @@ export default async function Page() {
   const ordered = TIER_ORDER.flatMap((tier) => surfaces.filter((surface) => surface.tier === tier))
 
   const coverageUnreadable = unavailable({
-    endpoint: '/api/v1/admin/dashboard',
+    endpoint: '/api/v1/dashboard',
     status: 'UNAVAILABLE',
     reason: 'dashboard_source_unreachable',
   })

@@ -57,10 +57,10 @@ describe('registre des endpoints', () => {
   })
 
   it('répartit les catégories conformément au contrat', () => {
-    expect(endpointsByCategory('probe')).toHaveLength(3)
+    expect(endpointsByCategory('probe')).toHaveLength(4)
     expect(endpointsByCategory('business')).toHaveLength(18)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
-    expect(endpointsByCategory('keeper')).toHaveLength(7)
+    expect(endpointsByCategory('keeper')).toHaveLength(6)
   })
 
   it('marque non enveloppées exactement les routes que le contrat exclut', () => {
