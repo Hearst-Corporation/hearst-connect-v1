@@ -216,27 +216,6 @@ export function AdminMetricGrid({
   return <Tag className={clsx(className, 'grid gap-4', balancedColumns(count))}>{children}</Tag>
 }
 
-/* ── Named recipes ────────────────────────────────────────────────────────── */
-
-/**
- * Chart 8 / interpretation 4 — the canonical "data and chart split".
- * Declared once so every page that needs it reads identically.
- */
-export function AdminChartSplit({
-  chart,
-  aside,
-  className,
-}: Readonly<{ chart: React.ReactNode; aside: React.ReactNode; className?: string }>) {
-  return (
-    <AdminGrid className={className}>
-      <AdminCol span={8}>{chart}</AdminCol>
-      <AdminCol span={4} as="aside">
-        {aside}
-      </AdminCol>
-    </AdminGrid>
-  )
-}
-
 /**
  * Table page — a full-width toolbar and table, with a deliberate secondary
  * column for the summary rather than a panel floating wherever it lands.

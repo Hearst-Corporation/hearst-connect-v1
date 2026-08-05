@@ -15,8 +15,3 @@ export const fontSatoshi = localFont({
   weight: '300 900',
   style: 'normal',
 })
-
-/** Alias — every Tailwind stack points to Satoshi. */
-export const fontSans = fontSatoshi
-export const fontDisplay = fontSatoshi
-export const fontMono = fontSatoshi

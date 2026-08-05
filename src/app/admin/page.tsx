@@ -1,4 +1,4 @@
-import { GreenAdminHomeDashboard } from '@/features/admin-home/admin-home-dashboard'
+import { AdminHomeDashboard } from '@/features/admin-home/admin-home-dashboard'
 import { requireSession } from '@/lib/auth'
 import { publicUser } from '@/lib/session'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
@@ -14,5 +14,5 @@ export const dynamic = 'force-dynamic'
 export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
-  return <GreenAdminHomeDashboard registry={registry} user={publicUser(session)} />
+  return <AdminHomeDashboard registry={registry} user={publicUser(session)} />
 }

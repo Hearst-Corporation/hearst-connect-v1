@@ -21,6 +21,8 @@ import { describe, expect, it } from 'vitest'
  * C'est la garantie centrale du produit, et elle avait cédé ici.
  */
 
+const termsLive = <T,>(value: T) => ({ status: 'LIVE' as const, value })
+
 describe('allocationLisible', () => {
   it('accepte une cible numérique finie, y compris zéro', () => {
     // Une poche à 0 bps est une allocation VOLONTAIRE de zéro : elle est
@@ -45,7 +47,10 @@ describe('comptePoches — une absence ne devient jamais un zéro', () => {
      * poches, mais aucune ne porte de `targetBps` exploitable. Avant
      * correction, cette entrée produisait « 0 » badgé « en direct ».
      */
-    const resultat = comptePoches(true, [{ targetBps: null }, { targetBps: undefined }, {}])
+    const resultat = comptePoches(
+      true,
+      termsLive({ allocation: { pockets: [{ targetBps: null }, { targetBps: undefined }, {}] } }),
+    )
 
     expect(isAvailable(resultat)).toBe(false)
     expect(resultat).toMatchObject({ kind: 'unavailable', reason: 'pocket_allocation_unreadable' })
@@ -56,19 +61,22 @@ describe('comptePoches — une absence ne devient jamais un zéro', () => {
   it('un zéro RÉELLEMENT mesuré s’affiche — une liste vide est une information', () => {
     // La source a répondu et déclare zéro poche. Ce n'est pas une absence :
     // c'est une mesure, et elle doit se voir.
-    const resultat = comptePoches(true, [])
+    const resultat = comptePoches(true, termsLive({ allocation: { pockets: [] } }))
     expect(isAvailable(resultat)).toBe(true)
     if (isAvailable(resultat)) expect(resultat.value).toBe('0')
   })
 
   it('compte les poches lisibles et ignore celles qui ne le sont pas', () => {
-    const resultat = comptePoches(true, [{ targetBps: 4000 }, { targetBps: null }, { targetBps: 6000 }])
+    const resultat = comptePoches(
+      true,
+      termsLive({ allocation: { pockets: [{ targetBps: 4000 }, { targetBps: null }, { targetBps: 6000 }] } }),
+    )
     expect(isAvailable(resultat)).toBe(true)
     if (isAvailable(resultat)) expect(resultat.value).toBe('2')
   })
 
   it('l’appel en échec rend une indisponibilité nommée, pas un compte', () => {
-    const resultat = comptePoches(false, [{ targetBps: 4000 }])
+    const resultat = comptePoches(false, termsLive({ allocation: { pockets: [{ targetBps: 4000 }] } }))
     expect(isAvailable(resultat)).toBe(false)
     expect(resultat).toMatchObject({ kind: 'unavailable', reason: 'product_factsheet_unreachable' })
   })
@@ -78,22 +86,25 @@ describe('comptePoches — une absence ne devient jamais un zéro', () => {
      * Deux absences différentes, deux motifs différents : la fiche répond mais
      * ne porte pas le champ (`allocation_absent`), ou elle le porte sans
      * qu'aucune valeur soit lisible (`pocket_allocation_unreadable`). Les
-     * confondre reviendrait à dire au lecteur la même chose dans deux
-     * situations qui n'appellent pas la même action.
+     * confondre ferait lire la même chose deux situations opposées.
      */
-    expect(comptePoches(true, null)).toMatchObject({ reason: 'allocation_absent' })
-    expect(comptePoches(true, undefined)).toMatchObject({ reason: 'allocation_absent' })
-    expect(comptePoches(true, [{ targetBps: null }])).toMatchObject({ reason: 'pocket_allocation_unreadable' })
+    expect(comptePoches(true, termsLive({ allocation: { pockets: null } }))).toMatchObject({
+      reason: 'allocation_absent',
+    })
+    expect(comptePoches(true, termsLive({ allocation: { pockets: undefined } }))).toMatchObject({
+      reason: 'allocation_absent',
+    })
+    expect(comptePoches(true, termsLive({ allocation: { pockets: [{ targetBps: null }] } }))).toMatchObject({
+      reason: 'pocket_allocation_unreadable',
+    })
   })
 
-  it('ne badge jamais « en direct » une valeur qui n’a pas été lue', () => {
-    for (const entree of [null, undefined, [{ targetBps: null }], [{}]] as const) {
-      const r = comptePoches(true, entree)
-      if (isAvailable(r)) {
-        // Seul le cas « liste réellement vide » peut être disponible ; aucune
-        // des entrées ci-dessus ne l'est.
-        expect.unreachable(`comptePoches a rendu une mesure pour ${JSON.stringify(entree)}`)
-      }
-    }
+  it('propage STALE sur un compte mesuré (F-05)', () => {
+    const resultat = comptePoches(true, {
+      status: 'STALE',
+      value: { allocation: { pockets: [{ targetBps: 5000 }] } },
+    })
+    expect(isAvailable(resultat)).toBe(true)
+    if (isAvailable(resultat)) expect(resultat.stale).toBe(true)
   })
 })

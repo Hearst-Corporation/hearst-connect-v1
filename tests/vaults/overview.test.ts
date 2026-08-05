@@ -79,6 +79,7 @@ function registry(overrides: Partial<AdminRegistry> = {}): AdminRegistry {
     clients: unavailable({ endpoint: '/api/v1/clients', status: 'NOT_EXPOSED' }),
     clientExceptions: unavailable({}),
     deployments: unavailable({ endpoint: '/api/v1/deployments', status: 'NOT_EXPOSED' }),
+    compliance: unavailable({ endpoint: '/api/v1/compliance', status: 'NOT_EXPOSED' }),
     movements: available([movement()]),
     rebalancing: unavailable({ endpoint: '/api/v1/vault/strategies' }),
     sources: [
@@ -235,5 +236,21 @@ describe('estateOverview', () => {
     expect(valueOf(overview.recentMovements)).toBe('0')
     expect(overview.movementBars).toEqual([])
     expect(isAvailable(overview.recentTrend)).toBe(false)
+  })
+
+  it('treats 0/0 deployed+idle as absent, not 0% (F-08)', () => {
+    const overview = estateOverview(
+      registry({
+        vaults: available([
+          readableVault({
+            totalAssetsAtomic: available('0'),
+            deployedBps: available(5000),
+          }),
+        ]),
+      }),
+    )
+    expect(isAvailable(overview.deploymentRatioBps)).toBe(false)
+    expect(isAvailable(overview.deploymentRatio)).toBe(false)
+    expect(overview.deploymentRatioBps).toMatchObject({ status: 'EMPTY', reason: 'no_deployed_capital' })
   })
 })

@@ -13,35 +13,20 @@
  * ── Organisation ──────────────────────────────────────────────────────────
  *   core/       le cadre, les états, le thème — ce que tout chart partage
  *   cartesian/  séries sur des axes x/y
- *   polar/      répartitions angulaires
- *
- * Recharts est le moteur standard actif. MUI X Charts n'est pas introduit :
- * aucun composant existant ne l'utilise, et la doctrine interdit d'ajouter une
- * seconde bibliothèque sans besoin démontré.
+ *   mui-x/      composants MUI X Charts (espace, compositions)
  */
 
 /* ── Noyau ────────────────────────────────────────────────────────────────── */
 export { ChartFrame, type EtatSerie } from '@/components/charts/core/chart-frame'
-export { GreenHeroChartPanel } from '@/components/charts/core/hero-chart-panel'
-export {
-  categoricalColor,
-  chartHeight,
-  chartTheme,
-  plottableAsChart,
-  type ChartKind,
-} from '@/components/charts/core/chart-theme'
+export { plottableAsChart } from '@/components/charts/core/chart-theme'
 
 /* ── Cartésiens ───────────────────────────────────────────────────────────── */
 export { ProductionMensuelleChart, type MoisProduction } from '@/components/charts/cartesian/btc-production-chart'
-export { MiningProductionChart, type MoisProduit } from '@/components/charts/cartesian/mining-production-chart'
-export { DerivePochesChart, type DerivePoche } from '@/components/charts/cartesian/derive-poches-chart'
 export {
   ReserveExpositionChart,
-  VendingCurveChart,
-  type PointCourbe,
   type PosteBitcoin,
 } from '@/components/charts/cartesian/product-charts'
 
-/* ── Polaires ─────────────────────────────────────────────────────────────── */
-export { AllocationChart, type PocheAllocation } from '@/components/charts/polar/allocation-chart'
-export { DistributionBarChart, type BarreRepartition } from '@/components/charts/polar/distribution-chart'
+/* ── MUI X ────────────────────────────────────────────────────────────────── */
+export { MuiDistributionChart, type DistributionItem } from '@/components/charts/mui-x/distribution-chart'
+export { MuiSparkline } from '@/components/charts/mui-x/sparkline'

@@ -1,55 +1,34 @@
-import { ChartFrame, type EtatSerie } from '@/components/charts'
-import { MetricValue, Panel } from '@/components/compositions'
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
-import { ConsoleRail } from '@/components/layout/console-rail'
-import { Reading } from '@/components/layout/console'
-import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
-import { SingleObservation } from '@/components/admin/single-observation'
-import { AdminMetric, AdminSection } from '@/components/admin/surfaces'
+import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
+import { AdminReading } from '@/components/admin/reading'
 import {
-  ReserveExpositionChart,
-  VendingCurveChart,
-  type PointCourbe,
-  type PosteBitcoin,
-} from '@/components/charts'
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from '@/components/catalyst/description-list'
+import { Subheading } from '@/components/catalyst/heading'
+import { Text } from '@/components/catalyst/text'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/catalyst/table'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
+import { availabilityFromResolu } from '@/lib/backend/availability'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSerieDe } from '@/lib/serie-etat'
-import { publicUser } from '@/lib/session'
-import { available, editorial, unavailable, type Availability } from '@/lib/vaults/model'
+import { available, editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Vue produit consolidée' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Consolidated product view — one surface for six former pages.
- *
- * `Vault`, `Mining`, `BTC`, `Product`, `Backtest` and `Series 1` used to be
- * six navigation entries that each dumped the raw response of their route.
- * They described the backend's organization, not a question anyone actually
- * asks. Brought together here, they answer four questions: how much the
- * fund produces, where the money sits, how the reward evolves, and what
- * isn't measurable yet.
- *
- * Chart frames are rendered EVEN when the series is missing. That's
- * deliberate: the view exists, its axis and unit are decided, and the day
- * the route responds there's nothing left to redraw. No series is fabricated
- * in the meantime — a test forbids it, and reading it as a real measurement
- * would be worse than showing nothing.
- *
- * ── Composition ────────────────────────────────────────────────────────────
- * The screen is opened from the Administration index rather than the
- * sidebar, so its H1 and description have to say what it consolidates
- * without the menu around them doing that work.
- *
- * Every frame declares a span instead of stretching to whatever the row has
- * left, and none of them declares a height any more: a plotted chart sizes
- * itself from its own data, and an empty state is as tall as its sentence.
- * The three frames still waiting on a source are grouped under one heading
- * that explains the wait once, instead of three unexplained empty boxes
- * scattered through the page.
+ * Vue produit consolidée — Catalyst pur.
+ * Sources : mining, btc, product-factsheet, backtest-historical.
  */
 
 type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
@@ -76,11 +55,6 @@ type Backtest = { readonly runs?: Resolu<unknown> }
 
 const etatDe = etatSerieDe
 
-/**
- * The shared formatters already render an absence as '—'. A measure tile
- * styles its own absence, so it wants a null rather than that dash: this
- * turns one into the other without ever turning it into a zero.
- */
 function ouRien(texte: string): string | null {
   return texte === '—' ? null : texte
 }
@@ -92,67 +66,58 @@ function bitcoinProduitDe(totalSats: string | null | undefined): string | null {
   return formatNumber(nombre / 100_000_000, { maximumFractionDigits: 4 })
 }
 
+type PosteReserve = { readonly poste: string; readonly montant: number }
+
 function postesReserveExposition(
   reserveUsdc: string | null | undefined,
   expositionUsdc: string | null | undefined,
-): PosteBitcoin[] {
-  const postes: PosteBitcoin[] = []
+): readonly PosteReserve[] {
+  const postes: PosteReserve[] = []
   if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
-    postes.push({ poste: 'Réserve', montant: Number(reserveUsdc) / 1_000_000, accent: false })
+    postes.push({ poste: 'Réserve', montant: Number(reserveUsdc) / 1_000_000 })
   }
   if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
-    postes.push({ poste: 'Exposition', montant: Number(expositionUsdc) / 1_000_000, accent: true })
+    postes.push({ poste: 'Exposition', montant: Number(expositionUsdc) / 1_000_000 })
   }
   return postes
 }
 
 function pointsCourbeDe(
   courbeBrute: readonly { month: number; bps: number }[] | null | undefined,
-): PointCourbe[] {
+): readonly { mois: number; taux: number }[] {
   if (courbeBrute === null || courbeBrute === undefined) return []
   return courbeBrute.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
 }
 
-function courbeParametreeDe(points: readonly PointCourbe[]): boolean {
+function courbeParametreeDe(points: readonly { mois: number; taux: number }[]): boolean {
   return points.some((p) => p.taux !== 0)
 }
 
-function etatCourbe(
-  points: readonly PointCourbe[],
+function explicationCourbe(
+  points: readonly { mois: number; taux: number }[],
   courbeParametree: boolean,
   vendingCurve: Resolu<unknown> | undefined,
-): EtatSerie {
+): string {
   if (points.length === 0) {
-    return etatDe(vendingCurve, 'Les conditions du produit n’ont pas encore été transmises.')
+    const etat = etatDe(vendingCurve, 'Les conditions du produit n’ont pas encore été transmises.')
+    if (etat.type === 'attendue' || etat.type === 'indisponible') return etat.explication
+    return 'Les conditions du produit n’ont pas encore été transmises.'
   }
-  if (courbeParametree) return { type: 'tracee' }
-  return {
-    type: 'attendue',
-    explication:
-      'Les cinq échéances du produit sont définies, mais aucun taux n’a encore été enregistré. La courbe apparaîtra dès qu’ils le seront.',
-  }
+  if (courbeParametree) return 'Courbe configurée — jalons avec taux non nuls.'
+  return 'Les cinq échéances du produit sont définies, mais aucun taux n’a encore été enregistré. La courbe apparaîtra dès qu’ils le seront.'
 }
 
-function ReserveChart({
-  postes,
-  seulPoste,
-}: Readonly<{ postes: readonly PosteBitcoin[]; seulPoste: PosteBitcoin | undefined }>) {
-  if (seulPoste !== undefined) {
-    return (
-      <SingleObservation
-        valeur={formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
-        periode={seulPoste.poste}
-        contexte="L’autre position n’a pas pu être lue on-chain."
-        note="Une seule des deux positions est lisible — réserve et exposition ne peuvent pas encore être comparées."
-      />
-    )
-  }
-  return <ReserveExpositionChart postes={postes} />
+function explicationSerie(
+  champ: Resolu<unknown> | undefined,
+  defaut: string,
+): string {
+  const etat = etatDe(champ, defaut)
+  if (etat.type === 'attendue' || etat.type === 'indisponible') return etat.explication
+  return defaut
 }
 
 export default async function Page() {
-  const session = await requireSession()
-  const user = publicUser(session)
+  await requireSession()
   const [mining, btc, factsheet, backtest] = await Promise.all([
     callBackend<Mining>('mining'),
     callBackend<Btc>('btc'),
@@ -174,172 +139,214 @@ export default async function Page() {
   const courbeParametree = courbeParametreeDe(points)
   const plafond = f?.tvlCap?.value
 
-  // VER-04: "Reserve split" and "Curve points" are counts whose source must be
-  // read to state them. When the bitcoin or factsheet call failed, or the
-  // reading is absent, the count is unavailable — not "0".
-  const reserveSplitCell: Availability<string> =
-    !btc.ok
-      ? unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
-      : b?.reserve?.value?.balanceUsdc === undefined && b?.exposure?.value?.valueUsdc === undefined
-        ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
-        : available(String(postes.length), { provenance: 'live', asOf: null })
-  const curvePointsCell: Availability<string> =
-    !factsheet.ok
-      ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
-      : f?.vendingCurve?.value === null || f?.vendingCurve?.value === undefined
-        ? unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'vending_curve_absent' })
-        : available(String(points.length), { provenance: 'live', asOf: null })
-  // Single formatted figures: editorial when their source was read, else absent.
+  const reserveAvail = availabilityFromResolu(btc.ok ? b?.reserve : undefined, '/api/v1/btc')
+  const exposureAvail = availabilityFromResolu(btc.ok ? b?.exposure : undefined, '/api/v1/btc')
+  const reserveSplitCell: Availability<string> = (() => {
+    if (!btc.ok) {
+      return unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+    }
+    const postes = postesReserveExposition(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
+    if (
+      postes.length === 0 &&
+      b?.reserve?.value?.balanceUsdc === undefined &&
+      b?.exposure?.value?.valueUsdc === undefined
+    ) {
+      return unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
+    }
+    const reserveReadable = reserveAvail.kind === 'available'
+    const exposureReadable = exposureAvail.kind === 'available'
+    if (!reserveReadable && !exposureReadable) {
+      return unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
+    }
+    const stale =
+      (reserveReadable && reserveAvail.stale) || (exposureReadable && exposureAvail.stale)
+    return available(String(postes.length), { provenance: 'indexed', stale, asOf: null })
+  })()
+  const curvePointsCell = mapAvailability(
+    availabilityFromResolu(factsheet.ok ? f?.vendingCurve : undefined, '/api/v1/product/factsheet'),
+    (curve) => String(pointsCourbeDe(curve).length),
+  )
   const miningFigure = (value: string): Availability<string> =>
-    mining.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/mining', status: 'UNAVAILABLE', reason: 'mining_source_unreachable' })
+    mining.ok
+      ? editorial(value)
+      : unavailable({ endpoint: '/api/v1/mining', status: 'UNAVAILABLE', reason: 'mining_source_unreachable' })
   const btcFigure = (value: string): Availability<string> =>
-    btc.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+    btc.ok
+      ? editorial(value)
+      : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
   const factsheetFigure = (value: string): Availability<string> =>
-    factsheet.ok ? editorial(value) : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
+    factsheet.ok
+      ? editorial(value)
+      : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
 
   return (
-    <ConsoleShell
-      label="Hearst Connect — poste de pilotage produit consolidé"
-      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
-    >
-      <section className={gcc.metricsRow} aria-label="Synthèse produit consolidée">
-        <Panel tone="plain" className={gcc.metricCard}><h2>Hashrate</h2><div className={gcc.metricText}><Reading value={hashrate ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh))) : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={bitcoinProduit === null ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' }) : btcFigure(bitcoinProduit)} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Répartition de la réserve</h2><div className={gcc.metricText}><Reading value={reserveSplitCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Points de courbe</h2><div className={gcc.metricText}><Reading value={curvePointsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Plafond du fonds</h2><div className={gcc.metricText}><Reading value={plafond ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Vue <span>consolidée</span></p>
-          <p className={gcc.decisionMeta}>{b === null ? 'Source BTC indisponible' : 'Source BTC joignable'}</p>
-          <p className={gcc.decisionActionMuted}>{courbeParametree ? 'Courbe configurée' : 'Courbe en attente des taux'}</p>
-        </Panel>
-      </section>
+    <div className="space-y-10">
+      <AdminPageHeader
+        title="Vue produit consolidée"
+        description="Production du fonds, répartition du capital, évolution de la rémunération et lectures encore absentes — six anciennes pages en une seule surface."
+      />
 
-      <section className={gcc.mainRow} aria-label="Détails produit consolidés">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}>
-            <h2 className={gcc.cardTitle}>Vue produit consolidée</h2>
-          </div>
-          <div className={gcc.heroBody}>
-      {/* ── What the fund produces ──────────────────────────────────────────
-          The hashrate is the measure this page leads with, so it takes five
-          columns; the three figures that qualify it are equal tiles across
-          the remaining seven, and `count` keeps their row full. */}
-      <AdminGrid>
-        <AdminCol span={5}>
-          <Panel tone="plain" className="h-full p-6">
-            <MetricValue
-              valeur={hashrate ? formatNumber(Number(hashrate.reportedHashrateTh)) : '—'}
-              libelle="Hashrate renseigné"
-              unite="TH/s"
-            />
-          </Panel>
-        </AdminCol>
-        <AdminCol span={7}>
-          <AdminMetricGrid count={3} className="h-full">
-            <AdminMetric label="BTC produit" value={bitcoinProduit} unit="BTC" />
-            <AdminMetric
-              label="Coût mensuel d’électricité"
-              value={ouRien(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 }))}
-            />
-            <AdminMetric
-              label="Plafond du fonds"
-              value={plafond ? ouRien(formatCurrency(plafond, { decimals: 0 })) : null}
-            />
-          </AdminMetricGrid>
-        </AdminCol>
-      </AdminGrid>
+      <DescriptionList>
+        <DescriptionTerm>Hashrate</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading
+            value={
+              hashrate
+                ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh)))
+                : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })
+            }
+          />
+        </DescriptionDetails>
+        <DescriptionTerm>BTC produit</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading
+            value={
+              bitcoinProduit === null
+                ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' })
+                : btcFigure(bitcoinProduit)
+            }
+          />
+        </DescriptionDetails>
+        <DescriptionTerm>Répartition de la réserve</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={reserveSplitCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>Points de courbe</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={curvePointsCell} />
+        </DescriptionDetails>
+        <DescriptionTerm>Plafond du fonds</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading
+            value={
+              plafond
+                ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—')
+                : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })
+            }
+          />
+        </DescriptionDetails>
+        <DescriptionTerm>Source BTC</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(b === null ? 'Indisponible' : 'Joignable')} />
+        </DescriptionDetails>
+        <DescriptionTerm>Courbe de rémunération</DescriptionTerm>
+        <DescriptionDetails>{courbeParametree ? 'Configurée' : 'En attente des taux'}</DescriptionDetails>
+      </DescriptionList>
 
-      {/* ── Where the money sits, and what it pays ─────────────────────── */}
-      <AdminSection
+      <AdminSectionHeading
+        title="Production"
+        description="Hashrate renseigné et chiffres qui le qualifient."
+      />
+      <DescriptionList>
+        <DescriptionTerm>Hashrate renseigné</DescriptionTerm>
+        <DescriptionDetails>
+          {hashrate ? `${formatNumber(Number(hashrate.reportedHashrateTh))} TH/s` : '—'}
+        </DescriptionDetails>
+        <DescriptionTerm>BTC produit</DescriptionTerm>
+        <DescriptionDetails>{bitcoinProduit === null ? '—' : `${bitcoinProduit} BTC`}</DescriptionDetails>
+        <DescriptionTerm>Coût mensuel d’électricité</DescriptionTerm>
+        <DescriptionDetails>
+          {ouRien(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })) ?? '—'}
+        </DescriptionDetails>
+        <DescriptionTerm>Plafond du fonds</DescriptionTerm>
+        <DescriptionDetails>
+          {plafond ? (ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : '—'}
+        </DescriptionDetails>
+      </DescriptionList>
+
+      <AdminSectionHeading
         title="Réserve et rémunération"
-        description="Les deux lectures sur lesquelles le produit est réellement mesuré aujourd’hui : comment son capital est réparti, et ce que le contrat paie sur ses échéances."
-      >
-        <AdminGrid>
-          <AdminCol span={6}>
-            <ChartFrame
-              question="Où se trouve l’argent du fonds ?"
-              unite="en dollars"
-              etat={postes.length > 0 ? { type: 'tracee' } : { type: 'attendue', explication: 'Ni la réserve ni l’exposition n’ont pu être lues on-chain.' }}
-            >
-              <ReserveChart postes={postes} seulPoste={seulPoste} />
-            </ChartFrame>
-          </AdminCol>
+        description="Les deux lectures sur lesquelles le produit est réellement mesuré aujourd’hui."
+      />
 
-          <AdminCol span={6}>
-            <ChartFrame
-              question="Comment la rémunération évolue-t-elle dans le temps ?"
-              unite="en pourcentage, par mois"
-              etat={etatCourbe(points, courbeParametree, f?.vendingCurve)}
-            >
-              <VendingCurveChart points={points} />
-            </ChartFrame>
-          </AdminCol>
-        </AdminGrid>
-      </AdminSection>
+      <Subheading className="mt-6">Où se trouve l’argent du fonds ?</Subheading>
+      {postes.length === 0 ? (
+        <Text>Ni la réserve ni l’exposition n’ont pu être lues on-chain.</Text>
+      ) : seulPoste !== undefined ? (
+        <>
+          <DescriptionList>
+            <DescriptionTerm>{seulPoste.poste}</DescriptionTerm>
+            <DescriptionDetails>
+              {formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
+            </DescriptionDetails>
+          </DescriptionList>
+          <Text className="mt-4">
+            L’autre position n’a pas pu être lue on-chain. Une seule des deux positions est lisible — réserve et
+            exposition ne peuvent pas encore être comparées.
+          </Text>
+        </>
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Poste</TableHeader>
+              <TableHeader>Montant (USD)</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {postes.map((p) => (
+              <TableRow key={p.poste}>
+                <TableCell className="font-medium">{p.poste}</TableCell>
+                <TableCell>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
-      {/* ── Frames waiting on their source ─────────────────────────────── */}
-      <AdminSection
+      <Subheading className="mt-10">Comment la rémunération évolue-t-elle dans le temps ?</Subheading>
+      <Text>{explicationCourbe(points, courbeParametree, f?.vendingCurve)}</Text>
+      {points.length > 0 ? (
+        <Table className="mt-4">
+          <TableHead>
+            <TableRow>
+              <TableHeader>Mois</TableHeader>
+              <TableHeader>Taux %</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {points.map((p) => (
+              <TableRow key={p.mois}>
+                <TableCell>{formatNumber(p.mois)}</TableCell>
+                <TableCell>{formatNumber(p.taux, { maximumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : null}
+
+      <AdminSectionHeading
         title="Pas encore mesurable"
-        description="Trois vues dont la question, l’axe et l’unité sont déjà décidés. Aucune ne trace quoi que ce soit tant que le service ne fournit pas sa série — une courbe de substitution se lirait comme une mesure."
-      >
-        {/* Three equal thirds. Each frame states its own reason for waiting;
-            the heading above states, once, why they are grouped. */}
-        <AdminGrid>
-          <AdminCol span={4}>
-            <ChartFrame
-              question="Comment la performance se compare-t-elle à l’historique ?"
-              unite="en pourcentage"
-              etat={etatDe(
-                backtest.ok ? backtest.data.runs : undefined,
-                'Aucun backtest n’a encore été exécuté sur ce déploiement.',
-              )}
-            />
-          </AdminCol>
-          <AdminCol span={4}>
-            <ChartFrame
-              question="D’où provient le rendement ?"
-              unite="en pourcentage du total"
-              etat={etatDe(b?.attribution, 'La ventilation du rendement n’a pas encore été calculée.')}
-            />
-          </AdminCol>
-          <AdminCol span={4}>
-            <ChartFrame
-              question="Comment la flotte performe-t-elle dans le temps ?"
-              unite="en TH/s"
-              etat={etatDe(m?.operationalTelemetry, 'La télémétrie opérationnelle n’a pas encore été transmise.')}
-            />
-          </AdminCol>
-        </AdminGrid>
-      </AdminSection>
-          </div>
-        </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Flux de backtest</h3><p className={gcc.cellText}>{backtest.ok ? (backtest.data.runs?.status ?? 'Non renseigné') : 'Indisponible'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Attribution</h3><p className={gcc.cellText}>{b?.attribution?.status ?? 'Non renseigné'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Télémétrie</h3><p className={gcc.cellText}>{m?.operationalTelemetry?.status ?? 'Non renseigné'}</p></Panel>
-        </aside>
-      </section>
-
-      <section className={gcc.bottomRow} aria-label="Notes consolidées">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Périmètre</h3></div>
-          <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Consolide la production, la réserve, les conditions de rémunération et les lectures manquantes.</p>
-            <p className={gcc.cellText}>Aucune série n’est fabriquée lorsque la source est absente.</p>
-          </div>
-        </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Points d’accès</h3><p className={gcc.cellText}>`mining`, `btc`, `product-factsheet`, `backtest-historical`</p></article>
-          <article className={gcc.infoCell}><h3>Production</h3><p className={gcc.cellText}>Hashrate + BTC produit</p></article>
-          <article className={gcc.infoCell}><h3>Réserve</h3><p className={gcc.cellText}>Répartition réserve et exposition</p></article>
-          <article className={gcc.infoCell}><h3>Rémunération</h3><p className={gcc.cellText}>Courbe de rémunération par mois</p></article>
-        </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Lacunes du contrat</h3>
-          <p className={gcc.cellText}>Attribution, paliers de prise de profit et télémétrie restent explicites lorsqu’ils ne sont pas exposés.</p>
-        </Panel>
-      </section>
-    </ConsoleShell>
+        description="Trois vues dont la question, l’axe et l’unité sont déjà décidés. Aucune ne trace quoi que ce soit tant que le service ne fournit pas sa série."
+      />
+      <DescriptionList>
+        <DescriptionTerm>Performance vs historique</DescriptionTerm>
+        <DescriptionDetails>
+          {explicationSerie(
+            backtest.ok ? backtest.data.runs : undefined,
+            'Aucun backtest n’a encore été exécuté sur ce déploiement.',
+          )}
+        </DescriptionDetails>
+        <DescriptionTerm>Ventilation du rendement</DescriptionTerm>
+        <DescriptionDetails>
+          {explicationSerie(b?.attribution, 'La ventilation du rendement n’a pas encore été calculée.')}
+        </DescriptionDetails>
+        <DescriptionTerm>Télémétrie opérationnelle</DescriptionTerm>
+        <DescriptionDetails>
+          {explicationSerie(
+            m?.operationalTelemetry,
+            'La télémétrie opérationnelle n’a pas encore été transmise.',
+          )}
+        </DescriptionDetails>
+        <DescriptionTerm>Flux de backtest</DescriptionTerm>
+        <DescriptionDetails>
+          {backtest.ok ? (backtest.data.runs?.status ?? 'Non renseigné') : 'Indisponible'}
+        </DescriptionDetails>
+        <DescriptionTerm>Attribution</DescriptionTerm>
+        <DescriptionDetails>{b?.attribution?.status ?? 'Non renseigné'}</DescriptionDetails>
+        <DescriptionTerm>Télémétrie</DescriptionTerm>
+        <DescriptionDetails>{m?.operationalTelemetry?.status ?? 'Non renseigné'}</DescriptionDetails>
+      </DescriptionList>
+    </div>
   )
 }

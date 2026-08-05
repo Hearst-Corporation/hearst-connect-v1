@@ -14,11 +14,11 @@
  * objects, and joining them by name would silently merge them.
  *
  * ── The availability contract ─────────────────────────────────────────────
- * This product's central guarantee is that nothing is invented. Most of the
- * operating model has no source today: the service exposes ONE vault, its
- * strategies, its ledger — and returns 404 for a vault registry, a client
- * directory, a deployment ledger and compliance reviews (verified against the
- * production backend, 2026-07-28).
+ * This product's central guarantee is that nothing is invented. The service
+ * exposes ONE vault, its strategies, its ledger, plus admin directory routes
+ * (`/clients`, `/deployments`, `/compliance`). Empty LIVE lists are empty —
+ * never fabricated rows. Chain-dependent fields stay UNAVAILABLE when the RPC
+ * or indexer cannot read.
  *
  * So every field is an `Availability<T>`: either a value with its provenance,
  * or a named absence carrying the reason and the endpoint that would answer
@@ -334,6 +334,16 @@ export type Vault = Readonly<{
 
 export type ClientRef = Readonly<{ id: ClientId; label: string }>
 
+export type ComplianceReview = Readonly<{
+  id: ComplianceReviewId
+  clientId: ClientId
+  clientLabel: string
+  stage: string
+  kycStatus: string
+  openedAt: string | null
+  lastEventAt: string | null
+}>
+
 /**
  * A client-side problem an admin has to resolve. Every issue names the
  * operational page that resolves it — an exception you cannot act on is a
@@ -414,6 +424,7 @@ export type AdminRegistry = Readonly<{
   clients: Availability<readonly ClientRef[]>
   clientExceptions: Availability<readonly ClientException[]>
   deployments: Availability<readonly Deployment[]>
+  compliance: Availability<readonly ComplianceReview[]>
   movements: Availability<readonly Movement[]>
   rebalancing: Availability<readonly RebalancingRow[]>
   /** Per-surface source health, for the compact status strip. */

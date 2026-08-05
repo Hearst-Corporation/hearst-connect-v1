@@ -55,18 +55,17 @@ describe('la console est en français', () => {
   })
 
   it('la navigation principale est en français', () => {
-    // On retire les commentaires : un commentaire de code peut encore citer
-    // l'ancien libellé (« la première version disait Sign out ») sans que ce
-    // soit un texte rendu.
-    const rail = stripComments(readFileSync(join(CONSOLE_LAYOUT, 'console-rail.tsx'), 'utf8'))
-    // Les intitulés de destinations, en français.
-    expect(rail).toMatch(/label: 'Accueil'/)
-    expect(rail).toMatch(/label: 'Conformité'/)
-    expect(rail).toMatch(/label: 'Opérations'/)
-    expect(rail).toMatch(/Se déconnecter/)
-    // Et plus aucun ancien intitulé anglais de nav dans le code rendu.
-    expect(rail).not.toMatch(/label: 'Home'/)
-    expect(rail).not.toMatch(/>Sign out</)
+    // Shell Catalyst admin — destinations via ADMIN_NAV + libellés du layout.
+    const layout = stripComments(
+      readFileSync(join(ADMIN_COMPONENTS, 'application-layout.tsx'), 'utf8'),
+    )
+    const nav = stripComments(readFileSync(join(ROOT, 'src/lib/admin-nav.ts'), 'utf8'))
+    expect(nav).toMatch(/libelle: 'Accueil'/)
+    expect(nav).toMatch(/libelle: 'Conformité'/)
+    expect(nav).toMatch(/libelle: 'Opérations'/)
+    expect(layout).toMatch(/Se déconnecter/)
+    expect(nav).not.toMatch(/libelle: 'Home'/)
+    expect(layout).not.toMatch(/>Sign out</)
   })
 
   it('les libellés de statut partagés sont en français', () => {

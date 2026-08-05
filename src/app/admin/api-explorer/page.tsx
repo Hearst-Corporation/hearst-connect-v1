@@ -1,37 +1,21 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
-import { Panel } from '@/components/compositions'
-import { ConsoleRail } from '@/components/layout/console-rail'
-import { Reading } from '@/components/layout/console'
-import { AdminCol, AdminGrid } from '@/components/admin/grid'
-import { AdminSection } from '@/components/admin/surfaces'
-import { AdminSurfaceTitle } from '@/components/admin/typography'
+import { AdminPageHeader, AdminSectionHeading } from '@/components/admin/page-header'
+import { AdminReading } from '@/components/admin/reading'
+import {
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from '@/components/catalyst/description-list'
+import { Text } from '@/components/catalyst/text'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
-import { publicUser } from '@/lib/session'
+import { formatNumber } from '@/lib/format'
 import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
-import type { ReactNode } from 'react'
 import { ExplorerRow } from './explorer-row'
 
 export const metadata: Metadata = { title: 'Explorateur d’API' }
 export const dynamic = 'force-dynamic'
-
-/**
- * API Explorer — the whole registry, as three lists.
- *
- * This is an inventory screen, and an inventory reads as a list. The rejected
- * version broke the twenty-six routes into four framed panels, one of which
- * held a single row: four boxes to say what one list says better. The
- * grouping that survives is the one a reader acts on — can I call this
- * safely, is this generated context, does this write something — and each
- * group is one card holding its rows, never one card per route.
- *
- * The reading key sits at the top on a declared 8 / 4 row: what a row lets
- * you do on the left, what each authorization level means on the right. Both
- * are read from the registry itself, which is this frontend's single source
- * of truth about the backend surface.
- */
 
 type ExplorerGroup = {
   id: string
@@ -62,120 +46,116 @@ const GROUPS: readonly ExplorerGroup[] = [
   },
 ]
 
-/** The three authorization levels the registry declares, in ascending order. */
 const AUTH_LEVELS: readonly { auth: EndpointAuth; libelle: string; detail: string }[] = [
   { auth: 'public', libelle: 'Public', detail: 'Ni session ni jeton n’est nécessaire.' },
   { auth: 'session', libelle: 'Session', detail: 'Un investisseur ou administrateur connecté.' },
   { auth: 'admin', libelle: 'Administrateur', detail: 'Une session dont le rôle backend est admin.' },
 ]
 
-/**
- * A route whose path carries a `:name` parameter can't be called from the
- * Explorer: the legitimate value comes from a backend response, never from
- * user input. Reading it here avoids offering a button that can never succeed.
- */
 function pathParamsOf(path: string): string[] {
   return [...path.matchAll(/:(\w+)/g)].map(([, name]) => name)
 }
 
 function curlFor(method: string, path: string, auth: string): string {
   const base = backendUrl() ?? '$HEARST_API_URL'
-  const lines = [`curl -X ${method} '${base}${path}'`, `  -H 'Accept: application/json'`, `  -H 'X-Request-Id: <uuid>'`]
+  const lines = [
+    `curl -X ${method} '${base}${path}'`,
+    `  -H 'Accept: application/json'`,
+    `  -H 'X-Request-Id: <uuid>'`,
+  ]
   if (auth !== 'public') lines.push(`  -H 'Authorization: Bearer <REDACTED>'`)
   return lines.join(' \\\n')
 }
 
+function countBy(filter: (e: BackendEndpoint) => boolean): string {
+  return formatNumber(BACKEND_ENDPOINTS.filter(filter).length)
+}
+
+/**
+ * Explorateur d’API — Catalyst pur.
+ * Registre BACKEND_ENDPOINTS, sondes en direct via ExplorerRow.
+ */
 export default async function ApiExplorerPage() {
   const session = await requireSession()
-  const user = publicUser(session)
+
+  const safeReadsCount = countBy((e) => e.method === 'GET' && e.category !== 'ai-context')
+  const aiContextCount = countBy((e) => e.category === 'ai-context')
+  const actionsCount = countBy((e) => e.category === 'keeper')
+  const baseUrlLabel = backendUrl() ?? 'HEARST_API_URL non défini'
 
   return (
-    <ConsoleShell
-      label="Poste de pilotage explorateur d’API Hearst Connect"
-      rail={<ConsoleRail currentHref="/admin/administration" userName={user.name} userRole={user.role} />}
-    >
-      <section className={gcc.metricsRow} aria-label="Résumé explorateur d’API">
-        <Panel tone="plain" className={gcc.metricCard}><h2>Total des points d’accès</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.length))} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Lectures sûres</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.method === 'GET' && e.category !== 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Contexte IA</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'ai-context').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Actions</h2><div className={gcc.metricText}><Reading value={editorial(String(BACKEND_ENDPOINTS.filter((e) => e.category === 'keeper').length))} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>URL de base</h2><div className={gcc.metricText}><Reading value={editorial(backendUrl() ?? 'HEARST_API_URL non défini')} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Explorateur <span>d’API</span></p>
-          <p className={gcc.decisionMeta}>Registre groupé par type d’action</p>
-          <p className={gcc.decisionActionMuted}>Aucun secret rendu</p>
-        </Panel>
-      </section>
+    <div className="space-y-10">
+      <AdminPageHeader
+        title="Explorateur d’API"
+        description="Inventaire du registre backend, groupé par type d’action. Les lectures sûres peuvent être appelées en direct ; aucun secret n’est rendu."
+      />
 
-      <section className={gcc.mainRow} aria-label="Usage et autorisation de l’explorateur">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Explorateur d’API</h2></div>
-          <div className={gcc.heroBody}>
-      <AdminGrid>
-        <AdminCol span={8}>
-          <Panel tone="plain" className="p-6">
-            <AdminSurfaceTitle as="p">Ce qu’une ligne vous permet de faire</AdminSurfaceTitle>
-            <p className="mt-3 max-w-prose text-sm/6 text-zinc-600 dark:text-zinc-300">
-              Une lecture sûre peut être appelée en direct depuis sa propre ligne. La réponse arrive avec son statut
-              HTTP, sa durée et son identifiant de requête, et elle est affichée telle que le backend l’a renvoyée — rien n’est mis en cache,
-              arrondi ni réécrit au retour.
-            </p>
-            <p className="mt-2 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
-              Deux types de ligne ne portent aucun bouton, et le disent plutôt que d’en offrir un qui ne pourrait jamais aboutir : un
-              POST, qui relève des Actions Keeper et de son étape de confirmation, et un chemin contenant un{' '}
-              <span className="font-mono">:parameter</span>, dont la valeur légitime provient d’une réponse
-              antérieure plutôt que d’un champ de texte.
-            </p>
-          </Panel>
-        </AdminCol>
+      <DescriptionList>
+        <DescriptionTerm>Total des points d’accès</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(formatNumber(BACKEND_ENDPOINTS.length))} />
+        </DescriptionDetails>
+        <DescriptionTerm>Lectures sûres</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(safeReadsCount)} />
+        </DescriptionDetails>
+        <DescriptionTerm>Contexte IA</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(aiContextCount)} />
+        </DescriptionDetails>
+        <DescriptionTerm>Actions</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(actionsCount)} />
+        </DescriptionDetails>
+        <DescriptionTerm>URL de base</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(baseUrlLabel)} />
+        </DescriptionDetails>
+        <DescriptionTerm>Rôle de session</DescriptionTerm>
+        <DescriptionDetails>
+          <AdminReading value={editorial(session.role)} />
+        </DescriptionDetails>
+      </DescriptionList>
 
-        <AdminCol span={4} as="aside">
-          <Panel tone="plain" className="p-5">
-            <AdminSurfaceTitle as="p">Autorisation</AdminSurfaceTitle>
-            <dl className="mt-4 space-y-4">
-              {AUTH_LEVELS.map((level) => (
-                <div key={level.auth}>
-                  <dt className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm font-medium text-zinc-950 dark:text-white">{level.libelle}</span>
-                    <span className="text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
-                      {BACKEND_ENDPOINTS.filter((e) => e.auth === level.auth).length}
-                    </span>
-                  </dt>
-                  <dd className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    {level.detail}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </Panel>
-        </AdminCol>
-      </AdminGrid>
+      <AdminSectionHeading title="Ce qu’une ligne vous permet de faire" />
+      <Text>
+        Une lecture sûre peut être appelée en direct depuis sa propre ligne. La réponse arrive avec son statut HTTP,
+        sa durée et son identifiant de requête, et elle est affichée telle que le backend l’a renvoyée — rien n’est
+        mis en cache, arrondi ni réécrit au retour.
+      </Text>
+      <Text>
+        Deux types de ligne ne portent aucun bouton, et le disent plutôt que d’en offrir un qui ne pourrait jamais
+        aboutir : un POST, qui relève des Actions Keeper et de son étape de confirmation, et un chemin contenant un{' '}
+        <span className="font-mono">:parameter</span>, dont la valeur légitime provient d’une réponse antérieure
+        plutôt que d’un champ de texte.
+      </Text>
+
+      <AdminSectionHeading title="Autorisation" />
+      <DescriptionList>
+        {AUTH_LEVELS.map((level) => (
+          <div key={level.auth} className="contents">
+            <DescriptionTerm>
+              {level.libelle}{' '}
+              <span className="font-normal text-zinc-500">
+                ({formatNumber(BACKEND_ENDPOINTS.filter((e) => e.auth === level.auth).length)})
+              </span>
+            </DescriptionTerm>
+            <DescriptionDetails>{level.detail}</DescriptionDetails>
           </div>
-        </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Rôle de session</h3><p className={gcc.signalValue}>{session.role}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Source du registre</h3><p className={gcc.cellText}>`src/lib/backend/endpoints.ts`</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Exécution</h3><p className={gcc.cellText}>Les actions POST s’exécutent uniquement depuis les Actions Keeper.</p></Panel>
-        </aside>
-      </section>
+        ))}
+      </DescriptionList>
 
-      <section className={gcc.bottomRow} aria-label="Groupes de points d’accès">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Groupes de points d’accès</h3></div>
-          <div className={gcc.heroBody}>
       {GROUPS.map((group) => {
         const endpoints = BACKEND_ENDPOINTS.filter(group.filter)
         if (endpoints.length === 0) return null
 
         return (
-          <AdminSection
-            key={group.id}
-            title={`${group.title} — ${endpoints.length}`}
-            description={group.description}
-          >
-            {/* One card, one list. The rows already carry their own separator,
-                so the card only clips them — it adds no second frame. */}
-            <Panel tone="plain" className="overflow-hidden">
+          <div key={group.id}>
+            <AdminSectionHeading
+              title={`${group.title} — ${formatNumber(endpoints.length)}`}
+              description={group.description}
+            />
+            <div className="overflow-hidden rounded-lg ring-1 ring-zinc-950/5 dark:ring-white/10">
               {endpoints.map((endpoint) => (
                 <ExplorerRow
                   key={endpoint.id}
@@ -184,29 +164,16 @@ export default async function ApiExplorerPage() {
                   pathParams={pathParamsOf(endpoint.path)}
                 />
               ))}
-            </Panel>
-          </AdminSection>
+            </div>
+          </div>
         )
       })}
-          </div>
-        </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          {AUTH_LEVELS.map((level) => (
-            <article key={level.auth} className={gcc.infoCell}>
-              <h3>{level.libelle}</h3>
-              <p className={gcc.cellText}>{level.detail}</p>
-            </article>
-          ))}
-          <article className={gcc.infoCell}>
-            <h3>Paramètres de chemin</h3>
-            <p className={gcc.cellText}>Les lignes avec `:param` sont documentées mais pas appelables directement.</p>
-          </article>
-        </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Usage</h3>
-          <p className={gcc.cellText}>Les lectures en direct affichent le statut, la durée et l’identifiant de requête de la réponse du backend.</p>
-        </Panel>
-      </section>
-    </ConsoleShell>
+
+      <AdminSectionHeading title="Paramètres de chemin" />
+      <Text>
+        Les lignes avec <span className="font-mono">:param</span> sont documentées mais pas appelables directement —
+        la valeur légitime provient d’une réponse antérieure du backend.
+      </Text>
+    </div>
   )
 }

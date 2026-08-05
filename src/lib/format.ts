@@ -32,17 +32,6 @@ export function formatCurrency(
   return `${opts?.unit ?? '$'}${value.toLocaleString(LOCALE, { maximumFractionDigits: opts?.decimals ?? 2 })}`
 }
 
-export function formatCompactNumber(value: number | null | undefined): string {
-  if (value === null || value === undefined || !Number.isFinite(value)) return '—'
-  return value.toLocaleString(LOCALE, { notation: 'compact', maximumFractionDigits: 1 })
-}
-
-export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return 'date inconnue'
-  const t = Date.parse(iso)
-  return Number.isNaN(t) ? 'date inconnue' : new Date(t).toLocaleDateString(LOCALE, { dateStyle: 'medium' })
-}
-
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return 'date inconnue'
   const t = Date.parse(iso)

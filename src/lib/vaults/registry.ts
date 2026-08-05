@@ -14,6 +14,12 @@ import {
   type AdminRegistry,
   type Availability,
   type ClientException,
+  type ClientId,
+  type ClientRef,
+  type ComplianceReview,
+  type ComplianceReviewId,
+  type Deployment,
+  type DeploymentId,
   type Movement,
   type Provenance,
   type RebalancingRow,
@@ -27,11 +33,11 @@ import {
 /**
  * Reads the operating model out of the service, once, for a whole page.
  *
- * ── What the service actually serves (verified 2026-07-28, production) ─────
+ * ── What the service actually serves ─────────────────────────────────────────
  * ONE vault, at `GET /api/v1/vault` — singular. Its strategies, its RWA
- * pockets, its indexed ledger. `GET /api/v1/vaults`, `/clients`,
- * `/deployments`, `/compliance` and `/portfolios` all answer 404: they are
- * not endpoints that are down, they are endpoints that do not exist.
+ * pockets, its indexed ledger. Admin directory routes (`/clients`,
+ * `/deployments`, `/compliance`) are wired when the backend exposes them;
+ * empty LIVE lists stay empty — never fabricated rows.
  *
  * That distinction is the whole design of this module. A missing registry is
  * reported as `NOT_EXPOSED` with the route that would answer it; a route that
@@ -112,6 +118,34 @@ type MouvementWire = Readonly<{
 }>
 
 type EvenementsReponse = Readonly<{ events?: Resolu<readonly MouvementWire[]> }>
+
+type ClientWire = Readonly<{ id?: string | null; label?: string | null }>
+type ClientsReponse = Readonly<{ clients?: Resolu<readonly ClientWire[]> }>
+
+type DeploymentWire = Readonly<{
+  id?: string | null
+  vaultId?: string | null
+  clientId?: string | null
+  clientLabel?: string | null
+  amountAtomic?: string | null
+  strategyId?: string | null
+  requestedAt?: string | null
+  confirmedAt?: string | null
+  status?: string | null
+  reference?: string | null
+}>
+type DeploymentsReponse = Readonly<{ deployments?: Resolu<readonly DeploymentWire[]> }>
+
+type ComplianceWire = Readonly<{
+  id?: string | null
+  clientId?: string | null
+  clientLabel?: string | null
+  kycStatus?: string | null
+  stage?: string | null
+  openedAt?: string | null
+  lastEventAt?: string | null
+}>
+type ComplianceReponse = Readonly<{ reviews?: Resolu<readonly ComplianceWire[]> }>
 
 type DashboardReponse = Readonly<{
   identity?: Resolu<unknown>
@@ -397,8 +431,7 @@ function fileRebalancing(vaults: readonly Vault[]): Availability<readonly Rebala
  * `GET /api/v1/dashboard` returns `identity` as PARTIAL with the reason
  * `no_investor_record`: the signed-in account is not attached to an investor
  * record. That is the service's own statement about a real account, so it is
- * a real work item. Every other issue in the model — compliance pending,
- * deployment blocked, vault inactive — has no source, and none is inferred.
+ * a real work item. The client directory itself is exposed at `/clients`.
  */
 function exceptionsClients(
   identity: Availability<unknown>,
@@ -406,21 +439,14 @@ function exceptionsClients(
   compteLabel: string,
 ): Availability<readonly ClientException[]> {
   if (isAvailable(identity)) {
-    // An investor record exists: nothing to report about it, and nothing is
-    // claimed about clients we still cannot enumerate.
-    return unavailable({
-      endpoint: '/api/v1/clients',
-      status: 'NOT_EXPOSED',
-      reason: 'no_client_directory_endpoint',
-    })
+    // Investor record present: no synthetic client exception.
+    return available([], { provenance: 'db' })
   }
 
   if (identityReason !== 'no_investor_record') {
-    return unavailable({
-      endpoint: '/api/v1/clients',
-      status: 'NOT_EXPOSED',
-      reason: 'no_client_directory_endpoint',
-    })
+    // Directory exists via /clients; this path only surfaces the known
+    // identity gap, not a missing endpoint.
+    return available([], { provenance: 'db' })
   }
 
   return available(
@@ -430,7 +456,11 @@ function exceptionsClients(
         clientLabel: compteLabel,
         issue: 'MISSING_INVESTOR_RECORD',
         relatedVaultId: null,
-        compliance: unavailable({ endpoint: '/api/v1/compliance', status: 'NOT_EXPOSED' }),
+        compliance: unavailable({
+          endpoint: '/api/v1/compliance',
+          status: 'EMPTY',
+          reason: 'compliance_not_linked_to_session',
+        }),
         lastActivityAt: unavailable({ status: 'EMPTY', reason: 'no_investor_record' }),
         actionHref: '/admin/profile',
         actionLabel: 'Open account',
@@ -526,9 +556,12 @@ function buildVaultRecord(
       lastRebalanceAt: r.lastRebalanceAt ?? null,
       driftBps: typeof r.driftBps === 'number' ? r.driftBps : null,
     })),
-    // No client directory exists: the vault's owner is not "none", it is
-    // not readable. Those are different facts.
-    client: unavailable({ endpoint: '/api/v1/clients', status: 'NOT_EXPOSED', reason: 'no_client_directory_endpoint' }),
+    // /clients enumerates investors; it does not attach an owner to this vault.
+    client: unavailable({
+      endpoint: '/api/v1/clients',
+      status: 'EMPTY',
+      reason: 'vault_owner_not_reported',
+    }),
     lastActivityAt:
       derniereActivite === null
         ? unavailable({ status: 'EMPTY', reason: 'no_snapshot_timestamp' })
@@ -545,20 +578,160 @@ type BackendResponses = Readonly<{
   rebalRes: Awaited<ReturnType<typeof callBackend<RebalancingReponse>>>
   eventsRes: Awaited<ReturnType<typeof callBackend<EvenementsReponse>>>
   dashboardRes: Awaited<ReturnType<typeof callBackend<DashboardReponse>>>
+  clientsRes: Awaited<ReturnType<typeof callBackend<ClientsReponse>>>
+  deploymentsRes: Awaited<ReturnType<typeof callBackend<DeploymentsReponse>>>
+  complianceRes: Awaited<ReturnType<typeof callBackend<ComplianceReponse>>>
 }>
 
 async function fetchRegistryResponses(
   movementLimit: number,
 ): Promise<BackendResponses> {
-  const [vaultRes, strategiesRes, rwaRes, rebalRes, eventsRes, dashboardRes] = await Promise.all([
+  const [
+    vaultRes,
+    strategiesRes,
+    rwaRes,
+    rebalRes,
+    eventsRes,
+    dashboardRes,
+    clientsRes,
+    deploymentsRes,
+    complianceRes,
+  ] = await Promise.all([
     callBackend<VaultReponse>('vault'),
     callBackend<StrategiesReponse>('vault-strategies'),
     callBackend<RwaReponse>('rwa-vault'),
     callBackend<RebalancingReponse>('rebalancing-status'),
     callBackend<EvenementsReponse>('series1-events', { params: { limit: movementLimit } }),
     callBackend<DashboardReponse>('dashboard'),
+    callBackend<ClientsReponse>('clients'),
+    callBackend<DeploymentsReponse>('deployments'),
+    callBackend<ComplianceReponse>('compliance'),
   ])
-  return { vaultRes, strategiesRes, rwaRes, rebalRes, eventsRes, dashboardRes }
+  return { vaultRes, strategiesRes, rwaRes, rebalRes, eventsRes, dashboardRes, clientsRes, deploymentsRes, complianceRes }
+}
+
+function buildClients(
+  clientsRes: BackendResponses['clientsRes'],
+  sources: SourceHealth[],
+): Availability<readonly ClientRef[]> {
+  const bloc = fromResolu(clientsRes.ok ? clientsRes.data.clients : undefined, '/api/v1/clients')
+  sources.push(
+    sourceHealth(
+      'clients',
+      'Annuaire clients',
+      clientsRes.ok && isAvailable(bloc),
+      clientsRes.ok ? (clientsRes.data.clients?.reason ?? null) : 'Aucune réponse',
+      isAvailable(bloc) ? bloc.asOf : null,
+    ),
+  )
+  if (!clientsRes.ok) {
+    const httpStatus = clientsRes.trace.httpStatus
+    return unavailable({
+      endpoint: '/api/v1/clients',
+      status: httpStatus === 404 ? 'NOT_EXPOSED' : 'UNAVAILABLE',
+      reason: httpStatus === 404 ? 'no_client_directory_endpoint' : 'service_did_not_respond',
+    })
+  }
+  return mapAvailability(bloc, (rows) =>
+    rows.flatMap((row) => {
+      if (typeof row.id !== 'string' || row.id === '' || typeof row.label !== 'string' || row.label === '') return []
+      return [{ id: row.id as ClientId, label: row.label }]
+    }),
+  )
+}
+
+function buildDeployments(
+  deploymentsRes: BackendResponses['deploymentsRes'],
+  defaultVaultId: VaultId | null,
+  sources: SourceHealth[],
+): Availability<readonly Deployment[]> {
+  const bloc = fromResolu(deploymentsRes.ok ? deploymentsRes.data.deployments : undefined, '/api/v1/deployments')
+  sources.push(
+    sourceHealth(
+      'deployments',
+      'Déploiements',
+      deploymentsRes.ok && isAvailable(bloc),
+      deploymentsRes.ok ? (deploymentsRes.data.deployments?.reason ?? null) : 'Aucune réponse',
+      isAvailable(bloc) ? bloc.asOf : null,
+    ),
+  )
+  if (!deploymentsRes.ok) {
+    const httpStatus = deploymentsRes.trace.httpStatus
+    return unavailable({
+      endpoint: '/api/v1/deployments',
+      status: httpStatus === 404 ? 'NOT_EXPOSED' : 'UNAVAILABLE',
+      reason: httpStatus === 404 ? 'no_deployment_ledger_endpoint' : 'service_did_not_respond',
+    })
+  }
+  return mapAvailability(bloc, (rows) =>
+    rows.flatMap((row) => {
+      const resolvedVaultId = (row.vaultId ?? defaultVaultId) as VaultId | null
+      if (typeof row.id !== 'string' || row.id === '' || resolvedVaultId === null) return []
+      const status = row.status
+      const normalizedStatus =
+        status === 'REQUESTED' || status === 'CONFIRMED' || status === 'FAILED' || status === 'PENDING'
+          ? status
+          : 'PENDING'
+      return [
+        {
+          id: row.id as DeploymentId,
+          vaultId: resolvedVaultId,
+          clientLabel:
+            typeof row.clientLabel === 'string' && row.clientLabel !== ''
+              ? available(row.clientLabel, { provenance: 'db' })
+              : unavailable({ status: 'EMPTY', reason: 'client_label_not_reported' }),
+          amountAtomic: row.amountAtomic ?? null,
+          strategyId: typeof row.strategyId === 'string' ? (row.strategyId as never) : null,
+          requestedAt: row.requestedAt ?? null,
+          confirmedAt: row.confirmedAt ?? null,
+          status: normalizedStatus,
+          reference: row.reference ?? null,
+        },
+      ]
+    }),
+  )
+}
+
+function buildCompliance(
+  complianceRes: BackendResponses['complianceRes'],
+  sources: SourceHealth[],
+): Availability<readonly ComplianceReview[]> {
+  const bloc = fromResolu(complianceRes.ok ? complianceRes.data.reviews : undefined, '/api/v1/compliance')
+  sources.push(
+    sourceHealth(
+      'compliance',
+      'Conformité',
+      complianceRes.ok && isAvailable(bloc),
+      complianceRes.ok ? (complianceRes.data.reviews?.reason ?? null) : 'Aucune réponse',
+      isAvailable(bloc) ? bloc.asOf : null,
+    ),
+  )
+  if (!complianceRes.ok) {
+    const httpStatus = complianceRes.trace.httpStatus
+    return unavailable({
+      endpoint: '/api/v1/compliance',
+      status: httpStatus === 404 ? 'NOT_EXPOSED' : 'UNAVAILABLE',
+      reason: httpStatus === 404 ? 'no_compliance_review_endpoint' : 'service_did_not_respond',
+    })
+  }
+  return mapAvailability(bloc, (rows) =>
+    rows.flatMap((row) => {
+      if (typeof row.id !== 'string' || row.id === '' || typeof row.clientId !== 'string' || row.clientId === '') {
+        return []
+      }
+      return [
+        {
+          id: row.id as ComplianceReviewId,
+          clientId: row.clientId as ClientId,
+          clientLabel: typeof row.clientLabel === 'string' ? row.clientLabel : row.clientId,
+          stage: typeof row.stage === 'string' ? row.stage : 'a-verifier',
+          kycStatus: typeof row.kycStatus === 'string' ? row.kycStatus : 'pending',
+          openedAt: row.openedAt ?? null,
+          lastEventAt: row.lastEventAt ?? null,
+        },
+      ]
+    }),
+  )
 }
 
 function buildVaults(
@@ -670,22 +843,17 @@ export async function loadAdminRegistry(
   const movements = buildMovements(responses.eventsRes, vaultParContrat, sources)
   const clientExceptions = buildClientExceptions(responses.dashboardRes, compteLabel, sources)
   const listeVaults = isAvailable(vaults) ? vaults.value : []
+  const defaultVaultId = listeVaults.length > 0 ? listeVaults[0].id : null
+  const clients = buildClients(responses.clientsRes, sources)
+  const deployments = buildDeployments(responses.deploymentsRes, defaultVaultId, sources)
+  const compliance = buildCompliance(responses.complianceRes, sources)
 
   return {
     vaults,
-    // A count of clients is a claim. With no directory endpoint the service
-    // cannot make it, so neither does this console.
-    clients: unavailable({
-      endpoint: '/api/v1/clients',
-      status: 'NOT_EXPOSED',
-      reason: 'no_client_directory_endpoint',
-    }),
+    clients,
     clientExceptions,
-    deployments: unavailable({
-      endpoint: '/api/v1/deployments',
-      status: 'NOT_EXPOSED',
-      reason: 'no_deployment_ledger_endpoint',
-    }),
+    deployments,
+    compliance,
     movements,
     rebalancing: fileRebalancing(listeVaults),
     sources,
@@ -706,6 +874,6 @@ export async function loadVault(
  * Retiré le 2026-08-04 (LOT B3) : `export type { ClientRef, Deployment } from
  * '@/lib/vaults/model'`. Ce ré-export n'avait aucun consommateur — les modules
  * qui ont besoin de ces types les importent directement depuis `model.ts`
- * (p. ex. `components/vaults/deployment-queue.tsx`). Deux chemins d'import
+ * directement depuis `@/lib/vaults/model`. Deux chemins d'import
  * pour un même type ne servent qu'à faire diverger les conventions.
  */
