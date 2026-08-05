@@ -1,4 +1,5 @@
-import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { etatBackend, libelleEtatBackend } from '@/lib/backend/lecture-etat'
+import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
 import styles from './console.module.css'
@@ -83,7 +84,26 @@ export function Reading({
   showRoute?: boolean
 }>) {
   if (!isAvailable(value)) return <Absent availability={value} onAccent={onAccent} showRoute={showRoute} />
-  return <span className={clsx(styles.metricValue, className)}>{value.value}</span>
+  const signal = signalOf(value)
+  if (signal === 'editorial') {
+    return <span className={clsx(styles.metricValue, className)}>{value.value}</span>
+  }
+  const etat = etatBackend(value)
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className={clsx(styles.metricValue, className)}>{value.value}</span>
+      {etat === 'EN_DIRECT' ? (
+        <Badge color="green" data-live-badge="">
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+          {libelleEtatBackend(etat)}
+        </Badge>
+      ) : (
+        <Badge color={etat === 'PROBLEME' ? 'amber' : 'zinc'} data-state-badge="">
+          {libelleEtatBackend(etat)}
+        </Badge>
+      )}
+    </span>
+  )
 }
 
 export { styles as gcc }

@@ -209,14 +209,6 @@ describe('estateOverview', () => {
     expect(valueOf(overview.liveSources)).toBe('1/2')
   })
 
-  it('keeps a figure with no source unavailable instead of zero', () => {
-    const overview = estateOverview(registry())
-    // No strategies endpoint on this deployment: the breach count is a claim
-    // nobody can make, so it must not read "0".
-    expect(isAvailable(overview.breachedPockets)).toBe(false)
-    expect(valueOf(overview.breachedPockets)).not.toBe('0')
-  })
-
   it('propagates an unreadable vault register through every money figure', () => {
     const overview = estateOverview(registry({ vaults: unavailable({ endpoint: '/api/v1/vault', reason: 'rpc_error' }) }))
     const figures: readonly Availability<unknown>[] = [

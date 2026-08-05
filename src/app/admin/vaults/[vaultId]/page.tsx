@@ -30,7 +30,6 @@ import {
 } from '@/lib/format'
 import { etatSourceLisible, libelleMouvement, motifLisible, phraseMouvement } from '@/lib/mouvements'
 import {
-  REBALANCING_THRESHOLD_BPS,
   combine,
   deployedAtomic,
   editorial,
@@ -38,7 +37,6 @@ import {
   isAvailable,
   mapAvailability,
   parseVaultId,
-  requiresRebalancing,
   unavailable,
   type Availability,
   type ClientException,
@@ -62,10 +60,6 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-const THRESHOLD_POINTS = formatNumber(REBALANCING_THRESHOLD_BPS / 100, {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
 const DOCUMENTED_DECIMALS = 6
 const CREATED_AT: Availability<string> = unavailable({
   status: 'NOT_EXPOSED',
@@ -150,9 +144,8 @@ function pocketOf(row: RebalancingRow): string | null {
 }
 
 function severity(row: RebalancingRow): number {
-  if (row.breached) return 0
   if (row.varianceBps === null) return 1
-  return 2
+  return 0
 }
 
 function orderedRebalancing(rows: readonly RebalancingRow[]): readonly RebalancingRow[] {
@@ -218,12 +211,6 @@ export default async function Page({ params }: PageProps) {
   const idleValue = amountOf(vault, idleAtomic(vault))
   const driftValue = mapAvailability(vault.worstDriftBps, driftPoints)
   const strategiesCount = mapAvailability(vault.strategies, (rows) => formatNumber(rows.length))
-  const actionState = requiresRebalancing(vault)
-  const actionLabel = !isAvailable(actionState)
-    ? 'Action indisponible'
-    : actionState.value
-      ? 'Revue de rééquilibrage'
-      : 'Aucune revue en attente'
 
   const lastActivity = mapAvailability(
     vault.lastActivityAt,
@@ -259,7 +246,6 @@ export default async function Page({ params }: PageProps) {
 
       <div className="flex flex-wrap items-center gap-3">
         <VaultStatusBadge status={vault.status} />
-        <Text className="!mt-0 text-sm text-zinc-500">{actionLabel}</Text>
       </div>
 
       <DescriptionList>
@@ -359,7 +345,7 @@ export default async function Page({ params }: PageProps) {
 
       <AdminSectionHeading
         title="Rééquilibrage"
-        description={`Seuil de cette console : ±${THRESHOLD_POINTS} pt.`}
+        description="Écart d’allocation par poche, tel que rapporté par le service."
       />
       {!isAvailable(scopedRebalancing) ? (
         <Text>
@@ -377,9 +363,7 @@ export default async function Page({ params }: PageProps) {
               <TableHeader>Cible</TableHeader>
               <TableHeader>Constaté</TableHeader>
               <TableHeader>Écart</TableHeader>
-              <TableHeader>Seuil</TableHeader>
               <TableHeader>Dernier rééquilibrage</TableHeader>
-              <TableHeader>Action</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -402,30 +386,11 @@ export default async function Page({ params }: PageProps) {
                       ? 'Indisponible'
                       : formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell className={row.breached ? 'font-medium text-amber-600 dark:text-amber-400' : undefined}>
-                    {drift ?? 'Indisponible'}
-                  </TableCell>
-                  <TableCell>
-                    ±{formatNumber(row.thresholdBps / 100, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pt
-                  </TableCell>
+                  <TableCell className="tabular-nums">{drift ?? 'Indisponible'}</TableCell>
                   <TableCell>
                     {isAvailable(row.lastRebalanceAt) && row.lastRebalanceAt.value !== ''
                       ? formatDateTime(row.lastRebalanceAt.value)
                       : 'Indisponible'}
-                  </TableCell>
-                  <TableCell>
-                    {drift === null ? (
-                      'Indisponible'
-                    ) : (
-                      <div className="flex flex-wrap gap-2">
-                        <span className="text-xs text-zinc-500">
-                          {row.breached ? 'Au-delà du seuil' : 'Dans la tolérance'}
-                        </span>
-                        <Link href={entityHref('keeper', row.strategyId)} className="text-xs text-accent-600 dark:text-accent-400">
-                          {row.breached ? 'Rééquilibrer' : 'Keeper'}
-                        </Link>
-                      </div>
-                    )}
                   </TableCell>
                 </TableRow>
               )

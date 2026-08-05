@@ -285,7 +285,6 @@ export type EstateOverview = Readonly<{
   deploymentRatioBps: Availability<number>
   /** The same ratio as a display string. */
   deploymentRatio: Availability<string>
-  breachedPockets: Availability<string>
   recentMovements: Availability<string>
   liveSources: Availability<string>
   recentTrend: Availability<readonly TrendPoint[]>
@@ -314,9 +313,6 @@ export function estateOverview(registry: AdminRegistry): EstateOverview {
     deploymentRatio: mapAvailability(
       deploymentRatioBps,
       (bps) => `${formatNumber(bps / 100, { maximumFractionDigits: 1 })}%`,
-    ),
-    breachedPockets: mapAvailability(registry.rebalancing, (rows) =>
-      formatNumber(rows.filter((row) => row.breached).length),
     ),
     recentMovements: mapAvailability(registry.movements, (rows) => formatNumber(rows.length)),
     liveSources: available(

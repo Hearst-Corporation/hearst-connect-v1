@@ -3,10 +3,11 @@ import { Panel } from '@/components/compositions'
 import { AppRail } from '@/components/layout/app-rail'
 import { Reading } from '@/components/layout/console'
 import { requireSession } from '@/lib/auth'
-import { callBackend } from '@/lib/backend/client'
+import { callBackend, statusFromMeta } from '@/lib/backend/client'
+import { availabilityFromResolu } from '@/lib/backend/availability'
 import { motifLisible } from '@/lib/mouvements'
 import { publicUser } from '@/lib/session'
-import { available, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { mapAvailability, unavailable } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -124,14 +125,17 @@ export default async function Page() {
     status: 'UNAVAILABLE',
     reason: 'dashboard_source_unreachable',
   })
-  const aggregateAvail: Availability<readonly Surface[]> =
-    aggregate === null ? coverageUnreadable : available(surfaces, { provenance: 'indexed', stale: false, asOf: null })
-  const asCount = (n: number): Availability<string> => mapAvailability(aggregateAvail, () => String(n))
+  const dashboardBloc =
+    response.ok && aggregate !== null
+      ? { status: response.meta?.status ?? 'LIVE', value: aggregate, reason: response.meta?.reason ?? null }
+      : null
+  const dashboardSource = availabilityFromResolu(dashboardBloc, '/api/v1/dashboard')
+  const aggregateAvail = mapAvailability(dashboardSource, () => surfaces)
+  const asCount = (n: number) => mapAvailability(aggregateAvail, () => String(n))
   const served = countIn(surfaces, 'served')
-  const coverageCell: Availability<string> =
-    aggregate === null || surfaces.length === 0
-      ? coverageUnreadable
-      : available(`${Math.round((served / surfaces.length) * 100)}%`, { provenance: 'indexed', stale: false, asOf: null })
+  const coverageCell = mapAvailability(aggregateAvail, () =>
+    surfaces.length === 0 ? '—' : `${Math.round((served / surfaces.length) * 100)}%`,
+  )
 
   return (
     <ConsoleShell

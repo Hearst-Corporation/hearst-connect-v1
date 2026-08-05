@@ -16,7 +16,7 @@ import {
 } from '@/components/catalyst/table'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
-import { availabilityFromResolu } from '@/lib/backend/availability'
+import { availabilityFromResolu, figureDepuisResolu } from '@/lib/backend/availability'
 import { adresseCourte, dateLisible, ilYA, libelleMouvement, montantUsdc } from '@/lib/mouvements'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import {
@@ -25,7 +25,10 @@ import {
   reconcilierHashrate,
 } from '@/lib/mining/dedicated-reads'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
-import { editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { available, editorial, mapAvailability, unavailable } from '@/lib/vaults/model'
+
+const MINING_ENDPOINT = '/api/v1/mining'
+const BTC_ENDPOINT = '/api/v1/btc'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Mining' }
@@ -271,14 +274,21 @@ export default async function Page() {
   const mouvements = reponseMouvements.ok ? (reponseMouvements.data.events?.value ?? []) : []
   const resume = resumeMinage(minage, production, mouvements)
 
-  const miningFigure = (value: string): Availability<string> =>
-    reponseMinage.ok
-      ? editorial(value)
-      : unavailable({ endpoint: '/api/v1/mining', status: 'UNAVAILABLE', reason: 'mining_source_unreachable' })
-  const btcFigure = (value: string): Availability<string> =>
-    reponseBtc.ok
-      ? editorial(value)
-      : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+  const hashrateCell = figureDepuisResolu(
+    reponseMinage.ok ? minage?.hashrate : undefined,
+    MINING_ENDPOINT,
+    (r) => hashrateLisible(r),
+  )
+  const btcProduitCell = figureDepuisResolu(
+    reponseBtc.ok ? production : undefined,
+    BTC_ENDPOINT,
+    () => btcLisible(resume.cumulBtc),
+  )
+  const factureCell = figureDepuisResolu(
+    reponseMinage.ok ? minage?.electricity : undefined,
+    MINING_ENDPOINT,
+    (e) => dollarsLisibles(dollarsDepuisAtomique(e.monthlyCost)),
+  )
   const eventsAvail = availabilityFromResolu<readonly Mouvement[]>(
     reponseMouvements.ok ? reponseMouvements.data.events : undefined,
     '/api/v1/series1/events',
@@ -303,15 +313,15 @@ export default async function Page() {
       <DescriptionList>
         <DescriptionTerm>Hashrate</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={miningFigure(hashrateLisible(resume.releve))} />
+          <AdminReading value={hashrateCell} />
         </DescriptionDetails>
         <DescriptionTerm>BTC produit</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={btcFigure(btcLisible(resume.cumulBtc))} />
+          <AdminReading value={btcProduitCell} />
         </DescriptionDetails>
         <DescriptionTerm>Facture mensuelle</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={miningFigure(dollarsLisibles(resume.factureMensuelle))} />
+          <AdminReading value={factureCell} />
         </DescriptionDetails>
         <DescriptionTerm>Attestations</DescriptionTerm>
         <DescriptionDetails>

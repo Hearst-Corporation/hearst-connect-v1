@@ -17,18 +17,12 @@ import { describe, expect, it } from 'vitest'
  */
 
 describe('primary navigation', () => {
-  it('offers exactly five primary destinations', () => {
-    expect(ADMIN_NAV).toHaveLength(5)
-    expect(ADMIN_NAV.map((e) => e.libelle)).toEqual([
-      'Accueil',
-      'Clients',
-      'Conformité',
-      'Opérations',
-      'Administration',
-    ])
+  it('offers exactly four primary destinations', () => {
+    expect(ADMIN_NAV).toHaveLength(4)
+    expect(ADMIN_NAV.map((e) => e.libelle)).toEqual(['Accueil', 'Clients', 'Conformité', 'Opérations'])
   })
 
-  it('keeps every demoted destination reachable from Administration', () => {
+  it('keeps every demoted destination reachable in the secondary sidebar', () => {
     const demoted = [
       // `/admin/vault` (one screen bound to whichever contract answered) was
       // replaced by the vault REGISTRY when the console moved to the vault
@@ -47,11 +41,10 @@ describe('primary navigation', () => {
     for (const href of demoted) expect(reachable.has(href)).toBe(true)
   })
 
-  it('lights Administration up while you are on a secondary screen', () => {
+  it('does not force a primary highlight on secondary screens', () => {
     for (const entree of ADMIN_SECONDARY_FLAT) {
-      expect(hrefActif(entree.href)).toBe('/admin/administration')
+      expect(hrefActif(entree.href)).toBeUndefined()
     }
-    // …without breaking the primary matches.
     expect(hrefActif('/admin')).toBe('/admin')
     expect(hrefActif('/admin/clients')).toBe('/admin/clients')
     expect(hrefActif('/admin/operations')).toBe('/admin/operations')

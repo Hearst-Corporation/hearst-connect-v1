@@ -13,10 +13,8 @@ import { formatAddress, formatNumber } from '@/lib/format'
 import type { SessionUser } from '@/lib/session'
 import type { AdminRegistry } from '@/lib/vaults/model'
 import {
-  available,
   isAvailable,
   mapAvailability,
-  REBALANCING_THRESHOLD_BPS,
   unavailable,
 } from '@/lib/vaults/model'
 import { estateOverview } from '@/lib/vaults/overview'
@@ -37,23 +35,8 @@ export function AdminHomeDashboard({
 }: Readonly<{ registry: AdminRegistry; user: SessionUser }>) {
   const overview = estateOverview(registry)
   const vaults = registry.vaults
-  const thresholdPoints = formatNumber(REBALANCING_THRESHOLD_BPS / 100, { maximumFractionDigits: 2 })
 
-  const pendingDecisions =
-    isAvailable(registry.rebalancing) && isAvailable(registry.clientExceptions)
-      ? available(
-          formatNumber(
-            registry.rebalancing.value.filter((row) => row.breached).length +
-              registry.clientExceptions.value.length,
-          ),
-        )
-      : isAvailable(registry.clientExceptions)
-        ? unavailable({
-            endpoint: '/api/v1/vault/strategies',
-            status: 'PARTIAL',
-            reason: 'rebalancing_unreadable_total_would_be_incomplete',
-          })
-        : unavailable({ endpoint: '/api/v1/dashboard', reason: 'client_exceptions_unreadable' })
+  const pendingDecisions = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
 
   const decisionHint = !isAvailable(pendingDecisions)
     ? 'File indisponible'
@@ -74,10 +57,6 @@ export function AdminHomeDashboard({
         <DescriptionTerm>Coffres actifs</DescriptionTerm>
         <DescriptionDetails>
           <AdminReading value={overview.activeVaults} />
-        </DescriptionDetails>
-        <DescriptionTerm>{`Au-dessus du seuil (±${thresholdPoints} pt)`}</DescriptionTerm>
-        <DescriptionDetails>
-          <AdminReading value={overview.breachedPockets} />
         </DescriptionDetails>
         <DescriptionTerm>Mouvements récents</DescriptionTerm>
         <DescriptionDetails>

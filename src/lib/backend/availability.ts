@@ -1,4 +1,4 @@
-import { available, unavailable, type Availability } from '@/lib/vaults/model'
+import { available, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
 import type { ResolvedStatus } from '@/lib/resolved'
 
 /**
@@ -71,4 +71,16 @@ export function availabilityFromResolu<T>(
   // Valeur présente sous un statut non affichable (NOT_CONFIGURED, ERROR, …) :
   // on ne la présente pas comme une lecture — c'est une absence nommée.
   return unavailable({ endpoint, status: statutCanonique(bloc.status), reason: bloc.reason ?? null })
+}
+
+/**
+ * Formate une valeur résolue backend en lecture affichable, en propageant
+ * le statut réel — jamais de `stale: false` forcé.
+ */
+export function figureDepuisResolu<T>(
+  bloc: BlocResolu<T> | null | undefined,
+  endpoint: string,
+  format: (value: T) => string,
+): Availability<string> {
+  return mapAvailability(availabilityFromResolu(bloc, endpoint), format)
 }

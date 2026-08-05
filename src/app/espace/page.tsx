@@ -8,7 +8,7 @@ import { callBackend } from '@/lib/backend/client'
 import { availabilityFromResolu } from '@/lib/backend/availability'
 import { formatCurrency } from '@/lib/format'
 import { publicUser } from '@/lib/session'
-import { available, editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { editorial, mapAvailability, unavailable } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -71,14 +71,15 @@ export default async function Page() {
       }
     }
   }
-  const couvertureCell: Availability<string> =
-    agg === null || totalN === 0
-      ? unavailable({
-          endpoint: '/api/v1/dashboard',
-          status: agg === null ? 'UNAVAILABLE' : 'EMPTY',
-          reason: 'dashboard_source_unreachable',
-        })
-      : available(`${Math.round((servedN / totalN) * 100)}%`, { provenance: 'indexed', stale: false, asOf: null })
+  const couvertureCell = mapAvailability(
+    availabilityFromResolu(
+      dashRes.ok && agg !== null
+        ? { status: dashRes.meta?.status ?? 'LIVE', value: agg, reason: dashRes.meta?.reason ?? null }
+        : null,
+      '/api/v1/dashboard',
+    ),
+    () => (totalN === 0 ? '—' : `${Math.round((servedN / totalN) * 100)}%`),
+  )
 
   return (
     <ConsoleShell
