@@ -125,11 +125,19 @@ function cadenceLisible(intervalMs: number | null | undefined): string {
   return `toutes les ${Math.round(intervalMs / 60_000)} min`
 }
 
-function onChainAbsence(rebalancing: BackendResult<RebalancingStatus>): string {
+function onChainReading(rebalancing: BackendResult<RebalancingStatus>): string {
   if (!rebalancing.ok) return 'Le service n’a pas répondu pour la lecture directe du contrat.'
-  const motif = motifLisible(rebalancing.data.rebalancing?.reason)
-  if (motif !== undefined) return motif
-  return 'Le contrat n’expose aucune lecture de rééquilibrage.'
+  const bloc = rebalancing.data.rebalancing
+  if (bloc === undefined) return 'Champ rebalancing absent de la réponse.'
+  if (bloc.status === 'LIVE' && bloc.value !== null && bloc.value !== undefined) {
+    return `LIVE — lecture on-chain reçue (${JSON.stringify(bloc.value)})`
+  }
+  const motif = motifLisible(bloc.reason)
+  if (motif !== undefined) return `${bloc.status} — ${motif}`
+  if (bloc.status === 'UNAVAILABLE' || bloc.status === 'NOT_EXPOSED' || bloc.status === 'NOT_SUPPORTED') {
+    return `${bloc.status} — aucune mesure on-chain utilisable.`
+  }
+  return `${bloc.status} — réponse reçue sans valeur exploitable.`
 }
 
 /**
@@ -185,10 +193,13 @@ export default async function Page() {
           reason: 'events_source_unreachable',
         })
 
-  const pendingLabel =
-    mesure?.pending === null || mesure?.pending === undefined
-      ? 'Aucune signalée'
-      : 'Une demande est ouverte'
+  const pendingLabel = !dashboard.ok
+    ? 'Dashboard illisible — pending non attesté'
+    : dashboard.data.rebalancing?.status !== 'LIVE'
+      ? 'Rééquilibrage dashboard non LIVE — pending non attesté'
+      : mesure?.pending === null || mesure?.pending === undefined || mesure.pending === false
+        ? 'Aucune signalée'
+        : 'Une demande est ouverte'
 
   return (
     <div className="space-y-10">
@@ -239,7 +250,7 @@ export default async function Page() {
         <DescriptionDetails>{pendingLabel}</DescriptionDetails>
         <DescriptionTerm>Lecture on-chain</DescriptionTerm>
         <DescriptionDetails>
-          <Text className="!mt-0">{onChainAbsence(rebalancing)}</Text>
+          <Text className="!mt-0">{onChainReading(rebalancing)}</Text>
         </DescriptionDetails>
         <DescriptionTerm>Mode du contrat</DescriptionTerm>
         <DescriptionDetails>{contrat?.mode ?? '—'}</DescriptionDetails>

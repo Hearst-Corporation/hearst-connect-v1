@@ -316,7 +316,14 @@ export default async function Page({ params }: PageProps) {
           {isAvailable(client) ? (
             <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
           ) : (
-            <AdminReading value={absentReading(client)} />
+            <AdminReading
+              value={absentReading(client)}
+              emptyLabel={
+                client.reason === 'vault_owner_not_reported'
+                  ? 'Propriétaire non reporté sur le coffre'
+                  : 'Indisponible'
+              }
+            />
           )}
         </DescriptionDetails>
         <DescriptionTerm>Créé le</DescriptionTerm>
@@ -522,12 +529,54 @@ export default async function Page({ params }: PageProps) {
       </DescriptionList>
       {!isAvailable(scopedDeployments) ? (
         <Text>
-          Le registre des déploiements n’est pas exposé par le service.{' '}
+          {scopedDeployments.status === 'NOT_EXPOSED'
+            ? 'Le registre des déploiements n’est pas exposé par le service.'
+            : scopedDeployments.status === 'EMPTY'
+              ? 'Le registre des déploiements est vide côté service.'
+              : 'La lecture du registre des déploiements a échoué.'}{' '}
           <Link href={entityHref('source', 'deployments')}>Couverture des données</Link>
         </Text>
       ) : scopedDeployments.value.length === 0 ? (
         <Text>Aucun déploiement enregistré pour ce coffre.</Text>
-      ) : null}
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Référence</TableHeader>
+              <TableHeader>Client</TableHeader>
+              <TableHeader>Montant</TableHeader>
+              <TableHeader>État</TableHeader>
+              <TableHeader>Demandé</TableHeader>
+              <TableHeader>Confirmé</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {scopedDeployments.value.map((deployment) => (
+              <TableRow key={deployment.id}>
+                <TableCell className="font-mono text-sm">
+                  {deployment.reference ?? deployment.id}
+                </TableCell>
+                <TableCell>
+                  <AdminReading
+                    value={mapAvailability(deployment.clientLabel, (label) => label)}
+                    emptyLabel="Client non reporté"
+                  />
+                </TableCell>
+                <TableCell>
+                  {deployment.amountAtomic === null
+                    ? '—'
+                    : formatCurrency(deployment.amountAtomic, {
+                        fromAtomic: 10 ** (isAvailable(vault.asset) ? vault.asset.value.decimals : DOCUMENTED_DECIMALS),
+                      })}
+                </TableCell>
+                <TableCell>{deployment.status}</TableCell>
+                <TableCell>{formatDateTime(deployment.requestedAt)}</TableCell>
+                <TableCell>{formatDateTime(deployment.confirmedAt)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       <AdminSectionHeading title="Anomalies clients" />
       {!isAvailable(exceptions) ? (

@@ -72,6 +72,9 @@ vault / mining / btc / strategies → 200 mais champs UNAVAILABLE (RPC chain dow
 
 ---
 
+
+
+Note loop active : `docs/PASSATION-LOOP-NOTE.md` (chiffres ×5 + checklist P0).
 ## Front — câblage data (main)
 
 Registre : **31 endpoints** dans `src/lib/backend/endpoints.ts`.
