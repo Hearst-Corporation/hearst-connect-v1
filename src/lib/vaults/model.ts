@@ -392,21 +392,8 @@ export type RebalancingRow = Readonly<{
   targetBps: number
   actualBps: number | null
   varianceBps: number | null
-  thresholdBps: number
   lastRebalanceAt: Availability<string>
-  /** Whether the variance breaches the console's stated threshold. */
-  breached: boolean
 }>
-
-/**
- * The rebalancing threshold this console reads by, in basis points.
- *
- * The contract publishes no tolerance — `rebalancing/status` answers
- * UNAVAILABLE / `not_exposed_by_contract`. 200 bps (2 points) is therefore a
- * CONVENTION OF THIS CONSOLE, and every surface that applies it says so on
- * screen rather than passing it off as a product rule.
- */
-export const REBALANCING_THRESHOLD_BPS = 200
 
 /* ── The registry ─────────────────────────────────────────────────────────── */
 
@@ -460,9 +447,4 @@ export function idleAtomic(vault: Vault): Availability<bigint> {
   return combine(vault.totalAssetsAtomic, vault.deployedBps, (total, bps) => {
     return BigInt(total) - (BigInt(total) * BigInt(bps)) / BPS
   })
-}
-
-/** Does this vault breach the console's rebalancing threshold? */
-export function requiresRebalancing(vault: Vault): Availability<boolean> {
-  return mapAvailability(vault.worstDriftBps, (bps) => Math.abs(bps) >= REBALANCING_THRESHOLD_BPS)
 }

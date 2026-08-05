@@ -16,12 +16,14 @@ import {
 } from '@/components/catalyst/table'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
-import { availabilityFromResolu } from '@/lib/backend/availability'
+import { availabilityFromResolu, figureDepuisResolu } from '@/lib/backend/availability'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { MOTIF_SERIE, etatSerieDe } from '@/lib/serie-etat'
 import { allocationLisible, comptePoches } from '@/lib/vaults/pockets'
-import { editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { mapAvailability, unavailable } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
+
+const FACTSHEET_ENDPOINT = '/api/v1/product/factsheet'
 
 export const metadata: Metadata = { title: 'Fiche produit' }
 export const dynamic = 'force-dynamic'
@@ -51,8 +53,6 @@ const PAGE_REASONS = {
   ...MOTIF_SERIE,
   dynavault_not_deployed: 'ces conditions ne sont pas encore disponibles sur le contrat déployé',
 }
-
-const DRIFT_THRESHOLD_POINTS = 5
 
 function readableDuration(months: number | null | undefined): string {
   if (months === null || months === undefined || !Number.isFinite(months)) return '—'
@@ -110,12 +110,26 @@ export default async function Page() {
     status: 'UNAVAILABLE',
     reason: 'product_factsheet_unreachable',
   })
-  const pocketsCell: Availability<string> = comptePoches(response.ok, f?.terms)
+  const pocketsCell: ReturnType<typeof comptePoches> = comptePoches(response.ok, f?.terms)
   const curveCell = mapAvailability(
-    availabilityFromResolu(f?.vendingCurve, '/api/v1/product/factsheet'),
+    availabilityFromResolu(f?.vendingCurve, FACTSHEET_ENDPOINT),
     (curve) => String(curve.length),
   )
-  const figure = (value: string): Availability<string> => (response.ok ? editorial(value) : factsheetUnreadable)
+  const depotCell = figureDepuisResolu(
+    response.ok ? f?.terms : undefined,
+    FACTSHEET_ENDPOINT,
+    (t) => formatCurrency(t.minimumDepositUsdc, { decimals: 0 }),
+  )
+  const dureeCell = figureDepuisResolu(
+    response.ok ? f?.terms : undefined,
+    FACTSHEET_ENDPOINT,
+    (t) => readableDuration(t.productDurationMonths),
+  )
+  const plafondCell = figureDepuisResolu(
+    response.ok ? f?.tvlCap : undefined,
+    FACTSHEET_ENDPOINT,
+    (c) => formatCurrency(c, { decimals: 0 }),
+  )
 
   const allocationSource = readablePockets.length > 0
     ? 'Poches lisibles'
@@ -133,15 +147,15 @@ export default async function Page() {
       <DescriptionList>
         <DescriptionTerm>Dépôt minimum</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={figure(formatCurrency(terms?.minimumDepositUsdc, { decimals: 0 }))} />
+          <AdminReading value={depotCell} />
         </DescriptionDetails>
         <DescriptionTerm>Durée</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={figure(readableDuration(terms?.productDurationMonths))} />
+          <AdminReading value={dureeCell} />
         </DescriptionDetails>
         <DescriptionTerm>Plafond du fonds</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={figure(formatCurrency(cap, { decimals: 0 }))} />
+          <AdminReading value={plafondCell} />
         </DescriptionDetails>
         <DescriptionTerm>Poches</DescriptionTerm>
         <DescriptionDetails>
@@ -209,18 +223,12 @@ export default async function Page() {
                     p.label === null || p.label === undefined || p.label === ''
                       ? (p.pocket ?? 'Poche sans nom')
                       : p.label
-                  const drift =
-                    target !== null && actual !== null
-                      ? Math.abs((actual - target) / 100) >= DRIFT_THRESHOLD_POINTS
-                      : false
                   return (
                     <TableRow key={p.pocket ?? p.label ?? String(index)}>
                       <TableCell className="font-medium">{label}</TableCell>
                       <TableCell>{readableShare(target)}</TableCell>
                       <TableCell>{readableShare(actual)}</TableCell>
-                      <TableCell className={drift ? 'text-amber-600 dark:text-amber-400' : undefined}>
-                        {readableVariance(target, actual)}
-                      </TableCell>
+                      <TableCell>{readableVariance(target, actual)}</TableCell>
                     </TableRow>
                   )
                 })}

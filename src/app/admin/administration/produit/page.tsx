@@ -17,10 +17,14 @@ import {
 } from '@/components/catalyst/table'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
-import { availabilityFromResolu } from '@/lib/backend/availability'
+import { availabilityFromResolu, figureDepuisResolu } from '@/lib/backend/availability'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSerieDe } from '@/lib/serie-etat'
-import { available, editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+
+const MINING_ENDPOINT = '/api/v1/mining'
+const BTC_ENDPOINT = '/api/v1/btc'
+const FACTSHEET_ENDPOINT = '/api/v1/product/factsheet'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Vue produit consolidée' }
@@ -158,26 +162,27 @@ export default async function Page() {
     if (!reserveReadable && !exposureReadable) {
       return unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
     }
-    const stale =
-      (reserveReadable && reserveAvail.stale) || (exposureReadable && exposureAvail.stale)
-    return available(String(postes.length), { provenance: 'indexed', stale, asOf: null })
+    return mapAvailability(reserveAvail, () => String(postes.length))
   })()
   const curvePointsCell = mapAvailability(
-    availabilityFromResolu(factsheet.ok ? f?.vendingCurve : undefined, '/api/v1/product/factsheet'),
+    availabilityFromResolu(factsheet.ok ? f?.vendingCurve : undefined, FACTSHEET_ENDPOINT),
     (curve) => String(pointsCourbeDe(curve).length),
   )
-  const miningFigure = (value: string): Availability<string> =>
-    mining.ok
-      ? editorial(value)
-      : unavailable({ endpoint: '/api/v1/mining', status: 'UNAVAILABLE', reason: 'mining_source_unreachable' })
-  const btcFigure = (value: string): Availability<string> =>
-    btc.ok
-      ? editorial(value)
-      : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
-  const factsheetFigure = (value: string): Availability<string> =>
-    factsheet.ok
-      ? editorial(value)
-      : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'UNAVAILABLE', reason: 'product_factsheet_unreachable' })
+  const hashrateCell = figureDepuisResolu(
+    mining.ok ? m?.hashrate : undefined,
+    MINING_ENDPOINT,
+    (h) => formatNumber(Number(h.reportedHashrateTh)),
+  )
+  const btcProduitCell = figureDepuisResolu(
+    btc.ok ? b?.btcProduced : undefined,
+    BTC_ENDPOINT,
+    (p) => bitcoinProduitDe(p.totalSats) ?? '—',
+  )
+  const plafondCell = figureDepuisResolu(
+    factsheet.ok ? f?.tvlCap : undefined,
+    FACTSHEET_ENDPOINT,
+    (c) => formatCurrency(c, { decimals: 0 }),
+  )
 
   return (
     <div className="space-y-10">
@@ -189,23 +194,11 @@ export default async function Page() {
       <DescriptionList>
         <DescriptionTerm>Hashrate</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading
-            value={
-              hashrate
-                ? miningFigure(formatNumber(Number(hashrate.reportedHashrateTh)))
-                : unavailable({ endpoint: '/api/v1/mining', status: 'PARTIAL', reason: 'hashrate_unreadable' })
-            }
-          />
+          <AdminReading value={hashrateCell} />
         </DescriptionDetails>
         <DescriptionTerm>BTC produit</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading
-            value={
-              bitcoinProduit === null
-                ? unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'btc_produced_unreadable' })
-                : btcFigure(bitcoinProduit)
-            }
-          />
+          <AdminReading value={btcProduitCell} />
         </DescriptionDetails>
         <DescriptionTerm>Répartition de la réserve</DescriptionTerm>
         <DescriptionDetails>
@@ -217,13 +210,7 @@ export default async function Page() {
         </DescriptionDetails>
         <DescriptionTerm>Plafond du fonds</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading
-            value={
-              plafond
-                ? factsheetFigure(ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—')
-                : unavailable({ endpoint: '/api/v1/product/factsheet', status: 'PARTIAL', reason: 'tvl_cap_absent' })
-            }
-          />
+          <AdminReading value={plafondCell} />
         </DescriptionDetails>
         <DescriptionTerm>Source BTC</DescriptionTerm>
         <DescriptionDetails>

@@ -21,14 +21,12 @@ import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
 import { etatSourceLisible } from '@/lib/mouvements'
 import {
-  REBALANCING_THRESHOLD_BPS,
   combine,
   deployedAtomic,
   editorial,
   idleAtomic,
   isAvailable,
   measuredCount,
-  requiresRebalancing,
   unavailable,
   valueOf,
   type Availability,
@@ -42,7 +40,6 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = { title: 'Registre des coffres' }
 export const dynamic = 'force-dynamic'
 
-const THRESHOLD_POINTS = formatNumber(REBALANCING_THRESHOLD_BPS / 100, { maximumFractionDigits: 2 })
 const ZERO = BigInt(0)
 const BPS = BigInt(10000)
 
@@ -167,7 +164,7 @@ export default async function Page() {
 
       <AdminSectionHeading
         title="Coffres"
-        description={`Seuil de rééquilibrage de cette console : ±${THRESHOLD_POINTS} pt.`}
+        description="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
       />
 
       {vaultList === null ? (
@@ -192,7 +189,6 @@ export default async function Page() {
               <TableHeader>Stratégies</TableHeader>
               <TableHeader>Écart d’allocation</TableHeader>
               <TableHeader>Dernier rééquilibrage</TableHeader>
-              <TableHeader>Action en attente</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -200,8 +196,6 @@ export default async function Page() {
               const client = valueOf(vault.client)
               const strategies = valueOf(vault.strategies)
               const driftBps = valueOf(vault.worstDriftBps)
-              const breaches = valueOf(requiresRebalancing(vault))
-              const actionState = requiresRebalancing(vault)
               const rebalancing = valueOf(vault.rebalancing)
               const deployedBps = valueOf(vault.deployedBps)
 
@@ -250,15 +244,7 @@ export default async function Page() {
                     {!isAvailable(vault.worstDriftBps) ? (
                       <AdminReading value={absentReading(vault.worstDriftBps)} />
                     ) : (
-                      <span
-                        className={
-                          breaches === true
-                            ? 'font-medium text-amber-600 tabular-nums dark:text-amber-400'
-                            : 'tabular-nums'
-                        }
-                      >
-                        {driftPoints(driftBps!)}
-                      </span>
+                      <span className="tabular-nums">{driftPoints(driftBps!)}</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -270,17 +256,6 @@ export default async function Page() {
                       <span className="tabular-nums text-zinc-600 dark:text-zinc-300">
                         {formatRelativeTime(rebalancing!.lastRebalanceAt)}
                       </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {vault.status !== 'ACTIVE' ? (
-                      <VaultEntityLink kind="vault" id={vault.id} label="Inspecter le coffre" />
-                    ) : !isAvailable(actionState) ? (
-                      <AdminReading value={absentReading(actionState)} />
-                    ) : breaches ? (
-                      <VaultEntityLink kind="keeper" id={vault.id} label="Traiter dans Keeper" />
-                    ) : (
-                      <span className="text-zinc-500">Aucune</span>
                     )}
                   </TableCell>
                 </TableRow>

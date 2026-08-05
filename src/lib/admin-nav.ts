@@ -13,25 +13,19 @@ import {
   SignalIcon,
   Squares2X2Icon,
   TableCellsIcon,
-  UsersIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/20/solid'
 
 /**
- * Console navigation — five primary destinations, and only five.
+ * Console navigation — four primary destinations, and only four.
  *
  * The previous flat list carried fourteen entries. Fourteen equally-weighted
  * choices is not navigation, it is an index: nothing is primary when
  * everything is. "API Explorer" and "Home" cannot be peers.
  *
- * So the menu now answers the five questions someone actually opens this
- * console for — where do we stand, who are the clients, are we compliant,
- * what moved, and who administers this — and every other screen is reached
- * from Administration, which owns them as a structured list.
- *
- * The secondary screens lost none of their reachability: they are one click
- * from Administration, and Administration lights up in the sidebar while you
- * are on one of them, so you always know where you are.
+ * The four questions someone actually opens this console for — where do we
+ * stand, who are the clients, are we compliant, what moved. Every other
+ * screen is listed in the secondary sidebar groups.
  */
 
 type IconeNav = typeof HomeIcon
@@ -61,7 +55,6 @@ export const ADMIN_NAV: readonly EntreeNav[] = [
   CLIENTS_ENTRY,
   { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },
   { libelle: 'Opérations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
-  { libelle: 'Administration', href: '/admin/administration', icone: UsersIcon },
 ]
 
 /* ── Secondary destinations ───────────────────────────────────────────────── */
@@ -234,7 +227,7 @@ export function hrefActif(pathname: string): string | undefined {
   const estSecondaire = ADMIN_SECONDARY_FLAT.some(
     (e) => pathname === e.href || pathname.startsWith(`${e.href}/`),
   )
-  if (estSecondaire) return '/admin/administration'
+  if (estSecondaire) return undefined
 
   return meilleur
 }

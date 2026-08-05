@@ -127,6 +127,8 @@ utilisateur. **Toutes les pages `/admin/**` sont en Catalyst pur**
 - **31 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité (dont `/clients`, `/deployments`, `/compliance`, `/events/rebalancing`, trigger indexeur admin).
 - Langue produit : **français** (migration HC-CONSOLE-FR-001), gardée par
   `tests/language-regression.test.ts`.
+- Lecture LIVE : badge vert **« En direct »** via `AdminReading` / `Reading` +
+  `signalOf` (provenance backend réelle, jamais une valeur éditoriale).
 
 Point de reprise Git avant le rebuild Catalyst : tag `recovery/pre-catalyst-console`.
 Branche de travail courante : **`main`** (plus `rebuild/catalyst-console`).
@@ -168,6 +170,7 @@ pnpm e2e                 # Playwright — exige un backend joignable et .env.loc
 | `lint` | `eslint` (`src/components/catalyst/**` volontairement ignoré) |
 | `check:no-gpu1` | aucune référence GPU1 / connect-api comme backend dans le code et la config |
 | `check:mocks` | aucune donnée simulée dans le runtime (7 règles) |
+| `check:truthful-data` | aucun faux live, seuil hardcodé ni `stale:false` forcé dans le runtime |
 | `check:ds` | aucune couleur hexadécimale hors token dans les routes et modules |
 | `test` | `vitest run` |
 

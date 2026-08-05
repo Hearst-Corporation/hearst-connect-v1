@@ -8,7 +8,7 @@
     "start": "next start --port 4105",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run check:no-gpu1 && pnpm run check:mocks && pnpm run check:ds && pnpm run check:ui && pnpm run test",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run check:no-gpu1 && pnpm run check:mocks && pnpm run check:truthful-data && pnpm run check:ds && pnpm run check:ui && pnpm run test",
     "lint:fast": "oxlint src",
     "quality:dead": "knip",
     "quality:dup": "node scripts/check-duplication.mjs",
@@ -19,6 +19,7 @@
     "e2e": "playwright test",
     "sonar": "node scripts/sonar.mjs",
     "check:mocks": "node scripts/check-no-mocks.mjs",
+    "check:truthful-data": "node scripts/check-truthful-data.mjs",
     "check:no-gpu1": "node scripts/check-no-gpu1.mjs",
     "check:ds": "node scripts/check-design-system.mjs",
     "check:ui": "node scripts/check-ui-boundaries.mjs"

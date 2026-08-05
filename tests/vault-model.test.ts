@@ -6,12 +6,10 @@ import {
   isAvailable,
   mapAvailability,
   parseVaultId,
-  requiresRebalancing,
   strategyId,
   unavailable,
   valueOf,
   vaultId,
-  REBALANCING_THRESHOLD_BPS,
   type Availability,
   type Vault,
 } from '@/lib/vaults/model'
@@ -139,24 +137,5 @@ describe('derived capital', () => {
   it('reports nothing rather than zero when the vault total is unreadable', () => {
     const vault = vaultLisible({ totalAssetsAtomic: unavailable({ reason: 'totalAssets_not_reported' }) })
     expect(valueOf(deployedAtomic(vault))).toBeNull()
-  })
-})
-
-describe('rebalancing threshold', () => {
-  it('is a console convention, stated in one place', () => {
-    expect(REBALANCING_THRESHOLD_BPS).toBe(200)
-  })
-
-  it('flags a vault only once its worst pocket breaches the threshold', () => {
-    expect(valueOf(requiresRebalancing(vaultLisible({ worstDriftBps: available(-215) })))).toBe(true)
-    expect(valueOf(requiresRebalancing(vaultLisible({ worstDriftBps: available(199) })))).toBe(false)
-    // Sign is irrelevant: a pocket over its target drifts as much as one under.
-    expect(valueOf(requiresRebalancing(vaultLisible({ worstDriftBps: available(200) })))).toBe(true)
-  })
-
-  it('does not decide a vault is fine when the drift could not be read', () => {
-    const vault = vaultLisible({ worstDriftBps: unavailable({ reason: 'no_readable_pocket_drift' }) })
-    // Emphatically not `false` — "we cannot tell" is not "nothing to do".
-    expect(valueOf(requiresRebalancing(vault))).toBeNull()
   })
 })

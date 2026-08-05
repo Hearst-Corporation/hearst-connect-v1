@@ -10,7 +10,6 @@ import {
   strategyId,
   unavailable,
   vaultId,
-  REBALANCING_THRESHOLD_BPS,
   type AdminRegistry,
   type Availability,
   type ClientException,
@@ -410,9 +409,7 @@ function fileRebalancing(vaults: readonly Vault[]): Availability<readonly Rebala
         targetBps: s.targetBps,
         actualBps: s.actualBps,
         varianceBps: variance,
-        thresholdBps: REBALANCING_THRESHOLD_BPS,
         lastRebalanceAt: mapAvailability(v.rebalancing, (r) => r.lastRebalanceAt ?? ''),
-        breached: variance !== null && Math.abs(variance) >= REBALANCING_THRESHOLD_BPS,
       })
     }
   }
@@ -562,10 +559,13 @@ function buildVaultRecord(
       status: 'EMPTY',
       reason: 'vault_owner_not_reported',
     }),
-    lastActivityAt:
-      derniereActivite === null
-        ? unavailable({ status: 'EMPTY', reason: 'no_snapshot_timestamp' })
-        : available(derniereActivite, { provenance: 'live' }),
+    lastActivityAt: isAvailable(snapshot) && snapshot.asOf !== null
+      ? available(snapshot.asOf, {
+          provenance: snapshot.provenance,
+          stale: snapshot.stale,
+          asOf: snapshot.asOf,
+        })
+      : unavailable({ status: 'EMPTY', reason: 'no_snapshot_timestamp' }),
   }
 }
 

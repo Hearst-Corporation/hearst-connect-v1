@@ -1,7 +1,7 @@
 import { BACKEND_ENDPOINTS, endpointById, endpointsByCategory, resolvePath } from '@/lib/backend/endpoints'
 import { describe, expect, it } from 'vitest'
 
-/** Les 31 routes du contrat backend, listées ici indépendamment du registre. */
+/** Les 32 routes du contrat backend, listées ici indépendamment du registre. */
 const CONTRACT_PATHS = [
   'GET /health',
   'GET /ready',
@@ -27,6 +27,7 @@ const CONTRACT_PATHS = [
   'GET /api/v1/ai/context/dashboard',
   'GET /api/v1/ai/context/btc',
   'GET /api/v1/ai/context/mining',
+  'POST /api/v1/auth/login',
   'POST /api/v1/mining/metrics/report',
   'POST /api/v1/mining/electricity/pay',
   'POST /api/v1/admin/indexer/trigger',
@@ -37,10 +38,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 31 routes du contrat', () => {
+  it('couvre exactement les 32 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(31)
+    expect(BACKEND_ENDPOINTS).toHaveLength(32)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -50,14 +51,14 @@ describe('registre des endpoints', () => {
     expect(new Set(routes).size).toBe(routes.length)
   })
 
-  it('assigne chaque endpoint à une surface admin', () => {
+  it('assigne chaque endpoint à une surface produit', () => {
     for (const endpoint of BACKEND_ENDPOINTS) {
-      expect(endpoint.surface).toMatch(/^\/admin/)
+      expect(endpoint.surface).toMatch(/^\/(admin|login)/)
     }
   })
 
   it('répartit les catégories conformément au contrat', () => {
-    expect(endpointsByCategory('probe')).toHaveLength(4)
+    expect(endpointsByCategory('probe')).toHaveLength(5)
     expect(endpointsByCategory('business')).toHaveLength(18)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(6)
@@ -68,6 +69,7 @@ describe('registre des endpoints', () => {
     expect(bare).toEqual(
       [
         'admin-indexer-trigger',
+        'auth-login',
         'ai-context-btc',
         'ai-context-dashboard',
         'ai-context-mining',

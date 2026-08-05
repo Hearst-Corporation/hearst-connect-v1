@@ -16,12 +16,14 @@ import {
 } from '@/components/catalyst/table'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
-import { availabilityFromResolu } from '@/lib/backend/availability'
+import { availabilityFromResolu, figureDepuisResolu } from '@/lib/backend/availability'
 import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { LIBELLE_MOUVEMENT, motifLisible } from '@/lib/mouvements'
 import { etatSerieDe, type ChampResolu } from '@/lib/serie-etat'
-import { editorial, mapAvailability, measuredCount, unavailable, type Availability } from '@/lib/vaults/model'
+import { mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
+
+const BTC_ENDPOINT = '/api/v1/btc'
 
 export const metadata: Metadata = { title: 'Bitcoin' }
 export const dynamic = 'force-dynamic'
@@ -261,20 +263,31 @@ export default async function Page() {
   const vue = buildBitcoinViewModel(reponse.ok ? reponse.data : null)
   const b = vue.reponse
 
-  const btcFigure = (value: string): Availability<string> =>
-    reponse.ok
-      ? editorial(value)
-      : unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
+  const btcProduitCell = figureDepuisResolu(
+    reponse.ok ? b?.btcProduced : undefined,
+    BTC_ENDPOINT,
+    () => vue.bitcoinProduit,
+  )
+  const reserveCell = figureDepuisResolu(
+    reponse.ok ? b?.reserve : undefined,
+    BTC_ENDPOINT,
+    (r) => formatCurrency(r.balanceUsdc, { decimals: 0 }),
+  )
+  const expositionCell = figureDepuisResolu(
+    reponse.ok ? b?.exposure : undefined,
+    BTC_ENDPOINT,
+    (e) => formatCurrency(e.valueUsdc, { decimals: 0 }),
+  )
   const productionAvail = availabilityFromResolu<Production>(
     reponse.ok ? b?.production : undefined,
-    '/api/v1/btc',
+    BTC_ENDPOINT,
   )
   const monthlyReportsCell = mapAvailability(productionAvail, (production) =>
     String(moisExploitables(production).length),
   )
   const eventsAvail = availabilityFromResolu<readonly Evenement[]>(
     reponse.ok ? b?.events : undefined,
-    '/api/v1/btc',
+    BTC_ENDPOINT,
   )
   const eventRowsCell = mapAvailability(eventsAvail, () => String(vue.evenements.length))
 
@@ -294,15 +307,15 @@ export default async function Page() {
       <DescriptionList>
         <DescriptionTerm>BTC produit</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={btcFigure(vue.bitcoinProduit)} />
+          <AdminReading value={btcProduitCell} />
         </DescriptionDetails>
         <DescriptionTerm>Réserve</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={btcFigure(formatCurrency(vue.reserve?.balanceUsdc, { decimals: 0 }))} />
+          <AdminReading value={reserveCell} />
         </DescriptionDetails>
         <DescriptionTerm>Exposition</DescriptionTerm>
         <DescriptionDetails>
-          <AdminReading value={btcFigure(formatCurrency(vue.exposition?.valueUsdc, { decimals: 0 }))} />
+          <AdminReading value={expositionCell} />
         </DescriptionDetails>
         <DescriptionTerm>Rapports mensuels</DescriptionTerm>
         <DescriptionDetails>

@@ -30,7 +30,6 @@ const VIEWPORTS = [
 const PUBLIQUES = ['/', '/login', '/register'] as const
 const ADMIN = [
   '/admin',
-  '/admin/administration',
   '/admin/administration/produit',
   '/admin/api-explorer',
   '/admin/backtest',
