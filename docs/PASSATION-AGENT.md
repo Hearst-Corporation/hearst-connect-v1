@@ -39,7 +39,8 @@ Maintenir le front `hearst-connect-v1` branché honnêtement sur le backend
 | Vercel | projet **`hearst-connect-v1`** uniquement — jamais `hearst-connect` / `app.hearst.app` |
 | Prod | https://hearst-connect-v1.vercel.app |
 
-Fichiers de référence : `.cursor/rules/30-no-gpu1.mdc`, `README.md` § Architecture, `CLAUDE.md`.  
+Fichiers de référence : `.cursor/rules/30-no-gpu1.mdc`, `README.md` § Architecture, `CLAUDE.md`,  
+**`docs/ENDPOINT-MAPPING.md`** (spécification mapping backend→front).  
 Gate : `pnpm check:no-gpu1` (dans `pnpm check`).
 
 ---

@@ -340,7 +340,7 @@ export default async function Page({ params }: PageProps) {
 
       <AdminSectionHeading
         title="Détail contrat (stratégie index 0)"
-        description="Route `strategy-detail` — l’index vient du registre des stratégies, jamais inventé côté front."
+        description="Route `strategy-detail` — index primaire = position 0 du registre stratégies (pas un sélecteur multi-index)."
       />
       <DescriptionList>
         <DescriptionTerm>Interrogation HTTP</DescriptionTerm>
