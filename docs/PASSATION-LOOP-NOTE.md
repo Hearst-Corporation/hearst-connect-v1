@@ -37,8 +37,10 @@ Fingerprint : `aab91b616c7a` ×5.
 - [x] `vault.client` emptyLabel « Propriétaire non reporté… »
 
 ### C4 — Gate
-- [ ] `tsc` / tests ciblés après correctifs loop
-- [ ] Redeploy Vercel
+- [x] `tsc` / tests ciblés après correctifs loop (68 tests OK)
+- [x] `check:no-gpu1` + `check:mocks` OK
+- [x] Commit `7669229` push `main`
+- [x] Redeploy Vercel `dpl_Bp2ne2sAChe5JNqcY5rKxFBTdpP1`
 
 ### C5 — Externe (non bloquant front)
 - [ ] RPC `hearst-chain.fly.dev` (indexer STALLED)
@@ -47,3 +49,6 @@ Fingerprint : `aab91b616c7a` ×5.
 ## Agents
 - [Cartographie endpoints](25d8c725-5d2e-452d-8ea7-a37b143d148f) — 31 endpoints, P0 deployments
 - [Vérité UI](a3144160-95ba-4acf-a790-ccdee94d6342) — copy / Availability
+
+## Loop
+Heartbeat 8 min armé (`AGENT_LOOP_WAKE_hc_surfaces`) — re-probe + smoke à chaque tick.
