@@ -1,150 +1,93 @@
 # Backend → Frontend Endpoint Mapping
 
-> **Spécification vivante** (remplace le brouillon daté 2026-08-04).  
-> Source de vérité code : `src/lib/backend/endpoints.ts` (31 routes métier/probe/keeper).  
-> Auth login/register : hors registre (flux `lib/backend/auth.ts`).  
-> Dernière vérif : 2026-08-05 · branche `main`.
+> **Spécification backend** (auteur back-end) — contrat à respecter côté front.  
+> Ce fichier ne « corrige » pas la spec : il mesure la **conformité** du front `hearst-connect-v1` (`main`) par rapport à ce contrat.  
+> Mis à jour : 2026-08-05.
 
 ---
 
-## Légende
+## Légende (statut **front**)
 
 | Symbole | Sens |
 |--------|------|
-| ✅ | Dans le registre **et** appelé en prod (page / registry / keeper / trigger) |
-| 🔶 | Dans le registre, appelé, affichage partiel |
-| ⚠️ | Dans le registre, uniquement API Explorer / probe |
-| ❌ | Absent du backend **ou** hors contrat front (ne pas inventer) |
-| ~~…~~ | Affirmation du brouillon 2026-08-04 **infirmée** |
+| ✅ | Front conforme : registre + appel actif + surface |
+| 🔶 | Partiellement conforme (appelé, UI incomplète) |
+| ⏳ | Exigé par la spec, **pas encore** au niveau demandé |
+| 🚫 | Spec cible, **route absente** du runtime backend actuel (Railway) — attendre livrable back |
 
 ---
 
-## Écarts vs brouillon fourni (2026-08-04)
+## 1. Public
 
-| Affirmation brouillon | Réalité `main` |
-|---|---|
-| `mining-onchain` / `mining-electricity` ⚠️ non appelés | ✅ `admin/mining/page.tsx` |
-| `strategy-detail` ⚠️ non appelé | ✅ `lib/vaults/strategy-detail.ts` → `vaults/[vaultId]` |
-| `events/rebalancing` ❌ pas au registre | ✅ id `events-rebalancing` → `operations` |
-| `admin/indexer/trigger` ❌ pas au registre | ✅ id `admin-indexer-trigger` → `runtime` + form |
-| `loadAdminRegistry` = 6 appels | **9** (+ `clients`, `deployments`, `compliance`) |
-| `endpoint-section.tsx` | **Supprimé** |
-| `POST /api/v1/admin/users` à brancher | **N’existe pas** sur le backend Railway/GitHub |
-| Numéros de lignes du brouillon | Obsolètes — ne pas s’y fier |
+| Method | Endpoint | Spec | Conformité front |
+|--------|----------|------|------------------|
+| `GET` | `/health` | requis | ✅ `/admin/runtime` |
+| `GET` | `/ready` | requis | ✅ `/admin/runtime` |
+| `GET` | `/api/v1/runtime` | requis | ✅ `/admin/runtime` (+ operations) |
+| `POST` | `/api/v1/auth/login` | requis | ✅ `/login` via `loginWithBackend` |
+| `POST` | `/api/v1/auth/register` | requis backend | 🔶 page `/register` mailto — pas d’appel API (choix produit front) |
 
 ---
 
-## 1. Public (sans session front)
+## 2. Authenticated (any role)
 
-| Method | Endpoint | Statut | Page | Call site |
-|--------|----------|--------|------|-----------|
-| `GET` | `/health` | ✅ | `/admin/runtime` | `callBackend('health')` |
-| `GET` | `/ready` | ✅ | `/admin/runtime` | `callBackend('ready')` |
-| `GET` | `/api/v1/runtime` | ✅ | `/admin/runtime`, `/admin/operations` | `callBackend('runtime')` |
-| `POST` | `/api/v1/auth/login` | ✅ | `/login` | `loginWithBackend()` — **hors** `BACKEND_ENDPOINTS` |
-| `POST` | `/api/v1/auth/register` | 🔶 | `/register` | Backend existe (bootstrap secret). Front = mailto / pas d’API — **volontaire** |
-
----
-
-## 2. Session (investor ou admin)
-
-| Method | Endpoint | id registre | Statut | Consommateurs |
-|--------|----------|-------------|--------|---------------|
-| `GET` | `/api/v1/dashboard` | `dashboard` | ✅ | `admin/dashboard`, `operations`, `registry`, `espace/*` |
-| `GET` | `/api/v1/profile` | `profile` | ✅ | `admin/profile`, `espace/profil` |
-| `GET` | `/api/v1/btc` | `btc` | ✅ | `btc`, `mining`, `administration/produit`, `espace/*` |
-| `GET` | `/api/v1/mining` | `mining` | ✅ | `mining`, `administration/produit` |
-| `GET` | `/api/v1/mining/metrics/onchain` | `mining-onchain` | ✅ | `mining` (réconciliation) |
-| `GET` | `/api/v1/mining/electricity` | `mining-electricity` | ✅ | `mining` (réconciliation) |
-| `GET` | `/api/v1/series1/events` | `series1-events` | ✅ | `series-1`, `operations`, `mining`, `registry`, `espace/activite` |
-| `GET` | `/api/v1/events/rebalancing` | `events-rebalancing` | ✅ | `operations` |
-| `GET` | `/api/v1/vault` | `vault` | ✅ | `registry` → vaults |
-| `GET` | `/api/v1/vault/strategies` | `vault-strategies` | ✅ | `registry` |
-| `GET` | `/api/v1/strategies/:index` | `strategy-detail` | 🔶 | `vaults/[vaultId]` via `loadStrategyDetail` — index primaire = **0** si registre non vide |
-| `GET` | `/api/v1/rwa-vault` | `rwa-vault` | ✅ | `registry` |
-| `GET` | `/api/v1/product/factsheet` | `product-factsheet` | ✅ | `product`, `administration/produit` |
-| `GET` | `/api/v1/backtest/historical` | `backtest-historical` | ✅ | `backtest`, `administration/produit` |
-| `GET` | `/api/v1/ai/context/*` | `ai-context-*` | ⚠️ | API Explorer (`probeEndpoint`) uniquement |
+| Method | Endpoint | Spec (page cible) | Conformité front |
+|--------|----------|-------------------|------------------|
+| `GET` | `/api/v1/dashboard` | `/admin/dashboard` (+ vaults) | ✅ |
+| `GET` | `/api/v1/profile` | `/admin/profile` | ✅ |
+| `GET` | `/api/v1/btc` | `/admin/btc` (+ mining, produit) | ✅ |
+| `GET` | `/api/v1/mining` | `/admin/mining` | ✅ |
+| `GET` | `/api/v1/mining/metrics/onchain` | `/admin/mining` | ✅ `mining-onchain` |
+| `GET` | `/api/v1/mining/electricity` | `/admin/mining` | ✅ `mining-electricity` |
+| `GET` | `/api/v1/series1/events` | series-1 / ops / vaults / mining | ✅ |
+| `GET` | `/api/v1/events/rebalancing` | `/admin/operations` | ✅ `events-rebalancing` |
+| `GET` | `/api/v1/vault` | `/admin/vaults/*` | ✅ via `loadAdminRegistry` |
+| `GET` | `/api/v1/vault/strategies` | `/admin/vaults/*` | ✅ |
+| `GET` | `/api/v1/strategies/:index` | `/admin/vaults/[vaultId]` | 🔶 appelé ; index primaire = 0 (sélecteur multi-index ⏳) |
+| `GET` | `/api/v1/rwa-vault` | `/admin/vaults/*` | ✅ |
+| `GET` | `/api/v1/product/factsheet` | `/admin/product` | ✅ |
+| `GET` | `/api/v1/backtest/historical` | `/admin/backtest` | ✅ |
+| `GET` | `/api/v1/ai/context/*` | `/admin/api-explorer` | ✅ probe Explorer |
 
 ---
 
 ## 3. Admin only
 
-| Method | Endpoint | id | Statut | Consommateurs |
-|--------|----------|-----|--------|---------------|
-| `GET` | `/api/v1/rebalancing/status` | `rebalancing-status` | ✅ | `registry`, `operations` |
-| `GET` | `/api/v1/clients` | `clients` | ✅ | `registry` → `clients`, `conformite`, home, vaults |
-| `GET` | `/api/v1/deployments` | `deployments` | ✅ | `registry` → `vaults/[id]` (table) |
-| `GET` | `/api/v1/compliance` | `compliance` | ✅ | `registry` → `conformite`, `clients` |
-| `POST` | `/api/v1/admin/indexer/trigger` | `admin-indexer-trigger` | ✅ | `runtime` (`IndexerTriggerForm`) — catégorie `probe` |
-| `POST` | `/api/v1/admin/users` | — | ❌ | **Absent du backend** — ne pas enregistrer / ne pas inventer |
+| Method | Endpoint | Spec | Conformité front |
+|--------|----------|------|------------------|
+| `GET` | `/api/v1/rebalancing/status` | vaults + operations | ✅ |
+| `GET` | `/api/v1/clients` | `/admin/clients` | ✅ (extension registry — hors liste initiale spec, branché) |
+| `GET` | `/api/v1/deployments` | vaults | ✅ |
+| `GET` | `/api/v1/compliance` | `/admin/conformite` | ✅ |
+| `POST` | `/api/v1/admin/indexer/trigger` | runtime / operations | ✅ `/admin/runtime` (`IndexerTriggerForm`) |
+| `POST` | `/api/v1/admin/users` | `/admin/administration` | 🚫 **pas présent** sur `hearst-connect-backend` `main` / Railway au 2026-08-05 — front n’invente pas ; à brancher dès que la route est livrée |
 
 ---
 
-## 4. Keeper (admin + garde backend)
+## 4. Keeper
 
-| Method | Endpoint | id | Statut | Mécanisme |
-|--------|----------|-----|--------|-----------|
-| `POST` | `/api/v1/mining/metrics/report` | `keeper-mining-report` | ✅ | `endpointsByCategory('keeper')` → `KeeperForm` → `runKeeperAction` |
-| `POST` | `/api/v1/mining/electricity/pay` | `keeper-electricity-pay` | ✅ | idem |
-| `POST` | `/api/v1/rebalancing/execute` | `keeper-rebalancing-execute` | ✅ | idem |
-| `POST` | `/api/v1/rwa-vault` | `keeper-rwa-vault` | ✅ | idem |
-| `POST` | `/api/v1/btc-deposit/initiate` | `keeper-btc-deposit-initiate` | ✅ | idem |
-| `POST` | `/api/v1/btc-deposit/complete` | `keeper-btc-deposit-complete` | ✅ | idem |
+Les 6 POST Keeper de la spec : ✅ `/admin/keeper` via `endpointsByCategory('keeper')` + `runKeeperAction`.
 
 ---
 
-## 5. Orchestrateur vault
+## 5. Backlog spec § « To Be Wired » — statut
 
-`loadAdminRegistry` (`src/lib/vaults/registry.ts`) — **9** appels parallèles :
-
-```
-vault · vault-strategies · rwa-vault · rebalancing-status
-series1-events · dashboard · clients · deployments · compliance
-```
-
-Alimente : `/admin`, `/admin/vaults`, `/admin/vaults/[vaultId]`, `/admin/clients`, `/admin/conformite`, `/admin/dashboard` (sources).
-
----
-
-## 6. Infra partagée
-
-| Module | Rôle |
-|--------|------|
-| `src/lib/backend/endpoints.ts` | Registre unique (31) |
-| `src/lib/backend/client.ts` | `callBackend` |
-| `src/lib/backend/auth.ts` | login backend |
-| `src/lib/backend/probe.ts` | API Explorer GET (refuse `:param`) |
-| `src/lib/backend/keeper.ts` | Keeper writes + CONFIRM |
-| `src/lib/backend/indexer-trigger.ts` | Trigger indexer + CONFIRM |
-| `src/lib/vaults/registry.ts` | Orchestrateur admin |
-| `src/lib/vaults/strategy-detail.ts` | `strategies/:index` |
-| ~~`endpoint-section.tsx`~~ | **Supprimé** — ne plus référencer |
+| Exigence spec | Statut |
+|---------------|--------|
+| `GET /events/rebalancing` → operations | ✅ |
+| `POST /admin/indexer/trigger` → runtime | ✅ |
+| `GET /mining/metrics/onchain` → mining | ✅ |
+| `GET /mining/electricity` → mining | ✅ |
+| `GET /strategies/:index` → vault detail | 🔶 (index 0) — sélecteur ⏳ |
+| `POST /admin/users` → administration | 🚫 attendre route backend |
 
 ---
 
-## 7. Backlog spécification (section « To Be Wired » du brouillon)
+## 6. Note de méthode
 
-| Endpoint | État |
-|----------|------|
-| `GET …/events/rebalancing` | ✅ Fait — `operations` |
-| `POST …/admin/indexer/trigger` | ✅ Fait — `runtime` |
-| `GET …/mining/metrics/onchain` | ✅ Fait — `mining` |
-| `GET …/mining/electricity` | ✅ Fait — `mining` |
-| `GET …/strategies/:index` | 🔶 Fait (index 0) — sélecteur multi-index = P1 optionnel |
-| `POST …/admin/users` | ❌ **BLOCKED** — route absente du backend |
-| `POST …/auth/register` côté front | Hors scope produit actuel (mailto) sauf demande explicite |
+La spec backend décrit **le contrat et les surfaces attendues**.  
+Les colonnes ⚠️/❌ du document d’origine décrivaient un **état front** à un instant T — pas une erreur de contrat.  
+Depuis, le front a rattrapé la plupart des items ; le seul item encore bloqué côté runtime est `POST /api/v1/admin/users`.
 
----
-
-## 8. Auth (rappel)
-
-```
-POST /api/v1/auth/login → token Bearer dans cookie session
-requireSession() sur /admin/*
-rôle backend admin → session OWNER ; investor refusé à la console admin
-```
-
----
-
-*Spécification adoptée : ce fichier. Le brouillon collé en chat n’est plus autoritatif.*
+Registre front : `src/lib/backend/endpoints.ts` (31 ids).  
+Auth login/register : hors registre, `src/lib/backend/auth.ts`.
