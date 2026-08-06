@@ -33,4 +33,5 @@ export {
   MuiDistributionChart,
   type DistributionItem,
 } from '@/components/charts/richart/distribution-chart'
+export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'
 export { RichSparkline, MuiSparkline } from '@/components/charts/richart/sparkline'

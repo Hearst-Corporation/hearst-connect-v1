@@ -3,6 +3,9 @@ import {
   buildPriorityQueue,
   complianceDistribution,
   deploymentDistribution,
+  kycStatusBuckets,
+  movementDailyHeatmap,
+  subscriptionsByProduct,
 } from '@/lib/vaults/pilotage'
 import {
   available,
@@ -245,5 +248,90 @@ describe('distributions', () => {
         { label: 'FAILED', value: 1 },
       ]),
     )
+  })
+})
+
+describe('kycStatusBuckets / subscriptionsByProduct / movementDailyHeatmap', () => {
+  it('propagates compliance absence without inventing buckets', () => {
+    const buckets = kycStatusBuckets(unavailable({ endpoint: '/api/v1/compliance', status: 'UNAVAILABLE' }))
+    expect(isAvailable(buckets)).toBe(false)
+  })
+
+  it('maps recognised KYC statuses into named buckets only', () => {
+    const buckets = kycStatusBuckets(
+      available([
+        compliance({ id: 'a' as never, kycStatus: 'approved' }),
+        compliance({ id: 'b' as never, kycStatus: 'pending review' }),
+        compliance({ id: 'c' as never, kycStatus: 'blocked' }),
+        compliance({ id: 'd' as never, kycStatus: 'xyz-unknown-token' }),
+      ]),
+    )
+    expect(isAvailable(buckets)).toBe(true)
+    if (!isAvailable(buckets)) return
+    expect(buckets.value).toEqual(
+      expect.arrayContaining([
+        { id: 'valide', label: 'Validé', value: 1 },
+        { id: 'en_revue', label: 'En revue', value: 1 },
+        { id: 'bloque', label: 'Bloqué', value: 1 },
+      ]),
+    )
+    expect(buckets.value.find((b) => b.id === 'a_completer')).toBeUndefined()
+  })
+
+  it('groups deployments by strategy without inventing amounts', () => {
+    const volumes = subscriptionsByProduct(
+      available([
+        deployment({ id: 'd1' as never, strategyId: 's0' as never, amountAtomic: '10' }),
+        deployment({ id: 'd2' as never, strategyId: 's0' as never, amountAtomic: '20' }),
+        deployment({ id: 'd3' as never, strategyId: 's1' as never, amountAtomic: null }),
+      ]),
+    )
+    expect(isAvailable(volumes)).toBe(true)
+    if (!isAvailable(volumes)) return
+    const s0 = volumes.value.find((v) => v.product === 's0')
+    const s1 = volumes.value.find((v) => v.product === 's1')
+    expect(s0).toEqual({ product: 's0', count: 2, amountAtomic: '30' })
+    expect(s1).toEqual({ product: 's1', count: 1, amountAtomic: null })
+  })
+
+  it('builds heatmap cells only for days with real timestamps', () => {
+    const heat = movementDailyHeatmap(
+      available([
+        {
+          id: 'm1' as never,
+          vaultId: vaultId(31337, ADDRESS)!,
+          eventName: 'Deposit',
+          blockNumber: null,
+          txHash: null,
+          chainId: 31337,
+          investorAddress: null,
+          assetAmountAtomic: '1',
+          shareAmountAtomic: null,
+          occurredAt: '2026-08-01T12:00:00.000Z',
+          indexedAt: null,
+          strategyId: unavailable({}),
+        },
+        {
+          id: 'm2' as never,
+          vaultId: vaultId(31337, ADDRESS)!,
+          eventName: 'Deposit',
+          blockNumber: null,
+          txHash: null,
+          chainId: 31337,
+          investorAddress: null,
+          assetAmountAtomic: '1',
+          shareAmountAtomic: null,
+          occurredAt: '2026-08-01T18:00:00.000Z',
+          indexedAt: null,
+          strategyId: unavailable({}),
+        },
+      ]),
+      7,
+    )
+    expect(isAvailable(heat)).toBe(true)
+    if (!isAvailable(heat)) return
+    expect(heat.value).toHaveLength(1)
+    expect(heat.value[0]?.count).toBe(2)
+    expect(heat.value[0]?.day).toBe('2026-08-01')
   })
 })

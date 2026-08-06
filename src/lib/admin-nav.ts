@@ -38,13 +38,12 @@ export const VAULTS_ENTRY: EntreeNav = {
 }
 
 /**
- * Les cinq destinations primaires rendues dans la sidebar.
- *
  * Accueil = cockpit patrimoine (`AdminHomeDashboard` sur `/admin`).
- * Le pilotage des souscriptions vit en secondaire sur `/admin/dashboard`.
+ * Le pilotage des souscriptions vit en secondaire sur `/admin/dashboard`
+ * (sous-nav Portfolio avec le Journal Série 1).
  */
 export const ADMIN_NAV: readonly EntreeNav[] = [
-  { libelle: 'Accueil', href: '/admin', icone: HomeIcon },
+  { libelle: 'Cockpit', href: '/admin', icone: HomeIcon },
   VAULTS_ENTRY,
   CLIENTS_ENTRY,
   { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },

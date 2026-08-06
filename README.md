@@ -112,7 +112,7 @@ src/
 ## Console d'administration
 
 Navigation principale (`src/lib/admin-nav.ts`) :
-**Accueil · Coffres · Clients · Conformité · Opérations** dans la sidebar gauche,
+**Cockpit · Coffres · Clients · Conformité · Opérations** dans la sidebar gauche,
 plus les hubs **Journal Série 1 · Produit · Service**. Sous-menus horizontaux :
 **Portfolio** (Journal Série 1 · Pilotage des souscriptions). La couverture des
 données vit dans `/admin/runtime` (même écran que les sondes).
@@ -126,10 +126,13 @@ Le shell console est le **Catalyst SidebarLayout**
 utilisateur. **Toutes les pages `/admin/**` sont en Catalyst pur**
 (`Heading`, `DescriptionList`, `Table`, `Badge`, `Text`) — plus de corps
 `LegacyAdminBody` / green command center sur la console. L’accueil `/admin`
-est le **cockpit patrimoine** (`AdminHomeDashboard` : KPI TVL/capital, charts
-**richart**, jauges). `/admin/dashboard` est le **pilotage des souscriptions**
-(funnel, file prioritaire) — surface distincte, même `AdminRegistry`. Les
-endpoints et `callBackend` restent inchangés.
+est le **cockpit patrimoine décisionnel** (`AdminHomeDashboard` : dérive,
+capital mal-alloué, file « à décider », flux net, TVL — dérivations dans
+`src/lib/vaults/cockpit.ts`). `/admin/dashboard` est le **pilotage des
+souscriptions** (funnel, file KYC/déploiements, charts ; accent mint Hearst ;
+badges techniques uniquement dans « État des sources ») — surface distincte,
+même `AdminRegistry`, sans recouvrement avec le cockpit. Les endpoints et
+`callBackend` restent inchangés.
 
 - `/admin/vault` redirige vers `/admin/vaults` : le registre d'endpoints la nomme comme
   `surface` de plusieurs routes backend, la redirection évite d'en faire des 404.

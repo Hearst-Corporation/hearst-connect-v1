@@ -60,7 +60,7 @@ describe('la console est en français', () => {
       readFileSync(join(ADMIN_COMPONENTS, 'application-layout.tsx'), 'utf8'),
     )
     const nav = stripComments(readFileSync(join(ROOT, 'src/lib/admin-nav.ts'), 'utf8'))
-    expect(nav).toMatch(/libelle: 'Accueil'/)
+    expect(nav).toMatch(/libelle: 'Cockpit'/)
     expect(nav).toMatch(/libelle: 'Conformité'/)
     expect(nav).toMatch(/libelle: 'Opérations'/)
     expect(layout).toMatch(/Se déconnecter/)

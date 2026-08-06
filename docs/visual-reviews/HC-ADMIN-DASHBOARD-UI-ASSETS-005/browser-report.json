@@ -1,0 +1,12 @@
+{
+  "route": "/admin/dashboard",
+  "h1": [
+    "Bonjour, adrien"
+  ],
+  "stepperTabs": 6,
+  "hasFunnelColumns": false,
+  "hasActionQueue": true,
+  "addClientDisabled": true,
+  "consoleErrors": [],
+  "networkFails": []
+}

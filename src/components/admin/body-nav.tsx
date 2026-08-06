@@ -6,8 +6,10 @@ import { usePathname } from 'next/navigation'
 
 /**
  * Sous-menus horizontaux — uniquement pour la section active (Portfolio,
- * Production, Service). Les quatre destinations principales restent dans la
+ * Production, Service). Les destinations principales restent dans la
  * sidebar ; le compte vit dans le menu utilisateur.
+ *
+ * Portfolio : Journal Série 1 ↔ Pilotage des souscriptions (les deux côtés).
  */
 export function AdminBodyNav() {
   const pathname = usePathname()
