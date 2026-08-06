@@ -19,14 +19,17 @@ describe('AdminBodyNav', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('affiche les sous-menus horizontaux d’une section active', () => {
+  it('n’affiche rien sur une section dont le groupe ne porte qu’une entrée', () => {
     usePathname.mockReturnValue('/admin/runtime')
-    render(<AdminBodyNav />)
+    const { container } = render(<AdminBodyNav />)
+    expect(container.firstChild).toBeNull()
+  })
 
-    const nav = screen.getByRole('navigation', { name: 'Sous-navigation' })
-    expect(nav).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'État du service' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Couverture des données' })).toBeTruthy()
-    expect(screen.queryByRole('link', { name: 'Accueil' })).toBeNull()
+  it('affiche le sous-menu Portfolio sur le pilotage des souscriptions', () => {
+    usePathname.mockReturnValue('/admin/dashboard')
+    render(<AdminBodyNav />)
+    expect(screen.getByLabelText('Sous-navigation')).toBeTruthy()
+    expect(screen.getByText('Journal Série 1')).toBeTruthy()
+    expect(screen.getByText('Pilotage des souscriptions')).toBeTruthy()
   })
 })

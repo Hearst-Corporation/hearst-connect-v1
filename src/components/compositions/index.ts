@@ -31,3 +31,18 @@ export {
   type CalloutTone,
 } from '@/components/compositions/blocks'
 export { FadeIn } from '@/components/compositions/motion'
+export {
+  CapitalSplit,
+  CoverageRing,
+  DeploymentGauge,
+  SourceHealthStrip,
+} from '@/components/compositions/widgets'
+export {
+  DashboardGrid,
+  KpiGrid,
+  ChartGrid,
+  DashboardCard,
+  DashboardCardHeader,
+} from '@/components/compositions/dashboard-grid'
+export { FunnelPipeline, type FunnelStepView } from '@/components/compositions/funnel'
+export { PriorityQueue, type PriorityQueueRow } from '@/components/compositions/priority-queue'

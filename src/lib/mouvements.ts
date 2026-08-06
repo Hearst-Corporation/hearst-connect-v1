@@ -76,6 +76,13 @@ const MOTIF_LISIBLE: Record<string, string> = {
   db_error: 'la base de données n’a pas répondu',
   rpc_error: 'la chaîne n’a pas répondu',
   not_available: 'la donnée n’est pas disponible',
+  // Parts de poches — motifs du registre vault (partDeployeeBps).
+  some_pocket_shares_unreadable:
+    'une partie des poches du coffre n’a pas pu être lue — le capital déployé ne peut pas être calculé',
+  no_pocket_share_readable: 'aucune poche du coffre n’a pu être lue',
+  no_readable_pocket_drift: 'aucune dérive de poche n’est lisible',
+  vaults_use_different_denominations: 'les coffres n’utilisent pas la même devise',
+  no_deployed_capital: 'aucun capital déployé n’est mesurable',
 }
 
 export function motifLisible(motif: string | null | undefined): string | undefined {

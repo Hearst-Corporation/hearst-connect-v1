@@ -8,9 +8,18 @@ import type { Metadata } from 'next'
 // Next.js does not apply a layout's title.template to a page sharing the same
 // route segment as that layout (only to nested descendants) — so the admin
 // index composes its title explicitly rather than relying on admin/layout.tsx.
-export const metadata: Metadata = { title: { absolute: 'Vue d’ensemble de l’administration · Hearst Connect' } }
+export const metadata: Metadata = {
+  title: { absolute: 'Vue d’ensemble de l’administration · Hearst Connect' },
+}
 export const dynamic = 'force-dynamic'
 
+/**
+ * Accueil console — le vrai cockpit patrimoine (TVL, capital, activité, coffres).
+ *
+ * Le pilotage des souscriptions (funnel, file prioritaire) vit séparément sur
+ * `/admin/dashboard`. Les deux surfaces lisent le même `AdminRegistry` ;
+ * elles ne répondent pas à la même question.
+ */
 export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })

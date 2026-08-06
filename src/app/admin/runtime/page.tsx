@@ -28,6 +28,7 @@ import {
 } from '@/lib/backend/runtime'
 import { formatNumber } from '@/lib/format'
 import { editorial } from '@/lib/vaults/model'
+import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-section'
 import type { Metadata } from 'next'
 import { IndexerTriggerForm } from './indexer-trigger-form'
 
@@ -134,7 +135,7 @@ function jsonLisible(data: unknown): string {
 }
 
 export default async function RuntimePage() {
-  await requireSession()
+  const session = await requireSession()
   const [runtime, health, ready] = await Promise.all([
     callBackend<RuntimePayload>('runtime'),
     callBackend<Record<string, unknown>>('health'),
@@ -261,6 +262,8 @@ export default async function RuntimePage() {
       >
         <IndexerTriggerForm />
       </SectionCard>
+
+      <DataCoverageSection compteLabel={session.name} />
 
       <SectionCard
         title="Réponses brutes"

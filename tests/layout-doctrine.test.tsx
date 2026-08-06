@@ -55,17 +55,21 @@ describe('primary navigation', () => {
 
   it('highlights the longest matching body sub-nav entry', () => {
     expect(hrefCorpsActif('/admin/vaults/abc')).toBeUndefined()
-    expect(hrefCorpsActif('/admin/runtime')).toBe('/admin/runtime')
+    // Service reste mono-entrée (runtime). Portfolio porte Journal + Pilotage.
+    expect(hrefCorpsActif('/admin/runtime')).toBeUndefined()
     expect(hrefCorpsActif('/admin/dashboard')).toBe('/admin/dashboard')
+    expect(hrefCorpsActif('/admin/series-1')).toBe('/admin/series-1')
   })
 
   it('exposes horizontal sub-menus only for multi-entry sections', () => {
-    expect(sousMenusCorps('/admin/runtime')?.map((e) => e.href)).toEqual([
-      '/admin/runtime',
+    expect(sousMenusCorps('/admin/runtime')).toBeUndefined()
+    expect(sousMenusCorps('/admin/produit')).toBeUndefined()
+    expect(sousMenusCorps('/admin/dashboard')?.map((e) => e.href)).toEqual([
+      '/admin/series-1',
       '/admin/dashboard',
     ])
-    expect(sousMenusCorps('/admin/produit')).toBeUndefined()
     expect(groupeSecondaireActif('/admin/produit')?.titre).toBe('Production')
+    expect(groupeSecondaireActif('/admin/dashboard')?.titre).toBe('Portfolio')
   })
 
   it('does not force a primary highlight on secondary screens', () => {
@@ -73,6 +77,7 @@ describe('primary navigation', () => {
       expect(hrefActif(entree.href)).toBeUndefined()
     }
     expect(hrefActif('/admin')).toBe('/admin')
+    expect(hrefActif('/admin/dashboard')).toBeUndefined()
     expect(hrefActif('/admin/clients')).toBe('/admin/clients')
     expect(hrefActif('/admin/operations')).toBe('/admin/operations')
   })

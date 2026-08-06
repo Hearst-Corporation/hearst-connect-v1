@@ -47,7 +47,7 @@ Agents : `.cursor/rules/30-no-gpu1.mdc` · humains : `CLAUDE.md` § Architecture
 | Styles | Tailwind CSS v4 (`@theme` dans `src/styles/tailwind.css`) |
 | UI | Catalyst UI Kit officiel (`src/components/catalyst/`, vendoré tel quel) |
 | Vitrine | Tailwind Plus UI Blocks officiels, portés en TS (`src/components/marketing/`) |
-| Dataviz | Frontière `src/components/charts/` (Recharts + MUI X Charts) |
+| Dataviz | Frontière `src/components/charts/` — **richart** (Recharts) ; plus de MUI Charts |
 | Session | Cookie httpOnly **chiffré AES-256-GCM** (`src/lib/session.ts`), sans dépendance externe |
 
 ## Démarrer
@@ -94,11 +94,11 @@ src/
 │   ├── marketing/              blocs vitrine Tailwind Plus
 │   ├── admin/                  shell console (`application-layout`), helpers de page
 │   ├── vaults/                 tables et cartes du registre de coffres
-│   ├── charts/                 frontière dataviz (Recharts, MUI X)
-│   ├── compositions/           blocs UI réutilisables (`CockpitPage`, `StatGrid`, `ChartFrame`…)
+│   ├── charts/                 frontière dataviz — richart (Recharts) + cartesian
+│   ├── compositions/           blocs UI (`CockpitPage`, widgets, `StatGrid`…)
 │   └── layout/                 shell espace (`console-shell`, hors rebuild console)
 ├── features/
-│   └── admin-home/             tableau de bord accueil console
+│   └── admin-home/             cockpit d’accueil console (KPI + charts + jauges)
 ├── lib/
 │   ├── backend/                callBackend, registre d'endpoints, keeper, sondes
 │   ├── vaults/                 modèle métier (Availability), registre, agrégats
@@ -113,8 +113,9 @@ src/
 
 Navigation principale (`src/lib/admin-nav.ts`) :
 **Accueil · Coffres · Clients · Conformité · Opérations** dans la sidebar gauche,
-plus les hubs **Journal Série 1 · Produit · Service**. Les sous-menus horizontaux
-n’apparaissent que pour **Service** (État du service · Couverture des données).
+plus les hubs **Journal Série 1 · Produit · Service**. Sous-menus horizontaux :
+**Portfolio** (Journal Série 1 · Pilotage des souscriptions). La couverture des
+données vit dans `/admin/runtime` (même écran que les sondes).
 
 Surface produit canonique : **`/admin/produit`** (fusion mining, btc, fiche produit,
 backtests). Les anciennes routes (`/admin/product`, `/admin/mining`, etc.) redirigent.
@@ -124,8 +125,11 @@ Le shell console est le **Catalyst SidebarLayout**
 (`src/components/admin/application-layout.tsx`) : rail, navbar mobile et compte
 utilisateur. **Toutes les pages `/admin/**` sont en Catalyst pur**
 (`Heading`, `DescriptionList`, `Table`, `Badge`, `Text`) — plus de corps
-`LegacyAdminBody` / green command center sur la console. Les endpoints et
-`callBackend` restent inchangés.
+`LegacyAdminBody` / green command center sur la console. L’accueil `/admin`
+est le **cockpit patrimoine** (`AdminHomeDashboard` : KPI TVL/capital, charts
+**richart**, jauges). `/admin/dashboard` est le **pilotage des souscriptions**
+(funnel, file prioritaire) — surface distincte, même `AdminRegistry`. Les
+endpoints et `callBackend` restent inchangés.
 
 - `/admin/vault` redirige vers `/admin/vaults` : le registre d'endpoints la nomme comme
   `surface` de plusieurs routes backend, la redirection évite d'en faire des 404.
@@ -162,7 +166,7 @@ jamais un compteur inventé. Les lectures on-chain (vault, mining, btc…) reste
 
 ```bash
 pnpm dev                 # développement (port 4105)
-pnpm build               # build de production
+pnpm exec next build     # build de production (hors gate ; déploiement Vercel)
 pnpm check               # gate canonique, en série (voir ci-dessous)
 pnpm test                # vitest
 pnpm e2e                 # Playwright — exige un backend joignable et .env.local
@@ -178,6 +182,7 @@ pnpm e2e                 # Playwright — exige un backend joignable et .env.loc
 | `check:mocks` | aucune donnée simulée dans le runtime (7 règles) |
 | `check:truthful-data` | aucun faux live, seuil hardcodé ni `stale:false` forcé dans le runtime |
 | `check:ds` | aucune couleur hexadécimale hors token dans les routes et modules |
+| `check:ui` | frontières UI (compositions, charts, Catalyst) |
 | `test` | `vitest run` |
 
 Outils de diagnostic, **non bloquants et hors gate** :
