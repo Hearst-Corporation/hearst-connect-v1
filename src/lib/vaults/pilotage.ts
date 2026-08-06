@@ -35,6 +35,7 @@ import {
   type Availability,
   type ComplianceReview,
   type Deployment,
+  type Movement,
 } from '@/lib/vaults/model'
 
 /* ── Funnel ────────────────────────────────────────────────────────────────── */
@@ -237,4 +238,171 @@ export function complianceDistribution(compliance: Availability<readonly Complia
 export function deploymentDistribution(deployments: Availability<readonly Deployment[]>): readonly DistributionSlice[] {
   if (!isAvailable(deployments)) return []
   return tally(deployments.value, (row) => row.status)
+}
+
+/* ── KYC donut buckets (real statuses only) ───────────────────────────────── */
+
+export type KycBucketId = 'valide' | 'en_revue' | 'a_completer' | 'bloque'
+
+export type KycBucket = Readonly<{ id: KycBucketId; label: string; value: number }>
+
+/**
+ * Map free-form `kycStatus` strings onto the four operational buckets the
+ * dashboard donut shows. Unrecognised statuses are left out of the named
+ * buckets — they surface via `complianceDistribution` instead of inventing
+ * a fifth pie slice.
+ */
+function classifyKycStatus(raw: string): KycBucketId | null {
+  const s = raw.trim().toLowerCase()
+  if (s.length === 0) return null
+  if (/\b(block|blocked|refus|reject|rejected|deny|denied|suspend|banned)\b/.test(s)) return 'bloque'
+  if (/\b(incomplete|manqu|missing|to[_ -]?complet|a[_ -]?complet|draft|soumis)\b/.test(s)) return 'a_completer'
+  if (/\b(review|revue|pending|attente|progress|en[_ -]?cours)\b/.test(s)) return 'en_revue'
+  if (/\b(valid|validated|approuv|approved|pass(ed)?|cleared|termine|terminé)\b/.test(s)) return 'valide'
+  if (s === 'ok' || s === 'complet' || s === 'complete') return 'valide'
+  return null
+}
+
+const KYC_BUCKET_LABELS: Record<KycBucketId, string> = {
+  valide: 'Validé',
+  en_revue: 'En revue',
+  a_completer: 'À compléter',
+  bloque: 'Bloqué',
+}
+
+/**
+ * Donut slices from real KYC statuses. Returns `unavailable` when compliance
+ * is down; returns an empty available list when no status maps to a bucket
+ * (caller shows DONNÉES_INSUFFISANTES — never invents counts).
+ */
+export function kycStatusBuckets(
+  compliance: Availability<readonly ComplianceReview[]>,
+): Availability<readonly KycBucket[]> {
+  if (!isAvailable(compliance)) {
+    return unavailable({
+      reason: compliance.reason,
+      endpoint: compliance.endpoint,
+      status: compliance.status,
+    })
+  }
+  const counts: Record<KycBucketId, number> = {
+    valide: 0,
+    en_revue: 0,
+    a_completer: 0,
+    bloque: 0,
+  }
+  for (const row of compliance.value) {
+    const bucket = classifyKycStatus(row.kycStatus)
+    if (bucket !== null) counts[bucket] += 1
+  }
+  const slices: KycBucket[] = (Object.keys(KYC_BUCKET_LABELS) as KycBucketId[])
+    .map((id) => ({ id, label: KYC_BUCKET_LABELS[id], value: counts[id] }))
+    .filter((s) => s.value > 0)
+  return available(slices, { provenance: 'db' })
+}
+
+/* ── Subscriptions by product (strategyId) ────────────────────────────────── */
+
+export type ProductVolume = Readonly<{
+  product: string
+  count: number
+  /** Sum of amountAtomic when every row in the group carries a numeric amount. */
+  amountAtomic: string | null
+}>
+
+/**
+ * Horizontal bar source: group deployments by `strategyId`. Amounts are summed
+ * only when every deployment in the group has a parseable `amountAtomic` —
+ * otherwise `amountAtomic` stays null (count-only bar, no invented sum).
+ */
+export function subscriptionsByProduct(
+  deployments: Availability<readonly Deployment[]>,
+): Availability<readonly ProductVolume[]> {
+  if (!isAvailable(deployments)) {
+    return unavailable({
+      reason: deployments.reason,
+      endpoint: deployments.endpoint,
+      status: deployments.status,
+    })
+  }
+  const groups = new Map<string, { count: number; amounts: bigint[]; allHaveAmount: boolean }>()
+  for (const d of deployments.value) {
+    const key = d.strategyId ?? 'Produit non identifié'
+    const prev = groups.get(key) ?? { count: 0, amounts: [], allHaveAmount: true }
+    prev.count += 1
+    if (d.amountAtomic === null || d.amountAtomic.trim() === '') {
+      prev.allHaveAmount = false
+    } else {
+      try {
+        prev.amounts.push(BigInt(d.amountAtomic))
+      } catch {
+        prev.allHaveAmount = false
+      }
+    }
+    groups.set(key, prev)
+  }
+  const rows: ProductVolume[] = [...groups.entries()]
+    .map(([product, g]) => ({
+      product,
+      count: g.count,
+      amountAtomic:
+        g.allHaveAmount && g.amounts.length === g.count
+          ? String(g.amounts.reduce((a, b) => a + b, BigInt(0)))
+          : null,
+    }))
+    .sort((a, b) => b.count - a.count)
+  return available(rows, { provenance: 'db' })
+}
+
+/* ── Activity heatmap (daily density from movements) ──────────────────────── */
+
+export type HeatmapCell = Readonly<{
+  /** ISO date YYYY-MM-DD */
+  day: string
+  /** Short label for the cell (e.g. "lun 4") */
+  label: string
+  count: number
+}>
+
+/**
+ * Last-N-day density from real `occurredAt` timestamps. Days with no event are
+ * omitted (not zero-filled) — the grid caller pads geometry without claiming
+ * measured zeros.
+ */
+export function movementDailyHeatmap(
+  movements: Availability<readonly Movement[]>,
+  dayCount = 28,
+): Availability<readonly HeatmapCell[]> {
+  if (!isAvailable(movements)) {
+    return unavailable({
+      reason: movements.reason,
+      endpoint: movements.endpoint,
+      status: movements.status,
+    })
+  }
+  const buckets = new Map<string, number>()
+  for (const m of movements.value) {
+    if (m.occurredAt === null) continue
+    const t = Date.parse(m.occurredAt)
+    if (!Number.isFinite(t)) continue
+    const day = new Date(t).toISOString().slice(0, 10)
+    const previous = buckets.get(day)
+    buckets.set(day, previous === undefined ? 1 : previous + 1)
+  }
+  if (buckets.size === 0) {
+    return available([], { provenance: 'indexed' })
+  }
+  const sortedDays = [...buckets.keys()].sort()
+  const latest = sortedDays[sortedDays.length - 1]!
+  const end = Date.parse(`${latest}T00:00:00.000Z`)
+  const cells: HeatmapCell[] = []
+  const fmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric' })
+  for (let i = dayCount - 1; i >= 0; i -= 1) {
+    const ms = end - i * 24 * 60 * 60 * 1000
+    const day = new Date(ms).toISOString().slice(0, 10)
+    const count = buckets.get(day)
+    if (count === undefined) continue
+    cells.push({ day, label: fmt.format(new Date(ms)), count })
+  }
+  return available(cells, { provenance: 'indexed' })
 }

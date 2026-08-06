@@ -25,7 +25,15 @@ describe('AdminBodyNav', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('affiche le sous-menu Portfolio sur le pilotage des souscriptions', () => {
+  it('affiche le sous-menu Portfolio sur le Journal Série 1', () => {
+    usePathname.mockReturnValue('/admin/series-1')
+    render(<AdminBodyNav />)
+    expect(screen.getByLabelText('Sous-navigation')).toBeTruthy()
+    expect(screen.getByText('Journal Série 1')).toBeTruthy()
+    expect(screen.getByText('Pilotage des souscriptions')).toBeTruthy()
+  })
+
+  it('affiche le sous-menu Portfolio aussi sur le pilotage (plus de cul-de-sac)', () => {
     usePathname.mockReturnValue('/admin/dashboard')
     render(<AdminBodyNav />)
     expect(screen.getByLabelText('Sous-navigation')).toBeTruthy()

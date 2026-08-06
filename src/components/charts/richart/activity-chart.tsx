@@ -23,7 +23,8 @@ const SERIE = chartTheme.dataSeries.brandPrimary
 export function HearstActivityChart({
   points,
   unite,
-}: Readonly<{ points: readonly PointActivite[]; unite: string }>) {
+  color = SERIE,
+}: Readonly<{ points: readonly PointActivite[]; unite: string; color?: string }>) {
   const height = chartHeight('columns', Math.max(points.length, 1))
 
   return (
@@ -74,7 +75,7 @@ export function HearstActivityChart({
             <Bar
               dataKey="value"
               name={unite}
-              fill={SERIE}
+              fill={color}
               radius={[3, 3, 0, 0]}
               maxBarSize={48}
               isAnimationActive={false}
