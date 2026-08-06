@@ -1,7 +1,9 @@
 import { AdminLabel } from '@/components/admin/typography'
 import { RequirementList } from '@/components/admin/surface'
+import { Badge } from '@/components/catalyst/badge'
+import { Text } from '@/components/catalyst/text'
+import { Panel, PanelHeader } from '@/components/compositions/panel'
 import clsx from 'clsx'
-import { Card, CardHeader } from '@/components/admin/cockpit'
 
 /**
  * Common frame for every chart in the product.
@@ -61,20 +63,22 @@ export function ChartFrame({
   children?: React.ReactNode
 }>) {
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader title={question} hint={unite} />
+    <Panel tone="chart" className="flex h-full flex-col">
+      <PanelHeader title={question} hint={unite} />
 
       {etat.type === 'indisponible' ? (
         <div
-          className={clsx('flex flex-col items-start gap-2 px-5 pb-5 sm:px-6')}
+          className={clsx('flex flex-col items-start gap-3 px-5 pb-5 sm:px-6')}
           style={hauteur === undefined ? undefined : { minHeight: hauteur }}
         >
-          <p className={clsx('text-sm font-medium', TON_ETAT[etat.type])}>{LIBELLE_ETAT[etat.type]}</p>
-          <p className="max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center gap-2">
+            <Badge color="rose">{LIBELLE_ETAT[etat.type]}</Badge>
+          </div>
+          <Text className="max-w-prose text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
             {etat.explication}
-          </p>
+          </Text>
           {expectedSource?.length ? (
-            <div className="mt-1 w-full max-w-sm">
+            <div className="w-full max-w-sm">
               <AdminLabel>Source attendue</AdminLabel>
               <RequirementList requis={expectedSource as string[]} />
             </div>
@@ -83,7 +87,7 @@ export function ChartFrame({
             <button
               type="button"
               onClick={onRetry}
-              className="mt-1 text-xs font-medium text-accent-600 underline underline-offset-4 hover:text-accent-700 dark:text-accent-400"
+              className="text-xs font-medium text-accent-600 underline underline-offset-4 hover:text-accent-700 dark:text-accent-400"
             >
               {retryLabel}
             </button>
@@ -93,19 +97,15 @@ export function ChartFrame({
         <>
           {children}
           {etat.type !== 'tracee' ? (
-            <p
-              className={clsx(
-                'max-w-prose px-5 pb-5 text-xs leading-relaxed sm:px-6',
-                TON_ETAT[etat.type],
-              )}
-            >
-              <span className="font-medium">{LIBELLE_ETAT[etat.type]}</span>
-              {' — '}
-              {etat.explication}
-            </p>
+            <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
+              <Badge color="zinc">{LIBELLE_ETAT[etat.type]}</Badge>
+              <Text className="max-w-prose text-xs leading-relaxed text-zinc-500">
+                {etat.explication}
+              </Text>
+            </div>
           ) : null}
         </>
       )}
-    </Card>
+    </Panel>
   )
 }

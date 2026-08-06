@@ -139,7 +139,7 @@ export default async function Page() {
           <DescriptionDetails>Le rôle de session n’implique pas de souscription.</DescriptionDetails>
           <DescriptionTerm>Chemin de couverture</DescriptionTerm>
           <DescriptionDetails>
-            <Link href="/admin/dashboard" className="underline">
+            <Link href="/admin/runtime" className="underline">
               Couverture des données
             </Link>
             {' — '}

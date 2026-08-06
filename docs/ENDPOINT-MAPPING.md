@@ -2,7 +2,7 @@
 
 > **Spécification backend** (auteur back-end) — contrat à respecter côté front.  
 > Ce fichier ne « corrige » pas la spec : il mesure la **conformité** du front `hearst-connect-v1` (`main`) par rapport à ce contrat.  
-> Mis à jour : 2026-08-05.
+> Mis à jour : 2026-08-06.
 
 ---
 
@@ -60,7 +60,7 @@
 | `GET` | `/api/v1/deployments` | vaults | ✅ |
 | `GET` | `/api/v1/compliance` | `/admin/conformite` | ✅ |
 | `POST` | `/api/v1/admin/indexer/trigger` | runtime / operations | ✅ `/admin/runtime` (`IndexerTriggerForm`) |
-| `POST` | `/api/v1/admin/users` | `/admin/client-simulator/new` | 🚫 **statut non confirmé** — `CreateClientForm` → `createAdminUser` est câblé côté front mais rien ne prouve que la route est livrée sur `hearst-connect-backend` `main` / Railway ; à confirmer avant de repasser ✅ |
+| `POST` | `/api/v1/admin/users` | `/admin/client-simulator/new` | ✅ confirmé Railway 2026-08-06 — auth → 401, body invalide → 400 (route livrée) |
 
 ---
 
@@ -79,7 +79,7 @@ Les 6 POST Keeper de la spec : ✅ `/admin/keeper` via `endpointsByCategory('kee
 | `GET /mining/metrics/onchain` → mining | ✅ |
 | `GET /mining/electricity` → mining | ✅ |
 | `GET /strategies/:index` → vault detail | 🔶 (index 0) — sélecteur ⏳ |
-| `POST /admin/users` → client-simulator/new | 🚫 front câblé, route backend non confirmée |
+| `POST /admin/users` → client-simulator/new | ✅ route Railway confirmée (400 validation / 401 sans session) |
 
 ---
 
@@ -87,7 +87,7 @@ Les 6 POST Keeper de la spec : ✅ `/admin/keeper` via `endpointsByCategory('kee
 
 La spec backend décrit **le contrat et les surfaces attendues**.  
 Les colonnes ⚠️/❌ du document d’origine décrivaient un **état front** à un instant T — pas une erreur de contrat.  
-Depuis, le front a rattrapé la plupart des items ; le trigger indexeur est confirmé branché sur le runtime Railway. `POST /api/v1/admin/users` a un appelant front (`CreateClientForm` → `createAdminUser`) mais son statut côté backend Railway reste **non confirmé** — front n'invente pas, cf. légende 🚫.
+Depuis, le front a rattrapé la plupart des items ; le trigger indexeur est confirmé branché sur le runtime Railway. `POST /api/v1/admin/users` est **livré** sur Railway (probe 2026-08-06 : 401 sans session, 400 corps invalide).
 
 Registre front : `src/lib/backend/endpoints.ts` (33 routes).  
 Auth login/register : hors registre, `src/lib/backend/auth.ts`.

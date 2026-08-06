@@ -3,7 +3,7 @@ import type { Availability } from '@/lib/vaults/model'
 import { Panel, PanelBody, PanelHeader } from '@/components/compositions/panel'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
 import { FadeIn } from '@/components/compositions/motion'
-import { MuiSparkline } from '@/components/charts'
+import { RichSparkline } from '@/components/charts'
 import { Badge } from '@/components/catalyst/badge'
 import { Table } from '@/components/catalyst/table'
 import clsx from 'clsx'
@@ -120,7 +120,7 @@ export function StatCard({
       )}
       {trend && trend.length >= 2 && (
         <div className="mt-auto pt-2">
-          <MuiSparkline data={trend} height={24} />
+          <RichSparkline data={trend} height={24} />
         </div>
       )}
     </Panel>

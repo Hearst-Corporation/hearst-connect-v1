@@ -37,7 +37,12 @@ export const VAULTS_ENTRY: EntreeNav = {
   icone: CircleStackIcon,
 }
 
-/** Les cinq destinations primaires rendues dans la sidebar. */
+/**
+ * Les cinq destinations primaires rendues dans la sidebar.
+ *
+ * Accueil = cockpit patrimoine (`AdminHomeDashboard` sur `/admin`).
+ * Le pilotage des souscriptions vit en secondaire sur `/admin/dashboard`.
+ */
 export const ADMIN_NAV: readonly EntreeNav[] = [
   { libelle: 'Accueil', href: '/admin', icone: HomeIcon },
   VAULTS_ENTRY,
@@ -74,11 +79,23 @@ export const PRODUIT_ENTRY: EntreeSecondaire = {
   detail: 'Production, réserve, rémunération et backtests sur un seul écran',
 }
 
+/**
+ * Couverture des données — section dans `/admin/runtime` (sondes + couverture),
+ * pas une destination séparée.
+ */
 export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
   libelle: 'Couverture des données',
-  href: '/admin/dashboard',
+  href: '/admin/runtime',
   icone: TableCellsIcon,
   detail: 'Ce que le service sert réellement, surface par surface',
+}
+
+/** Pilotage opérationnel des souscriptions — distinct du cockpit Accueil. */
+export const PILOTAGE_ENTRY: EntreeSecondaire = {
+  libelle: 'Pilotage des souscriptions',
+  href: '/admin/dashboard',
+  icone: DocumentTextIcon,
+  detail: 'Funnel client, file prioritaire, KYC et déploiements',
 }
 
 /**
@@ -96,6 +113,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         icone: Squares2X2Icon,
         detail: 'Le journal on-chain indexé de la Série 1',
       },
+      PILOTAGE_ENTRY,
     ],
   },
   {
@@ -109,9 +127,8 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         libelle: 'État du service',
         href: '/admin/runtime',
         icone: SignalIcon,
-        detail: 'Sondes de dépendances, déploiement et réponses brutes',
+        detail: 'Sondes de dépendances, déploiement, couverture des données et réponses brutes',
       },
-      DATA_COVERAGE_ENTRY,
     ],
   },
   {

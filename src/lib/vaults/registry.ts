@@ -323,6 +323,7 @@ function partDeployeeBps(strategies: readonly Strategy[]): Availability<number> 
   const lisibles = strategies.filter((s) => s.actualBps !== null)
   if (lisibles.length === 0 || lisibles.length !== strategies.length) {
     return unavailable({
+      endpoint: '/api/v1/vault',
       status: 'PARTIAL',
       reason: lisibles.length === 0 ? 'no_pocket_share_readable' : 'some_pocket_shares_unreadable',
     })

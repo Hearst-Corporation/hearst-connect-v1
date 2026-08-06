@@ -1,4 +1,5 @@
 import { etatBackend, libelleEtatBackend } from '@/lib/backend/lecture-etat'
+import { motifLisible } from '@/lib/mouvements'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
@@ -40,8 +41,8 @@ import clsx from 'clsx'
  * background from the theme, and it is a component the whole product already
  * shares — one less pill to maintain.
  *
- * The route keeps its own line, in Catalyst's `Text`, so the reader gets the
- * endpoint that would answer the missing figure.
+ * Under the badge: a French motif when we have one, else the endpoint that
+ * would answer. Never a raw snake_case reason code in the UI.
  *
  * `onAccent` still exists: on the light accent card a `zinc` badge would sit
  * light-on-light, so the ink flips there.
@@ -53,14 +54,17 @@ function Absent({
 }: Readonly<{ availability: Availability<unknown>; onAccent?: boolean; showRoute?: boolean }>) {
   if (isAvailable(availability)) return null
   const { reason, endpoint, status } = availability
-  const route = [endpoint, reason].filter((part) => part !== null && part !== '').join(' · ')
+  const motif = motifLisible(reason)
+  // Doctrine: unknown motif → say nothing rather than leak a technical code.
+  const detail = [motif, endpoint].filter((part): part is string => part !== null && part !== undefined && part !== '')
+  const detailLine = detail.join(' · ')
   return (
     <span className={styles.absentBlock}>
       <Badge color="zinc" className={clsx(onAccent && styles.absentOnAccent)}>
         {status === 'NOT_EXPOSED' ? 'Non exposé' : 'Indisponible'}
       </Badge>
-      {showRoute && route !== '' && (
-        <Text className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>{route}</Text>
+      {showRoute && detailLine !== '' && (
+        <Text className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>{detailLine}</Text>
       )}
     </span>
   )

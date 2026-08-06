@@ -3,17 +3,17 @@
  *
  * ── Ce que cette frontière garantit ───────────────────────────────────────
  * Le moteur de rendu ne franchit pas cette limite. Aucune route, aucun module
- * métier n'importe `recharts` — ni, plus tard, un autre moteur : ils importent
- * un chart d'ici, qui décide seul de comment il est dessiné. C'est ce qui rend
- * un changement de moteur possible sans toucher aux pages.
+ * métier n'importe `recharts` — ils importent un chart d'ici, qui décide seul
+ * de comment il est dessiné. C'est ce qui rend un changement de moteur
+ * possible sans toucher aux pages.
  *
- * La règle est vérifiée par `scripts/check-ui-boundaries.mjs`, pas seulement
- * documentée ici.
+ * La règle est vérifiée par `scripts/check-ui-boundaries.mjs`.
  *
  * ── Organisation ──────────────────────────────────────────────────────────
  *   core/       le cadre, les états, le thème — ce que tout chart partage
- *   cartesian/  séries sur des axes x/y
- *   mui-x/      composants MUI X Charts (espace, compositions)
+ *   cartesian/  séries sur des axes x/y (production BTC, réserve…)
+ *   richart/    bibliothèque visuelle Hearst (activité, allocation, courbes,
+ *               distribution, sparklines) — remplace MUI X Charts
  */
 
 /* ── Noyau ────────────────────────────────────────────────────────────────── */
@@ -24,9 +24,13 @@ export { plottableAsChart } from '@/components/charts/core/chart-theme'
 export { ProductionMensuelleChart, type MoisProduction } from '@/components/charts/cartesian/btc-production-chart'
 export { ReserveExpositionChart, type PosteBitcoin } from '@/components/charts/cartesian/product-charts'
 
-/* ── MUI X ────────────────────────────────────────────────────────────────── */
-export { HearstActivityChart, type PointActivite } from '@/components/charts/mui-x/activity-chart'
-export { HearstAllocationChart, type PosteAllocation } from '@/components/charts/mui-x/allocation-chart'
-export { HearstCourbeChart, type PointCourbe } from '@/components/charts/mui-x/courbe-chart'
-export { MuiDistributionChart, type DistributionItem } from '@/components/charts/mui-x/distribution-chart'
-export { MuiSparkline } from '@/components/charts/mui-x/sparkline'
+/* ── richart ──────────────────────────────────────────────────────────────── */
+export { HearstActivityChart, type PointActivite } from '@/components/charts/richart/activity-chart'
+export { HearstAllocationChart, type PosteAllocation } from '@/components/charts/richart/allocation-chart'
+export { HearstCourbeChart, type PointCourbe } from '@/components/charts/richart/courbe-chart'
+export {
+  RichDistributionChart,
+  MuiDistributionChart,
+  type DistributionItem,
+} from '@/components/charts/richart/distribution-chart'
+export { RichSparkline, MuiSparkline } from '@/components/charts/richart/sparkline'

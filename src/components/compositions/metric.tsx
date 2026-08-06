@@ -1,7 +1,7 @@
 import { gcc, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
 import { Panel } from '@/components/compositions/panel'
-import { MuiSparkline } from '@/components/charts'
+import { RichSparkline } from '@/components/charts'
 import clsx from 'clsx'
 
 /**
@@ -88,7 +88,7 @@ export function MetricCard({
       </div>
       {trend && trend.length >= 2 && (
         <div className="mt-auto pt-2">
-          <MuiSparkline data={trend} height={24} />
+          <RichSparkline data={trend} height={24} />
         </div>
       )}
     </Panel>
