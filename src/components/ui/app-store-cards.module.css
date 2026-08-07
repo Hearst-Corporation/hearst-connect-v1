@@ -1,0 +1,217 @@
+.section {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 6rem 1.25rem 9rem;
+}
+
+.section,
+.section * {
+  box-sizing: border-box;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.storeTitle {
+  margin: 0.25rem 0;
+  font-size: 2.125rem;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  color: white;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid var(--color-console-line);
+  background: var(--color-console-card);
+}
+
+.cardList {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 1.25rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.card {
+  position: relative;
+  flex: 0 0 40%;
+  height: 26.25rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+.card:nth-child(4n + 1),
+.card:nth-child(4n + 4) {
+  flex: 0 1 calc(60% - 1.25rem);
+}
+
+.card[data-open='true'] {
+  visibility: hidden;
+}
+
+.cardContentContainer {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.cardContentContainerOpen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  padding: 2.5rem 0;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cardContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: var(--color-console-card);
+  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+  pointer-events: auto;
+}
+
+.cardContentContainerOpen .cardContent {
+  width: unset;
+  height: unset;
+  max-width: 44rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cardImageContainer {
+  position: relative;
+  display: flex;
+  height: 26.25rem;
+  flex-direction: column;
+  justify-content: stretch;
+  overflow: hidden;
+}
+
+.cardImage {
+  position: absolute;
+  width: 100%;
+  object-fit: cover;
+}
+
+.cardContentContainerOpen .cardImageContainer,
+.cardContentContainerOpen .titleContainer {
+  z-index: 1;
+}
+
+.titleContainer {
+  position: absolute;
+  top: 0.9375rem;
+  left: 0.9375rem;
+  max-width: 18.75rem;
+}
+
+.cardContentContainerOpen .titleContainer {
+  top: 1.875rem;
+  left: 1.875rem;
+}
+
+.category {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+}
+
+.title {
+  margin: 0.5rem 0 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: white;
+}
+
+.themeDark .category,
+.themeDark .title {
+  color: var(--color-console-app);
+}
+
+.contentContainer {
+  width: 90vw;
+  max-width: 44rem;
+  padding: 2.1875rem;
+}
+
+.paragraph {
+  margin: 0 0 1.25rem;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: color-mix(in oklab, white 88%, transparent);
+}
+
+.themeDark .paragraph {
+  color: color-mix(in oklab, var(--color-console-app) 88%, transparent);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in oklab, var(--color-console-app) 80%, transparent);
+  will-change: opacity;
+}
+
+@media only screen and (max-width: 990px) {
+  .section {
+    padding: 3.75rem 0.625rem 5rem;
+  }
+
+  .cardList {
+    gap: 0.625rem;
+  }
+
+  .card {
+    flex: 0 1 calc(50% - 0.3125rem);
+    height: 17.5rem;
+  }
+
+  .card:nth-child(4n + 1),
+  .card:nth-child(4n + 4) {
+    flex: 0 1 calc(50% - 0.3125rem);
+    max-width: 100%;
+  }
+
+  .cardImageContainer {
+    height: 17.5rem;
+  }
+
+  .card .titleContainer {
+    visibility: hidden;
+  }
+
+  .cardContentContainerOpen {
+    padding: 0;
+  }
+}

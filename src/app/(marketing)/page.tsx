@@ -1,3 +1,4 @@
+import { AppStoreDemo } from '@/components/marketing/app-store-demo'
 import { HeritageScrollDemo } from '@/components/marketing/heritage-scroll-demo'
 import { BackgroundRippleBand } from '@/components/marketing/background-ripple-band'
 import {
@@ -13,6 +14,7 @@ export default function HomePage() {
       <HeroScrollDemo />
       <HeritageScrollDemo />
       <GridBackgroundDemo />
+      <AppStoreDemo />
       <BentoGridExampleThreeStart />
       <BackgroundRippleBand />
       <BentoGridExampleThreeEnd />
