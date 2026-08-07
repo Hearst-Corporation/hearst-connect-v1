@@ -5,8 +5,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * Contrat de langue de la console (mission HC-CONSOLE-FR-001).
  *
- * La doctrine fixe le FRANÇAIS comme langue produit
- * (docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md §1). Ce test
+ * La langue produit est le français (HC-CONSOLE-FR-001). Ce test
  * a été INVERSÉ : il imposait l'anglais (mission HC-UI-NORMALIZATION-001), il
  * impose désormais le français sur les surfaces réellement rendues et interdit
  * la réapparition des anciens libellés anglais d'interface.

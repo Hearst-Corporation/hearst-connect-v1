@@ -20,7 +20,7 @@
  * Le bon geste quand ce script devient rouge est de retirer la duplication,
  * pas de monter le seuil. Le baisser à mesure que la dette est résorbée est
  * en revanche l'usage prévu — la duplication connue est cartographiée dans
- * `docs/audits/CODE-HYGIENE-AUDIT-2026-08-04.md` (§6) et le gros du reliquat
+ * Seuil et exclusions documentés dans l'en-tête du script.
  * relève du LOT D (convergence UI), pas de cette passe.
  *
  * Ce script N'EST PAS dans `pnpm check` : c'est un outil de diagnostic, pas
