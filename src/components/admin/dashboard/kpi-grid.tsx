@@ -1,4 +1,3 @@
-import { Text } from '@/components/catalyst/text'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import {
   ArrowTrendingUpIcon,
@@ -6,6 +5,7 @@ import {
   ClipboardDocumentCheckIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/16/solid'
+import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
 
 const ICONS = {
@@ -22,46 +22,47 @@ export type DashboardKpi = Readonly<{
   unit: string
   /** Variation réelle uniquement — jamais inventée. */
   delta?: string
-  /** Sparkline réelle uniquement (≥ 2 points) — réservé, non rendu dans le header compact. */
+  /** Sparkline réelle uniquement (≥ 2 points) — non rendu dans le bandeau. */
   sparkline?: number[]
 }>
 
 /**
- * KPI intégrés au header (pas de boxes isolées).
- * Grille type « profile fields » — titre + valeur + unité.
+ * KPI dans le bandeau — grille horizontale, cellules verre (pas d’aplats morts).
  */
 export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly DashboardKpi[] }>) {
   return (
     <section aria-label="Indicateurs principaux" className="min-w-0">
-      <dl className="@container grid grid-cols-1 gap-4 @[28rem]:grid-cols-2 @[56rem]:grid-cols-4">
+      <dl className="@container grid grid-cols-1 gap-3 @[28rem]:grid-cols-2 @[52rem]:grid-cols-4">
         {items.map((kpi) => {
           const Icon = ICONS[kpi.id] as ComponentType<SVGProps<SVGSVGElement>>
           const available = isAvailable(kpi.value)
           return (
-            <div key={kpi.id} className="min-w-0">
-              <dt className="flex items-center gap-2 text-sm font-medium text-white">
-                <span className="inline-flex size-7 items-center justify-center rounded-md bg-accent-400/15 text-accent-400">
+            <div
+              key={kpi.id}
+              className={clsx(
+                'min-w-0 rounded-xl px-4 py-3',
+                'bg-white/[0.06] ring-1 ring-white/10 backdrop-blur-md',
+              )}
+            >
+              <dt className="flex items-center gap-2 text-xs font-medium text-zinc-300">
+                <span className="inline-flex size-6 items-center justify-center rounded-md bg-accent-400/20 text-accent-300">
                   <Icon className="size-3.5" aria-hidden="true" />
                 </span>
                 {kpi.title}
               </dt>
               <dd className="mt-2 flex items-baseline gap-1.5">
-                {available ? (
-                  <>
-                    <span className="text-2xl/7 font-semibold tracking-tight tabular-nums text-white">
-                      {kpi.value.value}
-                    </span>
-                    <Text className="!text-xs">{kpi.unit}</Text>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl/7 font-semibold text-zinc-500">—</span>
-                    <Text className="!text-xs">{kpi.unit}</Text>
-                  </>
-                )}
+                <span
+                  className={clsx(
+                    'text-2xl/7 font-semibold tracking-tight tabular-nums',
+                    available ? 'text-white' : 'text-zinc-500',
+                  )}
+                >
+                  {available ? kpi.value.value : '—'}
+                </span>
+                <span className="text-xs text-zinc-400">{kpi.unit}</span>
               </dd>
               {kpi.delta !== undefined ? (
-                <p className="mt-1 text-xs font-medium text-accent-400">{kpi.delta}</p>
+                <p className="mt-1 text-xs font-medium text-accent-300">{kpi.delta}</p>
               ) : null}
             </div>
           )
@@ -71,5 +72,5 @@ export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly Dashbo
   )
 }
 
-/** @deprecated Alias — les KPI vivent dans le header, plus de grille de boxes. */
+/** @deprecated Alias — les KPI vivent dans le bandeau header. */
 export const DashboardKpiGrid = DashboardKpiMetrics
