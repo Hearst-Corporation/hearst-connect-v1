@@ -1,6 +1,8 @@
 'use client'
 
+import { surfaceNav } from '@/components/admin/surface'
 import * as Headless from '@headlessui/react'
+import clsx from 'clsx'
 import React, { useState } from 'react'
 import { NavbarItem } from './navbar'
 
@@ -31,7 +33,7 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
         transition
         className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
       >
-      <div className="flex h-full flex-col rounded-lg bg-console-card shadow-xs ring-1 ring-console-line">
+      <div className={clsx('flex h-full flex-col rounded-lg', surfaceNav)}>
           <div className="-mb-3 px-4 pt-3">
             <Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
               <CloseMenuIcon />
@@ -53,8 +55,8 @@ export function SidebarLayout({
 
   return (
     <div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
-      {/* Sidebar on desktop — noir deep (même token que les boxes KPI). */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-console-card max-lg:hidden">{sidebar}</div>
+      {/* Sidebar on desktop — effet verre (pas noir opaque des boxes). */}
+      <div className={clsx('fixed inset-y-0 left-0 w-64 max-lg:hidden', surfaceNav)}>{sidebar}</div>
 
       {/* Sidebar on mobile */}
       <MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>

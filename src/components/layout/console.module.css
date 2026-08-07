@@ -348,9 +348,11 @@
    * du rail reste collé en haut et son pied en bas, comme avant. */
   position: relative;
   width: var(--csl-rail-w);
-  /* Noir deep — même token que les boxes / menu admin. */
-  background: var(--color-console-card, #000000);
-  border-right: 1px solid var(--color-console-line, rgba(255, 255, 255, 0.13));
+  /* Effet verre — distinct des boxes noires opaques. */
+  background: var(--color-console-glass, rgba(0, 0, 0, 0.52));
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border-right: 1px solid var(--color-console-line-soft, rgba(255, 255, 255, 0.08));
   z-index: 3;
   overflow: hidden;
 }
