@@ -3,11 +3,10 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** : page marketing minimale (titre seul pour l’instant) —
-`src/app/(marketing)/page.tsx` + header allégé + footer 4 grilles Aceternity
-avec watermark « Connect » en `accent-300`
-(`src/components/marketing/site-footer.tsx`).
-Fond marque `bg-console-app` (`#101010`) partout sur la vitrine (html racine + layout marketing) — pas de `zinc`.
+**Landing `/`** : hero scroll Aceternity (`HeroScrollDemo`) + footer 4 grilles
+avec watermark « Connect » (`src/components/marketing/`).
+Primatives UI Aceternity dans `src/components/ui/` ; registry dans `components.json`.
+Fond marque `bg-console-app` (`#101010`) partout sur la vitrine — pas de `zinc`.
 
 ## Architecture
 
