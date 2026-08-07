@@ -36,7 +36,7 @@ export function BentoGridItem({
   return (
     <div
       className={cn(
-        'group/bento row-span-1 flex flex-col justify-between space-y-4 rounded-xl bg-console-glass p-4 shadow-xs ring-1 ring-console-line-soft backdrop-blur-xl backdrop-saturate-150 transition duration-200 hover:ring-console-line',
+        'group/bento row-span-1 flex flex-col justify-between space-y-4 rounded-xl bg-black/80 p-4 shadow-xs ring-1 ring-console-line-soft backdrop-blur-xl backdrop-saturate-150 transition duration-200 hover:ring-console-line',
         className,
       )}
     >

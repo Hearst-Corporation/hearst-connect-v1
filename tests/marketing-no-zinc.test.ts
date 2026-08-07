@@ -4,6 +4,15 @@ import { describe, expect, it } from 'vitest'
 
 const ROOT = process.cwd()
 
+/** Surfaces vitrine + primitives Aceternity consommées par la landing. */
+const SCOPES = [
+  'src/app/(marketing)',
+  'src/components/marketing',
+  'src/components/ui',
+] as const
+
+const FORBIDDEN = /\b(zinc|neutral|slate|gray)-\d{2,3}\b|\bbg-zinc\b|\btext-zinc\b|\bborder-zinc\b|\bring-zinc\b|\bfrom-zinc\b|\bto-zinc\b|\bvia-zinc\b/
+
 function collectFiles(dir: string): string[] {
   const entries = readdirSync(dir, { withFileTypes: true })
   const files: string[] = []
@@ -15,17 +24,15 @@ function collectFiles(dir: string): string[] {
   return files
 }
 
-describe('vitrine marketing — pas de zinc', () => {
-  it('aucun zinc dans (marketing)/ + components/marketing/', () => {
-    const scopes = [
-      join(ROOT, 'src/app/(marketing)'),
-      join(ROOT, 'src/components/marketing'),
-    ]
+describe('vitrine marketing — pas de zinc / gris Tailwind', () => {
+  it('aucun zinc|neutral|slate|gray-* dans marketing + ui', () => {
     const offenders: string[] = []
-    for (const scope of scopes) {
-      for (const file of collectFiles(scope)) {
+    for (const scope of SCOPES) {
+      for (const file of collectFiles(join(ROOT, scope))) {
         const src = readFileSync(file, 'utf8')
-        if (/\bzinc\b/.test(src)) offenders.push(file.replace(ROOT + '/', ''))
+        if (FORBIDDEN.test(src) || /\bzinc\b/.test(src)) {
+          offenders.push(file.replace(ROOT + '/', ''))
+        }
       }
     }
     expect(offenders).toEqual([])
