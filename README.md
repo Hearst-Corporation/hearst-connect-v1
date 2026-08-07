@@ -80,7 +80,7 @@ pnpm exec next build     # build prod (hors gate)
 ## Design system
 
 Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
-`surfaceBox` (KPI noir) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint). Toutes les pages admin/espace branchées sur ces tokens.
+`surfaceBox` (KPI verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint). Boxes translucides + blur — fond lumineux peut transparaître.
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation

@@ -4,28 +4,27 @@
  * Toute box produit passe par ICI. Pas de `bg-white` / `dark:bg-zinc-900` /
  * `ring-zinc-*` ad hoc sur les pages.
  *
- * | Token class     | Matière                         | Usage                          |
- * |-----------------|----------------------------------|--------------------------------|
- * | `surfaceBox`    | noir opaque `console-card`       | KPI, DashCard, Section/Stat    |
- * | `surfaceNav`    | verre `console-glass` + blur     | Menu / rail                    |
- * | `surfaceInset`  | `console-inset`                  | pre, champs, sous-blocs        |
- * | `surfaceSelect` | voile mint `accent-soft`         | sélection (parcours, etc.)     |
+ * | Token class     | Matière                              | Usage                       |
+ * |-----------------|--------------------------------------|-----------------------------|
+ * | `surfaceBox`    | verre `console-card` + blur          | KPI, DashCard, Section/Stat |
+ * | `surfaceNav`    | verre `console-glass` + blur         | Menu / rail                 |
+ * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, champs, sous-blocs     |
+ * | `surfaceSelect` | voile mint `accent-soft`             | sélection (parcours, etc.)  |
  */
 
-/** Box — noir deep, filet console. Référence dashboard KPI / DashCard. */
+/** Box — face vitrée (transparence + profondeur). Référence dashboard KPI. */
 export const surfaceBox =
-  'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line'
+  'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line backdrop-blur-xl backdrop-saturate-150'
 
 /**
- * Menu / rail — effet verre (frosted).
- * Distinct des boxes noires et du voile mint de sélection.
+ * Menu / rail — même famille verre, token `console-glass` (un peu plus dense).
  */
 export const surfaceNav =
   'bg-console-glass backdrop-blur-xl backdrop-saturate-150 ring-1 ring-console-line-soft'
 
-/** Sous-surface en creux (code, formulaires, métadonnées). */
+/** Sous-surface en creux (code, formulaires, métadonnées) — un cran plus dense. */
 export const surfaceInset =
-  'rounded-lg bg-console-inset ring-1 ring-console-line-soft'
+  'rounded-lg bg-console-inset ring-1 ring-console-line-soft backdrop-blur-md'
 
 /** Sélection — voile mint très léger (pas un aplat sur la box parente). */
 export const surfaceSelect =

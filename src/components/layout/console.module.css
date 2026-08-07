@@ -10,9 +10,10 @@
   --csl-bg: #000;
   --csl-shell: #050506;
   --csl-workspace: #020203;
-  --csl-panel-top: #0a0a0a;
-  --csl-panel-mid: #000000;
-  --csl-panel-bottom: #000000;
+  /* Faces vitrées — alignées sur --color-console-card (pas d’aplat noir). */
+  --csl-panel-top: rgba(10, 10, 10, 0.55);
+  --csl-panel-mid: rgba(0, 0, 0, 0.42);
+  --csl-panel-bottom: rgba(0, 0, 0, 0.42);
   --csl-panel-border: rgba(255, 255, 255, 0.13);
   --csl-line: rgba(255, 255, 255, 0.075);
   --csl-text: #ffffff;
@@ -617,27 +618,29 @@
   --panel-fallback-border: rgba(9, 9, 11, 0.08);
 }
 :global(html.dark) {
-  /* Boxes admin = noir tokenisé (console-card), pas zinc-900 graphite. */
-  --panel-fallback-bg: var(--color-console-card, #000000);
+  /* Boxes admin = face vitrée (console-card translucide), pas zinc opaque. */
+  --panel-fallback-bg: var(--color-console-card, rgba(0, 0, 0, 0.42));
   --panel-fallback-border: var(--color-console-line, rgba(255, 255, 255, 0.13));
 }
 
-/* The one panel material every surface shares. */
+/* The one panel material every surface shares — verre + blur. */
 .panel {
   border: 1px solid var(--csl-panel-border, var(--panel-fallback-border));
   border-radius: 0.75rem;
   background: var(--panel-fallback-bg);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /*
- * Sous `.viewport` (`/espace`), le dégradé csl d'origine est ré-affirmé à
- * l'identique : cette route ne change pas.
+ * Sous `.viewport` (`/espace`) : même face vitrée (plus de dégradé opaque
+ * qui bloquait la profondeur / un fond lumineux derrière).
  */
 .viewport .panel {
   border-radius: 0;
   border-color: var(--csl-panel-border);
-  background: linear-gradient(180deg, var(--csl-panel-top) 0%, var(--csl-panel-mid) 26%, var(--csl-panel-bottom) 100%);
+  background: var(--csl-panel-mid, var(--panel-fallback-bg));
 }
 
 /* ── Metrics row ──────────────────────────────────────────────────────────── */
