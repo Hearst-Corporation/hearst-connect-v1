@@ -1,0 +1,13 @@
+{
+  "url": "http://localhost:4105/admin/dashboard",
+  "h1": [
+    "Bonjour, adrien"
+  ],
+  "bodyBg": "rgba(0, 0, 0, 0)",
+  "panelBg": "rgb(255, 255, 255)",
+  "consoleErrors": [],
+  "networkFails": [],
+  "liveBadgeCount": 0,
+  "hasFunnel": true,
+  "hasSources": true
+}

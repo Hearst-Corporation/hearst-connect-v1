@@ -1,0 +1,28 @@
+{
+  "h1": [
+    "Bonjour, adrien"
+  ],
+  "bodyBg": "rgb(241, 245, 249)",
+  "consoleErrors": [],
+  "networkFails": [],
+  "networkSample": [
+    "200 GET /login",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "303 POST /login",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2",
+    "200 GET /admin/dashboard",
+    "200 GET /__nextjs_font/geist-latin.woff2"
+  ],
+  "url": "http://localhost:4105/admin/dashboard"
+}
