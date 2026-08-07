@@ -3,7 +3,9 @@ import { RequirementList } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
 import { Panel, PanelHeader } from '@/components/compositions/panel'
+import { ChartBarIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
+import type { ComponentType, SVGProps } from 'react'
 
 /**
  * Common frame for every chart in the product.
@@ -38,6 +40,68 @@ const LIBELLE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
   indisponible: 'Donnée indisponible',
 }
 
+const ICONE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, ComponentType<SVGProps<SVGSVGElement>>> = {
+  vide: ChartBarIcon,
+  attendue: ClockIcon,
+  indisponible: ExclamationTriangleIcon,
+}
+
+/**
+ * Illustration d'état vide : une icône posée, le libellé et la phrase — pour
+ * qu'un chart sans série se lise comme un placeholder INTENTIONNEL, pas comme un
+ * trou. Aucune donnée inventée : le graphique n'est pas dessiné.
+ */
+function EtatVisuel({
+  etat,
+  expectedSource,
+  onRetry,
+  retryLabel,
+  hauteur,
+}: Readonly<{
+  etat: Exclude<EtatSerie, { type: 'tracee' }>
+  expectedSource?: readonly string[]
+  onRetry?: () => void
+  retryLabel: string
+  hauteur?: number
+}>) {
+  const Icone = ICONE_ETAT[etat.type]
+  const danger = etat.type === 'indisponible'
+  return (
+    <div
+      className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-8 text-center"
+      style={{ minHeight: hauteur ?? 200 }}
+    >
+      <span
+        className={clsx(
+          'flex size-14 items-center justify-center rounded-2xl ring-1',
+          danger
+            ? 'bg-danger-400/10 text-danger-500 ring-danger-400/20 dark:text-danger-400'
+            : 'bg-zinc-950/3 text-zinc-400 ring-zinc-950/5 dark:bg-white/5 dark:text-zinc-500 dark:ring-white/10',
+        )}
+      >
+        <Icone className="size-7" aria-hidden="true" />
+      </span>
+      <Badge color={danger ? 'rose' : 'zinc'}>{LIBELLE_ETAT[etat.type]}</Badge>
+      <Text className="max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{etat.explication}</Text>
+      {expectedSource?.length ? (
+        <div className="w-full max-w-xs text-left">
+          <AdminLabel>Source attendue</AdminLabel>
+          <RequirementList requis={expectedSource as string[]} />
+        </div>
+      ) : null}
+      {onRetry ? (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="text-xs font-medium text-accent-600 underline underline-offset-4 hover:text-accent-700 dark:text-accent-400"
+        >
+          {retryLabel}
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
 export function ChartFrame({
   question,
   unite,
@@ -66,45 +130,26 @@ export function ChartFrame({
     <Panel tone="chart" className="flex h-full flex-col">
       <PanelHeader title={question} hint={unite} />
 
-      {etat.type === 'indisponible' ? (
-        <div
-          className={clsx('flex flex-col items-start gap-3 px-5 pb-5 sm:px-6')}
-          style={hauteur === undefined ? undefined : { minHeight: hauteur }}
-        >
-          <div className="flex items-center gap-2">
-            <Badge color="rose">{LIBELLE_ETAT[etat.type]}</Badge>
-          </div>
-          <Text className="max-w-prose text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-            {etat.explication}
-          </Text>
-          {expectedSource?.length ? (
-            <div className="w-full max-w-sm">
-              <AdminLabel>Source attendue</AdminLabel>
-              <RequirementList requis={expectedSource as string[]} />
-            </div>
-          ) : null}
-          {onRetry ? (
-            <button
-              type="button"
-              onClick={onRetry}
-              className="text-xs font-medium text-accent-600 underline underline-offset-4 hover:text-accent-700 dark:text-accent-400"
-            >
-              {retryLabel}
-            </button>
-          ) : null}
-        </div>
-      ) : (
+      {etat.type === 'tracee' ? (
+        children
+      ) : children != null ? (
         <>
           {children}
-          {etat.type !== 'tracee' ? (
-            <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
-              <Badge color="zinc">{LIBELLE_ETAT[etat.type]}</Badge>
-              <Text className="max-w-prose text-xs leading-relaxed text-zinc-500">
-                {etat.explication}
-              </Text>
-            </div>
-          ) : null}
+          <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
+            <Badge color={etat.type === 'indisponible' ? 'rose' : 'zinc'}>{LIBELLE_ETAT[etat.type]}</Badge>
+            <Text className="max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              {etat.explication}
+            </Text>
+          </div>
         </>
+      ) : (
+        <EtatVisuel
+          etat={etat}
+          expectedSource={expectedSource}
+          onRetry={onRetry}
+          retryLabel={retryLabel}
+          hauteur={hauteur}
+        />
       )}
     </Panel>
   )
