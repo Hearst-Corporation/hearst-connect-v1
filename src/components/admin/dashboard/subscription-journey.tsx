@@ -28,7 +28,7 @@
  */
 
 import { HearstCriticalAction, HearstSecondaryAction } from '@/components/actions'
-import { surfaceInset } from '@/components/admin/surface'
+import { surfaceInset, surfaceSelect } from '@/components/admin/surface'
 import type { FunnelStepView } from '@/components/compositions'
 import { isAvailable, valueOf } from '@/lib/vaults/model'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
@@ -201,8 +201,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
               className={clsx(
                 'group relative flex flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-accent-500',
-                /* Voile mint léger — token surfaceSelect / accent-soft. */
-                'data-selected:bg-accent-soft data-selected:ring-1 data-selected:ring-accent-400/25',
+                surfaceSelect,
                 'not-data-selected:data-hover:bg-white/5',
               )}
             >

@@ -20,15 +20,10 @@ export type DashboardKpi = Readonly<{
   title: string
   value: Availability<string>
   unit: string
-  /** Variation réelle uniquement — jamais inventée. */
-  delta?: string
-  /** Sparkline réelle uniquement (≥ 2 points) — non rendu dans le bandeau. */
-  sparkline?: number[]
 }>
 
 /**
- * KPI en texte dans le bandeau — aucune box, aucun fond, aucun ring.
- * Rangée horizontale (2 cols mobile → 4 cols dès sm).
+ * KPI en texte dans le bandeau hero — aucune box.
  */
 export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly DashboardKpi[] }>) {
   return (
@@ -54,9 +49,6 @@ export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly Dashbo
                 </span>
                 <span className="truncate text-[11px] text-zinc-500">{kpi.unit}</span>
               </dd>
-              {kpi.delta !== undefined ? (
-                <p className="mt-1 text-xs font-medium text-accent-300">{kpi.delta}</p>
-              ) : null}
             </div>
           )
         })}
@@ -64,6 +56,3 @@ export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly Dashbo
     </section>
   )
 }
-
-/** @deprecated Alias — KPI = texte dans le bandeau. */
-export const DashboardKpiGrid = DashboardKpiMetrics

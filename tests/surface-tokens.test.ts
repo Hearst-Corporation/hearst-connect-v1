@@ -11,7 +11,7 @@ describe('design system surfaces — canon dashboard', () => {
     expect(surfaceNav).toContain('bg-console-glass')
     expect(surfaceNav).toContain('backdrop-blur')
     expect(surfaceInset).toContain('bg-console-inset')
-    expect(surfaceSelect).toContain('bg-accent-soft')
+    expect(surfaceSelect).toContain('data-selected:bg-accent-soft')
     expect(surfaceRaised).toBe(surfaceBox)
     expect(surfaceNav).not.toBe(surfaceBox)
   })
@@ -35,12 +35,12 @@ describe('design system surfaces — canon dashboard', () => {
     expect(header).not.toContain('LogoMark')
   })
 
-  it('parcours : sélection = accent-soft / surfaceSelect', () => {
+  it('parcours : sélection via surfaceSelect', () => {
     const src = readFileSync(
       join(process.cwd(), 'src/components/admin/dashboard/subscription-journey.tsx'),
       'utf8',
     )
-    expect(src).toContain('data-selected:bg-accent-soft')
+    expect(src).toContain('surfaceSelect')
     expect(src).not.toContain('data-selected:bg-zinc-800')
   })
 
