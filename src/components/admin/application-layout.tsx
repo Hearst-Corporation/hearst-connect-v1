@@ -1,6 +1,5 @@
 'use client'
 
-import { AdminBodyNav } from '@/components/admin/body-nav'
 import { Avatar } from '@/components/catalyst/avatar'
 import {
   Dropdown,
@@ -23,6 +22,7 @@ import {
   SidebarSpacer,
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
+import { AdminBodyNav } from '@/components/admin/body-nav'
 import { Logo } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {

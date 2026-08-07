@@ -1,6 +1,6 @@
 import { surfaceRaised } from '@/components/admin/surface'
 import { sectionContentGap } from '@/lib/layout-tokens'
-import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, AdminSurfaceTitle, adminTypography } from '@/components/admin/typography'
+import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, adminTypography } from '@/components/admin/typography'
 import { ProblemState, RequestMetadata, StatusBadge } from '@/components/admin/truthful'
 import { formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
