@@ -223,28 +223,26 @@ describe('one brand palette', () => {
     expect(offenders, `these files still use a blue hue: ${offenders.join(', ')}`).toEqual([])
   })
 
-  it('declares black tokenised KPI boxes on a graphite shell', () => {
+  it('declares glass console surfaces on a graphite shell', () => {
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     const token = (name: string): string | undefined =>
       new RegExp(`--color-console-${name}:\\s*([^;]+);`).exec(css)?.[1]?.trim()
 
     expect(token('app')).toBe('#101010')
     expect(token('shell')).toBe('#232323')
-    expect(token('card')).toBe('#000000')
-    expect(token('card-top')).toBe('#0a0a0a')
-    expect(token('inset')).toBe('#0a0a0a')
+    expect(token('card')).toMatch(/^rgba\(0,\s*0,\s*0,\s*0\.28\)$/)
+    expect(token('card-top')).toMatch(/^rgba\(10,\s*10,\s*10,\s*0\.38\)$/)
+    expect(token('inset')).toMatch(/^rgba\(10,\s*10,\s*10,\s*0\.4\)$/)
 
-    for (const name of ['app', 'shell', 'card', 'card-top', 'inset']) {
+    for (const name of ['app', 'shell']) {
       const hex = token(name) ?? ''
       const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
       expect(r, `console-${name} is not neutral`).toBe(g)
       expect(g, `console-${name} is not neutral`).toBe(b)
     }
 
-    // Boxes noires sur chrome graphite : shell > app ≥ card.
     const lum = (hex: string): number => parseInt(hex.slice(1, 3), 16)
     expect(lum(token('shell') ?? '#000')).toBeGreaterThan(lum(token('app') ?? '#fff'))
-    expect(lum(token('app') ?? '#000')).toBeGreaterThanOrEqual(lum(token('card') ?? '#fff'))
   })
 
   it('expose un voile mint de sélection (accent-soft)', () => {
