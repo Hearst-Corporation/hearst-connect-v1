@@ -3,7 +3,7 @@
 import styles from '@/components/ui/app-store-cards.module.css'
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
 import Image from 'next/image'
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 
 export type AppStoreCardTheme = 'light' | 'dark'
 
@@ -23,9 +23,11 @@ export type AppStoreCardItem = Readonly<{
 }>
 
 export type AppStoreCardsProps = Readonly<{
-  title: string
-  avatarSrc: string
-  avatarAlt: string
+  /** En-tête interne optionnel (titre + avatar). Omis, la section n'affiche que les cartes. */
+  title?: string
+  ariaLabel?: string
+  avatarSrc?: string
+  avatarAlt?: string
   items: readonly AppStoreCardItem[]
 }>
 
@@ -78,19 +80,51 @@ function CardBody({
   )
 }
 
-export function AppStoreCards({ title, avatarSrc, avatarAlt, items }: AppStoreCardsProps) {
+export function AppStoreCards({ title, ariaLabel, avatarSrc, avatarAlt, items }: AppStoreCardsProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const openItem = useMemo(() => items.find((item) => item.id === openId) ?? null, [items, openId])
 
+  // Gestion du focus clavier : mémorise la carte déclencheuse, déplace le focus sur « Fermer »
+  // à l'ouverture, le restaure à la fermeture, et permet de fermer avec Échap.
+  const triggerRef = useRef<HTMLLIElement | null>(null)
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+
+  const openCard = (id: string, trigger: HTMLLIElement) => {
+    triggerRef.current = trigger
+    setOpenId(id)
+  }
+
+  useEffect(() => {
+    if (openId) {
+      closeButtonRef.current?.focus()
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') setOpenId(null)
+      }
+      document.addEventListener('keydown', onKeyDown)
+      return () => document.removeEventListener('keydown', onKeyDown)
+    }
+    triggerRef.current?.focus()
+  }, [openId])
+
   return (
     <LayoutGroup id="app-store-cards">
-      <section className={styles.section} aria-label={title}>
-        <header className={styles.header}>
-          <h2 className={styles.storeTitle}>{title}</h2>
-          <div className={styles.avatar}>
-            <Image src={avatarSrc} alt={avatarAlt} width={40} height={40} className="size-full object-cover" />
-          </div>
-        </header>
+      <section className={styles.section} aria-label={title ?? ariaLabel}>
+        {title ? (
+          <header className={styles.header}>
+            <h2 className={styles.storeTitle}>{title}</h2>
+            {avatarSrc ? (
+              <div className={styles.avatar}>
+                <Image
+                  src={avatarSrc}
+                  alt={avatarAlt ?? ''}
+                  width={40}
+                  height={40}
+                  className="size-full object-cover"
+                />
+              </div>
+            ) : null}
+          </header>
+        ) : null}
 
         <ul className={styles.cardList}>
           {items.map((item) => (
@@ -98,15 +132,17 @@ export function AppStoreCards({ title, avatarSrc, avatarAlt, items }: AppStoreCa
               key={item.id}
               className={styles.card}
               data-open={openId === item.id}
-              onClick={() => setOpenId(item.id)}
+              onClick={(event) => openCard(item.id, event.currentTarget)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault()
-                  setOpenId(item.id)
+                  openCard(item.id, event.currentTarget)
                 }
               }}
               role="button"
               tabIndex={0}
+              aria-expanded={openId === item.id}
+              aria-label={`${item.category} — ${item.title}. Ouvrir l’aperçu.`}
             >
               <div className={styles.cardContentContainer}>
                 <CardBody item={item} showContent={false} />
@@ -119,8 +155,9 @@ export function AppStoreCards({ title, avatarSrc, avatarAlt, items }: AppStoreCa
           {openItem ? (
             <>
               <motion.button
+                ref={closeButtonRef}
                 type="button"
-                aria-label="Fermer"
+                aria-label="Fermer l’aperçu"
                 className={styles.overlay}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

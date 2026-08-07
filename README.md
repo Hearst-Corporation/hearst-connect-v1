@@ -3,23 +3,21 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** — vitrine marketing (état au 2026-08-07) : empilement de blocs Aceternity/Motion
-tokenisés ; **refonte artistique prévue** (réduire redondance, unifier le récit).
+**Landing `/`** — vitrine marketing, refonte artistique (2026-08-07) : récit **dark-only en 4 actes**,
+premium et calme, qui vend l'accès unifié aux espaces Hearst (fin de l'empilement de démos Aceternity).
 
-Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` · `main` · `SiteFooter` · `bg-console-app`.
+Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` (sticky, blur, filet bas) · `main` · `SiteFooter` · `bg-console-app`.
 
-| # | Bloc | Wrapper marketing | Primitive `ui/` |
+| Acte | Bloc | Wrapper marketing | Primitive `ui/` |
 |---|------|-------------------|-----------------|
-| 1 | Hero scroll parallax | `hero-scroll-demo.tsx` | `container-scroll-animation.tsx` |
-| 2 | Carousel 3D scroll-vélocité | `heritage-scroll-demo.tsx` | `scroll-velocity-planes.tsx` · `scramble-text.tsx` |
-| 3 | Grille de fond | `grid-background-demo.tsx` | `grid-background.tsx` |
-| 4 | Cartes App Store (shared layout) | `app-store-demo.tsx` | `app-store-cards.tsx` |
-| 5 | Pin 3D → `/login` | `3d-pin-demo.tsx` | `3d-pin.tsx` |
-| 6–8 | Bento (1/2) · ripple CTA · bento (2/2) | `bento-grid-example-three.tsx` · `background-ripple-band.tsx` | `bento-grid.tsx` · `background-ripple-effect.tsx` |
+| 1 — Hero | La console réelle se redresse au défilement | `hero-scroll-demo.tsx` | `container-scroll-animation.tsx` |
+| 2 — Preuve | Quatre domaines, cartes qui s'ouvrent sur des captures | `app-store-demo.tsx` | `app-store-cards.tsx` |
+| 3 — Doctrine | Trois piliers de gouvernance (statique) | `features-doctrine.tsx` | — |
+| 4 — CTA | Clôture calme → `/login` · `/register` | `closing-cta.tsx` | — |
 
-Composition : `src/app/(marketing)/page.tsx`. Registry Aceternity : `components.json` (`@aceternity`).
-
-**Orphelin** : `cards-demo-3.tsx` installé (`@aceternity/cards-demo-3`) mais **non monté** sur `/`.
+Composition : `src/app/(marketing)/page.tsx` (server component). En-tête de section partagé : `section-intro.tsx`.
+Deux moments de motion seulement (hero scroll-reveal + expansion shared-layout des cartes) ; le bas de page est immobile.
+Les démos non retenues (carousel 3D, grille de fond, pin 3D, ripple, bento, `cards-demo-3`) ont été retirées.
 
 **Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
 Interdit dans `src/components/marketing/` et `src/components/ui/` : classes `zinc-*`, `neutral-*`,
@@ -120,4 +118,4 @@ Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 | `docs/ENDPOINT-MAPPING.md` | Contrat backend → front |
 | `docs/PASSATION-AGENT.md` | Reprise opérationnelle (Railway, Vercel, priorités) |
 
-Point de reprise : **`main`** @ `44f42fb` (landing = pile de demos ; prochaine passe = peinture artistique `/`).
+Point de reprise : **`main`** — landing `/` refondue en 4 actes dark-only (Hero · Preuve · Doctrine · CTA).
