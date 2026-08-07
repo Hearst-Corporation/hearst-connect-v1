@@ -56,21 +56,24 @@ export function SidebarLayout({
 
   return (
     <div className="relative isolate flex min-h-svh w-full max-lg:flex-col">
-      {/* Glow lumineux — sous les faces vitrées (boxes + menu). */}
+      {/* Glow — z-0, jamais au-dessus du rail ni du contenu. */}
       <div
         aria-hidden="true"
-        className={consoleGlowLayer}
+        className={clsx(consoleGlowLayer, 'z-0')}
         style={{ backgroundImage: `url('${CONSOLE_GLOW_SRC}')` }}
       />
 
-      {/* Sidebar on desktop — effet verre. */}
-      <div className={clsx('fixed inset-y-0 left-0 z-10 w-64 max-lg:hidden', surfaceNav)}>{sidebar}</div>
+      {/* Sidebar — z au-dessus du main (sinon le padding lg:pl-64 du main
+          capture les clics et la nav est morte). */}
+      <div className={clsx('fixed inset-y-0 left-0 z-30 w-64 max-lg:hidden', surfaceNav)}>
+        {sidebar}
+      </div>
 
       <MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
         {sidebar}
       </MobileSidebar>
 
-      <header className="relative z-10 flex items-center px-4 lg:hidden">
+      <header className="relative z-30 flex items-center px-4 lg:hidden">
         <div className="py-2.5">
           <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
             <OpenMenuIcon />
@@ -79,7 +82,7 @@ export function SidebarLayout({
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
-      {/* Content — plaque transparente pour laisser passer le glow. */}
+      {/* Content — sous le rail en z-index ; pl-64 réserve l’espace. */}
       <main className="relative z-10 flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
         <div className="grow p-6 lg:rounded-lg lg:p-10">
           <div className="w-full min-w-0">{children}</div>
