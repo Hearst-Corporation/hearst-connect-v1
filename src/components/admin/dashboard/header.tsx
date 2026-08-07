@@ -3,12 +3,12 @@ import {
   DashboardKpiMetrics,
   type DashboardKpi,
 } from '@/components/admin/dashboard/kpi-grid'
-import { Avatar } from '@/components/catalyst/avatar'
+import { LogoMark } from '@/components/logo'
 import { CONSOLE_GLOW_SRC } from '@/lib/brand'
 import { PlusIcon } from '@heroicons/react/16/solid'
 
 /**
- * Header pilotage — hero glow en haut, bande basse noire (avatar + KPI).
+ * Header pilotage — hero glow en haut, bande basse noire (H Hearst + KPI).
  */
 export function DashboardHeader({
   userName,
@@ -17,12 +17,6 @@ export function DashboardHeader({
   const trimmed = userName.trim()
   const rawFirst = trimmed.split(/\s+/)[0] || trimmed
   const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : rawFirst
-  const initials = trimmed
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('')
 
   return (
     <header
@@ -32,14 +26,12 @@ export function DashboardHeader({
     >
       <img alt="" src={CONSOLE_GLOW_SRC} className="h-16 w-full object-cover lg:h-20" />
 
-      {/* Bande basse — noir franc sous le glow / avatar. */}
       <div className="bg-black px-6 lg:px-10">
         <div className="-mt-7 flex flex-wrap items-end gap-x-4 gap-y-3 sm:-mt-8">
-          <Avatar
-            initials={initials || 'HC'}
-            alt=""
-            className="size-14 bg-zinc-900 text-sm text-white ring-2 ring-black outline -outline-offset-1 outline-white/10 sm:size-16"
-          />
+          <span className="inline-flex size-14 items-center justify-center rounded-full bg-zinc-900 ring-2 ring-black outline -outline-offset-1 outline-white/10 sm:size-16">
+            <LogoMark className="size-7 text-accent-300 sm:size-8" />
+            <span className="sr-only">Hearst</span>
+          </span>
 
           <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 pb-0.5">
             <div className="min-w-0">
