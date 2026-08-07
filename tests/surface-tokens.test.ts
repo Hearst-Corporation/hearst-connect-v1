@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 describe('design system surfaces — canon dashboard', () => {
   it('expose les 4 matières tokenisées', () => {
     expect(surfaceBox).toContain('bg-console-card')
+    expect(surfaceBox).toContain('backdrop-blur')
     expect(surfaceBox).toContain('ring-console-line')
     expect(surfaceNav).toContain('bg-console-glass')
     expect(surfaceNav).toContain('backdrop-blur')
@@ -13,6 +14,14 @@ describe('design system surfaces — canon dashboard', () => {
     expect(surfaceSelect).toContain('bg-accent-soft')
     expect(surfaceRaised).toBe(surfaceBox)
     expect(surfaceNav).not.toBe(surfaceBox)
+  })
+
+  it('boxes = verre translucide (pas noir opaque)', () => {
+    const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
+    expect(css).toMatch(/--color-console-card:\s*rgba\(/)
+    expect(css).not.toMatch(/--color-console-card:\s*#000000/)
+    const panel = readFileSync(join(process.cwd(), 'src/components/layout/console.module.css'), 'utf8')
+    expect(panel).toContain('backdrop-filter')
   })
 
   it('KPI / DashCard / AdminMetric consomment surfaceBox', () => {
