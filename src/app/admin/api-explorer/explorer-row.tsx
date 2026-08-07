@@ -1,8 +1,10 @@
 'use client'
 
+import { surfaceInset } from '@/components/admin/surface'
 import { AdminProbeResult } from '@/components/admin/surfaces'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
 import { probeEndpoint, type ProbeOutcome } from '@/lib/backend/probe'
+import clsx from 'clsx'
 import { useActionState } from 'react'
 
 function authLabelFor(auth: BackendEndpoint['auth']): string {
@@ -16,7 +18,7 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
     <button
       type="button"
       onClick={() => navigator.clipboard.writeText(text)}
-      className="rounded border border-zinc-950/10 dark:border-console-line px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+      className="rounded border border-console-line px-2 py-0.5 text-xs text-zinc-400 hover:bg-console-inset hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
     >
       Copier
     </button>
@@ -52,7 +54,7 @@ export function ExplorerRow({
   return (
     <div className="border-b border-zinc-950/5 dark:border-console-line-soft px-4 py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-zinc-950 dark:text-white">{endpoint.method}</span>
+        <span className={clsx(surfaceInset, 'px-1.5 py-0.5 font-mono text-xs text-white')}>{endpoint.method}</span>
         <span className="font-mono text-xs break-all text-zinc-950 dark:text-white">{endpoint.path}</span>
         <span className="text-xs text-zinc-500 dark:text-zinc-400">{endpoint.category}</span>
         <span className="text-xs text-zinc-500 dark:text-zinc-400">· {authLabel}</span>
@@ -65,7 +67,7 @@ export function ExplorerRow({
             <button
               type="submit"
               disabled={pending}
-              className="rounded border border-zinc-950/10 dark:border-console-line px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+              className="rounded border border-console-line px-2 py-1 text-xs text-zinc-400 hover:bg-console-inset hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
             >
               {pending ? 'Appel…' : 'Exécuter'}
             </button>
@@ -95,7 +97,7 @@ export function ExplorerRow({
 
       <details className="mt-2">
         <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (jeton masqué)</summary>
-        <pre className="mt-1 overflow-x-auto rounded bg-zinc-50/80 dark:bg-console-inset p-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{curl}</pre>
+        <pre className={clsx(surfaceInset, 'mt-1 overflow-x-auto p-2 font-mono text-xs text-zinc-400')}>{curl}</pre>
       </details>
 
       {isKeeper ? (
