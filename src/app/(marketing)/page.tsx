@@ -1,3 +1,4 @@
+import { Pin3dDemo } from '@/components/marketing/3d-pin-demo'
 import { AppStoreDemo } from '@/components/marketing/app-store-demo'
 import { HeritageScrollDemo } from '@/components/marketing/heritage-scroll-demo'
 import { BackgroundRippleBand } from '@/components/marketing/background-ripple-band'
@@ -15,6 +16,7 @@ export default function HomePage() {
       <HeritageScrollDemo />
       <GridBackgroundDemo />
       <AppStoreDemo />
+      <Pin3dDemo />
       <BentoGridExampleThreeStart />
       <BackgroundRippleBand />
       <BentoGridExampleThreeEnd />
