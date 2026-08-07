@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { HEARST_CONNECT_LOCKUP_SRC, HEARST_H_SRC } from '@/lib/brand'
 
 /** Glyphe H Hearst (monogramme officiel) — hérite de `currentColor`. */
 export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
@@ -20,7 +19,7 @@ export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsW
 
 /**
  * Lockup React — H mint + wordmark (hérite de la couleur du texte pour le nom).
- * Préférer ça en UI ; l’asset SVG public est pour export / img.
+ * Assets SVG publics : `HEARST_H_SRC` / `HEARST_CONNECT_LOCKUP_SRC` dans `lib/brand.ts`.
  */
 export function Logo({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'span'>>) {
   return (
@@ -28,27 +27,5 @@ export function Logo({ className, ...props }: Readonly<React.ComponentPropsWitho
       <LogoMark className="size-8 text-accent-300" />
       <span className="text-base font-semibold tracking-tight whitespace-nowrap">Hearst Connect</span>
     </span>
-  )
-}
-
-/** Image publique du monogramme (`public/brand/hearst-h.svg`). */
-export function HearstHImage({
-  className,
-  alt = '',
-}: Readonly<{ className?: string; alt?: string }>) {
-  return <img src={HEARST_H_SRC} alt={alt} className={clsx(className, 'shrink-0')} />
-}
-
-/** Image publique du lockup (`public/brand/hearst-connect.svg`) — fond sombre. */
-export function HearstConnectLockupImage({
-  className,
-  alt = 'Hearst Connect',
-}: Readonly<{ className?: string; alt?: string }>) {
-  return (
-    <img
-      src={HEARST_CONNECT_LOCKUP_SRC}
-      alt={alt}
-      className={clsx(className, 'shrink-0')}
-    />
   )
 }
