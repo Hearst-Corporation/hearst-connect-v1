@@ -1,17 +1,21 @@
 /**
- * Surface grammar — boxes tokenisées.
+ * Surface grammar — boxes tokenisées + menu verre.
  *
- * Les cartes KPI / DashCard / StatCard passent par `--color-console-card`
- * (noir). Le chrome page reste graphite (`console-shell` / zinc). Aucun hex
- * dans les composants : uniquement les classes token.
+ * - Boxes KPI : `--color-console-card` (noir opaque)
+ * - Menu / rail : `--color-console-glass` + blur (effet verre)
+ * - Sélection parcours : `--color-accent-soft` (voile mint) — pas le menu
  */
 
 /** Box surface — noir tokenisé + filet console. */
 export const surfaceBox =
   'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line'
 
-/** Menu / rail — même noir deep que les boxes. */
-export const surfaceNav = 'bg-console-card'
+/**
+ * Menu / rail — effet verre (frosted), pas un aplat noir ni un voile mint.
+ * `backdrop-blur` + fond glass tokenisé.
+ */
+export const surfaceNav =
+  'bg-console-glass backdrop-blur-xl backdrop-saturate-150 ring-1 ring-console-line-soft'
 
 /** Alias historique — même matière que `surfaceBox` (produit dark-only). */
 export const surfaceRaised = surfaceBox
