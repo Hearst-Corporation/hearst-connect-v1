@@ -1,6 +1,7 @@
 'use client'
 
 import { surfaceNav } from '@/components/admin/surface'
+import { CONSOLE_GLOW_SRC, consoleGlowLayer } from '@/lib/brand'
 import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import React, { useState } from 'react'
@@ -33,7 +34,7 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
         transition
         className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
       >
-      <div className={clsx('flex h-full flex-col rounded-lg', surfaceNav)}>
+        <div className={clsx('flex h-full flex-col rounded-lg', surfaceNav)}>
           <div className="-mb-3 px-4 pt-3">
             <Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
               <CloseMenuIcon />
@@ -54,17 +55,22 @@ export function SidebarLayout({
   let [showSidebar, setShowSidebar] = useState(false)
 
   return (
-    <div className="relative isolate flex min-h-svh w-full bg-console-app max-lg:flex-col">
-      {/* Sidebar on desktop — effet verre (même famille que les boxes). */}
-      <div className={clsx('fixed inset-y-0 left-0 w-64 max-lg:hidden', surfaceNav)}>{sidebar}</div>
+    <div className="relative isolate flex min-h-svh w-full max-lg:flex-col">
+      {/* Glow lumineux — sous les faces vitrées (boxes + menu). */}
+      <div
+        aria-hidden="true"
+        className={consoleGlowLayer}
+        style={{ backgroundImage: `url('${CONSOLE_GLOW_SRC}')` }}
+      />
 
-      {/* Sidebar on mobile */}
+      {/* Sidebar on desktop — effet verre. */}
+      <div className={clsx('fixed inset-y-0 left-0 z-10 w-64 max-lg:hidden', surfaceNav)}>{sidebar}</div>
+
       <MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
         {sidebar}
       </MobileSidebar>
 
-      {/* Navbar on mobile */}
-      <header className="flex items-center px-4 lg:hidden">
+      <header className="relative z-10 flex items-center px-4 lg:hidden">
         <div className="py-2.5">
           <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
             <OpenMenuIcon />
@@ -73,9 +79,8 @@ export function SidebarLayout({
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
-      {/* Content — plaque transparente : le verre des boxes (et un futur PNG
-          lumineux sous le shell) doit transparaître. Pas de zinc opaque. */}
-      <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
+      {/* Content — plaque transparente pour laisser passer le glow. */}
+      <main className="relative z-10 flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
         <div className="grow p-6 lg:rounded-lg lg:p-10">
           <div className="w-full min-w-0">{children}</div>
         </div>
