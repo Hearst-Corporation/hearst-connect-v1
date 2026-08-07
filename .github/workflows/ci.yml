@@ -12,7 +12,7 @@ jobs:
   # lance pas `check:mocks` ; ce job repo-local le fait, quel que soit l'état
   # de la gate d'organisation. Exiger « truthful-data » en required check dans
   # les règles de branche est une action GitHub externe (OPS-04,
-  # BLOCKED_EXTERNAL — voir docs/remediation).
+  # BLOCKED_EXTERNAL — action GitHub hors repo).
   truthful-data:
     name: truthful-data
     runs-on: ubuntu-latest

@@ -1,264 +1,95 @@
 # Hearst Connect
 
-Front Next.js — vitrine marketing, écran de connexion, console d'administration.
-Interface bâtie sur le kit officiel Tailwind Plus
-[Catalyst](https://tailwindcss.com/plus/ui-kit) pour les primitives interactives, et sur
-les UI Blocks Marketing pour la vitrine.
+Front Next.js — vitrine marketing, connexion, console d'administration.
+UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  hearst-connect-v1 (CE REPO)                                    │
-│  Front Next.js · Vercel projet hearst-connect-v1                │
-│  HEARST_API_URL ───────────────────────────────┐                │
-└────────────────────────────────────────────────│────────────────┘
-                                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  hearst-connect-backend (GitHub, repo séparé)                   │
-│  Hearst-Corporation/hearst-connect-backend · branche main       │
-│  Runtime prod : Railway hearst-connect-backend-production       │
-│  Déploiement : push main → Railway (auto)                       │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-| Composant | Cible canonique |
+| Couche | Cible |
 |---|---|
-| Front (ce repo) | Vercel **`hearst-connect-v1`** — jamais `hearst-connect` / `app.hearst.app` |
-| Code backend | GitHub **`Hearst-Corporation/hearst-connect-backend`** |
-| API prod (`HEARST_API_URL`) | **`https://hearst-connect-backend-production.up.railway.app`** |
-| Déploiement backend | Push **`main`** sur GitHub → Railway |
+| **Ce repo** | Vercel **`hearst-connect-v1`** — jamais `hearst-connect` / `app.hearst.app` |
+| **Backend** | GitHub `Hearst-Corporation/hearst-connect-backend` (`main`) |
+| **API prod** | `https://hearst-connect-backend-production.up.railway.app` via `HEARST_API_URL` |
+| **Déploiement back** | Push `main` → Railway |
 
-### Règle absolue — GPU1 interdit
-
-**Ne jamais toucher GPU1** pour Hearst Connect : pas de SSH, pas de `connect-api.hearst.app`,
-pas de workflow `deploy.yml` GPU1, pas de `deploy-gpu1.sh`. GPU1 n'est pas le runtime de
-ce produit. Panne backend → Railway + GitHub uniquement.
-
-Agents : `.cursor/rules/30-no-gpu1.mdc` · humains : `CLAUDE.md` § Architecture.
-
-## Pile
-
-| | |
-|---|---|
-| Framework | Next.js 16 (App Router, React 19, Turbopack) |
-| Langage | TypeScript strict |
-| Gestionnaire de paquets | **pnpm** — voir « Piège » ci-dessous |
-| Styles | Tailwind CSS v4 (`@theme` dans `src/styles/tailwind.css`) |
-| UI | Catalyst UI Kit officiel (`src/components/catalyst/`, vendoré tel quel) |
-| Vitrine | Tailwind Plus UI Blocks officiels, portés en TS (`src/components/marketing/`) |
-| Dataviz | Frontière `src/components/charts/` — **richart** (Recharts) ; plus de MUI Charts |
-| Session | Cookie httpOnly **chiffré AES-256-GCM** (`src/lib/session.ts`), sans dépendance externe |
+**GPU1 interdit** pour ce produit (pas de SSH, pas de `connect-api.hearst.app`). Détail : `.cursor/rules/30-no-gpu1.mdc`, `CLAUDE.md`.
 
 ## Démarrer
 
-> **Piège — ce dépôt est pnpm-only.** La CI Hearst échoue le job « gate » si un
-> `package-lock.json` apparaît. Ne jamais lancer `npm install` ici.
-
 ```bash
-cp .env.example .env.local          # puis remplir (voir plus bas)
+cp .env.example .env.local
 pnpm install --frozen-lockfile
-pnpm dev                            # http://localhost:4105
+pnpm dev                    # http://localhost:4105
 ```
 
-### Variables d'environnement
+Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Jamais de `NEXT_PUBLIC_*` pour les secrets.
 
-Six clés, celles de `.env.example` et pas une de plus. Toutes sont lues par la porte
-unique `src/lib/env.ts` (`import 'server-only'`, validation fail-closed) ; aucune n'est
-préfixée `NEXT_PUBLIC_`, donc aucune ne sort du serveur.
+## Console admin — état de référence (2026-08-07)
 
-| Variable | Rôle |
-|---|---|
-| `AUTH_SECRET` | Protection du cookie de session (32 caractères minimum — `openssl rand -hex 32`) |
-| `HEARST_API_URL` | Base du backend Hearst Connect sur **Railway** — autorité d'authentification (jamais GPU1 / `connect-api.hearst.app`) |
-| `ADRIEN_OWNER_EMAIL` | Adresse du compte propriétaire |
-| `ADRIEN_OWNER_PASSWORD` | Mot de passe du compte propriétaire |
-| `DEV_QUICK_LOGIN_EMAIL` | Connexion rapide, **développement local uniquement** |
-| `DEV_QUICK_LOGIN_PASSWORD` | Connexion rapide, **développement local uniquement** |
+**Style cible** : le dashboard **Pilotage des souscriptions** (`/admin/dashboard`, commit `899833c`).
+Les autres pages admin seront alignées **une par une** sur ce modèle (Catalyst + compositions + thème clair/sombre).
 
-Aucun secret n'est écrit dans le code. `.env.local` est gitignoré ; la production utilise
-les variables du projet Vercel `hearst-connect-v1`.
+| Route | Rôle | Référence code |
+|---|---|---|
+| `/admin/dashboard` | **Référence UI** — stepper parcours, « À traiter », KPI, charts | `src/app/admin/dashboard/page.tsx`, `src/components/admin/dashboard/` |
+| `/admin` | Cockpit patrimoine (TVL, dérive, file à décider) | `src/features/admin-home/admin-home-dashboard.tsx` |
+| `/admin/produit` | Surface produit consolidée | à rapprocher du dashboard |
+| `/admin/vaults`, `/admin/clients`, … | Pages métier | à rapprocher du dashboard |
+
+**Navigation** (`src/lib/admin-nav.ts`) : sidebar **Cockpit · Coffres · Clients · Conformité · Opérations** ; sous-menu **Portfolio** (Journal Série 1 · Pilotage des souscriptions).
+
+**Frontière d'actions** réutilisable : `src/components/actions/` (boutons Catalyst + états disabled/loading).
+
+Ouvrir le dashboard en local (Chrome connecté, thème sombre) :
+
+```bash
+E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
+```
 
 ## Structure
 
 ```
 src/
-├── app/
-│   ├── layout.tsx              racine — polices Hearst, métadonnées, thème
-│   ├── (marketing)/            vitrine publique
-│   ├── (auth)/                 connexion (AuthLayout Catalyst)
-│   ├── admin/                  console protégée — shell Catalyst SidebarLayout
-│   └── espace/                 espace investisseur (ConsoleShell legacy)
+├── app/admin/                  routes console
 ├── components/
-│   ├── catalyst/               kit officiel, non modifié sauf link.tsx Next (cf. VENDOR.md)
-│   ├── marketing/              blocs vitrine Tailwind Plus
-│   ├── admin/                  shell console (`application-layout`), helpers de page
-│   ├── vaults/                 tables et cartes du registre de coffres
-│   ├── charts/                 frontière dataviz — richart (Recharts) + cartesian
-│   ├── compositions/           blocs UI (`CockpitPage`, widgets, `StatGrid`…)
-│   └── layout/                 shell espace (`console-shell`, hors rebuild console)
-├── features/
-│   └── admin-home/             cockpit d’accueil console (KPI + charts + jauges)
-├── lib/
-│   ├── backend/                callBackend, registre d'endpoints, keeper, sondes
-│   ├── vaults/                 modèle métier (Availability), registre, agrégats
-│   ├── env.ts                  porte unique des variables serveur
-│   ├── session.ts              cookie de session chiffré
-│   ├── format.ts               formatage centralisé (nombres, %, devises, dates)
-│   └── fonts.ts                Satoshi Variable (une seule famille)
-└── styles/tailwind.css         tokens `@theme` — surfaces, accent, états sémantiques
+│   ├── catalyst/               kit officiel (non modifié sauf link Next)
+│   ├── admin/dashboard/        blocs du dashboard référence
+│   ├── actions/                boutons d'action partagés
+│   ├── charts/                 richart + cartesian
+│   └── compositions/           widgets, grilles, CockpitPage…
+├── features/admin-home/        cockpit /admin
+└── lib/
+    ├── backend/                callBackend, endpoints
+    └── vaults/                 Availability, registry, pilotage, cockpit
 ```
 
-## Console d'administration
+## Données
 
-Navigation principale (`src/lib/admin-nav.ts`) :
-**Cockpit · Coffres · Clients · Conformité · Opérations** dans la sidebar gauche,
-plus les hubs **Journal Série 1 · Produit · Service**. Sous-menus horizontaux :
-**Portfolio** (Journal Série 1 · Pilotage des souscriptions). La couverture des
-données vit dans `/admin/runtime` (même écran que les sondes).
-
-Surface produit canonique : **`/admin/produit`** (fusion mining, btc, fiche produit,
-backtests). Les anciennes routes (`/admin/product`, `/admin/mining`, etc.) redirigent.
-Keeper et Explorateur d’API restent accessibles depuis `/admin/runtime`, hors menu.
-
-Le shell console est le **Catalyst SidebarLayout**
-(`src/components/admin/application-layout.tsx`) : rail, navbar mobile et compte
-utilisateur. **Toutes les pages `/admin/**` sont en Catalyst pur**
-(`Heading`, `DescriptionList`, `Table`, `Badge`, `Text`) — plus de corps
-`LegacyAdminBody` / green command center sur la console. L’accueil `/admin`
-est le **cockpit patrimoine décisionnel** (`AdminHomeDashboard` : dérive,
-capital mal-alloué, file « à décider », flux net, TVL — dérivations dans
-`src/lib/vaults/cockpit.ts`). `/admin/dashboard` est le **pilotage des
-souscriptions** (funnel, file KYC/déploiements, charts ; accent mint Hearst ;
-badges techniques uniquement dans « État des sources ») — surface distincte,
-même `AdminRegistry`, sans recouvrement avec le cockpit. Les endpoints et
-`callBackend` restent inchangés.
-
-- `/admin/vault` redirige vers `/admin/vaults` : le registre d'endpoints la nomme comme
-  `surface` de plusieurs routes backend, la redirection évite d'en faire des 404.
-- **33 endpoints** enregistrés dans `src/lib/backend/endpoints.ts` — source unique de vérité (dont `/clients`, `/deployments`, `/compliance`, `/events/rebalancing`, trigger indexeur et création de compte admin).
-- `/admin/client-simulator/new` — formulaire POST `/api/v1/admin/users` (création de compte simulé, fail-closed CONFIRM).
-- Langue produit : **français** (migration HC-CONSOLE-FR-001), gardée par
-  `tests/language-regression.test.ts`.
-- Lecture LIVE : badge vert **« En direct »** via `AdminReading` / `Reading` +
-  `signalOf` (provenance backend réelle, jamais une valeur éditoriale).
-
-Point de reprise Git : commit `834bbf8` sur **`main`** (cockpit + nav consolidée).
-Branche de travail courante : **`main`** uniquement.
-
-Revues visuelles : `docs/visual-reviews/`.
-Passation agent : `docs/PASSATION-AGENT.md`.
-
-## Ce qui est réel, ce qui ne l'est pas
-
-Le socle d'authentification est réel : le backend Hearst est l'autorité, la session est
-un cookie httpOnly chiffré, `/admin` est gardé côté serveur.
-
-Les **données métier admin** proviennent du backend via `callBackend`. Une absence de
-source reste une absence : état nommé (`unavailable`, « Indisponible », « Source
-attendue »), jamais un zéro ni un exemple fictif. Cette garantie est vérifiée en CI par
-`pnpm check:mocks` (job `truthful-data`), qui interdit notamment `Math.random()`, les
-jeux de démonstration et la coalescence `?? 0`.
-
-Organisations, dossiers KYC et files d’approbation : lus via `GET /api/v1/clients`,
-`/deployments` et `/compliance` (admin). Une réponse `LIVE` avec liste vide reste vide —
-jamais un compteur inventé. Les lectures on-chain (vault, mining, btc…) restent
-`UNAVAILABLE` tant que le RPC / indexeur ne lit pas.
+Aucune donnée inventée : `Availability<T>`, gates `check:mocks` et `check:truthful-data`.
+33 endpoints dans `src/lib/backend/endpoints.ts`. Spec mapping : `docs/ENDPOINT-MAPPING.md`.
 
 ## Commandes
 
 ```bash
-pnpm dev                 # développement (port 4105)
-pnpm exec next build     # build de production (hors gate ; déploiement Vercel)
-pnpm check               # gate canonique, en série (voir ci-dessous)
+pnpm check               # gate canonique (typecheck → lint → checks → test)
 pnpm test                # vitest
-pnpm e2e                 # Playwright — exige un backend joignable et .env.local
+pnpm e2e                 # Playwright (access-control, audit-closure, veracity)
+pnpm exec next build     # build prod (hors gate)
 ```
 
-`pnpm check` enchaîne, dans l'ordre et en s'arrêtant au premier rouge :
-
-| Étape | Ce qu'elle garantit |
-|---|---|
-| `typecheck` | `tsc --noEmit` — TypeScript strict |
-| `lint` | `eslint` (`src/components/catalyst/**` volontairement ignoré) |
-| `check:no-gpu1` | aucune référence GPU1 / connect-api comme backend dans le code et la config |
-| `check:mocks` | aucune donnée simulée dans le runtime (7 règles) |
-| `check:truthful-data` | aucun faux live, seuil hardcodé ni `stale:false` forcé dans le runtime |
-| `check:ds` | aucune couleur hexadécimale hors token dans les routes et modules |
-| `check:ui` | frontières UI (compositions, charts, Catalyst) |
-| `test` | `vitest run` |
-
-Outils de diagnostic, **non bloquants et hors gate** :
-
-```bash
-pnpm quality:dead        # knip — code potentiellement mort (indices, pas verdicts)
-pnpm quality:dup         # duplication : exit 1 au-dessus du seuil (4 %, cf. scripts/check-duplication.mjs)
-pnpm quality:dup:report  # le détail clone par clone
-pnpm lint:fast           # oxlint, passe rapide complémentaire d'eslint
-```
-
-`quality:dup` **échoue réellement** au-dessus de son seuil ; sa propre preuve est
-`node scripts/check-duplication.mjs --selftest`. Quand il rougit, la réponse est
-de retirer la duplication, pas de monter le seuil.
-
-Analyse SonarQube (facultative, hors CI) :
-
-```bash
-SONAR_TOKEN=… SONAR_HOST_URL=https://… pnpm sonar
-```
-
-Les deux variables sont obligatoires — aucune adresse de serveur n'est codée en
-dur — et Docker est requis (le scanner est distribué en image). Chaque prérequis
-manquant produit un message qui nomme ce qui manque.
+`PROD_AUTODEPLOY: false` — déploiement Vercel prod manuel : `vercel --prod` (projet `hearst-connect-v1`).
 
 ## Design system
 
-La source normative des tokens est `src/styles/tailwind.css` (`@theme`).
-
-- **Accent** : un seul vert, la teinte Hearst mint, décliné en rampe
-  `--color-accent-50 … --color-accent-950`. La console `/admin` (Catalyst) consomme
-  les tokens globaux ; `.cockpit-theme` ne s'applique qu'à `/espace` (ConsoleShell
-  legacy).
-- **Surfaces** (espace legacy, sombre) : `--color-console-app` < `--color-console-shell` <
-  `--color-console-card` < `--color-console-card-top`, plus `--color-console-inset`
-  pour l'enfoncé.
-- **États sémantiques** : `--color-success-*`, `--color-warning-*`, `--color-danger-*`,
-  `--color-info-*` — distincts de l'accent. La couleur ne porte jamais seule un statut :
-  chaque état porte aussi un libellé.
-- **Polices** : **Satoshi Variable** seule (`src/assets/fonts/`) — interface, titres, mono.
-- **Charts** : tokens `--chart-*` (séries et statuts), consommés via `src/lib/chart-theme.ts`.
-
-`pnpm check:ds` interdit tout hexadécimal brut hors `var(--token, #repli)` dans les
-routes et modules métier, ce qui empêche la réintroduction d'une couleur littérale.
-
-Catalyst (`src/components/catalyst/`) : kit officiel **non modifié**. Avant de créer une
-primitive générique, consulter `src/components/catalyst/VENDOR.md`.
-
-## Remédiation audit données (2026-08)
-
-Fermeture des lots 1–4 de `docs/audits/AUDIT-ENDPOINTS-DATA-DISPLAY-001/REVIEW.md` :
-
-| Lot | Périmètre | État |
-|---|---|---|
-| 1 | Compteurs honnêtes (F-05), `STALLED` runtime (F-01), type `Runtime` partagé | ✅ |
-| 2 | `meta.status` dashboard (F-02), ratio déploiement 0/0 (F-08) | ✅ |
-| 3 | Parcours e2e layout/focus (`e2e/audit-closure.spec.ts`) | ✅ |
-| 4 | Surfaces registre coffres (F-10), réconciliation mining (F-07) | ✅ |
-| — | `strategy-detail` câblé sur `/admin/vaults/[vaultId]` (F-04) | ✅ |
-
-Validation : `pnpm check` · e2e : `pnpm e2e e2e/audit-closure.spec.ts`
+Tokens dans `src/styles/tailwind.css` (`@theme`). Accent mint Hearst (`--color-accent-*`).
+Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation
 
-| Document | Rôle |
+| Fichier | Rôle |
 |---|---|
-| `CLAUDE.md` | Contrat de travail sur ce dépôt (stack, gates, secrets, pièges, architecture) |
-| `docs/ENDPOINT-MAPPING.md` | **Spec backend** → matrice de conformité front (ne contredit pas le contrat back) |
-| `docs/PASSATION-AGENT.md` | État opérationnel pour le prochain agent (GPU1 interdit, Railway, main) |
-| `docs/PASSATION-LOOP-NOTE.md` | Checklist loop cohérence surfaces / chiffres ×5 |
-| `.cursor/rules/30-no-gpu1.mdc` | **Règle absolue** — GPU1 interdit ; backend = GitHub + Railway |
-| `docs/design-system/HEARST-CONNECT-V1-DESIGN-SYSTEM-DOCTRINE.md` | Doctrine Design System |
-| `docs/design-system/DESIGN-SYSTEM-NOTES.md` | État vérifié du design system encodé dans le dépôt |
-| `docs/design-system/CONSOLE-FR-GLOSSARY.md` | Glossaire de la langue produit |
-| `docs/remediation/` | Suivi de la remédiation d'audit (historique) |
-| `docs/audits/` | Audits de propreté et plans de nettoyage |
+| `CLAUDE.md` | Contrat agent (gates, secrets, pièges) |
+| `docs/ENDPOINT-MAPPING.md` | Contrat backend → front |
+| `docs/PASSATION-AGENT.md` | Reprise opérationnelle (Railway, Vercel, priorités) |
+
+Point de reprise : **`main`** @ `899833c`.

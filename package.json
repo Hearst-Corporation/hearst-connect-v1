@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
+    "dashboard:open": "node scripts/open-dashboard-chrome.mjs",
     "sonar": "node scripts/sonar.mjs",
     "check:mocks": "node scripts/check-no-mocks.mjs",
     "check:truthful-data": "node scripts/check-truthful-data.mjs",
