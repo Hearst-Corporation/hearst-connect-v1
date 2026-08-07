@@ -28,14 +28,6 @@ export function AdminSectionTitle({
   return <Tag className={clsx(adminTypography.sectionTitle, className)}>{children}</Tag>
 }
 
-export function AdminSurfaceTitle({
-  children,
-  className,
-  as: Tag = 'h3',
-}: TypoProps & { as?: 'h3' | 'h4' | 'p' | 'dt' }) {
-  return <Tag className={clsx(adminTypography.surfaceTitle, className)}>{children}</Tag>
-}
-
 export function AdminBody({ children, className }: TypoProps) {
   return <p className={clsx(adminTypography.body, className)}>{children}</p>
 }

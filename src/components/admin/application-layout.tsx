@@ -22,6 +22,7 @@ import {
   SidebarSpacer,
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
+import { AdminBodyNav } from '@/components/admin/body-nav'
 import { Logo } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {
@@ -168,6 +169,7 @@ export function AdminApplicationLayout({
         </Sidebar>
       }
     >
+      <AdminBodyNav />
       {children}
     </SidebarLayout>
   )
