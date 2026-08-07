@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   },
   description:
     'Hearst Connect fédère les identités, les autorisations et les journaux d’accès des espaces de travail de Hearst Corporation.',
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
