@@ -1,12 +1,16 @@
 'use client'
 
 import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
  * richart — activité par période (barres verticales).
+ *
+ * Reconstruit avec Recharts en dimensions PX mesurées (ResizeObserver) —
+ * jamais `ResponsiveContainer` % dans un flex (wrapper 0×0).
  *
  * Barres, jamais une ligne : chaque point est un compte / montant fermé pour
  * un bucket. Une ligne inventerait une pente entre deux buckets non mesurés.
@@ -26,6 +30,12 @@ export function HearstActivityChart({
   color = SERIE,
 }: Readonly<{ points: readonly PointActivite[]; unite: string; color?: string }>) {
   const height = chartHeight('columns', Math.max(points.length, 1))
+  const { ref, width } = useChartWidth()
+  const data = points.map((p) => ({
+    label: p.label,
+    value: p.value,
+    detail: p.detail,
+  }))
 
   return (
     <div className="px-5 pb-5 sm:px-6">
@@ -49,9 +59,15 @@ export function HearstActivityChart({
         </table>
       </div>
 
-      <div aria-hidden="true" className="w-full" style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={[...points]} margin={{ ...chartTheme.margin, right: 12, left: -8 }}>
+      <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height }}>
+        {width > 0 ? (
+          <BarChart
+            width={width}
+            height={height}
+            data={data}
+            margin={{ ...chartTheme.margin, right: 12, left: 0 }}
+            barCategoryGap="28%"
+          >
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
@@ -63,25 +79,32 @@ export function HearstActivityChart({
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
+              interval={0}
             />
             <YAxis
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
-              width={48}
+              width={40}
+              allowDecimals={false}
               tickFormatter={(v: number) => formatNumber(v, { maximumFractionDigits: 0 })}
             />
-            <Tooltip content={<RichTooltip unit={unite} />} cursor={{ fill: chartTheme.cursor }} />
+            <Tooltip
+              content={<RichTooltip unit={unite} />}
+              cursor={{ fill: chartTheme.cursor }}
+              // Recharts lit `label` / `detail` via le payload — on expose la
+              // période lisible via le label X (dataKey label).
+            />
             <Bar
               dataKey="value"
               name={unite}
               fill={color}
-              radius={[3, 3, 0, 0]}
-              maxBarSize={48}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={56}
               isAnimationActive={false}
             />
           </BarChart>
-        </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   )
