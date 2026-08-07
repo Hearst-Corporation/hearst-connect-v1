@@ -24,13 +24,14 @@ describe('design system surfaces — canon dashboard', () => {
     expect(panel).toContain('backdrop-filter')
   })
 
-  it('KPI / DashCard / AdminMetric consomment surfaceBox', () => {
-    const kpi = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/kpi-grid.tsx'), 'utf8')
+  it('KPI / DashCard / AdminMetric consomment surfaceBox (header KPI = metrics, pas boxes)', () => {
     const shell = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/shell.tsx'), 'utf8')
     const surfaces = readFileSync(join(process.cwd(), 'src/components/admin/surfaces.tsx'), 'utf8')
-    expect(kpi).toContain('surfaceBox')
+    const header = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/header.tsx'), 'utf8')
     expect(shell).toContain('surfaceBox')
     expect(surfaces).toContain('surfaceBox')
+    expect(header).toContain('DashboardKpiMetrics')
+    expect(header).not.toContain('surfaceBox')
   })
 
   it('parcours : sélection = accent-soft / surfaceSelect', () => {
