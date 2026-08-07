@@ -34,6 +34,7 @@ describe('design system surfaces — canon dashboard', () => {
     expect(header).toContain('AdminPageHeader')
     expect(pageHeader).toContain('data-dashboard-kpi-bandeau')
     expect(pageHeader).toContain('LogoMark')
+    expect(pageHeader).toContain('AdminHeroKpiMetrics')
   })
 
   it('sidebar admin : lockup officiel Illustrator', () => {

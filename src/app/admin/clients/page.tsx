@@ -55,7 +55,7 @@ export default async function Page() {
 
   // KPI dérivés de l'Availability réelle — jamais de valeur inventée, jamais de ?? 0.
   const complianceDirectory = mapAvailability(registry.compliance, (rows) =>
-    rows.length === 0 ? 'File vide' : `${rows.length} dossier(s)`,
+    rows.length === 0 ? 'File vide' : formatNumber(rows.length),
   )
   const clientExceptionCount = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
   const clientCount = measuredCount(registry.clients)
