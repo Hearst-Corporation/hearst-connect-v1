@@ -10,10 +10,10 @@
   --csl-bg: #000;
   --csl-shell: #050506;
   --csl-workspace: #020203;
-  --csl-panel-top: #2b2c33;
-  --csl-panel-mid: #111217;
-  --csl-panel-bottom: #030304;
-  --csl-panel-border: #141519;
+  --csl-panel-top: #0a0a0a;
+  --csl-panel-mid: #000000;
+  --csl-panel-bottom: #000000;
+  --csl-panel-border: rgba(255, 255, 255, 0.13);
   --csl-line: rgba(255, 255, 255, 0.075);
   --csl-text: #ffffff;
   --csl-secondary-text: #f2f2f2;
@@ -634,14 +634,9 @@
   --panel-fallback-border: rgba(9, 9, 11, 0.08);
 }
 :global(html.dark) {
-  --panel-fallback-bg: var(--color-zinc-900, #0b0e17);
-  --panel-fallback-border: rgba(255, 255, 255, 0.1);
-}
-@media (prefers-color-scheme: dark) {
-  :global(html:not(.light)) {
-    --panel-fallback-bg: var(--color-zinc-900, #18181b);
-    --panel-fallback-border: rgba(255, 255, 255, 0.1);
-  }
+  /* Boxes admin = noir tokenisé (console-card), pas zinc-900 graphite. */
+  --panel-fallback-bg: var(--color-console-card, #000000);
+  --panel-fallback-border: var(--color-console-line, rgba(255, 255, 255, 0.13));
 }
 
 /* The one panel material every surface shares. */

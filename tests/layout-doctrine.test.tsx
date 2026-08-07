@@ -223,19 +223,17 @@ describe('one brand palette', () => {
     expect(offenders, `these files still use a blue hue: ${offenders.join(', ')}`).toEqual([])
   })
 
-  it('declares the approved neutral-graphite surfaces, with cards lighter than the shell', () => {
+  it('declares black tokenised KPI boxes on a graphite shell', () => {
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     const token = (name: string): string | undefined =>
       new RegExp(`--color-console-${name}:\\s*([^;]+);`).exec(css)?.[1]?.trim()
 
     expect(token('app')).toBe('#101010')
     expect(token('shell')).toBe('#232323')
-    expect(token('card')).toBe('#2a2a2a')
-    expect(token('card-top')).toBe('#303030')
-    expect(token('inset')).toBe('#202020')
+    expect(token('card')).toBe('#000000')
+    expect(token('card-top')).toBe('#0a0a0a')
+    expect(token('inset')).toBe('#0a0a0a')
 
-    // Neutral means equal channels — any pair that differs is an undertone,
-    // and a blue undertone is what the approved direction rules out.
     for (const name of ['app', 'shell', 'card', 'card-top', 'inset']) {
       const hex = token(name) ?? ''
       const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
@@ -243,11 +241,15 @@ describe('one brand palette', () => {
       expect(g, `console-${name} is not neutral`).toBe(b)
     }
 
-    // A card sits FORWARD of the shell it rests on. That inversion is the
-    // legibility gain; flipping it back puts the console into recesses again.
+    // Boxes noires sur chrome graphite : shell > app ≥ card.
     const lum = (hex: string): number => parseInt(hex.slice(1, 3), 16)
-    expect(lum(token('card') ?? '#000')).toBeGreaterThan(lum(token('shell') ?? '#fff'))
     expect(lum(token('shell') ?? '#000')).toBeGreaterThan(lum(token('app') ?? '#fff'))
+    expect(lum(token('app') ?? '#000')).toBeGreaterThanOrEqual(lum(token('card') ?? '#fff'))
+  })
+
+  it('expose un voile mint de sélection (accent-soft)', () => {
+    const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
+    expect(css).toMatch(/--color-accent-soft:\s*rgba\(167,\s*251,\s*144,\s*0\.1\)/)
   })
 
   it('keeps the console accent on the approved brand mint', () => {
