@@ -45,7 +45,7 @@ export function DashboardKpiGrid({ items }: Readonly<{ items: readonly Dashboard
         return (
           <article
             key={kpi.id}
-            className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-800 dark:shadow-md dark:shadow-black/40 dark:ring-white/10"
+            className="rounded-xl bg-white p-5 shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10"
           >
             <div className="flex items-center gap-2.5">
               <span className="inline-flex size-8 items-center justify-center rounded-lg bg-accent-400/15 text-accent-700 dark:text-accent-400">

@@ -35,24 +35,18 @@
    * `--color-console-*`, les états sont success/warning/danger.
    */
 
-  /*
-   * Rampe zinc = GRAPHITE NEUTRE (canaux égaux, aucune sous-teinte). Les valeurs
-   * précédentes étaient la palette SLATE de Tailwind (#334155, #18183a, #0b0e17…),
-   * bleue — « le dark-blue cockpit rejeté par la review ». La rampe neutre
-   * approuvée vivait par erreur dans `.cockpit-theme` (mort) ; elle est ici,
-   * vivante. Lightness préservée par palier.
-   */
+  /* Rampe zinc = valeurs Catalyst / Tailwind par défaut (dark mode natif). */
   --color-zinc-50: #fafafa;
-  --color-zinc-100: #f4f4f4;
-  --color-zinc-200: #e6e6e6;
-  --color-zinc-300: #d4d4d4;
-  --color-zinc-400: #b2b2b2;
-  --color-zinc-500: #7f7f7f;
-  --color-zinc-600: #6e6e6e;
-  --color-zinc-700: #404040;
-  --color-zinc-800: #262626;
-  --color-zinc-900: #171717;
-  --color-zinc-950: #0a0a0a;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
 
   /*
    * Retirées le 2026-08-04 (LOT E) : la famille `--color-surface-*` (4 tokens),
