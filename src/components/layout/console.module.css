@@ -8,8 +8,8 @@
 .viewport {
   /* ── Palette (reference styles.css :root) ───────────────────────────────── */
   --csl-bg: #000;
-  --csl-shell: #050506;
-  --csl-workspace: #020203;
+  --csl-shell: transparent;
+  --csl-workspace: transparent;
   /* Faces vitrées — alignées sur --color-console-card (pas d’aplat noir). */
   --csl-panel-top: rgba(10, 10, 10, 0.55);
   --csl-panel-mid: rgba(0, 0, 0, 0.42);
@@ -94,7 +94,12 @@
   width: 100%;
   min-height: 100dvh;
   overflow-x: hidden;
-  background: var(--csl-bg);
+  background-color: var(--csl-bg);
+  background-image: url('/brand/console-glow.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--csl-text);
   /*
    * ── SATOSHI VARIABLE, la police du produit ────────────────────────────────
