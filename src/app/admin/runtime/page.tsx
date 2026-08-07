@@ -1,6 +1,8 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { surfaceInset } from '@/components/admin/surface'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
+import clsx from 'clsx'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -272,7 +274,7 @@ export default async function RuntimePage() {
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-zinc-500">Exécution (runtime)</h3>
             {runtime.ok ? (
-              <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
                 {jsonLisible(runtime.data)}
               </pre>
             ) : (
@@ -283,7 +285,7 @@ export default async function RuntimePage() {
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-zinc-500">Santé (health)</h3>
             {health.ok ? (
-              <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
                 {jsonLisible(health.data)}
               </pre>
             ) : (
@@ -294,7 +296,7 @@ export default async function RuntimePage() {
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-zinc-500">Prêt (ready)</h3>
             {ready.ok ? (
-              <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-4 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
                 {jsonLisible(ready.data)}
               </pre>
             ) : (

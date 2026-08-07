@@ -1,11 +1,13 @@
 'use client'
 
+import { surfaceInset } from '@/components/admin/surface'
 import { ProblemState, RequestMetadata } from '@/components/admin/truthful'
 import { Button } from '@/components/catalyst/button'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { Callout } from '@/components/compositions'
 import { createAdminUser, type CreateAdminUserOutcome } from '@/lib/backend/create-admin-user'
+import clsx from 'clsx'
 import { useActionState } from 'react'
 
 const INITIAL: CreateAdminUserOutcome = {
@@ -19,8 +21,10 @@ const INITIAL: CreateAdminUserOutcome = {
   createdEmail: null,
 }
 
-const FIELD_CLASS =
-  'mt-1 w-full rounded-lg bg-zinc-50 px-2 py-1.5 text-sm text-zinc-950 ring-1 ring-zinc-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 dark:bg-console-inset dark:text-white dark:ring-console-line'
+const FIELD_CLASS = clsx(
+  surfaceInset,
+  'mt-1 w-full px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
+)
 
 /**
  * Formulaire POST /api/v1/admin/users — fail-closed (CONFIRM requis).
@@ -115,7 +119,7 @@ export function CreateClientForm({
             </Text>
           ) : null}
           {state.detail ? (
-            <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-3 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+            <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-zinc-300')}>
               {state.detail}
             </pre>
           ) : null}
