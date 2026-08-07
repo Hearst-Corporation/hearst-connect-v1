@@ -1,23 +1,17 @@
-import { HearstIconAction, HearstPrimaryAction } from '@/components/actions'
+import { HearstPrimaryAction } from '@/components/actions'
 import {
   DashboardKpiMetrics,
   type DashboardKpi,
 } from '@/components/admin/dashboard/kpi-grid'
 import { Heading } from '@/components/catalyst/heading'
-import { Input, InputGroup } from '@/components/catalyst/input'
 import { Text } from '@/components/catalyst/text'
-import { LogoMark } from '@/components/logo'
 import { CONSOLE_GLOW_SRC } from '@/lib/brand'
-import {
-  BellIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  UserCircleIcon,
-} from '@heroicons/react/16/solid'
+import { PlusIcon } from '@heroicons/react/16/solid'
 
 /**
- * Header pilotage unifié — pattern Tailwind UI « profile header » :
- * bandeau · cercle logo · greeting + actions · KPI intégrés (plus de 4 boxes).
+ * Header pilotage :
+ * 1. Greeting au-dessus + un seul bouton à droite
+ * 2. Bandeau glow avec les 4 KPI dedans (pas de logo, pas de search/cloche)
  */
 export function DashboardHeader({
   userName,
@@ -26,73 +20,39 @@ export function DashboardHeader({
   const firstName = userName.trim().split(/\s+/)[0] || userName
 
   return (
-    <header data-dashboard="header">
-      {/* Bandeau — fond lumineux de marque. */}
-      <div className="overflow-hidden rounded-xl ring-1 ring-console-line-soft">
+    <header data-dashboard="header" className="flex flex-col gap-4">
+      {/* Au-dessus du bandeau */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Heading>Bonjour, {firstName}</Heading>
+          <Text className="mt-1">
+            Voici l’état des opérations de souscription aujourd’hui.
+          </Text>
+        </div>
+        <HearstPrimaryAction
+          icon={<PlusIcon />}
+          disabledReason="Création client non disponible côté backend"
+        >
+          Ajouter un client
+        </HearstPrimaryAction>
+      </div>
+
+      {/* Bandeau — glow + KPI à l’intérieur */}
+      <div
+        data-dashboard="kpi-bandeau"
+        className="relative overflow-hidden rounded-2xl ring-1 ring-white/10"
+      >
         <img
           alt=""
           src={CONSOLE_GLOW_SRC}
-          className="h-28 w-full object-cover lg:h-40"
+          className="absolute inset-0 size-full object-cover"
         />
-      </div>
-
-      <div className="px-1 sm:px-2">
-        {/* Cercle logo qui chevauche le bandeau + titre + actions. */}
-        <div className="-mt-12 sm:-mt-16 sm:flex sm:items-end sm:gap-5">
-          <div className="flex">
-            <span className="inline-flex size-24 items-center justify-center rounded-full bg-console-card ring-4 ring-console-app backdrop-blur-xl sm:size-32">
-              <LogoMark className="size-12 sm:size-16" />
-              <span className="sr-only">Hearst Connect</span>
-            </span>
-          </div>
-
-          <div className="mt-6 min-w-0 flex-1 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pb-1">
-            <div className="min-w-0">
-              <Heading className="truncate">Bonjour, {firstName}</Heading>
-              <Text className="mt-1">
-                Voici l’état des opérations de souscription aujourd’hui.
-              </Text>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-0 sm:shrink-0">
-              <div className="min-w-48 flex-1 sm:max-w-xs">
-                <InputGroup>
-                  <MagnifyingGlassIcon data-slot="icon" />
-                  <Input
-                    type="search"
-                    name="q"
-                    placeholder="Client, wallet, transaction…"
-                    disabled
-                    title="Recherche non branchée sur le backend"
-                    aria-label="Rechercher client, wallet ou transaction"
-                  />
-                </InputGroup>
-              </div>
-
-              <HearstIconAction
-                icon={<BellIcon />}
-                disabledReason="Notifications non exposées"
-                aria-label="Notifications"
-              />
-
-              <HearstIconAction
-                icon={<UserCircleIcon />}
-                href="/admin/profile"
-                aria-label="Votre compte"
-              />
-
-              <HearstPrimaryAction
-                icon={<PlusIcon />}
-                disabledReason="Création client non disponible côté backend"
-              >
-                Ajouter un client
-              </HearstPrimaryAction>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI — dans le même header, plus de rangée de boxes. */}
-        <div className="mt-6 border-t border-console-line pt-6">
+        {/* Voile léger pour lisibilité, laisse passer le mint */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
+        />
+        <div className="relative z-10 p-5 sm:p-6">
           <DashboardKpiMetrics items={kpis} />
         </div>
       </div>

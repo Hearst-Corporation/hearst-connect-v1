@@ -24,14 +24,15 @@ describe('design system surfaces — canon dashboard', () => {
     expect(panel).toContain('backdrop-filter')
   })
 
-  it('KPI / DashCard / AdminMetric consomment surfaceBox (header KPI = metrics, pas boxes)', () => {
+  it('KPI / DashCard / AdminMetric — boxes DashCard ; KPI = bandeau header', () => {
     const shell = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/shell.tsx'), 'utf8')
     const surfaces = readFileSync(join(process.cwd(), 'src/components/admin/surfaces.tsx'), 'utf8')
     const header = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/header.tsx'), 'utf8')
     expect(shell).toContain('surfaceBox')
     expect(surfaces).toContain('surfaceBox')
     expect(header).toContain('DashboardKpiMetrics')
-    expect(header).not.toContain('surfaceBox')
+    expect(header).toContain('kpi-bandeau')
+    expect(header).not.toContain('LogoMark')
   })
 
   it('parcours : sélection = accent-soft / surfaceSelect', () => {
@@ -50,7 +51,7 @@ describe('design system surfaces — canon dashboard', () => {
     )
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     expect(layout).toContain('surfaceNav')
-    expect(css).toMatch(/--color-console-glass:\s*rgba\(0,\s*0,\s*0,\s*0\.52\)/)
+    expect(css).toMatch(/--color-console-glass:\s*rgba\(0,\s*0,\s*0,\s*0\.4\)/)
   })
 
   it('service pages : pre / wells passent par surfaceInset', () => {
