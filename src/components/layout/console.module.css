@@ -348,28 +348,9 @@
    * du rail reste collé en haut et son pied en bas, comme avant. */
   position: relative;
   width: var(--csl-rail-w);
-  /*
-   * ── Le dégradé du rail est REDISTRIBUÉ, pas copié ─────────────────────────
-   * Le prototype déclare `#36373e 0%, #141519 19%, #24252b 55%, #17181c 100%`,
-   * calibré pour un rail de 68 px. Étiré sur toute la hauteur du viewport, ses
-   * arrêts s'espacent et le rail reste clair de haut en bas : mesuré au pixel à
-   * 900 px de haut, il finissait à #17181c quand les panneaux voisins
-   * descendaient à #08080a. Le rail paraissait donc PLUS CLAIR que les surfaces
-   * qu'il borde — défaut visible à l'œil, et confirmé au pixel.
-   *
-   * Les arrêts suivent désormais la même descente que `.panel` : lumière rasante
-   * sur les 4 premiers pour-cent, puis plongée vers le noir.
-   */
-  background: linear-gradient(
-    180deg,
-    #36373e 0%,
-    #24252b 4%,
-    #17181c 12%,
-    #101115 40%,
-    #08080a 75%,
-    #050506 100%
-  );
-  border-right: 1px solid #101116;
+  /* Noir deep — même token que les boxes / menu admin. */
+  background: var(--color-console-card, #000000);
+  border-right: 1px solid var(--color-console-line, rgba(255, 255, 255, 0.13));
   z-index: 3;
   overflow: hidden;
 }
