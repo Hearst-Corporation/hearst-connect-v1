@@ -59,14 +59,14 @@
    */
   --color-console-app: #101010;
   --color-console-shell: #232323;
-  /* Face vitrée des boxes — pas un aplat noir opaque. */
-  --color-console-card: rgba(0, 0, 0, 0.42);
-  --color-console-card-top: rgba(10, 10, 10, 0.55);
-  --color-console-inset: rgba(10, 10, 10, 0.55);
-  --color-console-section: rgba(0, 0, 0, 0.82);
+  /* Face vitrée des boxes — translucide pour laisser passer le glow. */
+  --color-console-card: rgba(0, 0, 0, 0.28);
+  --color-console-card-top: rgba(10, 10, 10, 0.38);
+  --color-console-inset: rgba(10, 10, 10, 0.4);
+  --color-console-section: rgba(0, 0, 0, 0.55);
 
-  /* Menu / rail — même famille verre, un peu plus dense. */
-  --color-console-glass: rgba(0, 0, 0, 0.52);
+  /* Menu / rail — verre un peu plus dense que les boxes. */
+  --color-console-glass: rgba(0, 0, 0, 0.4);
 
   /* Separators. Three weights, all pure white at low alpha — a tinted border
    * is the fastest way to smuggle a colour cast back into a neutral system. */
