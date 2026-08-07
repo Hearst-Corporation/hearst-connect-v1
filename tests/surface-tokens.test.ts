@@ -51,7 +51,9 @@ describe('design system surfaces — canon dashboard', () => {
     )
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     expect(layout).toContain('surfaceNav')
-    expect(css).toMatch(/--color-console-glass:\s*rgba\(0,\s*0,\s*0,\s*0\.4\)/)
+    expect(layout).toMatch(/z-30/)
+    expect(layout).toMatch(/lg:pl-64/)
+    expect(css).toMatch(/--color-console-glass:\s*rgba\(0,\s*0,\s*0,\s*0\.72\)/)
   })
 
   it('service pages : pre / wells passent par surfaceInset', () => {
