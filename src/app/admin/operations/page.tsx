@@ -3,7 +3,7 @@ import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/componen
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
-import { CockpitPage, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { availabilityFromResolu } from '@/lib/backend/availability'
 import { callBackend, type BackendResult } from '@/lib/backend/client'
@@ -172,7 +172,7 @@ function onChainReading(rebalancing: BackendResult<RebalancingStatus>): string {
 }
 
 /**
- * Opérations — layout cockpit de référence.
+ * Opérations — grammaire premium (dialecte B).
  * Sources : series1-events, events-rebalancing, rebalancing-status, dashboard, runtime.
  */
 export default async function Page() {
@@ -231,107 +231,212 @@ export default async function Page() {
         : 'Une demande est ouverte'
 
   return (
-    <CockpitPage
-      header={
-        <AdminPageHeader
-          title="Opérations"
-          description="Événements Series 1, événements de rééquilibrage indexés, écart d’allocation, et fraîcheur de l’indexeur."
+    <div className="space-y-10">
+      {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
+      <AdminPageHeader
+        title="Opérations"
+        description="Événements Series 1, événements de rééquilibrage indexés, écart d’allocation, et fraîcheur de l’indexeur."
+      />
+
+      {/* ── RANGÉE KPI ───────────────────────────────────────────── */}
+      <StatGrid label="Indicateurs des opérations" columns={3}>
+        <StatCard titre="Mouvements" valeur={movementCountCell} hint="Événements Series 1 indexés" showRoute />
+        <StatCard
+          titre="Événements de rééquilibrage"
+          valeur={rebalEventCount}
+          hint="Rebalance, VaultSwapped, stratégie"
+          showRoute
         />
-      }
-      kpis={
-        <StatGrid label="Indicateurs des opérations" columns={3}>
-          <StatCard titre="Mouvements" valeur={movementCountCell} showRoute />
-          <StatCard titre="Événements de rééquilibrage" valeur={rebalEventCount} showRoute />
-          <StatCard titre="Poches mesurées" valeur={pocketsMeasuredCell} showRoute />
-          <StatCard titre="Source de rééquilibrage" valeur={editorial(etatSourceLisibleCap(rebalancingStatus))} />
-          <StatCard titre="Indexeur" valeur={editorial(etatSourceLisibleCap(runtimeStatus))} />
-          <StatCard titre="État du journal" valeur={journalStatus} showRoute />
-        </StatGrid>
-      }
-      primaryChart={
-        <ChartFrame
-          question="L’allocation constatée suit-elle sa cible, poche par poche ?"
-          unite="en pourcentage — cible visée contre part constatée"
-          etat={
-            dashboard.ok
-              ? { type: 'tracee' }
-              : {
-                  type: 'indisponible',
-                  explication: 'Le tableau de bord n’a pas répondu — l’allocation par poche ne peut pas être lue.',
+        <StatCard titre="Poches mesurées" valeur={pocketsMeasuredCell} hint="Cible et constaté renseignés" showRoute />
+        <StatCard
+          titre="Source de rééquilibrage"
+          valeur={editorial(etatSourceLisibleCap(rebalancingStatus))}
+          hint="Lecture directe du contrat"
+        />
+        <StatCard
+          titre="Indexeur"
+          valeur={editorial(etatSourceLisibleCap(runtimeStatus))}
+          hint="État de l’ordonnanceur"
+        />
+        <StatCard titre="État du journal" valeur={journalStatus} hint="Source series1-events" showRoute />
+      </StatGrid>
+
+      {/* ── CHART RÉEL : allocation cible vs constatée par poche ──── */}
+      <ChartFrame
+        question="L’allocation constatée suit-elle sa cible, poche par poche ?"
+        unite="en pourcentage — cible visée contre part constatée"
+        etat={
+          !dashboard.ok
+            ? {
+                type: 'indisponible',
+                explication: 'Le tableau de bord n’a pas répondu — l’allocation par poche ne peut pas être lue.',
+              }
+            : derives.length === 0
+              ? {
+                  type: 'vide',
+                  explication:
+                    'Aucune poche ne renseigne à la fois sa cible et sa part constatée — en attente de la source.',
                 }
-          }
-        >
-          <HearstAllocationChart
-            postes={derives.map<PosteAllocation>((d) => ({
-              label: d.poche,
-              ciblePct: d.cible,
-              constatePct: d.constate,
-            }))}
-          />
-        </ChartFrame>
-      }
-      aside={
-        <SectionCard
-          title="Rééquilibrage"
-          hint="Mesure indexée (dashboard) et lecture directe du contrat sont séparées à dessein."
-          tone="plain"
-        >
-          <DescriptionList>
-            <DescriptionTerm>Écart observé</DescriptionTerm>
-            <DescriptionDetails>{ecartLisible(mesure?.driftBps)} pt</DescriptionDetails>
-            <DescriptionTerm>Dernier rééquilibrage</DescriptionTerm>
-            <DescriptionDetails>{dateLisible(mesure?.lastRebalanceAt ?? null)}</DescriptionDetails>
-            <DescriptionTerm>Temps écoulé</DescriptionTerm>
-            <DescriptionDetails>{ilYA(mesure?.lastRebalanceAt ?? null)}</DescriptionDetails>
-            <DescriptionTerm>Demande en attente</DescriptionTerm>
-            <DescriptionDetails>{pendingLabel}</DescriptionDetails>
-            <DescriptionTerm>Lecture on-chain</DescriptionTerm>
-            <DescriptionDetails>
-              <Text className="mt-0!">{onChainReading(rebalancing)}</Text>
-            </DescriptionDetails>
-            <DescriptionTerm>Mode du contrat</DescriptionTerm>
-            <DescriptionDetails>{contrat?.mode ?? '—'}</DescriptionDetails>
-            <DescriptionTerm>Chaîne</DescriptionTerm>
-            <DescriptionDetails>
-              {contrat?.chainId === undefined || contrat.chainId === null ? '—' : String(contrat.chainId)}
-            </DescriptionDetails>
-            <DescriptionTerm>Contrat interrogé</DescriptionTerm>
-            <DescriptionDetails className="font-mono text-sm">{contrat?.contractAddress ?? '—'}</DescriptionDetails>
-            <DescriptionTerm>Code à l’adresse</DescriptionTerm>
-            <DescriptionDetails>{contrat?.codePresence ?? '—'}</DescriptionDetails>
-          </DescriptionList>
-        </SectionCard>
-      }
-    >
+              : { type: 'tracee' }
+        }
+        expectedSource={['GET /api/v1/dashboard']}
+      >
+        <HearstAllocationChart
+          postes={derives.map<PosteAllocation>((d) => ({
+            label: d.poche,
+            ciblePct: d.cible,
+            constatePct: d.constate,
+          }))}
+        />
+      </ChartFrame>
+
+      {/* ── TABLE : écart par poche ──────────────────────────────── */}
       <DataTableShell
         title="Écart par poche"
+        description="Écart entre la cible et la part constatée, poche par poche (source dashboard)."
+        count={derives.length > 0 ? `${formatNumber(derives.length)} poche(s)` : undefined}
         calme={
           derives.length > 0
             ? undefined
             : 'Aucune poche ne renseigne à la fois sa cible et sa part constatée — en attente de la source.'
         }
       >
-        <TableHead>
-          <TableRow>
-            <TableHeader>Poche</TableHeader>
-            <TableHeader>Cible %</TableHeader>
-            <TableHeader>Constaté %</TableHeader>
-            <TableHeader>Écart pt</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {derives.map((d) => (
-            <TableRow key={d.poche}>
-              <TableCell className="font-medium">{d.poche}</TableCell>
-              <TableCell>{partLisible(d.cible)}</TableCell>
-              <TableCell>{partLisible(d.constate)}</TableCell>
-              <TableCell>{formatNumber(d.ecart, { maximumFractionDigits: 2, signDisplay: 'always' })}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+        {derives.length > 0 ? (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Poche</TableHeader>
+                <TableHeader>Cible %</TableHeader>
+                <TableHeader>Constaté %</TableHeader>
+                <TableHeader>Écart pt</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {derives.map((d) => (
+                <TableRow key={d.poche}>
+                  <TableCell className="font-medium">{d.poche}</TableCell>
+                  <TableCell>{partLisible(d.cible)}</TableCell>
+                  <TableCell>{partLisible(d.constate)}</TableCell>
+                  <TableCell>{formatNumber(d.ecart, { maximumFractionDigits: 2, signDisplay: 'always' })}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </>
+        ) : null}
       </DataTableShell>
 
-      <SectionCard title="Fraîcheur de l’indexeur" tone="plain">
+      {/* ── TABLE : journal des mouvements ───────────────────────── */}
+      <DataTableShell
+        title="Journal des mouvements"
+        description="Source series1-events uniquement — aucun événement synthétique."
+        calme={
+          mouvements !== null && mouvements.length > 0
+            ? undefined
+            : reponse.ok
+              ? 'Aucun mouvement indexé pour l’instant.'
+              : 'Le journal des mouvements n’a pas pu être lu.'
+        }
+      >
+        {mouvements !== null && mouvements.length > 0 ? (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Événement</TableHeader>
+                <TableHeader>Montant</TableHeader>
+                <TableHeader>Investisseur</TableHeader>
+                <TableHeader>Quand</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {mouvements.map((m) => (
+                <TableRow key={m.id}>
+                  <TableCell>
+                    <div className="font-medium">{phraseMouvement(m.eventName)}</div>
+                    <div className="text-xs text-zinc-500">{libelleMouvement(m.eventName)}</div>
+                  </TableCell>
+                  <TableCell>{m.assetAmountAtomic ? montantUsdc(m.assetAmountAtomic) : '—'}</TableCell>
+                  <TableCell className="font-mono text-sm">{adresseCourte(m.investorAddress) ?? '—'}</TableCell>
+                  <TableCell title={dateLisible(m.occurredAt)}>{ilYA(m.occurredAt)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </>
+        ) : null}
+      </DataTableShell>
+
+      {/* ── TABLE : événements de rééquilibrage ──────────────────── */}
+      <DataTableShell
+        title="Événements de rééquilibrage"
+        description="Source /api/v1/events/rebalancing — Rebalance, VaultSwapped, changements de stratégie."
+        calme={
+          rebalEvents !== null && rebalEvents.length > 0
+            ? undefined
+            : rebalancingEvents.ok
+              ? 'Aucun événement de rééquilibrage indexé pour l’instant.'
+              : 'Le journal de rééquilibrage n’a pas pu être lu.'
+        }
+      >
+        {rebalEvents !== null && rebalEvents.length > 0 ? (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Événement</TableHeader>
+                <TableHeader>Montant</TableHeader>
+                <TableHeader>Investisseur</TableHeader>
+                <TableHeader>Quand</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rebalEvents.map((m) => (
+                <TableRow key={`${m.txHash}-${m.logIndex}`}>
+                  <TableCell>
+                    <div className="font-medium">{phraseMouvement(m.name)}</div>
+                    <div className="text-xs text-zinc-500">{libelleMouvement(m.name)}</div>
+                  </TableCell>
+                  <TableCell>{m.amount ? montantUsdc(m.amount) : '—'}</TableCell>
+                  <TableCell className="font-mono text-sm">{adresseCourte(m.actor) ?? '—'}</TableCell>
+                  <TableCell title={dateLisible(m.timestamp)}>{ilYA(m.timestamp)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </>
+        ) : null}
+      </DataTableShell>
+
+      {/* ── SECTION : rééquilibrage (mesure + lecture on-chain) ──── */}
+      <SectionCard
+        title="Rééquilibrage"
+        hint="Mesure indexée (dashboard) et lecture directe du contrat sont séparées à dessein."
+        tone="plain"
+      >
+        <DescriptionList>
+          <DescriptionTerm>Écart observé</DescriptionTerm>
+          <DescriptionDetails>{ecartLisible(mesure?.driftBps)} pt</DescriptionDetails>
+          <DescriptionTerm>Dernier rééquilibrage</DescriptionTerm>
+          <DescriptionDetails>{dateLisible(mesure?.lastRebalanceAt ?? null)}</DescriptionDetails>
+          <DescriptionTerm>Temps écoulé</DescriptionTerm>
+          <DescriptionDetails>{ilYA(mesure?.lastRebalanceAt ?? null)}</DescriptionDetails>
+          <DescriptionTerm>Demande en attente</DescriptionTerm>
+          <DescriptionDetails>{pendingLabel}</DescriptionDetails>
+          <DescriptionTerm>Lecture on-chain</DescriptionTerm>
+          <DescriptionDetails>
+            <Text className="mt-0!">{onChainReading(rebalancing)}</Text>
+          </DescriptionDetails>
+          <DescriptionTerm>Mode du contrat</DescriptionTerm>
+          <DescriptionDetails>{contrat?.mode ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Chaîne</DescriptionTerm>
+          <DescriptionDetails>
+            {contrat?.chainId === undefined || contrat.chainId === null ? '—' : String(contrat.chainId)}
+          </DescriptionDetails>
+          <DescriptionTerm>Contrat interrogé</DescriptionTerm>
+          <DescriptionDetails className="font-mono text-sm">{contrat?.contractAddress ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Code à l’adresse</DescriptionTerm>
+          <DescriptionDetails>{contrat?.codePresence ?? '—'}</DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
+
+      {/* ── SECTION : fraîcheur de l’indexeur ────────────────────── */}
+      <SectionCard title="Fraîcheur de l’indexeur" hint="Ordonnanceur d’indexation (runtime)." tone="plain">
         <DescriptionList>
           <DescriptionTerm>Dernière synchronisation</DescriptionTerm>
           <DescriptionDetails>
@@ -349,74 +454,6 @@ export default async function Page() {
           </DescriptionDetails>
         </DescriptionList>
       </SectionCard>
-
-      <DataTableShell
-        title="Journal des mouvements"
-        description="Source series1-events uniquement — aucun événement synthétique."
-        calme={
-          mouvements !== null && mouvements.length > 0
-            ? undefined
-            : reponse.ok
-              ? 'Aucun mouvement indexé pour l’instant.'
-              : 'Le journal des mouvements n’a pas pu être lu.'
-        }
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader>Événement</TableHeader>
-            <TableHeader>Montant</TableHeader>
-            <TableHeader>Investisseur</TableHeader>
-            <TableHeader>Quand</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(mouvements ?? []).map((m) => (
-            <TableRow key={m.id}>
-              <TableCell>
-                <div className="font-medium">{phraseMouvement(m.eventName)}</div>
-                <div className="text-xs text-zinc-500">{libelleMouvement(m.eventName)}</div>
-              </TableCell>
-              <TableCell>{m.assetAmountAtomic ? montantUsdc(m.assetAmountAtomic) : '—'}</TableCell>
-              <TableCell className="font-mono text-sm">{adresseCourte(m.investorAddress) ?? '—'}</TableCell>
-              <TableCell title={dateLisible(m.occurredAt)}>{ilYA(m.occurredAt)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
-
-      <DataTableShell
-        title="Événements de rééquilibrage"
-        description="Source /api/v1/events/rebalancing — Rebalance, VaultSwapped, changements de stratégie."
-        calme={
-          rebalEvents !== null && rebalEvents.length > 0
-            ? undefined
-            : rebalancingEvents.ok
-              ? 'Aucun événement de rééquilibrage indexé pour l’instant.'
-              : 'Le journal de rééquilibrage n’a pas pu être lu.'
-        }
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader>Événement</TableHeader>
-            <TableHeader>Montant</TableHeader>
-            <TableHeader>Investisseur</TableHeader>
-            <TableHeader>Quand</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(rebalEvents ?? []).map((m) => (
-            <TableRow key={`${m.txHash}-${m.logIndex}`}>
-              <TableCell>
-                <div className="font-medium">{phraseMouvement(m.name)}</div>
-                <div className="text-xs text-zinc-500">{libelleMouvement(m.name)}</div>
-              </TableCell>
-              <TableCell>{m.amount ? montantUsdc(m.amount) : '—'}</TableCell>
-              <TableCell className="font-mono text-sm">{adresseCourte(m.actor) ?? '—'}</TableCell>
-              <TableCell title={dateLisible(m.timestamp)}>{ilYA(m.timestamp)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
-    </CockpitPage>
+    </div>
   )
 }

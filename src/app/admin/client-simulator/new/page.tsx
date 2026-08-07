@@ -1,8 +1,7 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
-import { AdminSurface } from '@/components/admin/surfaces'
-import { AdminBody } from '@/components/admin/typography'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
+import { SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
@@ -12,6 +11,19 @@ import { CreateClientForm } from './create-client-form'
 
 export const metadata: Metadata = { title: 'Nouveau client simulé' }
 export const dynamic = 'force-dynamic'
+
+const CHAMPS_REQUIS = [
+  'Email — identifiant de connexion du compte',
+  'Mot de passe — min. 8 caractères, jamais restitué par le service',
+  'Rôle — investor (client simulé) ou admin',
+  'CONFIRM — garde-fou explicite avant tout envoi',
+] as const
+
+const NON_RESTITUE = [
+  'Le mot de passe : le backend ne le renvoie jamais, aucune copie côté front',
+  'Aucune donnée de démonstration : une 201 est une création réelle en base',
+  'L’indexation dans l’annuaire peut prendre un instant après la création',
+] as const
 
 /**
  * Nouveau client simulé — POST /api/v1/admin/users (admin only).
@@ -39,13 +51,46 @@ export default async function Page() {
         description="Crée un compte via POST /api/v1/admin/users. Une réponse 201 reste une création réelle — aucune ligne inventée côté front."
       />
 
-      <AdminSurface padding>
-        <AdminBody>
-          Le simulateur client crée un compte investisseur (ou admin) en base. Le service ne renvoie jamais le mot de
-          passe : seuls l’identifiant, l’email et le rôle sont affichés après succès.
-        </AdminBody>
+      <StatGrid label="État de la requête de création" columns={3}>
+        <StatCard
+          titre="Votre rôle"
+          valeur={LIBELLE_ROLE[session.role]}
+          hint={isAdmin ? 'Habilité à créer un compte' : 'Non habilité pour cette action'}
+        />
+        <StatCard
+          titre="Backend"
+          valeur={backendConfigured ? 'Configuré' : 'Non configuré'}
+          hint={backendConfigured ? 'HEARST_API_URL présent' : 'HEARST_API_URL absent'}
+        />
+        <StatCard
+          titre="Envoi possible"
+          valeur={canPost ? 'Prêt' : 'Bloqué'}
+          hint={canPost ? 'Rôle et backend réunis' : 'Condition manquante ci-dessous'}
+        />
+      </StatGrid>
+
+      <SectionCard
+        title="Créer un compte investisseur ou admin"
+        hint="Le service ne renvoie jamais le mot de passe : seuls l’identifiant, l’email et le rôle sont affichés après succès."
+      >
         <CreateClientForm disabled={!canPost} disabledReason={disabledReason} />
-      </AdminSurface>
+      </SectionCard>
+
+      <SectionCard title="Champs de la requête" hint="Ce que POST /api/v1/admin/users attend." tone="plain">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+          {CHAMPS_REQUIS.map((champ) => (
+            <li key={champ}>{champ}</li>
+          ))}
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Ce qui n’est pas restitué" hint="Règle de véracité du simulateur." tone="plain">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+          {NON_RESTITUE.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </SectionCard>
 
       <Text>
         <Link href="/admin/clients" className="underline">Retour à l’annuaire clients</Link>
