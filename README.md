@@ -5,7 +5,9 @@ UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
 **Landing `/`** : hero scroll → **grid background** → bento (1/2) → ripple CTA → bento (2/2) → footer.
 Grid : `@aceternity/grid-background-demo`. Ripple : `@aceternity/background-ripple-effect-demo`.
-Cards : `@aceternity/cards-demo-3`. Primatives UI dans `src/components/ui/` (noir / console — jamais `zinc` en classe).
+Cards : `@aceternity/cards-demo-3` (`src/components/ui/cards-demo-3.tsx`).
+Carousel 3D : `ScrollVelocityPlanes` (`src/components/ui/scroll-velocity-planes.tsx` + `heritage-scroll-demo`).
+Primatives UI dans `src/components/ui/` (noir / console — jamais `zinc` en classe).
 Registry `@aceternity` dans `components.json`.
 
 ## Architecture

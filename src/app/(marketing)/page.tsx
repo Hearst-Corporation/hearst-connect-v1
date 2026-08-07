@@ -1,3 +1,4 @@
+import { HeritageScrollDemo } from '@/components/marketing/heritage-scroll-demo'
 import { BackgroundRippleBand } from '@/components/marketing/background-ripple-band'
 import {
   BentoGridExampleThreeEnd,
@@ -10,6 +11,7 @@ export default function HomePage() {
   return (
     <>
       <HeroScrollDemo />
+      <HeritageScrollDemo />
       <GridBackgroundDemo />
       <BentoGridExampleThreeStart />
       <BackgroundRippleBand />
