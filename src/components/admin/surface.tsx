@@ -6,13 +6,13 @@
  *
  * | Token class     | Matière                              | Usage                       |
  * |-----------------|--------------------------------------|-----------------------------|
- * | `surfaceBox`    | verre `console-card` + blur          | KPI, DashCard, Section/Stat |
- * | `surfaceNav`    | verre `console-glass` + blur         | Menu / rail                 |
- * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, champs, sous-blocs     |
- * | `surfaceSelect` | voile mint `accent-soft`             | sélection (parcours, etc.)  |
+ * | `surfaceBox`    | verre `console-card` + blur          | DashCard, Section/Stat         |
+ * | `surfaceNav`    | verre `console-glass` + blur         | Menu / rail                    |
+ * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, champs, sous-blocs        |
+ * | `surfaceSelect` | voile mint `data-selected:`          | sélection parcours             |
  */
 
-/** Box — face vitrée (transparence + profondeur). Référence dashboard KPI. */
+/** Box — face vitrée (transparence + profondeur). DashCard / Panel. */
 export const surfaceBox =
   'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line backdrop-blur-xl backdrop-saturate-150'
 
@@ -26,9 +26,9 @@ export const surfaceNav =
 export const surfaceInset =
   'rounded-lg bg-console-inset ring-1 ring-console-line-soft backdrop-blur-md'
 
-/** Sélection — voile mint très léger (pas un aplat sur la box parente). */
+/** Sélection — voile mint (état `data-selected` Headless UI / parcours). */
 export const surfaceSelect =
-  'bg-accent-soft ring-1 ring-accent-400/25'
+  'data-selected:bg-accent-soft data-selected:ring-1 data-selected:ring-accent-400/25'
 
 /** Alias historique → `surfaceBox`. */
 export const surfaceRaised = surfaceBox

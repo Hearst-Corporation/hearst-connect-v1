@@ -56,6 +56,7 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
     expect(SOURCE).not.toContain('Wallets actifs')
     expect(KPI).not.toMatch(/En direct/)
     expect(KPI).not.toMatch(/SourcePill|AdminReading|showRoute/)
+    expect(KPI).not.toMatch(/DashboardKpiGrid|sparkline/)
     expect(KPI).not.toMatch(/rounded-xl|bg-white|ring-1|backdrop-blur/)
     expect(KPI).not.toMatch(/surfaceBox/)
   })

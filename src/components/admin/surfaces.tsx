@@ -1,4 +1,4 @@
-import { surfaceBox, surfaceInset, surfaceRaised } from '@/components/admin/surface'
+import { surfaceBox, surfaceInset } from '@/components/admin/surface'
 import { sectionContentGap } from '@/lib/layout-tokens'
 import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, adminTypography } from '@/components/admin/typography'
 import { ProblemState, RequestMetadata, StatusBadge } from '@/components/admin/truthful'
@@ -28,7 +28,7 @@ export function AdminSurface({
     <Tag
       className={clsx(
         className,
-        surfaceRaised,
+        surfaceBox,
         'overflow-hidden transition-[box-shadow,background-color,border-color] duration-200',
         padding && 'p-6',
       )}
