@@ -23,7 +23,7 @@ import {
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
 import { AdminBodyNav } from '@/components/admin/body-nav'
-import { Logo } from '@/components/logo'
+import { HearstConnectLockupImage } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {
   ADMIN_NAV,
@@ -105,7 +105,7 @@ export function AdminApplicationLayout({
         <Sidebar>
           <SidebarHeader>
             <SidebarItem href="/admin" className="lg:mb-2.5">
-              <Logo className="text-zinc-950 dark:text-white" />
+              <HearstConnectLockupImage className="h-8 w-auto" />
               <SidebarLabel className="sr-only">Hearst Connect</SidebarLabel>
             </SidebarItem>
           </SidebarHeader>
