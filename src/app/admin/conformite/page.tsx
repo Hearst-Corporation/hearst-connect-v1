@@ -7,6 +7,7 @@ import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/comp
 import { DATA_COVERAGE_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
+import { libelleEtape, libelleKyc } from '@/lib/libelles'
 import { dateLisible, etatSourceLisible } from '@/lib/mouvements'
 import { isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
@@ -54,7 +55,7 @@ export default async function Page() {
     parKyc.set(review.kycStatus, vu === undefined ? 1 : vu + 1)
   }
   const distributionKyc: readonly DistributionItem[] = [...parKyc.entries()]
-    .map(([label, value]) => ({ label, value }))
+    .map(([code, value]) => ({ label: libelleKyc(code), value }))
     .sort((a, b) => b.value - a.value)
 
   return (
@@ -96,8 +97,8 @@ export default async function Page() {
                 {reviews.map((review) => (
                   <TableRow key={review.id}>
                     <TableCell className="font-medium">{review.clientLabel}</TableCell>
-                    <TableCell>{review.stage}</TableCell>
-                    <TableCell>{review.kycStatus}</TableCell>
+                    <TableCell>{libelleEtape(review.stage)}</TableCell>
+                    <TableCell>{libelleKyc(review.kycStatus)}</TableCell>
                     <TableCell>{dateLisible(review.openedAt)}</TableCell>
                     <TableCell>{dateLisible(review.lastEventAt)}</TableCell>
                   </TableRow>

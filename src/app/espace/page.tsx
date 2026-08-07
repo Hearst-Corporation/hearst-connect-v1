@@ -12,7 +12,7 @@ import { editorial, mapAvailability, unavailable } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Cockpit' }
+export const metadata: Metadata = { title: 'Accueil' }
 export const dynamic = 'force-dynamic'
 
 /**
@@ -83,7 +83,7 @@ export default async function Page() {
 
   return (
     <ConsoleShell
-      label="Cockpit — Espace Hearst Connect"
+      label="Accueil — Espace Hearst Connect"
       rail={<AppRail currentHref="/espace" userName={user.name} userRole={user.role} />}
     >
       <section className={csl.metricsRow} aria-label="Repères de l’espace">

@@ -1,6 +1,7 @@
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
 import { etatBackend, libelleEtatBackend } from '@/lib/backend/lecture-etat'
+import { formatDateTime } from '@/lib/format'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 
 /**
@@ -40,7 +41,7 @@ export function AdminReading({
         </Badge>
       )}
       {value.asOf !== null ? (
-        <Text className="!mt-0 text-xs text-zinc-500 dark:text-zinc-400">{value.asOf}</Text>
+        <Text className="!mt-0 text-xs text-zinc-500 dark:text-zinc-400">{formatDateTime(value.asOf)}</Text>
       ) : null}
     </span>
   )

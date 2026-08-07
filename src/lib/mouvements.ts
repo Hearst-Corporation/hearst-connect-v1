@@ -100,13 +100,17 @@ export function motifLisible(motif: string | null | undefined): string | undefin
  * en clair dans une console française. Relevé sur la capture desktop de
  * /admin/vaults : cinq lignes « unavailable » et une « live ».
  *
- * Un code inconnu retombe sur lui-même plutôt que sur une phrase inventée :
- * mieux vaut un code brut visible qu'un état requalifié à tort.
+ * Un code INCONNU (présent mais hors table) se rend tel quel, en minuscules —
+ * jamais requalifié ni masqué en « — » : un état inconnu n'est pas une absence,
+ * et le requalifier affirmerait ce que le service n'a pas dit (cf.
+ * `tests/etat-source.test.ts`). Seule une absence réelle (null / vide) rend « — ».
  */
 const ETAT_SOURCE_LISIBLE: Record<string, string> = {
   LIVE: 'en direct',
   EMPTY: 'aucune donnée',
   PARTIAL: 'partiel',
+  RUNNING: 'en cours',
+  NOT_REPORTED: 'non rapporté',
   NOT_EXPOSED: 'non exposé',
   NOT_CONFIGURED: 'non configuré',
   NOT_SUPPORTED: 'non pris en charge',
@@ -120,6 +124,18 @@ const ETAT_SOURCE_LISIBLE: Record<string, string> = {
 export function etatSourceLisible(etat: string | null | undefined): string {
   if (typeof etat !== 'string' || etat === '') return '—'
   return ETAT_SOURCE_LISIBLE[etat.toUpperCase()] ?? etat.toLowerCase()
+}
+
+/**
+ * Variante « Capitalisée » : même traduction, première lettre en capitale, pour
+ * un début de phrase ou un badge autonome. `etatSourceLisible` reste la source
+ * de vérité ; on ne fait que présenter son résultat. L'absence « — » n'est pas
+ * capitalisée.
+ */
+export function etatSourceLisibleCap(etat: string | null | undefined): string {
+  const libelle = etatSourceLisible(etat)
+  if (libelle === '—') return libelle
+  return libelle.charAt(0).toUpperCase() + libelle.slice(1)
 }
 
 /** USDC at six decimals — a thin wrapper over the shared formatter. */

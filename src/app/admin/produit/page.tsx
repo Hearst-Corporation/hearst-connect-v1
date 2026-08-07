@@ -13,6 +13,7 @@ import { requireSession } from '@/lib/auth'
 import { availabilityFromResolu, figureDepuisResolu } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber } from '@/lib/format'
+import { etatSourceLisible } from '@/lib/mouvements'
 import { etatSerieDe } from '@/lib/serie-etat'
 import { editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
@@ -356,12 +357,22 @@ export default async function Page() {
           </DescriptionDetails>
           <DescriptionTerm>Flux de backtest</DescriptionTerm>
           <DescriptionDetails>
-            {backtest.ok ? (backtest.data.runs?.status ?? 'Non renseigné') : 'Indisponible'}
+            {backtest.ok
+              ? backtest.data.runs?.status
+                ? etatSourceLisible(backtest.data.runs?.status)
+                : 'Non renseigné'
+              : 'Indisponible'}
           </DescriptionDetails>
           <DescriptionTerm>Attribution</DescriptionTerm>
-          <DescriptionDetails>{b?.attribution?.status ?? 'Non renseigné'}</DescriptionDetails>
+          <DescriptionDetails>
+            {b?.attribution?.status ? etatSourceLisible(b?.attribution?.status) : 'Non renseigné'}
+          </DescriptionDetails>
           <DescriptionTerm>Télémétrie</DescriptionTerm>
-          <DescriptionDetails>{m?.operationalTelemetry?.status ?? 'Non renseigné'}</DescriptionDetails>
+          <DescriptionDetails>
+            {m?.operationalTelemetry?.status
+              ? etatSourceLisible(m?.operationalTelemetry?.status)
+              : 'Non renseigné'}
+          </DescriptionDetails>
         </DescriptionList>
       </SectionCard>
     </div>

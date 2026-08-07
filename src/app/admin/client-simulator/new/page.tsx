@@ -6,6 +6,7 @@ import { Text } from '@/components/catalyst/text'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
+import { LIBELLE_ROLE } from '@/lib/session'
 import type { Metadata } from 'next'
 import { CreateClientForm } from './create-client-form'
 
@@ -24,7 +25,7 @@ export default async function Page() {
 
   let disabledReason: string | null = null
   if (!isAdmin) {
-    disabledReason = `Le rôle ${session.role} ne donne pas accès à la création de comptes.`
+    disabledReason = `Le rôle « ${LIBELLE_ROLE[session.role]} » ne donne pas accès à la création de comptes.`
   } else if (!backendConfigured) {
     disabledReason = 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
   }

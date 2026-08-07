@@ -26,7 +26,8 @@ import {
   runtimeStatusLabel,
   type RuntimePayload,
 } from '@/lib/backend/runtime'
-import { formatNumber } from '@/lib/format'
+import { formatDateTime, formatNumber } from '@/lib/format'
+import { etatSourceLisible, etatSourceLisibleCap } from '@/lib/mouvements'
 import { editorial } from '@/lib/vaults/model'
 import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-section'
 import type { Metadata } from 'next'
@@ -68,7 +69,10 @@ function blockDetail(block: number | string | null | undefined): string {
 }
 
 function errorsDetail(n: number | null | undefined): string {
-  if (n !== null && n !== undefined && n > 0) return `${formatNumber(n)} erreur(s)`
+  // Une absence de mesure n'est PAS « aucune erreur » : ce libellé est réservé
+  // à un zéro réellement mesuré (n === 0). Sans mesure, l'écart reste nommé.
+  if (n === null || n === undefined || !Number.isFinite(n)) return '—'
+  if (n > 0) return `${formatNumber(n)} erreur(s)`
   return 'aucune erreur'
 }
 
@@ -172,8 +176,8 @@ export default async function RuntimePage() {
       </p>
 
       <StatGrid label="Sondes de service" columns={3}>
-        <StatCard titre="Santé" valeur={editorial(health.ok ? 'LIVE' : 'UNAVAILABLE')} hint="Vivacité (health)" />
-        <StatCard titre="Prêt" valeur={editorial(readyOk ? 'LIVE' : 'UNAVAILABLE')} hint="Disponibilité (ready)" />
+        <StatCard titre="Santé" valeur={editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE'))} hint="Vivacité (health)" />
+        <StatCard titre="Prêt" valeur={editorial(etatSourceLisibleCap(readyOk ? 'LIVE' : 'UNAVAILABLE'))} hint="Disponibilité (ready)" />
         <StatCard titre="Base de données" valeur={editorial(runtimeStatusLabel(r?.databaseStatus))} />
         <StatCard titre="Indexeur" valeur={editorial(runtimeStatusLabel(r?.indexerStatus))} />
         <StatCard titre="Environnement" valeur={editorial(r?.environment ?? 'Non renseigné')} />
@@ -195,7 +199,7 @@ export default async function RuntimePage() {
           {matrix.map((row) => (
             <TableRow key={row.id}>
               <TableCell className="font-medium">{row.label}</TableCell>
-              <TableCell>{row.status}</TableCell>
+              <TableCell>{etatSourceLisible(row.status)}</TableCell>
               <TableCell>{row.detail}</TableCell>
             </TableRow>
           ))}
@@ -248,7 +252,7 @@ export default async function RuntimePage() {
         <DescriptionTerm>État</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
         <DescriptionTerm>Dernière réussite</DescriptionTerm>
-        <DescriptionDetails>{scheduler?.lastSuccessAt ?? '—'}</DescriptionDetails>
+        <DescriptionDetails>{formatDateTime(scheduler?.lastSuccessAt)}</DescriptionDetails>
         <DescriptionTerm>Dernier bloc indexé</DescriptionTerm>
         <DescriptionDetails>{blockDetail(scheduler?.lastIndexedBlock)}</DescriptionDetails>
         <DescriptionTerm>Erreurs consécutives</DescriptionTerm>
@@ -263,7 +267,16 @@ export default async function RuntimePage() {
         <IndexerTriggerForm />
       </SectionCard>
 
-      <DataCoverageSection compteLabel={session.name} />
+      <div className="space-y-4">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Les tuiles de synthèse ci-dessous reflètent l’état déclaré par l’enveloppe{' '}
+          <span className="font-mono">/api/v1/dashboard</span> : quand cet état est indisponible, elles
+          affichent « Indisponible ». Le détail par surface énumère les champs effectivement présents dans
+          la charge utile, et l’activité des sources provient d’un autre relevé — une synthèse indisponible
+          ne contredit donc pas les décomptes détaillés plus bas.
+        </p>
+        <DataCoverageSection compteLabel={session.name} />
+      </div>
 
       <SectionCard
         title="Réponses brutes"

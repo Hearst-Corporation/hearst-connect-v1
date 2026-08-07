@@ -28,6 +28,7 @@ import { logout } from '@/lib/actions'
 import {
   ADMIN_NAV,
   ADMIN_SECTION_HUBS,
+  estRouteCompte,
   groupeSecondaireActif,
   hrefActif,
 } from '@/lib/admin-nav'
@@ -39,10 +40,17 @@ import {
 } from '@heroicons/react/16/solid'
 import { usePathname } from 'next/navigation'
 
-function AccountMenu({ anchor }: Readonly<{ anchor: 'top start' | 'bottom end' }>) {
+function AccountMenu({
+  anchor,
+  compteActif,
+}: Readonly<{ anchor: 'top start' | 'bottom end'; compteActif: boolean }>) {
   return (
     <DropdownMenu className="min-w-64" anchor={anchor}>
-      <DropdownItem href="/admin/profile">
+      <DropdownItem
+        href="/admin/profile"
+        aria-current={compteActif ? 'page' : undefined}
+        className={compteActif ? 'font-semibold' : undefined}
+      >
         <UserCircleIcon />
         <DropdownLabel>Votre compte</DropdownLabel>
       </DropdownItem>
@@ -70,6 +78,7 @@ export function AdminApplicationLayout({
   const pathname = usePathname()
   const groupeActif = groupeSecondaireActif(pathname)
   const primaireActif = hrefActif(pathname)
+  const compteActif = estRouteCompte(pathname)
   const initials = user.name
     .split(/\s+/)
     .filter(Boolean)
@@ -87,7 +96,7 @@ export function AdminApplicationLayout({
               <DropdownButton as={NavbarItem}>
                 <Avatar initials={initials || 'HC'} square alt="" />
               </DropdownButton>
-              <AccountMenu anchor="bottom end" />
+              <AccountMenu anchor="bottom end" compteActif={compteActif} />
             </Dropdown>
           </NavbarSection>
         </Navbar>
@@ -118,7 +127,7 @@ export function AdminApplicationLayout({
               })}
             </SidebarSection>
 
-            <SidebarSection className="max-lg:hidden">
+            <SidebarSection>
               <SidebarHeading>Sections</SidebarHeading>
               {ADMIN_SECTION_HUBS.map((hub) => {
                 const Icone = hub.icone
@@ -154,7 +163,7 @@ export function AdminApplicationLayout({
                 </span>
                 <ChevronUpIcon />
               </DropdownButton>
-              <AccountMenu anchor="top start" />
+              <AccountMenu anchor="top start" compteActif={compteActif} />
             </Dropdown>
           </SidebarFooter>
         </Sidebar>
