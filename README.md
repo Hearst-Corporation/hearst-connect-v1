@@ -3,6 +3,9 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
+**Landing `/`** : page marketing minimale (titre seul pour l’instant) —
+`src/app/(marketing)/page.tsx` + header/footer allégés dans `src/components/marketing/`.
+
 ## Architecture
 
 | Couche | Cible |

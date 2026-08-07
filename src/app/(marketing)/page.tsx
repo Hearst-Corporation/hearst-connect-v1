@@ -1,19 +1,9 @@
-import { Cta } from '@/components/marketing/cta'
-import { Faq } from '@/components/marketing/faq'
-import { Features } from '@/components/marketing/features'
-import { Hero } from '@/components/marketing/hero'
-import { Pricing } from '@/components/marketing/pricing'
-import { Security } from '@/components/marketing/security'
-
 export default function HomePage() {
   return (
-    <>
-      <Hero />
-      <Features />
-      <Security />
-      <Pricing />
-      <Faq />
-      <Cta />
-    </>
+    <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center px-6 py-24">
+      <h1 className="text-center text-5xl font-semibold tracking-tight text-zinc-950 sm:text-7xl dark:text-white">
+        Hearst Connect
+      </h1>
+    </div>
   )
 }
