@@ -10,13 +10,9 @@
  */
 
 @custom-variant dark {
+  /* Produit dark-only : la variante suit la classe `.dark` sur <html>. */
   &:where(.dark, .dark *) {
     @slot;
-  }
-  @media (prefers-color-scheme: dark) {
-    &:where(:not(.light, .light *)) {
-      @slot;
-    }
   }
 }
 

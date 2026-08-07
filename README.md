@@ -27,7 +27,7 @@ Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Ja
 ## Console admin — état de référence (2026-08-07)
 
 **Style cible** : tableau de bord unique sur **`/admin`** (commit `899833c`+).
-Les autres pages admin seront alignées **une par une** sur ce modèle (Catalyst + compositions + thème clair/sombre).
+Les autres pages admin seront alignées **une par une** sur ce modèle (Catalyst + compositions, thème sombre forcé).
 
 | Route | Rôle | Référence code |
 |---|---|---|
@@ -79,7 +79,7 @@ pnpm exec next build     # build prod (hors gate)
 
 ## Design system
 
-Tokens dans `src/styles/tailwind.css` (`@theme`). Accent mint Hearst (`--color-accent-*`).
+Tokens dans `src/styles/tailwind.css` (`@theme`). Accent mint Hearst (`--color-accent-*`). Thème sombre forcé (`class="dark"` sur `<html>`, pas de bascule clair).
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation
