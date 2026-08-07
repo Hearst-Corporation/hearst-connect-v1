@@ -23,13 +23,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html
       lang="fr"
-      // Le script de thème ajoute `light`/`dark` sur cet élément avant
-      // l'hydratation : l'écart de className avec le HTML serveur est voulu.
+      // Dark forcé côté serveur + script d’init (purge d’un éventuel .light résiduel).
       suppressHydrationWarning
-      className={`${fontSatoshi.variable} font-sans text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white`}
+      className={`dark ${fontSatoshi.variable} font-sans bg-zinc-900 text-white antialiased`}
     >
       <head>
-        {/* Applique le thème mémorisé avant la première peinture (pas de flash). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>{children}</body>
