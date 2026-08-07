@@ -1,5 +1,5 @@
 import { surfaceBox, surfaceInset, surfaceNav, surfaceRaised, surfaceSelect } from '@/components/admin/surface'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -75,5 +75,16 @@ describe('design system surfaces — canon dashboard', () => {
       expect(src).not.toMatch(/bg-white|dark:bg-zinc-800/)
     }
     expect(frame).toContain('surfaceInset')
+  })
+
+  it('fond lumineux branché derrière le shell admin', () => {
+    const layout = readFileSync(
+      join(process.cwd(), 'src/components/catalyst/sidebar-layout.tsx'),
+      'utf8',
+    )
+    const brand = readFileSync(join(process.cwd(), 'src/lib/brand.ts'), 'utf8')
+    expect(brand).toContain('/brand/console-glow.png')
+    expect(layout).toContain('CONSOLE_GLOW_SRC')
+    expect(existsSync(join(process.cwd(), 'public/brand/console-glow.png'))).toBe(true)
   })
 })
