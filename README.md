@@ -4,7 +4,8 @@ Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
 **Landing `/`** : page marketing minimale (titre seul pour l’instant) —
-`src/app/(marketing)/page.tsx` + header/footer allégés dans `src/components/marketing/`.
+`src/app/(marketing)/page.tsx` + header allégé + footer 4 grilles
+(`src/components/marketing/site-footer.tsx`, layout type Aceternity).
 Fond marque `bg-console-app` (`#101010`) partout sur la vitrine (html racine + layout marketing) — pas de `zinc`.
 
 ## Architecture
