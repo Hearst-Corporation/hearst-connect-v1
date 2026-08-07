@@ -26,13 +26,14 @@ Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Ja
 
 ## Console admin — état de référence (2026-08-07)
 
-**Style cible** : tableau de bord unique sur **`/admin`** (commit `899833c`+).
-Les autres pages admin seront alignées **une par une** sur ce modèle (Catalyst + compositions, thème sombre forcé).
+**Style cible** : tableau de bord unique sur **`/admin`** + pages métier alignées sur
+`AdminPageHeader` (`src/components/admin/page-header.tsx`) — glow + monogramme H + titre +
+description + KPI horizontaux (`AdminHeroKpi`, max 4). Thème sombre forcé.
 
 | Route | Rôle | Référence code |
 |---|---|---|
-| `/admin` | **Tableau de bord unique** — header (glow + monogramme H + KPI horizontaux + CTA), stepper, « À traiter », charts | `src/features/admin-dashboard/`, `src/components/admin/dashboard/` |
-| `/admin/vaults`, `/admin/clients`, … | Pages métier | à rapprocher du tableau de bord |
+| `/admin` | **Tableau de bord unique** — header (glow + monogramme H + KPI + CTA), stepper, « À traiter », charts | `src/features/admin-dashboard/`, `src/components/admin/dashboard/` |
+| `/admin/clients`, `/admin/conformite`, `/admin/vaults`, `/admin/operations`, `/admin/series-1`, `/admin/runtime` | Pages métier — même hero `AdminPageHeader` + KPIs | `src/app/admin/*/page.tsx` |
 
 **Navigation** (`src/lib/admin-nav.ts`) : sidebar **Tableau de bord · Coffres · Clients · Conformité · Opérations** ; hubs **Journal Série 1 · Produit · Service**. L’ancienne URL `/admin/dashboard` redirige vers `/admin`.
 
@@ -51,10 +52,10 @@ src/
 ├── app/admin/                  routes console
 ├── components/
 │   ├── catalyst/               kit officiel (non modifié sauf link Next)
-│   ├── admin/dashboard/        blocs du dashboard référence
+│   ├── admin/                  page-header, hero-kpi, surfaces + dashboard/
 │   ├── actions/                boutons d'action partagés
 │   ├── charts/                 richart + cartesian
-│   └── compositions/           panels, StatGrid, SectionCard…
+│   └── compositions/           panels, SectionCard… (StatGrid hors hero)
 ├── features/admin-dashboard/   tableau de bord `/admin`
 └── lib/
     ├── backend/                callBackend, endpoints
@@ -80,7 +81,8 @@ pnpm exec next build     # build prod (hors gate)
 ## Design system
 
 Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
-`surfaceBox` (cards verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint sélection). KPI header = texte dans le bandeau noir (pas des boxes). Fond : `public/brand/console-glow.png`. Monogramme : `public/brand/hearst-h.svg`. Lockup : `public/brand/hearst-connect.svg` (H mint + wordmark).
+`surfaceBox` (cards verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint sélection).
+Header console partagé : `AdminPageHeader` (`src/components/admin/page-header.tsx`) — glow + monogramme H + titre + jusqu’à 4 KPI hero (`AdminHeroKpi`, `src/components/admin/hero-kpi.tsx`) en texte dans le bandeau noir (pas des boxes / StatGrid). Fond : `public/brand/console-glow.png`. Monogramme : `public/brand/hearst-h.svg`. Lockup : `public/brand/hearst-connect.svg` (H mint + wordmark).
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation

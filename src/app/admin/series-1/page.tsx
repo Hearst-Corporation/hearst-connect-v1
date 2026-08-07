@@ -1,7 +1,7 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { ChartFrame, HearstActivityChart, RichDistributionChart, type DistributionItem } from '@/components/charts'
-import { DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { DataTableShell, SectionCard } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { availabilityFromResolu } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
@@ -20,10 +20,14 @@ import {
   isAvailable,
   mapAvailability,
   measuredCount,
-  unavailable,
-  type Availability,
 } from '@/lib/vaults/model'
 import { movementCountTrend } from '@/lib/vaults/overview'
+import {
+  ArrowsRightLeftIcon,
+  BanknotesIcon,
+  SignalIcon,
+  Squares2X2Icon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Journal Series 1' }
@@ -65,16 +69,7 @@ export default async function Page() {
   const movementCount = measuredCount(eventsAvail)
   const financialCount = measuredCount(mapAvailability(eventsAvail, (list) => list.filter(estFinancier)))
   const typesCount = mapAvailability(eventsAvail, (list) => String(new Set(list.map((m) => m.eventName)).size))
-  const last = mouvements?.[0]?.occurredAt ?? null
   const readable = mouvements !== null && mouvements !== undefined
-
-  const lastCell: Availability<string> = readable
-    ? editorial(ilYA(last))
-    : unavailable({
-        endpoint: '/api/v1/series1/events',
-        status: 'UNAVAILABLE',
-        reason: 'events_source_unreachable',
-      })
 
   const parNature = new Map<string, number>()
   if (readable) {
@@ -121,17 +116,25 @@ export default async function Page() {
 
   const journalCount = readable && mouvements.length > 0 ? `${formatNumber(mouvements.length)} mouvements` : undefined
 
+  const kpis: readonly AdminHeroKpi[] = [
+    {
+      id: 'source',
+      title: 'État source',
+      value: editorial(reponse.ok ? 'Joignable' : 'Indisponible'),
+      icon: SignalIcon,
+    },
+    { id: 'movements', title: 'Mouvements', value: movementCount, icon: ArrowsRightLeftIcon },
+    { id: 'financial', title: 'Écritures financières', value: financialCount, icon: BanknotesIcon },
+    { id: 'types', title: 'Types distincts', value: typesCount, icon: Squares2X2Icon },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Journal Série 1" />
-
-      <StatGrid label="Indicateurs du journal Série 1" columns={4}>
-        <StatCard titre="État de la source" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} hint="Flux series1-events" />
-        <StatCard titre="Mouvements" valeur={movementCount} hint="Écritures dans la fenêtre lue" showRoute />
-        <StatCard titre="Écritures financières" valeur={financialCount} hint="Lignes portant un montant" showRoute />
-        <StatCard titre="Types distincts" valeur={typesCount} hint="Natures d’événement observées" showRoute />
-        <StatCard titre="Dernier mouvement" valeur={lastCell} hint="Écriture la plus récente" showRoute />
-      </StatGrid>
+      <AdminPageHeader
+        title="Journal Série 1"
+        description="Événements Series 1 indexés — source /api/v1/series1/events uniquement."
+        kpis={kpis}
+      />
 
       <ChartFrame
         question="À quel rythme les mouvements arrivent-ils ?"

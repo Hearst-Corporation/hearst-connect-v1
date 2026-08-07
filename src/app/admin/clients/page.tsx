@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Badge } from '@/components/catalyst/badge'
 import { Button } from '@/components/catalyst/button'
 import { Link } from '@/components/catalyst/link'
@@ -11,21 +11,21 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { ChartFrame } from '@/components/charts'
-import {
-  Callout,
-  DataTableShell,
-  SectionCard,
-  StatCard,
-  StatGrid,
-} from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { DATA_COVERAGE_ENTRY, VAULT_REGISTRY_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { etatSourceLisible } from '@/lib/mouvements'
-import { editorial, isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
+import { isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
 import type { ClientIssue } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
+import {
+  BuildingLibraryIcon,
+  ClipboardDocumentCheckIcon,
+  ExclamationTriangleIcon,
+  UsersIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Clients' }
@@ -54,9 +54,6 @@ export default async function Page() {
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })
 
   // KPI dérivés de l'Availability réelle — jamais de valeur inventée, jamais de ?? 0.
-  const clientDirectory = mapAvailability(registry.clients, (rows) =>
-    rows.length === 0 ? 'Annuaire vide' : `${rows.length} client(s)`,
-  )
   const complianceDirectory = mapAvailability(registry.compliance, (rows) =>
     rows.length === 0 ? 'File vide' : `${rows.length} dossier(s)`,
   )
@@ -67,18 +64,26 @@ export default async function Page() {
   const clients = isAvailable(registry.clients) ? registry.clients.value : null
   const exceptions = isAvailable(registry.clientExceptions) ? registry.clientExceptions.value : null
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'clients', title: 'Clients recensés', value: clientCount, icon: UsersIcon },
+    { id: 'anomalies', title: 'Anomalies', value: clientExceptionCount, icon: ExclamationTriangleIcon },
+    { id: 'vaults', title: 'Coffres joignables', value: reachableVaults, icon: BuildingLibraryIcon },
+    {
+      id: 'compliance',
+      title: 'Conformité',
+      value: complianceDirectory,
+      unit: 'dossiers',
+      icon: ClipboardDocumentCheckIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Clients" />
-
-      <StatGrid label="Indicateurs clients" columns={4}>
-        <StatCard titre="Annuaire des clients" valeur={clientDirectory} hint="État de /api/v1/clients" showRoute />
-        <StatCard titre="Clients recensés" valeur={clientCount} hint="Lignes lues dans l’annuaire" showRoute />
-        <StatCard titre="Anomalies clients" valeur={clientExceptionCount} hint="Signaux à traiter" showRoute />
-        <StatCard titre="Coffres joignables" valeur={reachableVaults} hint="Coffres lus côté back-end" showRoute />
-        <StatCard titre="Source de conformité" valeur={complianceDirectory} hint="État de /api/v1/compliance" showRoute />
-        <StatCard titre="Surface de couverture" valeur={editorial('Couverture des données')} hint="Définition UI — pas un compteur" />
-      </StatGrid>
+      <AdminPageHeader
+        title="Clients"
+        description="Annuaire des investisseurs et signaux clients issus du backend."
+        kpis={kpis}
+      />
 
       {/* ── PLACEHOLDER GRAPHIQUE : l'annuaire /api/v1/clients ne porte pas de
           série numérique traçable (id + libellé seulement). Le ChartFrame est

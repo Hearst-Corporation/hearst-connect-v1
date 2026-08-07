@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import {
@@ -9,10 +9,16 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
-import { available, editorial, mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
+import { available, mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
+import {
+  CheckBadgeIcon,
+  LinkIcon,
+  TagIcon,
+  UsersIcon,
+} from '@heroicons/react/16/solid'
 import { SimulatedBadge } from '../_shared'
 
 type Resolu<T> = Readonly<{ status?: string; value: T | null; reason?: string | null }>
@@ -92,18 +98,21 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
 
   const displayName = match !== null ? libelleClient(match.label, id) : id
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'indexation', title: 'Indexation', value: indexationStatus, icon: CheckBadgeIcon },
+    { id: 'libelle', title: 'Libellé', value: directoryLabel, icon: TagIcon },
+    { id: 'annuaire', title: 'Annuaire', value: directorySize, icon: UsersIcon },
+    { id: 'source', title: 'Source', value: sourceState, icon: LinkIcon },
+  ]
+
   return (
     <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
-      <AdminPageHeader title={displayName} />
-
-      {/* ── RANGÉE KPI (état de la jointure sur l'annuaire réel) ──── */}
-      <StatGrid label="Synthèse du client simulé" columns={4}>
-        <StatCard titre="Indexation" valeur={indexationStatus} hint="Présence dans l’annuaire admin" showRoute />
-        <StatCard titre="Libellé annuaire" valeur={directoryLabel} hint="Nom porté par la source" showRoute />
-        <StatCard titre="Annuaire" valeur={directorySize} hint="Clients recensés côté source" showRoute />
-        <StatCard titre="Source" valeur={sourceState} hint="Route interrogée" showRoute />
-      </StatGrid>
+      <AdminPageHeader
+        title={displayName}
+        description="Jointure sur GET /api/v1/clients — absence nommée si non indexé."
+        kpis={kpis}
+      />
 
       {/* ── GRAPHIQUE (état honnête : cette fiche n'expose aucune série) ─ */}
       <ChartFrame

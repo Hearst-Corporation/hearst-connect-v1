@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Badge } from '@/components/catalyst/badge'
 import {
   DescriptionDetails,
@@ -7,13 +7,19 @@ import {
 } from '@/components/catalyst/description-list'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
-import { Callout, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, SectionCard } from '@/components/compositions'
 import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { formatDateTime } from '@/lib/format'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, LIBELLE_ROLE } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
+import {
+  FolderIcon,
+  KeyIcon,
+  SignalIcon,
+  UserIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Votre compte' }
@@ -55,16 +61,35 @@ export default async function Page() {
   const sessionExpiry =
     session === null ? '—' : formatDateTime(new Date(session.expiresAt * 1000).toISOString())
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'session', title: 'Session', value: editorial(sessionState), icon: KeyIcon },
+    {
+      id: 'role',
+      title: 'Rôle',
+      value: editorial(session === null ? '—' : LIBELLE_ROLE[session.role]),
+      icon: UserIcon,
+    },
+    {
+      id: 'dossier',
+      title: 'Dossier investisseur',
+      value: editorial(investorState),
+      icon: FolderIcon,
+    },
+    {
+      id: 'source',
+      title: 'Source profil',
+      value: editorial(reponse.ok ? 'Joignable' : 'Indisponible'),
+      icon: SignalIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Votre compte" />
-
-      <StatGrid label="Aperçu du compte" columns={4}>
-        <StatCard titre="Session" valeur={editorial(sessionState)} hint="État de votre connexion" />
-        <StatCard titre="Rôle" valeur={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} hint="Portée dans l’espace" />
-        <StatCard titre="Dossier investisseur" valeur={editorial(investorState)} hint="Rattachement au fonds" />
-        <StatCard titre="Source du profil" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} hint="État de /api/v1/profile" />
-      </StatGrid>
+      <AdminPageHeader
+        title="Votre compte"
+        description="Session console et dossier investisseur — deux identités distinctes."
+        kpis={kpis}
+      />
 
       <SectionCard title="Activité du compte" hint="Aucune série temporelle rattachée à cette page." tone="chart">
         <ChartFrame
