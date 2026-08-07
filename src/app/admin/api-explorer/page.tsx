@@ -10,6 +10,7 @@ import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
+import { libelleRole } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import { ExplorerRow } from './explorer-row'
@@ -96,7 +97,7 @@ export default async function ApiExplorerPage() {
         <StatCard titre="Contexte IA" valeur={editorial(aiContextCount)} />
         <StatCard titre="Actions" valeur={editorial(actionsCount)} />
         <StatCard titre="URL de base" valeur={editorial(baseUrlLabel)} />
-        <StatCard titre="Rôle de session" valeur={editorial(session.role)} />
+        <StatCard titre="Rôle de session" valeur={editorial(libelleRole(session.role))} />
       </StatGrid>
 
       <SectionCard title="Ce qu’une ligne vous permet de faire">

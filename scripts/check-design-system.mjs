@@ -42,7 +42,16 @@ const B = '\x1b[1m'
 const X = '\x1b[0m'
 
 /** Fichiers de route et de module métier — là où une couleur doit être un token. */
-const SCAN = ['src/app', 'src/components/admin', 'src/components/vaults', 'src/components/marketing']
+const SCAN = [
+  'src/app',
+  'src/components/admin',
+  'src/components/vaults',
+  'src/components/marketing',
+  // HC-AUDIT P2-20 : la référence (`src/features`) et la grammaire de carte
+  // partagée (`src/components/compositions`) doivent aussi passer par des tokens.
+  'src/features',
+  'src/components/compositions',
+]
 const IS_TEST = /\.(test|spec)\.(ts|tsx)$/
 
 /**

@@ -5,11 +5,15 @@ import { hrefCorpsActif, sousMenusCorps } from '@/lib/admin-nav'
 import { usePathname } from 'next/navigation'
 
 /**
- * Sous-menus horizontaux — uniquement pour la section active (Portfolio,
- * Production, Service). Les destinations principales restent dans la
- * sidebar ; le compte vit dans le menu utilisateur.
+ * Sous-menus horizontaux — rendus uniquement quand la section active porte au
+ * moins deux destinations (`sousMenusCorps` renvoie `undefined` sinon, d'où un
+ * `null`). Les destinations principales restent dans la sidebar ; le compte vit
+ * dans le menu utilisateur.
  *
- * Portfolio : Journal Série 1 ↔ Pilotage des souscriptions (les deux côtés).
+ * Aujourd'hui seule la section « Service » est multi-entrée : sur `/admin/runtime`,
+ * `/admin/api-explorer` et `/admin/keeper`, la bascule rend État du service ↔
+ * Explorateur d'API ↔ Actions Keeper. Les sections mono-entrée (Portfolio,
+ * Production) n'affichent rien.
  */
 export function AdminBodyNav() {
   const pathname = usePathname()

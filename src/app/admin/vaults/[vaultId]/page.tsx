@@ -7,7 +7,8 @@ import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
 import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
-import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
+import { libelleStatutCoffre, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
+import { libelleStatutDeploiement } from '@/lib/libelles'
 import { requireSession } from '@/lib/auth'
 import { explorerTxUrl } from '@/lib/explorer'
 import {
@@ -196,7 +197,7 @@ export default async function Page({ params }: PageProps) {
     registry.movements.value.length > 0 &&
     scopedMovements.value.length === 0
 
-  const activeStatus = editorial(vault.status)
+  const activeStatus = editorial(libelleStatutCoffre(vault.status))
   const totalValue = amountOf(vault, vault.totalAssetsAtomic)
   const deployedValue = amountOf(vault, deployedAtomic(vault))
   const idleValue = amountOf(vault, idleAtomic(vault))
@@ -291,7 +292,7 @@ export default async function Page({ params }: PageProps) {
           <DescriptionDetails>
             <AdminReading value={strategyDetailHttp} />
           </DescriptionDetails>
-          <DescriptionTerm>État du champ strategy</DescriptionTerm>
+          <DescriptionTerm>État du champ Stratégie</DescriptionTerm>
           <DescriptionDetails>
             <AdminReading value={strategyDetailState} />
           </DescriptionDetails>
@@ -517,7 +518,7 @@ export default async function Page({ params }: PageProps) {
                         fromAtomic: 10 ** (isAvailable(vault.asset) ? vault.asset.value.decimals : DOCUMENTED_DECIMALS),
                       })}
                 </TableCell>
-                <TableCell>{deployment.status}</TableCell>
+                <TableCell>{libelleStatutDeploiement(deployment.status)}</TableCell>
                 <TableCell>{formatDateTime(deployment.requestedAt)}</TableCell>
                 <TableCell>{formatDateTime(deployment.confirmedAt)}</TableCell>
               </TableRow>

@@ -57,7 +57,7 @@ function assetScale(vault: Vault): number | undefined {
 
 function vaultAmount(vault: Vault, reading: Availability<string | bigint>): Availability<string> {
   return combine(vault.asset, reading, (asset, raw) =>
-    formatCurrency(raw.toString(), { unit: asset.symbol, fromAtomic: 10 ** asset.decimals }),
+    formatCurrency(raw.toString(), { unit: `${asset.symbol} `, fromAtomic: 10 ** asset.decimals }),
   )
 }
 

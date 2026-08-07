@@ -51,14 +51,19 @@ describe('primary navigation', () => {
 
   it('highlights the longest matching body sub-nav entry', () => {
     expect(hrefCorpsActif('/admin/vaults/abc')).toBeUndefined()
-    // Service reste mono-entrée (runtime). Portfolio porte Journal + Pilotage.
-    expect(hrefCorpsActif('/admin/runtime')).toBeUndefined()
+    // Service est multi-entrée (runtime + api-explorer + keeper) : l'entrée active est mise en avant.
+    expect(hrefCorpsActif('/admin/runtime')).toBe('/admin/runtime')
+    expect(hrefCorpsActif('/admin/api-explorer')).toBe('/admin/api-explorer')
+    // Portfolio (Série 1) reste mono-entrée : pas de sous-nav.
     expect(hrefCorpsActif('/admin/series-1')).toBeUndefined()
     expect(hrefCorpsActif('/admin')).toBeUndefined()
   })
 
   it('exposes horizontal sub-menus only for multi-entry sections', () => {
-    expect(sousMenusCorps('/admin/runtime')).toBeUndefined()
+    // Service est désormais multi-entrée (runtime + api-explorer + keeper).
+    expect(sousMenusCorps('/admin/runtime')?.length).toBe(3)
+    expect(groupeSecondaireActif('/admin/runtime')?.titre).toBe('Service')
+    // Production et Portfolio restent mono-entrée : pas de sous-nav horizontale.
     expect(sousMenusCorps('/admin/produit')).toBeUndefined()
     expect(sousMenusCorps('/admin/series-1')).toBeUndefined()
     expect(sousMenusCorps('/admin')).toBeUndefined()

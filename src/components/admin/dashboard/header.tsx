@@ -4,9 +4,9 @@ import { Input, InputGroup } from '@/components/catalyst/input'
 import { Text } from '@/components/catalyst/text'
 import {
   BellIcon,
-  Cog6ToothIcon,
   MagnifyingGlassIcon,
   PlusIcon,
+  UserCircleIcon,
 } from '@heroicons/react/16/solid'
 
 /**
@@ -48,7 +48,7 @@ export function DashboardHeader({ userName }: Readonly<{ userName: string }>) {
           aria-label="Notifications"
         />
 
-        <HearstIconAction icon={<Cog6ToothIcon />} href="/admin/profile" aria-label="Paramètres" />
+        <HearstIconAction icon={<UserCircleIcon />} href="/admin/profile" aria-label="Votre compte" />
 
         <HearstPrimaryAction
           icon={<PlusIcon />}

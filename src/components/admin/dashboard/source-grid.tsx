@@ -1,5 +1,6 @@
 import type { SourceHealth } from '@/lib/vaults/model'
 import { Text } from '@/components/catalyst/text'
+import { formatRelativeTime } from '@/lib/format'
 import clsx from 'clsx'
 
 const LABELS: ReadonlyArray<{ match: RegExp; label: string }> = [
@@ -49,7 +50,9 @@ export function SourceStatusGrid({
       {slots.map(({ label, source }) => {
         const t = source === undefined ? 'warn' : tone(source)
         const freshness =
-          source?.asOf !== null && source?.asOf !== undefined ? source.asOf : 'Fraîcheur inconnue'
+          source?.asOf !== null && source?.asOf !== undefined
+            ? formatRelativeTime(source.asOf)
+            : 'Fraîcheur inconnue'
         return (
           <li
             key={label}
@@ -61,7 +64,7 @@ export function SourceStatusGrid({
                 aria-hidden="true"
                 className={clsx(
                   'size-2.5 shrink-0 rounded-full',
-                  t === 'ok' && 'bg-green-500',
+                  t === 'ok' && 'bg-success-400',
                   t === 'warn' && 'bg-warning-400',
                   t === 'bad' && 'bg-danger-500',
                 )}
