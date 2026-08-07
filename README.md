@@ -8,6 +8,7 @@ Grid : `@aceternity/grid-background-demo`. Ripple : `@aceternity/background-ripp
 Cards : `@aceternity/cards-demo-3` (`src/components/ui/cards-demo-3.tsx`).
 Carousel 3D : `ScrollVelocityPlanes` (`src/components/ui/scroll-velocity-planes.tsx` + `heritage-scroll-demo`).
 App Store layout : `AppStoreCards` (`src/components/ui/app-store-cards.tsx` + `app-store-demo`).
+3D Pin : `@aceternity/3d-pin-demo` (`src/components/ui/3d-pin.tsx` + `3d-pin-demo`).
 Primatives UI dans `src/components/ui/` (noir / console — jamais `zinc` en classe).
 Registry `@aceternity` dans `components.json`.
 
