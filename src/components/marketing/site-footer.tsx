@@ -22,11 +22,18 @@ const register = [
   { title: 'Se connecter', href: '/login' },
 ]
 
-/** Footer Aceternity « four grids » — watermark « Connect » en accent Hearst. */
+/** Footer Aceternity « four grids » — watermark « Connect » en fond, menus par-dessus. */
 export function SiteFooter() {
   return (
     <footer className="relative w-full overflow-hidden border-t border-console-line bg-console-app">
-      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 px-6 py-10 text-sm md:flex-row md:px-8">
+      <p
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-accent-300/[0.08]"
+      >
+        Connect
+      </p>
+
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 px-6 py-10 pb-24 text-sm md:flex-row md:px-8 md:pb-28">
         <div>
           <Link href="/" className="inline-flex text-white">
             <Logo />
@@ -43,13 +50,6 @@ export function SiteFooter() {
           <FooterColumn title="Compte" links={register} />
         </div>
       </div>
-
-      <p
-        aria-hidden="true"
-        className="pointer-events-none relative z-0 select-none px-4 pb-2 text-center text-[5.5rem] leading-none font-bold tracking-tight text-accent-300/15 sm:text-[8rem] md:text-[11rem] lg:text-[13rem]"
-      >
-        Connect
-      </p>
     </footer>
   )
 }
