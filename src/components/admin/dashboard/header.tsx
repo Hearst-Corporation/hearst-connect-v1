@@ -8,8 +8,8 @@ import { CONSOLE_GLOW_SRC } from '@/lib/brand'
 import { PlusIcon } from '@heroicons/react/16/solid'
 
 /**
- * Header pilotage — structure Profile Header (Tailwind UI) :
- * bandeau full-bleed → avatar chevauchant → nom + CTA à droite → KPI horizontaux bruts.
+ * Header pilotage — profile compact :
+ * bandeau bas · avatar discret · titre + CTA · KPI texte.
  */
 export function DashboardHeader({
   userName,
@@ -31,42 +31,36 @@ export function DashboardHeader({
       data-dashboard-kpi-bandeau=""
       className="-mx-6 -mt-6 overflow-hidden lg:-mx-10 lg:-mt-10 lg:rounded-t-lg"
     >
-      <img alt="" src={CONSOLE_GLOW_SRC} className="h-32 w-full object-cover lg:h-48" />
+      <img alt="" src={CONSOLE_GLOW_SRC} className="h-16 w-full object-cover lg:h-20" />
 
       <div className="px-6 lg:px-10">
-        <div className="-mt-12 sm:-mt-16 sm:flex sm:items-end sm:space-x-5">
-          <div className="flex">
-            <Avatar
-              initials={initials || 'HC'}
-              alt=""
-              className="size-24 bg-zinc-800 text-white ring-4 ring-zinc-950 outline -outline-offset-1 outline-white/10 sm:size-32"
-            />
-          </div>
+        <div className="-mt-7 flex flex-wrap items-end gap-x-4 gap-y-3 sm:-mt-8">
+          <Avatar
+            initials={initials || 'HC'}
+            alt=""
+            className="size-14 bg-zinc-800 text-sm text-white ring-2 ring-zinc-950 outline -outline-offset-1 outline-white/10 sm:size-16"
+          />
 
-          <div className="mt-6 sm:flex sm:min-w-0 sm:flex-1 sm:items-center sm:justify-end sm:space-x-6 sm:pb-1">
-            <div className="mt-6 min-w-0 flex-1 sm:hidden md:block">
-              <h1 className="truncate text-2xl font-bold text-white">Bonjour, {firstName}</h1>
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 pb-0.5">
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold tracking-tight text-white sm:text-xl">
+                Bonjour, {firstName}
+              </h1>
+              <p className="mt-0.5 text-sm text-zinc-400">
+                Voici l’état des opérations de souscription aujourd’hui.
+              </p>
             </div>
 
-            <div className="mt-6 flex flex-col justify-stretch space-y-3 sm:flex-row sm:space-y-0 sm:space-x-4">
-              <HearstPrimaryAction
-                icon={<PlusIcon />}
-                disabledReason="Création client non disponible côté backend"
-              >
-                Ajouter un client
-              </HearstPrimaryAction>
-            </div>
+            <HearstPrimaryAction
+              icon={<PlusIcon />}
+              disabledReason="Création client non disponible côté backend"
+            >
+              Ajouter un client
+            </HearstPrimaryAction>
           </div>
         </div>
 
-        <div className="mt-6 hidden min-w-0 flex-1 sm:block md:hidden">
-          <h1 className="truncate text-2xl font-bold text-white">Bonjour, {firstName}</h1>
-        </div>
-
-        <div className="mt-6 border-t border-white/10 pt-6 pb-6 lg:pb-8">
-          <p className="mb-5 text-sm text-zinc-300">
-            Voici l’état des opérations de souscription aujourd’hui.
-          </p>
+        <div className="mt-5 border-t border-white/10 pt-4 pb-5">
           <DashboardKpiMetrics items={kpis} />
         </div>
       </div>
