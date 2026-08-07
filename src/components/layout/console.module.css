@@ -15,19 +15,14 @@
   --csl-panel-bottom: #030304;
   --csl-panel-border: #141519;
   --csl-line: rgba(255, 255, 255, 0.075);
-  --csl-text: #f2f4fa;
-  --csl-secondary-text: #b0b3bb;
+  --csl-text: #ffffff;
+  --csl-secondary-text: #f2f2f2;
   /*
-   * ── Les deux gris secondaires passent AA, mesure à l'appui ─────────────────
-   * Le prototype posait #83868f et #777b83 sur ses fonds noirs. Mesurés sur le
-   * fond réel des cartes (#020203 → #08090b), ils donnent 4.41:1 et 3.27:1 —
-   * sous le 4.5:1 exigé pour du petit texte. Ils portent les légendes des cinq
-   * cartes métriques et les libellés du registre : de la donnée, pas de
-   * l'ornement. Remontés au premier échelon qui passe, la hiérarchie est
-   * conservée (`faint` reste plus pâle que `muted`).
+   * ── Secondaires blanc deep (AA sur fonds noirs) ────────────────────────────
+   * Alignés sur la rampe zinc dark du produit (#ffffff / #f2f2f2 / #e0e0e0).
    */
-  --csl-muted: #9a9da6;
-  --csl-faint: #9095a0;
+  --csl-muted: #e0e0e0;
+  --csl-faint: #d4d4d4;
   --csl-accent: var(--color-accent-300, #a7fb90);
   --csl-accent-ink: var(--color-accent-ink, #000000);
   /*
@@ -438,12 +433,12 @@
  * Le sous-titre. `Text` du kit vaut 14px/24px ; 12px/16px est un choix de CETTE
  * composition, pas une citation de Catalyst — la nuance compte, sinon le
  * commentaire ment sur sa source. La couleur, elle, est bien celle du kit
- * (`dark:text-zinc-400` = #a1a1aa).
+ * (`dark:text-zinc-400` = #f2f2f2 blanc deep).
  */
 .brandSub {
   font-size: 12px;
   line-height: 16px;
-  color: #a1a1aa;
+  color: #f2f2f2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1298,7 +1293,7 @@
 }
 
 .heroAxisLabel {
-  fill: #9a9da6;
+  fill: #e0e0e0;
   font-size: 11px;
   font-weight: 500;
 }
@@ -1319,7 +1314,7 @@
 }
 
 .heroPointLabel {
-  fill: #f2f4fa;
+  fill: #ffffff;
   font-size: 11px;
   font-weight: 600;
 }
