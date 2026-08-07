@@ -99,7 +99,7 @@ function stepState(step: FunnelStepView): StepState {
 
 /** Classes du cercle d'état — tokens uniquement (accent / warning / zinc). */
 const CIRCLE: Record<StepState, string> = {
-  clear: 'bg-accent-400/20 text-accent-700 ring-1 ring-accent-500/40 dark:bg-accent-400/10 dark:text-accent-300 dark:ring-accent-400/30',
+  clear: 'bg-zinc-100 text-accent-700 ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:text-accent-300 dark:ring-white/10',
   attention: 'bg-warning-400/15 text-warning-700 ring-1 ring-warning-500/40 dark:bg-warning-400/10 dark:text-warning-400 dark:ring-warning-400/30',
   unavailable: 'bg-zinc-100 text-zinc-400 ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:text-zinc-500 dark:ring-white/10',
 }
@@ -199,17 +199,22 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
               className={clsx(
                 'group relative flex flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-accent-500',
-                'data-selected:bg-accent-400/10 data-selected:ring-1 data-selected:ring-accent-500/40',
+                'data-selected:bg-zinc-50 data-selected:ring-1 data-selected:ring-zinc-950/5 dark:data-selected:bg-zinc-800/60 dark:data-selected:ring-white/10',
                 'not-data-selected:data-hover:bg-zinc-950/2.5 dark:not-data-selected:data-hover:bg-white/5',
               )}
             >
+              {/* Marqueur d'étape active : filet accent discret sous l'onglet, jamais un aplat vert. */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-4 bottom-1 hidden h-0.5 rounded-full bg-accent-500 group-data-selected:block dark:bg-accent-400"
+              />
               {/* Connecteur vers l'étape précédente — visible seulement sur la rangée xl à 6 colonnes. */}
               {index > 0 ? (
                 <span
                   aria-hidden="true"
                   className={clsx(
                     'absolute top-8 left-[-50%] hidden h-0.5 w-full xl:block',
-                    value === null ? 'bg-zinc-200 dark:bg-zinc-700' : 'bg-accent-400/50',
+                    value === null ? 'bg-zinc-200 dark:bg-zinc-800' : 'bg-zinc-300 dark:bg-zinc-700',
                   )}
                 />
               ) : null}
@@ -247,7 +252,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
                   hasWork
                     ? 'font-medium text-warning-700 dark:text-warning-400'
                     : state === 'clear'
-                      ? 'text-accent-700 dark:text-accent-400'
+                      ? 'text-zinc-500 dark:text-zinc-400'
                       : 'text-zinc-400 dark:text-zinc-500',
                 )}
               >
