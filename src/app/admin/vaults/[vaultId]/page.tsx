@@ -208,7 +208,6 @@ export default async function Page({ params }: PageProps) {
     vault.lastActivityAt,
     (iso) => `${formatDateTime(iso)} · ${formatRelativeTime(iso)}`,
   )
-  const address = formatAddress(vault.contractAddress)
   const client = vault.client
 
   const rebalancingList = isAvailable(scopedRebalancing) ? scopedRebalancing.value : null
@@ -223,13 +222,8 @@ export default async function Page({ params }: PageProps) {
   const strategyDetailHttp = statutHttpStrategieDetail(strategyDetailRes)
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title={vault.label}
-        description={[vault.chainId === null ? null : `chain ${vault.chainId}`, address ?? vault.contractAddress]
-          .filter((part) => part !== null)
-          .join(' · ')}
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title={vault.label} />
 
       <div className="flex flex-wrap items-center gap-3">
         <VaultStatusBadge status={vault.status} />
@@ -254,18 +248,38 @@ export default async function Page({ params }: PageProps) {
       </StatGrid>
 
       {!isAvailable(scopedRebalancing) ? (
-        <SectionCard title="Rééquilibrage" hint="Écart d’allocation par poche, tel que rapporté par le service.">
-          <Text>
-            <AdminReading value={absentReading(scopedRebalancing)} />{' '}
-            <Link href={entityHref('source', 'rebalancing-status')}>Couverture des données</Link>
-          </Text>
-        </SectionCard>
+        <>
+          <ChartFrame
+            question="Comment l’allocation se répartit-elle par poche ?"
+            unite="en pourcentage — cible visée contre part constatée"
+            etat={{
+              type: 'indisponible',
+              explication:
+                'Le service de rééquilibrage n’a pas répondu : aucune allocation à tracer pour ce coffre.',
+            }}
+            expectedSource={['/api/v1/rebalancing/status']}
+          />
+          <SectionCard title="Rééquilibrage" hint="Écart d’allocation par poche, tel que rapporté par le service." className="mt-6">
+            <Text>
+              <AdminReading value={absentReading(scopedRebalancing)} />{' '}
+              <Link href={entityHref('source', 'rebalancing-status')}>Couverture des données</Link>
+            </Text>
+          </SectionCard>
+        </>
       ) : rebalancingList !== null && rebalancingList.length === 0 ? (
-        <DataTableShell
-          title="Rééquilibrage"
-          description="Écart d’allocation par poche, tel que rapporté par le service."
-          calme="Aucune poche mesurée pour ce coffre."
-        />
+        <>
+          <ChartFrame
+            question="Comment l’allocation se répartit-elle par poche ?"
+            unite="en pourcentage — cible visée contre part constatée"
+            etat={{ type: 'vide', explication: 'Aucune poche mesurée pour ce coffre : aucune série à tracer.' }}
+          />
+          <DataTableShell
+            title="Rééquilibrage"
+            description="Écart d’allocation par poche, tel que rapporté par le service."
+            calme="Aucune poche mesurée pour ce coffre."
+            className="mt-6"
+          />
+        </>
       ) : orderedRebalancingList !== null ? (
         <>
           <ChartFrame

@@ -1,6 +1,7 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
+import { ChartFrame } from '@/components/charts'
 import { SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -45,11 +46,8 @@ export default async function Page() {
   const canPost = disabledReason === null
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Nouveau client simulé"
-        description="Crée un compte via POST /api/v1/admin/users. Une réponse 201 reste une création réelle — aucune ligne inventée côté front."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Nouveau client simulé" />
 
       <StatGrid label="État de la requête de création" columns={3}>
         <StatCard
@@ -68,6 +66,18 @@ export default async function Page() {
           hint={canPost ? 'Rôle et backend réunis' : 'Condition manquante ci-dessous'}
         />
       </StatGrid>
+
+      <SectionCard title="Créations récentes" hint="Comptes créés depuis cet écran, par jour." tone="chart">
+        <ChartFrame
+          question="Créations de comptes par jour"
+          unite="comptes / jour"
+          etat={{
+            type: 'vide',
+            explication:
+              'Aucune série à tracer : cet écran émet une création à la fois et ne mesure pas d’historique. Le décompte réel des comptes vit dans l’annuaire clients.',
+          }}
+        />
+      </SectionCard>
 
       <SectionCard
         title="Créer un compte investisseur ou admin"

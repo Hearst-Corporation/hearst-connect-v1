@@ -216,11 +216,8 @@ export default async function Page() {
   )
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Vue produit consolidée"
-        description="Production du fonds, répartition du capital, évolution de la rémunération et lectures encore absentes — six anciennes pages en une seule surface."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Vue produit consolidée" />
 
       <StatGrid label="Lectures consolidées du produit" columns={3}>
         <StatCard titre="Hashrate" valeur={hashrateCell} showRoute hint="Puissance de calcul renseignée." />

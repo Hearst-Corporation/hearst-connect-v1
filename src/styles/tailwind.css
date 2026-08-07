@@ -35,17 +35,24 @@
    * `--color-console-*`, les états sont success/warning/danger.
    */
 
-  --color-zinc-50: #f8fafc;
-  --color-zinc-100: #f1f5f9;
-  --color-zinc-200: #e2e8f0;
-  --color-zinc-300: #cbd5e1;
+  /*
+   * Rampe zinc = GRAPHITE NEUTRE (canaux égaux, aucune sous-teinte). Les valeurs
+   * précédentes étaient la palette SLATE de Tailwind (#334155, #18183a, #0b0e17…),
+   * bleue — « le dark-blue cockpit rejeté par la review ». La rampe neutre
+   * approuvée vivait par erreur dans `.cockpit-theme` (mort) ; elle est ici,
+   * vivante. Lightness préservée par palier.
+   */
+  --color-zinc-50: #fafafa;
+  --color-zinc-100: #f4f4f4;
+  --color-zinc-200: #e6e6e6;
+  --color-zinc-300: #d4d4d4;
   --color-zinc-400: #b2b2b2;
   --color-zinc-500: #7f7f7f;
-  --color-zinc-600: #5d6c7b;
-  --color-zinc-700: #334155;
-  --color-zinc-800: #18183a;
-  --color-zinc-900: #0b0e17;
-  --color-zinc-950: #020611;
+  --color-zinc-600: #6e6e6e;
+  --color-zinc-700: #404040;
+  --color-zinc-800: #262626;
+  --color-zinc-900: #171717;
+  --color-zinc-950: #0a0a0a;
 
   /*
    * Retirées le 2026-08-04 (LOT E) : la famille `--color-surface-*` (4 tokens),
@@ -191,7 +198,7 @@
    * plus CLAIR que son conteneur. Unifier le plan enfoncé de la console est une
    * décision de design system (elle change le rendu), pas un renommage.
    */
-  --color-cockpit-inset: #0b0e17;
+  --color-cockpit-inset: #141414;
 }
 
 /*

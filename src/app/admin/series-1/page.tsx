@@ -122,11 +122,8 @@ export default async function Page() {
   const journalCount = readable && mouvements.length > 0 ? `${formatNumber(mouvements.length)} mouvements` : undefined
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Journal Série 1"
-        description="Journal chronologique de la chaîne, lu depuis GET /api/v1/series1/events. Chaque ligne est une écriture du backend, sans total inter-types."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Journal Série 1" />
 
       <StatGrid label="Indicateurs du journal Série 1" columns={4}>
         <StatCard titre="État de la source" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} hint="Flux series1-events" />

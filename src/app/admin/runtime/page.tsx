@@ -158,11 +158,8 @@ export default async function RuntimePage() {
   })
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="État du service"
-        description="Vivacité, disponibilité et charge utile de l’exécution — chaque valeur provient des sondes backend, sans réécriture frontend."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="État du service" />
 
       <StatGrid label="Sondes de service" columns={3}>
         <StatCard titre="Santé" valeur={editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE'))} hint="Vivacité (health)" />

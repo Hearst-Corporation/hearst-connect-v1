@@ -56,7 +56,7 @@ export function SourceStatusGrid({
         return (
           <li
             key={label}
-            className="rounded-xl bg-white p-3 shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10"
+            className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-zinc-950/5 dark:bg-zinc-800 dark:shadow-md dark:shadow-black/40 dark:ring-white/10"
             title={source?.endpointId}
           >
             <div className="flex items-center gap-2">
