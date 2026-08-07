@@ -18,12 +18,12 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/20/solid'
 import { logout } from '@/lib/actions'
-import { gcc } from './console'
+import { csl } from './console'
 
 /**
  * Le rail de navigation de l'ESPACE utilisateur — jumeau de `ConsoleRail`.
  *
- * Même composition Catalyst (`Sidebar`/`SidebarItem`), mêmes classes `gcc`, même
+ * Même composition Catalyst (`Sidebar`/`SidebarItem`), mêmes classes `csl`, même
  * habillage accent : on ne réécrit rien. Seules changent les destinations (elles
  * pointent vers `/espace/*`, pas `/admin/*`) et l'intitulé de marque
  * (« Espace »). La déconnexion reste une ACTION (`SidebarItem type="submit"`
@@ -57,16 +57,16 @@ export function AppRail({
   const trimmed = userName.trim()
   const userInitial = trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : 'H'
   return (
-    <div className={gcc.rail} data-gcc="rail">
+    <div className={csl.rail} data-csl="rail">
       <Sidebar>
-        <SidebarHeader className={gcc.brandHeader}>
-          <div className={gcc.brandRow}>
-            <div className={gcc.brandMark} data-gcc="brand" aria-hidden="true">
+        <SidebarHeader className={csl.brandHeader}>
+          <div className={csl.brandRow}>
+            <div className={csl.brandMark} data-csl="brand" aria-hidden="true">
               HC
             </div>
-            <div className={gcc.brandText}>
-              <div className={gcc.brandName}>Hearst Connect</div>
-              <div className={gcc.brandSub}>Espace</div>
+            <div className={csl.brandText}>
+              <div className={csl.brandName}>Hearst Connect</div>
+              <div className={csl.brandSub}>Espace</div>
             </div>
           </div>
         </SidebarHeader>
@@ -78,7 +78,7 @@ export function AppRail({
                 key={destination.href}
                 href={destination.href}
                 current={destination.href === currentHref}
-                className={gcc.railItem}
+                className={csl.railItem}
               >
                 <destination.icon data-slot="icon" />
                 <SidebarLabel>{destination.label}</SidebarLabel>
@@ -87,19 +87,19 @@ export function AppRail({
           </SidebarSection>
         </SidebarBody>
 
-        <SidebarFooter className={gcc.railFooter}>
-          <div className={gcc.railUser}>
-            <div className={gcc.avatar} aria-hidden="true">
+        <SidebarFooter className={csl.railFooter}>
+          <div className={csl.railUser}>
+            <div className={csl.avatar} aria-hidden="true">
               {userInitial}
             </div>
-            <div className={gcc.brandText}>
-              <div className={gcc.brandName}>{userName}</div>
-              <div className={gcc.brandSub}>Rôle : {userRole}</div>
+            <div className={csl.brandText}>
+              <div className={csl.brandName}>{userName}</div>
+              <div className={csl.brandSub}>Rôle : {userRole}</div>
             </div>
           </div>
           <SidebarSection>
             <form action={logout}>
-              <SidebarItem type="submit" className={gcc.railItem}>
+              <SidebarItem type="submit" className={csl.railItem}>
                 <ArrowRightStartOnRectangleIcon data-slot="icon" />
                 <SidebarLabel>Se déconnecter</SidebarLabel>
               </SidebarItem>

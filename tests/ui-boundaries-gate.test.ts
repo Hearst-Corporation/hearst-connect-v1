@@ -82,7 +82,7 @@ describe('check-ui-boundaries — la gate mord sur du vrai code', () => {
   it('refuse un import depuis design-lab', () => {
     const racine = racineAvec(
       'src/components/x.tsx',
-      "import { Panel } from '@/components/design-lab/green-command-center/primitives'\nexport const X = Panel\n",
+      "import { Panel } from '@/components/design-lab/legacy/primitives'\nexport const X = Panel\n",
     )
     const { code, sortie } = lancer(racine)
     expect(code).toBe(1)

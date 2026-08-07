@@ -1,4 +1,4 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleShell, csl } from '@/components/layout/console-shell'
 import { Panel, PanelHeader, SourceAttendue } from '@/components/compositions'
 import { AppRail } from '@/components/layout/app-rail'
 import { Reading } from '@/components/layout/console'
@@ -108,23 +108,23 @@ export default async function Page() {
       label="Poste de pilotage profil — Espace Hearst Connect"
       rail={<AppRail currentHref="/espace/profil" userName={railUserName} userRole={railUserRole} />}
     >
-      <section className={gcc.metricsRow} aria-label="Résumé du profil">
-        <Panel tone="plain" className={gcc.metricCard}><h2>Session</h2><div className={gcc.metricText}><Reading value={editorial(sessionState)} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Nom</h2><div className={gcc.metricText}><Reading value={editorial(session?.name ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>E-mail</h2><div className={gcc.metricText}><Reading value={editorial(session?.email ?? '—')} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Rôle</h2><div className={gcc.metricText}><Reading value={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Dossier investisseur</h2><div className={gcc.metricText}><Reading value={editorial(investorState)} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Identité <span>du compte</span></p>
-          <p className={gcc.decisionMeta}>{reponse.ok ? 'Point d’accès profil joignable' : 'Point d’accès profil indisponible'}</p>
-          <p className={gcc.decisionActionMuted}>La session et l’investisseur sont distincts</p>
+      <section className={csl.metricsRow} aria-label="Résumé du profil">
+        <Panel tone="plain" className={csl.metricCard}><h2>Session</h2><div className={csl.metricText}><Reading value={editorial(sessionState)} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Nom</h2><div className={csl.metricText}><Reading value={editorial(session?.name ?? '—')} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>E-mail</h2><div className={csl.metricText}><Reading value={editorial(session?.email ?? '—')} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Rôle</h2><div className={csl.metricText}><Reading value={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Dossier investisseur</h2><div className={csl.metricText}><Reading value={editorial(investorState)} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.decisionCardNeutral}>
+          <p className={csl.decisionTitle}>Identité <span>du compte</span></p>
+          <p className={csl.decisionMeta}>{reponse.ok ? 'Point d’accès profil joignable' : 'Point d’accès profil indisponible'}</p>
+          <p className={csl.decisionActionMuted}>La session et l’investisseur sont distincts</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Identité du profil">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Votre compte</h2></div>
-          <div className={gcc.heroBody}>
+      <section className={csl.mainRow} aria-label="Identité du profil">
+        <Panel tone="plain" className={csl.heroChart}>
+          <div className={csl.heroHead}><h2 className={csl.cardTitle}>Votre compte</h2></div>
+          <div className={csl.heroBody}>
             <AdminSection
               title="Identité"
               description="Deux choses vivent ici et elles ne sont pas identiques. Le compte est ce qui vous connecte ; le dossier investisseur est ce qui relie une personne à une position dans le fonds. L’un n’implique pas l’autre."
@@ -154,30 +154,30 @@ export default async function Page() {
             </AdminSection>
           </div>
         </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Source du profil</h3><p className={gcc.cellText}>{reponse.ok ? 'Joignable' : 'Indisponible'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Raison investisseur</h3><p className={gcc.cellText}>{motif ?? 'Aucune signalée'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Correspondance des rôles</h3><p className={gcc.cellText}>Le rôle de session n’implique pas de souscription.</p></Panel>
+        <aside className={csl.rightStack}>
+          <Panel tone="plain" className={csl.signalCard}><h3>Source du profil</h3><p className={csl.cellText}>{reponse.ok ? 'Joignable' : 'Indisponible'}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Raison investisseur</h3><p className={csl.cellText}>{motif ?? 'Aucune signalée'}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Correspondance des rôles</h3><p className={csl.cellText}>Le rôle de session n’implique pas de souscription.</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Notes du profil">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Doctrine des données</h3></div>
-          <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>L’identité du compte et l’identité investisseur sont rendues séparément.</p>
-            <p className={gcc.cellText}>L’absence de dossier investisseur est explicite, jamais présentée comme une panne.</p>
+      <section className={csl.bottomRow} aria-label="Notes du profil">
+        <Panel tone="plain" className={csl.wavePanel}>
+          <div className={csl.heroHead}><h3 className={csl.cardTitle}>Doctrine des données</h3></div>
+          <div className={csl.heroBody}>
+            <p className={csl.cellText}>L’identité du compte et l’identité investisseur sont rendues séparément.</p>
+            <p className={csl.cellText}>L’absence de dossier investisseur est explicite, jamais présentée comme une panne.</p>
           </div>
         </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Source de session</h3><p className={gcc.cellText}>Session chiffrée du navigateur</p></article>
-          <article className={gcc.infoCell}><h3>Source du profil</h3><p className={gcc.cellText}>Point d’accès backend profil</p></article>
-          <article className={gcc.infoCell}><h3>Champs investisseur</h3><p className={gcc.cellText}>Nom, e-mail, portefeuille, KYC, accréditation</p></article>
-          <article className={gcc.infoCell}><h3>Repli</h3><p className={gcc.cellText}>Aucune ligne investisseur fabriquée</p></article>
+        <Panel as="section" tone="plain" className={csl.infoGrid}>
+          <article className={csl.infoCell}><h3>Source de session</h3><p className={csl.cellText}>Session chiffrée du navigateur</p></article>
+          <article className={csl.infoCell}><h3>Source du profil</h3><p className={csl.cellText}>Point d’accès backend profil</p></article>
+          <article className={csl.infoCell}><h3>Champs investisseur</h3><p className={csl.cellText}>Nom, e-mail, portefeuille, KYC, accréditation</p></article>
+          <article className={csl.infoCell}><h3>Repli</h3><p className={csl.cellText}>Aucune ligne investisseur fabriquée</p></article>
         </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Votre espace</h3>
-          <p className={gcc.cellText}>Le tableau de bord réunit la couverture de vos données.</p>
+        <Panel tone="plain" className={csl.vaultCard}>
+          <h3 className={csl.cardTitle}>Votre espace</h3>
+          <p className={csl.cellText}>Le tableau de bord réunit la couverture de vos données.</p>
         </Panel>
       </section>
     </ConsoleShell>

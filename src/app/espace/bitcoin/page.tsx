@@ -8,7 +8,7 @@ import {
   type PosteBitcoin,
 } from '@/components/charts'
 import { MetricValue, Panel, PanelHeader, SideFact, SourceAttendue } from '@/components/compositions'
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleShell, csl } from '@/components/layout/console-shell'
 import { AppRail } from '@/components/layout/app-rail'
 import { Reading } from '@/components/layout/console'
 import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
@@ -192,23 +192,23 @@ export default async function Page() {
       label="Production bitcoin — Espace Hearst Connect"
       rail={<AppRail currentHref="/espace/bitcoin" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Résumé de la production bitcoin">
-        <Panel tone="plain" className={gcc.metricCard}><h2>BTC produit</h2><div className={gcc.metricText}><Reading value={btcProduitCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Réserve dormante</h2><div className={gcc.metricText}><Reading value={reserveCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Valeur exposée</h2><div className={gcc.metricText}><Reading value={expositionCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Rapports mensuels</h2><div className={gcc.metricText}><Reading value={rapportsMensuelsCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Dernier rapport</h2><div className={gcc.metricText}><Reading value={dernierRapportCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Production <span>bitcoin</span></p>
-          <p className={gcc.decisionMeta}>{b === null ? 'Source indisponible' : 'Source disponible'}</p>
-          <p className={gcc.decisionActionMuted}>Aucun rendement projeté</p>
+      <section className={csl.metricsRow} aria-label="Résumé de la production bitcoin">
+        <Panel tone="plain" className={csl.metricCard}><h2>BTC produit</h2><div className={csl.metricText}><Reading value={btcProduitCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Réserve dormante</h2><div className={csl.metricText}><Reading value={reserveCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Valeur exposée</h2><div className={csl.metricText}><Reading value={expositionCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Rapports mensuels</h2><div className={csl.metricText}><Reading value={rapportsMensuelsCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Dernier rapport</h2><div className={csl.metricText}><Reading value={dernierRapportCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.decisionCardNeutral}>
+          <p className={csl.decisionTitle}>Production <span>bitcoin</span></p>
+          <p className={csl.decisionMeta}>{b === null ? 'Source indisponible' : 'Source disponible'}</p>
+          <p className={csl.decisionActionMuted}>Aucun rendement projeté</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Détails de la production bitcoin">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Production Bitcoin</h2></div>
-          <div className={gcc.heroBody}>
+      <section className={csl.mainRow} aria-label="Détails de la production bitcoin">
+        <Panel tone="plain" className={csl.heroChart}>
+          <div className={csl.heroHead}><h2 className={csl.cardTitle}>Production Bitcoin</h2></div>
+          <div className={csl.heroBody}>
             {b === null ? (
               <SourceAttendue
                 quoi="L’état bitcoin n’a pas pu être lu"
@@ -293,31 +293,31 @@ export default async function Page() {
             )}
           </div>
         </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}><h3>État de la production</h3><p className={gcc.cellText}>{moisProduction.length > 0 ? 'Rapporté' : 'En attente'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Répartition de la réserve</h3><p className={gcc.cellText}>{postes.length > 0 ? 'Lisible' : 'Indisponible'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Cumul depuis l’origine</h3><p className={gcc.cellText}>{cumulProduction === null ? 'Non transmis' : `${cumulProduction} BTC`}</p></Panel>
+        <aside className={csl.rightStack}>
+          <Panel tone="plain" className={csl.signalCard}><h3>État de la production</h3><p className={csl.cellText}>{moisProduction.length > 0 ? 'Rapporté' : 'En attente'}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Répartition de la réserve</h3><p className={csl.cellText}>{postes.length > 0 ? 'Lisible' : 'Indisponible'}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Cumul depuis l’origine</h3><p className={csl.cellText}>{cumulProduction === null ? 'Non transmis' : `${cumulProduction} BTC`}</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Notes de production bitcoin">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Garde-fous</h3></div>
-          <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Un mois est affiché comme observation, pas comme tendance.</p>
-            <p className={gcc.cellText}>Les satoshis sont convertis au chiffre exact, sans dérive flottante.</p>
-            <p className={gcc.cellText}>Une source datée n’est jamais présentée « En direct ».</p>
+      <section className={csl.bottomRow} aria-label="Notes de production bitcoin">
+        <Panel tone="plain" className={csl.wavePanel}>
+          <div className={csl.heroHead}><h3 className={csl.cardTitle}>Garde-fous</h3></div>
+          <div className={csl.heroBody}>
+            <p className={csl.cellText}>Un mois est affiché comme observation, pas comme tendance.</p>
+            <p className={csl.cellText}>Les satoshis sont convertis au chiffre exact, sans dérive flottante.</p>
+            <p className={csl.cellText}>Une source datée n’est jamais présentée « En direct ».</p>
           </div>
         </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>Production bitcoin du service</p></article>
-          <article className={gcc.infoCell}><h3>Modèle de réserve</h3><p className={gcc.cellText}>Réserve contre exposition en USD.</p></article>
-          <article className={gcc.infoCell}><h3>Modèle de production</h3><p className={gcc.cellText}>Satoshis convertis avec décimales exactes.</p></article>
-          <article className={gcc.infoCell}><h3>Véracité</h3><p className={gcc.cellText}>Chaque compte hérite de la fraîcheur de sa source.</p></article>
+        <Panel as="section" tone="plain" className={csl.infoGrid}>
+          <article className={csl.infoCell}><h3>Point d’accès</h3><p className={csl.cellText}>Production bitcoin du service</p></article>
+          <article className={csl.infoCell}><h3>Modèle de réserve</h3><p className={csl.cellText}>Réserve contre exposition en USD.</p></article>
+          <article className={csl.infoCell}><h3>Modèle de production</h3><p className={csl.cellText}>Satoshis convertis avec décimales exactes.</p></article>
+          <article className={csl.infoCell}><h3>Véracité</h3><p className={csl.cellText}>Chaque compte hérite de la fraîcheur de sa source.</p></article>
         </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Votre espace</h3>
-          <p className={gcc.cellText}>Le tableau de bord réunit la couverture de vos données.</p>
+        <Panel tone="plain" className={csl.vaultCard}>
+          <h3 className={csl.cardTitle}>Votre espace</h3>
+          <p className={csl.cellText}>Le tableau de bord réunit la couverture de vos données.</p>
         </Panel>
       </section>
     </ConsoleShell>

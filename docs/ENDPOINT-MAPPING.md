@@ -33,7 +33,7 @@
 
 | Method | Endpoint | Spec (page cible) | Conformité front |
 |--------|----------|-------------------|------------------|
-| `GET` | `/api/v1/dashboard` | `/admin/dashboard` (+ vaults) | ✅ |
+| `GET` | `/api/v1/dashboard` | `/admin` (+ vaults) | ✅ |
 | `GET` | `/api/v1/profile` | `/admin/profile` | ✅ |
 | `GET` | `/api/v1/btc` | `/admin/produit` | ✅ |
 | `GET` | `/api/v1/mining` | `/admin/produit` | ✅ |

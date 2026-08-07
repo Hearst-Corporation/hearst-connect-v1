@@ -23,8 +23,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * The shared overview arithmetic.
  *
- * These figures are now read by TWO surfaces — the administration overview and
- * the green command center laboratory. The point of the tests is that neither
+ * These figures may be read by several admin surfaces. The point of the tests
  * surface can be handed a number the service did not support: an unreadable
  * operand propagates as an absence, and it never degrades into a zero that
  * would look exactly like a real measurement.

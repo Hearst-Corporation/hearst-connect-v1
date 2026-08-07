@@ -7,14 +7,8 @@ import styles from './console.module.css'
 import clsx from 'clsx'
 
 /**
- * The laboratory's shared primitives: the panel material, and the one way an
- * absence is rendered inside this composition.
- *
- * The console's own source-availability badge was deliberately NOT reused here.
- * It was a Catalyst-styled badge built for the graphite console — dropped onto
- * this near-black prototype it read as a foreign element. The CONTRACT it
- * enforced is what matters, and that contract is kept: an absence shows the
- * word, the reason and the route, and never a number.
+ * Primitives partagées du shell legacy `/espace` : absences nommées (`Reading`)
+ * et classes du module CSS (`csl`).
  */
 
 /*
@@ -24,11 +18,11 @@ import clsx from 'clsx'
  * canonique pour toute la console, avec la matière déclarée par un `tone`
  * explicite au lieu d'un `className` deviné. Ce fichier ne garde que ce qui
  * relève vraiment de la matière de la console : la grammaire de l'absence
- * (`Absent`, `Reading`) et les classes du module CSS (`gcc`).
+ * (`Absent`, `Reading`) et les classes du module CSS (`csl`).
  *
- * L'ancre de géométrie `data-gcc` reste disponible : `Panel` accepte les
+ * L'ancre de géométrie `data-csl` reste disponible : `Panel` accepte les
  * attributs HTML arbitraires, donc les revues visuelles qui mesurent les boîtes
- * par `[data-gcc='…']` continuent de fonctionner.
+ * par `[data-csl='…']` continuent de fonctionner.
  */
 
 /**
@@ -110,4 +104,4 @@ export function Reading({
   )
 }
 
-export { styles as gcc }
+export { styles as csl }

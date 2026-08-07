@@ -6,7 +6,7 @@ import { test, expect, type Page } from '@playwright/test'
  */
 
 const ROUTES_AUDIT = [
-  '/admin/dashboard',
+  '/admin',
   '/admin/runtime',
   '/admin/produit',
   '/admin/vaults',
@@ -24,7 +24,7 @@ test.describe('audit closure — vérité affichée', () => {
   })
 
   test('dashboard lit meta.status (plus « joignable » générique)', async ({ page }) => {
-    await page.goto('/admin/dashboard')
+    await page.goto('/admin')
     const body = await page.locator('body').innerText()
     expect(body).not.toContain('Source du tableau de bord joignable')
     expect(body).toMatch(/en direct|indisponible|obsolète|partiel/i)
@@ -58,7 +58,7 @@ test.describe('audit closure — layout et focus', () => {
 
   test('tab atteint un lien ou bouton focusable sur le dashboard', async ({ page }) => {
     await quickLogin(page)
-    await page.goto('/admin/dashboard')
+    await page.goto('/admin')
     await page.keyboard.press('Tab')
     const focused = await page.evaluate(() => document.activeElement?.tagName ?? '')
     expect(['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA']).toContain(focused)

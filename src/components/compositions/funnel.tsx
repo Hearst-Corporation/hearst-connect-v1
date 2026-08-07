@@ -1,4 +1,4 @@
-import { gcc, Reading } from '@/components/layout/console'
+import { csl, Reading } from '@/components/layout/console'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
@@ -53,10 +53,10 @@ export function FunnelPipeline({
           return (
             <li key={step.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
               <div className="flex shrink-0 items-center gap-2 sm:w-48">
-                <span className={clsx(gcc.cellText, 'text-xs tabular-nums text-zinc-500')} aria-hidden="true">
+                <span className={clsx(csl.cellText, 'text-xs tabular-nums text-zinc-500')} aria-hidden="true">
                   {index + 1}
                 </span>
-                <span className={clsx(gcc.cardTitle, 'text-sm')}>{step.label}</span>
+                <span className={clsx(csl.cardTitle, 'text-sm')}>{step.label}</span>
               </div>
 
               <div className="min-w-0 flex-1">

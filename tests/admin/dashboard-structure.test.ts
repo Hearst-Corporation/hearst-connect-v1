@@ -4,25 +4,19 @@ import { describe, expect, it } from 'vitest'
 
 /**
  * Structural contract — HC-ADMIN-DASHBOARD-UI-ASSETS-005.
- *
- * Cette mission REMPLACE délibérément deux décisions de HC-ADMIN-DASHBOARD-
- * VISUAL-CLEANUP-003 : les six barres du faux funnel (`FunnelColumns`) → un
- * vrai stepper à paliers ; le CTA primaire brut → la frontière d'actions
- * Hearst. Le contrat de véracité, lui, est INCHANGÉ et reste verrouillé ici :
- * aucun moteur de dataviz en route, aucune copie d'API dans l'UI, composant
- * serveur, données jamais inventées.
+ * Surface canonique : `/admin` (redirect legacy `/admin/dashboard`).
  */
 
 const root = (p: string) => resolve(import.meta.dirname, '../../', p)
-const SOURCE = readFileSync(root('src/app/admin/dashboard/page.tsx'), 'utf8')
+const PAGE = readFileSync(root('src/app/admin/page.tsx'), 'utf8')
+const SOURCE = readFileSync(root('src/features/admin-dashboard/admin-dashboard-page.tsx'), 'utf8')
 const HEADER = readFileSync(root('src/components/admin/dashboard/header.tsx'), 'utf8')
 const KPI = readFileSync(root('src/components/admin/dashboard/kpi-grid.tsx'), 'utf8')
 const STEPPER = readFileSync(root('src/components/admin/dashboard/subscription-journey.tsx'), 'utf8')
 const QUEUE = readFileSync(root('src/components/admin/dashboard/action-queue.tsx'), 'utf8')
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
-const BODY_NAV = readFileSync(root('src/components/admin/body-nav.tsx'), 'utf8')
 
-describe('/admin/dashboard — structure (UI-ASSETS-005)', () => {
+describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
   it('uses Catalyst shell (no gray bag) and Heading header', () => {
     expect(SOURCE).toMatch(/<DashboardShell/)
     expect(SOURCE).toMatch(/<DashboardHeader/)
@@ -32,7 +26,7 @@ describe('/admin/dashboard — structure (UI-ASSETS-005)', () => {
   })
 
   it('titles metadata as pilotage des souscriptions', () => {
-    expect(SOURCE).toMatch(/title:\s*'Pilotage des souscriptions'/)
+    expect(PAGE).toMatch(/Pilotage des souscriptions/)
   })
 
   it('renders exactly four compact KPI cards without technical copy', () => {
@@ -54,11 +48,9 @@ describe('/admin/dashboard — structure (UI-ASSETS-005)', () => {
   })
 
   it('replaces the six-column funnel with a real journey stepper (no comparative bars)', () => {
-    // La régression que la mission interdit : plus aucune barre comparative.
     expect(SOURCE).not.toMatch(/<FunnelColumns/)
     expect(SOURCE).toMatch(/<SubscriptionJourneyStepper/)
     expect(SOURCE).toContain('Parcours de souscription')
-    // Le stepper est bâti sur Headless UI Tabs, pas sur des `role="meter"` (barres).
     expect(STEPPER).toMatch(/'use client'/)
     expect(STEPPER).toMatch(/TabGroup|TabList|TabPanel/)
     expect(STEPPER).not.toMatch(/role="meter"/)
@@ -69,7 +61,6 @@ describe('/admin/dashboard — structure (UI-ASSETS-005)', () => {
   it('keeps actions in the priority queue and rebuilds it into a composition (not a blank card)', () => {
     expect(SOURCE).toMatch(/<ActionQueue/)
     expect(SOURCE).toContain('À traiter')
-    // La zone « À traiter » porte un résumé + un panneau d'action + un empty honnête.
     expect(QUEUE).toContain('à traiter')
     expect(QUEUE).toContain('Rien à traiter')
     expect(QUEUE).toMatch(/HearstCriticalAction|HearstDangerAction/)
@@ -83,7 +74,6 @@ describe('/admin/dashboard — structure (UI-ASSETS-005)', () => {
     expect(HEADER).toMatch(/HearstPrimaryAction/)
     expect(HEADER).not.toContain('/admin/client-simulator')
     expect(SOURCE).not.toContain('/admin/client-simulator')
-    // La primitive reste Catalyst : la frontière wrappe `<Button>`, ne le réécrit pas.
     expect(ACTIONS).toMatch(/from ['"]@\/components\/catalyst\/button['"]/)
     expect(ACTIONS).toMatch(/useReducedMotion/)
   })
@@ -121,20 +111,14 @@ describe('/admin/dashboard — structure (UI-ASSETS-005)', () => {
     expect(HEADER).not.toMatch(/color=['"]orange['"]/)
     expect(KPI).not.toMatch(/sky-|violet-|orange-/)
     expect(KPI).toMatch(/accent-/)
-    // Le stepper marque l'état par tokens sémantiques (accent / warning / zinc), pas par arc-en-ciel.
     expect(STEPPER).not.toMatch(/bg-sky-|bg-violet-|bg-rose-|bg-orange-/)
     expect(STEPPER).toMatch(/accent-/)
   })
 
-  it('keeps Portfolio secondary tabs visible on this page (no cul-de-sac)', () => {
-    expect(BODY_NAV).not.toMatch(/pathname === '\/admin\/dashboard'[\s\S]*return null/)
-    expect(BODY_NAV).toMatch(/sousMenusCorps/)
-  })
-
-  it('is a server component reading the shared registry', () => {
-    expect(SOURCE).not.toMatch(/^'use client'/)
-    expect(SOURCE).toContain('loadAdminRegistry')
-    expect(SOURCE).toContain('requireSession')
+  it('is loaded by a server page reading the shared registry', () => {
+    expect(PAGE).not.toMatch(/^'use client'/)
+    expect(PAGE).toContain('loadAdminRegistry')
+    expect(PAGE).toContain('requireSession')
     expect(SOURCE).not.toMatch(/Math\.random\(/)
   })
 })

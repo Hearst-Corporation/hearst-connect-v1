@@ -1,4 +1,4 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleShell, csl } from '@/components/layout/console-shell'
 import { Panel, PanelHeader } from '@/components/compositions'
 import { AppRail } from '@/components/layout/app-rail'
 import { Reading } from '@/components/layout/console'
@@ -86,23 +86,23 @@ export default async function Page() {
       label="Cockpit — Espace Hearst Connect"
       rail={<AppRail currentHref="/espace" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Repères de l’espace">
-        <Panel tone="plain" className={gcc.metricCard}><h2>Bienvenue</h2><div className={gcc.metricText}><Reading value={editorial(user.name)} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Bitcoin cumulé</h2><div className={gcc.metricText}><Reading value={cumulCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Réserve dormante</h2><div className={gcc.metricText}><Reading value={reserveCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Couverture</h2><div className={gcc.metricText}><Reading value={couvertureCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Sources</h2><div className={gcc.metricText}><Reading value={editorial(btcRes.ok && dashRes.ok ? 'Joignables' : 'Partielles')} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Votre <span>espace</span></p>
-          <p className={gcc.decisionMeta}>{btcRes.ok ? 'Production lisible' : 'Production indisponible'}</p>
-          <p className={gcc.decisionActionMuted}>Rien n’est présenté qui ne soit mesuré</p>
+      <section className={csl.metricsRow} aria-label="Repères de l’espace">
+        <Panel tone="plain" className={csl.metricCard}><h2>Bienvenue</h2><div className={csl.metricText}><Reading value={editorial(user.name)} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Bitcoin cumulé</h2><div className={csl.metricText}><Reading value={cumulCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Réserve dormante</h2><div className={csl.metricText}><Reading value={reserveCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Couverture</h2><div className={csl.metricText}><Reading value={couvertureCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Sources</h2><div className={csl.metricText}><Reading value={editorial(btcRes.ok && dashRes.ok ? 'Joignables' : 'Partielles')} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.decisionCardNeutral}>
+          <p className={csl.decisionTitle}>Votre <span>espace</span></p>
+          <p className={csl.decisionMeta}>{btcRes.ok ? 'Production lisible' : 'Production indisponible'}</p>
+          <p className={csl.decisionActionMuted}>Rien n’est présenté qui ne soit mesuré</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Accès aux sections">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Bienvenue dans votre espace</h2></div>
-          <div className={gcc.heroBody}>
+      <section className={csl.mainRow} aria-label="Accès aux sections">
+        <Panel tone="plain" className={csl.heroChart}>
+          <div className={csl.heroHead}><h2 className={csl.cardTitle}>Bienvenue dans votre espace</h2></div>
+          <div className={csl.heroBody}>
             <p className="mb-6 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
               Votre espace réunit ce que le fonds produit et ce qui s’y passe. Chaque valeur affichée est
               mesurée par le service : une donnée absente est nommée comme telle, jamais remplacée par un zéro.
@@ -122,30 +122,30 @@ export default async function Page() {
             </AdminGrid>
           </div>
         </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Production bitcoin</h3><p className={gcc.cellText}>{btcRes.ok ? 'Lisible' : 'Indisponible'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Couverture des données</h3><p className={gcc.cellText}>{dashRes.ok ? 'Joignable' : 'Indisponible'}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Votre rôle</h3><p className={gcc.cellText}>{user.role}</p></Panel>
+        <aside className={csl.rightStack}>
+          <Panel tone="plain" className={csl.signalCard}><h3>Production bitcoin</h3><p className={csl.cellText}>{btcRes.ok ? 'Lisible' : 'Indisponible'}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Couverture des données</h3><p className={csl.cellText}>{dashRes.ok ? 'Joignable' : 'Indisponible'}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Votre rôle</h3><p className={csl.cellText}>{user.role}</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Repères de l’espace">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Ce que vous voyez</h3></div>
-          <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Chaque repère provient d’un service réel, lu au moment de l’affichage.</p>
-            <p className={gcc.cellText}>Une source datée n’est jamais présentée comme étant en direct.</p>
+      <section className={csl.bottomRow} aria-label="Repères de l’espace">
+        <Panel tone="plain" className={csl.wavePanel}>
+          <div className={csl.heroHead}><h3 className={csl.cardTitle}>Ce que vous voyez</h3></div>
+          <div className={csl.heroBody}>
+            <p className={csl.cellText}>Chaque repère provient d’un service réel, lu au moment de l’affichage.</p>
+            <p className={csl.cellText}>Une source datée n’est jamais présentée comme étant en direct.</p>
           </div>
         </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Tableau de bord</h3><p className={gcc.cellText}>Couverture de vos données.</p></article>
-          <article className={gcc.infoCell}><h3>Production Bitcoin</h3><p className={gcc.cellText}>Ce que le fonds a produit.</p></article>
-          <article className={gcc.infoCell}><h3>Activité</h3><p className={gcc.cellText}>Le journal des mouvements.</p></article>
-          <article className={gcc.infoCell}><h3>Profil</h3><p className={gcc.cellText}>Compte et dossier investisseur.</p></article>
+        <Panel as="section" tone="plain" className={csl.infoGrid}>
+          <article className={csl.infoCell}><h3>Tableau de bord</h3><p className={csl.cellText}>Couverture de vos données.</p></article>
+          <article className={csl.infoCell}><h3>Production Bitcoin</h3><p className={csl.cellText}>Ce que le fonds a produit.</p></article>
+          <article className={csl.infoCell}><h3>Activité</h3><p className={csl.cellText}>Le journal des mouvements.</p></article>
+          <article className={csl.infoCell}><h3>Profil</h3><p className={csl.cellText}>Compte et dossier investisseur.</p></article>
         </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Véracité</h3>
-          <p className={gcc.cellText}>Aucune valeur n’est inventée : une absence reste une absence nommée.</p>
+        <Panel tone="plain" className={csl.vaultCard}>
+          <h3 className={csl.cardTitle}>Véracité</h3>
+          <p className={csl.cellText}>Aucune valeur n’est inventée : une absence reste une absence nommée.</p>
         </Panel>
       </section>
     </ConsoleShell>

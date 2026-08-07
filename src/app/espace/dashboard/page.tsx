@@ -1,4 +1,4 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleShell, csl } from '@/components/layout/console-shell'
 import { Panel } from '@/components/compositions'
 import { AppRail } from '@/components/layout/app-rail'
 import { Reading } from '@/components/layout/console'
@@ -142,25 +142,25 @@ export default async function Page() {
       label="Tableau de bord — Espace Hearst Connect"
       rail={<AppRail currentHref="/espace/dashboard" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Synthèse de la couverture">
-        <Panel tone="plain" className={gcc.metricCard}><h2>Servi</h2><div className={gcc.metricText}><Reading value={asCount(served)} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Partiel</h2><div className={gcc.metricText}><Reading value={asCount(countIn(surfaces, 'partial'))} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Non ouvert</h2><div className={gcc.metricText}><Reading value={asCount(countIn(surfaces, 'notOpened'))} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Surfaces totales</h2><div className={gcc.metricText}><Reading value={asCount(surfaces.length)} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.metricCard}><h2>Taux de couverture</h2><div className={gcc.metricText}><Reading value={coverageCell} className={gcc.metricValue} /></div></Panel>
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>État de la <span>couverture</span></p>
-          <p className={gcc.decisionMeta}>{aggregate === null ? 'Source du tableau de bord indisponible' : 'Source du tableau de bord joignable'}</p>
-          <p className={gcc.decisionActionMuted}>Champ le plus dégradé d’abord, selon l’état du service</p>
+      <section className={csl.metricsRow} aria-label="Synthèse de la couverture">
+        <Panel tone="plain" className={csl.metricCard}><h2>Servi</h2><div className={csl.metricText}><Reading value={asCount(served)} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Partiel</h2><div className={csl.metricText}><Reading value={asCount(countIn(surfaces, 'partial'))} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Non ouvert</h2><div className={csl.metricText}><Reading value={asCount(countIn(surfaces, 'notOpened'))} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Surfaces totales</h2><div className={csl.metricText}><Reading value={asCount(surfaces.length)} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.metricCard}><h2>Taux de couverture</h2><div className={csl.metricText}><Reading value={coverageCell} className={csl.metricValue} /></div></Panel>
+        <Panel tone="plain" className={csl.decisionCardNeutral}>
+          <p className={csl.decisionTitle}>État de la <span>couverture</span></p>
+          <p className={csl.decisionMeta}>{aggregate === null ? 'Source du tableau de bord indisponible' : 'Source du tableau de bord joignable'}</p>
+          <p className={csl.decisionActionMuted}>Champ le plus dégradé d’abord, selon l’état du service</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Tableau d’état des surfaces">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Surface par surface</h2></div>
-          <div className={clsx(gcc.heroBody, 'overflow-x-auto')}>
+      <section className={csl.mainRow} aria-label="Tableau d’état des surfaces">
+        <Panel tone="plain" className={csl.heroChart}>
+          <div className={csl.heroHead}><h2 className={csl.cardTitle}>Surface par surface</h2></div>
+          <div className={clsx(csl.heroBody, 'overflow-x-auto')}>
             {aggregate === null ? (
-              <p className={gcc.cellText}>Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.</p>
+              <p className={csl.cellText}>Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.</p>
             ) : (
               <table className="w-full min-w-[760px] table-fixed text-left text-sm">
                 <thead>
@@ -188,40 +188,40 @@ export default async function Page() {
             )}
           </div>
         </Panel>
-        <aside className={gcc.rightStack}>
+        <aside className={csl.rightStack}>
           {TIER_ORDER.map((tier) => (
-            <Panel key={tier} className={gcc.signalCard}>
+            <Panel key={tier} className={csl.signalCard}>
               <h3>{TIER_TITLE[tier]}</h3>
-              <p className={gcc.signalValue}>{aggregate === null ? '—' : countIn(surfaces, tier)}</p>
-              <p className={gcc.cellText}>{TIER_EXPLANATION[tier]}</p>
+              <p className={csl.signalValue}>{aggregate === null ? '—' : countIn(surfaces, tier)}</p>
+              <p className={csl.cellText}>{TIER_EXPLANATION[tier]}</p>
             </Panel>
           ))}
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Repères du tableau de bord">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Contrat de couverture</h3></div>
-          <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Les états sont affichés exactement tels que le service les rapporte.</p>
-            <p className={gcc.cellText}>Une couverture non lisible n’est jamais présentée comme « 0 % ».</p>
+      <section className={csl.bottomRow} aria-label="Repères du tableau de bord">
+        <Panel tone="plain" className={csl.wavePanel}>
+          <div className={csl.heroHead}><h3 className={csl.cardTitle}>Contrat de couverture</h3></div>
+          <div className={csl.heroBody}>
+            <p className={csl.cellText}>Les états sont affichés exactement tels que le service les rapporte.</p>
+            <p className={csl.cellText}>Une couverture non lisible n’est jamais présentée comme « 0 % ».</p>
           </div>
         </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Servi</h3><p className={gcc.cellText}>Surfaces en direct avec une valeur exploitable.</p></article>
-          <article className={gcc.infoCell}><h3>Partiel</h3><p className={gcc.cellText}>Une réponse existe mais la valeur est incomplète.</p></article>
-          <article className={gcc.infoCell}><h3>Non ouvert</h3><p className={gcc.cellText}>Le point d’accès n’est pas encore exposé.</p></article>
-          <article className={gcc.infoCell}><h3>Contrat</h3><p className={gcc.cellText}>Aucun statut n’est requalifié par cette page.</p></article>
+        <Panel as="section" tone="plain" className={csl.infoGrid}>
+          <article className={csl.infoCell}><h3>Servi</h3><p className={csl.cellText}>Surfaces en direct avec une valeur exploitable.</p></article>
+          <article className={csl.infoCell}><h3>Partiel</h3><p className={csl.cellText}>Une réponse existe mais la valeur est incomplète.</p></article>
+          <article className={csl.infoCell}><h3>Non ouvert</h3><p className={csl.cellText}>Le point d’accès n’est pas encore exposé.</p></article>
+          <article className={csl.infoCell}><h3>Contrat</h3><p className={csl.cellText}>Aucun statut n’est requalifié par cette page.</p></article>
         </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Vos sections</h3>
-          <div className={gcc.sourceRow}>
+        <Panel tone="plain" className={csl.vaultCard}>
+          <h3 className={csl.cardTitle}>Vos sections</h3>
+          <div className={csl.sourceRow}>
             <Link href="/espace/bitcoin" className="text-sm text-accent-300 underline underline-offset-2">Production Bitcoin</Link>
-            <span className={gcc.cellText}>Ce que le fonds a produit</span>
+            <span className={csl.cellText}>Ce que le fonds a produit</span>
           </div>
-          <div className={gcc.sourceRow}>
+          <div className={csl.sourceRow}>
             <Link href="/espace/activite" className="text-sm text-accent-300 underline underline-offset-2">Activité</Link>
-            <span className={gcc.cellText}>Le journal des mouvements</span>
+            <span className={csl.cellText}>Le journal des mouvements</span>
           </div>
         </Panel>
       </section>

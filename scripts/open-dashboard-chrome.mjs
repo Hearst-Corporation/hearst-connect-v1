@@ -5,7 +5,7 @@
 import { chromium } from '@playwright/test'
 
 const BASE = process.env.E2E_PORT ? `http://localhost:${process.env.E2E_PORT}` : 'http://localhost:4105'
-const DASHBOARD = `${BASE}/admin/dashboard`
+const DASHBOARD = `${BASE}/admin`
 
 let browser
 try {

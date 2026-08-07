@@ -1,4 +1,4 @@
-import { gcc, Reading } from '@/components/layout/console'
+import { csl, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
 import { Panel } from '@/components/compositions/panel'
 import { RichSparkline } from '@/components/charts'
@@ -34,8 +34,8 @@ export function MetricValue({
 }: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
   return (
     <div>
-      <p className={gcc.metricValue}>{valeur}</p>
-      <p className={gcc.cellText}>
+      <p className={csl.metricValue}>{valeur}</p>
+      <p className={csl.cellText}>
         {libelle}
         {unite === undefined || unite === '' ? '' : ` · ${unite}`}
       </p>
@@ -47,8 +47,8 @@ export function MetricValue({
 export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
   return (
     <div>
-      <p className={gcc.cellText}>{libelle}</p>
-      <p className={gcc.cellStrong}>{valeur}</p>
+      <p className={csl.cellText}>{libelle}</p>
+      <p className={csl.cellStrong}>{valeur}</p>
     </div>
   )
 }
@@ -83,8 +83,8 @@ export function MetricCard({
   return (
     <Panel tone="metric" className={clsx('flex flex-col gap-3', className)}>
       <Tag>{titre}</Tag>
-      <div className={gcc.metricText}>
-        <Reading value={valeur} className={gcc.metricValue} showRoute={showRoute} />
+      <div className={csl.metricText}>
+        <Reading value={valeur} className={csl.metricValue} showRoute={showRoute} />
       </div>
       {trend && trend.length >= 2 && (
         <div className="mt-auto pt-2">
@@ -108,7 +108,7 @@ export function KpiRow({
   className,
 }: Readonly<{ children: React.ReactNode; label: string; className?: string }>) {
   return (
-    <section className={clsx(gcc.metricsRow, className)} aria-label={label}>
+    <section className={clsx(csl.metricsRow, className)} aria-label={label}>
       {children}
     </section>
   )

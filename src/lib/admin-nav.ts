@@ -15,6 +15,8 @@ import {
  * Console navigation — cinq destinations primaires dans la sidebar,
  * hubs de section (Journal, Produit, Service) et sous-menus horizontaux
  * dans le corps quand la section en porte plusieurs.
+ *
+ * Un seul tableau de bord : `/admin`. L’ancienne route `/admin/dashboard` redirige.
  */
 
 type IconeNav = typeof HomeIcon
@@ -37,13 +39,8 @@ export const VAULTS_ENTRY: EntreeNav = {
   icone: CircleStackIcon,
 }
 
-/**
- * Accueil = cockpit patrimoine (`AdminHomeDashboard` sur `/admin`).
- * Le pilotage des souscriptions vit en secondaire sur `/admin/dashboard`
- * (sous-nav Portfolio avec le Journal Série 1).
- */
 export const ADMIN_NAV: readonly EntreeNav[] = [
-  { libelle: 'Cockpit', href: '/admin', icone: HomeIcon },
+  { libelle: 'Tableau de bord', href: '/admin', icone: HomeIcon },
   VAULTS_ENTRY,
   CLIENTS_ENTRY,
   { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },
@@ -89,18 +86,10 @@ export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
   detail: 'Ce que le service sert réellement, surface par surface',
 }
 
-/** Pilotage opérationnel des souscriptions — distinct du cockpit Accueil. */
-export const PILOTAGE_ENTRY: EntreeSecondaire = {
-  libelle: 'Pilotage des souscriptions',
-  href: '/admin/dashboard',
-  icone: DocumentTextIcon,
-  detail: 'Funnel client, file prioritaire, KYC et déploiements',
-}
-
 /**
  * Groupes pour la sous-navigation horizontale et les hubs latéraux.
- * Les anciennes routes (`/admin/mining`, `/admin/product`, etc.) redirigent
- * vers `/admin/produit` — elles ne figurent plus ici.
+ * Les anciennes routes (`/admin/mining`, `/admin/product`, `/admin/dashboard`, etc.)
+ * redirigent — elles ne figurent plus ici.
  */
 export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
   {
@@ -112,7 +101,6 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         icone: Squares2X2Icon,
         detail: 'Le journal on-chain indexé de la Série 1',
       },
-      PILOTAGE_ENTRY,
     ],
   },
   {

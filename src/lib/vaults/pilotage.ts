@@ -2,12 +2,11 @@
  * The subscription pilotage reading — pure arithmetic over an `AdminRegistry`.
  *
  * ── Why this module exists ────────────────────────────────────────────────
- * `/admin/dashboard` reads the client journey as a funnel: account → KYC →
- * wallet → deposit → subscription → active position. No backend endpoint
- * publishes that funnel as a single object — it is assembled here, once, from
- * the same registry Accueil (`/admin`) already reads (`clients`, `compliance`,
- * `deployments`, `vaults`, `movements`). Accueil answers "where is the estate";
- * this surface answers "what needs a decision on the client journey".
+ * Le tableau de bord admin (`/admin`) lit le parcours client comme un funnel :
+ * compte → KYC → wallet → dépôt → souscription → position. Aucun endpoint
+ * backend ne publie ce funnel en un seul objet — il est assemblé ici, une fois,
+ * depuis le même `AdminRegistry` que le reste de la console (`clients`,
+ * `compliance`, `deployments`, `vaults`, `movements`).
  *
  * ── Honest mapping, not an invented one ───────────────────────────────────
  * This product has no dedicated KYC queue, wallet-creation, deposit-

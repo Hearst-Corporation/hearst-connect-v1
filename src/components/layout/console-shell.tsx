@@ -1,4 +1,4 @@
-import { gcc } from './console'
+import { csl } from './console'
 
 /**
  * The full-screen shell.
@@ -10,7 +10,7 @@ import { gcc } from './console'
  *
  * Il monte son propre rail et rien d'autre : c'est LE shell de la console
  * depuis que `AdminShell` a été supprimé (Lot 7, branche inatteignable) et que
- * ce composant est sorti de `design-lab/` (HC-UI-CONVERGENCE-001).
+ * Il monte son propre rail : shell legacy de l’espace investisseur (`/espace`).
  *
  * ── Pourquoi il y a un `dark` ici, et pourquoi il est OBLIGATOIRE ──────────
  * Toute la composition est faite de composants Catalyst, et Catalyst déclare
@@ -31,7 +31,7 @@ export function ConsoleShell({
   label,
 }: Readonly<{ rail: React.ReactNode; children: React.ReactNode; label: string }>) {
   return (
-    <main className={`dark ${gcc.viewport}`} aria-label={label}>
+    <main className={`dark ${csl.viewport}`} aria-label={label}>
       {/*
         * Le titre de niveau 1, en `sr-only`.
         *
@@ -41,10 +41,10 @@ export function ConsoleShell({
         * démarrait au niveau 2, et un lecteur d'écran n'avait pas de titre de
         * page. Le `h1` existe donc pour la structure, sans occuper un pixel.
         */}
-      <h1 className={gcc.srOnly}>{label}</h1>
-      <section className={gcc.shell} data-gcc="shell">
+      <h1 className={csl.srOnly}>{label}</h1>
+      <section className={csl.shell} data-csl="shell">
         {rail}
-        <div className={gcc.workspace} data-gcc="workspace">
+        <div className={csl.workspace} data-csl="workspace">
           {children}
         </div>
       </section>
@@ -52,4 +52,4 @@ export function ConsoleShell({
   )
 }
 
-export { gcc }
+export { csl }

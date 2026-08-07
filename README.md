@@ -26,17 +26,15 @@ Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Ja
 
 ## Console admin — état de référence (2026-08-07)
 
-**Style cible** : le dashboard **Pilotage des souscriptions** (`/admin/dashboard`, commit `899833c`).
+**Style cible** : tableau de bord unique sur **`/admin`** (commit `899833c`+).
 Les autres pages admin seront alignées **une par une** sur ce modèle (Catalyst + compositions + thème clair/sombre).
 
 | Route | Rôle | Référence code |
 |---|---|---|
-| `/admin/dashboard` | **Référence UI** — stepper parcours, « À traiter », KPI, charts | `src/app/admin/dashboard/page.tsx`, `src/components/admin/dashboard/` |
-| `/admin` | Cockpit patrimoine (TVL, dérive, file à décider) | `src/features/admin-home/admin-home-dashboard.tsx` |
-| `/admin/produit` | Surface produit consolidée | à rapprocher du dashboard |
-| `/admin/vaults`, `/admin/clients`, … | Pages métier | à rapprocher du dashboard |
+| `/admin` | **Tableau de bord unique** — pilotage souscriptions (stepper, « À traiter », KPI, charts) | `src/features/admin-dashboard/`, `src/components/admin/dashboard/` |
+| `/admin/vaults`, `/admin/clients`, … | Pages métier | à rapprocher du tableau de bord |
 
-**Navigation** (`src/lib/admin-nav.ts`) : sidebar **Cockpit · Coffres · Clients · Conformité · Opérations** ; sous-menu **Portfolio** (Journal Série 1 · Pilotage des souscriptions).
+**Navigation** (`src/lib/admin-nav.ts`) : sidebar **Tableau de bord · Coffres · Clients · Conformité · Opérations** ; hubs **Journal Série 1 · Produit · Service**. L’ancienne URL `/admin/dashboard` redirige vers `/admin`.
 
 **Frontière d'actions** réutilisable : `src/components/actions/` (boutons Catalyst + états disabled/loading).
 
@@ -57,7 +55,7 @@ src/
 │   ├── actions/                boutons d'action partagés
 │   ├── charts/                 richart + cartesian
 │   └── compositions/           widgets, grilles, CockpitPage…
-├── features/admin-home/        cockpit /admin
+├── features/admin-dashboard/   tableau de bord `/admin`
 └── lib/
     ├── backend/                callBackend, endpoints
     └── vaults/                 Availability, registry, pilotage, cockpit

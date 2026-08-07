@@ -124,7 +124,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/dashboard',
     category: 'business',
     auth: 'session',
-    surface: '/admin/dashboard',
+    surface: '/admin',
     summary: 'Investor aggregate: identity, position, subscription, runtime.',
     caveat: '`meta.status` is computed worst-field-first: a single degraded field lowers the whole aggregate.',
   }),

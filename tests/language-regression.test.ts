@@ -18,7 +18,6 @@ const ROOT = resolve(import.meta.dirname, '..')
 const ADMIN_APP = join(ROOT, 'src/app/admin')
 const ADMIN_COMPONENTS = join(ROOT, 'src/components/admin')
 const CONSOLE_LAYOUT = join(ROOT, 'src/components/layout')
-const ADMIN_HOME = join(ROOT, 'src/features/admin-home')
 const VAULT_COMPONENTS = join(ROOT, 'src/components/vaults')
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -30,7 +29,7 @@ function walk(dir: string, out: string[] = []): string[] {
   return out
 }
 
-const ADMIN_SOURCES = [...walk(ADMIN_APP), ...walk(ADMIN_COMPONENTS), ...walk(CONSOLE_LAYOUT), ...walk(ADMIN_HOME), ...walk(VAULT_COMPONENTS)].map(
+const ADMIN_SOURCES = [...walk(ADMIN_APP), ...walk(ADMIN_COMPONENTS), ...walk(CONSOLE_LAYOUT), ...walk(VAULT_COMPONENTS)].map(
   (file) => ({ path: relative(ROOT, file), code: readFileSync(file, 'utf8') }),
 )
 
@@ -59,7 +58,7 @@ describe('la console est en français', () => {
       readFileSync(join(ADMIN_COMPONENTS, 'application-layout.tsx'), 'utf8'),
     )
     const nav = stripComments(readFileSync(join(ROOT, 'src/lib/admin-nav.ts'), 'utf8'))
-    expect(nav).toMatch(/libelle: 'Cockpit'/)
+    expect(nav).toMatch(/libelle: 'Tableau de bord'/)
     expect(nav).toMatch(/libelle: 'Conformité'/)
     expect(nav).toMatch(/libelle: 'Opérations'/)
     expect(layout).toMatch(/Se déconnecter/)
@@ -144,7 +143,7 @@ describe('pas de formateur locale-aware fr-FR (le format reste neutre)', () => {
 
 describe('un seul H1 canonique par page', () => {
   it('no admin file renders a raw <h1> outside the typography module', () => {
-    // Le shell green rend un <h1 className={gcc.srOnly}> délibéré : le titre de
+    // Le shell green rend un <h1 className={csl.srOnly}> délibéré : le titre de
     // niveau 1 est masqué visuellement (sr-only) mais nécessaire au plan du
     // document pour les lecteurs d'écran. C'est une exception documentée.
     const H1_EXEMPTIONS = new Set([

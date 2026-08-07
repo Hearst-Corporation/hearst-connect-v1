@@ -1,4 +1,4 @@
-import { ConsoleShell, gcc } from '@/components/layout/console-shell'
+import { ConsoleShell, csl } from '@/components/layout/console-shell'
 import { MetricCard, MetricValue, Panel, PanelHeader, SourceAttendue } from '@/components/compositions'
 import { AppRail } from '@/components/layout/app-rail'
 import { MuiDistributionChart } from '@/components/charts'
@@ -92,50 +92,50 @@ export default async function Page() {
       label="Activité — Espace Hearst Connect"
       rail={<AppRail currentHref="/espace/activite" userName={user.name} userRole={user.role} />}
     >
-      <section className={gcc.metricsRow} aria-label="Résumé de l’activité">
+      <section className={csl.metricsRow} aria-label="Résumé de l’activité">
         <MetricCard titre="Mouvements" valeur={movementCount} trend={movementTrend} />
         <MetricCard titre="Écritures financières" valeur={financialCount} />
         <MetricCard titre="Dernier" valeur={readable ? editorial(ilYA(last)) : mapAvailability(eventsAvail, () => '—')} />
         <MetricCard titre="Types" valeur={typesCount} />
         <MetricCard titre="État de la source" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} />
-        <Panel tone="plain" className={gcc.decisionCardNeutral}>
-          <p className={gcc.decisionTitle}>Journal <span>d’activité</span></p>
-          <p className={gcc.decisionMeta}>Journal chronologique de la chaîne</p>
-          <p className={gcc.decisionActionMuted}>Aucun mouvement synthétique</p>
+        <Panel tone="plain" className={csl.decisionCardNeutral}>
+          <p className={csl.decisionTitle}>Journal <span>d’activité</span></p>
+          <p className={csl.decisionMeta}>Journal chronologique de la chaîne</p>
+          <p className={csl.decisionActionMuted}>Aucun mouvement synthétique</p>
         </Panel>
       </section>
 
-      <section className={gcc.mainRow} aria-label="Journal d’activité">
-        <Panel tone="plain" className={gcc.heroChart}>
-          <div className={gcc.heroHead}><h2 className={gcc.cardTitle}>Ce qui s’est passé</h2></div>
-          <div className={gcc.heroBody}>
+      <section className={csl.mainRow} aria-label="Journal d’activité">
+        <Panel tone="plain" className={csl.heroChart}>
+          <div className={csl.heroHead}><h2 className={csl.cardTitle}>Ce qui s’est passé</h2></div>
+          <div className={csl.heroBody}>
             <CorpsJournal reponseOk={reponse.ok} mouvements={mouvements} motif={motifLisible(bloc?.reason)} />
           </div>
         </Panel>
-        <aside className={gcc.rightStack}>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Mouvement récent</h3><p className={gcc.cellText}>{dateLisible(last)}</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Ordre du flux</h3><p className={gcc.cellText}>Du plus récent au plus ancien</p></Panel>
-          <Panel tone="plain" className={gcc.signalCard}><h3>Règle des montants</h3><p className={gcc.cellText}>Pas de montant ne signifie pas un zéro forcé.</p></Panel>
+        <aside className={csl.rightStack}>
+          <Panel tone="plain" className={csl.signalCard}><h3>Mouvement récent</h3><p className={csl.cellText}>{dateLisible(last)}</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Ordre du flux</h3><p className={csl.cellText}>Du plus récent au plus ancien</p></Panel>
+          <Panel tone="plain" className={csl.signalCard}><h3>Règle des montants</h3><p className={csl.cellText}>Pas de montant ne signifie pas un zéro forcé.</p></Panel>
         </aside>
       </section>
 
-      <section className={gcc.bottomRow} aria-label="Notes d’activité">
-        <Panel tone="plain" className={gcc.wavePanel}>
-          <div className={gcc.heroHead}><h3 className={gcc.cardTitle}>Contrat du journal</h3></div>
-          <div className={gcc.heroBody}>
-            <p className={gcc.cellText}>Chaque ligne correspond à une écriture de mouvement du service.</p>
-            <p className={gcc.cellText}>Aucun total inter-types n’est présenté.</p>
+      <section className={csl.bottomRow} aria-label="Notes d’activité">
+        <Panel tone="plain" className={csl.wavePanel}>
+          <div className={csl.heroHead}><h3 className={csl.cardTitle}>Contrat du journal</h3></div>
+          <div className={csl.heroBody}>
+            <p className={csl.cellText}>Chaque ligne correspond à une écriture de mouvement du service.</p>
+            <p className={csl.cellText}>Aucun total inter-types n’est présenté.</p>
           </div>
         </Panel>
-        <Panel as="section" tone="plain" className={gcc.infoGrid}>
-          <article className={gcc.infoCell}><h3>Point d’accès</h3><p className={gcc.cellText}>Journal des mouvements du service</p></article>
-          <article className={gcc.infoCell}><h3>Ordre</h3><p className={gcc.cellText}>Du plus récent au plus ancien</p></article>
-          <article className={gcc.infoCell}><h3>Montant</h3><p className={gcc.cellText}>Affiché uniquement quand porté par la source.</p></article>
-          <article className={gcc.infoCell}><h3>Véracité</h3><p className={gcc.cellText}>Les comptes héritent de la fraîcheur de la source.</p></article>
+        <Panel as="section" tone="plain" className={csl.infoGrid}>
+          <article className={csl.infoCell}><h3>Point d’accès</h3><p className={csl.cellText}>Journal des mouvements du service</p></article>
+          <article className={csl.infoCell}><h3>Ordre</h3><p className={csl.cellText}>Du plus récent au plus ancien</p></article>
+          <article className={csl.infoCell}><h3>Montant</h3><p className={csl.cellText}>Affiché uniquement quand porté par la source.</p></article>
+          <article className={csl.infoCell}><h3>Véracité</h3><p className={csl.cellText}>Les comptes héritent de la fraîcheur de la source.</p></article>
         </Panel>
-        <Panel tone="plain" className={gcc.vaultCard}>
-          <h3 className={gcc.cardTitle}>Votre espace</h3>
-          <p className={gcc.cellText}>Le tableau de bord réunit la couverture de vos données.</p>
+        <Panel tone="plain" className={csl.vaultCard}>
+          <h3 className={csl.cardTitle}>Votre espace</h3>
+          <p className={csl.cellText}>Le tableau de bord réunit la couverture de vos données.</p>
         </Panel>
       </section>
     </ConsoleShell>
