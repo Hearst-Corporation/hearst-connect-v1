@@ -1,5 +1,7 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
+import clsx from 'clsx'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
@@ -188,7 +190,7 @@ export default async function ApiExplorerPage() {
             hint={group.description}
             actions={<Badge color="zinc">{formatNumber(endpoints.length)}</Badge>}
           >
-            <div className="overflow-hidden rounded-lg ring-1 ring-zinc-950/5 dark:ring-white/10">
+            <div className={clsx(surfaceInset, 'overflow-hidden')}>
               {endpoints.map((endpoint) => (
                 <ExplorerRow
                   key={endpoint.id}

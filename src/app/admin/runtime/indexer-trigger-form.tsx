@@ -1,8 +1,10 @@
 'use client'
 
+import { surfaceInset } from '@/components/admin/surface'
 import { Button } from '@/components/catalyst/button'
 import { Text } from '@/components/catalyst/text'
 import { triggerIndexer, type IndexerTriggerOutcome } from '@/lib/backend/indexer-trigger'
+import clsx from 'clsx'
 import { useActionState } from 'react'
 
 const INITIAL: IndexerTriggerOutcome = {
@@ -44,7 +46,7 @@ export function IndexerTriggerForm() {
         </Text>
       ) : null}
       {state.ok ? (
-        <pre className="overflow-x-auto rounded-lg bg-zinc-950/5 p-3 text-xs/5 text-zinc-700 dark:bg-white/5 dark:text-zinc-300">
+        <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-zinc-300')}>
           {state.detail ?? 'OK'}
         </pre>
       ) : null}
