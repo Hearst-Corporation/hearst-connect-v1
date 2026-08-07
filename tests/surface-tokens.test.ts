@@ -28,12 +28,16 @@ describe('surfaces tokenisées — boxes noires + voile sélection', () => {
     expect(src).not.toContain('data-selected:bg-zinc-50')
   })
 
-  it('menu sidebar : noir deep (console-card), comme les boxes', () => {
+  it('menu sidebar : effet verre (console-glass), pas noir opaque ni mint', () => {
     const layout = readFileSync(
       join(process.cwd(), 'src/components/catalyst/sidebar-layout.tsx'),
       'utf8',
     )
-    expect(layout).toContain('bg-console-card')
-    expect(surfaceNav).toBe('bg-console-card')
+    const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
+    expect(layout).toContain('surfaceNav')
+    expect(surfaceNav).toContain('bg-console-glass')
+    expect(surfaceNav).toContain('backdrop-blur')
+    expect(surfaceNav).not.toBe(surfaceBox)
+    expect(css).toMatch(/--color-console-glass:\s*rgba\(0,\s*0,\s*0,\s*0\.52\)/)
   })
 })
