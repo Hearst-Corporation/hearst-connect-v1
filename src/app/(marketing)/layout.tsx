@@ -3,9 +3,9 @@ import { SiteHeader } from '@/components/marketing/site-header'
 
 export default function MarketingLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="bg-console-app text-white">
+    <div className="flex min-h-dvh flex-col bg-console-app text-white">
       <SiteHeader />
-      <main>{children}</main>
+      <main className="flex flex-1 flex-col">{children}</main>
       <SiteFooter />
     </div>
   )
