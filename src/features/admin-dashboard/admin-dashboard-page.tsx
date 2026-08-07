@@ -152,9 +152,7 @@ export function AdminDashboardPage({
           subtitle="Volume journalier · 28 jours"
         >
           {showActivityCurve ? (
-            <div className="min-h-[300px]">
-              <HearstActivityChart points={activityPoints} unite="actions" />
-            </div>
+            <HearstActivityChart points={activityPoints} unite="actions" />
           ) : (
             <ChartPlaceholder title="Courbe d’activité" height={300} icon={ChartBarIcon} />
           )}

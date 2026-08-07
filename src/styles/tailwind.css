@@ -177,6 +177,8 @@
 
   /* Aceternity Background Ripple Effect — animation des cellules. */
   --animate-cell-ripple: cell-ripple var(--duration, 200ms) ease-out none 1 var(--delay, 0ms);
+  /* Aceternity cards-demo-3 — faisceau vertical. */
+  --animate-move: move 3s linear infinite;
 
   @keyframes cell-ripple {
     0% {
@@ -187,6 +189,15 @@
     }
     100% {
       opacity: 0.4;
+    }
+  }
+
+  @keyframes move {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100%);
     }
   }
 }
