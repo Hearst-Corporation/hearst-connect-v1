@@ -82,7 +82,7 @@ pnpm exec next build     # build prod (hors gate)
 
 Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
 `surfaceBox` (cards verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint sélection).
-Header console partagé : `AdminPageHeader` (`src/components/admin/page-header.tsx`) — glow + monogramme H + titre + jusqu’à 4 KPI hero (`AdminHeroKpi`, `src/components/admin/hero-kpi.tsx`) en texte dans le bandeau noir (pas des boxes / StatGrid). Fond : `public/brand/console-glow.png`. Monogramme : `public/brand/hearst-h.svg`. Lockup : `public/brand/hearst-connect.svg` (H mint + wordmark).
+Header console partagé : `AdminPageHeader` — glow + monogramme H + titre + KPI hero. Fond : `public/brand/console-glow.png`. Monogramme : `public/brand/hearst-h.svg`. Lockup officiel (Hearst-Defi) : `public/brand/hearst-connect.svg` (+ `-dark` / `-official`).
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation
