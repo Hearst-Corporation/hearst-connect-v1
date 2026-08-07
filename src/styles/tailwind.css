@@ -65,8 +65,8 @@
   --color-console-inset: rgba(10, 10, 10, 0.4);
   --color-console-section: rgba(0, 0, 0, 0.55);
 
-  /* Menu / rail — verre un peu plus dense que les boxes. */
-  --color-console-glass: rgba(0, 0, 0, 0.4);
+  /* Menu / rail — verre plus dense pour rester lisible et cliquable. */
+  --color-console-glass: rgba(0, 0, 0, 0.72);
 
   /* Separators. Three weights, all pure white at low alpha — a tinted border
    * is the fastest way to smuggle a colour cast back into a neutral system. */
