@@ -192,38 +192,28 @@
 }
 
 /*
- * Admin console — the approved neutral-graphite system.
+ * Produit dark-only — rampe zinc graphite + texte blanc deep.
  *
- * ── Why the zinc ramp is redeclared here ──────────────────────────────────
- * The console is built on Catalyst, and Catalyst speaks zinc: every kit file
- * and most of our own surfaces reference `zinc-*`. Rather than rewrite those
- * hundreds of class names, the console redefines what zinc MEANS inside it.
+ * Catalyst parle zinc : on redéfinit ce que zinc signifie sous `.dark`
+ * (toujours posé sur <html>), plutôt que de réécrire des centaines de classes.
  *
- * It used to mean canonical Tailwind zinc. Tailwind's zinc is not neutral —
- * it carries a blue cast (zinc-600 is #52525b, visibly cool). Stacked across
- * a whole console it reads as the dark-blue cockpit the review rejected. The
- * ramp below is true neutral graphite: equal channels, no undertone.
+ * Texte (blanc deep) :
+ *   zinc-300  #ffffff  corps / lecture principale
+ *   zinc-400  #f2f2f2  secondaire
+ *   zinc-500  #e0e0e0  légendes / faint
  *
- * The steps are anchored on the approved tokens, so a `zinc-*` class and a
- * `console-*` token land on the same colour rather than fighting each other:
- *
- *   zinc-950  #101010  application black   (--bg-app)
- *   zinc-900  #2a2a2a  card                (--bg-card)
- *   zinc-800  #303030  card top / raised   (--bg-card-top)
- *   zinc-500  #8b8b8b  faint text          (--text-faint)
- *   zinc-400  #b3b3b3  muted text          (--text-muted)
- *   zinc-300  #dedede  body text           (--text-body)
- *
- * Note zinc-900 is LIGHTER than zinc-950 by a wide margin here: cards sit
- * forward of the shell in this system, they are not holes cut into it.
+ * Surfaces (graphite neutre, sans cast bleu) :
+ *   zinc-950  #101010  app
+ *   zinc-900  #2a2a2a  card
+ *   zinc-800  #303030  card top
  */
-.cockpit-theme {
+.dark {
   --color-zinc-50: #fafafa;
   --color-zinc-100: #f2f2f2;
   --color-zinc-200: #e8e8e8;
-  --color-zinc-300: #dedede;
-  --color-zinc-400: #b3b3b3;
-  --color-zinc-500: #8b8b8b;
+  --color-zinc-300: #ffffff;
+  --color-zinc-400: #f2f2f2;
+  --color-zinc-500: #e0e0e0;
   --color-zinc-600: #6b6b6b;
   --color-zinc-700: #3d3d3d;
   --color-zinc-800: #303030;
@@ -233,14 +223,7 @@
   --color-white: #ffffff;
 
   /*
-   * The accent is the brand mint #a7fb90 — the approved system's `--accent`,
-   * exactly. The global ramp puts that hex at step 300; inside the console it
-   * is step 400, because 400 is the step every accent surface in this app
-   * already reaches for. Step 300 keeps its role as the lighter hover lift,
-   * so `bg-accent-400 hover:bg-accent-300` still reads as a lift.
-   *
-   * Nothing else about the ramp changes, and the accent stays the ONLY hue in
-   * the console besides the three semantic tones.
+   * Accent mint #a7fb90 en step 400 (surfaces `bg-accent-400`), step 300 = hover.
    */
   --color-accent-300: #c1fcb1;
   --color-accent-400: #a7fb90;
