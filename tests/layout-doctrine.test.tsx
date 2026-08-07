@@ -252,8 +252,10 @@ describe('one brand palette', () => {
 
   it('keeps the console accent on the approved brand mint', () => {
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
-    const cockpit = css.slice(css.indexOf('.cockpit-theme'))
-    expect(/--color-accent-400:\s*#a7fb90;/.test(cockpit)).toBe(true)
+    const darkRamp = css.slice(css.indexOf('.dark {'))
+    expect(/--color-accent-400:\s*#a7fb90;/.test(darkRamp)).toBe(true)
+    expect(/--color-zinc-300:\s*#ffffff;/.test(darkRamp)).toBe(true)
+    expect(/--color-zinc-400:\s*#f2f2f2;/.test(darkRamp)).toBe(true)
   })
 })
 

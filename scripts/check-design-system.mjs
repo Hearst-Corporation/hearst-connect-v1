@@ -14,12 +14,12 @@
  *                      dernier recours si la variable n'est pas résolue).
  *
  * Pourquoi PAS de règle `zinc-*`/`slate-*` : le système de tokens de ce dépôt
- * REDÉFINIT volontairement ce que `zinc-*` signifie dans la console, via
- * `.cockpit-theme` (cf. `src/styles/tailwind.css`, « the console redefines what
- * zinc MEANS inside it »). Interdire `zinc-*` combattrait la stratégie de tokens
- * documentée et casserait Catalyst, qui parle zinc par construction. Une telle
- * gate serait fragile — exactement ce que la doctrine §8 proscrit. Le vrai
- * défaut, lui, est le hex EN DUR, qui court-circuite tout token.
+ * REDÉFINIT volontairement ce que `zinc-*` signifie sous `.dark` (cf.
+ * `src/styles/tailwind.css`, rampe graphite + texte blanc deep). Interdire
+ * `zinc-*` combattrait la stratégie de tokens documentée et casserait Catalyst,
+ * qui parle zinc par construction. Une telle gate serait fragile — exactement
+ * ce que la doctrine §8 proscrit. Le vrai défaut, lui, est le hex EN DUR, qui
+ * court-circuite tout token.
  *
  * Hors périmètre (volontairement) : `src/styles/**` (LA source de tokens),
  * `src/components/catalyst/**` (kit vendoré), les CSS modules `*.module.css`
