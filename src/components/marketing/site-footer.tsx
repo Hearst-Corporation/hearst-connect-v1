@@ -17,38 +17,40 @@ const legal = [
   { title: 'Conditions', href: 'mailto:connect@hearstcorporation.io' },
 ]
 
-const account = [
+const register = [
   { title: 'Créer un compte', href: '/register' },
   { title: 'Se connecter', href: '/login' },
 ]
 
-export function FooterWithFourGrids() {
+/** Footer Aceternity « four grids » — watermark « Connect » en accent Hearst. */
+export function SiteFooter() {
   return (
-    <div className="relative w-full overflow-hidden border-t border-console-line bg-console-app">
-      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 px-6 py-12 text-sm md:flex-row md:px-8">
+    <footer className="relative w-full overflow-hidden border-t border-console-line bg-console-app">
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 px-6 py-10 text-sm md:flex-row md:px-8">
         <div>
           <Link href="/" className="inline-flex text-white">
             <Logo />
           </Link>
-          <p className="mt-4 max-w-xs text-sm/6 text-white/50">
-            L’accès unifié aux espaces de travail de Hearst Corporation.
+          <p className="mt-4 max-w-[14rem] text-sm/6 text-white/40">
+            © copyright Hearst Corporation {new Date().getFullYear()}. Tous droits réservés.
           </p>
         </div>
 
-        <div className="mt-2 grid grid-cols-2 gap-10 md:mt-0 md:grid-cols-4 md:gap-16">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-4 md:gap-16">
           <FooterColumn title="Pages" links={pages} />
           <FooterColumn title="Contact" links={socials} />
           <FooterColumn title="Légal" links={legal} />
-          <FooterColumn title="Compte" links={account} />
+          <FooterColumn title="Compte" links={register} />
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl border-t border-console-line px-6 py-6 md:px-8">
-        <p className="text-sm text-white/40">
-          © {new Date().getFullYear()} Hearst Corporation. Tous droits réservés.
-        </p>
-      </div>
-    </div>
+      <p
+        aria-hidden="true"
+        className="pointer-events-none relative z-0 select-none px-4 pb-2 text-center text-[5.5rem] leading-none font-bold tracking-tight text-accent-300/15 sm:text-[8rem] md:text-[11rem] lg:text-[13rem]"
+      >
+        Connect
+      </p>
+    </footer>
   )
 }
 
@@ -60,29 +62,17 @@ function FooterColumn({
   links: ReadonlyArray<{ title: string; href: string }>
 }>) {
   return (
-    <div className="flex flex-col space-y-3">
-      <p className="font-semibold text-white">{title}</p>
-      <ul className="space-y-2">
+    <div className="flex flex-col space-y-4">
+      <p className="font-bold text-white">{title}</p>
+      <ul className="space-y-3">
         {links.map((link) => (
           <li key={link.title}>
-            <Link
-              href={link.href}
-              className="text-white/50 transition-colors hover:text-white"
-            >
+            <Link href={link.href} className="text-white/40 transition-colors hover:text-white">
               {link.title}
             </Link>
           </li>
         ))}
       </ul>
     </div>
-  )
-}
-
-/** Footer marketing — layout Aceternity « four grids », tokens Hearst. */
-export function SiteFooter() {
-  return (
-    <footer>
-      <FooterWithFourGrids />
-    </footer>
   )
 }
