@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs'
 
 const ADMIN_ROUTES = [
   '/admin',
-  '/admin/dashboard',
+  '/admin',
   '/admin/operations',
   '/admin/produit',
   '/admin/vaults',
@@ -49,7 +49,7 @@ test.describe('admin console renders cleanly', () => {
 test.describe('data coverage tells the truth (VER-01)', () => {
   test('the dashboard never labels an absence "Live"', async ({ page }) => {
     await quickLogin(page)
-    await page.goto('/admin/dashboard')
+    await page.goto('/admin')
     const body = await page.locator('body').innerText()
 
     // La console est en français (HC-CONSOLE-FR-001) : le vocabulaire d'état

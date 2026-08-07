@@ -1,4 +1,4 @@
-import { gcc } from '@/components/layout/console'
+import { csl } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**
@@ -9,10 +9,10 @@ import clsx from 'clsx'
  * identiques au caractère près :
  *
  *   function Card({ children, className = '' }) {
- *     return <Panel className={className === '' ? gcc.wavePanel : className}>{children}</Panel>
+ *     return <Panel className={className === '' ? csl.wavePanel : className}>{children}</Panel>
  *   }
  *
- * La dixième (`operations`) composait `gcc.heroChart` au lieu de `gcc.wavePanel`.
+ * La dixième (`operations`) composait `csl.heroChart` au lieu de `csl.wavePanel`.
  * Ce n'était donc pas dix besoins différents, mais un seul contrat recopié —
  * avec une variante de matière. `Panel` porte le contrat ; `tone` porte la
  * variante, explicitement.
@@ -30,10 +30,10 @@ import clsx from 'clsx'
 export type PanelTone = 'wave' | 'chart' | 'metric' | 'signal' | 'plain'
 
 const TONE_CLASS: Record<PanelTone, string | undefined> = {
-  wave: gcc.wavePanel,
-  chart: gcc.heroChart,
-  metric: gcc.metricCard,
-  signal: gcc.signalCard,
+  wave: csl.wavePanel,
+  chart: csl.heroChart,
+  metric: csl.metricCard,
+  signal: csl.signalCard,
   // `plain` : la surface nue, quand l'appelant compose lui-même sa géométrie.
   plain: undefined,
 }
@@ -52,7 +52,7 @@ export function Panel({
 }> &
   Omit<React.HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
   return (
-    <Tag {...rest} className={clsx(gcc.panel, TONE_CLASS[tone], className)}>
+    <Tag {...rest} className={clsx(csl.panel, TONE_CLASS[tone], className)}>
       {children}
     </Tag>
   )
@@ -78,9 +78,9 @@ export function PanelHeader({
   as?: 'h2' | 'h3' | 'h4'
 }>) {
   return (
-    <div className={gcc.heroHead}>
-      <Tag className={gcc.cardTitle}>{title}</Tag>
-      {hint === undefined || hint === '' ? null : <p className={gcc.cellText}>{hint}</p>}
+    <div className={csl.heroHead}>
+      <Tag className={csl.cardTitle}>{title}</Tag>
+      {hint === undefined || hint === '' ? null : <p className={csl.cellText}>{hint}</p>}
       {action}
     </div>
   )
@@ -91,5 +91,5 @@ export function PanelBody({
   children,
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <div className={clsx(gcc.heroBody, className)}>{children}</div>
+  return <div className={clsx(csl.heroBody, className)}>{children}</div>
 }

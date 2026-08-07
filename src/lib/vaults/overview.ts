@@ -2,11 +2,9 @@
  * The administration overview, as pure arithmetic over the registry.
  *
  * ── Why this module exists ────────────────────────────────────────────────
- * `/admin` computed its own totals inline. A second surface reading the same
- * estate (the green command center laboratory) would have had to restate that
- * arithmetic, and two restatements of "estate value" drift apart the moment
- * one of them is edited. The figures now live here, once, and both surfaces
- * read them.
+ * Several surfaces read the same `AdminRegistry`. Totals computed inline in
+ * each page drift apart the moment one of them is edited. The figures live
+ * here, once, and every consumer reads them.
  *
  * Everything in this file is a PURE function of an `AdminRegistry`. There is
  * no fetching, no clock, no randomness — which is what makes it testable and

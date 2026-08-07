@@ -2,20 +2,21 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-/**
- * Accueil `/admin` is the patrimoine cockpit again — not a redirect to
- * `/admin/dashboard` (pilotage souscriptions lives on its own route).
- */
-const PAGE_PATH = resolve(import.meta.dirname, '../../src/app/admin/page.tsx')
-const SOURCE = readFileSync(PAGE_PATH, 'utf8')
+const ADMIN_PAGE = resolve(import.meta.dirname, '../../src/app/admin/page.tsx')
+const LEGACY_PAGE = resolve(import.meta.dirname, '../../src/app/admin/dashboard/page.tsx')
 
-describe('/admin', () => {
-  it('renders AdminHomeDashboard — no redirect to pilotage', () => {
-    expect(SOURCE).toContain("from '@/features/admin-home/admin-home-dashboard'")
-    expect(SOURCE).toContain('<AdminHomeDashboard')
-    expect(SOURCE).toContain('loadAdminRegistry')
-    expect(SOURCE).toContain('requireSession')
-    expect(SOURCE).not.toMatch(/redirect\(/)
-    expect(SOURCE).not.toMatch(/redirect\(['"]\/admin\/dashboard['"]\)/)
+describe('URLs tableau de bord', () => {
+  it('/admin rend le dashboard unique', () => {
+    const source = readFileSync(ADMIN_PAGE, 'utf8')
+    expect(source).toContain("from '@/features/admin-dashboard/admin-dashboard-page'")
+    expect(source).toContain('<AdminDashboardPage')
+    expect(source).toContain('loadAdminRegistry')
+    expect(source).toContain('requireSession')
+    expect(source).not.toMatch(/AdminHomeDashboard/)
+  })
+
+  it('/admin/dashboard redirige vers /admin', () => {
+    const source = readFileSync(LEGACY_PAGE, 'utf8')
+    expect(source).toMatch(/redirect\(['"]\/admin['"]\)/)
   })
 })

@@ -1,4 +1,4 @@
-import { gcc } from '@/components/layout/console'
+import { csl } from '@/components/layout/console'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
@@ -71,11 +71,11 @@ export function PriorityQueue({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge color={badge.color}>{badge.label}</Badge>
-                  <span className={clsx(gcc.cellText, 'text-xs uppercase tracking-wide text-zinc-500')}>
+                  <span className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-zinc-500')}>
                     {KIND_LABEL[row.kind] ?? row.kind}
                   </span>
                 </div>
-                <p className={clsx(gcc.cardTitle, 'mt-1 text-sm')}>{row.clientLabel}</p>
+                <p className={clsx(csl.cardTitle, 'mt-1 text-sm')}>{row.clientLabel}</p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   {row.status} · {row.ageLabel}
                 </p>

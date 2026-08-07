@@ -177,7 +177,7 @@ if (SELFTEST) {
     {
       nom: 'import depuis design-lab',
       rel: 'src/components/x.tsx',
-      code: "import { Panel } from '@/components/design-lab/green-command-center/primitives'\n",
+      code: "import { Panel } from '@/components/design-lab/legacy/primitives'\n",
       attendu: 'NO_DESIGN_LAB',
     },
     {

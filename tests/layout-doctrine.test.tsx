@@ -29,7 +29,7 @@ describe('primary navigation', () => {
   it('offers exactly five primary destinations', () => {
     expect(ADMIN_NAV).toHaveLength(5)
     expect(ADMIN_NAV.map((e) => e.libelle)).toEqual([
-      'Cockpit',
+      'Tableau de bord',
       'Coffres',
       'Clients',
       'Conformité',
@@ -44,32 +44,26 @@ describe('primary navigation', () => {
       ...ADMIN_SECONDARY_FLAT.map((e) => e.href),
       '/admin/produit',
     ])
-    const demoted = [
-      '/admin/series-1',
-      '/admin/produit',
-      '/admin/runtime',
-      '/admin/dashboard',
-    ]
+    const demoted = ['/admin/series-1', '/admin/produit', '/admin/runtime']
     for (const href of demoted) expect(reachable.has(href)).toBe(true)
+    expect(reachable.has('/admin')).toBe(true)
   })
 
   it('highlights the longest matching body sub-nav entry', () => {
     expect(hrefCorpsActif('/admin/vaults/abc')).toBeUndefined()
     // Service reste mono-entrée (runtime). Portfolio porte Journal + Pilotage.
     expect(hrefCorpsActif('/admin/runtime')).toBeUndefined()
-    expect(hrefCorpsActif('/admin/dashboard')).toBe('/admin/dashboard')
-    expect(hrefCorpsActif('/admin/series-1')).toBe('/admin/series-1')
+    expect(hrefCorpsActif('/admin/series-1')).toBeUndefined()
+    expect(hrefCorpsActif('/admin')).toBeUndefined()
   })
 
   it('exposes horizontal sub-menus only for multi-entry sections', () => {
     expect(sousMenusCorps('/admin/runtime')).toBeUndefined()
     expect(sousMenusCorps('/admin/produit')).toBeUndefined()
-    expect(sousMenusCorps('/admin/dashboard')?.map((e) => e.href)).toEqual([
-      '/admin/series-1',
-      '/admin/dashboard',
-    ])
+    expect(sousMenusCorps('/admin/series-1')).toBeUndefined()
+    expect(sousMenusCorps('/admin')).toBeUndefined()
     expect(groupeSecondaireActif('/admin/produit')?.titre).toBe('Production')
-    expect(groupeSecondaireActif('/admin/dashboard')?.titre).toBe('Portfolio')
+    expect(groupeSecondaireActif('/admin/series-1')?.titre).toBe('Portfolio')
   })
 
   it('does not force a primary highlight on secondary screens', () => {
@@ -77,7 +71,6 @@ describe('primary navigation', () => {
       expect(hrefActif(entree.href)).toBeUndefined()
     }
     expect(hrefActif('/admin')).toBe('/admin')
-    expect(hrefActif('/admin/dashboard')).toBeUndefined()
     expect(hrefActif('/admin/clients')).toBe('/admin/clients')
     expect(hrefActif('/admin/operations')).toBe('/admin/operations')
   })

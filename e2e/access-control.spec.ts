@@ -13,7 +13,7 @@ import { createCipheriv, createHash, randomBytes } from 'node:crypto'
 
 const ADMIN_ROUTES = [
   '/admin',
-  '/admin/dashboard',
+  '/admin',
   '/admin/vaults',
   '/admin/operations',
   '/admin/api-explorer',

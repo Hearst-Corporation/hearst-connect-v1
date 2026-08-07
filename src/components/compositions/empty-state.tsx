@@ -1,4 +1,4 @@
-import { gcc } from '@/components/layout/console'
+import { csl } from '@/components/layout/console'
 import { Panel, PanelBody, PanelHeader } from '@/components/compositions/panel'
 
 /**
@@ -39,9 +39,9 @@ export function SourceAttendue({
     <Panel tone="wave">
       <PanelHeader title={quoi} />
       <PanelBody>
-        <p className={gcc.cellText}>{detail}</p>
+        <p className={csl.cellText}>{detail}</p>
         {requis.map((item) => (
-          <p key={item} className={gcc.cellText}>
+          <p key={item} className={csl.cellText}>
             {item}
           </p>
         ))}
@@ -62,7 +62,7 @@ export function CalmState({ message }: Readonly<{ message: string }>) {
   return (
     <Panel tone="wave">
       <PanelBody>
-        <p className={gcc.cellText}>{message}</p>
+        <p className={csl.cellText}>{message}</p>
       </PanelBody>
     </Panel>
   )

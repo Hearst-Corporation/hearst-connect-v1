@@ -20,11 +20,7 @@ Références : `.cursor/rules/30-no-gpu1.mdc`, `docs/ENDPOINT-MAPPING.md`, `READ
 
 ## UI — ligne directrice
 
-**Référence** : `/admin/dashboard` (Pilotage des souscriptions, `HC-ADMIN-DASHBOARD-UI-ASSETS-005`).
-
-- Composants : `src/components/admin/dashboard/`, `src/components/actions/`
-- Les autres routes `/admin/**` sont à **converger une par une** vers ce style (Catalyst, mint, vérité des données)
-- `/admin` reste le cockpit patrimoine (question différente du pilotage souscriptions)
+**Référence** : `/admin` (pilotage des souscriptions). Composants : `src/components/admin/dashboard/`, `src/components/actions/`. `/admin/dashboard` redirige ici.
 
 ## État code (main @ 899833c)
 
@@ -60,6 +56,6 @@ E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
 
 ```
 Hearst Connect V1, branche main. Backend Railway (HEARST_API_URL).
-GPU1 interdit. UI référence = /admin/dashboard (Catalyst + pilotage).
+GPU1 interdit. UI référence = /admin (Catalyst + pilotage). `/admin/dashboard` redirige.
 Autres pages admin à aligner une par une. Pas de commit sans demande.
 ```

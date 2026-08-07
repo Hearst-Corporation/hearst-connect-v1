@@ -1,4 +1,4 @@
-import { gcc, Reading } from '@/components/layout/console'
+import { csl, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
 import { Panel, PanelBody, PanelHeader } from '@/components/compositions/panel'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
@@ -18,7 +18,7 @@ import clsx from 'clsx'
  * section titrée avec ses actions, un tableau enveloppé de son état d'absence),
  * pour que les 18 pages admin de la vague suivante ne réassemblent pas dix fois
  * le même échafaudage. C'est une bibliothèque d'API, pas un thème : la matière
- * reste celle de la console (`gcc`, tokens), et rien ici n'invente de couleur.
+ * reste celle de la console (`csl`, tokens), et rien ici n'invente de couleur.
  *
  * ── La règle de véracité, ici comme partout ───────────────────────────────
  * Un bloc affiche ce qu'on lui DONNE. Il ne calcule aucune valeur, n'en dérive
@@ -103,13 +103,13 @@ export function StatCard({
 }>) {
   return (
     <Panel tone="metric" className={clsx('flex flex-col gap-2', className)}>
-      <Tag className={gcc.cardTitle}>{titre}</Tag>
-      {hint !== undefined && hint !== '' && <p className={gcc.cellText}>{hint}</p>}
-      <div className={gcc.metricText}>
+      <Tag className={csl.cardTitle}>{titre}</Tag>
+      {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
+      <div className={csl.metricText}>
         {typeof valeur === 'string' ? (
-          <span className={gcc.metricValue}>{valeur}</span>
+          <span className={csl.metricValue}>{valeur}</span>
         ) : (
-          <Reading value={valeur} className={gcc.metricValue} showRoute={showRoute} />
+          <Reading value={valeur} className={csl.metricValue} showRoute={showRoute} />
         )}
       </div>
       {delta !== undefined && delta !== '' && (
@@ -199,13 +199,13 @@ export function SectionCard({
   return (
     <FadeIn>
       <Panel tone={tone} className={className}>
-        <div className={gcc.heroHead}>
+        <div className={csl.heroHead}>
           <div className="min-w-0 flex-1">
             {eyebrow !== undefined && eyebrow !== '' && (
-              <p className={clsx(gcc.cellText, 'text-xs uppercase tracking-wide text-zinc-500')}>{eyebrow}</p>
+              <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-zinc-500')}>{eyebrow}</p>
             )}
-            <Tag className={gcc.cardTitle}>{title}</Tag>
-            {hint !== undefined && hint !== '' && <p className={gcc.cellText}>{hint}</p>}
+            <Tag className={csl.cardTitle}>{title}</Tag>
+            {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
           </div>
           {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </div>
@@ -259,7 +259,7 @@ export function DataTableShell({
     ) : calme !== undefined ? (
       <CalmState message={calme} />
     ) : (
-      <Table className={gcc.heroTable}>{children}</Table>
+      <Table className={csl.heroTable}>{children}</Table>
     )
   return (
     <SectionCard

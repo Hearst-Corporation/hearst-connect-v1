@@ -16,7 +16,7 @@
 import clsx from 'clsx'
 
 /**
- * Container principal du dashboard — remplace le layout rigide GCC.
+ * Container principal du dashboard — grille flexible (KPI + charts).
  */
 export function DashboardGrid({
   children,

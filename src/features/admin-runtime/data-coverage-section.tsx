@@ -27,12 +27,8 @@ import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 /**
  * Couverture des données — section de `/admin/runtime`.
  *
- * Déplacée depuis `/admin/dashboard` (devenu le cockpit de pilotage des
- * souscriptions, HC-ADMIN-DASHBOARD-PILOTAGE-001) : cette section reste sous
- * le même hub "Service" que les sondes runtime, dont elle partage la nature —
- * ce que le backend sert réellement, pas une décision opérationnelle.
- * Cinq pages pointent vers `DATA_COVERAGE_ENTRY` (désormais `/admin/runtime`)
- * en attendant exactement ce contenu.
+ * Ancienne route dédiée supprimée : cette section reste sous le hub Service
+ * avec les sondes runtime — ce que le backend sert réellement.
  */
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
