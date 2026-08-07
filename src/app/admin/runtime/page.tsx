@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { surfaceInset } from '@/components/admin/surface'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
@@ -15,13 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import {
-  Callout,
-  DataTableShell,
-  SectionCard,
-  StatCard,
-  StatGrid,
-} from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -33,6 +27,12 @@ import { formatDateTime, formatNumber } from '@/lib/format'
 import { etatSourceLisible, etatSourceLisibleCap } from '@/lib/mouvements'
 import { editorial } from '@/lib/vaults/model'
 import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-section'
+import {
+  CheckCircleIcon,
+  CpuChipIcon,
+  HeartIcon,
+  TagIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { IndexerTriggerForm } from './indexer-trigger-form'
 
@@ -159,18 +159,40 @@ export default async function RuntimePage() {
     runtime: r,
   })
 
+  const kpis: readonly AdminHeroKpi[] = [
+    {
+      id: 'health',
+      title: 'Santé',
+      value: editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE')),
+      icon: HeartIcon,
+    },
+    {
+      id: 'ready',
+      title: 'Prêt',
+      value: editorial(etatSourceLisibleCap(readyOk ? 'LIVE' : 'UNAVAILABLE')),
+      icon: CheckCircleIcon,
+    },
+    {
+      id: 'indexer',
+      title: 'Indexeur',
+      value: editorial(runtimeStatusLabel(r?.indexerStatus)),
+      icon: CpuChipIcon,
+    },
+    {
+      id: 'version',
+      title: 'Version',
+      value: editorial(r?.serviceVersion ?? 'Non renseignée'),
+      icon: TagIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="État du service" />
-
-      <StatGrid label="Sondes de service" columns={3}>
-        <StatCard titre="Santé" valeur={editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE'))} hint="Vivacité (health)" />
-        <StatCard titre="Prêt" valeur={editorial(etatSourceLisibleCap(readyOk ? 'LIVE' : 'UNAVAILABLE'))} hint="Disponibilité (ready)" />
-        <StatCard titre="Base de données" valeur={editorial(runtimeStatusLabel(r?.databaseStatus))} />
-        <StatCard titre="Indexeur" valeur={editorial(runtimeStatusLabel(r?.indexerStatus))} />
-        <StatCard titre="Environnement" valeur={editorial(r?.environment ?? 'Non renseigné')} />
-        <StatCard titre="Version" valeur={editorial(r?.serviceVersion ?? 'Non renseignée')} />
-      </StatGrid>
+      <AdminPageHeader
+        title="État du service"
+        description="Sondes runtime, health et ready — état déclaré par le backend, sans réécriture."
+        kpis={kpis}
+      />
 
       <DataTableShell
         title="Matrice d’état"

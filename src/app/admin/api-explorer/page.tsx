@@ -1,17 +1,22 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
 import clsx from 'clsx'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
-import { DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { DataTableShell, SectionCard } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
-import { libelleRole } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
+import {
+  BoltIcon,
+  BookOpenIcon,
+  CpuChipIcon,
+  QueueListIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { ExplorerRow } from './explorer-row'
 
@@ -87,12 +92,11 @@ function countBy(filter: (e: BackendEndpoint) => boolean): number {
  * Registre BACKEND_ENDPOINTS, sondes en direct via ExplorerRow.
  */
 export default async function ApiExplorerPage() {
-  const session = await requireSession()
+  await requireSession()
 
   const safeReadsCount = countBy((e) => e.method === 'GET' && e.category !== 'ai-context')
   const aiContextCount = countBy((e) => e.category === 'ai-context')
   const actionsCount = countBy((e) => e.category === 'keeper')
-  const baseUrlLabel = backendUrl() ?? 'HEARST_API_URL non défini'
 
   // Parts d'un tout : les points d'accès regroupés par catégorie réelle.
   const parCategorie = new Map<BackendEndpoint['category'], number>()
@@ -104,34 +108,40 @@ export default async function ApiExplorerPage() {
     .map(([category, value]) => ({ label: CATEGORY_LABELS[category], value }))
     .sort((a, b) => b.value - a.value)
 
+  const kpis: readonly AdminHeroKpi[] = [
+    {
+      id: 'total',
+      title: 'Total endpoints',
+      value: editorial(formatNumber(BACKEND_ENDPOINTS.length)),
+      icon: QueueListIcon,
+    },
+    {
+      id: 'safe-reads',
+      title: 'Lectures sûres',
+      value: editorial(formatNumber(safeReadsCount)),
+      icon: BookOpenIcon,
+    },
+    {
+      id: 'actions',
+      title: 'Actions',
+      value: editorial(formatNumber(actionsCount)),
+      icon: BoltIcon,
+    },
+    {
+      id: 'ai-context',
+      title: 'Contexte IA',
+      value: editorial(formatNumber(aiContextCount)),
+      icon: CpuChipIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Explorateur d’API" />
-
-      <StatGrid label="Inventaire du registre backend" columns={4}>
-        <StatCard
-          titre="Total des points d’accès"
-          valeur={editorial(formatNumber(BACKEND_ENDPOINTS.length))}
-          hint="Registre BACKEND_ENDPOINTS"
-        />
-        <StatCard
-          titre="Lectures sûres"
-          valeur={editorial(formatNumber(safeReadsCount))}
-          hint="GET sans effet de bord"
-        />
-        <StatCard
-          titre="Actions à effet de bord"
-          valeur={editorial(formatNumber(actionsCount))}
-          hint="POST Keeper, page Keeper"
-        />
-        <StatCard
-          titre="Contexte IA"
-          valeur={editorial(formatNumber(aiContextCount))}
-          hint="Jamais un fait métier"
-        />
-        <StatCard titre="URL de base" valeur={editorial(baseUrlLabel)} hint="Cible HEARST_API_URL" />
-        <StatCard titre="Rôle de session" valeur={editorial(libelleRole(session.role))} hint="Session courante" />
-      </StatGrid>
+      <AdminPageHeader
+        title="Explorateur d’API"
+        description="Registre BACKEND_ENDPOINTS — lectures sûres, actions et contexte IA."
+        kpis={kpis}
+      />
 
       <ChartFrame
         question="Comment le registre se répartit-il par type d’action ?"

@@ -1,9 +1,9 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
-import { DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { DataTableShell, SectionCard } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { availabilityFromResolu } from '@/lib/backend/availability'
 import { callBackend, type BackendResult } from '@/lib/backend/client'
@@ -21,6 +21,12 @@ import {
 } from '@/lib/mouvements'
 import { statutAffichage } from '@/lib/statut-affichage'
 import { editorial, mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
+import {
+  ArrowsRightLeftIcon,
+  BookOpenIcon,
+  ChartBarIcon,
+  CpuChipIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Opérations' }
@@ -187,11 +193,6 @@ export default async function Page() {
 
   const mouvements = reponse.ok ? (reponse.data.events?.value ?? null) : null
   const rebalEvents = rebalancingEvents.ok ? (rebalancingEvents.data.events?.value ?? null) : null
-  const rebalEventsAvail = availabilityFromResolu<readonly EvenementRebalancing[]>(
-    rebalancingEvents.ok ? rebalancingEvents.data.events : undefined,
-    '/api/v1/events/rebalancing',
-  )
-  const rebalEventCount = measuredCount(rebalEventsAvail)
   const derives = derivesDe(dashboard.ok ? dashboard.data.allocation?.value?.pockets : undefined)
   const mesure = dashboard.ok ? dashboard.data.rebalancing?.value : undefined
   const planificateur = runtime.ok ? runtime.data.indexerScheduler : undefined
@@ -209,7 +210,6 @@ export default async function Page() {
     (allocation) => formatNumber(derivesDe(allocation?.pockets).length),
   )
 
-  const rebalancingStatus = rebalancing.ok ? (rebalancing.data.rebalancing?.status ?? 'UNAVAILABLE') : 'UNAVAILABLE'
   const runtimeStatus = runtime.ok
     ? (runtime.data.indexerStatus ?? runtime.data.indexer?.status ?? 'NOT_REPORTED')
     : 'UNAVAILABLE'
@@ -230,33 +230,26 @@ export default async function Page() {
         ? 'Aucune signalée'
         : 'Une demande est ouverte'
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'movements', title: 'Mouvements', value: movementCountCell, icon: ArrowsRightLeftIcon },
+    { id: 'pockets', title: 'Poches mesurées', value: pocketsMeasuredCell, icon: ChartBarIcon },
+    {
+      id: 'indexer',
+      title: 'Indexeur',
+      value: editorial(etatSourceLisibleCap(runtimeStatus)),
+      icon: CpuChipIcon,
+    },
+    { id: 'journal', title: 'État du journal', value: journalStatus, icon: BookOpenIcon },
+  ]
+
   return (
     <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
-      <AdminPageHeader title="Opérations" />
-
-      {/* ── RANGÉE KPI ───────────────────────────────────────────── */}
-      <StatGrid label="Indicateurs des opérations" columns={3}>
-        <StatCard titre="Mouvements" valeur={movementCountCell} hint="Événements Series 1 indexés" showRoute />
-        <StatCard
-          titre="Événements de rééquilibrage"
-          valeur={rebalEventCount}
-          hint="Rebalance, VaultSwapped, stratégie"
-          showRoute
-        />
-        <StatCard titre="Poches mesurées" valeur={pocketsMeasuredCell} hint="Cible et constaté renseignés" showRoute />
-        <StatCard
-          titre="Source de rééquilibrage"
-          valeur={editorial(etatSourceLisibleCap(rebalancingStatus))}
-          hint="Lecture directe du contrat"
-        />
-        <StatCard
-          titre="Indexeur"
-          valeur={editorial(etatSourceLisibleCap(runtimeStatus))}
-          hint="État de l’ordonnanceur"
-        />
-        <StatCard titre="État du journal" valeur={journalStatus} hint="Source series1-events" showRoute />
-      </StatGrid>
+      <AdminPageHeader
+        title="Opérations"
+        description="Mouvements Series 1, allocation par poche et fraîcheur de l’indexeur."
+        kpis={kpis}
+      />
 
       {/* ── CHART RÉEL : allocation cible vs constatée par poche ──── */}
       <ChartFrame

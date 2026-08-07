@@ -1,12 +1,18 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame } from '@/components/charts'
-import { SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { SectionCard } from '@/components/compositions'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
 import { LIBELLE_ROLE } from '@/lib/session'
+import { editorial } from '@/lib/vaults/model'
+import {
+  PaperAirplaneIcon,
+  ServerIcon,
+  UserIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { CreateClientForm } from './create-client-form'
 
@@ -45,27 +51,34 @@ export default async function Page() {
 
   const canPost = disabledReason === null
 
+  const kpis: readonly AdminHeroKpi[] = [
+    {
+      id: 'role',
+      title: 'Votre rôle',
+      value: editorial(LIBELLE_ROLE[session.role]),
+      icon: UserIcon,
+    },
+    {
+      id: 'backend',
+      title: 'Backend',
+      value: editorial(backendConfigured ? 'Configuré' : 'Non configuré'),
+      icon: ServerIcon,
+    },
+    {
+      id: 'envoi',
+      title: 'Envoi possible',
+      value: editorial(canPost ? 'Prêt' : 'Bloqué'),
+      icon: PaperAirplaneIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Nouveau client simulé" />
-
-      <StatGrid label="État de la requête de création" columns={3}>
-        <StatCard
-          titre="Votre rôle"
-          valeur={LIBELLE_ROLE[session.role]}
-          hint={isAdmin ? 'Habilité à créer un compte' : 'Non habilité pour cette action'}
-        />
-        <StatCard
-          titre="Backend"
-          valeur={backendConfigured ? 'Configuré' : 'Non configuré'}
-          hint={backendConfigured ? 'HEARST_API_URL présent' : 'HEARST_API_URL absent'}
-        />
-        <StatCard
-          titre="Envoi possible"
-          valeur={canPost ? 'Prêt' : 'Bloqué'}
-          hint={canPost ? 'Rôle et backend réunis' : 'Condition manquante ci-dessous'}
-        />
-      </StatGrid>
+      <AdminPageHeader
+        title="Nouveau client simulé"
+        description="Création réelle via POST /api/v1/admin/users — mot de passe jamais restitué."
+        kpis={kpis}
+      />
 
       <SectionCard title="Créations récentes" hint="Comptes créés depuis cet écran, par jour." tone="chart">
         <ChartFrame

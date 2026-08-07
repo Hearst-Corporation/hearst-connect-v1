@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
@@ -8,14 +8,20 @@ import {
   ReserveExpositionChart,
   type PosteBitcoin,
 } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
-import { availabilityFromResolu, figureDepuisResolu } from '@/lib/backend/availability'
+import { figureDepuisResolu } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { etatSourceLisible } from '@/lib/mouvements'
 import { etatSerieDe } from '@/lib/serie-etat'
-import { editorial, mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
+import { editorial } from '@/lib/vaults/model'
+import {
+  CircleStackIcon,
+  CpuChipIcon,
+  SignalIcon,
+  Square3Stack3DIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 const MINING_ENDPOINT = '/api/v1/mining'
@@ -178,31 +184,6 @@ export default async function Page() {
     },
   ]
 
-  const reserveAvail = availabilityFromResolu(btc.ok ? b?.reserve : undefined, '/api/v1/btc')
-  const exposureAvail = availabilityFromResolu(btc.ok ? b?.exposure : undefined, '/api/v1/btc')
-  const reserveSplitCell: Availability<string> = (() => {
-    if (!btc.ok) {
-      return unavailable({ endpoint: '/api/v1/btc', status: 'UNAVAILABLE', reason: 'btc_source_unreachable' })
-    }
-    const postes = postesReserveExposition(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
-    if (
-      postes.length === 0 &&
-      b?.reserve?.value?.balanceUsdc === undefined &&
-      b?.exposure?.value?.valueUsdc === undefined
-    ) {
-      return unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
-    }
-    const reserveReadable = reserveAvail.kind === 'available'
-    const exposureReadable = exposureAvail.kind === 'available'
-    if (!reserveReadable && !exposureReadable) {
-      return unavailable({ endpoint: '/api/v1/btc', status: 'PARTIAL', reason: 'reserve_and_exposure_unreadable' })
-    }
-    return mapAvailability(reserveAvail, () => String(postes.length))
-  })()
-  const curvePointsCell = mapAvailability(
-    availabilityFromResolu(factsheet.ok ? f?.vendingCurve : undefined, FACTSHEET_ENDPOINT),
-    (curve) => String(pointsCourbeDe(curve).length),
-  )
   const hashrateCell = figureDepuisResolu(mining.ok ? m?.hashrate : undefined, MINING_ENDPOINT, (h) =>
     formatNumber(Number(h.reportedHashrateTh)),
   )
@@ -215,32 +196,25 @@ export default async function Page() {
     formatCurrency(c, { decimals: 0 }),
   )
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'hashrate', title: 'Hashrate', value: hashrateCell, unit: 'TH/s', icon: CpuChipIcon },
+    { id: 'btc-produit', title: 'BTC produit', value: btcProduitCell, unit: 'BTC', icon: CircleStackIcon },
+    { id: 'plafond', title: 'Plafond', value: plafondCell, icon: Square3Stack3DIcon },
+    {
+      id: 'source-btc',
+      title: 'Source BTC',
+      value: editorial(b === null ? 'Indisponible' : 'Joignable'),
+      icon: SignalIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Vue produit consolidée" />
-
-      <StatGrid label="Lectures consolidées du produit" columns={3}>
-        <StatCard titre="Hashrate" valeur={hashrateCell} showRoute hint="Puissance de calcul renseignée." />
-        <StatCard titre="BTC produit" valeur={btcProduitCell} showRoute hint="Bitcoin extrait par le fonds." />
-        <StatCard titre="Plafond du fonds" valeur={plafondCell} showRoute hint="Capacité maximale du produit." />
-        <StatCard
-          titre="Répartition de la réserve"
-          valeur={reserveSplitCell}
-          showRoute
-          hint="Nombre de positions lisibles on-chain."
-        />
-        <StatCard
-          titre="Points de courbe"
-          valeur={curvePointsCell}
-          showRoute
-          hint="Jalons de la courbe de rémunération."
-        />
-        <StatCard
-          titre="Source BTC"
-          valeur={editorial(b === null ? 'Indisponible' : 'Joignable')}
-          hint="Joignabilité de /api/v1/btc."
-        />
-      </StatGrid>
+      <AdminPageHeader
+        title="Vue produit consolidée"
+        description="Lectures mining, BTC et fiche produit — sans valeur inventée."
+        kpis={kpis}
+      />
 
       <SectionCard title="Production" eyebrow="Fonds" hint="Hashrate renseigné et chiffres qui le qualifient.">
         <DescriptionList>

@@ -1,11 +1,11 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutCoffre, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { libelleStatutDeploiement } from '@/lib/libelles'
@@ -47,6 +47,12 @@ import {
   loadStrategyDetail,
   statutHttpStrategieDetail,
 } from '@/lib/vaults/strategy-detail'
+import {
+  ArchiveBoxIcon,
+  ArrowTrendingUpIcon,
+  BanknotesIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -118,15 +124,6 @@ function driftPoints(bps: number): string {
 function driftPointsNullable(bps: number | null): string | null {
   if (bps === null || !Number.isFinite(bps)) return null
   return driftPoints(bps)
-}
-
-function lastRebalanceReading(vault: Vault): Availability<string> {
-  if (!isAvailable(vault.rebalancing)) return absentReading(vault.rebalancing)
-  const at = vault.rebalancing.value.lastRebalanceAt
-  if (at === null) {
-    return unavailable({ endpoint: '/api/v1/rebalancing/status', status: 'EMPTY', reason: null })
-  }
-  return editorial(`${formatDateTime(at)} · ${formatRelativeTime(at)}`)
 }
 
 function pocketOf(row: RebalancingRow): string | null {
@@ -201,8 +198,6 @@ export default async function Page({ params }: PageProps) {
   const totalValue = amountOf(vault, vault.totalAssetsAtomic)
   const deployedValue = amountOf(vault, deployedAtomic(vault))
   const idleValue = amountOf(vault, idleAtomic(vault))
-  const driftValue = mapAvailability(vault.worstDriftBps, driftPoints)
-  const strategiesCount = mapAvailability(vault.strategies, (rows) => formatNumber(rows.length))
 
   const lastActivity = mapAvailability(
     vault.lastActivityAt,
@@ -221,31 +216,20 @@ export default async function Page({ params }: PageProps) {
   const strategyDetailLabel = libelleStrategieDetail(strategyDetailRes)
   const strategyDetailHttp = statutHttpStrategieDetail(strategyDetailRes)
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'etat', title: 'État', value: activeStatus, icon: ShieldCheckIcon },
+    { id: 'valeur-totale', title: 'Valeur totale', value: totalValue, icon: BanknotesIcon },
+    { id: 'deploye', title: 'Déployé', value: deployedValue, icon: ArrowTrendingUpIcon },
+    { id: 'disponible', title: 'Disponible', value: idleValue, icon: ArchiveBoxIcon },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title={vault.label} />
+      <AdminPageHeader title={vault.label} description="Lecture du coffre et de ses sources rattachées." kpis={kpis} />
 
       <div className="flex flex-wrap items-center gap-3">
         <VaultStatusBadge status={vault.status} />
       </div>
-
-      <StatGrid label="Indicateurs du coffre" columns={4}>
-        <StatCard titre="État" valeur={activeStatus} />
-        <StatCard titre="Valeur totale" valeur={totalValue} showRoute />
-        <StatCard titre="Déployé" valeur={deployedValue} showRoute />
-        <StatCard titre="Disponible (au repos)" valeur={idleValue} showRoute />
-        <StatCard titre="Poches de stratégie" valeur={strategiesCount} />
-        <StatCard titre="Écart courant" valeur={driftValue} />
-        <StatCard
-          titre="Utilisation"
-          valeur={mapAvailability(vault.utilizationBps, (bps) =>
-            formatPercent(bps, { fromBps: true, maximumFractionDigits: 2 }),
-          )}
-        />
-        <StatCard titre="Dernier rééquilibrage" valeur={lastRebalanceReading(vault)} />
-        <StatCard titre="Plafond TVL" valeur={amountOf(vault, vault.tvlCapAtomic)} showRoute />
-        <StatCard titre="Capacité restante" valeur={amountOf(vault, vault.capacityRemainingAtomic)} showRoute />
-      </StatGrid>
 
       {!isAvailable(scopedRebalancing) ? (
         <>

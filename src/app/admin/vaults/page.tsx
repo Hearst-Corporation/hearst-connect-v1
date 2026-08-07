@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
 import {
@@ -15,13 +15,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { ChartFrame, RichDistributionChart, type DistributionItem } from '@/components/charts'
-import {
-  Callout,
-  DataTableShell,
-  SectionCard,
-  StatCard,
-  StatGrid,
-} from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { requireSession } from '@/lib/auth'
@@ -42,6 +36,12 @@ import {
 } from '@/lib/vaults/model'
 import { activeVaultCount } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
+import {
+  ArchiveBoxIcon,
+  ArrowsRightLeftIcon,
+  BuildingLibraryIcon,
+  SignalIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Registre des coffres' }
@@ -113,14 +113,6 @@ export default async function Page() {
     `${registry.sources.filter((source) => source.status === 'LIVE').length} / ${registry.sources.length}`,
   )
   const movements = measuredCount(registry.movements)
-  const exceptions = measuredCount(registry.clientExceptions)
-  const clientsCount = measuredCount(registry.clients)
-  const deploymentsCount = measuredCount(registry.deployments)
-  const complianceCount = measuredCount(registry.compliance)
-  const decisionLabel =
-    isAvailable(exceptions) && Number.parseInt(exceptions.value, 10) > 0
-      ? 'Revue en attente'
-      : 'Aucune revue en attente'
 
   const vaultList = valueOf(registry.vaults)
   const breakdown = valueByVaultRows(registry.vaults)
@@ -149,20 +141,20 @@ export default async function Page() {
         }))
       : []
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'active', title: 'Coffres actifs', value: activeVaults, icon: ArchiveBoxIcon },
+    { id: 'listed', title: 'Coffres répertoriés', value: totalVaults, icon: BuildingLibraryIcon },
+    { id: 'live-sources', title: 'Sources en direct', value: liveSources, icon: SignalIcon },
+    { id: 'movements', title: 'Mouvements', value: movements, icon: ArrowsRightLeftIcon },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Registre des coffres" />
-
-      <StatGrid label="Signaux du registre" columns={4}>
-        <StatCard titre="Coffres actifs" valeur={activeVaults} />
-        <StatCard titre="Coffres répertoriés" valeur={totalVaults} />
-        <StatCard titre="Sources en direct" valeur={liveSources} />
-        <StatCard titre="Mouvements indexés" valeur={movements} />
-        <StatCard titre="Clients" valeur={clientsCount} />
-        <StatCard titre="Déploiements" valeur={deploymentsCount} />
-        <StatCard titre="Conformité" valeur={complianceCount} />
-        <StatCard titre="Anomalies clients" valeur={exceptions} hint={decisionLabel} />
-      </StatGrid>
+      <AdminPageHeader
+        title="Registre des coffres"
+        description="Lecture du registre coffre et des signaux d’allocation rapportés par le service."
+        kpis={kpis}
+      />
 
       {vaultList === null ? (
         <SectionCard

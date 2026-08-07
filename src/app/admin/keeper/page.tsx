@@ -1,4 +1,4 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Badge } from '@/components/catalyst/badge'
 import {
   DescriptionDetails,
@@ -8,7 +8,7 @@ import {
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -16,6 +16,12 @@ import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
 import { libelleRole } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
+import {
+  CheckCircleIcon,
+  CommandLineIcon,
+  ServerIcon,
+  UserIcon,
+} from '@heroicons/react/16/solid'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
 import { KeeperForm } from './keeper-form'
@@ -64,32 +70,40 @@ export default async function KeeperPage() {
 
   const actionsDisponibles = disabledReason === null
 
+  const kpis: readonly AdminHeroKpi[] = [
+    {
+      id: 'actions',
+      title: 'Actions exposées',
+      value: editorial(formatNumber(keeperEndpoints.length)),
+      icon: CommandLineIcon,
+    },
+    {
+      id: 'role',
+      title: 'Rôle',
+      value: editorial(libelleRole(session.role)),
+      icon: UserIcon,
+    },
+    {
+      id: 'service',
+      title: 'Adresse service',
+      value: editorial(backendConfigured ? 'Configuré' : 'Non défini'),
+      icon: ServerIcon,
+    },
+    {
+      id: 'disponibilite',
+      title: 'Disponibilité',
+      value: editorial(actionsDisponibles ? 'Actions disponibles' : 'Actions inertes'),
+      icon: CheckCircleIcon,
+    },
+  ]
+
   return (
     <div className="space-y-8">
-      <AdminPageHeader title="Actions Keeper" />
-
-      <StatGrid label="État des actions Keeper" columns={4}>
-        <StatCard
-          titre="Actions exposées"
-          valeur={editorial(formatNumber(keeperEndpoints.length))}
-          hint="Routes keeper du registre backend"
-        />
-        <StatCard
-          titre="Votre rôle"
-          valeur={editorial(libelleRole(session.role))}
-          hint={isAdmin ? 'Accès administrateur' : 'Rôle restreint'}
-        />
-        <StatCard
-          titre="Adresse du service"
-          valeur={editorial(backendConfigured ? 'Configuré' : 'Non défini')}
-          hint="HEARST_API_URL"
-        />
-        <StatCard
-          titre="Disponibilité"
-          valeur={editorial(actionsDisponibles ? 'Actions disponibles' : 'Actions inertes')}
-          hint="Rôle et service réunis"
-        />
-      </StatGrid>
+      <AdminPageHeader
+        title="Actions Keeper"
+        description="Routes keeper du registre — journalisation seule, sans signature on-chain."
+        kpis={kpis}
+      />
 
       <ChartFrame
         question="Combien d’actions Keeper ont-elles été déclenchées dans le temps ?"

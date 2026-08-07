@@ -26,7 +26,13 @@ import {
   subscriptionsByProduct,
 } from '@/lib/vaults/pilotage'
 import type { AdminRegistry } from '@/lib/vaults/model'
-import { ChartBarIcon } from '@heroicons/react/16/solid'
+import {
+  ArrowTrendingUpIcon,
+  BanknotesIcon,
+  ChartBarIcon,
+  ClipboardDocumentCheckIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/16/solid'
 
 const DEPLOY_STEP: Record<string, string> = {
   REQUESTED: 'Demandée',
@@ -70,6 +76,7 @@ export function AdminDashboardPage({
       title: 'Taux de conversion',
       value: conversion,
       unit: '% Compte → Position',
+      icon: ArrowTrendingUpIcon,
     },
     {
       id: 'kyc',
@@ -78,6 +85,7 @@ export function AdminDashboardPage({
         String(rows.filter((r) => r.stage !== 'termine').length),
       ),
       unit: 'dossiers',
+      icon: ClipboardDocumentCheckIcon,
     },
     {
       id: 'subscriptions',
@@ -86,6 +94,7 @@ export function AdminDashboardPage({
         String(rows.filter((d) => d.status === 'REQUESTED' || d.status === 'PENDING').length),
       ),
       unit: 'en attente',
+      icon: BanknotesIcon,
     },
     {
       id: 'failed',
@@ -94,6 +103,7 @@ export function AdminDashboardPage({
         String(rows.filter((d) => d.status === 'FAILED').length),
       ),
       unit: 'échouées',
+      icon: ExclamationTriangleIcon,
     },
   ]
 

@@ -1,9 +1,9 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { DATA_COVERAGE_ENTRY } from '@/lib/admin-nav'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
@@ -12,6 +12,12 @@ import { dateLisible, etatSourceLisible } from '@/lib/mouvements'
 import { isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
+import {
+  DocumentTextIcon,
+  ExclamationTriangleIcon,
+  QueueListIcon,
+  SignalIcon,
+} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Conformité' }
@@ -64,18 +70,21 @@ export default async function Page() {
   const reviewCount = isAvailable(dossierCount) ? `${dossierCount.value} dossier(s)` : undefined
   const sourceCount = `${formatNumber(registry.sources.length)} source(s)`
 
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'dossiers', title: 'Dossiers', value: dossierCount, icon: DocumentTextIcon },
+    { id: 'stages', title: 'Étapes', value: stages, icon: QueueListIcon },
+    { id: 'anomalies', title: 'Anomalies', value: clientExceptions, icon: ExclamationTriangleIcon },
+    { id: 'source', title: 'Source', value: queueSource, icon: SignalIcon },
+  ]
+
   return (
     <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
-      <AdminPageHeader title="Conformité" />
-
-      {/* ── RANGÉE KPI ───────────────────────────────────────────── */}
-      <StatGrid label="Indicateurs de conformité" columns={4}>
-        <StatCard titre="Source de la file" valeur={queueSource} hint="État de /api/v1/compliance" />
-        <StatCard titre="Dossiers" valeur={dossierCount} hint="En file de revue" />
-        <StatCard titre="Étapes du processus" valeur={stages} hint="Paliers distincts en cours" />
-        <StatCard titre="Anomalies clients" valeur={clientExceptions} hint="Signaux à traiter" />
-      </StatGrid>
+      <AdminPageHeader
+        title="Conformité"
+        description="File de revue KYC et parcours des dossiers issus du backend."
+        kpis={kpis}
+      />
 
       {/* ── CHART RÉEL : répartition par statut KYC ──────────────── */}
       <ChartFrame
