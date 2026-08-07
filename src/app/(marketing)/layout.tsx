@@ -3,7 +3,7 @@ import { SiteHeader } from '@/components/marketing/site-header'
 
 export default function MarketingLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="bg-white dark:bg-zinc-900">
+    <div className="bg-console-app text-white">
       <SiteHeader />
       <main>{children}</main>
       <SiteFooter />
