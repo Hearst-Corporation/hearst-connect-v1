@@ -54,8 +54,8 @@ export function SidebarLayout({
   let [showSidebar, setShowSidebar] = useState(false)
 
   return (
-    <div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
-      {/* Sidebar on desktop — effet verre (pas noir opaque des boxes). */}
+    <div className="relative isolate flex min-h-svh w-full bg-console-app max-lg:flex-col">
+      {/* Sidebar on desktop — effet verre (même famille que les boxes). */}
       <div className={clsx('fixed inset-y-0 left-0 w-64 max-lg:hidden', surfaceNav)}>{sidebar}</div>
 
       {/* Sidebar on mobile */}
@@ -73,10 +73,10 @@ export function SidebarLayout({
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
-      {/* Content — pleine largeur fluide (le plafond kit a été retiré : il
-          écrasait les grilles dashboard/KPI dans la colonne déjà réduite par le rail). */}
+      {/* Content — plaque transparente : le verre des boxes (et un futur PNG
+          lumineux sous le shell) doit transparaître. Pas de zinc opaque. */}
       <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
-        <div className="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
+        <div className="grow p-6 lg:rounded-lg lg:p-10">
           <div className="w-full min-w-0">{children}</div>
         </div>
       </main>

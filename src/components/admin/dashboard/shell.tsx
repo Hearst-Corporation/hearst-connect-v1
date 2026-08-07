@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 /**
- * Conteneur pilotage — surfaces via tokens (`surfaceBox` = noir console-card).
+ * Conteneur pilotage — surfaces via tokens (`surfaceBox` = verre console-card).
  */
 export function DashboardShell({
   children,
