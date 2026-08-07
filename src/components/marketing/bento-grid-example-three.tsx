@@ -238,19 +238,23 @@ const items: ReadonlyArray<{
   },
 ]
 
-export function BentoGridExampleThree() {
+function BentoSection({
+  title,
+  subtitle,
+  sectionItems,
+}: Readonly<{
+  title: string
+  subtitle: string
+  sectionItems: typeof items
+}>) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16 md:px-8">
       <div className="mb-10 max-w-2xl">
-        <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-          Bento · example three
-        </h2>
-        <p className="mt-3 text-sm/6 text-white/50">
-          Même structure Motion que le démo Aceternity 3 — surfaces console Hearst.
-        </p>
+        <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h2>
+        <p className="mt-3 text-sm/6 text-white/50">{subtitle}</p>
       </div>
       <BentoGrid className="md:auto-rows-[20rem]">
-        {items.map((item) => (
+        {sectionItems.map((item) => (
           <BentoGridItem
             key={item.title}
             title={item.title}
@@ -262,5 +266,38 @@ export function BentoGridExampleThree() {
         ))}
       </BentoGrid>
     </section>
+  )
+}
+
+/** Première moitié du bento example three (avant le ripple). */
+export function BentoGridExampleThreeStart() {
+  return (
+    <BentoSection
+      title="Identité & audit"
+      subtitle="Flux de session, charge d’audit, accent de marque — Motion Aceternity, matière Hearst."
+      sectionItems={items.slice(0, 3)}
+    />
+  )
+}
+
+/** Seconde moitié du bento example three (après le ripple). */
+export function BentoGridExampleThreeEnd() {
+  return (
+    <BentoSection
+      title="Rôles & vérité"
+      subtitle="Lecture des postures d’accès et doctrine de données — jamais inventée."
+      sectionItems={items.slice(3)}
+    />
+  )
+}
+
+/** Bento complet (sans découpe). */
+export function BentoGridExampleThree() {
+  return (
+    <BentoSection
+      title="Bento · example three"
+      subtitle="Même structure Motion que le démo Aceternity 3 — surfaces console Hearst."
+      sectionItems={items}
+    />
   )
 }

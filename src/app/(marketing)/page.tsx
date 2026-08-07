@@ -1,11 +1,17 @@
-import { BentoGridExampleThree } from '@/components/marketing/bento-grid-example-three'
+import { BackgroundRippleBand } from '@/components/marketing/background-ripple-band'
+import {
+  BentoGridExampleThreeEnd,
+  BentoGridExampleThreeStart,
+} from '@/components/marketing/bento-grid-example-three'
 import { HeroScrollDemo } from '@/components/marketing/hero-scroll-demo'
 
 export default function HomePage() {
   return (
     <>
       <HeroScrollDemo />
-      <BentoGridExampleThree />
+      <BentoGridExampleThreeStart />
+      <BackgroundRippleBand />
+      <BentoGridExampleThreeEnd />
     </>
   )
 }

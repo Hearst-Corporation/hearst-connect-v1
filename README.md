@@ -3,13 +3,10 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** : hero scroll Aceternity + bento example three (`bento-grid-demo-3`,
-équivalent public de `@aceternity/bento-grid-example-three`) + footer 4 grilles.
-Primatives UI dans `src/components/ui/` ; registry `@aceternity` dans `components.json`.
-Fond marque `bg-console-app` — pas de `zinc`.
-
-> Les slugs Pro Aceternity (`*-example-three`, `three-column-bento-grid`) exigent un
-> token API. On branchen les démos publiques équivalentes + tokens Hearst.
+**Landing `/`** : hero scroll → bento (1/2) → **ripple CTA** → bento (2/2) → footer.
+Ripple : `@aceternity/background-ripple-effect-demo` (`src/components/ui/background-ripple-effect.tsx`
++ `background-ripple-band.tsx`). Primatives UI dans `src/components/ui/` ;
+registry `@aceternity` dans `components.json`. Fond `bg-console-app` — pas de `zinc`.
 
 ## Architecture
 
