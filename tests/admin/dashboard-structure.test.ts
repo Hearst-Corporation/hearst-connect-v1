@@ -29,7 +29,7 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
     expect(PAGE).toMatch(/Pilotage des souscriptions/)
   })
 
-  it('renders exactly four compact KPI cards without technical copy', () => {
+  it('renders exactly four compact KPI metrics inside the header (no separate boxes)', () => {
     for (const label of [
       'Taux de conversion',
       'KYC en attente',
@@ -38,13 +38,19 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
     ]) {
       expect(SOURCE).toContain(label)
     }
-    expect(SOURCE).toMatch(/<DashboardKpiGrid/)
+    expect(SOURCE).toMatch(/<DashboardHeader/)
+    expect(SOURCE).toMatch(/kpis=\{kpis\}/)
+    expect(SOURCE).not.toMatch(/<DashboardKpiGrid/)
+    expect(HEADER).toMatch(/DashboardKpiMetrics/)
+    expect(HEADER).toMatch(/rounded-full/)
+    expect(HEADER).toMatch(/LogoMark/)
     expect(SOURCE).not.toContain('proxy wallet')
     expect(SOURCE).not.toContain('Comptes présents dans le registre')
     expect(SOURCE).not.toContain('Clients actifs')
     expect(SOURCE).not.toContain('Wallets actifs')
     expect(KPI).not.toMatch(/En direct/)
     expect(KPI).not.toMatch(/SourcePill|AdminReading|showRoute/)
+    expect(KPI).not.toMatch(/surfaceBox/)
   })
 
   it('replaces the six-column funnel with a real journey stepper (no comparative bars)', () => {

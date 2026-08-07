@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
 /** Glyphe seul — carré arrondi + monogramme « H » relié. */
-function Mark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
+export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" {...props} className={clsx(className, 'shrink-0')}>
       <rect width="32" height="32" rx="8" className="fill-accent-400" />
@@ -22,7 +22,7 @@ function Mark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'
 export function Logo({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'span'>>) {
   return (
     <span {...props} className={clsx(className, 'inline-flex items-center gap-2.5')}>
-      <Mark className="size-8" />
+      <LogoMark className="size-8" />
       <span className="text-base font-semibold tracking-tight whitespace-nowrap">Hearst Connect</span>
     </span>
   )
