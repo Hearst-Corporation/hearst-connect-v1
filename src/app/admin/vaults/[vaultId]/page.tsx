@@ -253,56 +253,6 @@ export default async function Page({ params }: PageProps) {
         <StatCard titre="Capacité restante" valeur={amountOf(vault, vault.capacityRemainingAtomic)} showRoute />
       </StatGrid>
 
-      <SectionCard title="Résumé du coffre">
-        <DescriptionList>
-          <DescriptionTerm>Client</DescriptionTerm>
-          <DescriptionDetails>
-            {isAvailable(client) ? (
-              <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
-            ) : (
-              <AdminReading
-                value={absentReading(client)}
-                emptyLabel={
-                  client.reason === 'vault_owner_not_reported'
-                    ? 'Propriétaire non reporté sur le coffre'
-                    : 'Indisponible'
-                }
-              />
-            )}
-          </DescriptionDetails>
-          <DescriptionTerm>Créé le</DescriptionTerm>
-          <DescriptionDetails>
-            <AdminReading value={CREATED_AT} />
-          </DescriptionDetails>
-          <DescriptionTerm>Dernière activité</DescriptionTerm>
-          <DescriptionDetails>
-            <AdminReading value={lastActivity} />
-          </DescriptionDetails>
-          <DescriptionTerm>Identifiant</DescriptionTerm>
-          <DescriptionDetails className="font-mono text-sm">{vault.id}</DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
-
-      <SectionCard
-        title="Détail contrat (stratégie index 0)"
-        hint="Route `strategy-detail` — index primaire = position 0 du registre stratégies (pas un sélecteur multi-index)."
-      >
-        <DescriptionList>
-          <DescriptionTerm>Interrogation HTTP</DescriptionTerm>
-          <DescriptionDetails>
-            <AdminReading value={strategyDetailHttp} />
-          </DescriptionDetails>
-          <DescriptionTerm>État du champ Stratégie</DescriptionTerm>
-          <DescriptionDetails>
-            <AdminReading value={strategyDetailState} />
-          </DescriptionDetails>
-          <DescriptionTerm>Libellé lu</DescriptionTerm>
-          <DescriptionDetails>
-            <AdminReading value={strategyDetailLabel} />
-          </DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
-
       {!isAvailable(scopedRebalancing) ? (
         <SectionCard title="Rééquilibrage" hint="Écart d’allocation par poche, tel que rapporté par le service.">
           <Text>
@@ -470,12 +420,6 @@ export default async function Page({ params }: PageProps) {
         />
       )}
 
-      <SectionCard title="Déploiements">
-        <StatGrid label="Capital du coffre" columns={2}>
-          <StatCard titre="Capital déployé" valeur={deployedValue} showRoute as="h3" />
-          <StatCard titre="Capital au repos" valeur={idleValue} showRoute as="h3" />
-        </StatGrid>
-      </SectionCard>
       {!isAvailable(scopedDeployments) ? (
         <SectionCard title="Registre des déploiements">
           <Text>
@@ -598,7 +542,58 @@ export default async function Page({ params }: PageProps) {
         </DataTableShell>
       )}
 
-      <DataTableShell title="Activité des sources">
+      <SectionCard title="Résumé du coffre" tone="plain">
+        <DescriptionList>
+          <DescriptionTerm>Client</DescriptionTerm>
+          <DescriptionDetails>
+            {isAvailable(client) ? (
+              <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
+            ) : (
+              <AdminReading
+                value={absentReading(client)}
+                emptyLabel={
+                  client.reason === 'vault_owner_not_reported'
+                    ? 'Propriétaire non reporté sur le coffre'
+                    : 'Indisponible'
+                }
+              />
+            )}
+          </DescriptionDetails>
+          <DescriptionTerm>Créé le</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={CREATED_AT} />
+          </DescriptionDetails>
+          <DescriptionTerm>Dernière activité</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={lastActivity} />
+          </DescriptionDetails>
+          <DescriptionTerm>Identifiant</DescriptionTerm>
+          <DescriptionDetails className="font-mono text-sm">{vault.id}</DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
+
+      <SectionCard
+        title="Détail contrat (stratégie index 0)"
+        hint="Route `strategy-detail` — index primaire = position 0 du registre stratégies (pas un sélecteur multi-index)."
+        tone="plain"
+      >
+        <DescriptionList>
+          <DescriptionTerm>Interrogation HTTP</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={strategyDetailHttp} />
+          </DescriptionDetails>
+          <DescriptionTerm>État du champ Stratégie</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={strategyDetailState} />
+          </DescriptionDetails>
+          <DescriptionTerm>Libellé lu</DescriptionTerm>
+          <DescriptionDetails>
+            <AdminReading value={strategyDetailLabel} />
+          </DescriptionDetails>
+        </DescriptionList>
+      </SectionCard>
+
+      <DataTableShell title="Activité des sources" description="Les quatre sources les plus récentes de ce coffre.">
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
@@ -608,7 +603,7 @@ export default async function Page({ params }: PageProps) {
         <TableBody>
           {registry.sources.slice(0, 4).map((source) => (
             <TableRow key={source.endpointId}>
-              <TableCell>{source.label}</TableCell>
+              <TableCell className="font-medium">{source.label}</TableCell>
               <TableCell>{etatSourceLisible(source.status)}</TableCell>
             </TableRow>
           ))}

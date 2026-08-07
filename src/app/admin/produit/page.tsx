@@ -143,6 +143,41 @@ export default async function Page() {
   const courbeParametree = courbeParametreeDe(points)
   const plafond = f?.tvlCap?.value
 
+  // Lectures en attente : regroupement de présentation des blocs déjà chargés.
+  // Chaque ligne porte son explication (via explicationSerie) et son état brut
+  // réel (etatSourceLisible(status)) — aucune valeur inventée, une par source.
+  const lecturesEnAttente: readonly {
+    readonly cle: string
+    readonly libelle: string
+    readonly explication: string
+    readonly statut: string | undefined
+  }[] = [
+    {
+      cle: 'backtest',
+      libelle: 'Performance vs historique',
+      explication: explicationSerie(
+        backtest.ok ? backtest.data.runs : undefined,
+        'Aucun backtest n’a encore été exécuté sur ce déploiement.',
+      ),
+      statut: backtest.ok ? backtest.data.runs?.status : undefined,
+    },
+    {
+      cle: 'attribution',
+      libelle: 'Ventilation du rendement',
+      explication: explicationSerie(b?.attribution, 'La ventilation du rendement n’a pas encore été calculée.'),
+      statut: b?.attribution?.status,
+    },
+    {
+      cle: 'telemetrie',
+      libelle: 'Télémétrie opérationnelle',
+      explication: explicationSerie(
+        m?.operationalTelemetry,
+        'La télémétrie opérationnelle n’a pas encore été transmise.',
+      ),
+      statut: m?.operationalTelemetry?.status,
+    },
+  ]
+
   const reserveAvail = availabilityFromResolu(btc.ok ? b?.reserve : undefined, '/api/v1/btc')
   const exposureAvail = availabilityFromResolu(btc.ok ? b?.exposure : undefined, '/api/v1/btc')
   const reserveSplitCell: Availability<string> = (() => {
@@ -190,6 +225,7 @@ export default async function Page() {
       <StatGrid label="Lectures consolidées du produit" columns={3}>
         <StatCard titre="Hashrate" valeur={hashrateCell} showRoute hint="Puissance de calcul renseignée." />
         <StatCard titre="BTC produit" valeur={btcProduitCell} showRoute hint="Bitcoin extrait par le fonds." />
+        <StatCard titre="Plafond du fonds" valeur={plafondCell} showRoute hint="Capacité maximale du produit." />
         <StatCard
           titre="Répartition de la réserve"
           valeur={reserveSplitCell}
@@ -202,11 +238,10 @@ export default async function Page() {
           showRoute
           hint="Jalons de la courbe de rémunération."
         />
-        <StatCard titre="Plafond du fonds" valeur={plafondCell} showRoute hint="Capacité maximale du produit." />
         <StatCard
           titre="Source BTC"
           valeur={editorial(b === null ? 'Indisponible' : 'Joignable')}
-          hint={courbeParametree ? 'Courbe de rémunération configurée.' : 'Courbe en attente des taux.'}
+          hint="Joignabilité de /api/v1/btc."
         />
       </StatGrid>
 
@@ -334,47 +369,30 @@ export default async function Page() {
         )}
       </SectionCard>
 
-      <SectionCard
+      <DataTableShell
         title="Pas encore mesurable"
-        eyebrow="En attente de série"
-        hint="Trois vues dont la question, l’axe et l’unité sont déjà décidés. Aucune ne trace quoi que ce soit tant que le service ne fournit pas sa série."
+        description="Trois vues dont la question, l’axe et l’unité sont déjà décidés. Aucune ne trace tant que le service ne fournit pas sa série — l’état affiché est celui que la source annonce."
+        count={`${lecturesEnAttente.length} lectures`}
       >
-        <DescriptionList>
-          <DescriptionTerm>Performance vs historique</DescriptionTerm>
-          <DescriptionDetails>
-            {explicationSerie(
-              backtest.ok ? backtest.data.runs : undefined,
-              'Aucun backtest n’a encore été exécuté sur ce déploiement.',
-            )}
-          </DescriptionDetails>
-          <DescriptionTerm>Ventilation du rendement</DescriptionTerm>
-          <DescriptionDetails>
-            {explicationSerie(b?.attribution, 'La ventilation du rendement n’a pas encore été calculée.')}
-          </DescriptionDetails>
-          <DescriptionTerm>Télémétrie opérationnelle</DescriptionTerm>
-          <DescriptionDetails>
-            {explicationSerie(m?.operationalTelemetry, 'La télémétrie opérationnelle n’a pas encore été transmise.')}
-          </DescriptionDetails>
-          <DescriptionTerm>Flux de backtest</DescriptionTerm>
-          <DescriptionDetails>
-            {backtest.ok
-              ? backtest.data.runs?.status
-                ? etatSourceLisible(backtest.data.runs?.status)
-                : 'Non renseigné'
-              : 'Indisponible'}
-          </DescriptionDetails>
-          <DescriptionTerm>Attribution</DescriptionTerm>
-          <DescriptionDetails>
-            {b?.attribution?.status ? etatSourceLisible(b?.attribution?.status) : 'Non renseigné'}
-          </DescriptionDetails>
-          <DescriptionTerm>Télémétrie</DescriptionTerm>
-          <DescriptionDetails>
-            {m?.operationalTelemetry?.status
-              ? etatSourceLisible(m?.operationalTelemetry?.status)
-              : 'Non renseigné'}
-          </DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
+        <TableHead>
+          <TableRow>
+            <TableHeader>Lecture</TableHeader>
+            <TableHeader>Pourquoi elle n’apparaît pas encore</TableHeader>
+            <TableHeader>État de la source</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {lecturesEnAttente.map((lecture) => (
+            <TableRow key={lecture.cle}>
+              <TableCell className="font-medium">{lecture.libelle}</TableCell>
+              <TableCell className="text-zinc-500">{lecture.explication}</TableCell>
+              <TableCell>
+                {lecture.statut ? etatSourceLisible(lecture.statut) : 'Non renseigné'}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
     </div>
   )
 }

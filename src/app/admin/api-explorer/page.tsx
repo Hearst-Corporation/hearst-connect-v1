@@ -1,11 +1,9 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
-import {
-  DescriptionDetails,
-  DescriptionList,
-  DescriptionTerm,
-} from '@/components/catalyst/description-list'
+import { Badge } from '@/components/catalyst/badge'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
+import { DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
@@ -53,6 +51,16 @@ const AUTH_LEVELS: readonly { auth: EndpointAuth; libelle: string; detail: strin
   { auth: 'admin', libelle: 'Administrateur', detail: 'Une session dont le rôle backend est admin.' },
 ]
 
+// Répartition du registre par catégorie : chaque point d'accès porte réellement
+// ce champ (regroupement d'une donnée par ligne, pas un compteur inventé), et le
+// total est réel (= nombre de points d'accès du registre).
+const CATEGORY_LABELS: Record<BackendEndpoint['category'], string> = {
+  probe: 'Sondes',
+  business: 'Métier',
+  'ai-context': 'Contexte IA',
+  keeper: 'Actions Keeper',
+}
+
 function pathParamsOf(path: string): string[] {
   return [...path.matchAll(/:(\w+)/g)].map(([, name]) => name)
 }
@@ -68,8 +76,8 @@ function curlFor(method: string, path: string, auth: string): string {
   return lines.join(' \\\n')
 }
 
-function countBy(filter: (e: BackendEndpoint) => boolean): string {
-  return formatNumber(BACKEND_ENDPOINTS.filter(filter).length)
+function countBy(filter: (e: BackendEndpoint) => boolean): number {
+  return BACKEND_ENDPOINTS.filter(filter).length
 }
 
 /**
@@ -84,6 +92,16 @@ export default async function ApiExplorerPage() {
   const actionsCount = countBy((e) => e.category === 'keeper')
   const baseUrlLabel = backendUrl() ?? 'HEARST_API_URL non défini'
 
+  // Parts d'un tout : les points d'accès regroupés par catégorie réelle.
+  const parCategorie = new Map<BackendEndpoint['category'], number>()
+  for (const endpoint of BACKEND_ENDPOINTS) {
+    const vu = parCategorie.get(endpoint.category)
+    parCategorie.set(endpoint.category, vu === undefined ? 1 : vu + 1)
+  }
+  const categorySlices: readonly DonutSlice[] = [...parCategorie.entries()]
+    .map(([category, value]) => ({ label: CATEGORY_LABELS[category], value }))
+    .sort((a, b) => b.value - a.value)
+
   return (
     <div className="space-y-10">
       <AdminPageHeader
@@ -91,16 +109,40 @@ export default async function ApiExplorerPage() {
         description="Inventaire du registre backend, groupé par type d’action. Les lectures sûres peuvent être appelées en direct ; aucun secret n’est rendu."
       />
 
-      <StatGrid label="Inventaire du registre backend" columns={3}>
-        <StatCard titre="Total des points d’accès" valeur={editorial(formatNumber(BACKEND_ENDPOINTS.length))} />
-        <StatCard titre="Lectures sûres" valeur={editorial(safeReadsCount)} />
-        <StatCard titre="Contexte IA" valeur={editorial(aiContextCount)} />
-        <StatCard titre="Actions" valeur={editorial(actionsCount)} />
-        <StatCard titre="URL de base" valeur={editorial(baseUrlLabel)} />
-        <StatCard titre="Rôle de session" valeur={editorial(libelleRole(session.role))} />
+      <StatGrid label="Inventaire du registre backend" columns={4}>
+        <StatCard
+          titre="Total des points d’accès"
+          valeur={editorial(formatNumber(BACKEND_ENDPOINTS.length))}
+          hint="Registre BACKEND_ENDPOINTS"
+        />
+        <StatCard
+          titre="Lectures sûres"
+          valeur={editorial(formatNumber(safeReadsCount))}
+          hint="GET sans effet de bord"
+        />
+        <StatCard
+          titre="Actions à effet de bord"
+          valeur={editorial(formatNumber(actionsCount))}
+          hint="POST Keeper, page Keeper"
+        />
+        <StatCard
+          titre="Contexte IA"
+          valeur={editorial(formatNumber(aiContextCount))}
+          hint="Jamais un fait métier"
+        />
+        <StatCard titre="URL de base" valeur={editorial(baseUrlLabel)} hint="Cible HEARST_API_URL" />
+        <StatCard titre="Rôle de session" valeur={editorial(libelleRole(session.role))} hint="Session courante" />
       </StatGrid>
 
-      <SectionCard title="Ce qu’une ligne vous permet de faire">
+      <ChartFrame
+        question="Comment le registre se répartit-il par type d’action ?"
+        unite="nombre de points d’accès, par catégorie"
+        etat={{ type: 'tracee' }}
+      >
+        <HearstDonutChart slices={categorySlices} unit="points d’accès" />
+      </ChartFrame>
+
+      <SectionCard title="Ce qu’une ligne vous permet de faire" tone="plain">
         <Text>
           Une lecture sûre peut être appelée en direct depuis sa propre ligne. La réponse arrive avec son statut HTTP,
           sa durée et son identifiant de requête, et elle est affichée telle que le backend l’a renvoyée — rien n’est
@@ -114,21 +156,29 @@ export default async function ApiExplorerPage() {
         </Text>
       </SectionCard>
 
-      <SectionCard title="Autorisation">
-        <DescriptionList>
+      <DataTableShell
+        title="Autorisation"
+        description="Niveaux d’accès du registre, avec le nombre de points d’accès à chacun."
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader>Niveau</TableHeader>
+            <TableHeader>Points d’accès</TableHeader>
+            <TableHeader>Ce qu’il exige</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {AUTH_LEVELS.map((level) => (
-            <div key={level.auth} className="contents">
-              <DescriptionTerm>
-                {level.libelle}{' '}
-                <span className="font-normal text-zinc-500">
-                  ({formatNumber(BACKEND_ENDPOINTS.filter((e) => e.auth === level.auth).length)})
-                </span>
-              </DescriptionTerm>
-              <DescriptionDetails>{level.detail}</DescriptionDetails>
-            </div>
+            <TableRow key={level.auth}>
+              <TableCell className="font-medium">{level.libelle}</TableCell>
+              <TableCell className="tabular-nums">
+                {formatNumber(countBy((e) => e.auth === level.auth))}
+              </TableCell>
+              <TableCell>{level.detail}</TableCell>
+            </TableRow>
           ))}
-        </DescriptionList>
-      </SectionCard>
+        </TableBody>
+      </DataTableShell>
 
       {GROUPS.map((group) => {
         const endpoints = BACKEND_ENDPOINTS.filter(group.filter)
@@ -137,8 +187,9 @@ export default async function ApiExplorerPage() {
         return (
           <SectionCard
             key={group.id}
-            title={`${group.title} — ${formatNumber(endpoints.length)}`}
+            title={group.title}
             hint={group.description}
+            actions={<Badge color="zinc">{formatNumber(endpoints.length)}</Badge>}
           >
             <div className="overflow-hidden rounded-lg ring-1 ring-zinc-950/5 dark:ring-white/10">
               {endpoints.map((endpoint) => (
@@ -154,7 +205,7 @@ export default async function ApiExplorerPage() {
         )
       })}
 
-      <SectionCard title="Paramètres de chemin">
+      <SectionCard title="Paramètres de chemin" tone="plain">
         <Text>
           Les lignes avec <span className="font-mono">:param</span> sont documentées mais pas appelables directement —
           la valeur légitime provient d’une réponse antérieure du backend.

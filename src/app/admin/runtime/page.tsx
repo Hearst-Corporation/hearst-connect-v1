@@ -1,5 +1,6 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { Link } from '@/components/catalyst/link'
+import { Text } from '@/components/catalyst/text'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -163,18 +164,6 @@ export default async function RuntimePage() {
         description="Vivacité, disponibilité et charge utile de l’exécution — chaque valeur provient des sondes backend, sans réécriture frontend."
       />
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Actions d’exploitation à effet de bord :{' '}
-        <Link href="/admin/keeper" className="font-medium text-zinc-950 underline dark:text-white">
-          Actions Keeper
-        </Link>
-        . Explorateur technique :{' '}
-        <Link href="/admin/api-explorer" className="font-medium text-zinc-950 underline dark:text-white">
-          Explorateur d’API
-        </Link>
-        .
-      </p>
-
       <StatGrid label="Sondes de service" columns={3}>
         <StatCard titre="Santé" valeur={editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE'))} hint="Vivacité (health)" />
         <StatCard titre="Prêt" valeur={editorial(etatSourceLisibleCap(readyOk ? 'LIVE' : 'UNAVAILABLE'))} hint="Disponibilité (ready)" />
@@ -317,6 +306,17 @@ export default async function RuntimePage() {
           </div>
         </div>
       </SectionCard>
+
+      <Text>
+        Actions d’exploitation à effet de bord :{' '}
+        <Link href="/admin/keeper" className="underline">
+          Actions Keeper
+        </Link>
+        {' · '}
+        <Link href="/admin/api-explorer" className="underline">
+          Explorateur d’API
+        </Link>
+      </Text>
     </div>
   )
 }

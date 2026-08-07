@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import { ChartFrame, RichDistributionChart, type DistributionItem } from '@/components/charts'
 import {
   Callout,
   DataTableShell,
@@ -123,6 +124,30 @@ export default async function Page() {
 
   const vaultList = valueOf(registry.vaults)
   const breakdown = valueByVaultRows(registry.vaults)
+
+  // Répartition « valeur par coffre » — une distribution triée sur une donnée
+  // RÉELLE par ligne (le total lisible de chaque coffre), pas un compteur
+  // inventé. On ne trace qu'à partir de deux coffres mesurés qui partagent une
+  // même échelle : comparer des montants d'échelles différentes produirait des
+  // barres dans aucune unité. En deçà, le tableau seul reste plus honnête.
+  const breakdownRows = breakdown.kind === 'rows' ? breakdown.ranked : null
+  const comparableScale =
+    breakdownRows !== null && breakdownRows.length >= 2
+      ? breakdownRows.reduce<number | null | undefined>((scale, { vault }) => {
+          if (scale === undefined) return undefined
+          const own = assetScale(vault)
+          if (own === undefined) return undefined
+          if (scale === null) return own
+          return scale === own ? scale : undefined
+        }, null)
+      : undefined
+  const valueDistribution: readonly DistributionItem[] =
+    breakdownRows !== null && comparableScale !== undefined && comparableScale !== null
+      ? breakdownRows.map(({ vault, atomic }) => ({
+          label: vault.label,
+          value: Number(atomic) / comparableScale,
+        }))
+      : []
 
   return (
     <div className="space-y-10">
@@ -321,6 +346,27 @@ export default async function Page() {
           Exclus du total : {formatNumber(breakdown.unmeasured.length)} coffre(s) illisible(s).
         </Callout>
       ) : null}
+
+      <ChartFrame
+        question="Comment la valeur se répartit-elle entre les coffres ?"
+        unite="valeur lisible, par coffre"
+        expectedSource={['GET /api/v1/vault']}
+        etat={
+          breakdown.kind === 'absent'
+            ? { type: 'indisponible', explication: 'La lecture des coffres n’a pas abouti.' }
+            : valueDistribution.length >= 2
+              ? { type: 'tracee' }
+              : {
+                  type: 'vide',
+                  explication:
+                    'La répartition ne se trace qu’à partir de deux coffres mesurés partageant une même dénomination — sinon le tableau reste la lecture la plus honnête.',
+                }
+        }
+      >
+        {valueDistribution.length >= 2 ? (
+          <RichDistributionChart items={valueDistribution} unit="valeur" />
+        ) : null}
+      </ChartFrame>
 
       <DataTableShell
         title="Activité des sources"

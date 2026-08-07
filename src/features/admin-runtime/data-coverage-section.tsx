@@ -17,6 +17,7 @@ import {
   SectionCard,
   DataTableShell,
 } from '@/components/compositions'
+import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
 import { availabilityFromResolu } from '@/lib/backend/availability'
 import { motifLisible, etatSourceLisible } from '@/lib/mouvements'
@@ -126,10 +127,25 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
   const asCount = (n: number): Availability<string> =>
     aggregate === null ? coverageUnreadable : mapAvailability(dashboardSource, () => String(n))
   const served = countIn(surfaces, 'served')
+  const partial = countIn(surfaces, 'partial')
+  const notOpened = countIn(surfaces, 'notOpened')
   const servedCell = asCount(served)
-  const partialCell = asCount(countIn(surfaces, 'partial'))
-  const notOpenedCell = asCount(countIn(surfaces, 'notOpened'))
+  const partialCell = asCount(partial)
+  const notOpenedCell = asCount(notOpened)
   const totalCell = asCount(surfaces.length)
+
+  // Répartition RÉELLE de la couverture par palier : chaque part est le décompte
+  // effectif des surfaces du tableau de bord dans ce palier (regroupement d'une
+  // donnée réelle, pas un compteur inventé), et le total est le nombre réel de
+  // surfaces énumérées. Le donut ne filtre que les parts > 0 ; on ne le trace
+  // qu'à partir de deux paliers renseignés, sinon la table seule reste plus
+  // honnête qu'un anneau à une part.
+  const coverageSlices: readonly DonutSlice[] = [
+    { label: TIER_TITLE.served, value: served },
+    { label: TIER_TITLE.partial, value: partial },
+    { label: TIER_TITLE.notOpened, value: notOpened },
+  ]
+  const filledTiers = coverageSlices.filter((slice) => slice.value > 0).length
   const coverageCell: Availability<string> =
     aggregate === null || surfaces.length === 0
       ? coverageUnreadable
@@ -159,6 +175,29 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
           <StatCard titre="État de la source" valeur={sourceState} showRoute />
         </StatGrid>
       </SectionCard>
+
+      <ChartFrame
+        question="Comment la couverture se répartit-elle par palier ?"
+        unite="nombre de surfaces, par palier"
+        etat={
+          aggregate === null
+            ? { type: 'indisponible', explication: 'Le point d’accès du tableau de bord n’a pas répondu.' }
+            : surfaces.length === 0
+              ? { type: 'vide', explication: 'Le tableau de bord n’a exposé aucune surface.' }
+              : filledTiers < 2
+                ? {
+                    type: 'vide',
+                    explication:
+                      'Un seul palier est renseigné : la liste par surface reste plus lisible qu’un anneau à une part.',
+                  }
+                : { type: 'tracee' }
+        }
+        expectedSource={['GET /api/v1/dashboard']}
+      >
+        {aggregate !== null && filledTiers >= 2 ? (
+          <HearstDonutChart slices={coverageSlices} unit="surfaces" />
+        ) : null}
+      </ChartFrame>
 
       {aggregate === null ? (
         <SectionCard
