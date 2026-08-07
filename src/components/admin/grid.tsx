@@ -180,13 +180,14 @@ export function AdminCol({
  * row is full.
  */
 const FIXED_COLS: Record<number, string> = {
-  2: 'grid-cols-1 sm:grid-cols-2',
-  3: 'grid-cols-1 sm:grid-cols-3',
-  4: 'grid-cols-2 lg:grid-cols-4',
-  6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
-  8: 'grid-cols-2 lg:grid-cols-4',
-  9: 'grid-cols-1 sm:grid-cols-3',
-  12: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+  // auto-fit : suit la largeur du conteneur, pas le viewport (rail Catalyst).
+  2: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
+  3: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
+  4: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
+  6: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
+  8: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
+  9: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
+  12: 'grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]',
 }
 
 /** Columns that leave no orphan for a given count, widest first. */

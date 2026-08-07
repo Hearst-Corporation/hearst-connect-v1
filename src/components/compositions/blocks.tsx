@@ -145,16 +145,16 @@ export function StatGrid({
   columns?: 2 | 3 | 4
   className?: string
 }>) {
-  // Les classes de colonnes sont écrites en toutes lettres pour rester
-  // détectables par le compilateur Tailwind (pas d'interpolation dynamique).
+  // Container queries (pas breakpoints viewport) : la colonne admin est déjà
+  // réduite par le rail — forcer 4 colonnes sur largeur fenêtre écrasait les cartes.
   const COLS: Record<2 | 3 | 4, string> = {
-    2: 'sm:grid-cols-2',
-    3: 'sm:grid-cols-2 lg:grid-cols-3',
-    4: 'sm:grid-cols-2 lg:grid-cols-4',
+    2: '@[24rem]:grid-cols-2',
+    3: '@[24rem]:grid-cols-2 @[40rem]:grid-cols-3',
+    4: '@[24rem]:grid-cols-2 @[48rem]:grid-cols-4',
   }
   return (
-    <section aria-label={label} className={clsx('grid grid-cols-1 gap-3', COLS[columns], className)}>
-      {children}
+    <section aria-label={label} className={clsx('@container min-w-0', className)}>
+      <div className={clsx('grid grid-cols-1 gap-3', COLS[columns])}>{children}</div>
     </section>
   )
 }
