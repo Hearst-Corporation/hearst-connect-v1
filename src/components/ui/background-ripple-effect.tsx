@@ -21,7 +21,7 @@ export function BackgroundRippleEffect({
       ref={ref}
       className={cn(
         'absolute inset-0 h-full w-full',
-        '[--cell-border-color:var(--color-console-line)] [--cell-fill-color:var(--color-console-card)] [--cell-shadow-color:var(--color-console-inset)]',
+        '[--cell-border-color:var(--color-console-line-soft)] [--cell-fill-color:var(--color-black,#000000)] [--cell-shadow-color:var(--color-console-inset)]',
       )}
     >
       <div className="relative h-auto w-auto overflow-hidden">
@@ -68,8 +68,8 @@ function DivGrid({
   rows = 7,
   cols = 30,
   cellSize = 56,
-  borderColor = 'var(--color-console-line)',
-  fillColor = 'var(--color-console-card)',
+  borderColor = 'var(--color-console-line-soft)',
+  fillColor = 'var(--color-black, #000000)',
   clickedCell = null,
   onCellClick,
   interactive = true,
