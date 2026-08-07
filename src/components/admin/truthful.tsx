@@ -115,7 +115,7 @@ export function ResolvedValue({
   }
 
   return (
-    <span className={clsx(className, 'tabular-nums text-white')}>
+    <span className={clsx(className, 'tabular-nums text-zinc-950 dark:text-white')}>
       {typeof value === 'number' ? formatNumber(value) : value}
       {unit ? <span className="ml-1 text-zinc-500">{unit}</span> : null}
     </span>
@@ -140,10 +140,10 @@ function StateShell({
   children,
 }: Readonly<{ status: ResolvedStatus; title: string; reason?: string | null; children?: React.ReactNode }>) {
   return (
-    <div className="rounded-lg border border-dashed border-console-line bg-cockpit-inset px-5 py-8 text-center">
+    <div className="rounded-lg border border-dashed border-console-line bg-zinc-50 px-5 py-8 text-center dark:bg-cockpit-inset">
       <StatusBadge status={status} />
-      <p className="mt-3 text-sm font-medium text-white">{title}</p>
-      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">{reason}</p> : null}
+      <p className="mt-3 text-sm font-medium text-zinc-950 dark:text-white">{title}</p>
+      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{reason}</p> : null}
       {children}
     </div>
   )
@@ -157,7 +157,7 @@ export function UnavailableState({ state, children }: Readonly<{ state: Resolved
   return (
     <StateShell status={state.status} title={STATUS_LABEL[state.status]} reason={state.reason}>
       {state.provenance.route ? (
-        <p className="mt-3 font-mono text-xs break-all text-zinc-600">
+        <p className="mt-3 font-mono text-xs break-all text-zinc-600 dark:text-zinc-400">
           {state.provenance.route}
           {state.provenance.requestId ? ` · req ${state.provenance.requestId}` : null}
         </p>
@@ -171,27 +171,27 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
   if (!problem && !keeper) return null
 
   return (
-    <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-lg bg-cockpit-inset p-4 text-xs">
+    <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-lg bg-zinc-50 p-4 text-xs dark:bg-cockpit-inset">
       {problem ? (
         <>
-          <dt className="text-zinc-500">code</dt>
-          <dd className="font-mono text-white">{problem.code}</dd>
-          <dt className="text-zinc-500">title</dt>
-          <dd className="text-zinc-300">{problem.title}</dd>
-          <dt className="text-zinc-500">detail</dt>
-          <dd className="text-zinc-300">{problem.detail}</dd>
-          <dt className="text-zinc-500">requestId</dt>
-          <dd className="font-mono break-all text-zinc-400">{problem.requestId}</dd>
+          <dt className="text-zinc-500">Code</dt>
+          <dd className="font-mono text-zinc-950 dark:text-white">{problem.code}</dd>
+          <dt className="text-zinc-500">Titre</dt>
+          <dd className="text-zinc-700 dark:text-zinc-300">{problem.title}</dd>
+          <dt className="text-zinc-500">Détail</dt>
+          <dd className="text-zinc-700 dark:text-zinc-300">{problem.detail}</dd>
+          <dt className="text-zinc-500">Identifiant de requête</dt>
+          <dd className="font-mono break-all text-zinc-600 dark:text-zinc-400">{problem.requestId}</dd>
         </>
       ) : null}
       {keeper ? (
         <>
-          <dt className="text-zinc-500">reason</dt>
-          <dd className="font-mono text-white">{keeper.reason}</dd>
+          <dt className="text-zinc-500">Motif</dt>
+          <dd className="font-mono text-zinc-950 dark:text-white">{keeper.reason}</dd>
           {keeper.detail ? (
             <>
-              <dt className="text-zinc-500">detail</dt>
-              <dd className="text-zinc-300">{keeper.detail}</dd>
+              <dt className="text-zinc-500">Détail</dt>
+              <dd className="text-zinc-700 dark:text-zinc-300">{keeper.detail}</dd>
             </>
           ) : null}
         </>

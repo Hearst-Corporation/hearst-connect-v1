@@ -26,9 +26,15 @@ describe('AdminBodyNav', () => {
   })
 
   it('n’affiche rien sur une section dont le groupe ne porte qu’une entrée', () => {
-    usePathname.mockReturnValue('/admin/runtime')
+    usePathname.mockReturnValue('/admin/produit')
     const { container } = render(<AdminBodyNav />)
     expect(container.firstChild).toBeNull()
+  })
+
+  it('affiche la sous-nav horizontale sur une section multi-entrée (Service)', () => {
+    usePathname.mockReturnValue('/admin/runtime')
+    const { container } = render(<AdminBodyNav />)
+    expect(container.firstChild).not.toBeNull()
   })
 
   it('n’affiche pas de sous-menu Portfolio mono-entrée sur le Journal Série 1', () => {

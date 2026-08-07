@@ -12,6 +12,7 @@ import { formatNumber } from '@/lib/format'
 import {
   adresseCourte,
   dateLisible,
+  etatSourceLisibleCap,
   ilYA,
   libelleMouvement,
   montantUsdc,
@@ -129,19 +130,45 @@ function cadenceLisible(intervalMs: number | null | undefined): string {
   return `toutes les ${Math.round(intervalMs / 60_000)} min`
 }
 
+/**
+ * Phrase FR d'une lecture directe LIVE du contrat.
+ *
+ * On ne recopie JAMAIS le brut (`JSON.stringify`) et on ne laisse pas fuir le
+ * code technique « LIVE » : on nomme la lecture et on expose deux à trois
+ * champs utiles, chacun formaté par les helpers de la page. Un champ absent
+ * n'est pas mentionné plutôt que rendu « 0 » ou « null ».
+ */
+function lectureOnChainDirecte(value: unknown): string {
+  const champs: string[] = []
+  if (typeof value === 'object' && value !== null) {
+    const lecture = value as Record<string, unknown>
+    const ecart = lecture.driftBps
+    if (typeof ecart === 'number' && Number.isFinite(ecart)) {
+      champs.push(`écart ${ecartLisible(ecart)} pt`)
+    }
+    const dernier = lecture.lastRebalanceAt
+    if (typeof dernier === 'string' && dernier !== '') {
+      champs.push(`dernier rééquilibrage ${dateLisible(dernier)}`)
+    }
+  }
+  return champs.length > 0
+    ? `En direct — lecture reçue : ${champs.join(', ')}.`
+    : 'En direct — lecture reçue.'
+}
+
 function onChainReading(rebalancing: BackendResult<RebalancingStatus>): string {
   if (!rebalancing.ok) return 'Le service n’a pas répondu pour la lecture directe du contrat.'
   const bloc = rebalancing.data.rebalancing
   if (bloc === undefined) return 'Champ rebalancing absent de la réponse.'
   if (bloc.status === 'LIVE' && bloc.value !== null && bloc.value !== undefined) {
-    return `LIVE — lecture on-chain reçue (${JSON.stringify(bloc.value)})`
+    return lectureOnChainDirecte(bloc.value)
   }
   const motif = motifLisible(bloc.reason)
-  if (motif !== undefined) return `${bloc.status} — ${motif}`
+  if (motif !== undefined) return `${etatSourceLisibleCap(bloc.status)} — ${motif}`
   if (bloc.status === 'UNAVAILABLE' || bloc.status === 'NOT_EXPOSED' || bloc.status === 'NOT_SUPPORTED') {
-    return `${bloc.status} — aucune mesure on-chain utilisable.`
+    return `${etatSourceLisibleCap(bloc.status)} — aucune mesure on-chain utilisable.`
   }
-  return `${bloc.status} — réponse reçue sans valeur exploitable.`
+  return `${etatSourceLisibleCap(bloc.status)} — réponse reçue sans valeur exploitable.`
 }
 
 /**
@@ -188,7 +215,7 @@ export default async function Page() {
     : 'UNAVAILABLE'
   const journalStatus =
     reponse.ok && reponse.data.events
-      ? editorial(statutAffichage(reponse.data.events.status))
+      ? editorial(etatSourceLisibleCap(statutAffichage(reponse.data.events.status)))
       : unavailable({
           endpoint: '/api/v1/series1/events',
           status: 'UNAVAILABLE',
@@ -216,8 +243,8 @@ export default async function Page() {
           <StatCard titre="Mouvements" valeur={movementCountCell} showRoute />
           <StatCard titre="Événements de rééquilibrage" valeur={rebalEventCount} showRoute />
           <StatCard titre="Poches mesurées" valeur={pocketsMeasuredCell} showRoute />
-          <StatCard titre="Source de rééquilibrage" valeur={editorial(rebalancingStatus)} />
-          <StatCard titre="Indexeur" valeur={editorial(runtimeStatus)} />
+          <StatCard titre="Source de rééquilibrage" valeur={editorial(etatSourceLisibleCap(rebalancingStatus))} />
+          <StatCard titre="Indexeur" valeur={editorial(etatSourceLisibleCap(runtimeStatus))} />
           <StatCard titre="État du journal" valeur={journalStatus} showRoute />
         </StatGrid>
       }

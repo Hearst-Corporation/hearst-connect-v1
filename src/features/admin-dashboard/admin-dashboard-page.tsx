@@ -94,7 +94,7 @@ export function AdminDashboardPage({
       value: mapAvailability(registry.deployments, (rows) =>
         String(rows.filter((d) => d.status === 'FAILED').length),
       ),
-      unit: 'FAILED',
+      unit: 'échouées',
     },
   ]
 
@@ -139,7 +139,7 @@ export function AdminDashboardPage({
         <DashCard
           className="lg:col-span-7"
           title="Courbe d’activité"
-          subtitle="Volume journalier · 30 jours"
+          subtitle="Volume journalier · 28 jours"
         >
           {showActivityCurve ? (
             <div className="min-h-[300px]">
@@ -217,7 +217,7 @@ export function AdminDashboardPage({
                       {formatRelativeTime(d.confirmedAt ?? d.requestedAt)}
                     </TableCell>
                     <TableCell>
-                      <Button plain href="/admin/vaults">
+                      <Button plain href={d.vaultId ? `/admin/vaults/${d.vaultId}` : '/admin/vaults'}>
                         Ouvrir
                       </Button>
                     </TableCell>

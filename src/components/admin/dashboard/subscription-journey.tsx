@@ -198,7 +198,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
               key={step.id}
               className={clsx(
                 'group relative flex flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
-                'focus-visible:ring-2 focus-visible:ring-blue-500',
+                'focus-visible:ring-2 focus-visible:ring-accent-500',
                 'data-selected:bg-accent-400/10 data-selected:ring-1 data-selected:ring-accent-500/40',
                 'not-data-selected:data-hover:bg-zinc-950/2.5 dark:not-data-selected:data-hover:bg-white/5',
               )}

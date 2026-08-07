@@ -4,6 +4,7 @@ import { ProblemState, RequestMetadata } from '@/components/admin/truthful'
 import { Button } from '@/components/catalyst/button'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
+import { Callout } from '@/components/compositions'
 import { createAdminUser, type CreateAdminUserOutcome } from '@/lib/backend/create-admin-user'
 import { useActionState } from 'react'
 
@@ -101,7 +102,11 @@ export function CreateClientForm({
       ) : null}
       {state.ok ? (
         <div className="space-y-2">
-          <Text>Compte créé — identifiant retourné par le backend, jamais inventé.</Text>
+          <Callout tone="success" title="Compte créé">
+            Compte créé — identifiant retourné par le backend, jamais inventé. L’indexation dans l’annuaire peut
+            prendre un instant : sur la fiche du client, le message « Absent de l’annuaire » signale ce délai, pas
+            un échec.
+          </Callout>
           {state.createdUserId ? (
             <Text>
               <Link href={`/admin/client-simulator/${state.createdUserId}`} className="underline">
