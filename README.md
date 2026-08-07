@@ -5,7 +5,7 @@ UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
 **Landing `/`** : page marketing minimale (titre seul pour l’instant) —
 `src/app/(marketing)/page.tsx` + header/footer allégés dans `src/components/marketing/`.
-Fond marque `bg-console-app` (`#101010`) — pas de `zinc` sur cette surface.
+Fond marque `bg-console-app` (`#101010`) partout sur la vitrine (html racine + layout marketing) — pas de `zinc`.
 
 ## Architecture
 

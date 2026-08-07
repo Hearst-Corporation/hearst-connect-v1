@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       lang="fr"
       // Dark forcé côté serveur + script d’init (purge d’un éventuel .light résiduel).
       suppressHydrationWarning
-      className={`dark ${fontSatoshi.variable} ${fontSatoshi.className} font-sans bg-zinc-900 text-white antialiased`}
+      className={`dark ${fontSatoshi.variable} ${fontSatoshi.className} font-sans bg-console-app text-white antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
