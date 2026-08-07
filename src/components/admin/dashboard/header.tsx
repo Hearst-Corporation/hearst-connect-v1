@@ -28,7 +28,7 @@ export function DashboardHeader({
 
       <div className="bg-black px-6 lg:px-10">
         <div className="-mt-7 flex flex-wrap items-end gap-x-4 gap-y-3 sm:-mt-8">
-          <span className="inline-flex size-14 items-center justify-center rounded-full bg-zinc-900 ring-2 ring-black outline -outline-offset-1 outline-white/10 sm:size-16">
+          <span className="inline-flex size-14 items-center justify-center rounded-full bg-black ring-2 ring-white/10 sm:size-16">
             <LogoMark className="size-7 text-accent-300 sm:size-8" />
             <span className="sr-only">Hearst</span>
           </span>
