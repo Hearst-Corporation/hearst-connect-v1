@@ -616,7 +616,7 @@
  * `/admin`, où AUCUN `.viewport` n'est monté : les tokens `--csl-panel-*` n'y
  * étaient pas définis et la surface disparaissait (bordure/fond invalidés,
  * cartes transparentes). Repli theme-aware aligné sur la carte de référence
- * (`DashCard` : blanc / `zinc-900`, filet discret, coins arrondis).
+ * (`DashCard` : verre `console-card`, filet discret, coins arrondis).
  */
 :global(html) {
   --panel-fallback-bg: #ffffff;

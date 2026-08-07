@@ -24,7 +24,7 @@ describe('design system surfaces — canon dashboard', () => {
     expect(panel).toContain('backdrop-filter')
   })
 
-  it('KPI / DashCard / AdminMetric — boxes DashCard ; KPI = bandeau header', () => {
+  it('DashCard = surfaceBox ; KPI header = LogoMark + texte bandeau', () => {
     const shell = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/shell.tsx'), 'utf8')
     const surfaces = readFileSync(join(process.cwd(), 'src/components/admin/surfaces.tsx'), 'utf8')
     const header = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/header.tsx'), 'utf8')
