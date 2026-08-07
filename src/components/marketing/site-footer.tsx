@@ -1,4 +1,6 @@
+import { surfaceNav } from '@/components/admin/surface'
 import { Logo } from '@/components/logo'
+import clsx from 'clsx'
 import Link from 'next/link'
 
 const pages = [
@@ -25,7 +27,7 @@ const register = [
 /** Footer Aceternity « four grids » — watermark « Connect » en fond, menus par-dessus. */
 export function SiteFooter() {
   return (
-    <footer className="relative w-full overflow-hidden border-t border-console-line bg-console-app">
+    <footer className={clsx('relative w-full overflow-hidden', surfaceNav)}>
       <p
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-accent-300/[0.08]"
