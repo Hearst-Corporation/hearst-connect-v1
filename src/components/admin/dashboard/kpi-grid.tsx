@@ -27,30 +27,22 @@ export type DashboardKpi = Readonly<{
 }>
 
 /**
- * KPI dans le bandeau — grille horizontale, cellules verre (pas d’aplats morts).
+ * KPI en texte dans le bandeau — aucune box, aucun fond, aucun ring.
  */
 export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly DashboardKpi[] }>) {
   return (
     <section aria-label="Indicateurs principaux" className="min-w-0">
-      <dl className="@container grid grid-cols-1 gap-3 @[28rem]:grid-cols-2 @[52rem]:grid-cols-4">
+      <dl className="@container grid grid-cols-1 gap-6 @[28rem]:grid-cols-2 @[52rem]:grid-cols-4">
         {items.map((kpi) => {
           const Icon = ICONS[kpi.id] as ComponentType<SVGProps<SVGSVGElement>>
           const available = isAvailable(kpi.value)
           return (
-            <div
-              key={kpi.id}
-              className={clsx(
-                'min-w-0 rounded-xl px-4 py-3',
-                'bg-white/[0.06] ring-1 ring-white/10 backdrop-blur-md',
-              )}
-            >
+            <div key={kpi.id} className="min-w-0">
               <dt className="flex items-center gap-2 text-xs font-medium text-zinc-300">
-                <span className="inline-flex size-6 items-center justify-center rounded-md bg-accent-400/20 text-accent-300">
-                  <Icon className="size-3.5" aria-hidden="true" />
-                </span>
+                <Icon className="size-3.5 text-accent-300" aria-hidden="true" />
                 {kpi.title}
               </dt>
-              <dd className="mt-2 flex items-baseline gap-1.5">
+              <dd className="mt-1.5 flex items-baseline gap-1.5">
                 <span
                   className={clsx(
                     'text-2xl/7 font-semibold tracking-tight tabular-nums',
@@ -72,5 +64,5 @@ export function DashboardKpiMetrics({ items }: Readonly<{ items: readonly Dashbo
   )
 }
 
-/** @deprecated Alias — les KPI vivent dans le bandeau header. */
+/** @deprecated Alias — KPI = texte dans le bandeau. */
 export const DashboardKpiGrid = DashboardKpiMetrics
