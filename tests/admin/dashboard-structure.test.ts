@@ -46,6 +46,7 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
     expect(HEADER).toMatch(/-mx-6/)
     expect(HEADER).toMatch(/size-14|sm:size-16/)
     expect(HEADER).toMatch(/h-16|lg:h-20/)
+    expect(HEADER).toMatch(/bg-black/)
     expect(HEADER).not.toMatch(/size-24|size-32|h-32|lg:h-48/)
     expect(HEADER).not.toMatch(/LogoMark/)
     expect(HEADER).not.toMatch(/MagnifyingGlassIcon|BellIcon|UserCircleIcon/)

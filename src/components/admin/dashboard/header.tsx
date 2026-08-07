@@ -8,8 +8,7 @@ import { CONSOLE_GLOW_SRC } from '@/lib/brand'
 import { PlusIcon } from '@heroicons/react/16/solid'
 
 /**
- * Header pilotage — profile compact :
- * bandeau bas · avatar discret · titre + CTA · KPI texte.
+ * Header pilotage — hero glow en haut, bande basse noire (avatar + KPI).
  */
 export function DashboardHeader({
   userName,
@@ -33,12 +32,13 @@ export function DashboardHeader({
     >
       <img alt="" src={CONSOLE_GLOW_SRC} className="h-16 w-full object-cover lg:h-20" />
 
-      <div className="px-6 lg:px-10">
+      {/* Bande basse — noir franc sous le glow / avatar. */}
+      <div className="bg-black px-6 lg:px-10">
         <div className="-mt-7 flex flex-wrap items-end gap-x-4 gap-y-3 sm:-mt-8">
           <Avatar
             initials={initials || 'HC'}
             alt=""
-            className="size-14 bg-zinc-800 text-sm text-white ring-2 ring-zinc-950 outline -outline-offset-1 outline-white/10 sm:size-16"
+            className="size-14 bg-zinc-900 text-sm text-white ring-2 ring-black outline -outline-offset-1 outline-white/10 sm:size-16"
           />
 
           <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 pb-0.5">
