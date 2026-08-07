@@ -17,7 +17,7 @@ const QUEUE = readFileSync(root('src/components/admin/dashboard/action-queue.tsx
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
 
 describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
-  it('uses Catalyst shell (no gray bag) and Heading header', () => {
+  it('uses Catalyst shell (no gray bag) and DashboardHeader', () => {
     expect(SOURCE).toMatch(/<DashboardShell/)
     expect(SOURCE).toMatch(/<DashboardHeader/)
     expect(SOURCE).not.toMatch(/DashboardLightShell/)
