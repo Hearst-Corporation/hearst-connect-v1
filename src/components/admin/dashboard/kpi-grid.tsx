@@ -1,5 +1,6 @@
 import { Subheading } from '@/components/catalyst/heading'
 import { Text } from '@/components/catalyst/text'
+import { surfaceBox } from '@/components/admin/surface'
 import { RichSparkline } from '@/components/charts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import {
@@ -8,6 +9,7 @@ import {
   ClipboardDocumentCheckIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/16/solid'
+import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
 
 const ICONS = {
@@ -44,10 +46,7 @@ export function DashboardKpiGrid({ items }: Readonly<{ items: readonly Dashboard
         const spark =
           kpi.sparkline !== undefined && kpi.sparkline.length >= 2 ? kpi.sparkline : undefined
         return (
-          <article
-            key={kpi.id}
-            className="rounded-xl bg-white p-5 shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10"
-          >
+          <article key={kpi.id} className={clsx(surfaceBox, 'p-5')}>
             <div className="flex items-center gap-2.5">
               <span className="inline-flex size-8 items-center justify-center rounded-lg bg-accent-400/15 text-accent-700 dark:text-accent-400">
                 <Icon className="size-4" aria-hidden="true" />
