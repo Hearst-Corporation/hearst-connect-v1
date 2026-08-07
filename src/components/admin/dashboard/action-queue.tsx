@@ -1,4 +1,5 @@
 import { HearstCriticalAction, HearstDangerAction, HearstIconAction } from '@/components/actions'
+import { surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import type { PriorityQueueRow } from '@/components/compositions'
@@ -145,7 +146,7 @@ function ActionQueueBody({
       </div>
 
       {/* B. Action principale — panneau « well » (action-panels/08) */}
-      <div className="rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-950/5 dark:bg-zinc-800/50 dark:ring-white/10">
+      <div className={clsx(surfaceInset, 'p-4')}>
         <div className="flex items-center justify-between gap-2">
           <Badge color={primaryBadge.color}>{primaryBadge.label}</Badge>
           <span className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">

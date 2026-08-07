@@ -79,7 +79,8 @@ pnpm exec next build     # build prod (hors gate)
 
 ## Design system
 
-Tokens dans `src/styles/tailwind.css` (`@theme`). Accent mint Hearst (`--color-accent-*`). Thème sombre forcé. Police Satoshi Variable. Texte blanc deep. Boxes KPI noires (`console-card` / `surfaceBox`). Menu : effet verre (`console-glass` / `surfaceNav`). Sélection parcours : voile `accent-soft`. Layout admin fluide.
+Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
+`surfaceBox` (KPI noir) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint). Toutes les pages admin/espace branchées sur ces tokens.
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation

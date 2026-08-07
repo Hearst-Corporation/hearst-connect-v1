@@ -1,43 +1,70 @@
-import { surfaceBox, surfaceNav, surfaceRaised } from '@/components/admin/surface'
+import { surfaceBox, surfaceInset, surfaceNav, surfaceRaised, surfaceSelect } from '@/components/admin/surface'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-describe('surfaces tokenisées — boxes noires + voile sélection', () => {
-  it('surfaceBox / surfaceRaised passent par console-card', () => {
+describe('design system surfaces — canon dashboard', () => {
+  it('expose les 4 matières tokenisées', () => {
     expect(surfaceBox).toContain('bg-console-card')
     expect(surfaceBox).toContain('ring-console-line')
+    expect(surfaceNav).toContain('bg-console-glass')
+    expect(surfaceNav).toContain('backdrop-blur')
+    expect(surfaceInset).toContain('bg-console-inset')
+    expect(surfaceSelect).toContain('bg-accent-soft')
     expect(surfaceRaised).toBe(surfaceBox)
+    expect(surfaceNav).not.toBe(surfaceBox)
   })
 
-  it('KPI et DashCard consomment surfaceBox', () => {
+  it('KPI / DashCard / AdminMetric consomment surfaceBox', () => {
     const kpi = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/kpi-grid.tsx'), 'utf8')
     const shell = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/shell.tsx'), 'utf8')
+    const surfaces = readFileSync(join(process.cwd(), 'src/components/admin/surfaces.tsx'), 'utf8')
     expect(kpi).toContain('surfaceBox')
     expect(shell).toContain('surfaceBox')
-    expect(kpi).not.toMatch(/dark:bg-zinc-900/)
+    expect(surfaces).toContain('surfaceBox')
   })
 
-  it('parcours : sélection = accent-soft, pas un fond zinc', () => {
+  it('parcours : sélection = accent-soft / surfaceSelect', () => {
     const src = readFileSync(
       join(process.cwd(), 'src/components/admin/dashboard/subscription-journey.tsx'),
       'utf8',
     )
     expect(src).toContain('data-selected:bg-accent-soft')
     expect(src).not.toContain('data-selected:bg-zinc-800')
-    expect(src).not.toContain('data-selected:bg-zinc-50')
   })
 
-  it('menu sidebar : effet verre (console-glass), pas noir opaque ni mint', () => {
+  it('menu : effet verre via surfaceNav', () => {
     const layout = readFileSync(
       join(process.cwd(), 'src/components/catalyst/sidebar-layout.tsx'),
       'utf8',
     )
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     expect(layout).toContain('surfaceNav')
-    expect(surfaceNav).toContain('bg-console-glass')
-    expect(surfaceNav).toContain('backdrop-blur')
-    expect(surfaceNav).not.toBe(surfaceBox)
     expect(css).toMatch(/--color-console-glass:\s*rgba\(0,\s*0,\s*0,\s*0\.52\)/)
+  })
+
+  it('service pages : pre / wells passent par surfaceInset', () => {
+    const runtime = readFileSync(join(process.cwd(), 'src/app/admin/runtime/page.tsx'), 'utf8')
+    const explorer = readFileSync(join(process.cwd(), 'src/app/admin/api-explorer/page.tsx'), 'utf8')
+    expect(runtime).toContain('surfaceInset')
+    expect(explorer).toContain('surfaceInset')
+  })
+
+  it('chart tooltips : surfaceBox (vaults / produit / series)', () => {
+    const btc = readFileSync(
+      join(process.cwd(), 'src/components/charts/cartesian/btc-production-chart.tsx'),
+      'utf8',
+    )
+    const product = readFileSync(
+      join(process.cwd(), 'src/components/charts/cartesian/product-charts.tsx'),
+      'utf8',
+    )
+    const rich = readFileSync(join(process.cwd(), 'src/components/charts/richart/tooltip.tsx'), 'utf8')
+    const frame = readFileSync(join(process.cwd(), 'src/components/charts/core/chart-frame.tsx'), 'utf8')
+    for (const src of [btc, product, rich]) {
+      expect(src).toContain('surfaceBox')
+      expect(src).not.toMatch(/bg-white|dark:bg-zinc-800/)
+    }
+    expect(frame).toContain('surfaceInset')
   })
 })

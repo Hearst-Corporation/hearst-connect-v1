@@ -1,3 +1,4 @@
+import { surfaceInset } from '@/components/admin/surface'
 import type { HeatmapCell, ProductVolume } from '@/lib/vaults/pilotage'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Text } from '@/components/catalyst/text'
@@ -24,7 +25,10 @@ export function ChartPlaceholder({
   return (
     <div
       data-widget="chart-placeholder"
-      className="flex flex-col items-center justify-center rounded-lg bg-zinc-50 p-6 text-center ring-1 ring-dashed ring-zinc-950/10 dark:bg-zinc-800/40 dark:ring-white/10"
+      className={clsx(
+        surfaceInset,
+        'flex flex-col items-center justify-center border border-dashed border-console-line p-6 text-center',
+      )}
       style={{ minHeight: height }}
       role="status"
       aria-label={title}
@@ -102,7 +106,7 @@ export function ProductBars({
                 {amount !== null ? amount : p.count}
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+            <div className="h-2 overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft">
               <div className="h-full rounded-full bg-accent-400" style={{ width: `${width}%` }} />
             </div>
           </li>

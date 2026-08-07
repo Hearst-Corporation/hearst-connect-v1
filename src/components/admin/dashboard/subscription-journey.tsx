@@ -28,6 +28,7 @@
  */
 
 import { HearstCriticalAction, HearstSecondaryAction } from '@/components/actions'
+import { surfaceInset } from '@/components/admin/surface'
 import type { FunnelStepView } from '@/components/compositions'
 import { isAvailable, valueOf } from '@/lib/vaults/model'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
@@ -97,11 +98,12 @@ function stepState(step: FunnelStepView): StepState {
   return 'clear'
 }
 
-/** Classes du cercle d'état — tokens uniquement (accent / warning / zinc). */
+/** Classes du cercle d'état — tokens console / accent (thème dark forcé). */
 const CIRCLE: Record<StepState, string> = {
-  clear: 'bg-zinc-100 text-accent-700 ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:text-accent-300 dark:ring-white/10',
-  attention: 'bg-warning-400/15 text-warning-700 ring-1 ring-warning-500/40 dark:bg-warning-400/10 dark:text-warning-400 dark:ring-warning-400/30',
-  unavailable: 'bg-zinc-100 text-zinc-400 ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:text-zinc-500 dark:ring-white/10',
+  clear: 'bg-console-inset text-accent-300 ring-1 ring-console-line-soft',
+  attention:
+    'bg-warning-400/10 text-warning-400 ring-1 ring-warning-400/30',
+  unavailable: 'bg-console-inset text-zinc-500 ring-1 ring-console-line-soft',
 }
 
 const STATE_ICON: Record<StepState, ComponentType<SVGProps<SVGSVGElement>>> = {
@@ -120,7 +122,7 @@ function StepDetail({ step }: Readonly<{ step: FunnelStepView }>) {
   const hasWork = pendingNum !== null && Number.isFinite(pendingNum) && pendingNum > 0
 
   const body = (
-    <div className="rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-950/5 dark:bg-zinc-800/50 dark:ring-white/10">
+    <div className={clsx(surfaceInset, 'p-4')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-zinc-950 dark:text-white">{step.label}</p>
@@ -199,7 +201,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
               className={clsx(
                 'group relative flex flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-accent-500',
-                /* Voile mint léger — token accent-soft ; pas un aplat sur la box parente. */
+                /* Voile mint léger — token surfaceSelect / accent-soft. */
                 'data-selected:bg-accent-soft data-selected:ring-1 data-selected:ring-accent-400/25',
                 'not-data-selected:data-hover:bg-white/5',
               )}
@@ -210,7 +212,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
                   aria-hidden="true"
                   className={clsx(
                     'absolute top-8 left-[-50%] hidden h-0.5 w-full xl:block',
-                    value === null ? 'bg-zinc-200 dark:bg-zinc-800' : 'bg-zinc-300 dark:bg-zinc-700',
+                    value === null ? 'bg-console-line-soft' : 'bg-console-line',
                   )}
                 />
               ) : null}

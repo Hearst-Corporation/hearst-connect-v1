@@ -1,5 +1,5 @@
 import { AdminLabel } from '@/components/admin/typography'
-import { RequirementList } from '@/components/admin/surface'
+import { RequirementList, surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
 import { Panel, PanelHeader } from '@/components/compositions/panel'
@@ -76,7 +76,7 @@ function EtatVisuel({
           'flex size-14 items-center justify-center rounded-2xl ring-1',
           danger
             ? 'bg-danger-400/10 text-danger-500 ring-danger-400/20 dark:text-danger-400'
-            : 'bg-zinc-950/3 text-zinc-400 ring-zinc-950/5 dark:bg-white/5 dark:text-zinc-500 dark:ring-white/10',
+            : clsx(surfaceInset, 'text-zinc-500'),
         )}
       >
         <Icone className="size-7" aria-hidden="true" />
