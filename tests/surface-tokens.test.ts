@@ -32,7 +32,7 @@ describe('design system surfaces — canon dashboard', () => {
     expect(surfaces).toContain('surfaceBox')
     expect(header).toContain('DashboardKpiMetrics')
     expect(header).toContain('data-dashboard-kpi-bandeau')
-    expect(header).not.toContain('LogoMark')
+    expect(header).toContain('LogoMark')
   })
 
   it('parcours : sélection via surfaceSelect', () => {
