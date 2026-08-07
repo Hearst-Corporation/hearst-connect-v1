@@ -10,6 +10,7 @@ import {
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { available, editorial, mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
 import { SimulatedBadge } from '../_shared'
@@ -92,12 +93,9 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
   const displayName = match !== null ? libelleClient(match.label, id) : id
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
-      <AdminPageHeader
-        title={displayName}
-        description="Client créé via POST /api/v1/admin/users. Les champs ci-dessous proviennent uniquement de GET /api/v1/clients — jamais inventés."
-      />
+      <AdminPageHeader title={displayName} />
 
       {/* ── RANGÉE KPI (état de la jointure sur l'annuaire réel) ──── */}
       <StatGrid label="Synthèse du client simulé" columns={4}>
@@ -106,6 +104,17 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         <StatCard titre="Annuaire" valeur={directorySize} hint="Clients recensés côté source" showRoute />
         <StatCard titre="Source" valeur={sourceState} hint="Route interrogée" showRoute />
       </StatGrid>
+
+      {/* ── GRAPHIQUE (état honnête : cette fiche n'expose aucune série) ─ */}
+      <ChartFrame
+        question="Activité du client simulé"
+        unite="événements par jour"
+        etat={{
+          type: 'vide',
+          explication:
+            'GET /api/v1/clients ne renvoie que l’identité de ce client — aucune série temporelle à tracer aujourd’hui.',
+        }}
+      />
 
       {/* ── FICHE ANNUAIRE (table nommée : match / absence / illisible) ─ */}
       <DataTableShell

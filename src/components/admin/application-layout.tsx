@@ -1,6 +1,5 @@
 'use client'
 
-import { AdminBodyNav } from '@/components/admin/body-nav'
 import { Avatar } from '@/components/catalyst/avatar'
 import {
   Dropdown,
@@ -169,7 +168,6 @@ export function AdminApplicationLayout({
         </Sidebar>
       }
     >
-      <AdminBodyNav />
       {children}
     </SidebarLayout>
   )

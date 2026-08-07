@@ -8,6 +8,7 @@ import {
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { Callout, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { formatDateTime } from '@/lib/format'
 import { motifLisible } from '@/lib/mouvements'
@@ -55,11 +56,8 @@ export default async function Page() {
     session === null ? '—' : formatDateTime(new Date(session.expiresAt * 1000).toISOString())
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Votre compte"
-        description="Deux choses vivent ici et elles ne sont pas identiques. Le compte est ce qui vous connecte ; le dossier investisseur est ce qui relie une personne à une position dans le fonds."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Votre compte" />
 
       <StatGrid label="Aperçu du compte" columns={4}>
         <StatCard titre="Session" valeur={editorial(sessionState)} hint="État de votre connexion" />
@@ -67,6 +65,18 @@ export default async function Page() {
         <StatCard titre="Dossier investisseur" valeur={editorial(investorState)} hint="Rattachement au fonds" />
         <StatCard titre="Source du profil" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} hint="État de /api/v1/profile" />
       </StatGrid>
+
+      <SectionCard title="Activité du compte" hint="Aucune série temporelle rattachée à cette page." tone="chart">
+        <ChartFrame
+          question="Activité du compte dans le temps"
+          unite="événements par jour"
+          etat={{
+            type: 'vide',
+            explication:
+              'Cette page décrit l’identité de session et le dossier investisseur : aucune série temporelle n’y est rattachée à tracer.',
+          }}
+        />
+      </SectionCard>
 
       <SectionCard
         title="Connecté en tant que"

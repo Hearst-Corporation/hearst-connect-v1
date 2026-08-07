@@ -231,12 +231,9 @@ export default async function Page() {
         : 'Une demande est ouverte'
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
-      <AdminPageHeader
-        title="Opérations"
-        description="Événements Series 1, événements de rééquilibrage indexés, écart d’allocation, et fraîcheur de l’indexeur."
-      />
+      <AdminPageHeader title="Opérations" />
 
       {/* ── RANGÉE KPI ───────────────────────────────────────────── */}
       <StatGrid label="Indicateurs des opérations" columns={3}>

@@ -65,12 +65,9 @@ export default async function Page() {
   const sourceCount = `${formatNumber(registry.sources.length)} source(s)`
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
-      <AdminPageHeader
-        title="Conformité"
-        description="File de revue issue de GET /api/v1/compliance (rôle admin). Une file vide reste vide — aucun dossier inventé."
-      />
+      <AdminPageHeader title="Conformité" />
 
       {/* ── RANGÉE KPI ───────────────────────────────────────────── */}
       <StatGrid label="Indicateurs de conformité" columns={4}>

@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import { ChartFrame } from '@/components/charts'
 import {
   Callout,
   DataTableShell,
@@ -67,11 +68,8 @@ export default async function Page() {
   const exceptions = isAvailable(registry.clientExceptions) ? registry.clientExceptions.value : null
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Clients"
-        description="Annuaire issu de GET /api/v1/clients (rôle admin). Une liste vide reste vide — aucune ligne inventée."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Clients" />
 
       <StatGrid label="Indicateurs clients" columns={4}>
         <StatCard titre="Annuaire des clients" valeur={clientDirectory} hint="État de /api/v1/clients" showRoute />
@@ -81,6 +79,28 @@ export default async function Page() {
         <StatCard titre="Source de conformité" valeur={complianceDirectory} hint="État de /api/v1/compliance" showRoute />
         <StatCard titre="Surface de couverture" valeur={editorial('Couverture des données')} hint="Définition UI — pas un compteur" />
       </StatGrid>
+
+      {/* ── PLACEHOLDER GRAPHIQUE : l'annuaire /api/v1/clients ne porte pas de
+          série numérique traçable (id + libellé seulement). Le ChartFrame est
+          donc rendu dans son état vide/indisponible selon l'Availability réelle,
+          sans jamais fabriquer de série. ──────────────────────────────────── */}
+      <ChartFrame
+        question="Comment les clients se répartissent-ils dans le temps ?"
+        unite="nombre de clients, par période"
+        expectedSource={['GET /api/v1/clients']}
+        etat={
+          clients === null
+            ? {
+                type: 'indisponible',
+                explication: 'La lecture de l’annuaire clients n’a pas abouti — aucune série ne peut être tracée.',
+              }
+            : {
+                type: 'vide',
+                explication:
+                  'L’annuaire /api/v1/clients ne porte pas de série temporelle — aucune répartition à tracer aujourd’hui.',
+              }
+        }
+      />
 
       {clients === null ? (
         <DataTableShell

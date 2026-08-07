@@ -7,6 +7,7 @@ import {
 } from '@/components/catalyst/description-list'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
+import { ChartFrame } from '@/components/charts'
 import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
@@ -64,11 +65,8 @@ export default async function KeeperPage() {
   const actionsDisponibles = disabledReason === null
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Actions Keeper"
-        description="Ces routes journalisent une requête — elles ne signent rien. Chaque action exige la saisie de CONFIRM avant envoi."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Actions Keeper" />
 
       <StatGrid label="État des actions Keeper" columns={4}>
         <StatCard
@@ -92,6 +90,16 @@ export default async function KeeperPage() {
           hint="Rôle et service réunis"
         />
       </StatGrid>
+
+      <ChartFrame
+        question="Combien d’actions Keeper ont-elles été déclenchées dans le temps ?"
+        unite="requêtes Keeper par jour"
+        etat={{
+          type: 'vide',
+          explication:
+            'Aucune série à tracer : ces routes journalisent une requête sans historique exploitable par cette console. Rien n’est fabriqué pour combler l’axe.',
+        }}
+      />
 
       <SectionCard title="Périmètre" hint="Ces routes journalisent une requête — elles ne signent rien.">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

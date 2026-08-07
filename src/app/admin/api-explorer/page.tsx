@@ -103,11 +103,8 @@ export default async function ApiExplorerPage() {
     .sort((a, b) => b.value - a.value)
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Explorateur d’API"
-        description="Inventaire du registre backend, groupé par type d’action. Les lectures sûres peuvent être appelées en direct ; aucun secret n’est rendu."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Explorateur d’API" />
 
       <StatGrid label="Inventaire du registre backend" columns={4}>
         <StatCard
