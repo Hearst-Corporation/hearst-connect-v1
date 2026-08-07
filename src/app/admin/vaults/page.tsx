@@ -150,11 +150,8 @@ export default async function Page() {
       : []
 
   return (
-    <div className="space-y-10">
-      <AdminPageHeader
-        title="Registre des coffres"
-        description="Vue opérationnelle sur les coffres, leurs sources et les signaux du registre — sans décompte de repli quand une source est indisponible."
-      />
+    <div className="space-y-8">
+      <AdminPageHeader title="Registre des coffres" />
 
       <StatGrid label="Signaux du registre" columns={4}>
         <StatCard titre="Coffres actifs" valeur={activeVaults} />

@@ -35,17 +35,18 @@
    * `--color-console-*`, les états sont success/warning/danger.
    */
 
-  --color-zinc-50: #f8fafc;
-  --color-zinc-100: #f1f5f9;
-  --color-zinc-200: #e2e8f0;
-  --color-zinc-300: #cbd5e1;
-  --color-zinc-400: #b2b2b2;
-  --color-zinc-500: #7f7f7f;
-  --color-zinc-600: #5d6c7b;
-  --color-zinc-700: #334155;
-  --color-zinc-800: #18183a;
-  --color-zinc-900: #0b0e17;
-  --color-zinc-950: #020611;
+  /* Rampe zinc = valeurs Catalyst / Tailwind par défaut (dark mode natif). */
+  --color-zinc-50: #fafafa;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
 
   /*
    * Retirées le 2026-08-04 (LOT E) : la famille `--color-surface-*` (4 tokens),
@@ -191,7 +192,7 @@
    * plus CLAIR que son conteneur. Unifier le plan enfoncé de la console est une
    * décision de design system (elle change le rendu), pas un renommage.
    */
-  --color-cockpit-inset: #0b0e17;
+  --color-cockpit-inset: #141414;
 }
 
 /*
@@ -247,43 +248,4 @@
    */
   --color-accent-300: #c1fcb1;
   --color-accent-400: #a7fb90;
-}
-
-/* Decorative console band — two-axis mask. */
-.dc-cockpit-band {
-  -webkit-mask-image: linear-gradient(to left, black 0%, black 38%, transparent 100%),
-    linear-gradient(to top, black 0%, black 25%, transparent 92%);
-  mask-image: linear-gradient(to left, black 0%, black 38%, transparent 100%),
-    linear-gradient(to top, black 0%, black 25%, transparent 92%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
-
-.dc-cockpit-band > svg {
-  flex: none;
-  width: auto;
-  height: 200%;
-  margin-left: auto;
-  transform: translate(10%, 30%);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .dc-rack g {
-    animation: dc-trace 1100ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  }
-}
-
-@keyframes dc-trace {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dc-rack g {
-    animation: none !important;
-  }
 }
