@@ -25,7 +25,7 @@ const register = [
 /** Footer Aceternity « four grids » — watermark « Connect » en fond, menus par-dessus. */
 export function SiteFooter() {
   return (
-    <footer className="relative w-full overflow-hidden bg-black ring-1 ring-console-line-soft">
+    <footer className="relative w-full overflow-hidden border-t border-console-line-soft bg-console-app">
       <p
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-accent-300/[0.08]"
@@ -38,8 +38,8 @@ export function SiteFooter() {
           <Link href="/" className="inline-flex text-white">
             <Logo />
           </Link>
-          <p className="mt-4 max-w-[14rem] text-sm/6 text-white/40">
-            © copyright Hearst Corporation {new Date().getFullYear()}. Tous droits réservés.
+          <p className="mt-4 max-w-[14rem] text-sm/6 text-white/60">
+            © Hearst Corporation {new Date().getFullYear()}. Tous droits réservés.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ function FooterColumn({
       <ul className="space-y-3">
         {links.map((link) => (
           <li key={link.title}>
-            <Link href={link.href} className="text-white/40 transition-colors hover:text-white">
+            <Link href={link.href} className="text-white/60 transition-colors hover:text-white">
               {link.title}
             </Link>
           </li>

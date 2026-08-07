@@ -97,6 +97,22 @@
   pointer-events: auto;
 }
 
+/* Scrim haut : garantit le contraste AA du titre blanc quel que soit l'aperçu derrière
+   (certaines zones de console-preview sont claires). Sous le titre, au-dessus de l'image. */
+.cardContent::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 9rem;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-console-app) 82%, transparent),
+    transparent
+  );
+}
+
 .cardContentContainerOpen .cardContent {
   width: unset;
   height: unset;
@@ -120,8 +136,7 @@
   object-fit: cover;
 }
 
-.cardContentContainerOpen .cardImageContainer,
-.cardContentContainerOpen .titleContainer {
+.cardContentContainerOpen .cardImageContainer {
   z-index: 1;
 }
 
@@ -129,6 +144,7 @@
   position: absolute;
   top: 0.9375rem;
   left: 0.9375rem;
+  z-index: 3;
   max-width: 18.75rem;
 }
 
