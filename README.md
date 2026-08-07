@@ -31,7 +31,7 @@ Les autres pages admin seront alignées **une par une** sur ce modèle (Catalyst
 
 | Route | Rôle | Référence code |
 |---|---|---|
-| `/admin` | **Tableau de bord unique** — pilotage souscriptions (stepper, « À traiter », KPI, charts) | `src/features/admin-dashboard/`, `src/components/admin/dashboard/` |
+| `/admin` | **Tableau de bord unique** — header unifié (logo + KPI + actions), stepper, « À traiter », charts | `src/features/admin-dashboard/`, `src/components/admin/dashboard/` |
 | `/admin/vaults`, `/admin/clients`, … | Pages métier | à rapprocher du tableau de bord |
 
 **Navigation** (`src/lib/admin-nav.ts`) : sidebar **Tableau de bord · Coffres · Clients · Conformité · Opérations** ; hubs **Journal Série 1 · Produit · Service**. L’ancienne URL `/admin/dashboard` redirige vers `/admin`.
