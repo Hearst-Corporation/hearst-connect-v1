@@ -54,7 +54,7 @@ src/
 │   ├── admin/dashboard/        blocs du dashboard référence
 │   ├── actions/                boutons d'action partagés
 │   ├── charts/                 richart + cartesian
-│   └── compositions/           widgets, grilles, CockpitPage…
+│   └── compositions/           panels, StatGrid, SectionCard…
 ├── features/admin-dashboard/   tableau de bord `/admin`
 └── lib/
     ├── backend/                callBackend, endpoints

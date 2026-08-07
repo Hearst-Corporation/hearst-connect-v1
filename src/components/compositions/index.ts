@@ -13,7 +13,6 @@
 export { Panel, PanelBody, PanelHeader, type PanelTone } from '@/components/compositions/panel'
 export { KpiRow, MetricCard, MetricValue, SideFact } from '@/components/compositions/metric'
 export { CalmState, SourceAttendue } from '@/components/compositions/empty-state'
-export { CockpitPage } from '@/components/compositions/cockpit-page'
 
 /*
  * Blocs « haut de gamme » (niveau 2bis) — surfaces prêtes à l'emploi composées
@@ -25,17 +24,10 @@ export {
   StatGrid,
   SectionCard,
   DataTableShell,
-  Toolbar,
   Callout,
   type DeltaTone,
   type CalloutTone,
 } from '@/components/compositions/blocks'
 export { FadeIn } from '@/components/compositions/motion'
-export {
-  CapitalSplit,
-  CoverageRing,
-  DeploymentGauge,
-  SourceHealthStrip,
-} from '@/components/compositions/widgets'
 export { type FunnelStepView } from '@/components/compositions/funnel'
 export { type PriorityQueueRow } from '@/components/compositions/priority-queue'

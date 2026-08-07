@@ -274,45 +274,6 @@ export function DataTableShell({
   )
 }
 
-/* ── Toolbar ──────────────────────────────────────────────────────────────── */
-
-/**
- * Une barre d'actions / de filtres « haut de gamme ».
- *
- * Un simple rang à deux zones : le contenu principal à gauche (filtres,
- * segments, recherche), les actions à droite (boutons). Le bloc ne pose ni
- * bouton ni filtre — il ne fournit que la géométrie et la matière (un filet
- * bas, tokenisé), et laisse l'appelant y placer des `Button`/`Badge` Catalyst.
- * Il ne porte aucun état : c'est un conteneur, pas un contrôleur.
- */
-export function Toolbar({
-  children,
-  actions,
-  label,
-  className,
-}: Readonly<{
-  /** La zone de gauche : filtres, segments, recherche. */
-  children?: React.ReactNode
-  /** La zone de droite : boutons d'action. */
-  actions?: React.ReactNode
-  /** Nom de la région, pour la navigation par lecteur d'écran. */
-  label: string
-  className?: string
-}>) {
-  return (
-    <section
-      aria-label={label}
-      className={clsx(
-        'flex flex-wrap items-center justify-between gap-3 border-b border-console-line pb-3',
-        className
-      )}
-    >
-      <div className="flex min-w-0 flex-wrap items-center gap-2">{children}</div>
-      {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
-    </section>
-  )
-}
-
 /* ── Callout ──────────────────────────────────────────────────────────────── */
 
 /**
