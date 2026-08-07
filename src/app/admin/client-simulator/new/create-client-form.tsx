@@ -33,14 +33,14 @@ export function CreateClientForm({
 
   if (disabled) {
     return (
-      <p className="mt-4 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 ring-1 ring-zinc-950/5 dark:bg-console-inset dark:text-zinc-400 dark:ring-console-line-soft">
+      <Callout tone="warning" title="Création indisponible">
         {disabledReason}
-      </p>
+      </Callout>
     )
   }
 
   return (
-    <form action={action} className="mt-6 space-y-4">
+    <form action={action} className="space-y-4">
       <label className="block">
         <span className="text-xs text-zinc-500 dark:text-zinc-400">Email</span>
         <input name="email" type="email" required autoComplete="off" className={FIELD_CLASS} />

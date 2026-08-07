@@ -1,4 +1,5 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { Badge } from '@/components/catalyst/badge'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -8,6 +9,7 @@ import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { Callout, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { callBackend } from '@/lib/backend/client'
+import { formatDateTime } from '@/lib/format'
 import { motifLisible } from '@/lib/mouvements'
 import { getSession, LIBELLE_ROLE } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
@@ -47,6 +49,10 @@ export default async function Page() {
   const sessionState = session === null ? 'Aucune session valide' : 'Session active'
   const investorState =
     identite === null || identite === undefined ? 'Aucun dossier investisseur' : 'Dossier investisseur présent'
+  // `expiresAt` est en secondes epoch (session réelle) : on le rend en date
+  // lisible, sans jamais le replier sur une valeur par défaut. Absent → '—'.
+  const sessionExpiry =
+    session === null ? '—' : formatDateTime(new Date(session.expiresAt * 1000).toISOString())
 
   return (
     <div className="space-y-10">
@@ -55,16 +61,22 @@ export default async function Page() {
         description="Deux choses vivent ici et elles ne sont pas identiques. Le compte est ce qui vous connecte ; le dossier investisseur est ce qui relie une personne à une position dans le fonds."
       />
 
-      <StatGrid label="Aperçu du compte" columns={3}>
-        <StatCard titre="Session" valeur={editorial(sessionState)} />
-        <StatCard titre="Nom" valeur={editorial(session?.name ?? '—')} />
-        <StatCard titre="E-mail" valeur={editorial(session?.email ?? '—')} />
-        <StatCard titre="Rôle" valeur={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} />
-        <StatCard titre="Dossier investisseur" valeur={editorial(investorState)} />
-        <StatCard titre="Source du profil" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} />
+      <StatGrid label="Aperçu du compte" columns={4}>
+        <StatCard titre="Session" valeur={editorial(sessionState)} hint="État de votre connexion" />
+        <StatCard titre="Rôle" valeur={editorial(session === null ? '—' : LIBELLE_ROLE[session.role])} hint="Portée dans l’espace" />
+        <StatCard titre="Dossier investisseur" valeur={editorial(investorState)} hint="Rattachement au fonds" />
+        <StatCard titre="Source du profil" valeur={editorial(reponse.ok ? 'Joignable' : 'Indisponible')} hint="État de /api/v1/profile" />
       </StatGrid>
 
-      <SectionCard title="Connecté en tant que" hint="Lu depuis votre session, pas depuis le service.">
+      <SectionCard
+        title="Connecté en tant que"
+        hint="Lu depuis votre session chiffrée, pas depuis le service."
+        actions={
+          session === null ? undefined : (
+            <Badge color="lime">{sessionState}</Badge>
+          )
+        }
+      >
         {session === null ? (
           <Callout tone="warning" title="Aucune session valide">
             Aucune session valide n’a été trouvée. Reconnectez-vous pour consulter votre compte.
@@ -77,11 +89,27 @@ export default async function Page() {
             <DescriptionDetails>{session.email}</DescriptionDetails>
             <DescriptionTerm>Rôle</DescriptionTerm>
             <DescriptionDetails>{LIBELLE_ROLE[session.role]}</DescriptionDetails>
+            <DescriptionTerm>Identifiant</DescriptionTerm>
+            <DescriptionDetails className="font-mono text-sm">{session.userId}</DescriptionDetails>
+            <DescriptionTerm>Fin de session</DescriptionTerm>
+            <DescriptionDetails>{sessionExpiry}</DescriptionDetails>
           </DescriptionList>
         )}
       </SectionCard>
 
-      <SectionCard title="Dossier investisseur" hint="Transmis tel quel par le service, sans édition.">
+      <SectionCard
+        title="Dossier investisseur"
+        hint="Transmis tel quel par le service, sans édition."
+        actions={
+          !reponse.ok ? (
+            <Badge color="amber">Illisible</Badge>
+          ) : identite === null || identite === undefined ? (
+            <Badge color="zinc">Aucun dossier</Badge>
+          ) : (
+            <Badge color="lime">Présent</Badge>
+          )
+        }
+      >
         {!reponse.ok ? (
           <Callout tone="warning" title="Dossier illisible">
             Le dossier investisseur n’a pas pu être lu. Le service n’a pas répondu à la requête — ce silence ne
@@ -125,7 +153,7 @@ export default async function Page() {
         )}
       </SectionCard>
 
-      <SectionCard title="Notes">
+      <SectionCard title="Notes" hint="Définitions et chemins — pas des compteurs." tone="plain">
         <DescriptionList>
           <DescriptionTerm>Raison investisseur</DescriptionTerm>
           <DescriptionDetails>{motif ?? 'Aucune signalée'}</DescriptionDetails>

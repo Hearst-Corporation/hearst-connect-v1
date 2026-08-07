@@ -5,8 +5,9 @@ import {
   DescriptionList,
   DescriptionTerm,
 } from '@/components/catalyst/description-list'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, SectionCard, StatCard, StatGrid } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, StatCard, StatGrid } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -69,14 +70,26 @@ export default async function KeeperPage() {
         description="Ces routes journalisent une requête — elles ne signent rien. Chaque action exige la saisie de CONFIRM avant envoi."
       />
 
-      <StatGrid label="État des actions Keeper" columns={3}>
-        <StatCard titre="Actions exposées" valeur={editorial(formatNumber(keeperEndpoints.length))} />
-        <StatCard titre="Votre rôle" valeur={editorial(libelleRole(session.role))} />
-        <StatCard titre="URL du backend" valeur={editorial(backendConfigured ? 'Configuré' : 'Non défini')} />
-        <StatCard titre="Autorisation" valeur={editorial(isAdmin ? 'Accès administrateur' : 'Restreint')} />
+      <StatGrid label="État des actions Keeper" columns={4}>
+        <StatCard
+          titre="Actions exposées"
+          valeur={editorial(formatNumber(keeperEndpoints.length))}
+          hint="Routes keeper du registre backend"
+        />
+        <StatCard
+          titre="Votre rôle"
+          valeur={editorial(libelleRole(session.role))}
+          hint={isAdmin ? 'Accès administrateur' : 'Rôle restreint'}
+        />
+        <StatCard
+          titre="Adresse du service"
+          valeur={editorial(backendConfigured ? 'Configuré' : 'Non défini')}
+          hint="HEARST_API_URL"
+        />
         <StatCard
           titre="Disponibilité"
           valeur={editorial(actionsDisponibles ? 'Actions disponibles' : 'Actions inertes')}
+          hint="Rôle et service réunis"
         />
       </StatGrid>
 
@@ -120,6 +133,31 @@ export default async function KeeperPage() {
           </Text>
         )}
       </SectionCard>
+
+      <DataTableShell
+        title="Routes exposées"
+        description="Registre backend, catégorie keeper. Chaque route est présentée telle qu’elle est déclarée — aucun endpoint inventé."
+        count={`${formatNumber(keeperEndpoints.length)} routes`}
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader>Action</TableHeader>
+            <TableHeader>Appel</TableHeader>
+            <TableHeader>Réserve du contrat</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {keeperEndpoints.map((endpoint) => (
+            <TableRow key={endpoint.id}>
+              <TableCell className="font-medium">{endpoint.summary}</TableCell>
+              <TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                {endpoint.method} {endpoint.path}
+              </TableCell>
+              <TableCell className="text-zinc-500 dark:text-zinc-400">{endpoint.caveat ?? '—'}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
 
       <SectionCard
         title="Actions"
