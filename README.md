@@ -3,10 +3,10 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** : hero scroll → bento (1/2) → **ripple CTA** → bento (2/2) → footer.
-Ripple : `@aceternity/background-ripple-effect-demo` (`src/components/ui/background-ripple-effect.tsx`
-+ `background-ripple-band.tsx`). Primatives UI dans `src/components/ui/` ;
-registry `@aceternity` dans `components.json`. Fond `bg-console-app` — pas de `zinc`.
+**Landing `/`** : hero scroll → **grid background** → bento (1/2) → ripple CTA → bento (2/2) → footer.
+Grid : `@aceternity/grid-background-demo`. Ripple : `@aceternity/background-ripple-effect-demo`.
+Cards : `@aceternity/cards-demo-3`. Primatives UI dans `src/components/ui/` (noir / console — jamais `zinc` en classe).
+Registry `@aceternity` dans `components.json`.
 
 ## Architecture
 
