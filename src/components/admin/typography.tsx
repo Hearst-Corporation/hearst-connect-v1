@@ -43,3 +43,12 @@ export function AdminLabel({
 }: TypoProps & { as?: 'p' | 'span' }) {
   return <Tag className={clsx(adminTypography.label, className)}>{children}</Tag>
 }
+
+/** Titre H1 du bandeau hero (`AdminPageHeader`) — seul h1 autorisé hors routes. */
+export function AdminHeroTitle({ children, className }: TypoProps) {
+  return (
+    <h1 className={clsx('truncate text-xl font-semibold tracking-tight text-white sm:text-2xl', className)}>
+      {children}
+    </h1>
+  )
+}

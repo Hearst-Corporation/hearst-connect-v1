@@ -1,4 +1,5 @@
 import { AdminHeroKpiMetrics, type AdminHeroKpi } from '@/components/admin/hero-kpi'
+import { AdminHeroTitle } from '@/components/admin/typography'
 import { LogoMark } from '@/components/logo'
 import { CONSOLE_GLOW_SRC } from '@/lib/brand'
 import type { ReactNode } from 'react'
@@ -43,9 +44,7 @@ export function AdminPageHeader({
 
           <div className="flex min-w-0 flex-1 flex-col gap-3 pb-0.5 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <h1 className="truncate text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                {title}
-              </h1>
+              <AdminHeroTitle>{title}</AdminHeroTitle>
               {description !== undefined && description !== '' ? (
                 <p className="mt-1 max-w-2xl text-sm leading-5 text-zinc-400 sm:truncate">
                   {description}
