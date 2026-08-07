@@ -16,10 +16,9 @@
  */
 
 /**
- * Readable content measure. 1280px keeps a 12-column grid at ~86px per column
- * with 24px gutters — wide enough for a chart-plus-panel split, narrow enough
- * that a line of body text stays readable. The previous 1600px produced
- * columns nobody had content for.
+ * Mesure de lecture optionnelle pour un bloc de prose — le shell admin
+ * n’impose plus de plafond global (`max-w-6xl` retiré) : le contenu est fluide
+ * dans la colonne à côté du rail.
  */
 export const pageMaxWidth = 'max-w-[1280px]'
 

@@ -121,23 +121,26 @@ export function AdminDashboardPage({
 
       <DashboardKpiGrid items={kpis} />
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+      <div className="@container min-w-0">
+      <div className="grid grid-cols-1 gap-4 @[56rem]:grid-cols-12">
         <DashCard
-          className="xl:col-span-8"
+          className="@[56rem]:col-span-8"
           title="Parcours de souscription"
           subtitle="Compte → KYC → Wallet → Dépôt → Souscription → Position"
         >
           <SubscriptionJourneyStepper steps={funnel} />
         </DashCard>
 
-        <DashCard className="xl:col-span-4" title="À traiter" subtitle="Actions prioritaires">
+        <DashCard className="@[56rem]:col-span-4" title="À traiter" subtitle="Actions prioritaires">
           <ActionQueue rows={priorityQueue} maxRows={6} />
         </DashCard>
       </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+      <div className="@container min-w-0">
+      <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
         <DashCard
-          className="lg:col-span-7"
+          className="@[48rem]:col-span-7"
           title="Courbe d’activité"
           subtitle="Volume journalier · 28 jours"
         >
@@ -150,7 +153,7 @@ export function AdminDashboardPage({
           )}
         </DashCard>
 
-        <DashCard className="lg:col-span-5" title="Donut KYC" subtitle="Répartition des dossiers">
+        <DashCard className="@[48rem]:col-span-5" title="Donut KYC" subtitle="Répartition des dossiers">
           {isAvailable(kycBuckets) && kycBuckets.value.length >= 2 ? (
             <HearstDonutChart
               slices={kycBuckets.value.map((b) => ({ label: b.label, value: b.value }))}
@@ -161,19 +164,22 @@ export function AdminDashboardPage({
           )}
         </DashCard>
       </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+      <div className="@container min-w-0">
+      <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
         <DashCard
-          className="lg:col-span-7"
+          className="@[48rem]:col-span-7"
           title="Souscriptions par produit"
           subtitle="Classement par volume"
         >
           <ProductBars products={byProduct} />
         </DashCard>
 
-        <DashCard className="lg:col-span-5" title="Activité hebdomadaire" subtitle="Densité journalière">
+        <DashCard className="@[48rem]:col-span-5" title="Activité hebdomadaire" subtitle="Densité journalière">
           <ActivityHeatmap cells={heatmap} />
         </DashCard>
+      </div>
       </div>
 
       <DashCard title="Dernières souscriptions" subtitle="Six dernières opérations">

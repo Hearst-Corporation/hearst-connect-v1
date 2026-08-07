@@ -183,7 +183,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
 
   return (
     <TabGroup defaultIndex={initialIndex} as="div" data-widget="subscription-journey">
-      <TabList className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6 xl:gap-0">
+      <TabList className="@container grid grid-cols-2 gap-2 @[28rem]:grid-cols-3 @[52rem]:grid-cols-6 @[52rem]:gap-0">
         {steps.map((step, index) => {
           const state = stepState(step)
           const StepIcon = STEP_ICON[step.id] ?? ClipboardDocumentCheckIcon
