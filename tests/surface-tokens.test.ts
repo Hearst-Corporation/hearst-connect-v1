@@ -110,4 +110,13 @@ describe('design system surfaces — canon dashboard', () => {
     expect(existsSync(join(process.cwd(), 'public/brand/hearst-connect-dark.svg'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'public/brand/hearst-connect-official.svg'))).toBe(true)
   })
+
+  it('favicon onglet = monogramme H mint', () => {
+    const icon = readFileSync(join(process.cwd(), 'src/app/icon.svg'), 'utf8')
+    const layout = readFileSync(join(process.cwd(), 'src/app/layout.tsx'), 'utf8')
+    expect(icon).toContain('#a7fb90')
+    expect(icon).toContain('601.74 466.87')
+    expect(layout).toContain('/icon.svg')
+    expect(existsSync(join(process.cwd(), 'src/app/apple-icon.png'))).toBe(true)
+  })
 })
