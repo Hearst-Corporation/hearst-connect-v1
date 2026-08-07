@@ -3,14 +3,28 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** : hero scroll → **grid background** → bento (1/2) → ripple CTA → bento (2/2) → footer.
-Grid : `@aceternity/grid-background-demo`. Ripple : `@aceternity/background-ripple-effect-demo`.
-Cards : `@aceternity/cards-demo-3` (`src/components/ui/cards-demo-3.tsx`).
-Carousel 3D : `ScrollVelocityPlanes` (`src/components/ui/scroll-velocity-planes.tsx` + `heritage-scroll-demo`).
-App Store layout : `AppStoreCards` (`src/components/ui/app-store-cards.tsx` + `app-store-demo`).
-3D Pin : `@aceternity/3d-pin-demo` (`src/components/ui/3d-pin.tsx` + `3d-pin-demo`).
-Primatives UI dans `src/components/ui/` (noir / console — jamais `zinc` en classe).
-Registry `@aceternity` dans `components.json`.
+**Landing `/`** — vitrine marketing (état au 2026-08-07) : empilement de blocs Aceternity/Motion
+tokenisés ; **refonte artistique prévue** (réduire redondance, unifier le récit).
+
+Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` · `main` · `SiteFooter` · `bg-console-app`.
+
+| # | Bloc | Wrapper marketing | Primitive `ui/` |
+|---|------|-------------------|-----------------|
+| 1 | Hero scroll parallax | `hero-scroll-demo.tsx` | `container-scroll-animation.tsx` |
+| 2 | Carousel 3D scroll-vélocité | `heritage-scroll-demo.tsx` | `scroll-velocity-planes.tsx` · `scramble-text.tsx` |
+| 3 | Grille de fond | `grid-background-demo.tsx` | `grid-background.tsx` |
+| 4 | Cartes App Store (shared layout) | `app-store-demo.tsx` | `app-store-cards.tsx` |
+| 5 | Pin 3D → `/login` | `3d-pin-demo.tsx` | `3d-pin.tsx` |
+| 6–8 | Bento (1/2) · ripple CTA · bento (2/2) | `bento-grid-example-three.tsx` · `background-ripple-band.tsx` | `bento-grid.tsx` · `background-ripple-effect.tsx` |
+
+Composition : `src/app/(marketing)/page.tsx`. Registry Aceternity : `components.json` (`@aceternity`).
+
+**Orphelin** : `cards-demo-3.tsx` installé (`@aceternity/cards-demo-3`) mais **non monté** sur `/`.
+
+**Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
+Interdit dans `src/components/marketing/` et `src/components/ui/` : classes `zinc-*`, `neutral-*`,
+`slate-*`, `gray-*` (gate `tests/marketing-no-zinc.test.ts`). Police : Satoshi uniquement.
+Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG — pas d’URLs externes.
 
 ## Architecture
 
@@ -58,9 +72,13 @@ E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
 
 ```
 src/
-├── app/admin/                  routes console
+├── app/
+│   ├── (marketing)/            landing `/` + layout header/footer
+│   └── admin/                  routes console
 ├── components/
 │   ├── catalyst/               kit officiel (non modifié sauf link Next)
+│   ├── marketing/              wrappers landing (copy FR, assets brand)
+│   ├── ui/                     primitives Aceternity/Motion tokenisées
 │   ├── admin/                  page-header, hero-kpi, surfaces + dashboard/
 │   ├── actions/                boutons d'action partagés
 │   ├── charts/                 richart + cartesian
@@ -102,4 +120,4 @@ Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 | `docs/ENDPOINT-MAPPING.md` | Contrat backend → front |
 | `docs/PASSATION-AGENT.md` | Reprise opérationnelle (Railway, Vercel, priorités) |
 
-Point de reprise : **`main`** @ `899833c`.
+Point de reprise : **`main`** @ `44f42fb` (landing = pile de demos ; prochaine passe = peinture artistique `/`).
