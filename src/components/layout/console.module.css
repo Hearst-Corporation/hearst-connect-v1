@@ -217,7 +217,6 @@
 /* La `Table` de Catalyst gère ses bordures ; on retire juste sa gouttière. */
 .heroTable {
   --gutter: 0;
-  table-layout: fixed;
   width: 100%;
 }
 
@@ -667,7 +666,8 @@
 
 .metricsRow {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) var(--csl-aside-w);
+  /* Fluide : plus de piste fixe --csl-aside-w (290/270px) qui écrasait les cartes. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
   gap: 0;
   /*
    * La bande prend la hauteur de sa plus grande carte, pas l'inverse.
@@ -1070,7 +1070,8 @@
 
 .bottomRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--csl-info-w) var(--csl-aside-w);
+  /* Empile par défaut ; multi-colonnes seulement si le CONTAINER a la place. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   /* Hauteur naturelle : `height: 100%` + `overflow: hidden` coupait les
      panneaux du bas quand leur contenu dépassait la rangée. */
@@ -1339,34 +1340,20 @@
     padding-left: 22px;
     padding-right: 22px;
   }
-  .bottomRow {
-    grid-template-columns: minmax(0, 1fr) 500px 270px;
-  }
   .mainRow {
     /* Mesure seule : le NOMBRE de colonnes est décidé par la container query
        sur `.workspace` (cf. `@container (min-width: 62rem)`). */
     --csl-aside-w: 270px;
   }
-  .metricsRow {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) 270px;
-  }
 }
 
 @media (max-width: 1280px) {
   /*
-   * Ce palier ne repositionne plus rien.
-   *
-   * Il forçait `.rail { position: fixed }` et `.workspace { left: 200px;
-   * width: calc(100% - 200px) }` — des compensations du temps où le shell
-   * empilait deux blocs absolus. Depuis que `.shell` est une grille
-   * `rail | reste`, ces règles décalaient le workspace de 200 px HORS de sa
-   * propre colonne : mesuré à 1024 px, 20 textes amputés et 5121 px de
-   * débordement vertical. La grille place les deux colonnes toute seule ; il ne
-   * reste ici que ce qui concerne vraiment le palier — le nombre de colonnes.
+   * Ce palier ne repositionne plus les grilles (auto-fit / @container le font).
+   * Conservé pour les marges décisionnelles et la mesure aside du mainRow.
    */
   .metricsRow {
     height: auto;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0;
   }
   .decisionCardStrong,
@@ -1375,22 +1362,6 @@
   }
   .mainRow {
     --csl-aside-w: 250px;
-    min-height: 0;
-  }
-  .bottomRow {
-    grid-template-columns: minmax(0, 1fr) 1fr;
-    grid-template-areas: 'wave vault' 'info info';
-  }
-  .wavePanel {
-    grid-area: wave;
-    min-height: 0;
-  }
-  .vaultCard {
-    grid-area: vault;
-    min-height: 0;
-  }
-  .infoGrid {
-    grid-area: info;
     min-height: 0;
   }
 }
@@ -1609,6 +1580,18 @@
  * d'être lus. Vérifié à 375 / 640 / 768 / 900 / 1024 / 1280 / 1440 px de
  * viewport : pire ratio 0,81, contre 10,06 avant correction.
  */
+@container (min-width: 50rem) {
+  .bottomRow {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.85fr);
+    grid-template-areas: none;
+  }
+  .wavePanel,
+  .infoGrid,
+  .vaultCard {
+    grid-area: auto;
+  }
+}
+
 @container (max-width: 50rem) {
   .bottomRow {
     grid-template-columns: minmax(0, 1fr);

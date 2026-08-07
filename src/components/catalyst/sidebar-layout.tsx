@@ -71,10 +71,11 @@ export function SidebarLayout({
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
-      {/* Content */}
+      {/* Content — pleine largeur fluide (le plafond kit a été retiré : il
+          écrasait les grilles dashboard/KPI dans la colonne déjà réduite par le rail). */}
       <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
         <div className="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
-          <div className="mx-auto max-w-6xl">{children}</div>
+          <div className="w-full min-w-0">{children}</div>
         </div>
       </main>
     </div>

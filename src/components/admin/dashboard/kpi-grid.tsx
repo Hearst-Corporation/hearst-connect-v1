@@ -35,8 +35,9 @@ export function DashboardKpiGrid({ items }: Readonly<{ items: readonly Dashboard
   return (
     <section
       aria-label="Indicateurs principaux"
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      className="@container min-w-0"
     >
+      <div className="grid grid-cols-1 gap-4 @[28rem]:grid-cols-2 @[56rem]:grid-cols-4">
       {items.map((kpi) => {
         const Icon = ICONS[kpi.id] as ComponentType<SVGProps<SVGSVGElement>>
         const available = isAvailable(kpi.value)
@@ -84,6 +85,7 @@ export function DashboardKpiGrid({ items }: Readonly<{ items: readonly Dashboard
           </article>
         )
       })}
+      </div>
     </section>
   )
 }
