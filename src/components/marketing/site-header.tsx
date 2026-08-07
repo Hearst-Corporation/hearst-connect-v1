@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 const navigation = [
-  { name: 'Produit', href: '#produit' },
+  { name: 'Fonctionnalités', href: '#produit' },
   { name: 'Sécurité', href: '#securite' },
   { name: 'Tarifs', href: '#tarifs' },
   { name: 'Questions', href: '#questions' },

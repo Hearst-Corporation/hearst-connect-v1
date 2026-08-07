@@ -36,7 +36,7 @@ import { csl } from './console'
  * Cinq destinations primaires — la navigation demandée pour la surface user.
  */
 const DESTINATIONS = [
-  { href: '/espace', label: 'Cockpit', icon: Squares2X2Icon },
+  { href: '/espace', label: 'Accueil', icon: Squares2X2Icon },
   { href: '/espace/dashboard', label: 'Tableau de bord', icon: PresentationChartLineIcon },
   { href: '/espace/bitcoin', label: 'Production Bitcoin', icon: BoltIcon },
   { href: '/espace/activite', label: 'Activité', icon: ArrowsRightLeftIcon },

@@ -25,22 +25,27 @@ import clsx from 'clsx'
 const STATUS: Record<VaultStatus, { label: string; title: string; tone: string; dot: string }> = {
   ACTIVE: {
     label: 'Actif',
-    title: 'The contract holds code and the vault snapshot was read.',
+    title: 'Le contrat porte du code et l’instantané du coffre a été lu.',
     tone: 'bg-white/5 text-zinc-700 ring-zinc-950/10 dark:text-zinc-200 dark:ring-console-line-strong',
     dot: 'bg-accent-600 dark:bg-accent-400',
   },
   NO_CODE: {
     label: 'Aucun code de contrat',
-    title: 'The service read the address and found no contract code there.',
+    title: 'Le service a lu l’adresse et n’y a trouvé aucun code de contrat.',
     tone: 'bg-danger-500/15 text-danger-700 ring-danger-500/30 dark:text-danger-400',
     dot: 'bg-danger-500 dark:bg-danger-400',
   },
   UNREADABLE: {
     label: 'Illisible',
-    title: 'The service answered, and could not read the vault.',
+    title: 'Le service a répondu, sans parvenir à lire le coffre.',
     tone: 'bg-warning-500/15 text-warning-700 ring-warning-500/30 dark:text-warning-400',
     dot: 'bg-warning-500 dark:bg-warning-400',
   },
+}
+
+/** Le libellé FR d'un état de coffre, seul (sans le badge) — pour un KPI, une cellule. */
+export function libelleStatutCoffre(status: VaultStatus): string {
+  return STATUS[status].label
 }
 
 export function VaultStatusBadge({ status }: Readonly<{ status: VaultStatus }>) {

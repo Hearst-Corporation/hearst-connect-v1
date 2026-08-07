@@ -12,6 +12,7 @@ import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
+import { libelleRole } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { Metadata } from 'next'
@@ -54,7 +55,7 @@ export default async function KeeperPage() {
 
   let disabledReason: string | null = null
   if (!isAdmin) {
-    disabledReason = `Le rôle ${session.role} ne donne pas accès aux actions Keeper.`
+    disabledReason = `Le rôle ${libelleRole(session.role)} ne donne pas accès aux actions Keeper.`
   } else if (!backendConfigured) {
     disabledReason = 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
   }
@@ -70,7 +71,7 @@ export default async function KeeperPage() {
 
       <StatGrid label="État des actions Keeper" columns={3}>
         <StatCard titre="Actions exposées" valeur={editorial(formatNumber(keeperEndpoints.length))} />
-        <StatCard titre="Votre rôle" valeur={editorial(session.role)} />
+        <StatCard titre="Votre rôle" valeur={editorial(libelleRole(session.role))} />
         <StatCard titre="URL du backend" valeur={editorial(backendConfigured ? 'Configuré' : 'Non défini')} />
         <StatCard titre="Autorisation" valeur={editorial(isAdmin ? 'Accès administrateur' : 'Restreint')} />
         <StatCard
@@ -101,7 +102,7 @@ export default async function KeeperPage() {
 
       <SectionCard title="Peuvent-elles s’exécuter maintenant ?">
         <DescriptionList>
-          <Prerequisite libelle="Votre rôle" valeur={session.role} satisfait={isAdmin} />
+          <Prerequisite libelle="Votre rôle" valeur={libelleRole(session.role)} satisfait={isAdmin} />
           <Prerequisite
             libelle="Adresse du service"
             valeur={backendConfigured ? 'Configuré' : 'Non défini'}

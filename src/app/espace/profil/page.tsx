@@ -6,7 +6,7 @@ import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { AdminSection } from '@/components/admin/surfaces'
 import { callBackend } from '@/lib/backend/client'
 import { motifLisible } from '@/lib/mouvements'
-import { getSession, type Role } from '@/lib/session'
+import { getSession, LIBELLE_ROLE } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 
@@ -37,12 +37,6 @@ type Identite = {
 }
 
 type ReponseProfil = { readonly identity?: Resolu<Identite> }
-
-const LIBELLE_ROLE: Record<Role, string> = {
-  OWNER: 'Propriétaire de l’espace',
-  ADMIN: 'Administrateur',
-  MEMBER: 'Membre',
-}
 
 function DossierInvestisseur({
   ok,

@@ -37,12 +37,5 @@ export {
   DeploymentGauge,
   SourceHealthStrip,
 } from '@/components/compositions/widgets'
-export {
-  DashboardGrid,
-  KpiGrid,
-  ChartGrid,
-  DashboardCard,
-  DashboardCardHeader,
-} from '@/components/compositions/dashboard-grid'
-export { FunnelPipeline, type FunnelStepView } from '@/components/compositions/funnel'
-export { PriorityQueue, type PriorityQueueRow } from '@/components/compositions/priority-queue'
+export { type FunnelStepView } from '@/components/compositions/funnel'
+export { type PriorityQueueRow } from '@/components/compositions/priority-queue'

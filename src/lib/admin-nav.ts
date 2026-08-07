@@ -2,6 +2,7 @@ import {
   ArrowsRightLeftIcon,
   BuildingOffice2Icon,
   CircleStackIcon,
+  CommandLineIcon,
   DocumentTextIcon,
   HomeIcon,
   IdentificationIcon,
@@ -9,6 +10,7 @@ import {
   SignalIcon,
   Squares2X2Icon,
   TableCellsIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/20/solid'
 
 /**
@@ -116,6 +118,18 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         icone: SignalIcon,
         detail: 'Sondes de dépendances, déploiement, couverture des données et réponses brutes',
       },
+      {
+        libelle: 'Explorateur d’API',
+        href: '/admin/api-explorer',
+        icone: CommandLineIcon,
+        detail: 'Les endpoints du backend, leur méthode, leur niveau d’accès et un curl prêt à copier',
+      },
+      {
+        libelle: 'Actions Keeper',
+        href: '/admin/keeper',
+        icone: WrenchScrewdriverIcon,
+        detail: 'Les requêtes Keeper à effet de bord, chacune sous confirmation explicite',
+      },
     ],
   },
   {
@@ -170,6 +184,20 @@ export function groupeSecondaireActif(pathname: string): GroupeSecondaire | unde
       groupe.entrees.some(
         (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
       ),
+  )
+}
+
+/**
+ * Le groupe « Compte » est volontairement écarté de `groupeSecondaireActif` : il
+ * ne pilote ni hub latéral ni sous-navigation horizontale. Cette garde dédiée
+ * permet au menu utilisateur de marquer « Votre compte » actif sur
+ * `/admin/profile` sans réintroduire « Compte » dans la logique des hubs.
+ */
+export function estRouteCompte(pathname: string): boolean {
+  const groupe = ADMIN_SECONDARY.find((g) => g.titre === 'Compte')
+  if (groupe === undefined) return false
+  return groupe.entrees.some(
+    (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
   )
 }
 
