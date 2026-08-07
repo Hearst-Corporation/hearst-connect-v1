@@ -1,5 +1,6 @@
 'use client'
 
+import { surfaceBox } from '@/components/admin/surface'
 import {
   Bar,
   BarChart,
@@ -13,6 +14,7 @@ import {
 } from 'recharts'
 import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { formatCurrency, formatNumber } from '@/lib/format'
+import clsx from 'clsx'
 
 /**
  * Product-surface charts.
@@ -53,10 +55,10 @@ function ChartTooltip({
 }>) {
   if (active !== true || payload === undefined || payload.length === 0) return null
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
-      <p className="font-medium text-zinc-950 dark:text-white">{label}</p>
+    <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
+      <p className="font-medium text-white">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} className="mt-0.5 text-zinc-600 tabular-nums dark:text-zinc-300">
+        <p key={p.name} className="mt-0.5 text-zinc-300 tabular-nums">
           {p.name}: {typeof p.value === 'number' ? `${formatNumber(p.value)} ${unit}` : '—'}
         </p>
       ))}
