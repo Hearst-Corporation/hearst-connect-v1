@@ -1,4 +1,4 @@
-import { surfaceBox, surfaceRaised } from '@/components/admin/surface'
+import { surfaceBox, surfaceNav, surfaceRaised } from '@/components/admin/surface'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -26,5 +26,14 @@ describe('surfaces tokenisées — boxes noires + voile sélection', () => {
     expect(src).toContain('data-selected:bg-accent-soft')
     expect(src).not.toContain('data-selected:bg-zinc-800')
     expect(src).not.toContain('data-selected:bg-zinc-50')
+  })
+
+  it('menu sidebar : noir deep (console-card), comme les boxes', () => {
+    const layout = readFileSync(
+      join(process.cwd(), 'src/components/catalyst/sidebar-layout.tsx'),
+      'utf8',
+    )
+    expect(layout).toContain('bg-console-card')
+    expect(surfaceNav).toBe('bg-console-card')
   })
 })

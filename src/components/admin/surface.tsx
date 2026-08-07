@@ -10,6 +10,9 @@
 export const surfaceBox =
   'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line'
 
+/** Menu / rail — même noir deep que les boxes. */
+export const surfaceNav = 'bg-console-card'
+
 /** Alias historique — même matière que `surfaceBox` (produit dark-only). */
 export const surfaceRaised = surfaceBox
 
