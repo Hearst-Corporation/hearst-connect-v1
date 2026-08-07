@@ -102,7 +102,7 @@ export function AdminMetric({
     <div
       className={clsx(
         className,
-        'min-w-0 rounded-xl bg-white p-4 ring-1 ring-zinc-950/10 dark:bg-console-card dark:ring-console-line',
+        'min-w-0 rounded-xl bg-console-card p-4 ring-1 ring-console-line',
       )}
     >
       <AdminLabel>{label}</AdminLabel>
