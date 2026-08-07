@@ -4,7 +4,6 @@ import {
   ChartPlaceholder,
   DashCard,
   DashboardHeader,
-  DashboardKpiGrid,
   DashboardShell,
   ProductBars,
   SubscriptionJourneyStepper,
@@ -117,9 +116,7 @@ export function AdminDashboardPage({
 
   return (
     <DashboardShell>
-      <DashboardHeader userName={user.name} />
-
-      <DashboardKpiGrid items={kpis} />
+      <DashboardHeader userName={user.name} kpis={kpis} />
 
       <div className="@container min-w-0">
       <div className="grid grid-cols-1 gap-4 @[56rem]:grid-cols-12">
