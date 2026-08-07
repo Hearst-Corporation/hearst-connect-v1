@@ -31,28 +31,35 @@ export function AdminPageHeader({
         : {})}
       className="-mx-6 -mt-6 overflow-hidden lg:-mx-10 lg:-mt-10 lg:rounded-t-lg"
     >
-      <img alt="" src={CONSOLE_GLOW_SRC} className="h-16 w-full object-cover lg:h-20" />
+      <img alt="" src={CONSOLE_GLOW_SRC} className="h-20 w-full object-cover lg:h-28" />
 
       <div className="bg-black px-6 lg:px-10">
-        <div className="-mt-7 flex flex-wrap items-end gap-x-4 gap-y-3 sm:-mt-8">
-          <span className="inline-flex size-14 items-center justify-center rounded-full bg-black ring-2 ring-white/10 sm:size-16">
-            <LogoMark className="size-7 text-accent-300 sm:size-8" />
+        {/* Rangée identité — avatar chevauche le glow, titre + CTA alignés en bas */}
+        <div className="-mt-8 flex items-end gap-x-4 sm:-mt-10 sm:gap-x-5">
+          <span className="relative inline-flex size-16 shrink-0 items-center justify-center rounded-full bg-black ring-4 ring-black outline -outline-offset-1 outline-white/15 sm:size-[4.5rem]">
+            <LogoMark className="size-8 text-accent-300 sm:size-9" />
             <span className="sr-only">Hearst</span>
           </span>
 
-          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 pb-0.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-3 pb-0.5 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold tracking-tight text-white sm:text-xl">{title}</h1>
+              <h1 className="truncate text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                {title}
+              </h1>
               {description !== undefined && description !== '' ? (
-                <p className="mt-0.5 text-sm text-zinc-400">{description}</p>
+                <p className="mt-1 max-w-2xl text-sm leading-5 text-zinc-400 sm:truncate">
+                  {description}
+                </p>
               ) : null}
             </div>
 
-            {action !== undefined ? <div className="shrink-0">{action}</div> : null}
+            {action !== undefined ? (
+              <div className="shrink-0 self-start sm:self-end">{action}</div>
+            ) : null}
           </div>
         </div>
 
-        <div className="mt-5 border-t border-white/10 pt-4 pb-5">
+        <div className="mt-6 border-t border-white/10 pt-5 pb-6">
           <AdminHeroKpiMetrics items={kpis} />
         </div>
       </div>
