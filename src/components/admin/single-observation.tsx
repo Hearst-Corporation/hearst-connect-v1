@@ -60,7 +60,7 @@ export function SingleObservation({
 
       {/* Compact marker. One observation gets one mark — never a plot area. */}
       <div className="mt-4 max-w-xs" aria-hidden="true">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft">
           <div
             className="h-full rounded-full bg-accent-400"
             style={{ width: part === null ? '100%' : `${part}%` }}

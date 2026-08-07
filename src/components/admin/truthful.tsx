@@ -1,3 +1,4 @@
+import { surfaceInset } from '@/components/admin/surface'
 import { formatDateTime, formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
@@ -140,10 +141,10 @@ function StateShell({
   children,
 }: Readonly<{ status: ResolvedStatus; title: string; reason?: string | null; children?: React.ReactNode }>) {
   return (
-    <div className="rounded-lg border border-dashed border-console-line bg-zinc-50 px-5 py-8 text-center dark:bg-cockpit-inset">
+    <div className={clsx(surfaceInset, 'border border-dashed border-console-line px-5 py-8 text-center')}>
       <StatusBadge status={status} />
-      <p className="mt-3 text-sm font-medium text-zinc-950 dark:text-white">{title}</p>
-      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{reason}</p> : null}
+      <p className="mt-3 text-sm font-medium text-white">{title}</p>
+      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">{reason}</p> : null}
       {children}
     </div>
   )
@@ -171,17 +172,17 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
   if (!problem && !keeper) return null
 
   return (
-    <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-lg bg-zinc-50 p-4 text-xs dark:bg-cockpit-inset">
+    <dl className={clsx(surfaceInset, 'mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 p-4 text-xs')}>
       {problem ? (
         <>
           <dt className="text-zinc-500">Code</dt>
-          <dd className="font-mono text-zinc-950 dark:text-white">{problem.code}</dd>
+          <dd className="font-mono text-white">{problem.code}</dd>
           <dt className="text-zinc-500">Titre</dt>
-          <dd className="text-zinc-700 dark:text-zinc-300">{problem.title}</dd>
+          <dd className="text-zinc-300">{problem.title}</dd>
           <dt className="text-zinc-500">Détail</dt>
-          <dd className="text-zinc-700 dark:text-zinc-300">{problem.detail}</dd>
+          <dd className="text-zinc-300">{problem.detail}</dd>
           <dt className="text-zinc-500">Identifiant de requête</dt>
-          <dd className="font-mono break-all text-zinc-600 dark:text-zinc-400">{problem.requestId}</dd>
+          <dd className="font-mono break-all text-zinc-400">{problem.requestId}</dd>
         </>
       ) : null}
       {keeper ? (
