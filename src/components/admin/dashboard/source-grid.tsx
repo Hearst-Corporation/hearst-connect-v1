@@ -1,4 +1,5 @@
 import type { SourceHealth } from '@/lib/vaults/model'
+import { surfaceBox } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
 import { formatRelativeTime } from '@/lib/format'
 import clsx from 'clsx'
@@ -56,7 +57,7 @@ export function SourceStatusGrid({
         return (
           <li
             key={label}
-            className="rounded-xl bg-white p-3 shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10"
+            className={clsx(surfaceBox, 'p-3')}
             title={source?.endpointId}
           >
             <div className="flex items-center gap-2">

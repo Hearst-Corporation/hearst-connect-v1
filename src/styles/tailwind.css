@@ -52,25 +52,16 @@
    * les filets sont `--color-console-line*`.
    */
 
-  /* ── Console surfaces — the approved neutral-graphite system ───────────────
-   * Source of truth: "Hearst Adapted Design System" (neutral-lighter variant).
-   *
-   * Five planes, from the outside in: the application black, the graphite
-   * shell the page sits on, the charcoal card, its lighter top edge, and the
-   * inset a card can sink a block into. They are NEUTRAL — no blue undertone
-   * anywhere in the ramp; the earlier console inherited Tailwind's zinc, which
-   * is cooled by a blue cast, and the console before that was outright navy.
-   *
-   * Cards are LIGHTER than the shell they sit on. That inversion is the whole
-   * legibility gain: content floats forward instead of being cut out of the
-   * background.
+  /* ── Console surfaces ───────────────────────────────────────────────────────
+   * App / shell = graphite. Les BOXES (KPI, DashCard, StatCard) sont noires
+   * tokenisées via `--color-console-card` — pas du zinc ad hoc.
    */
   --color-console-app: #101010;
   --color-console-shell: #232323;
-  --color-console-card: #2a2a2a;
-  --color-console-card-top: #303030;
-  --color-console-inset: #202020;
-  --color-console-section: rgba(34, 34, 34, 0.82);
+  --color-console-card: #000000;
+  --color-console-card-top: #0a0a0a;
+  --color-console-inset: #0a0a0a;
+  --color-console-section: rgba(0, 0, 0, 0.82);
 
   /* Separators. Three weights, all pure white at low alpha — a tinted border
    * is the fastest way to smuggle a colour cast back into a neutral system. */
@@ -78,8 +69,8 @@
   --color-console-line: rgba(255, 255, 255, 0.13);
   --color-console-line-strong: rgba(255, 255, 255, 0.18);
 
-  /* The accent, at the one opacity the system uses for accent-tinted fills. */
-  --color-accent-soft: rgba(167, 251, 144, 0.12);
+  /* Voile de sélection (parcours, etc.) — mint de marque, très léger. */
+  --color-accent-soft: rgba(167, 251, 144, 0.1);
 
   /* ── Accent: HEARST MINT (hearstcorporation.io --mint-green) ───────────────
    * Monotone ramp (constant hue H≈107.1° — the brand mint), WCAG luminance

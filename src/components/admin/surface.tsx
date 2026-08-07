@@ -1,28 +1,17 @@
 /**
- * Surface grammar — the approved neutral-graphite system.
+ * Surface grammar — boxes tokenisées.
  *
- * A card is CHARCOAL ON GRAPHITE: `--bg-card` (#2a2a2a) sitting on the shell's
- * `--bg-shell` (#232323), one hairline border, one restrained shadow. It is
- * lighter than what it sits on, which is what makes the console legible — the
- * previous build cut cards out of the background as darker holes, and every
- * panel read as a recess.
- *
- * An inset is the opposite move, and the only one: `--bg-inset` (#202020) for
- * a block that genuinely sinks into a card. Nothing in this file introduces a
- * hue; the accent is applied deliberately, never as a surface tint.
+ * Les cartes KPI / DashCard / StatCard passent par `--color-console-card`
+ * (noir). Le chrome page reste graphite (`console-shell` / zinc). Aucun hex
+ * dans les composants : uniquement les classes token.
  */
 
-export const surfaceRaised =
-  'rounded-xl bg-white shadow-lg ring-1 ring-zinc-950/10 dark:bg-console-card dark:shadow-[0_10px_28px_rgba(0,0,0,0.24)] dark:ring-console-line'
+/** Box surface — noir tokenisé + filet console. */
+export const surfaceBox =
+  'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line'
 
-/*
- * Retirés le 2026-08-04 (LOT B) : `surfaceSunken`, `Panel` et `PanelHeading`.
- * Aucun appelant — les cinq modules qui importent ce fichier ne prennent que
- * `surfaceRaised` ou `RequirementList`. Attention en lisant l'historique : un
- * `Panel` homonyme et bien vivant existe dans
- * `components/layout/console.tsx` (une trentaine
- * d'importeurs) ; ce n'est pas celui-ci.
- */
+/** Alias historique — même matière que `surfaceBox` (produit dark-only). */
+export const surfaceRaised = surfaceBox
 
 /**
  * List of items a source still needs to provide.

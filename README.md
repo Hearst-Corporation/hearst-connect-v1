@@ -79,7 +79,7 @@ pnpm exec next build     # build prod (hors gate)
 
 ## Design system
 
-Tokens dans `src/styles/tailwind.css` (`@theme`). Accent mint Hearst (`--color-accent-*`). Thème sombre forcé (`class="dark"` sur `<html>`). Police Satoshi Variable partout. Texte blanc deep (`zinc-300/400/500` remappés sous `.dark`). Layout admin fluide (plus de `max-w-6xl`) : grilles en container queries / `auto-fit`.
+Tokens dans `src/styles/tailwind.css` (`@theme`). Accent mint Hearst (`--color-accent-*`). Thème sombre forcé (`class="dark"` sur `<html>`). Police Satoshi Variable partout. Texte blanc deep. Boxes KPI noires (`--color-console-card` / `surfaceBox`). Sélection parcours : voile `accent-soft`. Layout admin fluide.
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 
 ## Documentation

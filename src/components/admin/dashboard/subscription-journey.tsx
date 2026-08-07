@@ -199,15 +199,11 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
               className={clsx(
                 'group relative flex flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-accent-500',
-                'data-selected:bg-zinc-50 data-selected:ring-1 data-selected:ring-zinc-950/5 dark:data-selected:bg-zinc-800/60 dark:data-selected:ring-white/10',
-                'not-data-selected:data-hover:bg-zinc-950/2.5 dark:not-data-selected:data-hover:bg-white/5',
+                /* Voile mint léger — token accent-soft ; pas un aplat sur la box parente. */
+                'data-selected:bg-accent-soft data-selected:ring-1 data-selected:ring-accent-400/25',
+                'not-data-selected:data-hover:bg-white/5',
               )}
             >
-              {/* Marqueur d'étape active : filet accent discret sous l'onglet, jamais un aplat vert. */}
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-4 bottom-1 hidden h-0.5 rounded-full bg-accent-500 group-data-selected:block dark:bg-accent-400"
-              />
               {/* Connecteur vers l'étape précédente — visible seulement sur la rangée xl à 6 colonnes. */}
               {index > 0 ? (
                 <span
@@ -226,7 +222,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
                 )}
               >
                 <StepIcon className="size-5" aria-hidden="true" />
-                <span className="absolute -right-1 -bottom-1 inline-flex size-4 items-center justify-center rounded-full bg-white ring-1 ring-zinc-950/10 dark:bg-zinc-900 dark:ring-white/15">
+                <span className="absolute -right-1 -bottom-1 inline-flex size-4 items-center justify-center rounded-full bg-console-card ring-1 ring-console-line">
                   <StateGlyph
                     className={clsx(
                       'size-3',
