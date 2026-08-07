@@ -1,4 +1,4 @@
-import { surfaceRaised } from '@/components/admin/surface'
+import { surfaceBox, surfaceInset, surfaceRaised } from '@/components/admin/surface'
 import { sectionContentGap } from '@/lib/layout-tokens'
 import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, adminTypography } from '@/components/admin/typography'
 import { ProblemState, RequestMetadata, StatusBadge } from '@/components/admin/truthful'
@@ -64,7 +64,7 @@ export function AdminSection({
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
             <div className="flex items-baseline gap-3">
               {index ? (
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-zinc-200/80 text-[0.6875rem] font-semibold tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-console-inset text-[0.6875rem] font-semibold tabular-nums text-zinc-300 ring-1 ring-console-line-soft">
                   {index}
                 </span>
               ) : null}
@@ -102,7 +102,8 @@ export function AdminMetric({
     <div
       className={clsx(
         className,
-        'min-w-0 rounded-xl bg-console-card p-4 ring-1 ring-console-line',
+        surfaceBox,
+        'min-w-0 p-4',
       )}
     >
       <AdminLabel>{label}</AdminLabel>
@@ -137,7 +138,7 @@ export function AdminProbeResult({
   keeper?: KeeperActionResult | null
 }>) {
   return (
-    <div className="rounded-lg bg-zinc-50/80 dark:bg-console-inset p-3 ring-1 ring-zinc-950/10 dark:ring-console-line">
+    <div className={clsx(surfaceInset, 'p-3')}>
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>

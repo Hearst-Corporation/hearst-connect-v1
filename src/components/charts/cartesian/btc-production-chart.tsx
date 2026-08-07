@@ -1,6 +1,8 @@
 'use client'
 
+import { surfaceBox } from '@/components/admin/surface'
 import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import clsx from 'clsx'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -66,11 +68,11 @@ function ChartTooltip({
   if (active !== true || mois === undefined) return null
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
-      <p className="font-medium text-zinc-950 dark:text-white">{mois.libelle}</p>
-      <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">Produced this month: {mois.btcExact} BTC</p>
+    <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
+      <p className="font-medium text-white">{mois.libelle}</p>
+      <p className="mt-1 text-zinc-300 tabular-nums">Produced this month: {mois.btcExact} BTC</p>
       {mois.cumulExact === null ? null : (
-        <p className="mt-0.5 text-zinc-500 tabular-nums dark:text-zinc-400">
+        <p className="mt-0.5 text-zinc-400 tabular-nums">
           Cumulative to date: {mois.cumulExact} BTC
         </p>
       )}
