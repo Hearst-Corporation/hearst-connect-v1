@@ -28,11 +28,22 @@ describe('design system surfaces — canon dashboard', () => {
     const shell = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/shell.tsx'), 'utf8')
     const surfaces = readFileSync(join(process.cwd(), 'src/components/admin/surfaces.tsx'), 'utf8')
     const header = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/header.tsx'), 'utf8')
+    const pageHeader = readFileSync(join(process.cwd(), 'src/components/admin/page-header.tsx'), 'utf8')
     expect(shell).toContain('surfaceBox')
     expect(surfaces).toContain('surfaceBox')
-    expect(header).toContain('DashboardKpiMetrics')
-    expect(header).toContain('data-dashboard-kpi-bandeau')
-    expect(header).toContain('LogoMark')
+    expect(header).toContain('AdminPageHeader')
+    expect(pageHeader).toContain('data-dashboard-kpi-bandeau')
+    expect(pageHeader).toContain('LogoMark')
+  })
+
+  it('sidebar admin : lockup officiel Illustrator', () => {
+    const layout = readFileSync(
+      join(process.cwd(), 'src/components/admin/application-layout.tsx'),
+      'utf8',
+    )
+    const logo = readFileSync(join(process.cwd(), 'src/components/logo.tsx'), 'utf8')
+    expect(layout).toContain('HearstConnectLockupImage')
+    expect(logo).toContain('HEARST_CONNECT_LOCKUP_SRC')
   })
 
   it('parcours : sélection via surfaceSelect', () => {
@@ -90,9 +101,12 @@ describe('design system surfaces — canon dashboard', () => {
     expect(brand).toContain('/brand/console-glow.png')
     expect(brand).toContain('/brand/hearst-h.svg')
     expect(brand).toContain('/brand/hearst-connect.svg')
+    expect(brand).toContain('/brand/hearst-connect-dark.svg')
     expect(layout).toContain('CONSOLE_GLOW_SRC')
     expect(existsSync(join(process.cwd(), 'public/brand/console-glow.png'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'public/brand/hearst-h.svg'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'public/brand/hearst-connect.svg'))).toBe(true)
+    expect(existsSync(join(process.cwd(), 'public/brand/hearst-connect-dark.svg'))).toBe(true)
+    expect(existsSync(join(process.cwd(), 'public/brand/hearst-connect-official.svg'))).toBe(true)
   })
 })
