@@ -97,38 +97,36 @@ export function AdminDashboardPage({
     : []
   const showActivityCurve = activityPoints.length >= 2
   const activityNotConfigured = isAdminNotConfigured(data.activityTimeseries)
-  const marketSparse = isAdminNotConfigured(data.market) || !isAvailable(data.market)
-  const clientsSparse =
-    !isAvailable(data.recentClients) ||
-    (data.recentClients.kind === 'available' && data.recentClients.value.length === 0)
 
   return (
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
+      {/*
+       * Composition doctrine (HC-ADMIN-LAYOUT-RECOVERY-032):
+       * content-aware ≠ full-width. Sparse panels stay in their column so
+       * desktop keeps hierarchy (8/4, 7/5). Never promote a short card to
+       * col-span-12 just because a neighbour is empty.
+       */}
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[56rem]:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
           <DashCard
-            className="@[56rem]:col-span-8"
+            className="@[40rem]:col-span-8"
             title="Portfolio exposure"
             subtitle="Where capital is allocated vs target"
           >
             <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard className="@[56rem]:col-span-4" title="Rebalancing & alerts" subtitle="Drift and indexer">
+          <DashCard className="@[40rem]:col-span-4" title="Rebalancing & alerts" subtitle="Drift and indexer">
             <RebalancingAlertsPanel summary={data.rebalancing} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-12">
-          <DashCard
-            className={marketSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-7'}
-            title="Activity"
-            subtitle="Daily volume · 28 days"
-          >
+        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
+          <DashCard className="@[40rem]:col-span-7" title="Activity" subtitle="Daily volume · 28 days">
             {showActivityCurve ? (
               <HearstActivityChart points={activityPoints} unite="events" />
             ) : activityNotConfigured ? (
@@ -145,43 +143,39 @@ export function AdminDashboardPage({
             )}
           </DashCard>
 
-          <DashCard
-            className={marketSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-5'}
-            title="Market"
-            subtitle="Normalized snapshot"
-          >
+          <DashCard className="@[40rem]:col-span-5" title="Market" subtitle="Normalized snapshot">
             <MarketSnapshotPanel snapshot={data.market} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-12">
-          <DashCard
-            className={clientsSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-7'}
-            title="Vaults"
-            subtitle="Capital per vault"
-          >
+        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
+          <DashCard className="@[40rem]:col-span-7" title="Vaults" subtitle="Capital per vault">
             <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard
-            className={clientsSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-5'}
-            title="Recent clients"
-            subtitle="Exposure and Som KYC"
-          >
+          <DashCard className="@[40rem]:col-span-5" title="Recent clients" subtitle="Exposure and Som KYC">
             <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
           </DashCard>
         </div>
       </div>
 
-      <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
-        <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
-      </DashCard>
+      <div className="@container min-w-0">
+        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
+          <DashCard
+            className="@[40rem]:col-span-8"
+            title="Recent activity"
+            subtitle="Blockchain and subscription timeline"
+          >
+            <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+          </DashCard>
 
-      <DashCard title="Data health" subtitle="Source freshness">
-        <DataHealthGrid sources={data.dataHealth} />
-      </DashCard>
+          <DashCard className="@[40rem]:col-span-4" title="Data health" subtitle="Source freshness">
+            <DataHealthGrid sources={data.dataHealth} />
+          </DashCard>
+        </div>
+      </div>
     </DashboardShell>
   )
 }
