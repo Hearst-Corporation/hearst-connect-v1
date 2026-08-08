@@ -23,7 +23,7 @@ const INITIAL: CreateAdminUserOutcome = {
 
 const FIELD_CLASS = clsx(
   surfaceInset,
-  'mt-1 w-full px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
+  'mt-1 w-full px-2 py-1.5 text-sm text-ink dark:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
 )
 
 /**
@@ -72,7 +72,7 @@ export function CreateClientForm({
 
       <label className="block">
         <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
-          Type <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> to send the
+          Type <span className="font-mono text-warning-400">CONFIRM</span> to send the
           request
         </span>
         <input
@@ -89,10 +89,10 @@ export function CreateClientForm({
       </Button>
 
       {state.validationError ? (
-        <Text className="text-red-600 dark:text-red-400">{state.validationError}</Text>
+        <Text className="text-danger-400">{state.validationError}</Text>
       ) : null}
       {state.stateReason ? (
-        <Text className="text-amber-700 dark:text-amber-400">{state.stateReason}</Text>
+        <Text className="text-warning-400">{state.stateReason}</Text>
       ) : null}
       {state.problem ? (
         <div className="mt-2">

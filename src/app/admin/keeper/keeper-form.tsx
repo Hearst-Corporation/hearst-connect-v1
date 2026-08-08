@@ -17,7 +17,7 @@ import { useActionState } from 'react'
 function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }>) {
   const fieldClass = clsx(
     surfaceInset,
-    'mt-1 w-full px-2 py-1.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
+    'mt-1 w-full px-2 py-1.5 text-sm text-ink dark:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
   )
 
   return (
@@ -37,7 +37,7 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
 
       <label className="block">
         <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
-          Type <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> to send the
+          Type <span className="font-mono text-warning-400">CONFIRM</span> to send the
           request
         </span>
         <input
@@ -56,7 +56,7 @@ function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
   if (outcome.validationError) {
     return (
       <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
-        <p className="text-xs text-amber-600 dark:text-amber-400">{outcome.validationError}</p>
+        <p className="text-xs text-warning-400">{outcome.validationError}</p>
       </div>
     )
   }
@@ -103,7 +103,7 @@ export function KeeperForm({
       </div>
 
       {endpoint.caveat ? (
-        <p className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300">
+        <p className="mt-3 rounded-lg bg-warning-400/10 px-3 py-2 text-xs text-warning-400 ring-1 ring-warning-400/20">
           {endpoint.caveat}
         </p>
       ) : null}

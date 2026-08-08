@@ -36,7 +36,7 @@ export function LoginForm({
 
       <form action={formAction} className="grid grid-cols-1 gap-8">
       {notice ? (
-        <output className="block rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/20">
+        <output className="block rounded-lg bg-warning-400/10 px-4 py-3 text-sm text-warning-400 ring-1 ring-warning-400/20">
           {notice}
         </output>
       ) : null}

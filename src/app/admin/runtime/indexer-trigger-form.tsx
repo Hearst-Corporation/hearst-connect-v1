@@ -34,13 +34,13 @@ export function IndexerTriggerForm() {
         {pending ? 'Triggering…' : 'Run indexer'}
       </Button>
       {state.validationError ? (
-        <Text className="text-red-600 dark:text-red-400">{state.validationError}</Text>
+        <Text className="text-danger-400">{state.validationError}</Text>
       ) : null}
       {state.stateReason ? (
-        <Text className="text-amber-700 dark:text-amber-400">{state.stateReason}</Text>
+        <Text className="text-warning-400">{state.stateReason}</Text>
       ) : null}
       {state.problem ? (
-        <Text className="text-amber-700 dark:text-amber-400">
+        <Text className="text-warning-400">
           {state.problem.title}
           {state.problem.detail ? ` — ${state.problem.detail}` : ''}
         </Text>
