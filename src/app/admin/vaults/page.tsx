@@ -106,27 +106,57 @@ function valueByVaultRows(vaults: Availability<readonly Vault[]>) {
 }
 
 /** Converts strategy allocations to donut slices showing actual dollar value.
- *  Total NAV × actualBps / 10000 for each strategy. Remainder is "Idle / Non déployé".
- *  Values are in dollars (not bps), so the chart shows real capital at work. */
-function strategySlices(strategies: readonly Strategy[], totalAssetsAtomic: string | null): readonly DonutSlice[] {
-  if (totalAssetsAtomic === null) return []
-  const total = Number(totalAssetsAtomic)
-  if (!Number.isFinite(total) || total <= 0) return []
+ *
+ * Uses `assetsAtomic` when the backend publishes a real pocket balance that
+ * agrees with the strategy's share. Falls back to `totalAssetsAtomic × bps`
+ * only when no real balance is available.
+ *
+ * The vault may hold multiple assets (USDC + cbBTC). `totalAssetsAtomic`
+ * tracks the vault's denomination asset; cbBTC is held off-book and reported
+ * via `assetsAtomic` on the cbBTC strategy. A bps-based estimate would
+ * misattribute cbBTC value, so `assetsAtomic` is preferred.
+ */
+function strategySlices(
+  strategies: readonly Strategy[],
+  totalAssetsAtomic: string | null,
+  assetDecimals: number,
+): readonly DonutSlice[] {
+  const total = totalAssetsAtomic !== null ? Number(totalAssetsAtomic) : null
+  const hasTotal = total !== null && Number.isFinite(total) && total > 0
 
-  const scale = total / 10_000 // one basis point in atomic units
+  const scale = 10 ** assetDecimals
 
-  const slices: DonutSlice[] = strategies
-    .map((s) => ({
-      label: s.label,
-      value: Math.round((s.actualBps ?? s.targetBps ?? 0) * scale),
-    }))
-    .filter((s) => s.value > 0)
+  const slices: DonutSlice[] = []
+  let deployed = 0
 
-  const deployed = slices.reduce((sum, s) => sum + s.value, 0)
-  const idle = Math.round(total - deployed)
+  for (const s of strategies) {
+    // Prefer real pocket balance when available
+    const realValue = isAvailable(s.assetsAtomic) ? valueOf(s.assetsAtomic) : null
+    if (realValue !== null) {
+      const n = Number(realValue)
+      if (Number.isFinite(n) && n > 0) {
+        slices.push({ label: s.label, value: Math.round(n) })
+        deployed += n
+        continue
+      }
+    }
 
-  if (idle > 0) {
-    slices.push({ label: 'Idle / Non déployé', value: idle })
+    // Fallback: estimate from totalAssets × bps (only when total is known)
+    if (hasTotal) {
+      const bps = s.actualBps ?? s.targetBps ?? 0
+      const estimate = Math.round((total! * bps) / 10_000)
+      if (estimate > 0) {
+        slices.push({ label: s.label, value: estimate })
+        deployed += estimate
+      }
+    }
+  }
+
+  if (hasTotal) {
+    const idle = Math.round(total! - deployed)
+    if (idle > 0) {
+      slices.push({ label: 'Idle / Non déployé', value: idle })
+    }
   }
 
   return slices
@@ -302,7 +332,9 @@ export default async function Page() {
             const strategies = valueOf(vault.strategies)
             const hasStrategies = isAvailable(vault.strategies) && strategies !== null && strategies.length > 0
             const totalAssets = valueOf(vault.totalAssetsAtomic)
-            const slices = hasStrategies ? strategySlices(strategies, totalAssets) : []
+            const asset = valueOf(vault.asset)
+            const assetDecimals = asset?.decimals ?? 6
+            const slices = hasStrategies ? strategySlices(strategies, totalAssets, assetDecimals) : []
             return (
               <ChartFrame
                 key={vault.id}
