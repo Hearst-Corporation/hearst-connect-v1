@@ -154,6 +154,15 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'DB-only read model — indexer is the sole writer.',
   }),
   defineEndpoint({
+    id: 'vault-strategy-history',
+    path: '/api/v1/vault/strategy-history',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin/vaults',
+    summary: 'Historical vault strategy snapshots — total assets and per-pocket balances over time.',
+    caveat: 'Time-series from scheduler snapshots — one row per tick.',
+  }),
+  defineEndpoint({
     id: 'rebalancing-history',
     path: '/api/v1/rebalancing/history',
     category: 'business',
