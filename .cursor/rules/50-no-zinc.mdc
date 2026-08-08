@@ -1,0 +1,39 @@
+---
+description: DESIGN SYSTEM — Zinc palette is permanently forbidden
+globs:
+alwaysApply: true
+---
+
+# DESIGN SYSTEM RULE — NO ZINC
+
+Hearst Connect must **never** use Tailwind's Zinc palette.
+
+## Forbidden
+
+- `text-zinc-*`, `bg-zinc-*`, `border-zinc-*`, `ring-zinc-*`, `divide-zinc-*`
+- `shadow-zinc-*`, `fill-zinc-*`, `stroke-zinc-*`, `from-zinc-*`, `to-zinc-*`, `via-zinc-*`
+- Literals / variants: `'zinc'`, `"zinc"`, `zinc:`, `dark/zinc`, `color="zinc"`
+- CSS variables: `--color-zinc-*`
+- Any frontend-owned identifier containing `zinc`
+
+Do **not** use Zinc as a neutral fallback. Do **not** replace Zinc with another Tailwind
+structural palette (`slate-*`, `gray-*`, `neutral-50`…`neutral-950` utilities).
+
+## Required
+
+All neutral surfaces / text / borders use Hearst semantic tokens from
+`src/styles/tailwind.css`:
+
+| Role | Tokens |
+|---|---|
+| Text | `fg`, `fg-secondary`, `fg-tertiary`, `fg-muted`, `ink` |
+| Surfaces | `console-app`, `console-main`, `console-shell`, `console-surface`, `console-kpi`, `console-raised`, `console-fill`, `console-fill-muted`, `console-card`, `console-inset`, `console-line*` |
+| Accent / status | `accent-*`, `success-*`, `warning-*`, `danger-*` |
+
+Badge / button neutral variant name: **`neutral`** (semantic), never `zinc`.
+
+## Gate
+
+`pnpm run check:no-zinc` (`scripts/check-no-zinc.mjs`) — blocking in `pnpm check`.
+
+This is a permanent project rule, not a one-time migration.

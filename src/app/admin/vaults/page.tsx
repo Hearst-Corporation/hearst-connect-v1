@@ -267,7 +267,7 @@ export default async function Page() {
                     <Link href={entityHref('vault', vault.id)} className="font-medium">
                       {vault.label}
                     </Link>
-                    <div className="mt-0.5 font-mono text-xs text-zinc-500" title={vault.contractAddress}>
+                    <div className="mt-0.5 font-mono text-xs text-fg-tertiary" title={vault.contractAddress}>
                       {vaultShortAddress(vault)}
                     </div>
                   </TableCell>
@@ -287,7 +287,7 @@ export default async function Page() {
                   <TableCell>
                     <AdminReading value={vaultAmount(vault, deployedAtomic(vault))} />
                     {deployedBps === null ? null : (
-                      <div className="mt-0.5 text-xs text-zinc-500">
+                      <div className="mt-0.5 text-xs text-fg-tertiary">
                         {formatPercent(deployedBps, { fromBps: true })} of total
                       </div>
                     )}
@@ -300,13 +300,13 @@ export default async function Page() {
                       const cbbtcStrategy = strategies?.find(
                         (s) => s.label.toLowerCase().includes('btc') || s.pocket.toLowerCase().includes('btc')
                       )
-                      if (!cbbtcStrategy) return <span className="text-zinc-500">—</span>
+                      if (!cbbtcStrategy) return <span className="text-fg-tertiary">—</span>
                       const balance = valueOf(cbbtcStrategy.assetsAtomic)
-                      if (balance === null) return <span className="text-zinc-500">—</span>
+                      if (balance === null) return <span className="text-fg-tertiary">—</span>
                       return (
                         <div>
                           <span className="tabular-nums font-medium">{formatNumber(Number(balance) / 1e8, { maximumFractionDigits: 4 })}</span>
-                          <span className="text-xs text-zinc-500 ml-1">cbBTC</span>
+                          <span className="text-xs text-fg-tertiary ml-1">cbBTC</span>
                         </div>
                       )
                     })()}
@@ -329,9 +329,9 @@ export default async function Page() {
                     {!isAvailable(vault.rebalancing) ? (
                       <AdminReading value={absentReading(vault.rebalancing)} />
                     ) : rebalancing!.lastRebalanceAt === null ? (
-                      <span className="text-zinc-500">Not reported</span>
+                      <span className="text-fg-tertiary">Not reported</span>
                     ) : (
-                      <span className="tabular-nums text-zinc-600 dark:text-zinc-300">
+                      <span className="tabular-nums text-console-fill dark:text-fg">
                         {formatRelativeTime(rebalancing!.lastRebalanceAt)}
                       </span>
                     )}

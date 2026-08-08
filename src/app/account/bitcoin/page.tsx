@@ -270,18 +270,18 @@ export default async function Page() {
                             title="Does the exposed share meet its target?"
                             hint="Comparison between the contract target share and the on-chain observed share"
                           />
-                          <ul className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                          <ul className="divide-y divide-console-line-soft">
                             <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                              <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Exposed pocket</span>
-                              <span className="min-w-0 flex-1 text-zinc-950 dark:text-white">{pouchLabel}</span>
+                              <span className="w-32 shrink-0 text-fg-tertiary dark:text-fg-secondary">Exposed pocket</span>
+                              <span className="min-w-0 flex-1 text-ink dark:text-fg">{pouchLabel}</span>
                             </li>
                             <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                              <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Target share</span>
-                              <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">{partLisible(expositionValue?.targetBps)}</span>
+                              <span className="w-32 shrink-0 text-fg-tertiary dark:text-fg-secondary">Target share</span>
+                              <span className="min-w-0 flex-1 text-ink tabular-nums dark:text-white">{partLisible(expositionValue?.targetBps)}</span>
                             </li>
                             <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm sm:px-6">
-                              <span className="w-32 shrink-0 text-zinc-500 dark:text-zinc-400">Observed share</span>
-                              <span className="min-w-0 flex-1 text-zinc-950 tabular-nums dark:text-white">{partLisible(expositionValue?.actualBps)}</span>
+                              <span className="w-32 shrink-0 text-fg-tertiary dark:text-fg-secondary">Observed share</span>
+                              <span className="min-w-0 flex-1 text-ink tabular-nums dark:text-white">{partLisible(expositionValue?.actualBps)}</span>
                             </li>
                           </ul>
                         </Panel>

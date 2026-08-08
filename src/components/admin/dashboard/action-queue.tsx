@@ -53,10 +53,10 @@ const KIND_LABEL: Record<string, string> = {
   transaction: 'Transaction',
 }
 
-const SEVERITY_BADGE: Record<PriorityQueueRow['severity'], { color: 'red' | 'amber' | 'zinc'; label: string }> = {
+const SEVERITY_BADGE: Record<PriorityQueueRow['severity'], { color: 'red' | 'amber' | 'neutral'; label: string }> = {
   critique: { color: 'red', label: 'Critical' },
   important: { color: 'amber', label: 'Important' },
-  information: { color: 'zinc', label: 'Information' },
+  information: { color: 'neutral', label: 'Information' },
 }
 
 function Chip({ tone, count, label }: Readonly<{ tone: 'danger' | 'warning' | 'accent'; count: number; label: string }>) {
@@ -79,11 +79,11 @@ function EmptyState({ tone, title, subline }: Readonly<{ tone: 'calm' | 'unavail
   return (
     <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
       <Icon
-        className={clsx('size-8', tone === 'calm' ? 'text-accent-500 dark:text-accent-400' : 'text-zinc-300 dark:text-zinc-600')}
+        className={clsx('size-8', tone === 'calm' ? 'text-accent-500 dark:text-accent-400' : 'text-fg dark:text-console-fill')}
         aria-hidden="true"
       />
-      <p className="mt-2 text-sm font-semibold text-zinc-950 dark:text-white">{title}</p>
-      <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{subline}</p>
+      <p className="mt-2 text-sm font-semibold text-ink dark:text-fg">{title}</p>
+      <p className="mt-0.5 text-xs text-fg-tertiary dark:text-fg-secondary">{subline}</p>
     </div>
   )
 }
@@ -149,19 +149,19 @@ function ActionQueueBody({
       <div className={clsx(surfaceInset, 'p-4')}>
         <div className="flex items-center justify-between gap-2">
           <Badge color={primaryBadge.color}>{primaryBadge.label}</Badge>
-          <span className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-fg-tertiary dark:text-fg-secondary">
             {KIND_LABEL[primary.kind] ?? primary.kind}
           </span>
         </div>
-        <p className="mt-2 truncate text-sm font-semibold text-zinc-950 dark:text-white">{primary.clientLabel}</p>
+        <p className="mt-2 truncate text-sm font-semibold text-ink dark:text-fg">{primary.clientLabel}</p>
         <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
           <div className="min-w-0">
-            <dt className="text-zinc-500 dark:text-zinc-400">Issue</dt>
-            <dd className="truncate font-medium text-zinc-800 dark:text-zinc-200">{primaryProblem}</dd>
+            <dt className="text-fg-tertiary dark:text-fg-secondary">Issue</dt>
+            <dd className="truncate font-medium text-console-raised dark:text-fg-secondary">{primaryProblem}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-zinc-500 dark:text-zinc-400">Age</dt>
-            <dd className="truncate font-medium text-zinc-800 dark:text-zinc-200">{primary.ageLabel}</dd>
+            <dt className="text-fg-tertiary dark:text-fg-secondary">Age</dt>
+            <dd className="truncate font-medium text-console-raised dark:text-fg-secondary">{primary.ageLabel}</dd>
           </div>
         </dl>
         <div className="mt-3">
@@ -189,8 +189,8 @@ function ActionQueueBody({
                   <Icon className="size-4" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">{row.clientLabel}</p>
-                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="truncate text-sm font-medium text-ink dark:text-fg">{row.clientLabel}</p>
+                  <p className="truncate text-xs text-fg-tertiary dark:text-fg-secondary">
                     {problem} · {row.ageLabel}
                   </p>
                 </div>
@@ -206,7 +206,7 @@ function ActionQueueBody({
       ) : null}
 
       {remaining > 0 ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs text-fg-tertiary dark:text-fg-secondary">
           +{remaining} other{remaining > 1 ? 's' : ''} in queue.
         </p>
       ) : null}

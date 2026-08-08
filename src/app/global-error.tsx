@@ -37,7 +37,7 @@ export default function GlobalError({
           <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 8px', color: 'var(--color-white, #ffffff)' }}>
             Hearst Connect is temporarily unavailable
           </h1>
-          <p style={{ color: 'var(--color-zinc-400, #f2f2f2)', fontSize: '0.95rem', margin: '0 0 20px' }}>
+          <p style={{ color: 'var(--color-fg-secondary, #f2f2f2)', fontSize: '0.95rem', margin: '0 0 20px' }}>
             An unexpected error prevented the page from rendering. Try again in a moment.
           </p>
           {error.digest ? (
@@ -45,7 +45,7 @@ export default function GlobalError({
               style={{
                 fontFamily: "'Satoshi', ui-sans-serif, system-ui, sans-serif",
                 fontSize: '0.75rem',
-                color: 'var(--color-zinc-500, #e0e0e0)',
+                color: 'var(--color-fg-tertiary, #e0e0e0)',
                 margin: '0 0 20px',
               }}
             >

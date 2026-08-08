@@ -342,7 +342,7 @@ export default async function Page() {
                 <TableRow key={m.id}>
                   <TableCell>
                     <div className="font-medium">{phraseMouvement(m.eventName)}</div>
-                    <div className="text-xs text-zinc-500">{libelleMouvement(m.eventName)}</div>
+                    <div className="text-xs text-fg-tertiary">{libelleMouvement(m.eventName)}</div>
                   </TableCell>
                   <TableCell>{m.assetAmountAtomic ? montantUsdc(m.assetAmountAtomic) : '—'}</TableCell>
                   <TableCell className="font-mono text-sm">{adresseCourte(m.investorAddress) ?? '—'}</TableCell>
@@ -381,7 +381,7 @@ export default async function Page() {
                 <TableRow key={`${m.txHash}-${m.logIndex}`}>
                   <TableCell>
                     <div className="font-medium">{phraseMouvement(m.name)}</div>
-                    <div className="text-xs text-zinc-500">{libelleMouvement(m.name)}</div>
+                    <div className="text-xs text-fg-tertiary">{libelleMouvement(m.name)}</div>
                   </TableCell>
                   <TableCell>{m.amount ? montantUsdc(m.amount) : '—'}</TableCell>
                   <TableCell className="font-mono text-sm">{adresseCourte(m.actor) ?? '—'}</TableCell>

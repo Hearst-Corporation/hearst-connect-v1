@@ -400,7 +400,7 @@ export default async function Page({ params }: PageProps) {
                   <TableCell>
                     Indexed
                     {movement.indexedAt === null ? null : (
-                      <div className="text-xs text-zinc-500" title={formatDateTime(movement.indexedAt)}>
+                      <div className="text-xs text-fg-tertiary" title={formatDateTime(movement.indexedAt)}>
                         {formatRelativeTime(movement.indexedAt)}
                       </div>
                     )}
@@ -505,7 +505,7 @@ export default async function Page({ params }: PageProps) {
                 </TableCell>
                 <TableCell>
                   <div className="font-medium">{ISSUE_LABEL[row.issue]}</div>
-                  <div className="text-xs text-zinc-500">{ISSUE_SENTENCE[row.issue]}</div>
+                  <div className="text-xs text-fg-tertiary">{ISSUE_SENTENCE[row.issue]}</div>
                 </TableCell>
                 <TableCell>
                   {row.relatedVaultId === null ? (

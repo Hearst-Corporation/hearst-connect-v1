@@ -14,9 +14,9 @@ import { csl } from './console'
  *
  * ── Pourquoi il y a un `dark` ici, et pourquoi il est OBLIGATOIRE ──────────
  * Toute la composition est faite de composants Catalyst, et Catalyst déclare
- * ses couleurs en paires `text-zinc-950 dark:text-white`. Sans ancêtre `.dark`,
- * c'est la branche CLAIRE qui gagne : `zinc-950` (#020611) posé sur un panneau
- * à #020203, soit un ratio de 1.01:1 — du texte littéralement invisible. Mesuré
+ * ses couleurs en paires `text-ink dark:text-fg`. Sans ancêtre `.dark`,
+ * c'est la branche CLAIRE qui gagne : `text-ink` posé sur un panneau
+ * quasi noir, soit un ratio proche de 1:1 — du texte littéralement invisible. Mesuré
  * sur cette page : 39 échecs de contraste, 102 éléments concernés, dont les
  * trois vrais points de la table d'activité et les six comptes de mouvement.
  *

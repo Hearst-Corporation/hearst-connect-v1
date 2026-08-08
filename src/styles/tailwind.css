@@ -25,24 +25,15 @@
   /*
    * Retirées le 2026-08-04 (LOT E) : les familles `--color-brand-*` (8 tokens)
    * et `--color-neutral-*` (4). Elles portaient l'ancien thème « or Hearst »
-   * et un doublon de la rampe zinc ; aucune n'avait de consommateur, et leurs
-   * valeurs étaient déjà déclarées ailleurs (#a7fb90 vivait sous quatre noms).
-   * L'accent unique est la rampe `--color-accent-*`, les surfaces sont
-   * `--color-console-*`, les états sont success/warning/danger.
+   * et un doublon d'une ancienne rampe structurelle ; aucune n'avait de
+   * consommateur, et leurs valeurs étaient déjà déclarées ailleurs
+   * (#a7fb90 vivait sous quatre noms). L'accent unique est la rampe
+   * `--color-accent-*`, les surfaces sont `--color-console-*`, le texte
+   * `--color-fg*` / `--color-ink`, les états sont success/warning/danger.
+   *
+   * Structural Tailwind neutrals are forbidden project-wide — see the alwaysApply
+   * Cursor design rule and `pnpm run check:no-zinc`.
    */
-
-  /* Rampe zinc = valeurs Catalyst / Tailwind par défaut (dark mode natif). */
-  --color-zinc-50: #fafafa;
-  --color-zinc-100: #f4f4f5;
-  --color-zinc-200: #e4e4e7;
-  --color-zinc-300: #d4d4d8;
-  --color-zinc-400: #a1a1aa;
-  --color-zinc-500: #71717a;
-  --color-zinc-600: #52525b;
-  --color-zinc-700: #3f3f46;
-  --color-zinc-800: #27272a;
-  --color-zinc-900: #18181b;
-  --color-zinc-950: #09090b;
 
   /*
    * Retirées le 2026-08-04 (LOT E) : la famille `--color-surface-*` (4 tokens),
@@ -52,14 +43,28 @@
    * les filets sont `--color-console-line*`.
    */
 
+  /* ── Text hierarchy (Hearst semantic) ────────────────────────────────────── */
+  --color-fg: #f3f5f2;
+  --color-fg-secondary: #a8aea9;
+  --color-fg-tertiary: #737a75;
+  --color-fg-muted: #5c635e;
+  /* Encre sombre — texte / filets sur surfaces claires (Catalyst light branch). */
+  --color-ink: #0b0f10;
+
   /* ── Console surfaces ───────────────────────────────────────────────────────
-   * App / shell = graphite. Les BOXES (DashCard, StatCard, Panel) sont en VERRE :
-   * `--color-console-card` = face translucide + blur côté classe.
+   * App / shell = graphite olive. Les BOXES (DashCard, StatCard, Panel) sont en
+   * VERRE : `--color-console-card` = face translucide + blur côté classe.
    * Les KPI du header `/admin` sont du texte dans le bandeau, pas des boxes.
    * Un fond lumineux (PNG) derrière le shell doit transparaître.
    */
-  --color-console-app: #101010;
-  --color-console-shell: #232323;
+  --color-console-app: #0b0f10;
+  --color-console-main: #101516;
+  --color-console-shell: #060908;
+  --color-console-surface: #151b1b;
+  --color-console-kpi: #1c211f;
+  --color-console-raised: #232a26;
+  --color-console-fill: #39413b;
+  --color-console-fill-muted: #292f2b;
   /* Face vitrée des boxes — translucide pour laisser passer le glow. */
   --color-console-card: rgba(0, 0, 0, 0.28);
   --color-console-card-top: rgba(10, 10, 10, 0.38);
@@ -92,7 +97,7 @@
    *   300    #a7fb90   0.7922      1.25        16.84  ✅ background + black ink
    *   400    #88ef6c   0.6805      1.44        14.61  ✅ background + black ink
    *                                                   ✅ text on dark background
-   *                                                      (13.8:1 on zinc-950)
+   *                                                      (13.8:1 on --color-ink)
    *   500    #63db43   0.5372      1.79        11.74  ✅ background + black ink
    *   600    #33801e   0.1624      4.94 ✅AA     4.25  ← button bg, white text
    *                                                   ✅ text on white background
@@ -157,17 +162,17 @@
    * réintroduit : ces tokens pointent sur les couleurs canoniques déjà définies.
    */
   --chart-1: var(--color-accent-400);
-  --chart-2: var(--color-zinc-300);
-  --chart-3: var(--color-zinc-400);
-  --chart-4: var(--color-zinc-500);
-  --chart-5: var(--color-zinc-600);
+  --chart-2: var(--color-fg-secondary);
+  --chart-3: var(--color-fg-tertiary);
+  --chart-4: var(--color-fg-muted);
+  --chart-5: var(--color-console-fill);
   --chart-positive: var(--color-success-400);
   --chart-negative: var(--color-danger-400);
   --chart-warning: var(--color-warning-400);
-  --chart-neutral: var(--color-zinc-500);
-  --chart-grid: var(--color-zinc-500);
-  --chart-axis: var(--color-zinc-500);
-  --chart-tooltip-surface: var(--color-zinc-800);
+  --chart-neutral: var(--color-fg-tertiary);
+  --chart-grid: var(--color-fg-tertiary);
+  --chart-axis: var(--color-fg-tertiary);
+  --chart-tooltip-surface: var(--color-console-raised);
 
   /*
    * Alias `--color-hearst-*` / `--color-cockpit-*` retirés (2026-08-04 LOT E +
@@ -203,33 +208,10 @@
 }
 
 /*
- * Produit dark-only — rampe zinc graphite + texte blanc deep.
- *
- * Catalyst parle zinc : on redéfinit ce que zinc signifie sous `.dark`
- * (toujours posé sur <html>), plutôt que de réécrire des centaines de classes.
- *
- * Texte (blanc deep) :
- *   zinc-300  #ffffff  corps / lecture principale
- *   zinc-400  #f2f2f2  secondaire
- *   zinc-500  #e0e0e0  légendes / faint
- *
- * Surfaces (graphite neutre, sans cast bleu) :
- *   zinc-950  #101010  app
- *   zinc-900  #2a2a2a  card
- *   zinc-800  #303030  card top
+ * Produit dark-only — tokens sémantiques Hearst (fg / ink / console-*).
+ * Aucune rampe structurelle Tailwind sous `.dark`.
  */
 .dark {
-  --color-zinc-50: #fafafa;
-  --color-zinc-100: #f2f2f2;
-  --color-zinc-200: #e8e8e8;
-  --color-zinc-300: #ffffff;
-  --color-zinc-400: #f2f2f2;
-  --color-zinc-500: #e0e0e0;
-  --color-zinc-600: #6b6b6b;
-  --color-zinc-700: #3d3d3d;
-  --color-zinc-800: #303030;
-  --color-zinc-900: #2a2a2a;
-  --color-zinc-950: #101010;
   --color-black: #000000;
   --color-white: #ffffff;
 

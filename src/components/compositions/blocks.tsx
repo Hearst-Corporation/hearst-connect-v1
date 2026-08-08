@@ -53,7 +53,7 @@ const DELTA_TONE_CLASS: Record<DeltaTone, string> = {
   // le neutre par le gris de texte secondaire du kit. Aucun hex.
   positive: 'text-accent-400',
   negative: 'text-danger-400',
-  neutral: 'text-zinc-400',
+  neutral: 'text-fg-secondary',
 }
 
 const DELTA_GLYPH: Record<DeltaTone, string> = {
@@ -202,7 +202,7 @@ export function SectionCard({
         <div className={csl.heroHead}>
           <div className="min-w-0 flex-1">
             {eyebrow !== undefined && eyebrow !== '' && (
-              <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-zinc-500')}>{eyebrow}</p>
+              <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
             )}
             <Tag className={csl.cardTitle}>{title}</Tag>
             {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
@@ -267,7 +267,7 @@ export function DataTableShell({
       hint={description}
       tone="wave"
       className={className}
-      actions={count !== undefined && count !== '' ? <Badge color="zinc">{count}</Badge> : undefined}
+      actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
     >
       {body}
     </SectionCard>
@@ -293,7 +293,7 @@ export type CalloutTone = 'info' | 'success' | 'warning' | 'danger'
 
 const CALLOUT_TONE_CLASS: Record<CalloutTone, string> = {
   // Aplat /10, filet gauche plein, texte au palier lisible de chaque rampe.
-  info: 'bg-white/5 border-l-zinc-500 text-zinc-300',
+  info: 'bg-white/5 border-l-fg-tertiary text-fg',
   success: 'bg-success-400/10 border-l-success-400 text-success-300',
   warning: 'bg-warning-400/10 border-l-warning-400 text-warning-300',
   danger: 'bg-danger-400/10 border-l-danger-400 text-danger-300',

@@ -70,7 +70,7 @@ export function SourceStatusGrid({
                   t === 'bad' && 'bg-danger-500',
                 )}
               />
-              <p className="text-xs/5 font-semibold text-zinc-950 dark:text-white">{label}</p>
+              <p className="text-xs/5 font-semibold text-ink dark:text-fg">{label}</p>
             </div>
             <Text className="mt-2 text-xs">{freshness}</Text>
           </li>

@@ -24,15 +24,15 @@ function VaultCard({ vault }: Readonly<{ vault: AdminVaultSummary }>) {
 
   return (
     <article className={clsx(surfaceInset, 'flex flex-col gap-2 p-4')}>
-      <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">{vault.label}</h3>
-      <p className="text-xl font-semibold tabular-nums text-zinc-950 dark:text-white">
+      <h3 className="text-sm font-semibold text-ink dark:text-fg">{vault.label}</h3>
+      <p className="text-xl font-semibold tabular-nums text-ink dark:text-fg">
         {formatCurrency(vault.totalAssetsAtomic, { fromAtomic: 1_000_000 })}
       </p>
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-fg-tertiary">
         {deployedLine}
         {availableLine !== null ? ` · ${availableLine}` : null}
       </p>
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-fg-tertiary">
         {vault.strategiesCount} strateg{vault.strategiesCount > 1 ? 'ies' : 'y'}
         {vault.maxDriftBps !== null
           ? ` · Worst drift ${driftPts(vault.maxDriftBps)}`
@@ -49,10 +49,10 @@ export function VaultsPanel({ vaults }: Readonly<{ vaults: Availability<readonly
   const reduced = useReducedMotion()
 
   if (!isAvailable(vaults)) {
-    return <p className="text-sm text-zinc-500">Data unavailable</p>
+    return <p className="text-sm text-fg-tertiary">Data unavailable</p>
   }
   if (vaults.value.length === 0) {
-    return <p className="text-sm text-zinc-500">Source unavailable</p>
+    return <p className="text-sm text-fg-tertiary">Source unavailable</p>
   }
 
   const grid = (

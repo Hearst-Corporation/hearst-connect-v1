@@ -198,7 +198,7 @@ export default async function Page() {
       </Text>
 
       <SectionCard title="Missing at source" tone="plain">
-        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
           {MISSING_FROM_SOURCE.map((item) => (
             <li key={item}>{item}</li>
           ))}

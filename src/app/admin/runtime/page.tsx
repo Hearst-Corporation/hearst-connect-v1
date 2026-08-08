@@ -278,7 +278,7 @@ export default async function RuntimePage() {
       </SectionCard>
 
       <div className="space-y-4">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-fg-muted dark:text-fg-secondary">
           The summary tiles below reflect the state declared by the{' '}
           <span className="font-mono">/api/v1/dashboard</span> : when that state is unavailable, they
           show &quot;Unavailable&quot;. Per-surface detail lists fields actually present in
@@ -294,9 +294,9 @@ export default async function RuntimePage() {
       >
         <div className="space-y-6">
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-zinc-500">Runtime</h3>
+            <h3 className="text-sm font-semibold text-fg-tertiary">Runtime</h3>
             {runtime.ok ? (
-              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
+              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
                 {jsonLisible(runtime.data)}
               </pre>
             ) : (
@@ -305,9 +305,9 @@ export default async function RuntimePage() {
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-zinc-500">Health (health)</h3>
+            <h3 className="text-sm font-semibold text-fg-tertiary">Health (health)</h3>
             {health.ok ? (
-              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
+              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
                 {jsonLisible(health.data)}
               </pre>
             ) : (
@@ -316,9 +316,9 @@ export default async function RuntimePage() {
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-zinc-500">Ready</h3>
+            <h3 className="text-sm font-semibold text-fg-tertiary">Ready</h3>
             {ready.ok ? (
-              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
+              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
                 {jsonLisible(ready.data)}
               </pre>
             ) : (

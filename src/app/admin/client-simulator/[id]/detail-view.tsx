@@ -187,7 +187,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <SimulatedBadge />
-            <span className="font-mono text-sm text-zinc-500 dark:text-zinc-400">{id}</span>
+            <span className="font-mono text-sm text-fg-tertiary dark:text-fg-secondary">{id}</span>
           </div>
           <Text>
             Ce compte a été créé via POST /api/v1/admin/users. Le service ne restitue jamais son mot de
@@ -199,7 +199,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       {/* ── LIENS de navigation ──────────────────────────────────── */}
       <SectionCard title="Poursuivre" tone="plain">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge color="zinc">Simulateur</Badge>
+          <Badge color="neutral">Simulateur</Badge>
           <Text>
             <Link href="/admin/client-simulator/new" className="underline">
               Créer un autre client simulé

@@ -100,7 +100,7 @@ export default async function Page() {
       </SectionCard>
 
       <SectionCard title="Request fields" hint="What POST /api/v1/admin/users expects." tone="plain">
-        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
           {CHAMPS_REQUIS.map((champ) => (
             <li key={champ}>{champ}</li>
           ))}
@@ -108,7 +108,7 @@ export default async function Page() {
       </SectionCard>
 
       <SectionCard title="What is not returned" hint="Simulator veracity rule." tone="plain">
-        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
           {NON_RESTITUE.map((item) => (
             <li key={item}>{item}</li>
           ))}

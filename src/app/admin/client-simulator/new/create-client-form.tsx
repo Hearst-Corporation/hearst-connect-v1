@@ -46,12 +46,12 @@ export function CreateClientForm({
   return (
     <form action={action} className="space-y-4">
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Email</span>
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Email</span>
         <input name="email" type="email" required autoComplete="off" className={FIELD_CLASS} />
       </label>
 
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Password — min. 8 characters</span>
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Password — min. 8 characters</span>
         <input
           name="password"
           type="password"
@@ -63,7 +63,7 @@ export function CreateClientForm({
       </label>
 
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Role</span>
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Role</span>
         <select name="role" required defaultValue="investor" className={FIELD_CLASS}>
           <option value="investor">investor — simulated client</option>
           <option value="admin">admin</option>
@@ -71,7 +71,7 @@ export function CreateClientForm({
       </label>
 
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
           Saisissez <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> pour envoyer la
           requête
         </span>
@@ -84,7 +84,7 @@ export function CreateClientForm({
         />
       </label>
 
-      <Button type="submit" disabled={pending} color="dark/zinc">
+      <Button type="submit" disabled={pending} color="dark/neutral">
         {pending ? 'Creating…' : 'Create account'}
       </Button>
 
@@ -119,7 +119,7 @@ export function CreateClientForm({
             </Text>
           ) : null}
           {state.detail ? (
-            <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-zinc-300')}>
+            <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-fg')}>
               {state.detail}
             </pre>
           ) : null}

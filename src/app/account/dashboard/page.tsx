@@ -76,13 +76,13 @@ const TIER_EXPLANATION: Record<CoverageTier, string> = {
 const TIER_DOT: Record<CoverageTier, string> = {
   served: 'bg-success-500',
   partial: 'bg-warning-500',
-  notOpened: 'bg-zinc-500',
+  notOpened: 'bg-fg-tertiary',
 }
 
 const TIER_TEXT: Record<CoverageTier, string> = {
   served: 'text-success-400',
   partial: 'text-warning-400',
-  notOpened: 'text-zinc-500 dark:text-zinc-400',
+  notOpened: 'text-fg-tertiary dark:text-fg-secondary',
 }
 
 function tierFromStatus(status: string): CoverageTier {
@@ -164,13 +164,13 @@ export default async function Page() {
             ) : (
               <table className="w-full min-w-[760px] table-fixed text-left text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-950/10 text-xs text-zinc-500 dark:border-console-line dark:text-zinc-400">
+                  <tr className="border-b border-ink/10 text-xs text-fg-tertiary dark:border-console-line dark:text-fg-secondary">
                     <th className={HEAD_CELL}>Surface</th>
                     <th className={HEAD_CELL}>Status</th>
                     <th className={HEAD_CELL}>Reason</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                <tbody className="divide-y divide-console-line-soft">
                   {ordered.map((surface) => (
                     <tr key={surface.key}>
                       <td className={BODY_CELL}>{surface.name}</td>
@@ -180,7 +180,7 @@ export default async function Page() {
                           {TIER_TITLE[surface.tier]}
                         </span>
                       </td>
-                      <td className={clsx(BODY_CELL, 'text-zinc-500 dark:text-zinc-400')}>{surface.reason ?? '—'}</td>
+                      <td className={clsx(BODY_CELL, 'text-fg-tertiary dark:text-fg-secondary')}>{surface.reason ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>

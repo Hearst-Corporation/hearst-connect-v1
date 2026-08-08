@@ -17,16 +17,16 @@ export default function AdminError({
 }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
   return (
     <section aria-labelledby="admin-error-title" className="mx-auto w-full max-w-3xl">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">System status</p>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">System status</p>
       <p
         role="heading"
         aria-level={1}
         id="admin-error-title"
-        className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white"
+        className="mt-2 text-2xl font-semibold tracking-tight text-ink dark:text-fg"
       >
         Unable to load this page
       </p>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-fg-tertiary">
         Something went wrong while loading this section of the administration console. Try again. If
         the issue continues, use the reference below when reporting it.
       </p>
@@ -37,7 +37,7 @@ export default function AdminError({
             className="size-6 shrink-0 text-warning-500 dark:text-warning-400"
             aria-hidden="true"
           />
-          <p className="text-sm font-medium text-zinc-950 dark:text-white">
+          <p className="text-sm font-medium text-ink dark:text-fg">
             We couldn&apos;t load this section.
           </p>
           <div>
@@ -50,7 +50,7 @@ export default function AdminError({
             </button>
           </div>
           {error.digest ? (
-            <p className="font-mono text-xs text-zinc-500">Reference · {error.digest}</p>
+            <p className="font-mono text-xs text-fg-tertiary">Reference · {error.digest}</p>
           ) : null}
         </div>
       </div>

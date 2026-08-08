@@ -12,7 +12,7 @@ export default function AdminLoading() {
       aria-busy="true"
       aria-live="polite"
     >
-      <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+      <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide text-fg-tertiary uppercase dark:text-fg-secondary">
         Loading…
       </Text>
     </div>

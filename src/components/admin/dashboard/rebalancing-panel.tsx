@@ -22,8 +22,8 @@ export function RebalancingAlertsPanel({
   if (!isAvailable(summary)) {
     return (
       <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
-        <p className="text-sm font-semibold text-zinc-950 dark:text-white">Data unavailable</p>
-        <p className="mt-0.5 text-xs text-zinc-500">Source unavailable</p>
+        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
+        <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
       </div>
     )
   }
@@ -40,12 +40,12 @@ export function RebalancingAlertsPanel({
           <ExclamationTriangleIcon className="size-6 shrink-0 text-warning-500" aria-hidden="true" />
         )}
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-zinc-950 dark:text-white">
+          <p className="text-sm font-semibold text-ink dark:text-fg">
             {stable
               ? '✓ Portfolio stable'
               : `⚠ ${data.strategiesOutOfTarget} drift${data.strategiesOutOfTarget > 1 ? 's' : ''} detected`}
           </p>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-fg-tertiary">
             {data.activeVaults} active vault{data.activeVaults > 1 ? 's' : ''} · {data.measuredStrategies} strateg
             {data.measuredStrategies > 1 ? 'ies' : 'y'} measured · Indexer{' '}
             {data.indexerStatus.toLowerCase()}
@@ -57,7 +57,7 @@ export function RebalancingAlertsPanel({
         <ul className="space-y-2">
           {data.alerts.map((alert) => (
             <li key={alert.strategyId} className={clsx(surfaceInset, 'flex items-center justify-between gap-2 px-3 py-2 text-sm')}>
-              <span className="font-medium text-zinc-950 dark:text-white">{alert.strategyLabel}</span>
+              <span className="font-medium text-ink dark:text-fg">{alert.strategyLabel}</span>
               <span className="tabular-nums text-warning-700 dark:text-warning-400">{driftPts(alert.driftBps)}</span>
             </li>
           ))}
@@ -65,7 +65,7 @@ export function RebalancingAlertsPanel({
       ) : null}
 
       {data.lastRebalanceAt !== null ? (
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-fg-tertiary">
           Last activity · {formatRelativeTime(data.lastRebalanceAt)}
         </p>
       ) : null}

@@ -23,7 +23,7 @@ export function AdminBodyNav() {
   const actif = hrefCorpsActif(pathname)
 
   return (
-    <nav aria-label="Sub-navigation" className="mb-8 border-b border-zinc-950/10 dark:border-white/10">
+    <nav aria-label="Sub-navigation" className="mb-8 border-b border-ink/10 dark:border-white/10">
       <Navbar className="gap-0! overflow-x-auto pb-0 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
         <NavbarSection className="shrink-0">
           {sousMenus.map((entree) => (

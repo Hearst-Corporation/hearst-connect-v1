@@ -33,8 +33,8 @@ export function ChartPlaceholder({
       role="status"
       aria-label={title}
     >
-      <Icon className="size-8 text-zinc-300 dark:text-zinc-600" aria-hidden="true" />
-      <p className="mt-3 text-sm/6 font-semibold text-zinc-950 dark:text-white">Data unavailable</p>
+      <Icon className="size-8 text-fg dark:text-console-fill" aria-hidden="true" />
+      <p className="mt-3 text-sm/6 font-semibold text-ink dark:text-fg">Data unavailable</p>
       <Text className="mt-1">No history available</Text>
     </div>
   )
@@ -102,7 +102,7 @@ export function ProductBars({
           <li key={p.product}>
             <div className="mb-1 flex items-baseline justify-between gap-2">
               <Text className="truncate !text-xs">{p.product.length > 28 ? `${p.product.slice(0, 26)}…` : p.product}</Text>
-              <span className="shrink-0 text-xs/5 font-semibold tabular-nums text-zinc-950 dark:text-white">
+              <span className="shrink-0 text-xs/5 font-semibold tabular-nums text-ink dark:text-fg">
                 {amount !== null ? amount : p.count}
               </span>
             </div>

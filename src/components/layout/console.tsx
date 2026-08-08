@@ -38,7 +38,7 @@ import clsx from 'clsx'
  * Under the badge: a French motif when we have one, else the endpoint that
  * would answer. Never a raw snake_case reason code in the UI.
  *
- * `onAccent` still exists: on the light accent card a `zinc` badge would sit
+ * `onAccent` still exists: on the light accent card a `neutral` badge would sit
  * light-on-light, so the ink flips there.
  */
 function Absent({
@@ -54,7 +54,7 @@ function Absent({
   const detailLine = detail.join(' · ')
   return (
     <span className={styles.absentBlock}>
-      <Badge color="zinc" className={clsx(onAccent && styles.absentOnAccent)}>
+      <Badge color="neutral" className={clsx(onAccent && styles.absentOnAccent)}>
         {status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
       </Badge>
       {showRoute && detailLine !== '' && (
@@ -96,7 +96,7 @@ export function Reading({
           {backendStateLabel(etat)}
         </Badge>
       ) : (
-        <Badge color={etat === 'ISSUE' ? 'amber' : 'zinc'} data-state-badge="">
+        <Badge color={etat === 'ISSUE' ? 'amber' : 'neutral'} data-state-badge="">
           {backendStateLabel(etat)}
         </Badge>
       )}
