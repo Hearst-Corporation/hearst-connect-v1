@@ -71,7 +71,9 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 
 **Profile** (`/admin/profile`) — signed-in administrator session only (name, email, role, identifier, session end). Not an investor/subscription dossier.
 
-**Navigation** (`src/lib/admin-nav.ts`): sidebar **Dashboard · Vaults · Clients · Compliance · Operations**; hubs **Series 1 journal · Product · Service**. Legacy `/admin/conformite` and `/admin/produit` redirect to English routes.
+**Navigation** (`src/lib/admin-nav.ts`): sidebar **Dashboard · Vaults · Clients · Compliance · Operations**; hubs **Series 1 journal · Product · Service**. Legacy `/admin/conformite` and `/admin/produit` redirect to English routes. **Compliance** kept as Som KYC read-only (distinct from Clients directory). **Service** (`/admin/runtime`) is the only technical observability hub.
+
+**Orchestrator HC-ADMIN-CONSOLIDATION-ORCHESTRATOR-023** (2026-08-08): seven scoped branches merged locally — guardrails, dashboard truth, clients/profile (Mission 014 recovered), vaults, compliance, operations, product/service/journal/nav. Gates: `pnpm check` + `next build` green on integrated `main`.
 
 **Action boundary**: `src/components/actions/` (Catalyst buttons + disabled/loading states).
 
