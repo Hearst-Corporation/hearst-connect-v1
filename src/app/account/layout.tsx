@@ -1,4 +1,6 @@
+import { AccountApplicationLayout } from '@/components/account/application-layout'
 import { requireSession } from '@/lib/auth'
+import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -6,17 +8,10 @@ export const metadata: Metadata = {
 }
 
 /**
- * Server guard for the end-user space.
- *
- * `/account` mirrors `/admin`'s guard exactly: no user surface renders without a
- * valid session. The gate is the SAME `requireSession()` the console uses — we
- * do NOT introduce a new role nor touch the fork↔backend boundary. Today every
- * authenticated session is `OWNER` (the backend `investor` role is refused at
- * login); `/account` is simply a calmer, owner-facing presentation over the same
- * session-tier data. Each page composes its own `ConsoleShell`, so the layout
- * only enforces the session and passes the children through untouched.
+ * Session guard + empty user shell (same SidebarLayout shape as admin).
+ * No business chrome here — pages fill the workspace when needs are confirmed.
  */
-export default async function EspaceLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  await requireSession()
-  return <>{children}</>
+export default async function AccountLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const session = await requireSession()
+  return <AccountApplicationLayout user={publicUser(session)}>{children}</AccountApplicationLayout>
 }

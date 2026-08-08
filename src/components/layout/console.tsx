@@ -7,8 +7,8 @@ import styles from './console.module.css'
 import clsx from 'clsx'
 
 /**
- * Primitives partagées du shell legacy `/espace` : absences nommées (`Reading`)
- * et classes du module CSS (`csl`).
+ * Shared console primitives for compositions: named absences (`Reading`) and
+ * CSS module classes (`csl`). Not a route shell — account chrome uses SidebarLayout.
  */
 
 /*
