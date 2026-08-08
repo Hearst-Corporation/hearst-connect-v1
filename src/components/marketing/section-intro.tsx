@@ -2,8 +2,8 @@ import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
 
 /**
- * En-tête de section partagé de la vitrine — eyebrow mint + titre + sous-titre.
- * Rythme unique pour les actes Preuve et Fonctionnalités (une seule grammaire de titre).
+ * Shared marketing section header — mint eyebrow + title + subtitle.
+ * Single rhythm for the Proof and Features acts (one title grammar).
  */
 export function SectionIntro({
   id,

@@ -10,13 +10,13 @@ import { HeroScrollDemo } from '@/components/marketing/hero-scroll-demo'
 import { SectionIntro } from '@/components/marketing/section-intro'
 
 /**
- * Landing Hearst Connect — récit premium 4 actes (dark-only) + interludes Motion.
- *   Acte 1 Hero            → interlude Vague (ripple) → interlude Carousel 3D (scroll-vélocité)
- *   Acte 2 Preuve (domaines) → interlude Grille de fond → interlude Pin 3D
- *   Acte 3 Doctrine (3 piliers) → interlude Bento
- *   Acte 4 CTA (aurore mint)
- * Header/footer premium conservés. Un filet `console-line-soft` ouvre chaque section.
- * Server component : les blocs animés sont des îlots client autonomes.
+ * Hearst Connect landing — premium 4-act narrative (dark-only) + Motion interludes.
+ *   Act 1 Hero            → ripple interlude → scroll-velocity carousel interlude
+ *   Act 2 Proof (domains) → grid background interlude → 3D pin interlude
+ *   Act 3 Doctrine (3 pillars) → bento interlude
+ *   Act 4 CTA (mint aurora)
+ * Premium header/footer kept. A `console-line-soft` rule opens each section.
+ * Server component: animated blocks are self-contained client islands.
  */
 export default function HomePage() {
   return (

@@ -18,6 +18,7 @@ const CONTRACT_PATHS = [
   'GET /api/v1/strategies/:index',
   'GET /api/v1/rwa-vault',
   'GET /api/v1/rebalancing/status',
+  'GET /api/v1/rebalancing/history',
   'GET /api/v1/mining',
   'GET /api/v1/mining/metrics/onchain',
   'GET /api/v1/mining/electricity',
@@ -48,10 +49,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 42 routes du contrat', () => {
+  it('couvre exactement les 43 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(42)
+    expect(BACKEND_ENDPOINTS).toHaveLength(43)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -69,7 +70,7 @@ describe('registre des endpoints', () => {
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(27)
+    expect(endpointsByCategory('business')).toHaveLength(28)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(6)
   })

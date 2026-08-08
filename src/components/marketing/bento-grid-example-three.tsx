@@ -12,7 +12,7 @@ import {
 import { motion, type Variants } from 'motion/react'
 import type { ReactNode } from 'react'
 
-/** Équivalent public de `@aceternity/bento-grid-example-three` (`bento-grid-demo-3`). */
+/** Public equivalent of `@aceternity/bento-grid-example-three` (`bento-grid-demo-3`). */
 
 const chatVariants: Variants = {
   initial: { x: 0 },
@@ -269,29 +269,7 @@ function BentoSection({
   )
 }
 
-/** Première moitié du bento example three (avant le ripple). */
-export function BentoGridExampleThreeStart() {
-  return (
-    <BentoSection
-      title="Identity & audit"
-      subtitle="Session flow, audit load, brand accent — Motion Aceternity, Hearst material."
-      sectionItems={items.slice(0, 3)}
-    />
-  )
-}
-
-/** Seconde moitié du bento example three (après le ripple). */
-export function BentoGridExampleThreeEnd() {
-  return (
-    <BentoSection
-      title="Roles & truth"
-      subtitle="Access posture read and data doctrine — never invented."
-      sectionItems={items.slice(3)}
-    />
-  )
-}
-
-/** Bento complet (5 tuiles) — interlude « matière de la console, animée ». */
+/** Full bento (5 tiles) — animated console material interlude. */
 export function BentoGridExampleThree() {
   return (
     <BentoSection
