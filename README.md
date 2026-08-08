@@ -64,7 +64,8 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 | `/admin` | **Dashboard** — KPIs, portfolio exposure, rebalancing, activity, market, vaults, recent clients, data health |
 
 **Dashboard truth contract** (`src/lib/admin-dashboard/`): backend `Resolved` status and provenance preserved in `load.ts` (`STALE`/`PARTIAL`/`NOT_CONFIGURED`/`EMPTY` — no automatic LIVE on value presence). Empty lists render as empty, not unavailable. Atomic amounts use overview `asset`/`decimals`. Data health slots keyed by stable backend `key`. Market `NOT_CONFIGURED` keeps local widget state. Gate: `tests/admin/dashboard-truth-contract.test.ts`.
-| `/admin/clients`, `/admin/compliance`, `/admin/vaults`, `/admin/operations`, `/admin/series-1`, `/admin/runtime`, `/admin/product` | Business pages — same `AdminPageHeader` pattern |
+| `/admin/vaults`, `/admin/vaults/[vaultId]` | **Vaults** — AUM, deployed, available capital, strategies, exposure, target, drift, last rebalance, recent activity (no source panels; Service hub for coverage) |
+| `/admin/clients`, `/admin/compliance`, `/admin/operations`, `/admin/series-1`, `/admin/runtime`, `/admin/product` | Business pages — same `AdminPageHeader` pattern |
 
 **Clients** (`/admin/clients`) — searchable directory (exposure, vault relationships, Som KYC read-only, created/last activity). Rich read: `GET /api/v1/admin/clients/recent`; thin fallback: `GET /api/v1/clients`. No “Create client” — `POST /api/v1/admin/users` creates an application user, not a client record.
 

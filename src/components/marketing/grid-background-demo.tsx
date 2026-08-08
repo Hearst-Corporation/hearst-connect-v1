@@ -1,6 +1,6 @@
 import { GridBackground } from '@/components/ui/grid-background'
 
-/** Démo Aceternity `grid-background-demo` — copy Hearst, noir + tokens console. */
+/** Aceternity `grid-background-demo` — Hearst copy, dark console tokens. */
 export function GridBackgroundDemo() {
   return (
     <section className="w-full">

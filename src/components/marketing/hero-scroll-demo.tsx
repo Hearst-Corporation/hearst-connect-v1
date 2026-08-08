@@ -46,7 +46,7 @@ export function HeroScrollDemo() {
           alt="Hearst Connect administration console preview"
           height={720}
           width={1400}
-          className="mx-auto h-full rounded-2xl object-cover object-top-left"
+          className="mx-auto h-full rounded-2xl object-cover object-left-top"
           draggable={false}
           priority
         />

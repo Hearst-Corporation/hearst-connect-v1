@@ -9,7 +9,7 @@ const LABELS = [
   'Compliance',
   'Operations',
   'Series 1 journal',
-  'Vaults',
+  'Product',
   'Keeper',
   'Runtime',
   'API Explorer',
