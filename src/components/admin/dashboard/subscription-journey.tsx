@@ -60,11 +60,11 @@ const STEP_ICON: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
 }
 
 const SHORT_LABEL: Record<string, string> = {
-  compte: 'Compte',
+  compte: 'Account',
   kyc: 'KYC',
   wallet: 'Wallet',
-  depot: 'Dépôt',
-  souscription: 'Souscription',
+  depot: 'Deposit',
+  souscription: 'Subscription',
   position: 'Position',
 }
 
@@ -128,18 +128,18 @@ function StepDetail({ step }: Readonly<{ step: FunnelStepView }>) {
           <p className="text-sm font-semibold text-zinc-950 dark:text-white">{step.label}</p>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
             {countText === null ? (
-              'Source indisponible — aucune valeur mesurée.'
+              'Source unavailable — no measured value.'
             ) : (
               <>
                 <span className="font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">{countText}</span>{' '}
-                enregistré{Number(countText) > 1 ? 's' : ''}
+                recorded
                 {hasWork ? (
                   <>
                     {' · '}
-                    <span className="font-semibold text-warning-700 dark:text-warning-400">{pending}</span> en attente
+                    <span className="font-semibold text-warning-700 dark:text-warning-400">{pending}</span> pending
                   </>
                 ) : state === 'clear' ? (
-                  ' · au clair'
+                  ' · clear'
                 ) : null}
               </>
             )}
@@ -152,7 +152,7 @@ function StepDetail({ step }: Readonly<{ step: FunnelStepView }>) {
             <HearstSecondaryAction href={step.actionHref}>{step.actionLabel}</HearstSecondaryAction>
           )
         ) : (
-          <HearstSecondaryAction disabledReason="Source indisponible — rien à ouvrir">
+          <HearstSecondaryAction disabledReason="Source unavailable — nothing to open">
             {step.actionLabel}
           </HearstSecondaryAction>
         )}
@@ -254,10 +254,10 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
                 )}
               >
                 {state === 'unavailable'
-                  ? 'Indisponible'
+                  ? 'Unavailable'
                   : hasWork
-                    ? `${pending} en attente`
-                    : 'Au clair'}
+                    ? `${pending} pending`
+                    : 'Clear'}
               </span>
             </Tab>
           )
@@ -274,7 +274,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
 
       <p className="mt-3 flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
         <ChevronRightIcon className="size-3" aria-hidden="true" />
-        Sélectionnez une étape pour son détail et son action. Chaque compteur lit sa propre source réelle.
+        Select a step for its detail and action. Each counter reads its own real source.
       </p>
     </TabGroup>
   )

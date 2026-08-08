@@ -1,4 +1,4 @@
-import type { EtatSerie } from '@/components/charts/core/chart-frame'
+import type { SeriesState } from '@/components/charts/core/chart-frame'
 
 /**
  * Chart-frame state decision from a `Resolved` field returned by the
@@ -12,22 +12,18 @@ export type ChampResolu<T = unknown> = {
 }
 
 /**
- * Codes de motif → phrase, pour les cadres en attente de source.
+ * Backend reason codes → user-facing explanation for pending-series frames.
  *
- * Les clés sont les codes bruts du backend et ne changent pas ; seules les
- * phrases sont traduites, la console étant en français.
+ * Keys are raw backend codes and do not change; only the phrases are translated.
  */
 export const MOTIF_SERIE: Record<string, string> = {
-  dynavault_not_deployed: 'cette mesure n’est pas encore ouverte sur le contrat déployé',
-  // Le contrat répond, mais n'expose aucune lecture pour cette donnée : un
-  // nouveau déploiement n'y changera rien. À ne pas confondre avec le motif
-  // ci-dessus.
-  not_exposed_by_contract: 'le contrat n’expose aucune lecture pour cette donnée',
-  no_custody_provider_integrated: 'aucun prestataire de conservation n’est intégré',
-  not_available: 'la source n’est pas encore raccordée',
-  not_configured: 'la source n’est pas encore configurée',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
+  dynavault_not_deployed: 'this measure is not yet exposed on the deployed contract',
+  not_exposed_by_contract: 'the contract exposes no reading for this data point',
+  no_custody_provider_integrated: 'no custody provider is integrated',
+  not_available: 'the source is not wired yet',
+  not_configured: 'the source is not configured yet',
+  db_error: 'the database did not respond',
+  rpc_error: 'the chain did not respond',
 }
 
 export function explicationSerie(
@@ -40,17 +36,20 @@ export function explicationSerie(
   return motifs[brut] ?? defaut
 }
 
-export function etatSerieDe(
+export function seriesStateFrom(
   bloc: ChampResolu | undefined,
   defaut: string,
   motifs: Record<string, string> = MOTIF_SERIE,
-): EtatSerie {
-  if (bloc === undefined) return { type: 'attendue', explication: defaut }
+): SeriesState {
+  if (bloc === undefined) return { type: 'pending', explication: defaut }
   if (bloc.status === 'UNAVAILABLE' || bloc.status === 'ERROR') {
-    return { type: 'indisponible', explication: explicationSerie(bloc, defaut, motifs) }
+    return { type: 'unavailable', explication: explicationSerie(bloc, defaut, motifs) }
   }
   if (bloc.status !== 'LIVE' || bloc.value === null) {
-    return { type: 'attendue', explication: explicationSerie(bloc, defaut, motifs) }
+    return { type: 'pending', explication: explicationSerie(bloc, defaut, motifs) }
   }
-  return { type: 'tracee' }
+  return { type: 'plotted' }
 }
+
+/** @deprecated Use `seriesStateFrom` */
+export const etatSerieDe = seriesStateFrom

@@ -37,9 +37,9 @@ export default function HomePage() {
           id="preuve-heading"
           align="center"
           className="px-6 pt-24 md:pt-32"
-          eyebrow="Aperçu de la console"
-          title="Quatre domaines, une seule vérité"
-          sub="Accès, coffres, conformité, opérations : quatre domaines réunis dans un même environnement. Les aperçus ci-dessous illustrent chaque espace ; dans le produit, la donnée vient du backend Hearst et une absence y reste une absence. Ouvrez un aperçu pour l’agrandir."
+          eyebrow="Console preview"
+          title="Four domains, one source of truth"
+          sub="Access, vaults, compliance, operations: four domains in one environment. The previews below illustrate each space; in the product, data comes from the Hearst backend and an absence stays an absence. Open a preview to enlarge it."
         />
         <AppStoreDemo />
       </section>

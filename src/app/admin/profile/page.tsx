@@ -12,7 +12,7 @@ import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { formatDateTime } from '@/lib/format'
 import { motifLisible } from '@/lib/mouvements'
-import { getSession, LIBELLE_ROLE } from '@/lib/session'
+import { getSession, ROLE_LABELS } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import {
   FolderIcon,
@@ -22,7 +22,7 @@ import {
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Votre compte' }
+export const metadata: Metadata = { title: 'Your account' }
 export const dynamic = 'force-dynamic'
 
 /**
@@ -53,9 +53,9 @@ export default async function Page() {
   const bloc = reponse.ok ? reponse.data.identity : undefined
   const identite = bloc?.value
   const motif = motifLisible(bloc?.reason)
-  const sessionState = session === null ? 'Aucune session valide' : 'Session active'
+  const sessionState = session === null ? 'No valid session' : 'Active session'
   const investorState =
-    identite === null || identite === undefined ? 'Aucun dossier investisseur' : 'Dossier investisseur présent'
+    identite === null || identite === undefined ? 'No investor file' : 'Investor file present'
   // `expiresAt` est en secondes epoch (session réelle) : on le rend en date
   // lisible, sans jamais le replier sur une valeur par défaut. Absent → '—'.
   const sessionExpiry =
@@ -65,20 +65,20 @@ export default async function Page() {
     { id: 'session', title: 'Session', value: editorial(sessionState), icon: KeyIcon },
     {
       id: 'role',
-      title: 'Rôle',
-      value: editorial(session === null ? '—' : LIBELLE_ROLE[session.role]),
+      title: 'Role',
+      value: editorial(session === null ? '—' : ROLE_LABELS[session.role]),
       icon: UserIcon,
     },
     {
       id: 'dossier',
-      title: 'Dossier investisseur',
+      title: 'Investor file',
       value: editorial(investorState),
       icon: FolderIcon,
     },
     {
       id: 'source',
-      title: 'Source profil',
-      value: editorial(reponse.ok ? 'Joignable' : 'Indisponible'),
+      title: 'Profile source',
+      value: editorial(reponse.ok ? 'Reachable' : 'Unavailable'),
       icon: SignalIcon,
     },
   ]
@@ -86,26 +86,26 @@ export default async function Page() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Votre compte"
-        description="Session console et dossier investisseur — deux identités distinctes."
+        title="Your account"
+        description="Console session and investor file — two distinct identities."
         kpis={kpis}
       />
 
-      <SectionCard title="Activité du compte" hint="Aucune série temporelle rattachée à cette page." tone="chart">
+      <SectionCard title="Account activity" hint="No time series attached to this page." tone="chart">
         <ChartFrame
-          question="Activité du compte dans le temps"
-          unite="événements par jour"
+          question="Account activity over time"
+          unite="events per day"
           etat={{
-            type: 'vide',
+            type: 'empty',
             explication:
-              'Cette page décrit l’identité de session et le dossier investisseur : aucune série temporelle n’y est rattachée à tracer.',
+              'This page describes session identity and the investor file: no time series is attached to plot here.',
           }}
         />
       </SectionCard>
 
       <SectionCard
-        title="Connecté en tant que"
-        hint="Lu depuis votre session chiffrée, pas depuis le service."
+        title="Signed in as"
+        hint="Read from your encrypted session, not from the service."
         actions={
           session === null ? undefined : (
             <Badge color="lime">{sessionState}</Badge>
@@ -113,94 +113,91 @@ export default async function Page() {
         }
       >
         {session === null ? (
-          <Callout tone="warning" title="Aucune session valide">
-            Aucune session valide n’a été trouvée. Reconnectez-vous pour consulter votre compte.
+          <Callout tone="warning" title="No valid session">
+            No valid session was found. Sign in again to view your account.
           </Callout>
         ) : (
           <DescriptionList>
-            <DescriptionTerm>Nom</DescriptionTerm>
+            <DescriptionTerm>Name</DescriptionTerm>
             <DescriptionDetails>{session.name}</DescriptionDetails>
-            <DescriptionTerm>Adresse e-mail</DescriptionTerm>
+            <DescriptionTerm>Email address</DescriptionTerm>
             <DescriptionDetails>{session.email}</DescriptionDetails>
-            <DescriptionTerm>Rôle</DescriptionTerm>
-            <DescriptionDetails>{LIBELLE_ROLE[session.role]}</DescriptionDetails>
-            <DescriptionTerm>Identifiant</DescriptionTerm>
+            <DescriptionTerm>Role</DescriptionTerm>
+            <DescriptionDetails>{ROLE_LABELS[session.role]}</DescriptionDetails>
+            <DescriptionTerm>Identifier</DescriptionTerm>
             <DescriptionDetails className="font-mono text-sm">{session.userId}</DescriptionDetails>
-            <DescriptionTerm>Fin de session</DescriptionTerm>
+            <DescriptionTerm>Session end</DescriptionTerm>
             <DescriptionDetails>{sessionExpiry}</DescriptionDetails>
           </DescriptionList>
         )}
       </SectionCard>
 
       <SectionCard
-        title="Dossier investisseur"
-        hint="Transmis tel quel par le service, sans édition."
+        title="Investor file"
+        hint="Transmitted as-is by the service, unedited."
         actions={
           !reponse.ok ? (
-            <Badge color="amber">Illisible</Badge>
+            <Badge color="amber">Unreadable</Badge>
           ) : identite === null || identite === undefined ? (
-            <Badge color="zinc">Aucun dossier</Badge>
+            <Badge color="zinc">No file</Badge>
           ) : (
-            <Badge color="lime">Présent</Badge>
+            <Badge color="lime">Present</Badge>
           )
         }
       >
         {!reponse.ok ? (
-          <Callout tone="warning" title="Dossier illisible">
-            Le dossier investisseur n’a pas pu être lu. Le service n’a pas répondu à la requête — ce silence ne
-            signifie pas qu’aucun dossier n’existe.
+          <Callout tone="warning" title="Unreadable file">
+            The investor file could not be read. The service did not respond — this silence does not mean no file exists.
           </Callout>
         ) : identite === null || identite === undefined ? (
           <>
             <Text>
-              Aucun dossier investisseur n’est rattaché à ce compte.
+              No investor file is linked to this account.
               {motif === undefined
-                ? ' Le service a été joint : il ne trouve aucun dossier rattaché à ce compte.'
-                : ` Le service a été joint : ${motif}.`}
+                ? ' The service was reached: it finds no file linked to this account.'
+                : ` The service was reached: ${motif}.`}
             </Text>
             <Text className="mt-4">
-              C’est le cas normal pour un compte administrateur — administrer l’espace et souscrire au fonds sont deux
-              choses distinctes, et l’une n’implique pas l’autre. Aucun dossier n’est affiché ici plutôt qu’un dossier
-              vide, qui ressemblerait à un dossier perdu.
+              This is normal for an administrator account — managing the workspace and subscribing to the fund are distinct, and one does not imply the other. No file is shown here rather than an empty file that would look lost.
             </Text>
-            <Text className="mt-4 font-medium text-zinc-700 dark:text-zinc-300">Pour qu’un dossier apparaisse</Text>
+            <Text className="mt-4 font-medium text-zinc-700 dark:text-zinc-300">For a file to appear</Text>
             <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
-              <li>Une souscription au fonds effectuée avec cette adresse e-mail</li>
-              <li>Un dossier de connaissance client examiné et approuvé</li>
-              <li>Une adresse de portefeuille rattachée au dossier</li>
+              <li>A fund subscription completed with this email address</li>
+              <li>A KYC file reviewed and approved</li>
+              <li>A wallet address linked to the file</li>
             </ul>
           </>
         ) : (
           <DescriptionList>
-            <DescriptionTerm>Nom du dossier</DescriptionTerm>
+            <DescriptionTerm>File name</DescriptionTerm>
             <DescriptionDetails>{valeurLisible(identite.displayName)}</DescriptionDetails>
-            <DescriptionTerm>Adresse e-mail</DescriptionTerm>
+            <DescriptionTerm>Email address</DescriptionTerm>
             <DescriptionDetails>{valeurLisible(identite.email)}</DescriptionDetails>
-            <DescriptionTerm>Portefeuille</DescriptionTerm>
+            <DescriptionTerm>Wallet</DescriptionTerm>
             <DescriptionDetails className="font-mono text-sm">
               {valeurLisible(identite.walletAddress)}
             </DescriptionDetails>
-            <DescriptionTerm>Connaissance client</DescriptionTerm>
+            <DescriptionTerm>KYC</DescriptionTerm>
             <DescriptionDetails>{valeurLisible(identite.kycStatus)}</DescriptionDetails>
-            <DescriptionTerm>Qualification</DescriptionTerm>
+            <DescriptionTerm>Accreditation</DescriptionTerm>
             <DescriptionDetails>{valeurLisible(identite.accreditation)}</DescriptionDetails>
           </DescriptionList>
         )}
       </SectionCard>
 
-      <SectionCard title="Notes" hint="Définitions et chemins — pas des compteurs." tone="plain">
+      <SectionCard title="Notes" hint="Definitions and paths — not counters." tone="plain">
         <DescriptionList>
-          <DescriptionTerm>Raison investisseur</DescriptionTerm>
-          <DescriptionDetails>{motif ?? 'Aucune signalée'}</DescriptionDetails>
-          <DescriptionTerm>Correspondance des rôles</DescriptionTerm>
-          <DescriptionDetails>Le rôle de session n’implique pas de souscription.</DescriptionDetails>
-          <DescriptionTerm>Chemin de couverture</DescriptionTerm>
+          <DescriptionTerm>Investor reason</DescriptionTerm>
+          <DescriptionDetails>{motif ?? 'None reported'}</DescriptionDetails>
+          <DescriptionTerm>Role mapping</DescriptionTerm>
+          <DescriptionDetails>Session role does not imply a subscription.</DescriptionDetails>
+          <DescriptionTerm>Coverage path</DescriptionTerm>
           <DescriptionDetails>
             <Link href="/admin/runtime" className="underline">
-              Couverture des données
+              Data coverage
             </Link>
             {' — '}
-            raisons d’état au niveau des points d’accès.
+            endpoint-level status reasons.
           </DescriptionDetails>
         </DescriptionList>
       </SectionCard>

@@ -23,18 +23,18 @@ export function reconcilierFactureMensuelle(
   const coutDedie = dedie?.value ? valeurAtomique(dedie.value.monthlyCost) : null
 
   if (coutAgregat === null && coutDedie === null) {
-    return 'Aucune facture mensuelle lisible sur les deux routes.'
+    return 'No readable monthly bill on either route.'
   }
   if (coutAgregat === null) {
-    return 'Seule la route dédiée expose une facture mensuelle.'
+    return 'Only the dedicated route exposes a monthly bill.'
   }
   if (coutDedie === null) {
-    return 'Seul l’agrégat expose une facture mensuelle.'
+    return 'Only the aggregate exposes a monthly bill.'
   }
   if (coutAgregat === coutDedie) {
-    return 'Concordance sur la facture mensuelle.'
+    return 'Monthly bill matches.'
   }
-  return 'Écart signalé entre l’agrégat et la route dédiée.'
+  return 'Mismatch between aggregate and dedicated route.'
 }
 
 /** Compare le hashrate entre `mining` et `mining/metrics/onchain`. */
@@ -46,16 +46,16 @@ export function reconcilierHashrate(
   const hDedie = dedie?.value ? valeurAtomique(dedie.value.reportedHashrateTh) : null
 
   if (hAgregat === null && hDedie === null) {
-    return 'Aucun hashrate lisible sur les deux routes.'
+    return 'No readable hashrate on either route.'
   }
   if (hAgregat === null) {
-    return 'Seule la route on-chain expose un hashrate.'
+    return 'Only the on-chain route exposes hashrate.'
   }
   if (hDedie === null) {
-    return 'Seul l’agrégat expose un hashrate.'
+    return 'Only the aggregate exposes hashrate.'
   }
   if (hAgregat === hDedie) {
-    return 'Concordance sur le hashrate rapporté.'
+    return 'Reported hashrate matches.'
   }
-  return 'Écart signalé entre l’agrégat et la lecture on-chain.'
+  return 'Mismatch between aggregate and on-chain read.'
 }

@@ -6,7 +6,7 @@ import { SectionCard } from '@/components/compositions'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
-import { LIBELLE_ROLE } from '@/lib/session'
+import { ROLE_LABELS } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import {
   PaperAirplaneIcon,
@@ -16,24 +16,24 @@ import {
 import type { Metadata } from 'next'
 import { CreateClientForm } from './create-client-form'
 
-export const metadata: Metadata = { title: 'Nouveau client simulé' }
+export const metadata: Metadata = { title: 'New simulated client' }
 export const dynamic = 'force-dynamic'
 
 const CHAMPS_REQUIS = [
   'Email — identifiant de connexion du compte',
-  'Mot de passe — min. 8 caractères, jamais restitué par le service',
-  'Rôle — investor (client simulé) ou admin',
+  'Password — min. 8 characters, never returned by the service',
+  'Role — investor (simulated client) or admin',
   'CONFIRM — garde-fou explicite avant tout envoi',
 ] as const
 
 const NON_RESTITUE = [
-  'Le mot de passe : le backend ne le renvoie jamais, aucune copie côté front',
-  'Aucune donnée de démonstration : une 201 est une création réelle en base',
-  'L’indexation dans l’annuaire peut prendre un instant après la création',
+  'Password: the backend never returns it, no copy on the front end',
+  'No demo data: a 201 is a real creation in the database',
+  'Directory indexing may take a moment after creation',
 ] as const
 
 /**
- * Nouveau client simulé — POST /api/v1/admin/users (admin only).
+ * New simulated client — POST /api/v1/admin/users (admin only).
  * Crée un compte réel en base ; le mot de passe n’est jamais restitué par le service.
  */
 export default async function Page() {
@@ -44,9 +44,9 @@ export default async function Page() {
 
   let disabledReason: string | null = null
   if (!isAdmin) {
-    disabledReason = `Le rôle « ${LIBELLE_ROLE[session.role]} » ne donne pas accès à la création de comptes.`
+    disabledReason = `Role « ${ROLE_LABELS[session.role]} » does not grant access to account creation.`
   } else if (!backendConfigured) {
-    disabledReason = 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
+    disabledReason = 'HEARST_API_URL is not set — no request can be sent.'
   }
 
   const canPost = disabledReason === null
@@ -54,20 +54,20 @@ export default async function Page() {
   const kpis: readonly AdminHeroKpi[] = [
     {
       id: 'role',
-      title: 'Votre rôle',
-      value: editorial(LIBELLE_ROLE[session.role]),
+      title: 'Your role',
+      value: editorial(ROLE_LABELS[session.role]),
       icon: UserIcon,
     },
     {
       id: 'backend',
       title: 'Backend',
-      value: editorial(backendConfigured ? 'Configuré' : 'Non configuré'),
+      value: editorial(backendConfigured ? 'Configured' : 'Not configured'),
       icon: ServerIcon,
     },
     {
       id: 'envoi',
-      title: 'Envoi possible',
-      value: editorial(canPost ? 'Prêt' : 'Bloqué'),
+      title: 'Can submit',
+      value: editorial(canPost ? 'Ready' : 'Blocked'),
       icon: PaperAirplaneIcon,
     },
   ]
@@ -75,31 +75,31 @@ export default async function Page() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Nouveau client simulé"
-        description="Création réelle via POST /api/v1/admin/users — mot de passe jamais restitué."
+        title="New simulated client"
+        description="Real creation via POST /api/v1/admin/users — password never returned."
         kpis={kpis}
       />
 
-      <SectionCard title="Créations récentes" hint="Comptes créés depuis cet écran, par jour." tone="chart">
+      <SectionCard title="Recent creations" hint="Accounts created from this screen, by day." tone="chart">
         <ChartFrame
-          question="Créations de comptes par jour"
+          question="Account creations per day"
           unite="comptes / jour"
           etat={{
-            type: 'vide',
+            type: 'empty',
             explication:
-              'Aucune série à tracer : cet écran émet une création à la fois et ne mesure pas d’historique. Le décompte réel des comptes vit dans l’annuaire clients.',
+              'No series to plot — this screen emits one creation at a time and does not measure history. The real account count lives in the client directory.',
           }}
         />
       </SectionCard>
 
       <SectionCard
-        title="Créer un compte investisseur ou admin"
-        hint="Le service ne renvoie jamais le mot de passe : seuls l’identifiant, l’email et le rôle sont affichés après succès."
+        title="Create an investor or admin account"
+        hint="The service never returns the password — only id, email, and role are shown after success."
       >
         <CreateClientForm disabled={!canPost} disabledReason={disabledReason} />
       </SectionCard>
 
-      <SectionCard title="Champs de la requête" hint="Ce que POST /api/v1/admin/users attend." tone="plain">
+      <SectionCard title="Request fields" hint="What POST /api/v1/admin/users expects." tone="plain">
         <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
           {CHAMPS_REQUIS.map((champ) => (
             <li key={champ}>{champ}</li>
@@ -107,7 +107,7 @@ export default async function Page() {
         </ul>
       </SectionCard>
 
-      <SectionCard title="Ce qui n’est pas restitué" hint="Règle de véracité du simulateur." tone="plain">
+      <SectionCard title="What is not returned" hint="Simulator veracity rule." tone="plain">
         <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
           {NON_RESTITUE.map((item) => (
             <li key={item}>{item}</li>
@@ -116,7 +116,7 @@ export default async function Page() {
       </SectionCard>
 
       <Text>
-        <Link href="/admin/clients" className="underline">Retour à l’annuaire clients</Link>
+        <Link href="/admin/clients" className="underline">Back to client directory</Link>
       </Text>
     </div>
   )

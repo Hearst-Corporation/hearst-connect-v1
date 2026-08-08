@@ -125,7 +125,7 @@ describe('registre des endpoints', () => {
     for (const id of ['mining-onchain', 'mining-electricity']) {
       const endpoint = endpointById(id)
       expect(endpoint.surface).toBe('/admin/produit')
-      expect(endpoint.caveat).toMatch(/admin\/produit/i)
+      expect(endpoint.caveat).toMatch(/admin\/product/i)
     }
   })
 

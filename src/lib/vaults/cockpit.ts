@@ -336,7 +336,7 @@ export function buildCockpitDecisionQueue(registry: AdminRegistry): Availability
         capitalLabel,
         capitalRankAtomic: row.misallocatedAtomic,
         actionHref: `/admin/vaults/${encodeURIComponent(row.vaultId)}`,
-        actionLabel: 'Ouvrir le coffre',
+        actionLabel: 'Open vault',
       })
     }
   }
@@ -347,12 +347,12 @@ export function buildCockpitDecisionQueue(registry: AdminRegistry): Availability
       items.push({
         id: `owner-${vault.id}`,
         severity: 'information',
-        title: 'Propriétaire du coffre non mappé',
-        detail: `${vault.label} — ${vault.client.reason ?? 'owner non reporté'}`,
+        title: 'Vault owner not mapped',
+        detail: `${vault.label} — ${vault.client.reason ?? 'owner not reported'}`,
         capitalLabel: null,
         capitalRankAtomic: null,
         actionHref: '/admin/clients',
-        actionLabel: 'Ouvrir les clients',
+        actionLabel: 'Open clients',
       })
     }
   }
@@ -402,8 +402,8 @@ export function buildCockpitDecisionQueue(registry: AdminRegistry): Availability
 
 /** Âge relatif de la lecture mouvements, pour le badge de fraîcheur. */
 export function movementsFreshnessLabel(movements: Availability<readonly Movement[]>): string {
-  if (!isAvailable(movements)) return 'mouvements indisponibles'
-  if (movements.stale) return 'indexeur · stale'
-  if (movements.asOf) return `fenêtre · ${formatRelativeTime(movements.asOf)}`
-  return 'fenêtre chargée'
+  if (!isAvailable(movements)) return 'movements unavailable'
+  if (movements.stale) return 'indexer · stale'
+  if (movements.asOf) return `window · ${formatRelativeTime(movements.asOf)}`
+  return 'window loaded'
 }

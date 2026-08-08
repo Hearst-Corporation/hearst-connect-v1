@@ -117,23 +117,23 @@ function SkeletonFour() {
     {
       variants: first,
       initials: 'OW',
-      label: 'Propriétaire sans MFA',
-      badge: 'Risque',
+      label: 'Owner without MFA',
+      badge: 'Risk',
       badgeClass: 'border-danger-500 bg-danger-950/40 text-danger-400',
     },
     {
       variants: undefined,
       initials: 'AD',
-      label: 'Admin console actif',
-      badge: 'Sain',
+      label: 'Active admin console',
+      badge: 'Healthy',
       badgeClass: 'border-success-500 bg-success-950/40 text-success-400',
       center: true,
     },
     {
       variants: second,
       initials: 'MB',
-      label: 'Membre hors politique',
-      badge: 'À traiter',
+      label: 'Member off policy',
+      badge: 'To review',
       badgeClass: 'border-warning-500 bg-warning-950/40 text-warning-400',
     },
   ] as const
@@ -180,14 +180,14 @@ function SkeletonFive() {
           HC
         </span>
         <p className="text-xs text-white/50">
-          Les journaux d’accès, les rôles et les coffres vivent sur le même backend Railway…
+          Access logs, roles, and vaults live on the same Railway backend…
         </p>
       </motion.div>
       <motion.div
         variants={chatVariantsSecond}
         className="ml-auto flex w-3/4 flex-row items-center justify-end space-x-2 rounded-full bg-console-card p-2 ring-1 ring-console-line-soft"
       >
-        <p className="text-xs text-white/50">Pas de donnée inventée.</p>
+        <p className="text-xs text-white/50">No invented data.</p>
         <div className="size-6 shrink-0 rounded-full bg-linear-to-r from-accent-400 to-accent-600" />
       </motion.div>
     </motion.div>
@@ -202,36 +202,36 @@ const items: ReadonlyArray<{
   icon: ReactNode
 }> = [
   {
-    title: 'Flux d’identité',
-    description: <span className="text-sm">Bulles de session qui réagissent au survol.</span>,
+    title: 'Identity flow',
+    description: <span className="text-sm">Session bubbles that react on hover.</span>,
     header: <SkeletonOne />,
     className: 'md:col-span-1',
     icon: <ClipboardDocumentListIcon className="size-4 text-accent-300" />,
   },
   {
-    title: 'Charge d’audit',
-    description: <span className="text-sm">Barres qui se remplissent — largeurs fixes, jamais au hasard.</span>,
+    title: 'Audit load',
+    description: <span className="text-sm">Bars that fill — fixed widths, never random.</span>,
     header: <SkeletonTwo />,
     className: 'md:col-span-1',
     icon: <DocumentTextIcon className="size-4 text-accent-300" />,
   },
   {
     title: 'Accent Hearst',
-    description: <span className="text-sm">Dégradé mint animé — la couleur de marque en mouvement.</span>,
+    description: <span className="text-sm">Animated mint gradient — brand color in motion.</span>,
     header: <SkeletonThree />,
     className: 'md:col-span-1',
     icon: <KeyIcon className="size-4 text-accent-300" />,
   },
   {
-    title: 'Postures d’accès',
-    description: <span className="text-sm">Trois cartes de rôle qui se recentrent au survol.</span>,
+    title: 'Access postures',
+    description: <span className="text-sm">Three role cards that recenter on hover.</span>,
     header: <SkeletonFour />,
     className: 'md:col-span-2',
     icon: <Squares2X2Icon className="size-4 text-accent-300" />,
   },
   {
-    title: 'Vérité des données',
-    description: <span className="text-sm">Une absence reste une absence — jamais un zéro inventé.</span>,
+    title: 'Data truth',
+    description: <span className="text-sm">An absence stays an absence — never an invented zero.</span>,
     header: <SkeletonFive />,
     className: 'md:col-span-1',
     icon: <ShieldCheckIcon className="size-4 text-accent-300" />,
@@ -273,8 +273,8 @@ function BentoSection({
 export function BentoGridExampleThreeStart() {
   return (
     <BentoSection
-      title="Identité & audit"
-      subtitle="Flux de session, charge d’audit, accent de marque — Motion Aceternity, matière Hearst."
+      title="Identity & audit"
+      subtitle="Session flow, audit load, brand accent — Motion Aceternity, Hearst material."
       sectionItems={items.slice(0, 3)}
     />
   )
@@ -284,8 +284,8 @@ export function BentoGridExampleThreeStart() {
 export function BentoGridExampleThreeEnd() {
   return (
     <BentoSection
-      title="Rôles & vérité"
-      subtitle="Lecture des postures d’accès et doctrine de données — jamais inventée."
+      title="Roles & truth"
+      subtitle="Access posture read and data doctrine — never invented."
       sectionItems={items.slice(3)}
     />
   )
@@ -295,8 +295,8 @@ export function BentoGridExampleThreeEnd() {
 export function BentoGridExampleThree() {
   return (
     <BentoSection
-      title="Identité, audit, rôles — en mouvement"
-      subtitle="Flux de session, charge d’audit, lecture des postures d’accès : la matière de la console, mise en mouvement."
+      title="Identity, audit, roles — in motion"
+      subtitle="Session flow, audit load, access posture read: console material, set in motion."
       sectionItems={items}
     />
   )

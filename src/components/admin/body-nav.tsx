@@ -11,8 +11,8 @@ import { usePathname } from 'next/navigation'
  * dans le menu utilisateur.
  *
  * Aujourd'hui seule la section « Service » est multi-entrée : sur `/admin/runtime`,
- * `/admin/api-explorer` et `/admin/keeper`, la bascule rend État du service ↔
- * Explorateur d'API ↔ Actions Keeper. Les sections mono-entrée (Portfolio,
+ * `/admin/api-explorer` et `/admin/keeper`, la bascule rend Service status ↔
+ * API explorer ↔ Keeper actions. Les sections mono-entrée (Portfolio,
  * Production) n'affichent rien.
  */
 export function AdminBodyNav() {
@@ -23,7 +23,7 @@ export function AdminBodyNav() {
   const actif = hrefCorpsActif(pathname)
 
   return (
-    <nav aria-label="Sous-navigation" className="mb-8 border-b border-zinc-950/10 dark:border-white/10">
+    <nav aria-label="Sub-navigation" className="mb-8 border-b border-zinc-950/10 dark:border-white/10">
       <Navbar className="gap-0! overflow-x-auto pb-0 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
         <NavbarSection className="shrink-0">
           {sousMenus.map((entree) => (
@@ -34,7 +34,7 @@ export function AdminBodyNav() {
               title={entree.detail}
               className="shrink-0 rounded-none px-3 py-2.5 sm:px-4"
             >
-              <NavbarLabel>{entree.libelle}</NavbarLabel>
+              <NavbarLabel>{entree.label}</NavbarLabel>
             </NavbarItem>
           ))}
         </NavbarSection>

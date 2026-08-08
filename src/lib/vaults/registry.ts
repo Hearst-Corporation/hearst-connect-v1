@@ -461,7 +461,7 @@ function exceptionsClients(
         }),
         lastActivityAt: unavailable({ status: 'EMPTY', reason: 'no_investor_record' }),
         actionHref: '/admin/profile',
-        actionLabel: 'Ouvrir le compte',
+        actionLabel: 'Open account',
       },
     ],
     { provenance: 'db' },
@@ -619,9 +619,9 @@ function buildClients(
   sources.push(
     sourceHealth(
       'clients',
-      'Annuaire clients',
+      'Client directory',
       clientsRes.ok && isAvailable(bloc),
-      clientsRes.ok ? (clientsRes.data.clients?.reason ?? null) : 'Aucune réponse',
+      clientsRes.ok ? (clientsRes.data.clients?.reason ?? null) : 'No response',
       isAvailable(bloc) ? bloc.asOf : null,
     ),
   )
@@ -650,9 +650,9 @@ function buildDeployments(
   sources.push(
     sourceHealth(
       'deployments',
-      'Déploiements',
+      'Deployments',
       deploymentsRes.ok && isAvailable(bloc),
-      deploymentsRes.ok ? (deploymentsRes.data.deployments?.reason ?? null) : 'Aucune réponse',
+      deploymentsRes.ok ? (deploymentsRes.data.deployments?.reason ?? null) : 'No response',
       isAvailable(bloc) ? bloc.asOf : null,
     ),
   )
@@ -701,9 +701,9 @@ function buildCompliance(
   sources.push(
     sourceHealth(
       'compliance',
-      'Conformité',
+      'Compliance',
       complianceRes.ok && isAvailable(bloc),
-      complianceRes.ok ? (complianceRes.data.reviews?.reason ?? null) : 'Aucune réponse',
+      complianceRes.ok ? (complianceRes.data.reviews?.reason ?? null) : 'No response',
       isAvailable(bloc) ? bloc.asOf : null,
     ),
   )
@@ -749,9 +749,9 @@ function buildVaults(
   sources.push(
     sourceHealth(
       'vault',
-      'Coffre',
+      'Vault',
       vaultRes.ok && isAvailable(snapshot),
-      vaultRes.ok ? null : 'Aucune réponse',
+      vaultRes.ok ? null : 'No response',
       isAvailable(snapshot) ? snapshot.asOf : null,
     ),
   )
@@ -775,7 +775,7 @@ function buildVaults(
   sources.push(
     sourceHealth(
       'vault-strategies',
-      'Stratégies',
+      'Strategies',
       isAvailable(strategiesBloc),
       null,
       isAvailable(strategiesBloc) ? strategiesBloc.asOf : null,
@@ -794,9 +794,9 @@ function buildVaults(
   sources.push(
     sourceHealth(
       'rebalancing-status',
-      'Rééquilibrage',
+      'Rebalancing',
       isAvailable(rebalancingBloc),
-      rebalRes.ok ? (rebalRes.data.rebalancing?.reason ?? null) : 'Aucune réponse',
+      rebalRes.ok ? (rebalRes.data.rebalancing?.reason ?? null) : 'No response',
       null,
     ),
   )

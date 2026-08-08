@@ -17,7 +17,7 @@
  */
 
 /* ── Noyau ────────────────────────────────────────────────────────────────── */
-export { ChartFrame, type EtatSerie } from '@/components/charts/core/chart-frame'
+export { ChartFrame, type SeriesState, type EtatSerie } from '@/components/charts/core/chart-frame'
 export { plottableAsChart } from '@/components/charts/core/chart-theme'
 
 /* ── Cartésiens ───────────────────────────────────────────────────────────── */

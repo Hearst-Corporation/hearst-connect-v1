@@ -29,7 +29,7 @@ import {
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Opérations' }
+export const metadata: Metadata = { title: 'Operations' }
 export const dynamic = 'force-dynamic'
 
 type MouvementIndexe = {
@@ -132,8 +132,8 @@ function derivesDe(poches: readonly Poche[] | null | undefined): readonly Derive
 
 function cadenceLisible(intervalMs: number | null | undefined): string {
   if (typeof intervalMs !== 'number' || !Number.isFinite(intervalMs)) return '—'
-  if (intervalMs < 60_000) return `toutes les ${Math.round(intervalMs / 1000)} s`
-  return `toutes les ${Math.round(intervalMs / 60_000)} min`
+  if (intervalMs < 60_000) return `every ${Math.round(intervalMs / 1000)} s`
+  return `every ${Math.round(intervalMs / 60_000)} min`
 }
 
 /**
@@ -150,31 +150,31 @@ function lectureOnChainDirecte(value: unknown): string {
     const lecture = value as Record<string, unknown>
     const ecart = lecture.driftBps
     if (typeof ecart === 'number' && Number.isFinite(ecart)) {
-      champs.push(`écart ${ecartLisible(ecart)} pt`)
+      champs.push(`drift ${ecartLisible(ecart)} pt`)
     }
     const dernier = lecture.lastRebalanceAt
     if (typeof dernier === 'string' && dernier !== '') {
-      champs.push(`dernier rééquilibrage ${dateLisible(dernier)}`)
+      champs.push(`last rebalance ${dateLisible(dernier)}`)
     }
   }
   return champs.length > 0
-    ? `En direct — lecture reçue : ${champs.join(', ')}.`
-    : 'En direct — lecture reçue.'
+    ? `Live — reading received : ${champs.join(', ')}.`
+    : 'Live — reading received.'
 }
 
 function onChainReading(rebalancing: BackendResult<RebalancingStatus>): string {
-  if (!rebalancing.ok) return 'Le service n’a pas répondu pour la lecture directe du contrat.'
+  if (!rebalancing.ok) return 'The service did not respond for the direct contract read.'
   const bloc = rebalancing.data.rebalancing
-  if (bloc === undefined) return 'Champ rebalancing absent de la réponse.'
+  if (bloc === undefined) return 'Rebalancing field missing from the response.'
   if (bloc.status === 'LIVE' && bloc.value !== null && bloc.value !== undefined) {
     return lectureOnChainDirecte(bloc.value)
   }
   const motif = motifLisible(bloc.reason)
   if (motif !== undefined) return `${etatSourceLisibleCap(bloc.status)} — ${motif}`
   if (bloc.status === 'UNAVAILABLE' || bloc.status === 'NOT_EXPOSED' || bloc.status === 'NOT_SUPPORTED') {
-    return `${etatSourceLisibleCap(bloc.status)} — aucune mesure on-chain utilisable.`
+    return `${etatSourceLisibleCap(bloc.status)} — no usable on-chain measurement.`
   }
-  return `${etatSourceLisibleCap(bloc.status)} — réponse reçue sans valeur exploitable.`
+  return `${etatSourceLisibleCap(bloc.status)} — response received with no usable value.`
 }
 
 /**
@@ -223,51 +223,51 @@ export default async function Page() {
         })
 
   const pendingLabel = !dashboard.ok
-    ? 'Dashboard illisible — pending non attesté'
+    ? 'Dashboard unreadable — pending not verified'
     : dashboard.data.rebalancing?.status !== 'LIVE'
-      ? 'Rééquilibrage dashboard non LIVE — pending non attesté'
+      ? 'Rebalancing dashboard not LIVE — pending not verified'
       : mesure?.pending === null || mesure?.pending === undefined || mesure.pending === false
-        ? 'Aucune signalée'
-        : 'Une demande est ouverte'
+        ? 'None reported'
+        : 'A request is open'
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'movements', title: 'Mouvements', value: movementCountCell, icon: ArrowsRightLeftIcon },
-    { id: 'pockets', title: 'Poches mesurées', value: pocketsMeasuredCell, icon: ChartBarIcon },
+    { id: 'movements', title: 'Movements', value: movementCountCell, icon: ArrowsRightLeftIcon },
+    { id: 'pockets', title: 'Pockets measured', value: pocketsMeasuredCell, icon: ChartBarIcon },
     {
       id: 'indexer',
-      title: 'Indexeur',
+      title: 'Indexer',
       value: editorial(etatSourceLisibleCap(runtimeStatus)),
       icon: CpuChipIcon,
     },
-    { id: 'journal', title: 'État du journal', value: journalStatus, icon: BookOpenIcon },
+    { id: 'journal', title: 'Journal status', value: journalStatus, icon: BookOpenIcon },
   ]
 
   return (
     <div className="space-y-8">
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
       <AdminPageHeader
-        title="Opérations"
-        description="Mouvements Series 1, allocation par poche et fraîcheur de l’indexeur."
+        title="Operations"
+        description="Series 1 movements, pocket allocation, and indexer freshness."
         kpis={kpis}
       />
 
       {/* ── CHART RÉEL : allocation cible vs constatée par poche ──── */}
       <ChartFrame
-        question="L’allocation constatée suit-elle sa cible, poche par poche ?"
-        unite="en pourcentage — cible visée contre part constatée"
+        question="Does observed allocation follow its target, pocket by pocket?"
+        unite="in percent — target share vs observed share"
         etat={
           !dashboard.ok
             ? {
-                type: 'indisponible',
-                explication: 'Le tableau de bord n’a pas répondu — l’allocation par poche ne peut pas être lue.',
+                type: 'unavailable',
+                explication: 'The dashboard did not respond — pocket allocation cannot be read.',
               }
             : derives.length === 0
               ? {
-                  type: 'vide',
+                  type: 'empty',
                   explication:
-                    'Aucune poche ne renseigne à la fois sa cible et sa part constatée — en attente de la source.',
+                    'No pocket reports both its target and observed share — waiting on the source.',
                 }
-              : { type: 'tracee' }
+              : { type: 'plotted' }
         }
         expectedSource={['GET /api/v1/dashboard']}
       >
@@ -282,23 +282,23 @@ export default async function Page() {
 
       {/* ── TABLE : écart par poche ──────────────────────────────── */}
       <DataTableShell
-        title="Écart par poche"
-        description="Écart entre la cible et la part constatée, poche par poche (source dashboard)."
-        count={derives.length > 0 ? `${formatNumber(derives.length)} poche(s)` : undefined}
+        title="Pocket drift"
+        description="Drift between target and observed share, pocket by pocket (dashboard source)."
+        count={derives.length > 0 ? `${formatNumber(derives.length)} pocket(s)` : undefined}
         calme={
           derives.length > 0
             ? undefined
-            : 'Aucune poche ne renseigne à la fois sa cible et sa part constatée — en attente de la source.'
+            : 'No pocket reports both its target and observed share — waiting on the source.'
         }
       >
         {derives.length > 0 ? (
           <>
             <TableHead>
               <TableRow>
-                <TableHeader>Poche</TableHeader>
-                <TableHeader>Cible %</TableHeader>
-                <TableHeader>Constaté %</TableHeader>
-                <TableHeader>Écart pt</TableHeader>
+                <TableHeader>Pocket</TableHeader>
+                <TableHeader>Target %</TableHeader>
+                <TableHeader>Observed %</TableHeader>
+                <TableHeader>Drift pt</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -317,24 +317,24 @@ export default async function Page() {
 
       {/* ── TABLE : journal des mouvements ───────────────────────── */}
       <DataTableShell
-        title="Journal des mouvements"
-        description="Source series1-events uniquement — aucun événement synthétique."
+        title="Movement journal"
+        description="series1-events source only — no synthetic events."
         calme={
           mouvements !== null && mouvements.length > 0
             ? undefined
             : reponse.ok
-              ? 'Aucun mouvement indexé pour l’instant.'
-              : 'Le journal des mouvements n’a pas pu être lu.'
+              ? 'No indexed movements yet.'
+              : 'The movement journal could not be read.'
         }
       >
         {mouvements !== null && mouvements.length > 0 ? (
           <>
             <TableHead>
               <TableRow>
-                <TableHeader>Événement</TableHeader>
-                <TableHeader>Montant</TableHeader>
-                <TableHeader>Investisseur</TableHeader>
-                <TableHeader>Quand</TableHeader>
+                <TableHeader>Event</TableHeader>
+                <TableHeader>Amount</TableHeader>
+                <TableHeader>Investor</TableHeader>
+                <TableHeader>When</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -356,24 +356,24 @@ export default async function Page() {
 
       {/* ── TABLE : événements de rééquilibrage ──────────────────── */}
       <DataTableShell
-        title="Événements de rééquilibrage"
-        description="Source /api/v1/events/rebalancing — Rebalance, VaultSwapped, changements de stratégie."
+        title="Rebalancing events"
+        description="Source /api/v1/events/rebalancing — Rebalance, VaultSwapped, strategy changes."
         calme={
           rebalEvents !== null && rebalEvents.length > 0
             ? undefined
             : rebalancingEvents.ok
-              ? 'Aucun événement de rééquilibrage indexé pour l’instant.'
-              : 'Le journal de rééquilibrage n’a pas pu être lu.'
+              ? 'No rebalancing events indexed yet.'
+              : 'The rebalancing journal could not be read.'
         }
       >
         {rebalEvents !== null && rebalEvents.length > 0 ? (
           <>
             <TableHead>
               <TableRow>
-                <TableHeader>Événement</TableHeader>
-                <TableHeader>Montant</TableHeader>
-                <TableHeader>Investisseur</TableHeader>
-                <TableHeader>Quand</TableHeader>
+                <TableHeader>Event</TableHeader>
+                <TableHeader>Amount</TableHeader>
+                <TableHeader>Investor</TableHeader>
+                <TableHeader>When</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -395,48 +395,48 @@ export default async function Page() {
 
       {/* ── SECTION : rééquilibrage (mesure + lecture on-chain) ──── */}
       <SectionCard
-        title="Rééquilibrage"
-        hint="Mesure indexée (dashboard) et lecture directe du contrat sont séparées à dessein."
+        title="Rebalancing"
+        hint="Indexed measurement (dashboard) and direct contract read are intentionally separate."
         tone="plain"
       >
         <DescriptionList>
-          <DescriptionTerm>Écart observé</DescriptionTerm>
+          <DescriptionTerm>Observed drift</DescriptionTerm>
           <DescriptionDetails>{ecartLisible(mesure?.driftBps)} pt</DescriptionDetails>
-          <DescriptionTerm>Dernier rééquilibrage</DescriptionTerm>
+          <DescriptionTerm>Last rebalance</DescriptionTerm>
           <DescriptionDetails>{dateLisible(mesure?.lastRebalanceAt ?? null)}</DescriptionDetails>
-          <DescriptionTerm>Temps écoulé</DescriptionTerm>
+          <DescriptionTerm>Elapsed time</DescriptionTerm>
           <DescriptionDetails>{ilYA(mesure?.lastRebalanceAt ?? null)}</DescriptionDetails>
-          <DescriptionTerm>Demande en attente</DescriptionTerm>
+          <DescriptionTerm>Pending request</DescriptionTerm>
           <DescriptionDetails>{pendingLabel}</DescriptionDetails>
-          <DescriptionTerm>Lecture on-chain</DescriptionTerm>
+          <DescriptionTerm>On-chain reading</DescriptionTerm>
           <DescriptionDetails>
             <Text className="mt-0!">{onChainReading(rebalancing)}</Text>
           </DescriptionDetails>
-          <DescriptionTerm>Mode du contrat</DescriptionTerm>
+          <DescriptionTerm>Contract mode</DescriptionTerm>
           <DescriptionDetails>{contrat?.mode ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Chaîne</DescriptionTerm>
+          <DescriptionTerm>Chain</DescriptionTerm>
           <DescriptionDetails>
             {contrat?.chainId === undefined || contrat.chainId === null ? '—' : String(contrat.chainId)}
           </DescriptionDetails>
-          <DescriptionTerm>Contrat interrogé</DescriptionTerm>
+          <DescriptionTerm>Contract queried</DescriptionTerm>
           <DescriptionDetails className="font-mono text-sm">{contrat?.contractAddress ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Code à l’adresse</DescriptionTerm>
+          <DescriptionTerm>Code at address</DescriptionTerm>
           <DescriptionDetails>{contrat?.codePresence ?? '—'}</DescriptionDetails>
         </DescriptionList>
       </SectionCard>
 
-      {/* ── SECTION : fraîcheur de l’indexeur ────────────────────── */}
-      <SectionCard title="Fraîcheur de l’indexeur" hint="Ordonnanceur d’indexation (runtime)." tone="plain">
+      {/* ── SECTION : indexer freshness ────────────────────── */}
+      <SectionCard title="Indexer freshness" hint="Indexing scheduler (runtime)." tone="plain">
         <DescriptionList>
-          <DescriptionTerm>Dernière synchronisation</DescriptionTerm>
+          <DescriptionTerm>Last sync</DescriptionTerm>
           <DescriptionDetails>
             {ilYA(planificateur?.lastSuccessAt ?? (runtime.ok ? (runtime.data.indexer?.lastSyncedAt ?? null) : null))}
           </DescriptionDetails>
-          <DescriptionTerm>Dernier bloc indexé</DescriptionTerm>
+          <DescriptionTerm>Last indexed block</DescriptionTerm>
           <DescriptionDetails>{planificateur?.lastIndexedBlock ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Intervalle</DescriptionTerm>
+          <DescriptionTerm>Interval</DescriptionTerm>
           <DescriptionDetails>{cadenceLisible(planificateur?.intervalMs)}</DescriptionDetails>
-          <DescriptionTerm>Erreurs consécutives</DescriptionTerm>
+          <DescriptionTerm>Consecutive errors</DescriptionTerm>
           <DescriptionDetails>
             {planificateur?.consecutiveErrors === undefined || planificateur.consecutiveErrors === null
               ? '—'

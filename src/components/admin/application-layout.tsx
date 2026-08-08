@@ -52,7 +52,7 @@ function AccountMenu({
         className={compteActif ? 'font-semibold' : undefined}
       >
         <UserCircleIcon />
-        <DropdownLabel>Votre compte</DropdownLabel>
+        <DropdownLabel>Your account</DropdownLabel>
       </DropdownItem>
       <DropdownDivider />
       <DropdownItem
@@ -61,7 +61,7 @@ function AccountMenu({
         }}
       >
         <ArrowRightStartOnRectangleIcon />
-        <DropdownLabel>Se déconnecter</DropdownLabel>
+        <DropdownLabel>Sign out</DropdownLabel>
       </DropdownItem>
     </DropdownMenu>
   )
@@ -121,7 +121,7 @@ export function AdminApplicationLayout({
                     current={groupeActif === undefined && primaireActif === entree.href}
                   >
                     <Icone />
-                    <SidebarLabel>{entree.libelle}</SidebarLabel>
+                    <SidebarLabel>{entree.label}</SidebarLabel>
                   </SidebarItem>
                 )
               })}
@@ -138,7 +138,7 @@ export function AdminApplicationLayout({
                     current={groupeActif?.titre === hub.titre}
                   >
                     <Icone />
-                    <SidebarLabel>{hub.libelle}</SidebarLabel>
+                    <SidebarLabel>{hub.label}</SidebarLabel>
                   </SidebarItem>
                 )
               })}

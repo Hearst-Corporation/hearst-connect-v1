@@ -74,6 +74,6 @@ export function libelleStrategieDetail(
 export function statutHttpStrategieDetail(
   reponse: Awaited<ReturnType<typeof loadStrategyDetail>> | null,
 ): Availability<string> {
-  if (reponse === null) return editorial('Non interrogé')
-  return reponse.ok ? editorial('Réponse reçue') : editorial('Service injoignable')
+  if (reponse === null) return editorial('Not queried')
+  return reponse.ok ? editorial('Response received') : editorial('Service unreachable')
 }

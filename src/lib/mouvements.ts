@@ -16,73 +16,72 @@ export { formatAddress as adresseCourte, formatDateTime as dateLisible, formatRe
 
 /** Short name: for a column, a distribution bar, a chip. */
 export const LIBELLE_MOUVEMENT: Record<string, string> = {
-  Deposit: 'Dépôt',
-  Redeem: 'Rachat',
-  StrategyAdded: 'Stratégie ajoutée',
-  StrategyRemoved: 'Stratégie retirée',
-  Rebalance: 'Rééquilibrage',
-  VaultSwapped: 'Échange de coffre',
-  ElectricityPaid: 'Électricité payée',
-  ElecPayeeUpdated: 'Bénéficiaire électricité mis à jour',
-  MonthlyElecCostUpdated: 'Coût mensuel d’électricité mis à jour',
-  MiningMetricsReported: 'Métriques de minage transmises',
-  CurtailmentTriggered: 'Délestage déclenché',
-  CurtailmentLifted: 'Délestage levé',
-  TakeProfitExecuted: 'Prise de profit exécutée',
-  MonthlyEngineRun: 'Cycle mensuel exécuté',
+  Deposit: 'Deposit',
+  Redeem: 'Redemption',
+  StrategyAdded: 'Strategy added',
+  StrategyRemoved: 'Strategy removed',
+  Rebalance: 'Rebalance',
+  VaultSwapped: 'Vault swap',
+  ElectricityPaid: 'Electricity paid',
+  ElecPayeeUpdated: 'Electricity payee updated',
+  MonthlyElecCostUpdated: 'Monthly electricity cost updated',
+  MiningMetricsReported: 'Mining metrics reported',
+  CurtailmentTriggered: 'Curtailment triggered',
+  CurtailmentLifted: 'Curtailment lifted',
+  TakeProfitExecuted: 'Take profit executed',
+  MonthlyEngineRun: 'Monthly cycle executed',
 }
 
 /** Full sentence: for an event feed that reads like a narrative. */
 const PHRASE_MOUVEMENT: Record<string, string> = {
-  Deposit: 'Un dépôt a été enregistré',
-  Redeem: 'Un rachat a été enregistré',
-  StrategyAdded: 'Une stratégie a été ajoutée au coffre',
-  StrategyRemoved: 'Une stratégie a été retirée du coffre',
-  Rebalance: 'Le coffre a été rééquilibré',
-  VaultSwapped: 'Un échange a été exécuté dans le coffre',
-  ElectricityPaid: 'L’électricité a été payée',
-  ElecPayeeUpdated: 'Le bénéficiaire de l’électricité a été mis à jour',
-  MonthlyElecCostUpdated: 'Le coût mensuel d’électricité a été mis à jour',
-  MiningMetricsReported: 'Les métriques de minage ont été transmises',
-  CurtailmentTriggered: 'Le délestage de la flotte a été déclenché',
-  CurtailmentLifted: 'Le délestage de la flotte a été levé',
-  TakeProfitExecuted: 'Une prise de profit a été exécutée',
-  MonthlyEngineRun: 'Le cycle mensuel a été exécuté',
+  Deposit: 'A deposit was recorded',
+  Redeem: 'A redemption was recorded',
+  StrategyAdded: 'A strategy was added to the vault',
+  StrategyRemoved: 'A strategy was removed from the vault',
+  Rebalance: 'The vault was rebalanced',
+  VaultSwapped: 'A swap was executed in the vault',
+  ElectricityPaid: 'Electricity was paid',
+  ElecPayeeUpdated: 'The electricity payee was updated',
+  MonthlyElecCostUpdated: 'The monthly electricity cost was updated',
+  MiningMetricsReported: 'Mining metrics were reported',
+  CurtailmentTriggered: 'Fleet curtailment was triggered',
+  CurtailmentLifted: 'Fleet curtailment was lifted',
+  TakeProfitExecuted: 'A take profit was executed',
+  MonthlyEngineRun: 'The monthly cycle was executed',
 }
 
 export const libelleMouvement = (nom: string): string => LIBELLE_MOUVEMENT[nom] ?? nom
 export const phraseMouvement = (nom: string): string => PHRASE_MOUVEMENT[nom] ?? libelleMouvement(nom)
 
 /**
- * Les codes de motif du service, rendus en phrase lisible.
+ * Service reason codes, rendered as readable phrases.
  *
- * La console est en français : cette table traduit, elle ne recopie pas. Les
- * CLÉS restent les codes bruts du backend — ce sont des identifiants, pas du
- * texte d'interface, et les changer casserait la correspondance.
+ * KEYS remain raw backend codes — identifiers, not UI text. Changing them
+ * would break the mapping.
  *
- * Un motif inconnu rend `undefined` : mieux vaut ne rien dire que laisser
- * fuir un code technique dans une console métier.
+ * An unknown reason returns `undefined`: better to say nothing than leak a
+ * technical code into a business console.
  */
 const MOTIF_LISIBLE: Record<string, string> = {
-  no_investor_record: 'aucun dossier investisseur n’est rattaché à ce compte',
-  engine_not_initialised: 'le moteur de minage n’a pas encore été initialisé',
-  dynavault_not_deployed: 'cette fonction n’est pas encore ouverte',
-  // Le contrat répond mais n'expose aucune lecture pour cette donnée : c'est
-  // une capacité absente de la source, pas un déploiement en attente.
-  not_exposed_by_contract: 'le contrat n’expose aucune lecture pour cette donnée',
-  no_custody_provider_integrated: 'aucun prestataire de conservation n’est intégré',
-  no_events_indexed: 'aucun mouvement n’a encore été indexé',
-  no_runs_recorded: 'aucun backtest n’a encore été exécuté',
-  db_error: 'la base de données n’a pas répondu',
-  rpc_error: 'la chaîne n’a pas répondu',
-  not_available: 'la donnée n’est pas disponible',
-  // Parts de poches — motifs du registre vault (partDeployeeBps).
+  no_investor_record: 'no investor record is linked to this account',
+  engine_not_initialised: 'the mining engine has not been initialized yet',
+  dynavault_not_deployed: 'this feature is not open yet',
+  // The contract responds but exposes no read for this data: a missing
+  // capability on the source, not a pending deployment.
+  not_exposed_by_contract: 'the contract exposes no read for this data',
+  no_custody_provider_integrated: 'no custody provider is integrated',
+  no_events_indexed: 'no movements have been indexed yet',
+  no_runs_recorded: 'no backtest has been run yet',
+  db_error: 'the database did not respond',
+  rpc_error: 'the chain did not respond',
+  not_available: 'the data is not available',
+  // Pocket shares — vault registry reasons (partDeployeeBps).
   some_pocket_shares_unreadable:
-    'une partie des poches du coffre n’a pas pu être lue — le capital déployé ne peut pas être calculé',
-  no_pocket_share_readable: 'aucune poche du coffre n’a pu être lue',
-  no_readable_pocket_drift: 'aucune dérive de poche n’est lisible',
-  vaults_use_different_denominations: 'les coffres n’utilisent pas la même devise',
-  no_deployed_capital: 'aucun capital déployé n’est mesurable',
+    'some vault pockets could not be read — deployed capital cannot be calculated',
+  no_pocket_share_readable: 'no vault pocket could be read',
+  no_readable_pocket_drift: 'no pocket drift is readable',
+  vaults_use_different_denominations: 'the vaults do not use the same currency',
+  no_deployed_capital: 'no deployed capital is measurable',
 }
 
 export function motifLisible(motif: string | null | undefined): string | undefined {
@@ -91,34 +90,28 @@ export function motifLisible(motif: string | null | undefined): string | undefin
 }
 
 /**
- * Présentation FR de l'état d'une source, pour le panneau « Activité des
- * sources » que cinq pages affichent.
+ * English presentation of a source state, for the « Source activity » panel
+ * shown on five pages.
  *
- * Le code TECHNIQUE est inchangé — il vient du backend et reste la valeur qui
- * circule. Seule la présentation est traduite : les pages rendaient
- * `source.status.toLowerCase()`, donc « unavailable », « live », « partial »
- * en clair dans une console française. Relevé sur la capture desktop de
- * /admin/vaults : cinq lignes « unavailable » et une « live ».
- *
- * Un code INCONNU (présent mais hors table) se rend tel quel, en minuscules —
- * jamais requalifié ni masqué en « — » : un état inconnu n'est pas une absence,
- * et le requalifier affirmerait ce que le service n'a pas dit (cf.
- * `tests/etat-source.test.ts`). Seule une absence réelle (null / vide) rend « — ».
+ * The TECHNICAL code is unchanged — it comes from the backend. Only presentation
+ * is translated. An UNKNOWN code (present but off-table) renders as-is,
+ * lowercased — never requalified or masked as « — ». Only a real absence
+ * (null / empty) renders « — ».
  */
 const ETAT_SOURCE_LISIBLE: Record<string, string> = {
-  LIVE: 'en direct',
-  EMPTY: 'aucune donnée',
-  PARTIAL: 'partiel',
-  RUNNING: 'en cours',
-  NOT_REPORTED: 'non rapporté',
-  NOT_EXPOSED: 'non exposé',
-  NOT_CONFIGURED: 'non configuré',
-  NOT_SUPPORTED: 'non pris en charge',
-  PERMISSION_DENIED: 'accès refusé',
-  STALE: 'obsolète',
-  SIMULATED: 'simulé (backend)',
-  ERROR: 'erreur',
-  UNAVAILABLE: 'indisponible',
+  LIVE: 'live',
+  EMPTY: 'no data',
+  PARTIAL: 'partial',
+  RUNNING: 'running',
+  NOT_REPORTED: 'not reported',
+  NOT_EXPOSED: 'not exposed',
+  NOT_CONFIGURED: 'not configured',
+  NOT_SUPPORTED: 'not supported',
+  PERMISSION_DENIED: 'access denied',
+  STALE: 'stale',
+  SIMULATED: 'simulated (backend)',
+  ERROR: 'error',
+  UNAVAILABLE: 'unavailable',
 }
 
 export function etatSourceLisible(etat: string | null | undefined): string {
@@ -127,10 +120,9 @@ export function etatSourceLisible(etat: string | null | undefined): string {
 }
 
 /**
- * Variante « Capitalisée » : même traduction, première lettre en capitale, pour
- * un début de phrase ou un badge autonome. `etatSourceLisible` reste la source
- * de vérité ; on ne fait que présenter son résultat. L'absence « — » n'est pas
- * capitalisée.
+ * Capitalized variant: same translation, first letter uppercased, for sentence
+ * starts or standalone badges. `etatSourceLisible` remains the source of truth.
+ * The absence « — » is not capitalized.
  */
 export function etatSourceLisibleCap(etat: string | null | undefined): string {
   const libelle = etatSourceLisible(etat)
@@ -142,4 +134,3 @@ export function etatSourceLisibleCap(etat: string | null | undefined): string {
 export function montantUsdc(atomique: string | null | undefined, decimales = 2): string {
   return formatCurrency(atomique, { decimals: decimales })
 }
-

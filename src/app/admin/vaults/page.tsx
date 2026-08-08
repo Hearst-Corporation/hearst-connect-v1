@@ -45,7 +45,7 @@ import {
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Registre des coffres' }
+export const metadata: Metadata = { title: 'Vault registry' }
 export const dynamic = 'force-dynamic'
 
 const ZERO = BigInt(0)
@@ -156,7 +156,7 @@ function strategySlices(
   if (hasTotal) {
     const idle = Math.round((total! - deployedAtomic) / scale)
     if (idle > 0) {
-      slices.push({ label: 'Idle / Non déployé', value: idle })
+      slices.push({ label: 'Idle / Not deployed', value: idle })
     }
   }
 
@@ -201,56 +201,56 @@ export default async function Page() {
       : []
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'active', title: 'Coffres actifs', value: activeVaults, icon: ArchiveBoxIcon },
-    { id: 'listed', title: 'Coffres répertoriés', value: totalVaults, icon: BuildingLibraryIcon },
-    { id: 'live-sources', title: 'Sources en direct', value: liveSources, icon: SignalIcon },
-    { id: 'movements', title: 'Mouvements', value: movements, icon: ArrowsRightLeftIcon },
+    { id: 'active', title: 'Active vaults', value: activeVaults, icon: ArchiveBoxIcon },
+    { id: 'listed', title: 'Vaults listed', value: totalVaults, icon: BuildingLibraryIcon },
+    { id: 'live-sources', title: 'Live sources', value: liveSources, icon: SignalIcon },
+    { id: 'movements', title: 'Movements', value: movements, icon: ArrowsRightLeftIcon },
   ]
 
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Registre des coffres"
-        description="Lecture du registre coffre et des signaux d’allocation rapportés par le service."
+        title="Vault registry"
+        description="Vault registry read and allocation signals as reported by the service."
         kpis={kpis}
       />
 
       {vaultList === null ? (
         <SectionCard
-          title="Coffres"
-          hint="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
+          title="Vaults"
+          hint="Vault registry read and reported allocation drift from the service."
         >
-          <Callout tone="warning" title="Lecture du registre indisponible">
-            La lecture du registre n’a pas abouti.{' '}
+          <Callout tone="warning" title="Registry read unavailable">
+            The registry read did not succeed.{' '}
             <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
-              Couverture des données
+              Data coverage
             </Link>
           </Callout>
         </SectionCard>
       ) : vaultList.length === 0 ? (
         <DataTableShell
-          title="Coffres"
-          description="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
-          calme="Le service a répondu sans coffre dans le registre."
+          title="Vaults"
+          description="Vault registry read and reported allocation drift from the service."
+          calme="The service responded with no vault in the registry."
         />
       ) : (
         <DataTableShell
-          title="Coffres"
-          description="Lecture du registre coffre et de l’écart d’allocation rapporté par le service."
-          count={`${formatNumber(vaultList.length)} coffre(s)`}
+          title="Vaults"
+          description="Vault registry read and reported allocation drift from the service."
+          count={`${formatNumber(vaultList.length)} vault(s)`}
         >
           <TableHead>
             <TableRow>
-              <TableHeader>Coffre</TableHeader>
+              <TableHeader>Vault</TableHeader>
               <TableHeader>Client</TableHeader>
-              <TableHeader>État</TableHeader>
-              <TableHeader>Valeur totale</TableHeader>
-              <TableHeader>Déployé</TableHeader>
-              <TableHeader>Disponible</TableHeader>
+              <TableHeader>Status</TableHeader>
+              <TableHeader>Total value</TableHeader>
+              <TableHeader>Deployed</TableHeader>
+              <TableHeader>Idle</TableHeader>
               <TableHeader>cbBTC</TableHeader>
-              <TableHeader>Stratégies</TableHeader>
-              <TableHeader>Écart d’allocation</TableHeader>
-              <TableHeader>Dernier rééquilibrage</TableHeader>
+              <TableHeader>Strategies</TableHeader>
+              <TableHeader>Allocation drift</TableHeader>
+              <TableHeader>Last rebalance</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -288,7 +288,7 @@ export default async function Page() {
                     <AdminReading value={vaultAmount(vault, deployedAtomic(vault))} />
                     {deployedBps === null ? null : (
                       <div className="mt-0.5 text-xs text-zinc-500">
-                        {formatPercent(deployedBps, { fromBps: true })} du total
+                        {formatPercent(deployedBps, { fromBps: true })} of total
                       </div>
                     )}
                   </TableCell>
@@ -329,7 +329,7 @@ export default async function Page() {
                     {!isAvailable(vault.rebalancing) ? (
                       <AdminReading value={absentReading(vault.rebalancing)} />
                     ) : rebalancing!.lastRebalanceAt === null ? (
-                      <span className="text-zinc-500">Non renseigné</span>
+                      <span className="text-zinc-500">Not reported</span>
                     ) : (
                       <span className="tabular-nums text-zinc-600 dark:text-zinc-300">
                         {formatRelativeTime(rebalancing!.lastRebalanceAt)}
@@ -357,15 +357,15 @@ export default async function Page() {
             return (
               <ChartFrame
                 key={vault.id}
-                question={`Répartition des stratégies — ${vault.label}`}
-                unite={`valeur en ${assetSymbol}`}
+                question={`Strategy breakdown — ${vault.label}`}
+                unite={`value in ${assetSymbol}`}
                 expectedSource={['GET /api/v1/vault/strategies']}
                 etat={
                   hasStrategies
                     ? slices.length > 0
-                      ? { type: 'tracee' }
-                      : { type: 'vide', explication: 'Les stratégies sont listées mais aucune ne porte d’allocation lisible.' }
-                    : { type: 'attendue', explication: 'Aucune stratégie n’a été lue pour ce coffre.' }
+                      ? { type: 'plotted' }
+                      : { type: 'empty', explication: 'Strategies are listed but none carry a readable allocation.' }
+                    : { type: 'pending', explication: 'No strategy was read for this vault.' }
                 }
               >
                 {slices.length > 0 ? (
@@ -378,18 +378,18 @@ export default async function Page() {
       )}
 
       {breakdown.kind === 'absent' ? (
-        <SectionCard title="Valeur par coffre">
-          <Callout tone="warning" title="Lecture des coffres indisponible">
-            La lecture des coffres n’a pas abouti.{' '}
-            <Link href={entityHref('source', 'vault')}>Couverture des données</Link>
+        <SectionCard title="Value by vault">
+          <Callout tone="warning" title="Vault read unavailable">
+            The vault read did not succeed.{' '}
+            <Link href={entityHref('source', 'vault')}>Data coverage</Link>
           </Callout>
         </SectionCard>
       ) : breakdown.kind === 'empty' ? (
-        <DataTableShell title="Valeur par coffre" calme="Le service a répondu sans coffre." />
+        <DataTableShell title="Value by vault" calme="The service responded with no vault." />
       ) : breakdown.ranked.length === 0 ? (
         <SectionCard
-          title="Valeur par coffre"
-          hint="Le registre liste des coffres, mais aucun ne portait de total lisible."
+          title="Value by vault"
+          hint="The registry lists vaults, but none carried a readable total."
         >
           {breakdown.unmeasured.map((vault) => (
             <p key={vault.id} className="mt-2">
@@ -402,18 +402,18 @@ export default async function Page() {
         </SectionCard>
       ) : (
         <DataTableShell
-          title="Valeur par coffre"
-          description={`Total lisible : ${formatCurrency(breakdown.total.toString(), {
+          title="Value by vault"
+          description={`Readable total: ${formatCurrency(breakdown.total.toString(), {
             fromAtomic: assetScale(breakdown.ranked[0].vault),
           })}`}
-          count={`${formatNumber(breakdown.ranked.length)} coffre(s) mesuré(s)`}
+          count={`${formatNumber(breakdown.ranked.length)} measured vault(s)`}
         >
           <TableHead>
             <TableRow>
-              <TableHeader>Coffre</TableHeader>
-              <TableHeader>Valeur</TableHeader>
-              <TableHeader>Part du total</TableHeader>
-              <TableHeader>État</TableHeader>
+              <TableHeader>Vault</TableHeader>
+              <TableHeader>Value</TableHeader>
+              <TableHeader>Share of total</TableHeader>
+              <TableHeader>Status</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -442,39 +442,39 @@ export default async function Page() {
       )}
       {breakdown.kind === 'rows' && breakdown.ranked.length > 0 && breakdown.unmeasured.length > 0 ? (
         <Callout tone="info">
-          Exclus du total : {formatNumber(breakdown.unmeasured.length)} coffre(s) illisible(s).
+          Excluded from total: {formatNumber(breakdown.unmeasured.length)} unreadable vault(s).
         </Callout>
       ) : null}
 
       <ChartFrame
-        question="Comment la valeur se répartit-elle entre les coffres ?"
-        unite="valeur lisible, par coffre"
+        question="How is value distributed across vaults?"
+        unite="readable value, per vault"
         expectedSource={['GET /api/v1/vault']}
         etat={
           breakdown.kind === 'absent'
-            ? { type: 'indisponible', explication: 'La lecture des coffres n’a pas abouti.' }
+            ? { type: 'unavailable', explication: 'The vault read did not succeed.' }
             : valueDistribution.length >= 2
-              ? { type: 'tracee' }
+              ? { type: 'plotted' }
               : {
-                  type: 'vide',
+                  type: 'empty',
                   explication:
-                    'La répartition ne se trace qu’à partir de deux coffres mesurés partageant une même dénomination — sinon le tableau reste la lecture la plus honnête.',
+                    'Distribution is plotted only from two measured vaults sharing the same denomination — otherwise the table remains the most honest read.',
                 }
         }
       >
         {valueDistribution.length >= 2 ? (
-          <RichDistributionChart items={valueDistribution} unit="valeur" />
+          <RichDistributionChart items={valueDistribution} unit="value" />
         ) : null}
       </ChartFrame>
 
       <DataTableShell
-        title="Activité des sources"
+        title="Source activity"
         count={`${formatNumber(registry.sources.length)} source(s)`}
       >
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
-            <TableHeader>État</TableHeader>
+            <TableHeader>Status</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -487,17 +487,17 @@ export default async function Page() {
         </TableBody>
       </DataTableShell>
 
-      <SectionCard title="Contrat de données" eyebrow="Registre">
+      <SectionCard title="Data contract" eyebrow="Registry">
         <DescriptionList>
-          <DescriptionTerm>Point d’accès du registre</DescriptionTerm>
+          <DescriptionTerm>Registry endpoint</DescriptionTerm>
           <DescriptionDetails className="font-mono text-sm">GET /api/v1/vault</DescriptionDetails>
-          <DescriptionTerm>Seuil</DescriptionTerm>
-          <DescriptionDetails>Seuil de la console ±2,00 pt</DescriptionDetails>
+          <DescriptionTerm>Threshold</DescriptionTerm>
+          <DescriptionDetails>Console threshold ±2.00 pt</DescriptionDetails>
           <DescriptionTerm>Navigation</DescriptionTerm>
-          <DescriptionDetails>Pages de détail dans `/admin/vaults/{'{vaultId}'}`</DescriptionDetails>
-          <DescriptionTerm>Principe</DescriptionTerm>
+          <DescriptionDetails>Detail pages at `/admin/vaults/{'{vaultId}'}`</DescriptionDetails>
+          <DescriptionTerm>Principle</DescriptionTerm>
           <DescriptionDetails>
-            Aucun décompte de repli quand une source est indisponible.
+            No fallback count when a source is unavailable.
           </DescriptionDetails>
         </DescriptionList>
       </SectionCard>

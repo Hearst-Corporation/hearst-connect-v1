@@ -35,10 +35,10 @@ import {
 } from '@heroicons/react/16/solid'
 
 const DEPLOY_STEP: Record<string, string> = {
-  REQUESTED: 'Demandée',
-  PENDING: 'En cours',
-  CONFIRMED: 'Confirmée',
-  FAILED: 'Échouée',
+  REQUESTED: 'Requested',
+  PENDING: 'In progress',
+  CONFIRMED: 'Confirmed',
+  FAILED: 'Failed',
 }
 
 const DEPLOY_BADGE: Record<string, 'amber' | 'lime' | 'red' | 'zinc'> = {
@@ -50,7 +50,7 @@ const DEPLOY_BADGE: Record<string, 'amber' | 'lime' | 'red' | 'zinc'> = {
 
 /**
  * Tableau de bord admin unique — pilotage des souscriptions.
- * Surface canonique : `/admin` (l’ancienne route `/admin/dashboard` redirige).
+ * Surface canonique : `/admin` (l'ancienne route `/admin/dashboard` redirige).
  */
 export function AdminDashboardPage({
   registry,
@@ -73,36 +73,36 @@ export function AdminDashboardPage({
   const kpis: readonly DashboardKpi[] = [
     {
       id: 'conversion',
-      title: 'Taux de conversion',
+      title: 'Conversion rate',
       value: conversion,
-      unit: '% Compte → Position',
+      unit: '% Account → Position',
       icon: ArrowTrendingUpIcon,
     },
     {
       id: 'kyc',
-      title: 'KYC en attente',
+      title: 'KYC pending',
       value: mapAvailability(registry.compliance, (rows) =>
         String(rows.filter((r) => r.stage !== 'termine').length),
       ),
-      unit: 'dossiers',
+      unit: 'cases',
       icon: ClipboardDocumentCheckIcon,
     },
     {
       id: 'subscriptions',
-      title: 'Souscriptions à traiter',
+      title: 'Subscriptions to process',
       value: mapAvailability(registry.deployments, (rows) =>
         String(rows.filter((d) => d.status === 'REQUESTED' || d.status === 'PENDING').length),
       ),
-      unit: 'en attente',
+      unit: 'pending',
       icon: BanknotesIcon,
     },
     {
       id: 'failed',
-      title: 'Souscriptions échouées',
+      title: 'Failed subscriptions',
       value: mapAvailability(registry.deployments, (rows) =>
         String(rows.filter((d) => d.status === 'FAILED').length),
       ),
-      unit: 'échouées',
+      unit: 'failed',
       icon: ExclamationTriangleIcon,
     },
   ]
@@ -132,13 +132,13 @@ export function AdminDashboardPage({
       <div className="grid grid-cols-1 gap-4 @[56rem]:grid-cols-12">
         <DashCard
           className="@[56rem]:col-span-8"
-          title="Parcours de souscription"
-          subtitle="Compte → KYC → Wallet → Dépôt → Souscription → Position"
+          title="Subscription journey"
+          subtitle="Account → KYC → Wallet → Deposit → Subscription → Position"
         >
           <SubscriptionJourneyStepper steps={funnel} />
         </DashCard>
 
-        <DashCard className="@[56rem]:col-span-4" title="À traiter" subtitle="Actions prioritaires">
+        <DashCard className="@[56rem]:col-span-4" title="To process" subtitle="Priority actions">
           <ActionQueue rows={priorityQueue} maxRows={6} />
         </DashCard>
       </div>
@@ -148,24 +148,24 @@ export function AdminDashboardPage({
       <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
         <DashCard
           className="@[48rem]:col-span-7"
-          title="Courbe d’activité"
-          subtitle="Volume journalier · 28 jours"
+          title="Activity curve"
+          subtitle="Daily volume · 28 days"
         >
           {showActivityCurve ? (
             <HearstActivityChart points={activityPoints} unite="actions" />
           ) : (
-            <ChartPlaceholder title="Courbe d’activité" height={300} icon={ChartBarIcon} />
+            <ChartPlaceholder title="Activity curve" height={300} icon={ChartBarIcon} />
           )}
         </DashCard>
 
-        <DashCard className="@[48rem]:col-span-5" title="Donut KYC" subtitle="Répartition des dossiers">
+        <DashCard className="@[48rem]:col-span-5" title="KYC donut" subtitle="Case breakdown">
           {isAvailable(kycBuckets) && kycBuckets.value.length >= 2 ? (
             <HearstDonutChart
               slices={kycBuckets.value.map((b) => ({ label: b.label, value: b.value }))}
-              unit="dossiers"
+              unit="cases"
             />
           ) : (
-            <ChartPlaceholder title="Donut KYC" height={260} />
+            <ChartPlaceholder title="KYC donut" height={260} />
           )}
         </DashCard>
       </div>
@@ -175,33 +175,33 @@ export function AdminDashboardPage({
       <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
         <DashCard
           className="@[48rem]:col-span-7"
-          title="Souscriptions par produit"
-          subtitle="Classement par volume"
+          title="Subscriptions by product"
+          subtitle="Ranked by volume"
         >
           <ProductBars products={byProduct} />
         </DashCard>
 
-        <DashCard className="@[48rem]:col-span-5" title="Activité hebdomadaire" subtitle="Densité journalière">
+        <DashCard className="@[48rem]:col-span-5" title="Weekly activity" subtitle="Daily density">
           <ActivityHeatmap cells={heatmap} />
         </DashCard>
       </div>
       </div>
 
-      <DashCard title="Dernières souscriptions" subtitle="Six dernières opérations">
+      <DashCard title="Latest subscriptions" subtitle="Last six operations">
         {!isAvailable(registry.deployments) ? (
-          <Text>Données indisponibles</Text>
+          <Text>Data unavailable</Text>
         ) : recentDeployments.length === 0 ? (
-          <Text>Aucune souscription</Text>
+          <Text>No subscriptions</Text>
         ) : (
           <Table dense>
             <TableHead>
               <TableRow>
                 <TableHeader>Client</TableHeader>
-                <TableHeader>Produit</TableHeader>
-                <TableHeader>Montant</TableHeader>
-                <TableHeader>Étape</TableHeader>
+                <TableHeader>Product</TableHeader>
+                <TableHeader>Amount</TableHeader>
+                <TableHeader>Stage</TableHeader>
                 <TableHeader>Wallet</TableHeader>
-                <TableHeader>Mise à jour</TableHeader>
+                <TableHeader>Updated</TableHeader>
                 <TableHeader>Action</TableHeader>
               </TableRow>
             </TableHead>
@@ -229,7 +229,7 @@ export function AdminDashboardPage({
                     </TableCell>
                     <TableCell>
                       <Button plain href={d.vaultId ? `/admin/vaults/${d.vaultId}` : '/admin/vaults'}>
-                        Ouvrir
+                        Open
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -240,7 +240,7 @@ export function AdminDashboardPage({
         )}
       </DashCard>
 
-      <DashCard title="État des sources" subtitle="Fraîcheur opérationnelle">
+      <DashCard title="Source status" subtitle="Operational freshness">
         <SourceStatusGrid sources={registry.sources} />
       </DashCard>
     </DashboardShell>

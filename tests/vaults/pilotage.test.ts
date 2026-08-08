@@ -270,9 +270,9 @@ describe('kycStatusBuckets / subscriptionsByProduct / movementDailyHeatmap', () 
     if (!isAvailable(buckets)) return
     expect(buckets.value).toEqual(
       expect.arrayContaining([
-        { id: 'valide', label: 'Validé', value: 1 },
-        { id: 'en_revue', label: 'En revue', value: 1 },
-        { id: 'bloque', label: 'Bloqué', value: 1 },
+        { id: 'valide', label: 'Validated', value: 1 },
+        { id: 'en_revue', label: 'In review', value: 1 },
+        { id: 'bloque', label: 'Blocked', value: 1 },
       ]),
     )
     expect(buckets.value.find((b) => b.id === 'a_completer')).toBeUndefined()

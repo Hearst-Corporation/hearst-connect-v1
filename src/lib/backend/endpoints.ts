@@ -82,8 +82,8 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'public',
     surface: '/login',
     enveloped: false,
-    summary: 'Authentification email / mot de passe — émet le jeton porteur.',
-    caveat: 'Route d’authentification uniquement : ne produit aucune donnée métier affichée.',
+    summary: 'Email / password authentication — issues the bearer token.',
+    caveat: 'Authentication route only — does not produce displayed business data.',
   }),
 
   // ── Public operational probes ─────────────────────────────────────────────
@@ -240,7 +240,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/admin/produit',
     summary: 'Mining metrics read on-chain.',
     caveat:
-      'Lecture directe on-chain, distincte de l’agrégat `mining` : `/admin/produit` compare les deux et signale tout écart.',
+      'Direct on-chain read, distinct from the `mining` aggregate: `/admin/product` compares both and reports any mismatch.',
   }),
   defineEndpoint({
     id: 'mining-electricity',
@@ -250,7 +250,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/admin/produit',
     summary: 'Mining electricity line item.',
     caveat:
-      'Lecture dédiée du poste électricité, distincte de `mining.electricity` : `/admin/produit` réconcilie les deux.',
+      'Dedicated electricity line read, distinct from `mining.electricity`: `/admin/product` reconciles both.',
   }),
   defineEndpoint({
     id: 'btc',
@@ -332,9 +332,9 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'admin',
     surface: '/admin/client-simulator/new',
     enveloped: false,
-    summary: 'Crée un compte utilisateur (admin choisit le rôle).',
+    summary: 'Creates a user account (admin chooses the role).',
     caveat:
-      'Corps strict `{ email, password, role }` — le mot de passe n’est jamais restitué. Réponse 201 `{ user: { id, email, role } }`.',
+      'Strict body `{ email, password, role }` — password is never returned. 201 response `{ user: { id, email, role } }`.',
   }),
 
   // ── Keeper actions ─────────────────────────────────────────────────────────

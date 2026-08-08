@@ -8,14 +8,13 @@ import satoshiUrl from '../assets/fonts/Satoshi-Variable.woff2'
  * Catches an error thrown in the ROOT layout itself — the one case a segment
  * `error.tsx` cannot handle, because it replaces the whole document (it must
  * render its own <html>/<body>). Kept minimal so it can never fail to render.
- * Police : Satoshi Variable. Texte : blanc deep.
  */
 export default function GlobalError({
   error,
   reset,
 }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="en" className="dark">
       <head>
         <style
           dangerouslySetInnerHTML={{
@@ -36,10 +35,10 @@ export default function GlobalError({
       >
         <div style={{ maxWidth: '32rem', textAlign: 'center', padding: '24px' }}>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 8px', color: 'var(--color-white, #ffffff)' }}>
-            Hearst Connect est momentanément indisponible
+            Hearst Connect is temporarily unavailable
           </h1>
           <p style={{ color: 'var(--color-zinc-400, #f2f2f2)', fontSize: '0.95rem', margin: '0 0 20px' }}>
-            Une erreur inattendue a empêché l’affichage. Réessayez dans un instant.
+            An unexpected error prevented the page from rendering. Try again in a moment.
           </p>
           {error.digest ? (
             <p
@@ -50,7 +49,7 @@ export default function GlobalError({
                 margin: '0 0 20px',
               }}
             >
-              Référence : {error.digest}
+              Reference: {error.digest}
             </p>
           ) : null}
           <button
@@ -67,7 +66,7 @@ export default function GlobalError({
               fontFamily: "'Satoshi', ui-sans-serif, system-ui, sans-serif",
             }}
           >
-            Réessayer
+            Try again
           </button>
         </div>
       </body>
