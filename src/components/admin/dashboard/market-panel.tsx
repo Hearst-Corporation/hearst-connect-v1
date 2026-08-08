@@ -1,5 +1,3 @@
-'use client'
-
 import { surfaceInset } from '@/components/admin/surface'
 import { StatusBadge } from '@/components/admin/truthful'
 import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/contracts'

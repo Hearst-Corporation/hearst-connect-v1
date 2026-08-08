@@ -1,5 +1,3 @@
-'use client'
-
 import { Badge } from '@/components/catalyst/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
