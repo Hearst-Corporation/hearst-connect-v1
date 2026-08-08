@@ -154,15 +154,6 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'DB-only read model — indexer is the sole writer.',
   }),
   defineEndpoint({
-    id: 'rebalancing-history',
-    path: '/api/v1/rebalancing/history',
-    category: 'business',
-    auth: 'session',
-    surface: '/admin/operations',
-    summary: 'Historical drift series — periodic snapshots of allocation drift over time.',
-    caveat: 'Time-series read model — one row per observation period.',
-  }),
-  defineEndpoint({
     id: 'clients',
     path: '/api/v1/clients',
     category: 'business',
@@ -328,10 +319,10 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/admin/indexer/trigger',
     category: 'probe',
     auth: 'admin',
-    surface: '/admin/runtime',
+    surface: '/admin/operations',
     enveloped: false,
     summary: 'Triggers a Series 1 indexer run (admin only).',
-    caveat: 'Operational trigger — not a business fact. Not a Keeper write.',
+    caveat: 'Operational trigger — not a business fact. Not a Keeper write. Also reachable from Service.',
   }),
 
   // ── Admin dashboard read models (HC-ADMIN-DASHBOARD-BACKEND-FIRST-006) ─────
