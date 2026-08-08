@@ -105,15 +105,31 @@ function valueByVaultRows(vaults: Availability<readonly Vault[]>) {
   return { kind: 'rows' as const, ranked, unmeasured, total }
 }
 
-/** Converts strategy allocations to donut slices. Uses actualBps when available,
- *  falls back to targetBps. Values are in percentage points (bps / 100). */
-function strategySlices(strategies: readonly Strategy[]): readonly DonutSlice[] {
-  return strategies
+/** Converts strategy allocations to donut slices showing actual dollar value.
+ *  Total NAV × actualBps / 10000 for each strategy. Remainder is "Idle / Non déployé".
+ *  Values are in dollars (not bps), so the chart shows real capital at work. */
+function strategySlices(strategies: readonly Strategy[], totalAssetsAtomic: string | null): readonly DonutSlice[] {
+  if (totalAssetsAtomic === null) return []
+  const total = Number(totalAssetsAtomic)
+  if (!Number.isFinite(total) || total <= 0) return []
+
+  const scale = total / 10_000 // one basis point in atomic units
+
+  const slices: DonutSlice[] = strategies
     .map((s) => ({
       label: s.label,
-      value: s.actualBps !== null && s.actualBps !== undefined ? s.actualBps / 100 : s.targetBps / 100,
+      value: Math.round((s.actualBps ?? s.targetBps ?? 0) * scale),
     }))
     .filter((s) => s.value > 0)
+
+  const deployed = slices.reduce((sum, s) => sum + s.value, 0)
+  const idle = Math.round(total - deployed)
+
+  if (idle > 0) {
+    slices.push({ label: 'Idle / Non déployé', value: idle })
+  }
+
+  return slices
 }
 
 export default async function Page() {
@@ -285,12 +301,13 @@ export default async function Page() {
           {vaultList.map((vault) => {
             const strategies = valueOf(vault.strategies)
             const hasStrategies = isAvailable(vault.strategies) && strategies !== null && strategies.length > 0
-            const slices = hasStrategies ? strategySlices(strategies) : []
+            const totalAssets = valueOf(vault.totalAssetsAtomic)
+            const slices = hasStrategies ? strategySlices(strategies, totalAssets) : []
             return (
               <ChartFrame
                 key={vault.id}
                 question={`Répartition des stratégies — ${vault.label}`}
-                unite="% de la NAV"
+                unite="valeur en atomic units — idle inclus"
                 expectedSource={['GET /api/v1/vault/strategies']}
                 etat={
                   hasStrategies
