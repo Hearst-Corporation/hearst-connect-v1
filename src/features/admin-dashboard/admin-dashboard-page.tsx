@@ -15,8 +15,8 @@ import {
 import { HearstActivityChart, type PointActivite } from '@/components/charts'
 import { formatCurrency } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-import type { AdminDashboardData } from '@/lib/admin-dashboard/load'
-import { isAdminNotConfigured } from '@/lib/admin-dashboard/load'
+import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
+import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, mapAvailability } from '@/lib/vaults/model'
 import {

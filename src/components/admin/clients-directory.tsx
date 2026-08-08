@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { DataTableShell } from '@/components/compositions'
-import type { AdminRecentClient } from '@/lib/admin-dashboard/load'
+import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAddress, formatCurrency, formatDateTime } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { useMemo, useState } from 'react'

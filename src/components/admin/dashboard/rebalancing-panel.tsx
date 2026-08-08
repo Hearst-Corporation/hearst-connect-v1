@@ -2,7 +2,7 @@
 
 import { surfaceInset } from '@/components/admin/surface'
 import { formatRelativeTime } from '@/lib/format'
-import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/load'
+import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'

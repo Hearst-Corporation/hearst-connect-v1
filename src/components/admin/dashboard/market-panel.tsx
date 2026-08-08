@@ -2,8 +2,8 @@
 
 import { surfaceInset } from '@/components/admin/surface'
 import { StatusBadge } from '@/components/admin/truthful'
-import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/load'
-import { isAdminNotConfigured } from '@/lib/admin-dashboard/load'
+import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/contracts'
+import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 

@@ -1,4 +1,4 @@
-import type { AdminDataHealthSource } from '@/lib/admin-dashboard/load'
+import type { AdminDataHealthSource } from '@/lib/admin-dashboard/contracts'
 import { surfaceBox } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
 import { formatRelativeTime } from '@/lib/format'
