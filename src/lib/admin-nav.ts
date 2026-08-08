@@ -9,7 +9,6 @@ import {
   ShieldCheckIcon,
   SignalIcon,
   Squares2X2Icon,
-  TableCellsIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/20/solid'
 
@@ -63,29 +62,11 @@ export type GroupeSecondaire = Readonly<{
   entrees: readonly EntreeSecondaire[]
 }>
 
-export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
-  label: 'Vault registry',
-  href: '/admin/vaults',
-  icone: CircleStackIcon,
-  detail: 'Each vault, its client, allocation, and pending operations',
-}
-
 export const PRODUIT_ENTRY: EntreeSecondaire = {
   label: 'Product',
   href: '/admin/product',
   icone: DocumentTextIcon,
   detail: 'Business production, reserve, yield, and backtests — backend-owned facts only',
-}
-
-/**
- * Data coverage — section inside `/admin/runtime` (probes + coverage),
- * not a separate destination.
- */
-export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
-  label: 'Data coverage',
-  href: '/admin/runtime',
-  icone: TableCellsIcon,
-  detail: 'Canonical source health and coverage — Service hub only',
 }
 
 /**

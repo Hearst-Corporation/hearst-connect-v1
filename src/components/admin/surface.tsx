@@ -30,9 +30,6 @@ export const surfaceInset =
 export const surfaceSelect =
   'data-selected:bg-accent-soft data-selected:ring-1 data-selected:ring-accent-400/25'
 
-/** Alias historique → `surfaceBox`. */
-export const surfaceRaised = surfaceBox
-
 /**
  * List of items a source still needs to provide.
  */
