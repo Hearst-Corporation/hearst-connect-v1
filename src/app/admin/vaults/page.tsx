@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { ChartFrame, RichDistributionChart, type DistributionItem } from '@/components/charts'
+import { ChartFrame, HearstDonutChart, RichDistributionChart, type DistributionItem, type DonutSlice } from '@/components/charts'
 import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
@@ -32,6 +32,7 @@ import {
   valueOf,
   type Availability,
   type Unavailable,
+  type Strategy,
   type Vault,
 } from '@/lib/vaults/model'
 import { activeVaultCount } from '@/lib/vaults/overview'
@@ -102,6 +103,17 @@ function valueByVaultRows(vaults: Availability<readonly Vault[]>) {
   const total = ranked.reduce((sum, entry) => sum + entry.atomic, ZERO)
 
   return { kind: 'rows' as const, ranked, unmeasured, total }
+}
+
+/** Converts strategy allocations to donut slices. Uses actualBps when available,
+ *  falls back to targetBps. Values are in percentage points (bps / 100). */
+function strategySlices(strategies: readonly Strategy[]): readonly DonutSlice[] {
+  return strategies
+    .map((s) => ({
+      label: s.label,
+      value: s.actualBps !== null && s.actualBps !== undefined ? s.actualBps / 100 : s.targetBps / 100,
+    }))
+    .filter((s) => s.value > 0)
 }
 
 export default async function Page() {
@@ -265,6 +277,36 @@ export default async function Page() {
             })}
           </TableBody>
         </DataTableShell>
+      )}
+
+      {/* ── Répartition des stratégies par coffre ─────────────────────────── */}
+      {vaultList !== null && vaultList.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {vaultList.map((vault) => {
+            const strategies = valueOf(vault.strategies)
+            const hasStrategies = isAvailable(vault.strategies) && strategies !== null && strategies.length > 0
+            const slices = hasStrategies ? strategySlices(strategies) : []
+            return (
+              <ChartFrame
+                key={vault.id}
+                question={`Répartition des stratégies — ${vault.label}`}
+                unite="% de la NAV"
+                expectedSource={['GET /api/v1/vault/strategies']}
+                etat={
+                  hasStrategies
+                    ? slices.length > 0
+                      ? { type: 'tracee' }
+                      : { type: 'vide', explication: 'Les stratégies sont listées mais aucune ne porte d’allocation lisible.' }
+                    : { type: 'attendue', explication: 'Aucune stratégie n’a été lue pour ce coffre.' }
+                }
+              >
+                {slices.length > 0 ? (
+                  <HearstDonutChart slices={slices} unit="%" />
+                ) : null}
+              </ChartFrame>
+            )
+          })}
+        </div>
       )}
 
       {breakdown.kind === 'absent' ? (
