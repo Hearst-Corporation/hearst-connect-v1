@@ -7,16 +7,12 @@ jobs:
   ci:
     uses: Hearst-Corporation/.github/.github/workflows/ci-nextjs.yml@v1
 
-  # OPS-01 : la garantie centrale du produit (aucune donnée simulée dans le
-  # runtime) doit être VÉRIFIÉE EN CI, bloquante. La gate d'organisation ne
-  # lance pas `check:mocks` ; ce job repo-local le fait, quel que soit l'état
-  # de la gate d'organisation. Exiger « truthful-data » en required check dans
-  # les règles de branche est une action GitHub externe (OPS-04,
-  # BLOCKED_EXTERNAL — action GitHub hors repo).
-  truthful-data:
-    name: truthful-data
+  # Repo-local guardrails — cannot be skipped by direct pushes to main.
+  # The org workflow may not run every product gate; this job enforces them.
+  guardrails:
+    name: guardrails
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -26,9 +22,28 @@ jobs:
           cache: pnpm
       - name: Install (lockfile gelé)
         run: pnpm install --frozen-lockfile
+      - name: Backend target (check:no-gpu1)
+        run: pnpm run check:no-gpu1
+      - name: No zinc / structural neutrals (check:no-zinc)
+        run: pnpm run check:no-zinc
+      - name: English-only UI (check:english-ui)
+        run: pnpm run check:english-ui
       - name: Anti-données-simulées (check:mocks)
         run: pnpm run check:mocks
-      - name: Convergence Design System (check:ds — hex hors tokens)
+      - name: Veracity (check:truthful-data)
+        run: pnpm run check:truthful-data
+      - name: Convergence Design System (check:ds)
         run: pnpm run check:ds
-      - name: Frontières UI (check:ui — compositions, charts, Catalyst)
+      - name: Frontières UI (check:ui)
         run: pnpm run check:ui
+
+  # OPS-01 : la garantie centrale du produit (aucune donnée simulée dans le
+  # runtime) doit être VÉRIFIÉE EN CI, bloquante. Conservé pour compatibilité
+  # required-check ; redirige vers le job guardrails ci-dessus.
+  truthful-data:
+    name: truthful-data
+    needs: guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "truthful-data gates run in guardrails job"
