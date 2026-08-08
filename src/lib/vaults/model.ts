@@ -41,6 +41,8 @@ export type Available<T> = Readonly<{
   /** ISO timestamp the service says the reading is from. */
   asOf: string | null
   stale: boolean
+  /** Backend Resolved status when a value is carried (LIVE, STALE, PARTIAL, EMPTY). */
+  resolutionStatus?: ResolvedStatus
 }>
 
 export type Unavailable = Readonly<{
@@ -56,15 +58,24 @@ export type Availability<T> = Available<T> | Unavailable
 
 export function available<T>(
   value: T,
-  opts: { provenance?: Provenance; asOf?: string | null; stale?: boolean } = {},
+  opts: {
+    provenance?: Provenance
+    asOf?: string | null
+    stale?: boolean
+    resolutionStatus?: ResolvedStatus
+  } = {},
 ): Available<T> {
-  return {
+  const row: Available<T> = {
     kind: 'available',
     value,
     provenance: opts.provenance ?? 'unknown',
     asOf: opts.asOf ?? null,
     stale: opts.stale ?? false,
   }
+  if (opts.resolutionStatus !== undefined) {
+    return { ...row, resolutionStatus: opts.resolutionStatus }
+  }
+  return row
 }
 
 export function unavailable(
@@ -143,7 +154,8 @@ const LIVE_PROVENANCE: ReadonlySet<Provenance> = new Set<Provenance>(['live', 'd
 export function signalOf<T>(a: Availability<T>): Signal {
   if (a.kind !== 'available') return 'absent'
   if (!LIVE_PROVENANCE.has(a.provenance)) return 'editorial'
-  return a.stale ? 'stale' : 'live'
+  if (a.resolutionStatus === 'PARTIAL' || a.resolutionStatus === 'STALE' || a.stale) return 'stale'
+  return 'live'
 }
 
 /** The value if there is one — never a fallback, only `null`. */
