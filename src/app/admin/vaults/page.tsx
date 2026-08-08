@@ -141,9 +141,10 @@ function strategySlices(
       }
     }
 
-    // Fallback: estimate from totalAssets × bps (only when total is known)
-    if (hasTotal) {
-      const bps = s.actualBps ?? s.targetBps ?? 0
+    // Fallback: estimate from totalAssets × bps (only when total AND a real bps are known —
+    // un bps absent ne vaut pas 0, la stratégie est simplement omise de l'estimation).
+    const bps = s.actualBps ?? s.targetBps
+    if (hasTotal && typeof bps === 'number' && bps > 0) {
       const estimateAtomic = Math.round((total! * bps) / 10_000)
       if (estimateAtomic > 0) {
         slices.push({ label: s.label, value: Math.round(estimateAtomic / scale) })
@@ -248,7 +249,7 @@ export default async function Page() {
               <TableHeader>Disponible</TableHeader>
               <TableHeader>cbBTC</TableHeader>
               <TableHeader>Stratégies</TableHeader>
-              <TableHeader>Écart d'allocation</TableHeader>
+              <TableHeader>Écart d’allocation</TableHeader>
               <TableHeader>Dernier rééquilibrage</TableHeader>
             </TableRow>
           </TableHead>
