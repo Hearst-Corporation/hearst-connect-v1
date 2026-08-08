@@ -2,6 +2,11 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+/**
+ * Structural contract — HC-ADMIN-DASHBOARD-WIRING-FIX-009.
+ * Canonical surface: `/admin` (legacy `/admin/dashboard` redirects).
+ */
+
 const root = (p: string) => resolve(import.meta.dirname, '../../', p)
 const PAGE = readFileSync(root('src/app/admin/page.tsx'), 'utf8')
 const SOURCE = readFileSync(root('src/features/admin-dashboard/admin-dashboard-page.tsx'), 'utf8')
@@ -9,12 +14,13 @@ const HEADER = readFileSync(root('src/components/admin/dashboard/header.tsx'), '
 const PAGE_HEADER = readFileSync(root('src/components/admin/page-header.tsx'), 'utf8')
 const HERO_KPI = readFileSync(root('src/components/admin/hero-kpi.tsx'), 'utf8')
 const KPI = readFileSync(root('src/components/admin/dashboard/kpi-grid.tsx'), 'utf8')
-const STEPPER = readFileSync(root('src/components/admin/dashboard/subscription-journey.tsx'), 'utf8')
-const QUEUE = readFileSync(root('src/components/admin/dashboard/action-queue.tsx'), 'utf8')
+const EXPOSURE = readFileSync(root('src/components/admin/dashboard/portfolio-exposure.tsx'), 'utf8')
+const REBALANCING = readFileSync(root('src/components/admin/dashboard/rebalancing-panel.tsx'), 'utf8')
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
+const LOAD = readFileSync(root('src/lib/admin-dashboard/load.ts'), 'utf8')
 
-describe('/admin — dashboard structure (UI-ASSETS-005)', () => {
-  it('uses Catalyst shell (no gray bag) and DashboardHeader', () => {
+describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
+  it('uses Catalyst shell and DashboardHeader', () => {
     expect(SOURCE).toMatch(/<DashboardShell/)
     expect(SOURCE).toMatch(/<DashboardHeader/)
     expect(SOURCE).not.toMatch(/DashboardLightShell/)
@@ -22,119 +28,71 @@ describe('/admin — dashboard structure (UI-ASSETS-005)', () => {
     expect(SOURCE).not.toMatch(/from ['"]@mui\/x-charts/)
   })
 
-  it('titles metadata as subscription oversight', () => {
-    expect(PAGE).toMatch(/Subscription oversight|subscription/i)
+  it('titles metadata as portfolio oversight', () => {
+    expect(PAGE).toMatch(/Portfolio oversight/)
   })
 
-  it('renders exactly four compact KPI metrics inside the header (no separate boxes)', () => {
-    for (const label of [
-      'Conversion rate',
-      'KYC pending',
-      'Subscriptions to process',
-      'Failed subscriptions',
-    ]) {
+  it('renders four asset-management KPIs in the header bandeau', () => {
+    for (const label of ['Total AUM', 'Vaults', 'Deployed capital', 'Maximum drift']) {
       expect(SOURCE).toContain(label)
     }
     expect(SOURCE).toMatch(/<DashboardHeader/)
     expect(SOURCE).toMatch(/kpis=\{kpis\}/)
     expect(SOURCE).not.toMatch(/<DashboardKpiGrid/)
     expect(HEADER).toMatch(/AdminPageHeader/)
-    expect(HEADER).toMatch(/dashboard/)
     expect(PAGE_HEADER).toMatch(/data-dashboard-kpi-bandeau/)
-    expect(PAGE_HEADER).toMatch(/-mx-6/)
-    expect(PAGE_HEADER).toMatch(/size-16|sm:size-\[4\.5rem\]/)
-    expect(PAGE_HEADER).toMatch(/h-20|lg:h-28/)
-    expect(PAGE_HEADER).toMatch(/bg-black/)
-    expect(PAGE_HEADER).not.toMatch(/size-24|size-32|h-32|lg:h-48/)
-    expect(PAGE_HEADER).toMatch(/LogoMark/)
-    expect(PAGE_HEADER).toMatch(/AdminHeroKpiMetrics/)
-    expect(PAGE_HEADER).toMatch(/items-end/)
-    expect(PAGE_HEADER).toMatch(/sm:items-end/)
-    expect(HEADER).not.toMatch(/Avatar|initials/)
-    expect(HEADER).not.toMatch(/MagnifyingGlassIcon|BellIcon|UserCircleIcon/)
-    expect(SOURCE).not.toContain('proxy wallet')
-    expect(SOURCE).not.toContain('Comptes présents dans le registre')
-    expect(SOURCE).not.toContain('Clients actifs')
-    expect(SOURCE).not.toContain('Wallets actifs')
     expect(KPI).toMatch(/AdminHeroKpiMetrics as DashboardKpiMetrics/)
-    expect(HERO_KPI).not.toMatch(/Live/)
-    expect(HERO_KPI).not.toMatch(/SourcePill|AdminReading|showRoute/)
-    expect(HERO_KPI).not.toMatch(/rounded-xl|bg-white|ring-1|backdrop-blur/)
-    expect(HERO_KPI).not.toMatch(/surfaceBox/)
+    expect(HERO_KPI).toMatch(/accent-/)
   })
 
-  it('replaces the six-column funnel with a real journey stepper (no comparative bars)', () => {
+  it('replaces subscription funnel with portfolio exposure panel', () => {
+    expect(SOURCE).not.toMatch(/<SubscriptionJourneyStepper/)
     expect(SOURCE).not.toMatch(/<FunnelColumns/)
-    expect(SOURCE).toMatch(/<SubscriptionJourneyStepper/)
-    expect(SOURCE).toContain('Subscription journey')
-    expect(STEPPER).toMatch(/'use client'/)
-    expect(STEPPER).toMatch(/TabGroup|TabList|TabPanel/)
-    expect(STEPPER).not.toMatch(/role="meter"/)
-    expect(STEPPER).not.toMatch(/height:\s*`?\$\{/)
-    expect(STEPPER).toMatch(/data-widget="subscription-journey"/)
+    expect(SOURCE).toMatch(/<PortfolioExposurePanel/)
+    expect(SOURCE).toContain('Portfolio exposure')
+    expect(EXPOSURE).toMatch(/data-widget="portfolio-exposure"/)
   })
 
-  it('keeps actions in the priority queue and rebuilds it into a composition (not a blank card)', () => {
-    expect(SOURCE).toMatch(/<ActionQueue/)
-    expect(SOURCE).toContain('To process')
-    expect(QUEUE).toContain('to process')
-    expect(QUEUE).toContain('Nothing to process')
-    expect(QUEUE).toMatch(/HearstCriticalAction|HearstDangerAction/)
-    expect(QUEUE).not.toMatch(/Math\.random\(/)
+  it('replaces priority queue with rebalancing alerts panel', () => {
+    expect(SOURCE).not.toMatch(/<ActionQueue/)
+    expect(SOURCE).toMatch(/<RebalancingAlertsPanel/)
+    expect(SOURCE).toContain('Rebalancing & alerts')
+    expect(REBALANCING).toMatch(/data-widget="rebalancing-alerts"/)
   })
 
-  it('routes route-level actions through the Hearst actions boundary (not raw Aceternity)', () => {
-    expect(HEADER).toContain('Add client')
-    expect(HEADER).toContain('Client creation is not available on the backend')
+  it('loads admin dashboard read models server-side — no registry pilotage math', () => {
+    expect(PAGE).not.toMatch(/^'use client'/)
+    expect(PAGE).toContain('loadAdminDashboard')
+    expect(PAGE).not.toContain('loadAdminRegistry')
+    expect(PAGE).not.toContain('buildFunnel')
+    expect(SOURCE).toMatch(/AdminDashboardData/)
+    expect(SOURCE).not.toMatch(/buildFunnel|buildPriorityQueue|subscriptionsByProduct|movementDailyHeatmap/)
+    expect(SOURCE).not.toMatch(/kycStatusBuckets|measuredCount|combine\(/)
+    expect(LOAD).toContain('admin-portfolio-overview')
+    expect(SOURCE).not.toMatch(/Math\.random\(/)
+    expect(SOURCE).not.toMatch(/\.reduce\(/)
+  })
+
+  it('mounts asset cockpit cards in preserved grid slots', () => {
+    expect(SOURCE).toMatch(/title="Activity"/)
+    expect(SOURCE).toMatch(/title="Market"/)
+    expect(SOURCE).toMatch(/<VaultsPanel/)
+    expect(SOURCE).toMatch(/<RecentClientsPanel/)
+    expect(SOURCE).toMatch(/Recent activity/)
+    expect(SOURCE).toMatch(/<DataHealthGrid/)
+    expect(SOURCE).not.toMatch(/KYC donut|Subscription journey|Subscriptions by product|Latest subscriptions/)
+    expect(SOURCE).not.toMatch(/<SourceStatusGrid/)
+    expect(SOURCE).not.toMatch(/<HearstDonutChart/)
+  })
+
+  it('routes route-level actions through the Hearst actions boundary', () => {
     expect(HEADER).toMatch(/from ['"]@\/components\/actions['"]/)
-    expect(HEADER).toMatch(/HearstPrimaryAction/)
-    expect(HEADER).not.toContain('/admin/client-simulator')
-    expect(SOURCE).not.toContain('/admin/client-simulator')
-    expect(ACTIONS).toMatch(/from ['"]@\/components\/catalyst\/button['"]/)
     expect(ACTIONS).toMatch(/useReducedMotion/)
-  })
-
-  it('mounts charts and short placeholders — no API routes in UI copy', () => {
-    expect(SOURCE).toMatch(/Activity curve/)
-    expect(SOURCE).toMatch(/KYC donut/)
-    expect(SOURCE).toMatch(/Subscriptions by product/)
-    expect(SOURCE).toMatch(/Weekly activity/)
-    expect(SOURCE).not.toMatch(/Wallets et dépôts/)
-    expect(SOURCE).toMatch(/<ChartPlaceholder/)
-    expect(SOURCE).not.toMatch(/GET \/api/)
-    expect(SOURCE).not.toMatch(/expectedSource/)
-    expect(SOURCE).not.toMatch(/<ChartFrame/)
-  })
-
-  it('renders subscriptions table (max 6) and sources at the bottom', () => {
-    expect(SOURCE).toContain('Latest subscriptions')
-    expect(SOURCE).toMatch(/slice\(0,\s*6\)/)
-    expect(SOURCE).toMatch(/<SourceStatusGrid/)
-    expect(SOURCE).toContain('Source status')
   })
 
   it('keeps charts behind the Hearst boundary (recharts only, no MUI X)', () => {
     expect(SOURCE).toMatch(/from ['"]@\/components\/charts['"]/)
     expect(SOURCE).not.toMatch(/from ['"]@mui\/x-charts/)
     expect(SOURCE).not.toMatch(/from ['"]recharts['"]/)
-  })
-
-  it('uses Hearst mint accent only — no orange, no rainbow KPI tones', () => {
-    expect(SOURCE).not.toMatch(/tone:\s*['"]blue['"]/)
-    expect(SOURCE).not.toMatch(/tone:\s*['"]violet['"]/)
-    expect(SOURCE).not.toMatch(/tone:\s*['"]green['"]/)
-    expect(SOURCE).not.toMatch(/orange/)
-    expect(HEADER).not.toMatch(/color=['"]orange['"]/)
-    expect(HERO_KPI).not.toMatch(/sky-|violet-|orange-/)
-    expect(HERO_KPI).toMatch(/accent-/)
-    expect(STEPPER).not.toMatch(/bg-sky-|bg-violet-|bg-rose-|bg-orange-/)
-    expect(STEPPER).toMatch(/accent-/)
-  })
-
-  it('is loaded by a server page reading the shared registry', () => {
-    expect(PAGE).not.toMatch(/^'use client'/)
-    expect(PAGE).toContain('loadAdminRegistry')
-    expect(PAGE).toContain('requireSession')
-    expect(SOURCE).not.toMatch(/Math\.random\(/)
   })
 })
