@@ -39,10 +39,13 @@ export function DataHealthGrid({
       {slots.map(({ key, source }) => {
         const label = source?.label ?? key
         const t = source === undefined ? 'warn' : tone(source.status)
+        // Freshness is the age of the last read. When asOf is absent, freshness is
+        // genuinely unknown → "—". Do not leak the raw status string (e.g.
+        // "NOT_CONFIGURED") into the freshness line — the status dot already carries it.
         const freshness =
           source?.asOf !== null && source?.asOf !== undefined
             ? formatRelativeTime(source.asOf)
-            : source?.status ?? '—'
+            : '—'
         return (
           <li key={key} className={clsx(surfaceBox, 'p-2.5')}>
             <div className="flex items-center gap-1.5">
