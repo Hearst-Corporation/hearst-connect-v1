@@ -85,52 +85,55 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  // HC-ADMIN-RESPONSIVE-REALITY-038 — viewport-driven monotonic composition.
+  // HC-ADMIN-TRUE-FLUID-RESPONSIVE — intrinsic composition, no named breakpoint.
   //
-  // Root cause of the earlier non-monotonic cliff: rows composed on CONTAINER
-  // width (`@[52rem]` / `@[48rem]`). The sidebar rail is `fixed w-64` only at lg
-  // (≥1024px), so the row container width JUMPS ~295px across that boundary
-  // (680px above lg → 975px just below). Any container threshold inside that
-  // jump zone [680, 975] fires in BOTH directions → the grid snapped
-  // 2col→1col→2col→1col while the window shrank. `0 overflow` / `2col/1col`
-  // point-tests never caught it because they didn't assert MONOTONICITY.
+  // The dashboard is a MAIN COLUMN (dense/tall panels) + a SECONDARY RAIL
+  // (short/status panels), each its own vertical flow, placed side by side with
+  // `flex-wrap`. No paired rows → a tall panel never imposes its track height on
+  // a short neighbour → no reserved vertical void, no flex-1 fill, no width cap.
   //
-  // Fix: bind the column count to the VIEWPORT (which changes monotonically),
-  // not the container. Per-row thresholds keep composition meaningful:
-  //  - Rows A/D (wide 1.85/1 ratio) → `xl` (1280px)
-  //  - Rows B/C (narrower secondary) → `min-[1152px]`
-  // Both are ≥ lg, so below their break the layout is stacked — no container
-  // jump can flip it back. `minmax()` keeps each mode fluid between breaks.
-  it('composes rows on the viewport (monotonic), not the container', () => {
-    expect(SOURCE).not.toMatch(/marketSparse|clientsSparse/)
-    expect(SOURCE).not.toMatch(/max-w-sm|max-w-3xl|w-\[min\(100%,20rem\)\]/)
-    expect(SOURCE).not.toMatch(/grid-cols-\[minmax\(0,1fr\)_minmax\(17rem,auto\)\]/)
-    // No container-query composition: it is the source of the lg-boundary cliff.
-    expect(SOURCE).not.toMatch(/@\[\d+rem\]:grid-cols/)
+  // The 2→1 switch EMERGES from the two intrinsic flex-bases: the rail wraps
+  // under the main as soon as `44rem + 18rem + gap` no longer fits the REAL
+  // container width. `flex-wrap` only wraps while shrinking and only unwraps
+  // while growing → MONOTONE by construction, with no container-query threshold
+  // that could re-fire inside the sidebar-rail jump zone (the #61 cliff).
+  //   - main base 44rem = measured min-content of the Activity chart (legible).
+  //   - rail base 18rem = measured min-viable width of the tightest rail panel.
+  // Neither is a screen dimension; no card knows the viewport size.
+  it('composes two intrinsic columns via flex-wrap — no viewport/named breakpoint', () => {
+    // Intrinsic wrap container: flex + flex-wrap, not a device media grid.
+    expect(SOURCE).toMatch(/flex flex-wrap items-start gap-4/)
+    // Two independent columns with intrinsic flex-basis (content-derived).
+    expect(SOURCE).toMatch(/flex-\[999_1_44rem\]/) // main: greedy grow, base = chart legible
+    expect(SOURCE).toMatch(/flex-\[1_1_18rem\]/) //   rail: grows too, base = min viable
+    // No named viewport breakpoints driving the dashboard layout.
+    expect(SOURCE).not.toMatch(/\b(sm|md|lg|xl|2xl):grid-cols/)
+    expect(SOURCE).not.toMatch(/min-\[\d+px\]:grid-cols/)
+    // No container-query composition threshold either (flex-wrap replaces it).
+    expect(SOURCE).not.toMatch(/@\[\d/)
     expect(SOURCE).not.toMatch(/@container/)
-    // Rows A/D compose at xl; rows B/C at min-[1152px]. Both ≥ lg → monotonic.
-    expect(SOURCE).toMatch(/xl:grid-cols-\[minmax\(0,1\.85fr\)_minmax\(17rem,1fr\)\]/)
-    expect(SOURCE).toMatch(/min-\[1152px\]:grid-cols-\[minmax\(0,1\.5fr\)_minmax\(16rem,1fr\)\]/)
-    expect(SOURCE).toMatch(/title="Activity"/)
-    expect(SOURCE).toMatch(/title="Market"/)
-    expect(SOURCE).toMatch(/title="Vaults"/)
-    expect(SOURCE).toMatch(/title="Recent clients"/)
-    expect(SOURCE).toMatch(/title="Recent activity"/)
-    expect(SOURCE).toMatch(/title="Data health"/)
+    // No hard width caps, no data-state branching, no flex-1 fill.
+    expect(SOURCE).not.toMatch(/marketSparse|clientsSparse/)
+    expect(SOURCE).not.toMatch(/max-w-sm|max-w-3xl|w-\[min\(100%,20rem\)\]|w-\[\d/)
+    expect(SOURCE).not.toMatch(/["' ]flex-1["' ]/) // the utility class, not the word in prose
+    // All eight panels still present.
+    for (const t of [
+      'Portfolio exposure', 'Activity', 'Vaults', 'Recent activity',
+      'Rebalancing & alerts', 'Market', 'Recent clients', 'Data health',
+    ]) {
+      expect(SOURCE).toContain(t)
+    }
   })
 
-  // Monotonicity guard (the check the point-tests were missing): as the viewport
-  // shrinks 1600→360, no row's column count may INCREASE. Every composition
-  // breakpoint must be ≥ lg (1024) so it never re-fires below the sidebar cliff.
-  it('every row breakpoint is ≥ lg so composition is monotonic across the sidebar cliff', () => {
-    // Collect every responsive grid-cols breakpoint used for row composition.
-    const bpMatches = [...SOURCE.matchAll(/(?:^|\s)((?:xl|lg|md|sm)|min-\[(\d+)px\]):grid-cols-\[minmax/g)]
-    expect(bpMatches.length).toBeGreaterThanOrEqual(4) // four rows
-    const TW: Record<string, number> = { sm: 640, md: 768, lg: 1024, xl: 1280, '2xl': 1536 }
-    for (const m of bpMatches) {
-      const px = m[2] ? Number(m[2]) : TW[m[1] ?? '']
-      expect(px, `breakpoint ${m[1]} must be ≥ lg (1024px) to stay monotonic`).toBeGreaterThanOrEqual(1024)
-    }
+  // Monotonicity guard (the check the point-tests were missing): the combined
+  // intrinsic base of the two columns must be ≥ 976px so the wrap point sits
+  // ABOVE the sidebar-rail jump zone [680, 975] and can never re-fire there.
+  // Derived directly from the flex-[…] bases in the source.
+  it('combined column base ≥ 976px so the intrinsic wrap stays monotonic', () => {
+    const bases = [...SOURCE.matchAll(/flex-\[\d+_\d+_(\d+(?:\.\d+)?)rem\]/g)].map((m) => Number(m[1]))
+    expect(bases.length).toBe(2) // main + rail
+    const combinedPx = bases.reduce((a, b) => a + b, 0) * 16
+    expect(combinedPx, 'main+rail flex-basis must total ≥ 976px to stay monotonic across the rail jump').toBeGreaterThanOrEqual(976)
   })
 
   it('routes route-level actions through the Hearst actions boundary', () => {
