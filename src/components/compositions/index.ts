@@ -29,5 +29,3 @@ export {
   type CalloutTone,
 } from '@/components/compositions/blocks'
 export { FadeIn } from '@/components/compositions/motion'
-export { type FunnelStepView } from '@/components/compositions/funnel'
-export { type PriorityQueueRow } from '@/components/compositions/priority-queue'

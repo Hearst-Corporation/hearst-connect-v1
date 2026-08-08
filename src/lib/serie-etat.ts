@@ -51,5 +51,3 @@ export function seriesStateFrom(
   return { type: 'plotted' }
 }
 
-/** @deprecated Use `seriesStateFrom` */
-export const etatSerieDe = seriesStateFrom
