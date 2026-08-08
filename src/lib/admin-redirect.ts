@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-/** Redirection canonique vers la surface produit consolidée. */
-export function redirectVersProduit(): never {
-  redirect('/admin/produit')
+/** Canonical redirect to the consolidated product surface. */
+export function redirectToProduct(): never {
+  redirect('/admin/product')
 }

@@ -31,17 +31,17 @@ describe('null ne devient jamais zéro', () => {
 describe('étiquetage des provenances non live', () => {
   it('affiche « Simulé (backend) » pour SIMULATED', () => {
     render(<StatusBadge status="SIMULATED" />)
-    expect(screen.getByText('Simulé (backend)')).toBeDefined()
+    expect(screen.getByText('Simulated (backend)')).toBeDefined()
   })
 
   it('affiche « Source manuelle » pour manual', () => {
     render(<DataProvenance provenance="manual" />)
-    expect(screen.getByText(/Source manuelle/)).toBeDefined()
+    expect(screen.getByText(/Manual source/)).toBeDefined()
   })
 
   it('rend une fixture backend visible, jamais silencieuse', () => {
     const { container } = render(<DataProvenance provenance="fixture" />)
-    expect(container.textContent).toMatch(/Fixture backend/)
+    expect(container.textContent).toMatch(/Backend fixture/)
 
     /*
      * Marquage voyant : la fixture ne se fond pas dans le texte neutre.
@@ -62,7 +62,7 @@ describe('étiquetage des provenances non live', () => {
 describe('les états sont distincts les uns des autres', () => {
   it('EMPTY est une réponse réussie sans contenu, pas une erreur', () => {
     render(<EmptyState />)
-    expect(screen.getByText('Réponse vide')).toBeDefined()
+    expect(screen.getByText('Empty response')).toBeDefined()
     expect(screen.queryByText('Error')).toBeNull()
   })
 
@@ -77,7 +77,7 @@ describe('les états sont distincts les uns des autres', () => {
   })
 
   it('un état sans donnée n’affiche aucun chiffre', () => {
-    const { container } = render(<UnavailableState state={resolved.unavailable('Backend injoignable.')} />)
+    const { container } = render(<UnavailableState state={resolved.unavailable('Backend unreachable.')} />)
     expect(container.textContent).not.toMatch(/(^|\s)\d+([.,]\d+)?(\s|$)/)
   })
 

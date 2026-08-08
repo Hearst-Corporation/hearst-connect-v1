@@ -28,12 +28,12 @@ import { describe, expect, it } from 'vitest'
 describe('primary navigation', () => {
   it('offers exactly five primary destinations', () => {
     expect(ADMIN_NAV).toHaveLength(5)
-    expect(ADMIN_NAV.map((e) => e.libelle)).toEqual([
-      'Tableau de bord',
-      'Coffres',
+    expect(ADMIN_NAV.map((e) => e.label)).toEqual([
+      'Dashboard',
+      'Vaults',
       'Clients',
-      'Conformité',
-      'Opérations',
+      'Compliance',
+      'Operations',
     ])
   })
 
@@ -42,9 +42,9 @@ describe('primary navigation', () => {
       ...ADMIN_NAV.map((e) => e.href),
       ...ADMIN_SECTION_HUBS.map((h) => h.href),
       ...ADMIN_SECONDARY_FLAT.map((e) => e.href),
-      '/admin/produit',
+      '/admin/product',
     ])
-    const demoted = ['/admin/series-1', '/admin/produit', '/admin/runtime']
+    const demoted = ['/admin/series-1', '/admin/product', '/admin/runtime']
     for (const href of demoted) expect(reachable.has(href)).toBe(true)
     expect(reachable.has('/admin')).toBe(true)
   })
@@ -64,10 +64,10 @@ describe('primary navigation', () => {
     expect(sousMenusCorps('/admin/runtime')?.length).toBe(3)
     expect(groupeSecondaireActif('/admin/runtime')?.titre).toBe('Service')
     // Production et Portfolio restent mono-entrée : pas de sous-nav horizontale.
-    expect(sousMenusCorps('/admin/produit')).toBeUndefined()
+    expect(sousMenusCorps('/admin/product')).toBeUndefined()
     expect(sousMenusCorps('/admin/series-1')).toBeUndefined()
     expect(sousMenusCorps('/admin')).toBeUndefined()
-    expect(groupeSecondaireActif('/admin/produit')?.titre).toBe('Production')
+    expect(groupeSecondaireActif('/admin/product')?.titre).toBe('Production')
     expect(groupeSecondaireActif('/admin/series-1')?.titre).toBe('Portfolio')
   })
 
@@ -223,26 +223,28 @@ describe('one brand palette', () => {
     expect(offenders, `these files still use a blue hue: ${offenders.join(', ')}`).toEqual([])
   })
 
-  it('declares glass console surfaces on a graphite shell', () => {
+  it('declares glass console surfaces on a graphite-olive shell', () => {
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     const token = (name: string): string | undefined =>
       new RegExp(`--color-console-${name}:\\s*([^;]+);`).exec(css)?.[1]?.trim()
 
-    expect(token('app')).toBe('#101010')
-    expect(token('shell')).toBe('#232323')
+    expect(token('app')).toBe('#0b0f10')
+    expect(token('shell')).toBe('#060908')
+    expect(token('raised')).toBe('#232a26')
     expect(token('card')).toMatch(/^rgba\(0,\s*0,\s*0,\s*0\.28\)$/)
     expect(token('card-top')).toMatch(/^rgba\(10,\s*10,\s*10,\s*0\.38\)$/)
     expect(token('inset')).toMatch(/^rgba\(10,\s*10,\s*10,\s*0\.4\)$/)
 
-    for (const name of ['app', 'shell']) {
+    // Near-black graphite/olive — not a bright wash.
+    for (const name of ['app', 'shell', 'raised']) {
       const hex = token(name) ?? ''
-      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
-      expect(r, `console-${name} is not neutral`).toBe(g)
-      expect(g, `console-${name} is not neutral`).toBe(b)
+      const lum = parseInt(hex.slice(1, 3), 16)
+      expect(lum, `console-${name} too bright`).toBeLessThan(40)
     }
 
-    const lum = (hex: string): number => parseInt(hex.slice(1, 3), 16)
-    expect(lum(token('shell') ?? '#000')).toBeGreaterThan(lum(token('app') ?? '#fff'))
+    // Sidebar (shell) stays darker than the app canvas.
+    const channel = (hex: string): number => parseInt(hex.slice(1, 3), 16)
+    expect(channel(token('app') ?? '#fff')).toBeGreaterThan(channel(token('shell') ?? '#000'))
   })
 
   it('expose un voile mint de sélection (accent-soft)', () => {
@@ -254,8 +256,8 @@ describe('one brand palette', () => {
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
     const darkRamp = css.slice(css.indexOf('.dark {'))
     expect(/--color-accent-400:\s*#a7fb90;/.test(darkRamp)).toBe(true)
-    expect(/--color-zinc-300:\s*#ffffff;/.test(darkRamp)).toBe(true)
-    expect(/--color-zinc-400:\s*#f2f2f2;/.test(darkRamp)).toBe(true)
+    expect(css).toMatch(/--color-fg:\s*#f3f5f2;/)
+    expect(css).toMatch(/--color-fg-secondary:\s*#a8aea9;/)
   })
 })
 

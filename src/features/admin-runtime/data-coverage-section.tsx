@@ -26,7 +26,7 @@ import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 
 /**
- * Couverture des données — section de `/admin/runtime`.
+ * Data coverage — section de `/admin/runtime`.
  *
  * Ancienne route dédiée supprimée : cette section reste sous le hub Service
  * avec les sondes runtime — ce que le backend sert réellement.
@@ -38,24 +38,24 @@ const isResolvedField = (v: unknown): v is ResolvedField =>
   typeof v === 'object' && v !== null && 'status' in v && 'value' in v
 
 const SURFACE_NAME: Record<string, string> = {
-  identity: 'Identité de l’investisseur',
-  position: 'Position détenue',
-  distributions: 'Distributions versées',
-  activity: 'Activité du compte',
-  proofs: 'Preuve de réserves',
-  allocation: 'Allocation du portefeuille',
-  subscription: 'Conditions de souscription',
-  alerts: 'Alertes actives',
-  capacity: 'Capacité du fonds',
-  reserve: 'Réserve de liquidités',
+  identity: 'Investor identity',
+  position: 'Held position',
+  distributions: 'Distributions paid',
+  activity: 'Account activity',
+  proofs: 'Proof of reserves',
+  allocation: 'Portfolio allocation',
+  subscription: 'Subscription terms',
+  alerts: 'Active alerts',
+  capacity: 'Fund capacity',
+  reserve: 'Liquidity reserve',
   performance: 'Performance',
-  mining: 'Production de la flotte',
-  rebalancing: 'Rééquilibrage',
-  vault: 'Coffre d’actifs',
-  strategies: 'Stratégies actives',
-  recentEvents: 'Mouvements récents',
-  engine: 'Moteur de minage',
-  aiExperts: 'Analyse assistée par IA',
+  mining: 'Fleet production',
+  rebalancing: 'Rebalancing',
+  vault: 'Asset vault',
+  strategies: 'Active strategies',
+  recentEvents: 'Recent movements',
+  engine: 'Mining engine',
+  aiExperts: 'AI-assisted analysis',
 }
 
 const surfaceName = (key: string): string => SURFACE_NAME[key] ?? key
@@ -63,16 +63,16 @@ const surfaceName = (key: string): string => SURFACE_NAME[key] ?? key
 type CoverageTier = 'served' | 'partial' | 'notOpened'
 
 const TIER_TITLE: Record<CoverageTier, string> = {
-  served: 'Servi',
-  partial: 'Partiellement servi',
-  notOpened: 'Non ouvert',
+  served: 'Served',
+  partial: 'Partially served',
+  notOpened: 'Not opened',
 }
 
 const TIER_EXPLANATION: Record<CoverageTier, string> = {
-  served: 'Ces surfaces renvoient une valeur exploitable. Vous pouvez vous y fier.',
+  served: 'These surfaces return a usable value. You can rely on them.',
   partial:
-    'Ces surfaces répondent, mais sans valeur : le service sait quoi renvoyer, il n’a simplement rien à dire aujourd’hui.',
-  notOpened: 'Ces surfaces ne sont pas encore ouvertes. Rien n’en est attendu pour l’instant.',
+    'These surfaces respond but without a value — the service knows what to return, it simply has nothing to say today.',
+  notOpened: 'These surfaces are not open yet. Nothing is expected from them for now.',
 }
 
 function tierFromStatus(status: string): CoverageTier {
@@ -162,35 +162,35 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
   return (
     <div className="space-y-10">
       <SectionCard
-        title="Couverture des données"
-        hint="Quelles surfaces produit sont réellement servies aujourd’hui. Les états sont affichés exactement tels que le backend les rapporte — champ le plus dégradé d’abord."
+        title="Data coverage"
+        hint="Which product surfaces are actually served today. States are shown exactly as the backend reports them — most degraded field first."
         tone="plain"
       >
-        <StatGrid label="Couverture des surfaces" columns={3}>
-          <StatCard titre="Servi" valeur={servedCell} showRoute />
-          <StatCard titre="Partiel" valeur={partialCell} showRoute />
-          <StatCard titre="Non ouvert" valeur={notOpenedCell} showRoute />
-          <StatCard titre="Surfaces totales" valeur={totalCell} showRoute />
-          <StatCard titre="Taux de couverture" valeur={coverageCell} showRoute />
-          <StatCard titre="État de la source" valeur={sourceState} showRoute />
+        <StatGrid label="Surface coverage" columns={3}>
+          <StatCard titre="Served" valeur={servedCell} showRoute />
+          <StatCard titre="Partial" valeur={partialCell} showRoute />
+          <StatCard titre="Not opened" valeur={notOpenedCell} showRoute />
+          <StatCard titre="Total surfaces" valeur={totalCell} showRoute />
+          <StatCard titre="Coverage rate" valeur={coverageCell} showRoute />
+          <StatCard titre="Source status" valeur={sourceState} showRoute />
         </StatGrid>
       </SectionCard>
 
       <ChartFrame
-        question="Comment la couverture se répartit-elle par palier ?"
-        unite="nombre de surfaces, par palier"
+        question="How is coverage distributed by tier?"
+        unite="number of surfaces, by tier"
         etat={
           aggregate === null
-            ? { type: 'indisponible', explication: 'Le point d’accès du tableau de bord n’a pas répondu.' }
+            ? { type: 'unavailable', explication: 'The dashboard endpoint did not respond.' }
             : surfaces.length === 0
-              ? { type: 'vide', explication: 'Le tableau de bord n’a exposé aucune surface.' }
+              ? { type: 'empty', explication: 'The dashboard exposed no surface.' }
               : filledTiers < 2
                 ? {
-                    type: 'vide',
+                    type: 'empty',
                     explication:
-                      'Un seul palier est renseigné : la liste par surface reste plus lisible qu’un anneau à une part.',
+                      'Only one tier is filled — the per-surface list remains more readable than a single-slice ring.',
                   }
-                : { type: 'tracee' }
+                : { type: 'plotted' }
         }
         expectedSource={['GET /api/v1/dashboard']}
       >
@@ -201,23 +201,23 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
 
       {aggregate === null ? (
         <SectionCard
-          title="Surface par surface"
-          hint="Dix-huit surfaces dans une seule liste, ordonnées par palier. Aucun statut n’est requalifié côté front."
+          title="Surface by surface"
+          hint="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
         >
           <Text>
-            Le point d’accès du tableau de bord n’a pas répondu. Aucune couverture n’est déduite.
+            Le point d’accès du tableau de bord n’a pas répondu. No coverage is inferred.
           </Text>
         </SectionCard>
       ) : (
         <DataTableShell
-          title="Surface par surface"
-          description="Dix-huit surfaces dans une seule liste, ordonnées par palier. Aucun statut n’est requalifié côté front."
+          title="Surface by surface"
+          description="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
         >
           <TableHead>
             <TableRow>
               <TableHeader>Surface</TableHeader>
-              <TableHeader>État</TableHeader>
-              <TableHeader>Motif</TableHeader>
+              <TableHeader>Status</TableHeader>
+              <TableHeader>Reason</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -225,14 +225,14 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
               <TableRow key={surface.key}>
                 <TableCell className="font-medium">{surface.name}</TableCell>
                 <TableCell>{TIER_TITLE[surface.tier]}</TableCell>
-                <TableCell className="text-zinc-500">{surface.reason ?? '—'}</TableCell>
+                <TableCell className="text-fg-tertiary">{surface.reason ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </DataTableShell>
       )}
 
-      <SectionCard title="Signification des paliers">
+      <SectionCard title="Tier meanings">
         <DescriptionList>
           {TIER_ORDER.map((tier) => (
             <div key={tier} className="contents">
@@ -246,14 +246,14 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
       </SectionCard>
 
       <DataTableShell
-        title="Activité des sources"
-        description="État des points d’accès backend, tel que le registre les rapporte."
+        title="Source activity"
+        description="Backend endpoint status, as reported by the registry."
       >
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
-            <TableHeader>État</TableHeader>
-            <TableHeader>Détail</TableHeader>
+            <TableHeader>Status</TableHeader>
+            <TableHeader>Detail</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -261,7 +261,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
             <TableRow key={source.endpointId}>
               <TableCell className="font-medium">{source.label}</TableCell>
               <TableCell>{etatSourceLisible(source.status)}</TableCell>
-              <TableCell className="text-zinc-500">{source.detail ?? '—'}</TableCell>
+              <TableCell className="text-fg-tertiary">{source.detail ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

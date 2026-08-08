@@ -82,8 +82,8 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'public',
     surface: '/login',
     enveloped: false,
-    summary: 'Authentification email / mot de passe — émet le jeton porteur.',
-    caveat: 'Route d’authentification uniquement : ne produit aucune donnée métier affichée.',
+    summary: 'Email / password authentication — issues the bearer token.',
+    caveat: 'Authentication route only — does not produce displayed business data.',
   }),
 
   // ── Public operational probes ─────────────────────────────────────────────
@@ -249,7 +249,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/admin/produit',
     summary: 'Mining metrics read on-chain.',
     caveat:
-      'Lecture directe on-chain, distincte de l’agrégat `mining` : `/admin/produit` compare les deux et signale tout écart.',
+      'Direct on-chain read, distinct from the `mining` aggregate: `/admin/product` compares both and reports any mismatch.',
   }),
   defineEndpoint({
     id: 'mining-electricity',
@@ -259,7 +259,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/admin/produit',
     summary: 'Mining electricity line item.',
     caveat:
-      'Lecture dédiée du poste électricité, distincte de `mining.electricity` : `/admin/produit` réconcilie les deux.',
+      'Dedicated electricity line read, distinct from `mining.electricity`: `/admin/product` reconciles both.',
   }),
   defineEndpoint({
     id: 'btc',
@@ -333,6 +333,83 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     summary: 'Triggers a Series 1 indexer run (admin only).',
     caveat: 'Operational trigger — not a business fact. Not a Keeper write.',
   }),
+
+  // ── Admin dashboard read models (HC-ADMIN-DASHBOARD-BACKEND-FIRST-006) ─────
+  defineEndpoint({
+    id: 'admin-portfolio-overview',
+    path: '/api/v1/admin/portfolio/overview',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Portfolio overview — AUM, deployed, max drift (backend-calculated).',
+  }),
+  defineEndpoint({
+    id: 'admin-portfolio-exposure',
+    path: '/api/v1/admin/portfolio/exposure',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Per-strategy exposure with backend-computed drift.',
+  }),
+  defineEndpoint({
+    id: 'admin-rebalancing-summary',
+    path: '/api/v1/admin/rebalancing/summary',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Rebalancing summary and out-of-target alerts.',
+  }),
+  defineEndpoint({
+    id: 'admin-activity-timeseries',
+    path: '/api/v1/admin/activity/timeseries',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Daily blockchain activity series (backend-aggregated).',
+    caveat: 'Query `range` (7d|28d|90d) — aggregation is server-side only.',
+  }),
+  defineEndpoint({
+    id: 'admin-market-snapshot',
+    path: '/api/v1/admin/market/snapshot',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Normalized market snapshot (BTC, hashprice, energy).',
+  }),
+  defineEndpoint({
+    id: 'admin-vaults-summary',
+    path: '/api/v1/admin/vaults/summary',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Vault capital summary cards.',
+  }),
+  defineEndpoint({
+    id: 'admin-clients-recent',
+    path: '/api/v1/admin/clients/recent',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Recent clients with exposure and Som KYC status.',
+    caveat: 'KYC is read-only partner status — no Hearst review actions.',
+  }),
+  defineEndpoint({
+    id: 'admin-activity-recent',
+    path: '/api/v1/admin/activity/recent',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Normalized recent activity timeline.',
+  }),
+  defineEndpoint({
+    id: 'admin-data-health',
+    path: '/api/v1/admin/data-health',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin',
+    summary: 'Compact data-source health for the admin dashboard.',
+  }),
+
   defineEndpoint({
     id: 'admin-users',
     method: 'POST',
@@ -341,9 +418,9 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'admin',
     surface: '/admin/client-simulator/new',
     enveloped: false,
-    summary: 'Crée un compte utilisateur (admin choisit le rôle).',
+    summary: 'Creates a user account (admin chooses the role).',
     caveat:
-      'Corps strict `{ email, password, role }` — le mot de passe n’est jamais restitué. Réponse 201 `{ user: { id, email, role } }`.',
+      'Strict body `{ email, password, role }` — password is never returned. 201 response `{ user: { id, email, role } }`.',
   }),
 
   // ── Keeper actions ─────────────────────────────────────────────────────────

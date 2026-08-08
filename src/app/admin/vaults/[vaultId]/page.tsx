@@ -7,8 +7,8 @@ import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
 import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
-import { libelleStatutCoffre, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
-import { libelleStatutDeploiement } from '@/lib/libelles'
+import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
+import { deploymentStatusLabel } from '@/lib/labels'
 import { requireSession } from '@/lib/auth'
 import { explorerTxUrl } from '@/lib/explorer'
 import {
@@ -66,26 +66,26 @@ const CREATED_AT: Availability<string> = unavailable({
 })
 
 const ISSUE_LABEL: Record<ClientIssue, string> = {
-  NO_VAULT_ASSIGNED: 'Aucun coffre attribué',
-  COMPLIANCE_REVIEW_PENDING: 'Revue de conformité en attente',
-  VAULT_INACTIVE: 'Coffre inactif',
-  DEPLOYMENT_BLOCKED: 'Déploiement bloqué',
-  MISSING_INVESTOR_RECORD: 'Aucun dossier investisseur',
-  NO_ACTIVE_STRATEGY: 'Aucune stratégie active',
+  NO_VAULT_ASSIGNED: 'No vault assigned',
+  COMPLIANCE_REVIEW_PENDING: 'Compliance review pending',
+  VAULT_INACTIVE: 'Vault inactive',
+  DEPLOYMENT_BLOCKED: 'Deployment blocked',
+  MISSING_INVESTOR_RECORD: 'No investor record',
+  NO_ACTIVE_STRATEGY: 'No active strategy',
 }
 
 const ISSUE_SENTENCE: Record<ClientIssue, string> = {
-  NO_VAULT_ASSIGNED: 'Aucun coffre n’est rattaché à ce client : rien ne peut être déployé pour lui.',
-  COMPLIANCE_REVIEW_PENDING: 'Une revue de conformité est ouverte et empêche ce client d’opérer.',
-  VAULT_INACTIVE: 'Le coffre rattaché à ce client n’est pas actif sur sa chaîne.',
-  DEPLOYMENT_BLOCKED: 'Un déploiement demandé pour ce client n’a pas été confirmé.',
-  MISSING_INVESTOR_RECORD: 'Le service ne signale aucun dossier investisseur rattaché à ce compte.',
-  NO_ACTIVE_STRATEGY: 'Le coffre rattaché à ce client n’a aucune stratégie mobilisant du capital.',
+  NO_VAULT_ASSIGNED: 'No vault is linked to this client — nothing can be deployed for them.',
+  COMPLIANCE_REVIEW_PENDING: 'An open compliance review prevents this client from operating.',
+  VAULT_INACTIVE: 'The vault linked to this client is not active on its chain.',
+  DEPLOYMENT_BLOCKED: 'A deployment requested for this client was not confirmed.',
+  MISSING_INVESTOR_RECORD: 'The service reports no investor record linked to this account.',
+  NO_ACTIVE_STRATEGY: 'The vault linked to this client has no strategy deploying capital.',
 }
 
 const ABSENCE_SENTENCE: Record<string, string> = {
   no_client_directory_endpoint:
-    'L’annuaire client n’est pas exposé par le service : les exceptions clients ne peuvent pas être énumérées.',
+    'The client directory is not exposed by the service — client exceptions cannot be listed.',
 }
 
 type PageProps = Readonly<{ params: Promise<{ vaultId: string }> }>
@@ -93,9 +93,9 @@ type PageProps = Readonly<{ params: Promise<{ vaultId: string }> }>
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { vaultId } = await params
   const parsed = parseVaultId(vaultId)
-  if (parsed === null) return { title: 'Coffre' }
+  if (parsed === null) return { title: 'Vault' }
   const short = formatAddress(parsed.contractAddress)
-  return { title: short === null ? 'Coffre' : `Coffre ${short}` }
+  return { title: short === null ? 'Vault' : `Vault ${short}` }
 }
 
 function absentReading(source: Unavailable): Availability<string> {
@@ -160,8 +160,8 @@ function absenceSentence(state: Unavailable): string {
   if (known !== undefined) return known
   const motif = motifLisible(state.reason)
   return motif === undefined
-    ? 'Exceptions clients indisponibles — le service n’a pas énuméré les clients.'
-    : `Exceptions clients indisponibles — ${motif}.`
+    ? 'Client exceptions unavailable — the service did not list clients.'
+    : `Client exceptions unavailable — ${motif}.`
 }
 
 function movementAmount(movement: Movement, vault: Vault | undefined): string {
@@ -194,7 +194,7 @@ export default async function Page({ params }: PageProps) {
     registry.movements.value.length > 0 &&
     scopedMovements.value.length === 0
 
-  const activeStatus = editorial(libelleStatutCoffre(vault.status))
+  const activeStatus = editorial(libelleStatutVault(vault.status))
   const totalValue = amountOf(vault, vault.totalAssetsAtomic)
   const deployedValue = amountOf(vault, deployedAtomic(vault))
   const idleValue = amountOf(vault, idleAtomic(vault))
@@ -217,15 +217,15 @@ export default async function Page({ params }: PageProps) {
   const strategyDetailHttp = statutHttpStrategieDetail(strategyDetailRes)
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'etat', title: 'État', value: activeStatus, icon: ShieldCheckIcon },
-    { id: 'valeur-totale', title: 'Valeur totale', value: totalValue, icon: BanknotesIcon },
-    { id: 'deploye', title: 'Déployé', value: deployedValue, icon: ArrowTrendingUpIcon },
-    { id: 'disponible', title: 'Disponible', value: idleValue, icon: ArchiveBoxIcon },
+    { id: 'etat', title: 'Status', value: activeStatus, icon: ShieldCheckIcon },
+    { id: 'valeur-totale', title: 'Total value', value: totalValue, icon: BanknotesIcon },
+    { id: 'deploye', title: 'Deployed', value: deployedValue, icon: ArrowTrendingUpIcon },
+    { id: 'disponible', title: 'Idle', value: idleValue, icon: ArchiveBoxIcon },
   ]
 
   return (
     <div className="space-y-8">
-      <AdminPageHeader title={vault.label} description="Lecture du coffre et de ses sources rattachées." kpis={kpis} />
+      <AdminPageHeader title={vault.label} description="Vault read and its attached sources." kpis={kpis} />
 
       <div className="flex flex-wrap items-center gap-3">
         <VaultStatusBadge status={vault.status} />
@@ -234,42 +234,42 @@ export default async function Page({ params }: PageProps) {
       {!isAvailable(scopedRebalancing) ? (
         <>
           <ChartFrame
-            question="Comment l’allocation se répartit-elle par poche ?"
-            unite="en pourcentage — cible visée contre part constatée"
+            question="How is allocation distributed by pocket?"
+            unite="in percent — target vs observed share"
             etat={{
-              type: 'indisponible',
+              type: 'unavailable',
               explication:
-                'Le service de rééquilibrage n’a pas répondu : aucune allocation à tracer pour ce coffre.',
+                'The rebalancing service did not respond — no allocation to plot for this vault.',
             }}
             expectedSource={['/api/v1/rebalancing/status']}
           />
-          <SectionCard title="Rééquilibrage" hint="Écart d’allocation par poche, tel que rapporté par le service." className="mt-6">
+          <SectionCard title="Rebalancing" hint="Allocation drift by pocket, as reported by the service." className="mt-6">
             <Text>
               <AdminReading value={absentReading(scopedRebalancing)} />{' '}
-              <Link href={entityHref('source', 'rebalancing-status')}>Couverture des données</Link>
+              <Link href={entityHref('source', 'rebalancing-status')}>Data coverage</Link>
             </Text>
           </SectionCard>
         </>
       ) : rebalancingList !== null && rebalancingList.length === 0 ? (
         <>
           <ChartFrame
-            question="Comment l’allocation se répartit-elle par poche ?"
-            unite="en pourcentage — cible visée contre part constatée"
-            etat={{ type: 'vide', explication: 'Aucune poche mesurée pour ce coffre : aucune série à tracer.' }}
+            question="How is allocation distributed by pocket?"
+            unite="in percent — target vs observed share"
+            etat={{ type: 'empty', explication: 'No measured pocket for this vault — no series to plot.' }}
           />
           <DataTableShell
-            title="Rééquilibrage"
-            description="Écart d’allocation par poche, tel que rapporté par le service."
-            calme="Aucune poche mesurée pour ce coffre."
+            title="Rebalancing"
+            description="Allocation drift by pocket, as reported by the service."
+            calme="No measured pocket for this vault."
             className="mt-6"
           />
         </>
       ) : orderedRebalancingList !== null ? (
         <>
           <ChartFrame
-            question="Comment l’allocation se répartit-elle par poche ?"
-            unite="en pourcentage — cible visée contre part constatée"
-            etat={{ type: 'tracee' }}
+            question="How is allocation distributed by pocket?"
+            unite="in percent — target vs observed share"
+            etat={{ type: 'plotted' }}
           >
             <HearstAllocationChart
               postes={orderedRebalancingList.map<PosteAllocation>((row) => ({
@@ -280,17 +280,17 @@ export default async function Page({ params }: PageProps) {
             />
           </ChartFrame>
           <DataTableShell
-            title="Rééquilibrage"
-            description="Écart d’allocation par poche, tel que rapporté par le service — les chiffres exacts que le graphique situe."
+            title="Rebalancing"
+            description="Allocation drift by pocket, as reported by the service — the exact figures the chart positions."
             className="mt-6"
           >
             <TableHead>
               <TableRow>
-                <TableHeader>Stratégie</TableHeader>
-                <TableHeader>Cible</TableHeader>
-                <TableHeader>Constaté</TableHeader>
-                <TableHeader>Écart</TableHeader>
-                <TableHeader>Dernier rééquilibrage</TableHeader>
+                <TableHeader>Strategy</TableHeader>
+                <TableHeader>Target</TableHeader>
+                <TableHeader>Observed</TableHeader>
+                <TableHeader>Drift</TableHeader>
+                <TableHeader>Last rebalance</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -310,14 +310,14 @@ export default async function Page({ params }: PageProps) {
                     <TableCell>{formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })}</TableCell>
                     <TableCell>
                       {row.actualBps === null
-                        ? 'Indisponible'
+                        ? 'Unavailable'
                         : formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })}
                     </TableCell>
-                    <TableCell className="tabular-nums">{drift ?? 'Indisponible'}</TableCell>
+                    <TableCell className="tabular-nums">{drift ?? 'Unavailable'}</TableCell>
                     <TableCell>
                       {isAvailable(row.lastRebalanceAt) && row.lastRebalanceAt.value !== ''
                         ? formatDateTime(row.lastRebalanceAt.value)
-                        : 'Indisponible'}
+                        : 'Unavailable'}
                     </TableCell>
                   </TableRow>
                 )
@@ -328,32 +328,32 @@ export default async function Page({ params }: PageProps) {
       ) : null}
 
       {!isAvailable(scopedMovements) ? (
-        <SectionCard title="Mouvements" hint="Source series1-events — indexation uniquement.">
+        <SectionCard title="Movements" hint="Source series1-events — indexing only.">
           <Text>
-            Le journal des mouvements n’a pas pu être lu.{' '}
-            <Link href={entityHref('source', 'data-coverage')}>Couverture des données</Link>
+            The movement ledger could not be read.{' '}
+            <Link href={entityHref('source', 'data-coverage')}>Data coverage</Link>
           </Text>
         </SectionCard>
       ) : ledgerIsEmptyForThisVault ? (
         <DataTableShell
-          title="Mouvements"
-          description="Source series1-events — indexation uniquement."
-          calme="Le journal a répondu mais aucun mouvement n’est attribué à ce coffre."
+          title="Movements"
+          description="Source series1-events — indexing only."
+          calme="The ledger responded but no movement is attributed to this vault."
         />
       ) : movementList !== null && movementList.length > 0 ? (
         <DataTableShell
-          title="Mouvements"
-          description="Source series1-events — indexation uniquement."
-          count={`${formatNumber(movementList.length)} affiché(s)`}
+          title="Movements"
+          description="Source series1-events — indexing only."
+          count={`${formatNumber(movementList.length)} shown`}
         >
           <TableHead>
             <TableRow>
-              <TableHeader>Heure</TableHeader>
+              <TableHeader>Time</TableHeader>
               <TableHeader>Type</TableHeader>
               <TableHeader>Client</TableHeader>
-              <TableHeader>Montant</TableHeader>
+              <TableHeader>Amount</TableHeader>
               <TableHeader>Transaction</TableHeader>
-              <TableHeader>État</TableHeader>
+              <TableHeader>Status</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -363,14 +363,14 @@ export default async function Page({ params }: PageProps) {
               return (
                 <TableRow key={movement.id} id={`movement-${movement.id}`}>
                   <TableCell title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}>
-                    {movement.occurredAt === null ? 'Indisponible' : formatRelativeTime(movement.occurredAt)}
+                    {movement.occurredAt === null ? 'Unavailable' : formatRelativeTime(movement.occurredAt)}
                   </TableCell>
                   <TableCell title={phraseMouvement(movement.eventName)}>
                     {libelleMouvement(movement.eventName)}
                   </TableCell>
                   <TableCell>
                     {movement.investorAddress === null ? (
-                      'Indisponible'
+                      'Unavailable'
                     ) : (
                       <VaultEntityLink
                         kind="client"
@@ -383,7 +383,7 @@ export default async function Page({ params }: PageProps) {
                   <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
                   <TableCell className="font-mono text-sm">
                     {txShort === null ? (
-                      'Indisponible'
+                      'Unavailable'
                     ) : txUrl === null ? (
                       txShort
                     ) : (
@@ -398,9 +398,9 @@ export default async function Page({ params }: PageProps) {
                     )}
                   </TableCell>
                   <TableCell>
-                    Indexé
+                    Indexed
                     {movement.indexedAt === null ? null : (
-                      <div className="text-xs text-zinc-500" title={formatDateTime(movement.indexedAt)}>
+                      <div className="text-xs text-fg-tertiary" title={formatDateTime(movement.indexedAt)}>
                         {formatRelativeTime(movement.indexedAt)}
                       </div>
                     )}
@@ -412,35 +412,35 @@ export default async function Page({ params }: PageProps) {
         </DataTableShell>
       ) : (
         <DataTableShell
-          title="Mouvements"
-          description="Source series1-events — indexation uniquement."
-          calme="Aucun mouvement indexé pour ce coffre."
+          title="Movements"
+          description="Source series1-events — indexing only."
+          calme="No indexed movement for this vault."
         />
       )}
 
       {!isAvailable(scopedDeployments) ? (
-        <SectionCard title="Registre des déploiements">
+        <SectionCard title="Deployment registry">
           <Text>
             {scopedDeployments.status === 'NOT_EXPOSED'
-              ? 'Le registre des déploiements n’est pas exposé par le service.'
+              ? 'The deployment registry is not exposed by the service.'
               : scopedDeployments.status === 'EMPTY'
-                ? 'Le registre des déploiements est vide côté service.'
-                : 'La lecture du registre des déploiements a échoué.'}{' '}
-            <Link href={entityHref('source', 'deployments')}>Couverture des données</Link>
+                ? 'The deployment registry is empty on the service side.'
+                : 'The deployment registry read failed.'}{' '}
+            <Link href={entityHref('source', 'deployments')}>Data coverage</Link>
           </Text>
         </SectionCard>
       ) : scopedDeployments.value.length === 0 ? (
-        <DataTableShell title="Registre des déploiements" calme="Aucun déploiement enregistré pour ce coffre." />
+        <DataTableShell title="Deployment registry" calme="No deployment recorded for this vault." />
       ) : (
-        <DataTableShell title="Registre des déploiements">
+        <DataTableShell title="Deployment registry">
           <TableHead>
             <TableRow>
-              <TableHeader>Référence</TableHeader>
+              <TableHeader>Reference</TableHeader>
               <TableHeader>Client</TableHeader>
-              <TableHeader>Montant</TableHeader>
-              <TableHeader>État</TableHeader>
-              <TableHeader>Demandé</TableHeader>
-              <TableHeader>Confirmé</TableHeader>
+              <TableHeader>Amount</TableHeader>
+              <TableHeader>Status</TableHeader>
+              <TableHeader>Requested</TableHeader>
+              <TableHeader>Confirmed</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -450,7 +450,7 @@ export default async function Page({ params }: PageProps) {
                 <TableCell>
                   <AdminReading
                     value={mapAvailability(deployment.clientLabel, (label) => label)}
-                    emptyLabel="Client non reporté"
+                    emptyLabel="Client not reported"
                   />
                 </TableCell>
                 <TableCell>
@@ -460,7 +460,7 @@ export default async function Page({ params }: PageProps) {
                         fromAtomic: 10 ** (isAvailable(vault.asset) ? vault.asset.value.decimals : DOCUMENTED_DECIMALS),
                       })}
                 </TableCell>
-                <TableCell>{libelleStatutDeploiement(deployment.status)}</TableCell>
+                <TableCell>{deploymentStatusLabel(deployment.status)}</TableCell>
                 <TableCell>{formatDateTime(deployment.requestedAt)}</TableCell>
                 <TableCell>{formatDateTime(deployment.confirmedAt)}</TableCell>
               </TableRow>
@@ -470,26 +470,26 @@ export default async function Page({ params }: PageProps) {
       )}
 
       {!isAvailable(exceptions) ? (
-        <SectionCard title="Anomalies clients">
+        <SectionCard title="Client anomalies">
           <Callout tone="warning">
             {absenceSentence(exceptions)}{' '}
-            <Link href={entityHref('source', 'data-coverage')}>Couverture des données</Link>
+            <Link href={entityHref('source', 'data-coverage')}>Data coverage</Link>
           </Callout>
         </SectionCard>
       ) : exceptions.value.length === 0 ? (
         <DataTableShell
-          title="Anomalies clients"
-          calme="Le service a énuméré ses clients et aucun n’est en état d’exception."
+          title="Client anomalies"
+          calme="The service listed its clients and none are in an exception state."
         />
       ) : (
-        <DataTableShell title="Anomalies clients">
+        <DataTableShell title="Client anomalies">
           <TableHead>
             <TableRow>
               <TableHeader>Client</TableHeader>
-              <TableHeader>Problème</TableHeader>
-              <TableHeader>Coffre lié</TableHeader>
-              <TableHeader>Conformité</TableHeader>
-              <TableHeader>Dernière activité</TableHeader>
+              <TableHeader>Issue</TableHeader>
+              <TableHeader>Linked vault</TableHeader>
+              <TableHeader>Compliance</TableHeader>
+              <TableHeader>Last activity</TableHeader>
               <TableHeader>Action</TableHeader>
             </TableRow>
           </TableHead>
@@ -505,11 +505,11 @@ export default async function Page({ params }: PageProps) {
                 </TableCell>
                 <TableCell>
                   <div className="font-medium">{ISSUE_LABEL[row.issue]}</div>
-                  <div className="text-xs text-zinc-500">{ISSUE_SENTENCE[row.issue]}</div>
+                  <div className="text-xs text-fg-tertiary">{ISSUE_SENTENCE[row.issue]}</div>
                 </TableCell>
                 <TableCell>
                   {row.relatedVaultId === null ? (
-                    'Non rattaché à un coffre'
+                    'Not linked to a vault'
                   ) : (
                     <VaultEntityLink
                       kind="vault"
@@ -521,7 +521,7 @@ export default async function Page({ params }: PageProps) {
                 </TableCell>
                 <TableCell>
                   {!isAvailable(row.compliance)
-                    ? 'Indisponible'
+                    ? 'Unavailable'
                     : row.compliance.value === ''
                       ? '—'
                       : row.compliance.value}
@@ -540,7 +540,7 @@ export default async function Page({ params }: PageProps) {
         </DataTableShell>
       )}
 
-      <SectionCard title="Résumé du coffre" tone="plain">
+      <SectionCard title="Vault summary" tone="plain">
         <DescriptionList>
           <DescriptionTerm>Client</DescriptionTerm>
           <DescriptionDetails>
@@ -551,51 +551,51 @@ export default async function Page({ params }: PageProps) {
                 value={absentReading(client)}
                 emptyLabel={
                   client.reason === 'vault_owner_not_reported'
-                    ? 'Propriétaire non reporté sur le coffre'
-                    : 'Indisponible'
+                    ? 'Owner not reported on vault'
+                    : 'Unavailable'
                 }
               />
             )}
           </DescriptionDetails>
-          <DescriptionTerm>Créé le</DescriptionTerm>
+          <DescriptionTerm>Created</DescriptionTerm>
           <DescriptionDetails>
             <AdminReading value={CREATED_AT} />
           </DescriptionDetails>
-          <DescriptionTerm>Dernière activité</DescriptionTerm>
+          <DescriptionTerm>Last activity</DescriptionTerm>
           <DescriptionDetails>
             <AdminReading value={lastActivity} />
           </DescriptionDetails>
-          <DescriptionTerm>Identifiant</DescriptionTerm>
+          <DescriptionTerm>Identifier</DescriptionTerm>
           <DescriptionDetails className="font-mono text-sm">{vault.id}</DescriptionDetails>
         </DescriptionList>
       </SectionCard>
 
       <SectionCard
-        title="Détail contrat (stratégie index 0)"
-        hint="Route `strategy-detail` — index primaire = position 0 du registre stratégies (pas un sélecteur multi-index)."
+        title="Contract detail (strategy index 0)"
+        hint="Route `strategy-detail` — primary index = position 0 in the strategy registry (not a multi-index selector)."
         tone="plain"
       >
         <DescriptionList>
-          <DescriptionTerm>Interrogation HTTP</DescriptionTerm>
+          <DescriptionTerm>HTTP request</DescriptionTerm>
           <DescriptionDetails>
             <AdminReading value={strategyDetailHttp} />
           </DescriptionDetails>
-          <DescriptionTerm>État du champ Stratégie</DescriptionTerm>
+          <DescriptionTerm>Strategy field status</DescriptionTerm>
           <DescriptionDetails>
             <AdminReading value={strategyDetailState} />
           </DescriptionDetails>
-          <DescriptionTerm>Libellé lu</DescriptionTerm>
+          <DescriptionTerm>Read label</DescriptionTerm>
           <DescriptionDetails>
             <AdminReading value={strategyDetailLabel} />
           </DescriptionDetails>
         </DescriptionList>
       </SectionCard>
 
-      <DataTableShell title="Activité des sources" description="Les quatre sources les plus récentes de ce coffre.">
+      <DataTableShell title="Source activity" description="The four most recent sources for this vault.">
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
-            <TableHeader>État</TableHeader>
+            <TableHeader>Status</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -608,13 +608,13 @@ export default async function Page({ params }: PageProps) {
         </TableBody>
       </DataTableShell>
 
-      <SectionCard title="Utilisateur connecté">
+      <SectionCard title="Signed-in user">
         <DescriptionList>
-          <DescriptionTerm>Nom</DescriptionTerm>
+          <DescriptionTerm>Name</DescriptionTerm>
           <DescriptionDetails>{session.name}</DescriptionDetails>
-          <DescriptionTerm>Courriel</DescriptionTerm>
+          <DescriptionTerm>Email</DescriptionTerm>
           <DescriptionDetails>{session.email}</DescriptionDetails>
-          <DescriptionTerm>État du coffre</DescriptionTerm>
+          <DescriptionTerm>Vault status</DescriptionTerm>
           <DescriptionDetails>
             <VaultStatusBadge status={vault.status} />
           </DescriptionDetails>

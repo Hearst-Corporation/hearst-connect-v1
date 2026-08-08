@@ -33,9 +33,9 @@ export function formatCurrency(
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return 'date inconnue'
+  if (!iso) return 'unknown date'
   const t = Date.parse(iso)
-  return Number.isNaN(t) ? 'date inconnue' : new Date(t).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
+  return Number.isNaN(t) ? 'unknown date' : new Date(t).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 export function formatRelativeTime(iso: string | null | undefined): string {
@@ -43,12 +43,13 @@ export function formatRelativeTime(iso: string | null | undefined): string {
   const t = Date.parse(iso)
   if (Number.isNaN(t)) return '—'
   const minutes = Math.round((Date.now() - t) / 60_000)
-  if (minutes < 1) return "à l'instant"
-  if (minutes < 60) return `il y a ${minutes} min`
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes} min ago`
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `il y a ${hours} h`
+  if (hours < 24) return `${hours} h ago`
   const days = Math.round(hours / 24)
-  return days < 31 ? `il y a ${days} j` : `il y a ${Math.round(days / 30)} mois`
+  if (days === 1) return 'Yesterday'
+  return days < 31 ? `${days} d ago` : `${Math.round(days / 30)} mo ago`
 }
 
 export function formatAddress(address: string | null | undefined): string | null {

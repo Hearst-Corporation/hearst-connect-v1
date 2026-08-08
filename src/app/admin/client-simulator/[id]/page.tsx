@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { ClientSimulatorDetailView } from './detail-view'
 
-export const metadata: Metadata = { title: 'Client simulé' }
+export const metadata: Metadata = { title: 'Simulated client' }
 export const dynamic = 'force-dynamic'
 
 type PageProps = Readonly<{ params: Promise<{ id: string }> }>

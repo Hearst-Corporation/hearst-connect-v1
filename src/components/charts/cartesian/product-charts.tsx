@@ -58,7 +58,7 @@ function ChartTooltip({
     <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
       <p className="font-medium text-white">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} className="mt-0.5 text-zinc-300 tabular-nums">
+        <p key={p.name} className="mt-0.5 text-fg tabular-nums">
           {p.name}: {typeof p.value === 'number' ? `${formatNumber(p.value)} ${unit}` : '—'}
         </p>
       ))}
@@ -84,7 +84,7 @@ function PostBar(props: BarShapeProps) {
 export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly PosteBitcoin[] }>) {
   if (postes.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
         Aucune allocation lisible on-chain. Rien n’est tracé, plutôt qu’une répartition à zéro.
       </p>
     )

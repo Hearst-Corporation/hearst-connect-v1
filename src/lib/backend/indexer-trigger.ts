@@ -31,12 +31,12 @@ export async function triggerIndexer(
   }
 
   if (form.get('confirm') !== 'CONFIRM') {
-    return { ...base, validationError: 'Confirmation manquante : aucune requête envoyée.' }
+    return { ...base, validationError: 'Missing confirmation: no request was sent.' }
   }
 
   const session = await getSession()
   if (!session || toBackendRole(session.role) !== 'admin') {
-    return { ...base, validationError: 'Rôle administrateur requis pour déclencher l’indexeur.' }
+    return { ...base, validationError: 'Administrator role required to trigger the indexer.' }
   }
 
   const response = await callBackend<Record<string, unknown>>('admin-indexer-trigger', { body: {} })
@@ -54,7 +54,7 @@ export async function triggerIndexer(
   try {
     detail = JSON.stringify(response.data)
   } catch {
-    detail = 'Réponse reçue (non sérialisable).'
+    detail = 'Response received (not serializable).'
   }
 
   return { ...base, ok: true, detail, trace: response.trace }

@@ -60,7 +60,7 @@ export function entityHref(kind: EntityKind, id: string): string {
     case 'keeper':
       return '/admin/keeper'
     case 'source':
-      // Couverture des données : section dans `/admin/runtime` (pas le
+      // Data coverage : section dans `/admin/runtime` (pas le
       // pilotage souscriptions sur `/admin`).
       return '/admin/runtime'
   }
@@ -96,11 +96,11 @@ export function VaultEntityLink({
         'group block min-w-0 max-w-full rounded-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500',
       )}
     >
-      <span className="block truncate text-sm font-medium text-zinc-950 group-hover:text-accent-700 dark:text-white dark:group-hover:text-accent-400">
+      <span className="block truncate text-sm font-medium text-ink group-hover:text-accent-700 dark:text-white dark:group-hover:text-accent-400">
         {label}
       </span>
       {sub === undefined ? null : (
-        <span className="block truncate text-xs text-zinc-500 dark:text-zinc-400">{sub}</span>
+        <span className="block truncate text-xs text-fg-tertiary dark:text-fg-secondary">{sub}</span>
       )}
     </Link>
   )

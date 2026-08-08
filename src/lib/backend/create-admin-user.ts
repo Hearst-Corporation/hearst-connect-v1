@@ -41,7 +41,7 @@ export async function createAdminUser(
   const base = EMPTY_OUTCOME()
 
   if (form.get('confirm') !== 'CONFIRM') {
-    return { ...base, validationError: 'Confirmation manquante : aucune requête envoyée.' }
+    return { ...base, validationError: 'Missing confirmation: no request was sent.' }
   }
 
   const email = String(form.get('email') ?? '').trim()
@@ -49,21 +49,21 @@ export async function createAdminUser(
   const role = String(form.get('role') ?? '')
 
   if (!email) {
-    return { ...base, validationError: 'L’email est requis.' }
+    return { ...base, validationError: 'Email is required.' }
   }
   if (!password) {
-    return { ...base, validationError: 'Le mot de passe est requis.' }
+    return { ...base, validationError: 'Password is required.' }
   }
   if (password.length < 8) {
-    return { ...base, validationError: 'Le mot de passe doit contenir au moins 8 caractères.' }
+    return { ...base, validationError: 'Password must be at least 8 characters.' }
   }
   if (role !== 'investor' && role !== 'admin') {
-    return { ...base, validationError: 'Rôle invalide : investor ou admin uniquement.' }
+    return { ...base, validationError: 'Invalid role: investor or admin only.' }
   }
 
   const session = await getSession()
   if (!session || toBackendRole(session.role) !== 'admin') {
-    return { ...base, validationError: 'Rôle administrateur requis pour créer un compte.' }
+    return { ...base, validationError: 'Administrator role required to create an account.' }
   }
 
   const response = await callBackend<CreateUserResponse>('admin-users', {
@@ -84,7 +84,7 @@ export async function createAdminUser(
   try {
     detail = JSON.stringify(response.data)
   } catch {
-    detail = 'Compte créé.'
+    detail = 'Account created.'
   }
 
   return {

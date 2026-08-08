@@ -1,7 +1,7 @@
 import { BACKEND_ENDPOINTS, endpointById, endpointsByCategory, resolvePath } from '@/lib/backend/endpoints'
 import { describe, expect, it } from 'vitest'
 
-/** Les 33 routes du contrat backend, listées ici indépendamment du registre. */
+/** Les 42 routes du contrat backend, listées ici indépendamment du registre. */
 const CONTRACT_PATHS = [
   'GET /health',
   'GET /ready',
@@ -24,6 +24,15 @@ const CONTRACT_PATHS = [
   'GET /api/v1/btc',
   'GET /api/v1/product/factsheet',
   'GET /api/v1/backtest/historical',
+  'GET /api/v1/admin/portfolio/overview',
+  'GET /api/v1/admin/portfolio/exposure',
+  'GET /api/v1/admin/rebalancing/summary',
+  'GET /api/v1/admin/activity/timeseries',
+  'GET /api/v1/admin/market/snapshot',
+  'GET /api/v1/admin/vaults/summary',
+  'GET /api/v1/admin/clients/recent',
+  'GET /api/v1/admin/activity/recent',
+  'GET /api/v1/admin/data-health',
   'GET /api/v1/ai/context/dashboard',
   'GET /api/v1/ai/context/btc',
   'GET /api/v1/ai/context/mining',
@@ -39,10 +48,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 33 routes du contrat', () => {
+  it('couvre exactement les 42 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(33)
+    expect(BACKEND_ENDPOINTS).toHaveLength(42)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -60,7 +69,7 @@ describe('registre des endpoints', () => {
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(18)
+    expect(endpointsByCategory('business')).toHaveLength(27)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(6)
   })
@@ -125,7 +134,7 @@ describe('registre des endpoints', () => {
     for (const id of ['mining-onchain', 'mining-electricity']) {
       const endpoint = endpointById(id)
       expect(endpoint.surface).toBe('/admin/produit')
-      expect(endpoint.caveat).toMatch(/admin\/produit/i)
+      expect(endpoint.caveat).toMatch(/admin\/product/i)
     }
   })
 

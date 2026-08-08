@@ -38,25 +38,25 @@ const KIND_ICON: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
 }
 
 const KIND_PROBLEM: Record<string, string> = {
-  kyc: 'KYC en attente',
-  wallet: 'Wallet à créer',
-  depot: 'Dépôt à rapprocher',
-  souscription: 'Signature requise',
-  transaction: 'Transaction échouée',
+  kyc: 'KYC pending',
+  wallet: 'Wallet to create',
+  depot: 'Deposit to reconcile',
+  souscription: 'Signature required',
+  transaction: 'Failed transaction',
 }
 
 const KIND_LABEL: Record<string, string> = {
   kyc: 'KYC',
   wallet: 'Wallet',
-  depot: 'Dépôt',
-  souscription: 'Souscription',
+  depot: 'Deposit',
+  souscription: 'Subscription',
   transaction: 'Transaction',
 }
 
-const SEVERITY_BADGE: Record<PriorityQueueRow['severity'], { color: 'red' | 'amber' | 'zinc'; label: string }> = {
-  critique: { color: 'red', label: 'Critique' },
+const SEVERITY_BADGE: Record<PriorityQueueRow['severity'], { color: 'red' | 'amber' | 'neutral'; label: string }> = {
+  critique: { color: 'red', label: 'Critical' },
   important: { color: 'amber', label: 'Important' },
-  information: { color: 'zinc', label: 'Information' },
+  information: { color: 'neutral', label: 'Information' },
 }
 
 function Chip({ tone, count, label }: Readonly<{ tone: 'danger' | 'warning' | 'accent'; count: number; label: string }>) {
@@ -79,11 +79,11 @@ function EmptyState({ tone, title, subline }: Readonly<{ tone: 'calm' | 'unavail
   return (
     <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
       <Icon
-        className={clsx('size-8', tone === 'calm' ? 'text-accent-500 dark:text-accent-400' : 'text-zinc-300 dark:text-zinc-600')}
+        className={clsx('size-8', tone === 'calm' ? 'text-accent-500 dark:text-accent-400' : 'text-fg dark:text-console-fill')}
         aria-hidden="true"
       />
-      <p className="mt-2 text-sm font-semibold text-zinc-950 dark:text-white">{title}</p>
-      <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{subline}</p>
+      <p className="mt-2 text-sm font-semibold text-ink dark:text-fg">{title}</p>
+      <p className="mt-0.5 text-xs text-fg-tertiary dark:text-fg-secondary">{subline}</p>
     </div>
   )
 }
@@ -109,8 +109,8 @@ function ActionQueueBody({
     return (
       <EmptyState
         tone="unavailable"
-        title="Données indisponibles"
-        subline="La file de priorités n'a pas pu être lue."
+        title="Data unavailable"
+        subline="The priority queue could not be read."
       />
     )
   }
@@ -118,8 +118,8 @@ function ActionQueueBody({
     return (
       <EmptyState
         tone="calm"
-        title="Rien à traiter"
-        subline="La file de souscription est à jour."
+        title="Nothing to process"
+        subline="The subscription queue is up to date."
       />
     )
   }
@@ -140,28 +140,28 @@ function ActionQueueBody({
     <>
       {/* A. Résumé — compteurs mesurés sur les vraies lignes */}
       <div className="flex flex-wrap gap-2">
-        {critique > 0 ? <Chip tone="danger" count={critique} label="critiques" /> : null}
-        {important > 0 ? <Chip tone="warning" count={important} label="importants" /> : null}
-        <Chip tone="accent" count={total} label="à traiter" />
+        {critique > 0 ? <Chip tone="danger" count={critique} label="critical" /> : null}
+        {important > 0 ? <Chip tone="warning" count={important} label="important" /> : null}
+        <Chip tone="accent" count={total} label="to process" />
       </div>
 
       {/* B. Action principale — panneau « well » (action-panels/08) */}
       <div className={clsx(surfaceInset, 'p-4')}>
         <div className="flex items-center justify-between gap-2">
           <Badge color={primaryBadge.color}>{primaryBadge.label}</Badge>
-          <span className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-fg-tertiary dark:text-fg-secondary">
             {KIND_LABEL[primary.kind] ?? primary.kind}
           </span>
         </div>
-        <p className="mt-2 truncate text-sm font-semibold text-zinc-950 dark:text-white">{primary.clientLabel}</p>
+        <p className="mt-2 truncate text-sm font-semibold text-ink dark:text-fg">{primary.clientLabel}</p>
         <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
           <div className="min-w-0">
-            <dt className="text-zinc-500 dark:text-zinc-400">Problème</dt>
-            <dd className="truncate font-medium text-zinc-800 dark:text-zinc-200">{primaryProblem}</dd>
+            <dt className="text-fg-tertiary dark:text-fg-secondary">Issue</dt>
+            <dd className="truncate font-medium text-console-raised dark:text-fg-secondary">{primaryProblem}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-zinc-500 dark:text-zinc-400">Ancienneté</dt>
-            <dd className="truncate font-medium text-zinc-800 dark:text-zinc-200">{primary.ageLabel}</dd>
+            <dt className="text-fg-tertiary dark:text-fg-secondary">Age</dt>
+            <dd className="truncate font-medium text-console-raised dark:text-fg-secondary">{primary.ageLabel}</dd>
           </div>
         </dl>
         <div className="mt-3">
@@ -189,15 +189,15 @@ function ActionQueueBody({
                   <Icon className="size-4" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-950 dark:text-white">{row.clientLabel}</p>
-                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="truncate text-sm font-medium text-ink dark:text-fg">{row.clientLabel}</p>
+                  <p className="truncate text-xs text-fg-tertiary dark:text-fg-secondary">
                     {problem} · {row.ageLabel}
                   </p>
                 </div>
                 <HearstIconAction
                   href={row.actionHref}
                   icon={<ChevronRightIcon />}
-                  aria-label={`Ouvrir ${row.clientLabel}`}
+                  aria-label={`Open ${row.clientLabel}`}
                 />
               </li>
             )
@@ -206,8 +206,8 @@ function ActionQueueBody({
       ) : null}
 
       {remaining > 0 ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          +{remaining} autre{remaining > 1 ? 's' : ''} en file.
+        <p className="text-xs text-fg-tertiary dark:text-fg-secondary">
+          +{remaining} other{remaining > 1 ? 's' : ''} in queue.
         </p>
       ) : null}
     </>

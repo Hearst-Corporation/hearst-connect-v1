@@ -29,3 +29,9 @@ runtime sur **Railway** (`HEARST_API_URL` dans `.env.example`). Déploiement bac
 **Front** : Vercel `hearst-connect-v1` uniquement.
 
 Détail opérationnel : `.cursor/rules/30-no-gpu1.mdc` et section Architecture du `README.md`.
+
+## Design system — structural neutrals forbidden
+
+Neutrals use Hearst semantic tokens (`fg` / `ink` / `console-*`) only — never a
+Tailwind structural neutral ramp. Permanent rule : `.cursor/rules/50-no-zinc.mdc`.
+Gate : `pnpm run check:no-zinc`.

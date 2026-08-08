@@ -4,32 +4,32 @@ import { available, editorial, unavailable } from '@/lib/vaults/model'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-describe('badge « En direct » / trois états', () => {
-  it('AdminReading affiche le badge pour une lecture EN_DIRECT', () => {
+describe('Live badge / three states', () => {
+  it('AdminReading shows the badge for a LIVE reading', () => {
     render(<AdminReading value={available('127', { provenance: 'indexed' })} />)
-    const badge = screen.getByText('En direct')
+    const badge = screen.getByText('Live')
     expect(badge.closest('[data-live-badge]')).not.toBeNull()
     expect(badge.className).toMatch(/green/)
   })
 
-  it('Reading affiche le badge pour une lecture EN_DIRECT', () => {
+  it('Reading shows the badge for a LIVE reading', () => {
     render(<Reading value={available('3', { provenance: 'indexed' })} />)
-    expect(screen.getByText('En direct').closest('[data-live-badge]')).not.toBeNull()
+    expect(screen.getByText('Live').closest('[data-live-badge]')).not.toBeNull()
   })
 
-  it('n’affiche pas le badge pour une valeur éditoriale', () => {
+  it('does not show the badge for an editorial value', () => {
     render(<AdminReading value={editorial('OWNER')} />)
-    expect(screen.queryByText('En direct')).toBeNull()
+    expect(screen.queryByText('Live')).toBeNull()
   })
 
-  it('n’affiche pas le badge pour une absence HORS_LIGNE', () => {
+  it('does not show the badge for an OFFLINE absence', () => {
     render(<AdminReading value={unavailable({ status: 'UNAVAILABLE' })} />)
-    expect(screen.queryByText('En direct')).toBeNull()
+    expect(screen.queryByText('Live')).toBeNull()
   })
 
-  it('affiche « Problème » pour une lecture STALE, pas « En direct »', () => {
+  it('shows Issue for a STALE reading, not Live', () => {
     render(<AdminReading value={available('42', { provenance: 'indexed', stale: true })} />)
-    expect(screen.getByText('Problème')).toBeDefined()
-    expect(screen.queryByText('En direct')).toBeNull()
+    expect(screen.getByText('Issue')).toBeDefined()
+    expect(screen.queryByText('Live')).toBeNull()
   })
 })

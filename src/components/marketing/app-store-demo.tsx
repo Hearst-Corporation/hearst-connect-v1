@@ -3,61 +3,56 @@
 import { AppStoreCards, type AppStoreCardItem } from '@/components/ui/app-store-cards'
 
 /**
- * Acte 2 — Preuve. Cartes shared-layout : au clic, un domaine s'agrandit. Les visuels sont des
- * APERÇUS stylisés de la console (assets brand), pas des captures live. Dark-only : texte blanc
- * par défaut + scrim haut (app-store-cards.module.css) qui garantit la lisibilité du titre.
+ * Act 2 — Proof. Shared-layout cards: one domain expands on click. Visuals are stylized
+ * console PREVIEWS (brand assets), not live captures.
  */
 const ITEMS: readonly AppStoreCardItem[] = [
   {
     id: 'access',
-    category: 'Accès',
-    title: 'Un portail unique pour tous vos espaces Hearst',
+    category: 'Access',
+    title: 'One portal for all your Hearst workspaces',
     paragraphs: [
-      'Identités, autorisations et journaux d’accès vivent dans une seule console — sans multiplier les outils ni les mots de passe.',
-      'Chaque membre voit uniquement ce que son rôle autorise. Dans le produit, la donnée vient du backend Hearst, jamais d’un placeholder.',
+      'Identities, permissions, and access logs live in a single console — without multiplying tools or passwords.',
+      'Each member sees only what their role allows. In the product, data comes from the Hearst backend, never from a placeholder.',
     ],
     image: '/brand/console-preview.png',
     imageStyle: { top: -40 },
   },
   {
     id: 'vaults',
-    category: 'Coffres',
-    title: 'Pilotage des coffres et des stratégies',
+    category: 'Vaults',
+    title: 'Vault and strategy oversight',
     paragraphs: [
-      'Suivez l’état des coffres, les adresses de contrat et les mouvements indexés, avec un état nommé lorsque la source est absente.',
-      'Les graphiques et les indicateurs ne s’inventent pas : une série vide reste vide, une indisponibilité s’affiche comme telle.',
+      'Track vault status, contract addresses, and indexed movements, with a named state when the source is absent.',
+      'Charts and indicators are not invented: an empty series stays empty, unavailability is shown as such.',
     ],
     image: '/brand/console-glow.png',
     imageStyle: { bottom: -40, width: '120%', left: -40 },
   },
   {
     id: 'compliance',
-    category: 'Conformité',
-    title: 'KYC et obligations, sans angle mort',
+    category: 'Compliance',
+    title: 'KYC and obligations, without blind spots',
     paragraphs: [
-      'La console Conformité centralise les dossiers clients et les points de vigilance remontés par les services Hearst.',
-      'Chaque statut est traçable : pas de badge vert forcé quand le backend ne confirme rien.',
+      'The Compliance console centralizes client files and watchpoints raised by Hearst services.',
+      'Every status is traceable: no forced green badge when the backend confirms nothing.',
     ],
     image: '/brand/console-preview.png',
     imageStyle: { top: -160, width: '200%', left: -120 },
   },
   {
     id: 'operations',
-    category: 'Opérations',
-    title: 'Journal des mouvements, horodaté',
+    category: 'Operations',
+    title: 'Movement journal, timestamped',
     paragraphs: [
-      'Opérations agrège les événements avec des libellés en français et un horodatage relatif, prêts à lire.',
-      'Les mouvements se lisent tels quels, à partir de données mesurées — jamais simulées.',
+      'Operations aggregates events with readable labels and relative timestamps, ready to scan.',
+      'Movements are shown as measured — never simulated.',
     ],
     image: '/brand/console-glow.png',
     imageStyle: { top: -60, width: '110%' },
   },
 ] as const
 
-/**
- * Cartes de preuve — sans en-tête interne ni nom de section : la page porte déjà le titre
- * (`aria-labelledby="preuve-heading"`), un second landmark nommé ici ferait doublon.
- */
 export function AppStoreDemo() {
   return <AppStoreCards items={ITEMS} />
 }

@@ -45,23 +45,23 @@ export function runtimeMatrixStatus(raw: string | undefined): 'LIVE' | 'PARTIAL'
 export function runtimeStatusLabel(raw: string | undefined | null): string {
   switch (raw) {
     case 'ready':
-      return 'Joignable'
+      return 'Reachable'
     case 'CONFIGURED':
-      return 'Configuré'
+      return 'Configured'
     case 'RUNNING':
-      return 'En cours'
+      return 'Running'
     case 'running':
-      return 'Actif'
+      return 'Active'
     case 'STALLED':
     case 'stalled':
-      return 'Bloqué'
+      return 'Blocked'
     case 'NOT_CONFIGURED':
-      return 'Non configuré'
+      return 'Not configured'
     case 'unreachable':
-      return 'Injoignable'
+      return 'Unreachable'
     case 'disabled':
-      return 'Désactivé'
+      return 'Disabled'
     default:
-      return raw ?? 'Non renseigné'
+      return raw ?? 'Not provided'
   }
 }

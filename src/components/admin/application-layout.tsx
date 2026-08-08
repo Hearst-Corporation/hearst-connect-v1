@@ -52,7 +52,7 @@ function AccountMenu({
         className={compteActif ? 'font-semibold' : undefined}
       >
         <UserCircleIcon />
-        <DropdownLabel>Votre compte</DropdownLabel>
+        <DropdownLabel>Your account</DropdownLabel>
       </DropdownItem>
       <DropdownDivider />
       <DropdownItem
@@ -61,7 +61,7 @@ function AccountMenu({
         }}
       >
         <ArrowRightStartOnRectangleIcon />
-        <DropdownLabel>Se déconnecter</DropdownLabel>
+        <DropdownLabel>Sign out</DropdownLabel>
       </DropdownItem>
     </DropdownMenu>
   )
@@ -121,7 +121,7 @@ export function AdminApplicationLayout({
                     current={groupeActif === undefined && primaireActif === entree.href}
                   >
                     <Icone />
-                    <SidebarLabel>{entree.libelle}</SidebarLabel>
+                    <SidebarLabel>{entree.label}</SidebarLabel>
                   </SidebarItem>
                 )
               })}
@@ -138,7 +138,7 @@ export function AdminApplicationLayout({
                     current={groupeActif?.titre === hub.titre}
                   >
                     <Icone />
-                    <SidebarLabel>{hub.libelle}</SidebarLabel>
+                    <SidebarLabel>{hub.label}</SidebarLabel>
                   </SidebarItem>
                 )
               })}
@@ -153,10 +153,10 @@ export function AdminApplicationLayout({
                 <span className="flex min-w-0 items-center gap-3">
                   <Avatar initials={initials || 'HC'} className="size-10" square alt="" />
                   <span className="min-w-0">
-                    <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
+                    <span className="block truncate text-sm/5 font-medium text-ink dark:text-fg">
                       {user.name}
                     </span>
-                    <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
+                    <span className="block truncate text-xs/5 font-normal text-fg-tertiary dark:text-fg-secondary">
                       {user.email}
                     </span>
                   </span>

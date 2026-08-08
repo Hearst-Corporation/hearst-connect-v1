@@ -1,247 +1,154 @@
 import {
-  ActionQueue,
-  ActivityHeatmap,
+  ActivityTimelinePanel,
   ChartPlaceholder,
   DashCard,
   DashboardHeader,
   DashboardShell,
-  ProductBars,
-  SubscriptionJourneyStepper,
-  SourceStatusGrid,
+  DataHealthGrid,
+  MarketSnapshotPanel,
+  PortfolioExposurePanel,
+  RebalancingAlertsPanel,
+  RecentClientsPanel,
+  VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
-import { HearstActivityChart, HearstDonutChart, type PointActivite } from '@/components/charts'
-import { Badge } from '@/components/catalyst/badge'
-import { Button } from '@/components/catalyst/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
-import { formatRelativeTime } from '@/lib/format'
+import { HearstActivityChart, type PointActivite } from '@/components/charts'
+import { formatCurrency } from '@/lib/format'
+import type { AdminDashboardData } from '@/lib/admin-dashboard/load'
 import type { SessionUser } from '@/lib/session'
-import { isAvailable, mapAvailability, combine, measuredCount } from '@/lib/vaults/model'
-import {
-  buildFunnel,
-  buildPriorityQueue,
-  kycStatusBuckets,
-  movementDailyHeatmap,
-  subscriptionsByProduct,
-} from '@/lib/vaults/pilotage'
-import type { AdminRegistry } from '@/lib/vaults/model'
+import { isAvailable, mapAvailability } from '@/lib/vaults/model'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
   ChartBarIcon,
-  ClipboardDocumentCheckIcon,
+  CubeTransparentIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/16/solid'
 
-const DEPLOY_STEP: Record<string, string> = {
-  REQUESTED: 'Demandée',
-  PENDING: 'En cours',
-  CONFIRMED: 'Confirmée',
-  FAILED: 'Échouée',
-}
-
-const DEPLOY_BADGE: Record<string, 'amber' | 'lime' | 'red' | 'zinc'> = {
-  REQUESTED: 'amber',
-  PENDING: 'amber',
-  CONFIRMED: 'lime',
-  FAILED: 'red',
+function driftPtsLabel(driftBps: number): string {
+  const pts = driftBps / 100
+  const sign = pts > 0 ? '+' : ''
+  return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
 }
 
 /**
- * Tableau de bord admin unique — pilotage des souscriptions.
- * Surface canonique : `/admin` (l’ancienne route `/admin/dashboard` redirige).
+ * Admin dashboard — portfolio cockpit (HC-ADMIN-DASHBOARD-BACKEND-FIRST-006).
+ * Shell layout unchanged; data from backend read models only.
  */
 export function AdminDashboardPage({
-  registry,
+  data,
   user,
-}: Readonly<{ registry: AdminRegistry; user: SessionUser }>) {
-  const funnel = buildFunnel(registry)
-  const priorityQueue = buildPriorityQueue(registry)
-
-  const positionsActives = mapAvailability(registry.deployments, (rows) =>
-    String(rows.filter((d) => d.status === 'CONFIRMED').length),
+}: Readonly<{ data: AdminDashboardData; user: SessionUser }>) {
+  const deployedAmount = mapAvailability(data.overview, (o) =>
+    formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
   )
-  const comptes = measuredCount(registry.clients)
-  const conversion = combine(comptes, positionsActives, (c, p) => {
-    const total = Number.parseInt(c, 10)
-    const ok = Number.parseInt(p, 10)
-    if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(ok)) return '—'
-    return `${Math.round((ok / total) * 100)}`
-  })
 
   const kpis: readonly DashboardKpi[] = [
     {
-      id: 'conversion',
-      title: 'Taux de conversion',
-      value: conversion,
-      unit: '% Compte → Position',
-      icon: ArrowTrendingUpIcon,
-    },
-    {
-      id: 'kyc',
-      title: 'KYC en attente',
-      value: mapAvailability(registry.compliance, (rows) =>
-        String(rows.filter((r) => r.stage !== 'termine').length),
+      id: 'aum',
+      title: 'Total AUM',
+      value: mapAvailability(data.overview, (o) =>
+        formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals }),
       ),
-      unit: 'dossiers',
-      icon: ClipboardDocumentCheckIcon,
-    },
-    {
-      id: 'subscriptions',
-      title: 'Souscriptions à traiter',
-      value: mapAvailability(registry.deployments, (rows) =>
-        String(rows.filter((d) => d.status === 'REQUESTED' || d.status === 'PENDING').length),
-      ),
-      unit: 'en attente',
+      unit: isAvailable(data.overview) ? data.overview.value.asset : undefined,
       icon: BanknotesIcon,
     },
     {
-      id: 'failed',
-      title: 'Souscriptions échouées',
-      value: mapAvailability(registry.deployments, (rows) =>
-        String(rows.filter((d) => d.status === 'FAILED').length),
-      ),
-      unit: 'échouées',
+      id: 'vaults',
+      title: 'Vaults',
+      value: mapAvailability(data.overview, (o) => String(o.activeVaults)),
+      unit: isAvailable(data.overview)
+        ? data.overview.value.totalVaults > data.overview.value.activeVaults
+          ? `/ ${data.overview.value.totalVaults} total`
+          : 'active'
+        : undefined,
+      icon: CubeTransparentIcon,
+    },
+    {
+      id: 'deployed',
+      title: 'Deployed capital',
+      value: mapAvailability(data.overview, (o) => `${o.deployedPct}%`),
+      unit: isAvailable(deployedAmount) ? deployedAmount.value : undefined,
+      icon: ArrowTrendingUpIcon,
+    },
+    {
+      id: 'drift',
+      title: 'Maximum drift',
+      value: mapAvailability(data.overview, (o) => driftPtsLabel(o.maxDriftBps)),
+      unit: isAvailable(data.overview)
+        ? (data.overview.value.maxDriftStrategyLabel ?? '—')
+        : undefined,
       icon: ExclamationTriangleIcon,
     },
   ]
 
-  const kycBuckets = kycStatusBuckets(registry.compliance)
-  const byProduct = subscriptionsByProduct(registry.deployments)
-  const heatmap = movementDailyHeatmap(registry.movements, 28)
-
-  const activityPoints: PointActivite[] = isAvailable(heatmap)
-    ? heatmap.value.map((c) => ({
-        label: c.label,
-        value: c.count,
-        detail: c.day,
+  const activityPoints: PointActivite[] = isAvailable(data.activityTimeseries)
+    ? data.activityTimeseries.value.map((point) => ({
+        label: point.at.slice(5),
+        value: point.value,
+        detail: point.at,
       }))
     : []
   const showActivityCurve = activityPoints.length >= 2
-
-  const recentDeployments = isAvailable(registry.deployments)
-    ? registry.deployments.value.slice(0, 6)
-    : []
 
   return (
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
       <div className="@container min-w-0">
-      <div className="grid grid-cols-1 gap-4 @[56rem]:grid-cols-12">
-        <DashCard
-          className="@[56rem]:col-span-8"
-          title="Parcours de souscription"
-          subtitle="Compte → KYC → Wallet → Dépôt → Souscription → Position"
-        >
-          <SubscriptionJourneyStepper steps={funnel} />
-        </DashCard>
+        <div className="grid grid-cols-1 gap-4 @[56rem]:grid-cols-12">
+          <DashCard
+            className="@[56rem]:col-span-8"
+            title="Portfolio exposure"
+            subtitle="Where capital is allocated vs target"
+          >
+            <PortfolioExposurePanel strategies={data.exposure} />
+          </DashCard>
 
-        <DashCard className="@[56rem]:col-span-4" title="À traiter" subtitle="Actions prioritaires">
-          <ActionQueue rows={priorityQueue} maxRows={6} />
-        </DashCard>
-      </div>
-      </div>
-
-      <div className="@container min-w-0">
-      <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
-        <DashCard
-          className="@[48rem]:col-span-7"
-          title="Courbe d’activité"
-          subtitle="Volume journalier · 28 jours"
-        >
-          {showActivityCurve ? (
-            <HearstActivityChart points={activityPoints} unite="actions" />
-          ) : (
-            <ChartPlaceholder title="Courbe d’activité" height={300} icon={ChartBarIcon} />
-          )}
-        </DashCard>
-
-        <DashCard className="@[48rem]:col-span-5" title="Donut KYC" subtitle="Répartition des dossiers">
-          {isAvailable(kycBuckets) && kycBuckets.value.length >= 2 ? (
-            <HearstDonutChart
-              slices={kycBuckets.value.map((b) => ({ label: b.label, value: b.value }))}
-              unit="dossiers"
-            />
-          ) : (
-            <ChartPlaceholder title="Donut KYC" height={260} />
-          )}
-        </DashCard>
-      </div>
+          <DashCard className="@[56rem]:col-span-4" title="Rebalancing & alerts" subtitle="Drift and indexer">
+            <RebalancingAlertsPanel summary={data.rebalancing} />
+          </DashCard>
+        </div>
       </div>
 
       <div className="@container min-w-0">
-      <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
-        <DashCard
-          className="@[48rem]:col-span-7"
-          title="Souscriptions par produit"
-          subtitle="Classement par volume"
-        >
-          <ProductBars products={byProduct} />
-        </DashCard>
+        <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
+          <DashCard
+            className="@[48rem]:col-span-7"
+            title="Activity"
+            subtitle="Daily volume · 28 days"
+          >
+            {showActivityCurve ? (
+              <HearstActivityChart points={activityPoints} unite="events" />
+            ) : (
+              <ChartPlaceholder title="Activity" height={300} icon={ChartBarIcon} />
+            )}
+          </DashCard>
 
-        <DashCard className="@[48rem]:col-span-5" title="Activité hebdomadaire" subtitle="Densité journalière">
-          <ActivityHeatmap cells={heatmap} />
-        </DashCard>
-      </div>
+          <DashCard className="@[48rem]:col-span-5" title="Market" subtitle="Normalized snapshot">
+            <MarketSnapshotPanel snapshot={data.market} />
+          </DashCard>
+        </div>
       </div>
 
-      <DashCard title="Dernières souscriptions" subtitle="Six dernières opérations">
-        {!isAvailable(registry.deployments) ? (
-          <Text>Données indisponibles</Text>
-        ) : recentDeployments.length === 0 ? (
-          <Text>Aucune souscription</Text>
-        ) : (
-          <Table dense>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Client</TableHeader>
-                <TableHeader>Produit</TableHeader>
-                <TableHeader>Montant</TableHeader>
-                <TableHeader>Étape</TableHeader>
-                <TableHeader>Wallet</TableHeader>
-                <TableHeader>Mise à jour</TableHeader>
-                <TableHeader>Action</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {recentDeployments.map((d) => {
-                const client =
-                  isAvailable(d.clientLabel) && d.clientLabel.value.trim() !== ''
-                    ? d.clientLabel.value
-                    : '—'
-                return (
-                  <TableRow key={d.id}>
-                    <TableCell className="font-medium">{client}</TableCell>
-                    <TableCell>{d.strategyId ?? '—'}</TableCell>
-                    <TableCell className="tabular-nums">{d.amountAtomic ?? '—'}</TableCell>
-                    <TableCell>
-                      <Badge color={DEPLOY_BADGE[d.status] ?? 'zinc'}>
-                        {DEPLOY_STEP[d.status] ?? d.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-zinc-500">
-                      {d.vaultId.length > 14 ? `${d.vaultId.slice(0, 12)}…` : d.vaultId}
-                    </TableCell>
-                    <TableCell className="text-zinc-500">
-                      {formatRelativeTime(d.confirmedAt ?? d.requestedAt)}
-                    </TableCell>
-                    <TableCell>
-                      <Button plain href={d.vaultId ? `/admin/vaults/${d.vaultId}` : '/admin/vaults'}>
-                        Ouvrir
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        )}
+      <div className="@container min-w-0">
+        <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
+          <DashCard className="@[48rem]:col-span-7" title="Vaults" subtitle="Capital per vault">
+            <VaultsPanel vaults={data.vaults} />
+          </DashCard>
+
+          <DashCard className="@[48rem]:col-span-5" title="Recent clients" subtitle="Exposure and Som KYC">
+            <RecentClientsPanel clients={data.recentClients} />
+          </DashCard>
+        </div>
+      </div>
+
+      <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
+        <ActivityTimelinePanel events={data.recentActivity} />
       </DashCard>
 
-      <DashCard title="État des sources" subtitle="Fraîcheur opérationnelle">
-        <SourceStatusGrid sources={registry.sources} />
+      <DashCard title="Data health" subtitle="Source freshness">
+        <DataHealthGrid sources={data.dataHealth} />
       </DashCard>
     </DashboardShell>
   )

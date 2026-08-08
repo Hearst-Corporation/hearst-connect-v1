@@ -14,45 +14,45 @@ import {
 } from '@heroicons/react/20/solid'
 
 /**
- * Console navigation — cinq destinations primaires dans la sidebar,
- * hubs de section (Journal, Produit, Service) et sous-menus horizontaux
- * dans le corps quand la section en porte plusieurs.
+ * Console navigation — five primary sidebar destinations,
+ * section hubs (Journal, Product, Service) and horizontal body sub-menus
+ * when a section has several entries.
  *
- * Un seul tableau de bord : `/admin`. L’ancienne route `/admin/dashboard` redirige.
+ * Single dashboard: `/admin`. Legacy `/admin/dashboard` redirects.
  */
 
 type IconeNav = typeof HomeIcon
 
 export type EntreeNav = Readonly<{
-  libelle: string
+  label: string
   href: string
   icone: IconeNav
 }>
 
 export const CLIENTS_ENTRY: EntreeNav = {
-  libelle: 'Clients',
+  label: 'Clients',
   href: '/admin/clients',
   icone: BuildingOffice2Icon,
 }
 
 export const VAULTS_ENTRY: EntreeNav = {
-  libelle: 'Coffres',
+  label: 'Vaults',
   href: '/admin/vaults',
   icone: CircleStackIcon,
 }
 
 export const ADMIN_NAV: readonly EntreeNav[] = [
-  { libelle: 'Tableau de bord', href: '/admin', icone: HomeIcon },
+  { label: 'Dashboard', href: '/admin', icone: HomeIcon },
   VAULTS_ENTRY,
   CLIENTS_ENTRY,
-  { libelle: 'Conformité', href: '/admin/conformite', icone: ShieldCheckIcon },
-  { libelle: 'Opérations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
+  { label: 'Compliance', href: '/admin/compliance', icone: ShieldCheckIcon },
+  { label: 'Operations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
 ]
 
 /* ── Secondary destinations ───────────────────────────────────────────────── */
 
 export type EntreeSecondaire = Readonly<{
-  libelle: string
+  label: string
   href: string
   icone: IconeNav
   detail: string
@@ -64,44 +64,44 @@ export type GroupeSecondaire = Readonly<{
 }>
 
 export const VAULT_REGISTRY_ENTRY: EntreeSecondaire = {
-  libelle: 'Registre des coffres',
+  label: 'Vault registry',
   href: '/admin/vaults',
   icone: CircleStackIcon,
-  detail: 'Chaque coffre, son client, son allocation et ses opérations en attente',
+  detail: 'Each vault, its client, allocation, and pending operations',
 }
 
 export const PRODUIT_ENTRY: EntreeSecondaire = {
-  libelle: 'Produit',
-  href: '/admin/produit',
+  label: 'Product',
+  href: '/admin/product',
   icone: DocumentTextIcon,
-  detail: 'Production, réserve, rémunération et backtests sur un seul écran',
+  detail: 'Production, reserve, remuneration, and backtests on one screen',
 }
 
 /**
- * Couverture des données — section dans `/admin/runtime` (sondes + couverture),
- * pas une destination séparée.
+ * Data coverage — section inside `/admin/runtime` (probes + coverage),
+ * not a separate destination.
  */
 export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
-  libelle: 'Couverture des données',
+  label: 'Data coverage',
   href: '/admin/runtime',
   icone: TableCellsIcon,
-  detail: 'Ce que le service sert réellement, surface par surface',
+  detail: 'What the service actually serves, surface by surface',
 }
 
 /**
- * Groupes pour la sous-navigation horizontale et les hubs latéraux.
- * Les anciennes routes (`/admin/mining`, `/admin/product`, `/admin/dashboard`, etc.)
- * redirigent — elles ne figurent plus ici.
+ * Groups for horizontal sub-navigation and lateral hubs.
+ * Legacy routes (`/admin/mining`, `/admin/product`, `/admin/dashboard`, etc.)
+ * redirect — they no longer appear here.
  */
 export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
   {
     titre: 'Portfolio',
     entrees: [
       {
-        libelle: 'Journal Série 1',
+        label: 'Series 1 journal',
         href: '/admin/series-1',
         icone: Squares2X2Icon,
-        detail: 'Le journal on-chain indexé de la Série 1',
+        detail: 'The indexed on-chain journal for Series 1',
       },
     ],
   },
@@ -113,33 +113,33 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
     titre: 'Service',
     entrees: [
       {
-        libelle: 'État du service',
+        label: 'Service status',
         href: '/admin/runtime',
         icone: SignalIcon,
-        detail: 'Sondes de dépendances, déploiement, couverture des données et réponses brutes',
+        detail: 'Dependency probes, deployment, data coverage, and raw responses',
       },
       {
-        libelle: 'Explorateur d’API',
+        label: 'API explorer',
         href: '/admin/api-explorer',
         icone: CommandLineIcon,
-        detail: 'Les endpoints du backend, leur méthode, leur niveau d’accès et un curl prêt à copier',
+        detail: 'Backend endpoints, their method, access level, and a curl ready to copy',
       },
       {
-        libelle: 'Actions Keeper',
+        label: 'Keeper actions',
         href: '/admin/keeper',
         icone: WrenchScrewdriverIcon,
-        detail: 'Les requêtes Keeper à effet de bord, chacune sous confirmation explicite',
+        detail: 'Side-effect Keeper requests, each under explicit confirmation',
       },
     ],
   },
   {
-    titre: 'Compte',
+    titre: 'Account',
     entrees: [
       {
-        libelle: 'Votre compte',
+        label: 'Your account',
         href: '/admin/profile',
         icone: IdentificationIcon,
-        detail: 'Le dossier investisseur rattaché à ce compte, s’il en existe un',
+        detail: 'The investor file attached to this account, if any',
       },
     ],
   },
@@ -151,7 +151,7 @@ export const ADMIN_SECONDARY_FLAT: readonly EntreeSecondaire[] = ADMIN_SECONDARY
 
 export type HubSection = Readonly<{
   titre: string
-  libelle: string
+  label: string
   href: string
   icone: IconeNav
 }>
@@ -159,19 +159,19 @@ export type HubSection = Readonly<{
 export const ADMIN_SECTION_HUBS: readonly HubSection[] = [
   {
     titre: 'Portfolio',
-    libelle: 'Journal Série 1',
+    label: 'Series 1 journal',
     href: '/admin/series-1',
     icone: Squares2X2Icon,
   },
   {
     titre: 'Production',
-    libelle: 'Produit',
-    href: '/admin/produit',
+    label: 'Product',
+    href: '/admin/product',
     icone: DocumentTextIcon,
   },
   {
     titre: 'Service',
-    libelle: 'Service',
+    label: 'Service',
     href: '/admin/runtime',
     icone: SignalIcon,
   },
@@ -180,7 +180,7 @@ export const ADMIN_SECTION_HUBS: readonly HubSection[] = [
 export function groupeSecondaireActif(pathname: string): GroupeSecondaire | undefined {
   return ADMIN_SECONDARY.find(
     (groupe) =>
-      groupe.titre !== 'Compte' &&
+      groupe.titre !== 'Account' &&
       groupe.entrees.some(
         (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
       ),
@@ -188,13 +188,13 @@ export function groupeSecondaireActif(pathname: string): GroupeSecondaire | unde
 }
 
 /**
- * Le groupe « Compte » est volontairement écarté de `groupeSecondaireActif` : il
- * ne pilote ni hub latéral ni sous-navigation horizontale. Cette garde dédiée
- * permet au menu utilisateur de marquer « Votre compte » actif sur
- * `/admin/profile` sans réintroduire « Compte » dans la logique des hubs.
+ * The "Account" group is excluded from `groupeSecondaireActif`: it does not
+ * drive a lateral hub or horizontal sub-nav. This dedicated guard lets the
+ * user menu mark "Your account" active on `/admin/profile` without reintroducing
+ * "Account" into hub logic.
  */
 export function estRouteCompte(pathname: string): boolean {
-  const groupe = ADMIN_SECONDARY.find((g) => g.titre === 'Compte')
+  const groupe = ADMIN_SECONDARY.find((g) => g.titre === 'Account')
   if (groupe === undefined) return false
   return groupe.entrees.some(
     (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
