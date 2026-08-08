@@ -113,7 +113,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
     titre: 'Service',
     entrees: [
       {
-        label: 'Service status',
+        label: 'Service',
         href: '/admin/runtime',
         icone: SignalIcon,
         detail: 'Single observability surface — probes, runtime, coverage, raw responses',
