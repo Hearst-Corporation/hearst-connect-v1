@@ -85,6 +85,18 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
+  // HC-ADMIN-LAYOUT-RECOVERY-032 — sparse content must not flatten desktop to full-width bands.
+  it('keeps composed desktop spans (never sparse→col-span-12)', () => {
+    expect(SOURCE).not.toMatch(/marketSparse|clientsSparse/)
+    expect(SOURCE).not.toMatch(/\? ['"]@\[[\d.]+rem\]:col-span-12['"]/)
+    expect(SOURCE).toMatch(/className="@\[40rem\]:col-span-7" title="Activity"/)
+    expect(SOURCE).toMatch(/className="@\[40rem\]:col-span-5" title="Market"/)
+    expect(SOURCE).toMatch(/className="@\[40rem\]:col-span-7" title="Vaults"/)
+    expect(SOURCE).toMatch(/className="@\[40rem\]:col-span-5" title="Recent clients"/)
+    expect(SOURCE).toMatch(/className="@\[40rem\]:col-span-8"[\s\S]*title="Recent activity"/)
+    expect(SOURCE).toMatch(/className="@\[40rem\]:col-span-4" title="Data health"/)
+  })
+
   it('routes route-level actions through the Hearst actions boundary', () => {
     expect(HEADER).toMatch(/from ['"]@\/components\/actions['"]/)
     expect(ACTIONS).toMatch(/useReducedMotion/)
