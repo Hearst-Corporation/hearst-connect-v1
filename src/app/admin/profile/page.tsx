@@ -48,7 +48,7 @@ export default async function Page() {
       <SectionCard
         title="Signed in as"
         hint="Read from your encrypted session cookie."
-        actions={session === null ? undefined : <Badge color="lime">{sessionState}</Badge>}
+        actions={session === null ? undefined : <Badge color="neutral">{sessionState}</Badge>}
       >
         {session === null ? (
           <Callout tone="warning" title="No valid session">
