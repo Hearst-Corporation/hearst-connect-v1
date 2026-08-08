@@ -1,7 +1,8 @@
 'use client'
 
 /**
- * Frontière d'actions Hearst — HC-ADMIN-DASHBOARD-UI-ASSETS-005.
+ * Frontière d'actions Hearst — HC-ADMIN-DASHBOARD-UI-ASSETS-005 /
+ * HC-ADMIN-DESIGN-SYSTEM-FORENSIC-033.
  *
  * ── Ce que cette frontière est, et n'est pas ──────────────────────────────
  * Le brief demande une frontière `src/components/actions/` inspirée des boutons
@@ -15,10 +16,15 @@
  *   2. une machine à états (`idle → loading → success | error`) pour une action
  *      asynchrone réelle.
  *
- * Aucune couleur, bordure ou géométrie n'est réécrite ici : la surface reste
- * celle de Catalyst. Le primaire est teinté à l'accent mint Hearst via les
- * variables CSS que Catalyst expose déjà (`--btn-bg`/`--btn-border`/`--btn-icon`)
- * — un override par `style` inline, pas un hex en dur (doctrine tokens).
+ * ── Contrat couleur (033) ─────────────────────────────────────────────────
+ * UNE source de vérité : variables CSS Hearst (`--btn-bg` / `--btn-border` /
+ * `--btn-icon` / `--btn-hover-overlay`) via `style`. Catalyst fournit
+ * structure + comportement (`solid` / `plain`) — JAMAIS `color="lime"|amber|red`
+ * (palettes raw qui collisionnent avec les variables accent).
+ *
+ * Le focus clavier est recalé produit-wide dans `src/styles/tailwind.css`
+ * (remap `outline-color` → `--color-accent-500`) ; on n'utilise pas
+ * `outline-none`.
  *
  * ── Reduced motion est STRUCTUREL ─────────────────────────────────────────
  * En miroir de `compositions/motion.tsx` : `useReducedMotion()` → on rend une
@@ -54,19 +60,41 @@ function iconSlot(node: ReactNode): ReactNode {
   return cloneElement(el, { 'data-slot': 'icon', 'aria-hidden': true })
 }
 
-/** Teinte accent mint appliquée par-dessus la base Catalyst `lime` (texte foncé conservé en clair ET sombre). */
-const ACCENT_VARS = {
-  '--btn-bg': 'var(--color-accent-400)',
-  '--btn-border': 'var(--color-accent-500)',
-  '--btn-icon': 'var(--color-accent-700)',
-} as CSSProperties
+/** Variables sémantiques Hearst — seule source de couleur pour les tons solid. */
+const TONE_STYLE: Record<Exclude<Tone, 'icon' | 'secondary'>, CSSProperties> = {
+  primary: {
+    '--btn-bg': 'var(--color-accent-400)',
+    '--btn-border': 'var(--color-accent-500)',
+    '--btn-icon': 'var(--color-accent-700)',
+    '--btn-hover-overlay': 'var(--color-white)',
+  } as CSSProperties,
+  critical: {
+    '--btn-bg': 'var(--color-warning-400)',
+    '--btn-border': 'var(--color-warning-500)',
+    '--btn-icon': 'var(--color-warning-700)',
+    '--btn-hover-overlay': 'var(--color-white)',
+  } as CSSProperties,
+  danger: {
+    '--btn-bg': 'var(--color-danger-600)',
+    '--btn-border': 'var(--color-danger-700)',
+    '--btn-icon': 'var(--color-danger-300)',
+    '--btn-hover-overlay': 'var(--color-white)',
+  } as CSSProperties,
+}
 
-/** Clé de couleur Catalyst par ton (le ton `icon` passe par `plain`). */
-const TONE_COLOR: Record<Exclude<Tone, 'icon'>, 'lime' | 'amber' | 'red' | 'white'> = {
-  primary: 'lime',
-  critical: 'amber',
-  danger: 'red',
-  secondary: 'white',
+/**
+ * Classes d'encre / overlay — battent le texte du défaut Catalyst
+ * `dark/neutral` (`text-white`) via le modificateur important Tailwind.
+ * Focus : `!data-focus:outline-accent-500` bat le `outline-blue-500` vendor.
+ * Overlay /25 pour primary+critical (fond clair) ; /10 pour danger (fond sombre).
+ */
+const FOCUS_ACCENT = '!data-focus:outline-accent-500'
+
+const TONE_CLASS: Record<Exclude<Tone, 'icon'>, string> = {
+  primary: clsx(FOCUS_ACCENT, '!text-accent-ink dark:[--btn-hover-overlay:var(--color-white)]/25'),
+  critical: clsx(FOCUS_ACCENT, '!text-warning-ink dark:[--btn-hover-overlay:var(--color-white)]/25'),
+  danger: clsx(FOCUS_ACCENT, '!text-white dark:[--btn-hover-overlay:var(--color-white)]/10'),
+  secondary: FOCUS_ACCENT,
 }
 
 /** Tons qui portent une micro-interaction. Le secondaire reste inerte (doctrine : hover Catalyst suffit). */
@@ -180,8 +208,9 @@ function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
 
   const isDisabled = disabledProp === true || (href === undefined && onAction === undefined && disabledReason !== undefined)
   const busy = phase === 'loading'
-  const style = tone === 'primary' ? ACCENT_VARS : undefined
   const tapScale = tone === 'icon' ? 0.94 : 0.98
+  const mergedClass =
+    tone === 'icon' ? clsx(FOCUS_ACCENT, className) : clsx(TONE_CLASS[tone], className)
 
   const content =
     onAction !== undefined ? (
@@ -196,16 +225,22 @@ function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
     )
 
   // Bouton Catalyst résolu par ton — jamais un <button> maison.
+  // Structure = défaut `dark/neutral` (tokens console) ou `white` / `plain`.
+  // Couleur sémantique = variables Hearst uniquement (pas de color="lime").
   let button: ReactNode
   if (tone === 'icon') {
     button = href !== undefined
-      ? <Button plain href={href} className={className} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-      : <Button plain disabled={isDisabled || busy} onClick={onAction ? run : undefined} className={className} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-  } else {
-    const color = TONE_COLOR[tone]
+      ? <Button plain href={href} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
+      : <Button plain disabled={isDisabled || busy} onClick={onAction ? run : undefined} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
+  } else if (tone === 'secondary') {
     button = href !== undefined
-      ? <Button color={color} href={href} style={style} className={className} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-      : <Button color={color} disabled={isDisabled || busy} onClick={onAction ? run : undefined} style={style} className={className} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
+      ? <Button color="white" href={href} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
+      : <Button color="white" disabled={isDisabled || busy} onClick={onAction ? run : undefined} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
+  } else {
+    const style = TONE_STYLE[tone]
+    button = href !== undefined
+      ? <Button href={href} style={style} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
+      : <Button disabled={isDisabled || busy} onClick={onAction ? run : undefined} style={style} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
   }
 
   return <Interactive active={TONE_MOTION[tone] && !isDisabled && !busy} tapScale={tapScale}>{button}</Interactive>
@@ -221,7 +256,7 @@ export function HearstCriticalAction(props: HearstActionProps) {
   return <HearstAction tone="critical" {...props} />
 }
 
-/** Action à risque — incident, échec. Rouge Catalyst. */
+/** Action à risque — incident, échec. Tokens danger Hearst. */
 export function HearstDangerAction(props: HearstActionProps) {
   return <HearstAction tone="danger" {...props} />
 }

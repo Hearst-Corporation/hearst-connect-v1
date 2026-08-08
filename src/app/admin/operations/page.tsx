@@ -1,7 +1,7 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
 import { surfaceInset } from '@/components/admin/surface'
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import {
@@ -67,15 +67,6 @@ function filterOpsActivity(
   events: readonly AdminActivityEvent[],
 ): readonly AdminActivityEvent[] {
   return events.filter((event) => OPS_ACTIVITY_TYPES.has(event.type))
-}
-
-function statusBadgeColor(status: string): 'lime' | 'amber' | 'red' | 'neutral' {
-  const key = status.trim().toUpperCase()
-  if (key === 'CONFIRMED' || key === 'INDEXED' || key === 'LIVE') return 'lime'
-  if (key === 'REQUESTED' || key === 'PENDING' || key === 'PARTIAL' || key === 'STALE') return 'amber'
-  if (key === 'FAILED' || key === 'DENIED' || key === 'PERMISSION_DENIED') return 'red'
-  if (key === 'NOT_SUPPORTED' || key === 'NOT_CONFIGURED') return 'neutral'
-  return 'neutral'
 }
 
 function RebalancingSection({
@@ -292,7 +283,7 @@ export default async function Page() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge color={statusBadgeColor(event.status)}>{event.status}</Badge>
+                      <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
                     </TableCell>
                     <TableCell className="tabular-nums">
                       {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}

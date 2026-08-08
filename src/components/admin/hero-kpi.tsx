@@ -31,7 +31,7 @@ export function AdminHeroKpiMetrics({ items }: Readonly<{ items: readonly AdminH
                 <span
                   className={clsx(
                     'text-xl/6 font-semibold tracking-tight tabular-nums',
-                    available ? 'text-white' : 'text-fg-tertiary',
+                    available ? 'text-fg' : 'text-fg-tertiary',
                   )}
                 >
                   {available ? kpi.value.value : '—'}

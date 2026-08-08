@@ -25,7 +25,7 @@ export function RichTooltip({
   return (
     <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
       {label !== undefined && label !== '' ? (
-        <p className="font-medium text-white">{label}</p>
+        <p className="font-medium text-fg">{label}</p>
       ) : null}
       {payload.map((row) => (
         <p key={row.name ?? 'v'} className="mt-0.5 text-fg tabular-nums">
