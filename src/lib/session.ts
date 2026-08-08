@@ -38,22 +38,21 @@ export const SESSION_COOKIE = 'hearst_session'
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER'
 
 /**
- * Libellés français des rôles de session — source unique pour l'AFFICHAGE.
+ * English role labels — single source for DISPLAY.
  *
- * La CLÉ technique (`OWNER` / `ADMIN` / `MEMBER`) reste la vérité côté logique
- * et backend ; seul le rendu à l'écran est francisé. Toute surface qui montre un
- * rôle à un humain passe par ici (ou par `libelleRole`) plutôt que d'afficher la
- * clé brute — une seule table, aucune définition dupliquée par page.
+ * The technical KEY (`OWNER` / `ADMIN` / `MEMBER`) remains the logic/backend
+ * truth; only on-screen rendering is localized. Any surface showing a role to a
+ * human goes through here (or `roleLabel`) rather than the raw key.
  */
-export const LIBELLE_ROLE: Record<Role, string> = {
-  OWNER: 'Propriétaire de l’espace',
-  ADMIN: 'Administrateur',
-  MEMBER: 'Membre',
+export const ROLE_LABELS: Record<Role, string> = {
+  OWNER: 'Space owner',
+  ADMIN: 'Administrator',
+  MEMBER: 'Member',
 }
 
-/** Libellé français d'un rôle, pour l'affichage. Ne change jamais la clé. */
-export function libelleRole(role: Role): string {
-  return LIBELLE_ROLE[role]
+/** English label for a role, for display. Never changes the key. */
+export function roleLabel(role: Role): string {
+  return ROLE_LABELS[role]
 }
 
 /**

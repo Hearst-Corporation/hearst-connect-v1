@@ -12,11 +12,11 @@ import { useActionState } from 'react'
 const initialState: LoginState = { error: null }
 
 /**
- * Formulaire de connexion.
+ * Sign-in form.
  *
- * Il ne détient ni jeton ni secret : il poste vers une Server Action qui parle
- * au backend et scelle le cookie de session. Le composant ne reçoit que des
- * messages destinés à l'utilisateur.
+ * Holds no token or secret: it posts to a Server Action that talks to the
+ * backend and seals the session cookie. The component only receives
+ * user-facing messages.
  */
 export function LoginForm({
   notice = null,
@@ -28,10 +28,10 @@ export function LoginForm({
 
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-zinc-950 dark:text-white" />
+      <Logo className="text-ink dark:text-fg" />
       <div>
-        <Heading>Connexion à votre espace</Heading>
-        <Text className="mt-2">Utilisez l’adresse professionnelle rattachée à votre organisation.</Text>
+        <Heading>Sign in to your workspace</Heading>
+        <Text className="mt-2">Use the professional email address linked to your organization.</Text>
       </div>
 
       <form action={formAction} className="grid grid-cols-1 gap-8">
@@ -42,14 +42,13 @@ export function LoginForm({
       ) : null}
 
       {!loginReady ? (
-        <output className="block rounded-lg bg-zinc-50 px-4 py-3 text-sm text-zinc-700 ring-1 ring-zinc-950/10 dark:bg-white/5 dark:text-zinc-300 dark:ring-white/10">
-          Le service d’authentification n’est pas configuré sur ce déploiement : aucune connexion n’est possible pour
-          l’instant.
+        <output className="block rounded-lg bg-fg px-4 py-3 text-sm text-console-fill-muted ring-1 ring-ink/10 dark:bg-white/5 dark:text-fg dark:ring-white/10">
+          Authentication is not configured on this deployment: sign-in is not available right now.
         </output>
       ) : null}
 
       <Field>
-        <Label>Adresse e-mail</Label>
+        <Label>Email address</Label>
         <Input
           type="email"
           name="email"
@@ -62,7 +61,7 @@ export function LoginForm({
       </Field>
 
       <Field>
-        <Label>Mot de passe</Label>
+        <Label>Password</Label>
         <Input
           type="password"
           name="password"
@@ -75,27 +74,27 @@ export function LoginForm({
       </Field>
 
       <Button type="submit" className="w-full" disabled={pending || !loginReady}>
-        {pending ? 'Connexion…' : 'Se connecter'}
+        {pending ? 'Signing in…' : 'Sign in'}
       </Button>
 
       <Text>
-        Pas encore d’accès ?{' '}
+        No access yet?{' '}
         <TextLink href="/register">
-          <Strong>Demander une invitation</Strong>
+          <Strong>Request an invitation</Strong>
         </TextLink>
       </Text>
       </form>
 
       {devQuickLoginAvailable ? (
-        <form action={quickAction} className="border-t border-zinc-950/10 pt-6 dark:border-white/10">
-          <Button type="submit" outline className="w-full" disabled={quickPending}>
-            {quickPending ? 'Connexion…' : 'Connexion rapide owner (dev local)'}
-          </Button>
-          {quickState.error ? (
-            <ErrorMessage role="alert" className="mt-2">
-              {quickState.error}
-            </ErrorMessage>
-          ) : null}
+        <form action={quickAction} className="border-t border-ink/10 pt-6 dark:border-white/10">
+          <Field>
+            <Button type="submit" outline className="w-full" disabled={quickPending}>
+              {quickPending ? 'Signing in…' : 'Quick owner sign-in (local dev)'}
+            </Button>
+            {quickState.error ? (
+              <ErrorMessage role="alert">{quickState.error}</ErrorMessage>
+            ) : null}
+          </Field>
         </form>
       ) : null}
     </div>

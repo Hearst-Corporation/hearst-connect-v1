@@ -5,12 +5,12 @@ import { describe, expect, it } from 'vitest'
 describe('etatBackend — trois états utilisateur', () => {
   it('LIVE frais → EN_DIRECT', () => {
     expect(etatBackend(available('42', { provenance: 'indexed', stale: false }))).toBe('EN_DIRECT')
-    expect(libelleEtatBackend('EN_DIRECT')).toBe('En direct')
+    expect(libelleEtatBackend('EN_DIRECT')).toBe('Live')
   })
 
   it('STALE → PROBLEME', () => {
     expect(etatBackend(available('42', { provenance: 'indexed', stale: true }))).toBe('PROBLEME')
-    expect(libelleEtatBackend('PROBLEME')).toBe('Problème')
+    expect(libelleEtatBackend('PROBLEME')).toBe('Issue')
   })
 
   it('indisponible réseau → HORS_LIGNE', () => {

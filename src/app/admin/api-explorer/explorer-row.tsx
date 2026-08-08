@@ -18,7 +18,7 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
     <button
       type="button"
       onClick={() => navigator.clipboard.writeText(text)}
-      className="rounded border border-console-line px-2 py-0.5 text-xs text-zinc-400 hover:bg-console-inset hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+      className="rounded border border-console-line px-2 py-0.5 text-xs text-fg-secondary hover:bg-console-inset hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
     >
       Copier
     </button>
@@ -35,7 +35,7 @@ function unrunnableLabel(method: BackendEndpoint['method'], pathParams: readonly
   // only announce that it's missing, without repeating it.
   if (pathParams.length > 0) {
     const params = pathParams.map((name) => `:${name}`).join(', ')
-    return `paramètre ${params} requis — non saisissable ici`
+    return `parameter ${params} required — not enterable here`
   }
   return null
 }
@@ -52,30 +52,30 @@ export function ExplorerRow({
   const blockedLabel = unrunnableLabel(endpoint.method, pathParams)
 
   return (
-    <div className="border-b border-zinc-950/5 dark:border-console-line-soft px-4 py-3 last:border-b-0">
+    <div className="border-b border-console-line-soft px-4 py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className={clsx(surfaceInset, 'px-1.5 py-0.5 font-mono text-xs text-white')}>{endpoint.method}</span>
-        <span className="font-mono text-xs break-all text-zinc-950 dark:text-white">{endpoint.path}</span>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">{endpoint.category}</span>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">· {authLabel}</span>
+        <span className="font-mono text-xs break-all text-ink dark:text-fg">{endpoint.path}</span>
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">{endpoint.category}</span>
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">· {authLabel}</span>
 
         <form action={formAction} className="ml-auto">
           <input type="hidden" name="endpointId" value={endpoint.id} />
           {blockedLabel !== null ? (
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{blockedLabel}</span>
+            <span className="text-xs text-fg-tertiary dark:text-fg-secondary">{blockedLabel}</span>
           ) : (
             <button
               type="submit"
               disabled={pending}
-              className="rounded border border-console-line px-2 py-1 text-xs text-zinc-400 hover:bg-console-inset hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+              className="rounded border border-console-line px-2 py-1 text-xs text-fg-secondary hover:bg-console-inset hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
             >
-              {pending ? 'Appel…' : 'Exécuter'}
+              {pending ? 'Calling…' : 'Run'}
             </button>
           )}
         </form>
       </div>
 
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{endpoint.summary}</p>
+      <p className="mt-1 text-xs text-fg-tertiary dark:text-fg-secondary">{endpoint.summary}</p>
       {endpoint.caveat ? <p className="mt-1 text-xs text-warning-400">{endpoint.caveat}</p> : null}
 
       {outcome ? (
@@ -83,7 +83,7 @@ export function ExplorerRow({
           <div className="mb-2 flex items-center gap-2">
             <CopyButton text={outcome.rawJson} />
             {outcome.metaStatus ? (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">enveloppe : {outcome.metaStatus}</span>
+              <span className="text-xs text-fg-tertiary dark:text-fg-secondary">enveloppe : {outcome.metaStatus}</span>
             ) : null}
           </div>
           <AdminProbeResult
@@ -96,8 +96,8 @@ export function ExplorerRow({
       ) : null}
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">cURL (jeton masqué)</summary>
-        <pre className={clsx(surfaceInset, 'mt-1 overflow-x-auto p-2 font-mono text-xs text-zinc-400')}>{curl}</pre>
+        <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-white">cURL (token redacted)</summary>
+        <pre className={clsx(surfaceInset, 'mt-1 overflow-x-auto p-2 font-mono text-xs text-fg-secondary')}>{curl}</pre>
       </details>
 
       {isKeeper ? (

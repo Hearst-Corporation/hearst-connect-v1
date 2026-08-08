@@ -52,7 +52,7 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
 
 ## Gates & tests
 
-- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:mocks` → `check:truthful-data` → `check:ds` → `check:ui` → `test`, en
+- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:no-zinc` → `check:mocks` → `check:truthful-data` → `check:ds` → `check:ui` → `test`, en
   série (le premier rouge arrête tout). Pas de build dans la gate (le build vit dans le
   déploiement).
 - **Pas de gate de design *imposée* (décision du 2026-07-31).** Pas de Storybook obligatoire,
@@ -69,6 +69,9 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   - `lint` (`eslint`) — `src/components/catalyst/**` volontairement ignoré.
   - **`check:no-gpu1` (`scripts/check-no-gpu1.mjs`) — interdit GPU1 / connect-api comme
     cible backend dans le code et la config opérationnelle. Backend = GitHub + Railway.**
+  - **`check:no-zinc` (`scripts/check-no-zinc.mjs`) — interdit toute occurrence de la
+    palette structurelle Tailwind interdite (utilities, tokens, variantes, identifiants). Neutrals =
+    tokens sémantiques `fg` / `ink` / `console-*`. Règle : `.cursor/rules/50-no-zinc.mdc`.**
   - **`check:mocks` (`scripts/check-no-mocks.mjs`) — gate anti-données-simulées, garantie
     centrale du produit.** 7 règles sur le runtime (`src/app`, `components`, `features`, `hooks`,
     `lib`, `services` ; les tests sont exclus, commentaires et littéraux retirés avant analyse) :

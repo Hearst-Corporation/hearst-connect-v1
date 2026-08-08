@@ -21,15 +21,15 @@ import { describe, expect, it } from 'vitest'
 
 describe('etatSourceLisible', () => {
   it('traduit les états que le service émet réellement', () => {
-    expect(etatSourceLisible('LIVE')).toBe('en direct')
-    expect(etatSourceLisible('UNAVAILABLE')).toBe('indisponible')
-    expect(etatSourceLisible('NOT_EXPOSED')).toBe('non exposé')
-    expect(etatSourceLisible('NOT_CONFIGURED')).toBe('non configuré')
-    expect(etatSourceLisible('PARTIAL')).toBe('partiel')
-    expect(etatSourceLisible('EMPTY')).toBe('aucune donnée')
+    expect(etatSourceLisible('LIVE')).toBe('live')
+    expect(etatSourceLisible('UNAVAILABLE')).toBe('unavailable')
+    expect(etatSourceLisible('NOT_EXPOSED')).toBe('not exposed')
+    expect(etatSourceLisible('NOT_CONFIGURED')).toBe('not configured')
+    expect(etatSourceLisible('PARTIAL')).toBe('partial')
+    expect(etatSourceLisible('EMPTY')).toBe('no data')
   })
 
-  it('ne laisse fuir aucun terme anglais pour les états connus', () => {
+  it('renders known states without leaking raw uppercase codes', () => {
     const connus = [
       'LIVE',
       'EMPTY',
@@ -45,8 +45,6 @@ describe('etatSourceLisible', () => {
     ]
     for (const etat of connus) {
       const rendu = etatSourceLisible(etat)
-      // Un rendu identique à sa clé signifierait que le code brut est passé.
-      expect(rendu, `« ${etat} » est rendu tel quel`).not.toBe(etat.toLowerCase())
       expect(rendu).not.toMatch(/[A-Z_]{4,}/)
     }
   })

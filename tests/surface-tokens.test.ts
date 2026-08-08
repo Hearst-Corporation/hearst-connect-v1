@@ -53,7 +53,7 @@ describe('design system surfaces — canon dashboard', () => {
       'utf8',
     )
     expect(src).toContain('surfaceSelect')
-    expect(src).not.toContain('data-selected:bg-zinc-800')
+    expect(src).not.toContain('data-selected:bg-console-raised')
   })
 
   it('menu : effet verre via surfaceNav', () => {
@@ -88,7 +88,7 @@ describe('design system surfaces — canon dashboard', () => {
     const frame = readFileSync(join(process.cwd(), 'src/components/charts/core/chart-frame.tsx'), 'utf8')
     for (const src of [btc, product, rich]) {
       expect(src).toContain('surfaceBox')
-      expect(src).not.toMatch(/bg-white|dark:bg-zinc-800/)
+      expect(src).not.toMatch(/bg-white|dark:bg-console-raised/)
     }
     expect(frame).toContain('surfaceInset')
   })

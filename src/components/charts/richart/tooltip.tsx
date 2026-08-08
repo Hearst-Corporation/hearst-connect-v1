@@ -28,7 +28,7 @@ export function RichTooltip({
         <p className="font-medium text-white">{label}</p>
       ) : null}
       {payload.map((row) => (
-        <p key={row.name ?? 'v'} className="mt-0.5 text-zinc-300 tabular-nums">
+        <p key={row.name ?? 'v'} className="mt-0.5 text-fg tabular-nums">
           {row.name === undefined || row.name === '' ? '' : `${row.name}: `}
           {typeof row.value === 'number' ? `${formatNumber(row.value)}${suffix}` : '—'}
         </p>

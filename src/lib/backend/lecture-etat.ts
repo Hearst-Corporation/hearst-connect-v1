@@ -1,34 +1,31 @@
-import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
+import {
+  backendStateFrom,
+  backendStateLabel,
+  type BackendState,
+} from '@/lib/backend/reading-state'
+import type { Availability } from '@/lib/vaults/model'
 
-/**
- * Les trois états utilisateur imposés par HC-ENDPOINT-ONLY-UI-001.
- *
- * EN_DIRECT  — requête réussie, donnée LIVE, fraîcheur non stale.
- * HORS_LIGNE — source inaccessible, non configurée, ou absence de connexion.
- * PROBLEME   — erreur, permission, STALE/PARTIAL, contrat inattendu.
- */
-
+/** @deprecated Use `BackendState` from `@/lib/backend/reading-state`. */
 export type EtatBackend = 'EN_DIRECT' | 'HORS_LIGNE' | 'PROBLEME'
 
-const HORS_LIGNE: ReadonlySet<string> = new Set(['UNAVAILABLE', 'NOT_CONFIGURED', 'NOT_EXPOSED'])
-
-export function etatBackend<T>(lecture: Availability<T>): EtatBackend {
-  if (!isAvailable(lecture)) {
-    return HORS_LIGNE.has(lecture.status) ? 'HORS_LIGNE' : 'PROBLEME'
-  }
-  const signal = signalOf(lecture)
-  if (signal === 'live') return 'EN_DIRECT'
-  if (signal === 'stale') return 'PROBLEME'
-  return 'EN_DIRECT'
+const TO_LEGACY: Record<BackendState, EtatBackend> = {
+  LIVE: 'EN_DIRECT',
+  OFFLINE: 'HORS_LIGNE',
+  ISSUE: 'PROBLEME',
 }
 
+const FROM_LEGACY: Record<EtatBackend, BackendState> = {
+  EN_DIRECT: 'LIVE',
+  HORS_LIGNE: 'OFFLINE',
+  PROBLEME: 'ISSUE',
+}
+
+/** @deprecated Use `backendStateFrom` from `@/lib/backend/reading-state`. */
+export function etatBackend<T>(lecture: Availability<T>): EtatBackend {
+  return TO_LEGACY[backendStateFrom(lecture)]
+}
+
+/** @deprecated Use `backendStateLabel` from `@/lib/backend/reading-state`. */
 export function libelleEtatBackend(etat: EtatBackend): string {
-  switch (etat) {
-    case 'EN_DIRECT':
-      return 'En direct'
-    case 'HORS_LIGNE':
-      return 'Hors ligne'
-    case 'PROBLEME':
-      return 'Problème'
-  }
+  return backendStateLabel(FROM_LEGACY[etat])
 }

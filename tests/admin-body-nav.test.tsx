@@ -26,7 +26,7 @@ describe('AdminBodyNav', () => {
   })
 
   it('n’affiche rien sur une section dont le groupe ne porte qu’une entrée', () => {
-    usePathname.mockReturnValue('/admin/produit')
+    usePathname.mockReturnValue('/admin/product')
     const { container } = render(<AdminBodyNav />)
     expect(container.firstChild).toBeNull()
   })

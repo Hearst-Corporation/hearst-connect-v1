@@ -21,35 +21,31 @@ import { logout } from '@/lib/actions'
 import { csl } from './console'
 
 /**
- * Le rail de navigation de l'ESPACE utilisateur — jumeau de `ConsoleRail`.
+ * End-user space navigation rail — twin of `ConsoleRail`.
  *
- * Même composition Catalyst (`Sidebar`/`SidebarItem`), mêmes classes `csl`, même
- * habillage accent : on ne réécrit rien. Seules changent les destinations (elles
- * pointent vers `/espace/*`, pas `/admin/*`) et l'intitulé de marque
- * (« Espace »). La déconnexion reste une ACTION (`SidebarItem type="submit"`
- * → server action `logout`), pas une navigation.
+ * Same Catalyst composition (`Sidebar`/`SidebarItem`), same `csl` classes, same
+ * accent styling. Only destinations differ (they point to `/account/*`, not
+ * `/admin/*`) and the brand subtitle reads "Account". Sign out remains an
+ * ACTION (`SidebarItem type="submit"` → server action `logout`), not navigation.
  *
- * Comme pour `ConsoleRail`, les destinations vivent ICI (module client) : un
- * composant d'icône est une fonction et ne franchit pas la frontière
- * serveur → client, donc la table ne peut pas venir des props.
- *
- * Cinq destinations primaires — la navigation demandée pour la surface user.
+ * Destinations live HERE (client module): icon components are functions and
+ * cannot cross the server → client boundary, so the table cannot come from props.
  */
 const DESTINATIONS = [
-  { href: '/espace', label: 'Accueil', icon: Squares2X2Icon },
-  { href: '/espace/dashboard', label: 'Tableau de bord', icon: PresentationChartLineIcon },
-  { href: '/espace/bitcoin', label: 'Production Bitcoin', icon: BoltIcon },
-  { href: '/espace/activite', label: 'Activité', icon: ArrowsRightLeftIcon },
-  { href: '/espace/profil', label: 'Profil', icon: UserCircleIcon },
+  { href: '/account', label: 'Home', icon: Squares2X2Icon },
+  { href: '/account/dashboard', label: 'Dashboard', icon: PresentationChartLineIcon },
+  { href: '/account/bitcoin', label: 'Bitcoin production', icon: BoltIcon },
+  { href: '/account/activity', label: 'Activity', icon: ArrowsRightLeftIcon },
+  { href: '/account/profile', label: 'Profile', icon: UserCircleIcon },
 ] as const
 
 export function AppRail({
-  /** Le href de la destination courante. Une chaîne franchit la frontière. */
-  currentHref = '/espace',
+  /** Current destination href. A string crosses the boundary. */
+  currentHref = '/account',
   /**
-   * L'identité affichée vient de la SESSION, jamais d'un défaut inventé.
-   * Les deux props sont OBLIGATOIRES — un oubli casse la compilation plutôt
-   * que d'afficher une fausse identité.
+   * Displayed identity comes from the SESSION, never from an invented default.
+   * Both props are REQUIRED — omitting one fails compilation rather than
+   * showing a false identity.
    */
   userName,
   userRole,
@@ -66,7 +62,7 @@ export function AppRail({
             </div>
             <div className={csl.brandText}>
               <div className={csl.brandName}>Hearst Connect</div>
-              <div className={csl.brandSub}>Espace</div>
+              <div className={csl.brandSub}>Account</div>
             </div>
           </div>
         </SidebarHeader>
@@ -94,14 +90,14 @@ export function AppRail({
             </div>
             <div className={csl.brandText}>
               <div className={csl.brandName}>{userName}</div>
-              <div className={csl.brandSub}>Rôle : {userRole}</div>
+              <div className={csl.brandSub}>Role: {userRole}</div>
             </div>
           </div>
           <SidebarSection>
             <form action={logout}>
               <SidebarItem type="submit" className={csl.railItem}>
                 <ArrowRightStartOnRectangleIcon data-slot="icon" />
-                <SidebarLabel>Se déconnecter</SidebarLabel>
+                <SidebarLabel>Sign out</SidebarLabel>
               </SidebarItem>
             </form>
           </SidebarSection>

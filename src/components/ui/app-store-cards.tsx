@@ -142,7 +142,7 @@ export function AppStoreCards({ title, ariaLabel, avatarSrc, avatarAlt, items }:
               role="button"
               tabIndex={0}
               aria-expanded={openId === item.id}
-              aria-label={`${item.category} — ${item.title}. Ouvrir l’aperçu.`}
+              aria-label={`${item.category} — ${item.title}. Open preview.`}
             >
               <div className={styles.cardContentContainer}>
                 <CardBody item={item} showContent={false} />
@@ -157,7 +157,7 @@ export function AppStoreCards({ title, ariaLabel, avatarSrc, avatarAlt, items }:
               <motion.button
                 ref={closeButtonRef}
                 type="button"
-                aria-label="Fermer l’aperçu"
+                aria-label="Close preview"
                 className={styles.overlay}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

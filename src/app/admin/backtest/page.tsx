@@ -1,5 +1,5 @@
-import { redirectVersProduit } from '@/lib/admin-redirect'
+import { redirectToProduct } from '@/lib/admin-redirect'
 
 export default function Page() {
-  redirectVersProduit()
+  redirectToProduct()
 }

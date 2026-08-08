@@ -46,7 +46,7 @@ export function AdminPageHeader({
             <div className="min-w-0">
               <AdminHeroTitle>{title}</AdminHeroTitle>
               {description !== undefined && description !== '' ? (
-                <p className="mt-1 max-w-2xl text-sm leading-5 text-zinc-400 sm:truncate">
+                <p className="mt-1 max-w-2xl text-sm leading-5 text-fg-secondary sm:truncate">
                   {description}
                 </p>
               ) : null}

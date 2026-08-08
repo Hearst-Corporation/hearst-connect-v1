@@ -4,26 +4,14 @@
  *
  * Doctrine : l'accent, les surfaces et les états vivent dans UNE source de
  * tokens (`src/styles/tailwind.css`, `@theme`). Une route ou un module métier
- * ne doit pas poser une couleur littérale (hex brut) ni un palier Tailwind
- * structurel (`zinc-*`, `slate-*`) : ces valeurs se réfèrent au token.
- *
- * Ce que la gate cherche, de façon DÉTERMINISTE :
- *   1. HEX_LITERAL   — un `#rrggbb` dans un `.tsx` de route/module, NON enveloppé
- *                      dans `var(--token, #fallback)`. Un fallback de var() est
- *                      autorisé (le token reste la source ; le hex n'est qu'un
- *                      dernier recours si la variable n'est pas résolue).
- *
- * Pourquoi PAS de règle `zinc-*`/`slate-*` : le système de tokens de ce dépôt
- * REDÉFINIT volontairement ce que `zinc-*` signifie sous `.dark` (cf.
- * `src/styles/tailwind.css`, rampe graphite + texte blanc deep). Interdire
- * `zinc-*` combattrait la stratégie de tokens documentée et casserait Catalyst,
- * qui parle zinc par construction. Une telle gate serait fragile — exactement
- * ce que la doctrine §8 proscrit. Le vrai défaut, lui, est le hex EN DUR, qui
- * court-circuite tout token.
+ * ne doit pas poser une couleur littérale (hex brut). Les paliers Tailwind
+ * structurels sont INTERDITS — gate dédiée `check:no-zinc`
+ * (`.cursor/rules/50-no-zinc.mdc`). Cette gate-ci ne traite que le hex brut
+ * hors `var(--token, #fallback)`.
  *
  * Hors périmètre (volontairement) : `src/styles/**` (LA source de tokens),
- * `src/components/catalyst/**` (kit vendoré), les CSS modules `*.module.css`
- * d'une composition (ils portent la matière, sourcée des tokens), et les tests.
+ * les CSS modules `*.module.css` d'une composition (ils portent la matière,
+ * sourcée des tokens), et les tests. Catalyst est inclus dans `check:no-zinc`.
  *
  * Usage : node scripts/check-design-system.mjs   (exit 1 si violation)
  * Preuve que la gate mord : node scripts/check-design-system.mjs --selftest

@@ -1,8 +1,8 @@
 /**
  * Design system surfaces — canon tableau de bord `/admin`.
  *
- * Toute box produit passe par ICI. Pas de `bg-white` / `dark:bg-zinc-900` /
- * `ring-zinc-*` ad hoc sur les pages.
+ * Toute box produit passe par ICI. Pas de `bg-white` / `dark:bg-console-shell` /
+ * `ring-*` structurels Tailwind ad hoc sur les pages.
  *
  * | Token class     | Matière                              | Usage                       |
  * |-----------------|--------------------------------------|-----------------------------|
@@ -40,8 +40,8 @@ export function RequirementList({ requis }: Readonly<{ requis: readonly string[]
   return (
     <ul className="mt-2 space-y-1">
       {requis.map((r) => (
-        <li key={r} className="flex gap-2 text-sm text-zinc-300">
-          <span aria-hidden="true" className="text-zinc-400">
+        <li key={r} className="flex gap-2 text-sm text-fg">
+          <span aria-hidden="true" className="text-fg-secondary">
             ·
           </span>
           {r}

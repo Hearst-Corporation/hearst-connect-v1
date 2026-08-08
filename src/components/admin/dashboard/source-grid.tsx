@@ -8,12 +8,12 @@ const LABELS: ReadonlyArray<{ match: RegExp; label: string }> = [
   { match: /client/, label: 'Clients' },
   { match: /compliance|conform/, label: 'KYC' },
   { match: /vault|strategie|rwa/, label: 'Wallets' },
-  { match: /series1|event/, label: 'Dépôts' },
-  { match: /deployment/, label: 'Souscriptions' },
+  { match: /series1|event/, label: 'Deposits' },
+  { match: /deployment/, label: 'Subscriptions' },
   { match: /rebalanc/, label: 'Transactions' },
 ]
 
-const ORDER = ['Clients', 'KYC', 'Wallets', 'Dépôts', 'Souscriptions', 'Transactions'] as const
+const ORDER = ['Clients', 'KYC', 'Wallets', 'Deposits', 'Subscriptions', 'Transactions'] as const
 
 function mapLabel(id: string, fallback: string): string {
   const hay = `${id} ${fallback}`.toLowerCase()
@@ -53,7 +53,7 @@ export function SourceStatusGrid({
         const freshness =
           source?.asOf !== null && source?.asOf !== undefined
             ? formatRelativeTime(source.asOf)
-            : 'Fraîcheur inconnue'
+            : 'Unknown freshness'
         return (
           <li
             key={label}
@@ -70,7 +70,7 @@ export function SourceStatusGrid({
                   t === 'bad' && 'bg-danger-500',
                 )}
               />
-              <p className="text-xs/5 font-semibold text-zinc-950 dark:text-white">{label}</p>
+              <p className="text-xs/5 font-semibold text-ink dark:text-fg">{label}</p>
             </div>
             <Text className="mt-2 text-xs">{freshness}</Text>
           </li>

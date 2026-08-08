@@ -15,57 +15,55 @@ import type { ComponentType, SVGProps } from 'react'
  * the title, the unit, the provenance, and the state of the data at render
  * time.
  *
- * When the source is unreachable (`indisponible`), only the title and a
+ * When the source is unreachable (`unavailable`), only the title and a
  * concise message are shown. Otherwise the chart slot always renders — the
  * adapter draws axes and data when present, or an empty canvas when not.
  * Context for a short or pending series lives in a caption below the slot,
  * not in place of it.
  */
 
-export type EtatSerie =
-  | { readonly type: 'tracee' }
-  | { readonly type: 'vide'; readonly explication: string }
-  | { readonly type: 'attendue'; readonly explication: string }
-  | { readonly type: 'indisponible'; readonly explication: string }
+export type SeriesState =
+  | { readonly type: 'plotted' }
+  | { readonly type: 'empty'; readonly explication: string }
+  | { readonly type: 'pending'; readonly explication: string }
+  | { readonly type: 'unavailable'; readonly explication: string }
 
-const TON_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
-  vide: 'text-zinc-500 dark:text-zinc-400',
-  attendue: 'text-zinc-500 dark:text-zinc-400',
-  indisponible: 'text-danger-400',
+/** @deprecated Use `SeriesState` */
+export type EtatSerie = SeriesState
+
+const STATE_TONE: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
+  empty: 'text-fg-tertiary dark:text-fg-secondary',
+  pending: 'text-fg-tertiary dark:text-fg-secondary',
+  unavailable: 'text-danger-400',
 }
 
-const LIBELLE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, string> = {
-  vide: 'Aucune donnée pour cette période',
-  attendue: 'En attente de la source',
-  indisponible: 'Donnée indisponible',
+const STATE_LABEL: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
+  empty: 'No data for this period',
+  pending: 'Waiting on source',
+  unavailable: 'Data unavailable',
 }
 
-const ICONE_ETAT: Record<Exclude<EtatSerie['type'], 'tracee'>, ComponentType<SVGProps<SVGSVGElement>>> = {
-  vide: ChartBarIcon,
-  attendue: ClockIcon,
-  indisponible: ExclamationTriangleIcon,
+const STATE_ICON: Record<Exclude<SeriesState['type'], 'plotted'>, ComponentType<SVGProps<SVGSVGElement>>> = {
+  empty: ChartBarIcon,
+  pending: ClockIcon,
+  unavailable: ExclamationTriangleIcon,
 }
 
-/**
- * Illustration d'état vide : une icône posée, le libellé et la phrase — pour
- * qu'un chart sans série se lise comme un placeholder INTENTIONNEL, pas comme un
- * trou. Aucune donnée inventée : le graphique n'est pas dessiné.
- */
-function EtatVisuel({
+function StateVisual({
   etat,
   expectedSource,
   onRetry,
   retryLabel,
   hauteur,
 }: Readonly<{
-  etat: Exclude<EtatSerie, { type: 'tracee' }>
+  etat: Exclude<SeriesState, { type: 'plotted' }>
   expectedSource?: readonly string[]
   onRetry?: () => void
   retryLabel: string
   hauteur?: number
 }>) {
-  const Icone = ICONE_ETAT[etat.type]
-  const danger = etat.type === 'indisponible'
+  const Icon = STATE_ICON[etat.type]
+  const danger = etat.type === 'unavailable'
   return (
     <div
       className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-8 text-center"
@@ -76,16 +74,16 @@ function EtatVisuel({
           'flex size-14 items-center justify-center rounded-2xl ring-1',
           danger
             ? 'bg-danger-400/10 text-danger-500 ring-danger-400/20 dark:text-danger-400'
-            : clsx(surfaceInset, 'text-zinc-500'),
+            : clsx(surfaceInset, 'text-fg-tertiary'),
         )}
       >
-        <Icone className="size-7" aria-hidden="true" />
+        <Icon className="size-7" aria-hidden="true" />
       </span>
-      <Badge color={danger ? 'rose' : 'zinc'}>{LIBELLE_ETAT[etat.type]}</Badge>
-      <Text className="max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{etat.explication}</Text>
+      <Badge color={danger ? 'rose' : 'neutral'}>{STATE_LABEL[etat.type]}</Badge>
+      <Text className="max-w-sm text-sm leading-relaxed text-fg-tertiary dark:text-fg-secondary">{etat.explication}</Text>
       {expectedSource?.length ? (
         <div className="w-full max-w-xs text-left">
-          <AdminLabel>Source attendue</AdminLabel>
+          <AdminLabel>Expected source</AdminLabel>
           <RequirementList requis={expectedSource as string[]} />
         </div>
       ) : null}
@@ -114,7 +112,7 @@ export function ChartFrame({
 }: Readonly<{
   question: string
   unite: string
-  etat: EtatSerie
+  etat: SeriesState
   /**
    * Minimum height of the EMPTY state, in px. A plotted chart sizes itself
    * from its own data (see `chartHeight`), so this never applies to it.
@@ -130,20 +128,20 @@ export function ChartFrame({
     <Panel tone="chart" className="flex h-full flex-col">
       <PanelHeader title={question} hint={unite} />
 
-      {etat.type === 'tracee' ? (
+      {etat.type === 'plotted' ? (
         children
       ) : children != null ? (
         <>
           {children}
           <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
-            <Badge color={etat.type === 'indisponible' ? 'rose' : 'zinc'}>{LIBELLE_ETAT[etat.type]}</Badge>
-            <Text className="max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <Badge color={etat.type === 'unavailable' ? 'rose' : 'neutral'}>{STATE_LABEL[etat.type]}</Badge>
+            <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
               {etat.explication}
             </Text>
           </div>
         </>
       ) : (
-        <EtatVisuel
+        <StateVisual
           etat={etat}
           expectedSource={expectedSource}
           onRetry={onRetry}

@@ -1,0 +1,148 @@
+.section {
+  position: relative;
+  width: 100%;
+  height: min(100svh, 56rem);
+  overflow: hidden;
+  background: var(--color-console-app);
+  touch-action: none;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.header {
+  position: absolute;
+  z-index: 50;
+  top: max(2.5rem, 3vw);
+  left: 3vw;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.title {
+  margin-left: 4vw;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 0.9;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: white;
+}
+
+.titleCollection {
+  margin-left: 0;
+}
+
+.titleCount {
+  position: relative;
+  top: 0.65em;
+  margin-left: 0.25rem;
+  font-size: clamp(0.625rem, 0.4em, 0.4em);
+  font-weight: 600;
+  line-height: 0;
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  position: absolute;
+  z-index: 50;
+  right: 3vw;
+  bottom: 3vw;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, white 55%, transparent);
+}
+
+.viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  perspective: 2000px;
+  perspective-origin: 10% 10%;
+}
+
+.planesContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(6.25rem);
+  transform-style: preserve-3d;
+}
+
+.plane {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 384px;
+  transform-style: preserve-3d;
+  color: white;
+  box-shadow: 0 25px 50px -12px color-mix(in oklab, var(--color-console-app) 75%, transparent);
+  transition: filter 0.2s ease;
+}
+
+.planeImageContainer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: var(--color-console-inset);
+  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+}
+
+.planeImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.planeIndex {
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: color-mix(in oklab, white 70%, transparent);
+}
+
+.labelContainer {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  display: flex;
+  align-items: center;
+  margin-left: 0.75rem;
+  pointer-events: none;
+}
+
+.labelLine {
+  width: 7.5rem;
+  height: 1px;
+  transform-origin: left;
+  background-color: var(--color-console-line);
+}
+
+.labelText {
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: white;
+}

@@ -19,8 +19,8 @@
   --csl-text: #ffffff;
   --csl-secondary-text: #f2f2f2;
   /*
-   * ── Secondaires blanc deep (AA sur fonds noirs) ────────────────────────────
-   * Alignés sur la rampe zinc dark du produit (#ffffff / #f2f2f2 / #e0e0e0).
+   * ── Secondaires (AA sur fonds noirs) ────────────────────────────────────────
+   * Alignés sur les tokens fg produit (#f3f5f2 / #a8aea9 / #737a75).
    */
   --csl-muted: #e0e0e0;
   --csl-faint: #d4d4d4;
@@ -166,7 +166,7 @@
 /* ══════════════════ CATALYST : le kit porte la typographie ══════════════════
  *
  * Ces classes ne redéclarent AUCUNE taille, graisse ni couleur de texte : le kit
- * les porte (`Subheading` 14px/24px/600 blanc, `Text` 14px/24px zinc-400,
+ * les porte (`Subheading` 14px/24px/600 blanc, `Text` 14px/24px fg-secondary,
  * `Strong` 500 blanc, `Badge` 12px). Elles ne règlent que la MARGE et la
  * TRONCATURE — ce que le kit ne peut pas savoir de notre géométrie.
  *
@@ -421,7 +421,7 @@
  * Le sous-titre. `Text` du kit vaut 14px/24px ; 12px/16px est un choix de CETTE
  * composition, pas une citation de Catalyst — la nuance compte, sinon le
  * commentaire ment sur sa source. La couleur, elle, est bien celle du kit
- * (`dark:text-zinc-400` = #f2f2f2 blanc deep).
+ * (`dark:text-fg-secondary` = #f2f2f2 blanc deep).
  */
 .brandSub {
   font-size: 12px;
@@ -623,7 +623,7 @@
   --panel-fallback-border: rgba(9, 9, 11, 0.08);
 }
 :global(html.dark) {
-  /* Boxes admin = face vitrée (console-card translucide), pas zinc opaque. */
+  /* Boxes admin = face vitrée (console-card translucide), pas d’aplat opaque. */
   --panel-fallback-bg: var(--color-console-card, rgba(0, 0, 0, 0.42));
   --panel-fallback-border: var(--color-console-line, rgba(255, 255, 255, 0.13));
 }

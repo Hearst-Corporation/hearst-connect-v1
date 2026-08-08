@@ -2,11 +2,7 @@ import { CONSOLE_GLOW_SRC } from '@/lib/brand'
 import Image from 'next/image'
 import Link from 'next/link'
 
-/**
- * Acte 4 — CTA de clôture, immobile. Filigrane console-glow.png (aurore mint de la marque)
- * en couche basse + voile console-app pour garantir le contraste AA du titre et des boutons.
- * Remplace l'ancienne bande ripple (copy impérative « cliquez la grille » bannie).
- */
+/** Act 4 — Closing CTA. Brand mint glow watermark with console-app veil for contrast. */
 export function ClosingCta() {
   return (
     <section
@@ -28,24 +24,24 @@ export function ClosingCta() {
           id="cta-heading"
           className="text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl md:text-5xl"
         >
-          Un accès. Toute la Corporation.
+          One access. The whole Corporation.
         </h2>
         <p className="mt-5 max-w-2xl text-sm/6 text-white/50 md:text-base">
-          Ouvrez la console d’administration Hearst, ou demandez un accès pour votre espace. La
-          donnée reste celle du backend, de la première vue à la dernière.
+          Open the Hearst administration console, or request access for your workspace. Data stays backend-sourced
+          from the first view to the last.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/login"
             className="rounded-md bg-accent-400 px-4 py-2.5 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300"
           >
-            Accéder à la console
+            Open the console
           </Link>
           <Link
             href="/register"
             className="text-sm/6 font-semibold text-white transition-colors hover:text-accent-300"
           >
-            Demander un accès <span aria-hidden="true">→</span>
+            Request access <span aria-hidden="true">→</span>
           </Link>
         </div>
       </div>

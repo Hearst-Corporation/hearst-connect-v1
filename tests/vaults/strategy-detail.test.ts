@@ -66,6 +66,6 @@ describe('strategy-detail (F-04)', () => {
       },
     })
     expect(isAvailable(http)).toBe(true)
-    if (isAvailable(http)) expect(http.value).toBe('Réponse reçue')
+    if (isAvailable(http)) expect(http.value).toBe('Response received')
   })
 })

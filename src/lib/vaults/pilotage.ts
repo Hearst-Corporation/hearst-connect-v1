@@ -82,56 +82,56 @@ export function buildFunnel(registry: AdminRegistry): readonly FunnelStep[] {
   return [
     {
       id: 'compte',
-      label: 'Compte créé',
+      label: 'Account created',
       count: measuredCount(registry.clients),
       pending: unavailable({ reason: 'not_applicable', status: 'NOT_EXPOSED' }),
       actionHref: '/admin/clients',
-      actionLabel: 'Ouvrir les clients',
+      actionLabel: 'Open clients',
       sourceNote: 'GET /api/v1/clients',
     },
     {
       id: 'kyc',
-      label: 'KYC validé',
+      label: 'KYC verified',
       count: measuredCount(registry.compliance),
       pending: kycPending,
-      actionHref: '/admin/conformite',
-      actionLabel: 'Ouvrir la conformité',
+      actionHref: '/admin/compliance',
+      actionLabel: 'Open compliance',
       sourceNote: 'GET /api/v1/compliance',
     },
     {
       id: 'wallet',
-      label: 'Wallet actif',
+      label: 'Active wallet',
       count: measuredCount(registry.vaults),
       pending: vaultsUnassigned,
       actionHref: '/admin/vaults',
-      actionLabel: 'Ouvrir les coffres',
-      sourceNote: 'GET /api/v1/vault — proxy : ce produit n’a pas d’endpoint wallet dédié, un wallet est un coffre assigné',
+      actionLabel: 'Open vaults',
+      sourceNote: 'GET /api/v1/vault — proxy: this product has no dedicated wallet endpoint; a wallet is an assigned vault',
     },
     {
       id: 'depot',
-      label: 'Dépôt confirmé',
+      label: 'Deposit confirmed',
       count: depositsRecorded,
       pending: unavailable({ reason: 'no_deposit_reconciliation_endpoint', status: 'NOT_EXPOSED' }),
       actionHref: '/admin/operations',
-      actionLabel: 'Ouvrir les opérations',
-      sourceNote: 'GET /api/v1/series1/events — proxy : aucun endpoint de rapprochement de dépôt n’existe',
+      actionLabel: 'Open operations',
+      sourceNote: 'GET /api/v1/series1/events — proxy: no deposit reconciliation endpoint exists',
     },
     {
       id: 'souscription',
-      label: 'Souscription signée',
+      label: 'Subscription signed',
       count: measuredCount(registry.deployments),
       pending: subscriptionsAwaiting,
       actionHref: '/admin/vaults',
-      actionLabel: 'Ouvrir les déploiements',
+      actionLabel: 'Open deployments',
       sourceNote: 'GET /api/v1/deployments',
     },
     {
       id: 'position',
-      label: 'Position active',
+      label: 'Active position',
       count: positionsActive,
       pending: unavailable({ reason: 'not_applicable', status: 'NOT_EXPOSED' }),
       actionHref: '/admin/vaults',
-      actionLabel: 'Voir les positions',
+      actionLabel: 'View positions',
       sourceNote: 'GET /api/v1/deployments (status=CONFIRMED)',
     },
   ]
@@ -174,8 +174,8 @@ function kycPriorityItems(compliance: Availability<readonly ComplianceReview[]>)
       status: r.stage,
       ageLabel: formatRelativeTime(r.openedAt),
       severity: ageSeverity(r.openedAt, 3),
-      actionHref: '/admin/conformite',
-      actionLabel: 'Ouvrir le dossier',
+      actionHref: '/admin/compliance',
+      actionLabel: 'Open file',
     }))
 }
 
@@ -186,12 +186,12 @@ function deploymentPriorityItems(deployments: Availability<readonly Deployment[]
     .map((d) => ({
       id: `deployment-${d.id}`,
       kind: d.status === 'FAILED' ? ('transaction' as const) : ('souscription' as const),
-      clientLabel: isAvailable(d.clientLabel) ? d.clientLabel.value : 'Client non identifié',
+      clientLabel: isAvailable(d.clientLabel) ? d.clientLabel.value : 'Unidentified client',
       status: d.status,
       ageLabel: formatRelativeTime(d.requestedAt),
       severity: d.status === 'FAILED' ? 'critique' : ageSeverity(d.requestedAt, 5),
       actionHref: '/admin/vaults',
-      actionLabel: d.status === 'FAILED' ? 'Voir l’incident' : 'Reprendre la souscription',
+      actionLabel: d.status === 'FAILED' ? 'View incident' : 'Resume subscription',
     }))
 }
 
@@ -263,10 +263,10 @@ function classifyKycStatus(raw: string): KycBucketId | null {
 }
 
 const KYC_BUCKET_LABELS: Record<KycBucketId, string> = {
-  valide: 'Validé',
-  en_revue: 'En revue',
-  a_completer: 'À compléter',
-  bloque: 'Bloqué',
+  valide: 'Validated',
+  en_revue: 'In review',
+  a_completer: 'Needs completion',
+  bloque: 'Blocked',
 }
 
 /**
@@ -326,7 +326,7 @@ export function subscriptionsByProduct(
   }
   const groups = new Map<string, { count: number; amounts: bigint[]; allHaveAmount: boolean }>()
   for (const d of deployments.value) {
-    const key = d.strategyId ?? 'Produit non identifié'
+    const key = d.strategyId ?? 'Unidentified product'
     const prev = groups.get(key) ?? { count: 0, amounts: [], allHaveAmount: true }
     prev.count += 1
     if (d.amountAtomic === null || d.amountAtomic.trim() === '') {

@@ -1,82 +1,59 @@
 'use client'
 
+import { surfaceBox, surfaceInset } from '@/components/admin/surface'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+
 /**
- * Admin error boundary (UI-06).
+ * Admin segment error boundary — unexpected render failures only.
  *
- * Without this, a thrown error in any admin server component takes down the
- * whole route with Next's default overlay in dev and a blank 500 in prod. This
- * boundary catches it and renders a NAMED failure — never fabricated data — with
- * a way to retry. It is deliberately sober and self-contained (no backend call,
- * no import that could itself throw).
+ * Renders inside the admin layout shell (sidebar + glow remain mounted).
+ * No backend calls, no deep component tree — must never fail to paint.
  *
- * `digest` is Next's server-side error id: it lets an operator correlate what
- * the user saw with the server log, WITHOUT exposing the error's message or
- * stack to the browser.
+ * `digest` correlates with server logs without exposing message or stack.
  */
 export default function AdminError({
   error,
   reset,
 }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
   return (
-    <main
-      style={{
-        minHeight: '100dvh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: '24px',
-        background: 'var(--color-console-app, #101010)',
-        color: 'var(--color-zinc-300, #dedede)',
-      }}
-    >
-      <div style={{ maxWidth: '32rem', textAlign: 'center' }}>
-        <p
-          style={{
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '0.72rem',
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            color: 'var(--color-zinc-400, #b3b3b3)',
-            margin: 0,
-          }}
-        >
-          Surface indisponible
-        </p>
-        <p style={{ fontSize: '1.4rem', fontWeight: 600, margin: '10px 0 8px' }}>
-          Cette surface n’a pas pu être affichée
-        </p>
-        <p style={{ color: 'var(--color-zinc-400, #b3b3b3)', fontSize: '0.95rem', margin: '0 0 20px' }}>
-          Une erreur est survenue pendant le rendu. Aucune donnée n’est affichée plutôt qu’une donnée
-          fausse. Réessayez ; si le problème persiste, la référence ci-dessous aide au diagnostic.
-        </p>
-        {error.digest ? (
-          <p
-            style={{
-              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-              fontSize: '0.75rem',
-              color: 'var(--color-zinc-500, #8b8b8b)',
-              margin: '0 0 20px',
-            }}
-          >
-            Référence : {error.digest}
+    <section aria-labelledby="admin-error-title" className="mx-auto w-full max-w-3xl">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">System status</p>
+      <p
+        role="heading"
+        aria-level={1}
+        id="admin-error-title"
+        className="mt-2 text-2xl font-semibold tracking-tight text-ink dark:text-fg"
+      >
+        Unable to load this page
+      </p>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-fg-tertiary">
+        Something went wrong while loading this section of the administration console. Try again. If
+        the issue continues, use the reference below when reporting it.
+      </p>
+
+      <div className={`${surfaceBox} mt-8`}>
+        <div className={`${surfaceInset} flex flex-col gap-4 p-5 sm:p-6`}>
+          <ExclamationTriangleIcon
+            className="size-6 shrink-0 text-warning-500 dark:text-warning-400"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium text-ink dark:text-fg">
+            We couldn&apos;t load this section.
           </p>
-        ) : null}
-        <button
-          type="button"
-          onClick={reset}
-          style={{
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '0.85rem',
-            padding: '10px 18px',
-            borderRadius: '8px',
-            border: '1px solid var(--color-accent-300, #a7fb90)',
-            background: 'transparent',
-            color: 'var(--color-accent-300, #a7fb90)',
-            cursor: 'pointer',
-          }}
-        >
-          Réessayer
-        </button>
+          <div>
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex items-center justify-center rounded-lg border border-accent-400/40 bg-transparent px-4 py-2 text-sm font-medium text-accent-300 transition-colors hover:bg-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-console-app"
+            >
+              Try again
+            </button>
+          </div>
+          {error.digest ? (
+            <p className="font-mono text-xs text-fg-tertiary">Reference · {error.digest}</p>
+          ) : null}
+        </div>
       </div>
-    </main>
+    </section>
   )
 }

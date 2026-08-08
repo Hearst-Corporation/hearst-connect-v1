@@ -19,14 +19,14 @@ export function DashboardHeader({
   return (
     <AdminPageHeader
       dashboard
-      title={`Bonjour, ${firstName}`}
-      description="Voici l’état des opérations de souscription aujourd’hui."
+      title={`Good morning, ${firstName}`}
+      description="Portfolio, market exposure and operations at a glance."
       action={
         <HearstPrimaryAction
           icon={<PlusIcon />}
-          disabledReason="Création client non disponible côté backend"
+          disabledReason="Client creation is not available on the backend"
         >
-          Ajouter un client
+          Add client
         </HearstPrimaryAction>
       }
       kpis={kpis}

@@ -7,10 +7,10 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: {
     template: '%s · Hearst Connect',
-    default: 'Hearst Connect — l’accès unifié aux espaces Hearst',
+    default: 'Hearst Connect — unified access to Hearst spaces',
   },
   description:
-    'Hearst Connect fédère les identités, les autorisations et les journaux d’accès des espaces de travail de Hearst Corporation.',
+    'Hearst Connect federates identities, permissions, and access logs across Hearst Corporation workspaces.',
   icons: {
     icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
     apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html
-      lang="fr"
+      lang="en"
       // Dark forcé côté serveur + script d’init (purge d’un éventuel .light résiduel).
       suppressHydrationWarning
       className={`dark ${fontSatoshi.variable} ${fontSatoshi.className} font-sans bg-console-app text-white antialiased`}
