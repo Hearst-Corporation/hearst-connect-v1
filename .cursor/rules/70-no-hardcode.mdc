@@ -1,0 +1,202 @@
+---
+description: "Absolute rule: no hardcoded product, layout, design, business or data values"
+alwaysApply: true
+---
+
+# RÈGLE ABSOLUE — NEVER HARDCODE
+
+Hearst Connect ne doit JAMAIS résoudre un problème produit, UI, responsive, design, donnée ou calcul en injectant une valeur arbitraire destinée à “faire marcher” le cas observé.
+
+## 1. RESPONSIVE / LAYOUT
+
+INTERDIT :
+
+- largeur codée pour un écran précis
+- `width: 1200px`
+- `max-width` arbitraire pour réparer une card
+- `w-[20rem]` / `max-w-sm` utilisés comme patch visuel
+- breakpoint choisi parce que “ça marche à 1440/1024/768”
+- ratio `8/4`, `7/5`, `1.5fr/1fr` sans justification intrinsèque
+- hauteur fixe pour combler un vide
+- `min-height` arbitraire
+- `flex-1` uniquement pour étirer une card
+- `overflow-x-auto` pour éviter de repenser le composant
+- masquer une scrollbar au lieu de corriger le layout
+- branchement du layout sur l’état des données (`marketSparse`, `clientsSparse`, etc.)
+
+Le layout doit être :
+
+CONTENT-DRIVEN
+CONTAINER-DRIVEN
+INTRINSIC
+FLUID
+
+Utiliser selon besoin :
+
+- `min-content`
+- `max-content`
+- `minmax()`
+- `min()`
+- `max()`
+- `clamp()` seulement avec justification
+- flex-wrap
+- intrinsic flex-basis
+- auto-fit / auto-fill
+- container queries fondées sur la largeur minimale viable DU CONTENU
+
+Un seuil responsive doit ÉMERGER du contenu.
+Jamais d’un device ou d’une résolution cible.
+
+## 2. COMPOSANTS
+
+Une card ne connaît jamais :
+
+- la largeur du viewport
+- la résolution de l’écran
+- la taille d’un screenshot de QA
+
+Le composant reçoit l’espace disponible et s’y adapte.
+
+Les dimensions fixes ne sont autorisées que lorsqu’elles décrivent intrinsèquement l’objet :
+- taille icône
+- touch target accessible
+- avatar
+- border
+- rayon
+- élément graphique dont la dimension fait partie du composant
+
+Pas lorsqu’elles servent à corriger artificiellement une composition.
+
+## 3. DESIGN SYSTEM
+
+INTERDIT dans runtime produit :
+
+- hex brut
+- rgb/hsl brut
+- palette Tailwind brute lorsque token sémantique existe
+- nouvelle couleur locale
+- shadow/radius/surface locale recréant le DS
+
+Utiliser les tokens canoniques :
+
+`fg-*`
+`console-*`
+`accent-*`
+`success-*`
+`warning-*`
+`danger-*`
+`chart-*`
+
+Catalyst reste vendorisé.
+Le produit Hearst adapte Catalyst via wrappers/tokens.
+
+## 4. DONNÉES MÉTIER
+
+INTERDIT :
+
+- montant hardcodé
+- rendement hardcodé
+- prix BTC hardcodé
+- prix électricité hardcodé
+- AUM hardcodé
+- balance hardcodée
+- performance hardcodée
+- fake activity
+- fallback `?? 0` ou `|| 0` transformant une absence en valeur métier
+- Math.random en runtime métier
+- valeur placeholder présentée comme réelle
+
+NULL != 0.
+UNAVAILABLE != EMPTY.
+SIMULATED != LIVE.
+
+## 5. CALCULS
+
+INTERDIT :
+
+- magic number métier silencieux
+- scale monétaire arbitraire
+- décimales d’asset codées en dur
+- pourcentage / frais / seuil / durée codés sans source
+
+Une constante est autorisée uniquement si elle est :
+
+A. protocolaire/physique réellement constante ;
+B. nommée explicitement ;
+C. documentée ;
+D. testée ;
+E. pas configurable métier.
+
+Toute hypothèse métier doit venir :
+- config
+- DB
+- backend
+- API
+- contrat métier explicite
+
+## 6. TEXTE / PRODUIT
+
+Ne pas hardcoder un état produit dynamique dans le copy.
+
+Exemple :
+`Good morning` dépendant de l’heure → calculer ou utiliser une formule neutre.
+
+Ne pas afficher une affirmation qui devrait provenir de l’état backend.
+
+## 7. AVANT D’AJOUTER UNE VALEUR LITTÉRALE
+
+L’agent doit se demander :
+
+1. Est-ce une propriété intrinsèque du composant ?
+2. Est-ce un token du design system ?
+3. Est-ce une constante protocolaire ?
+4. Est-ce une donnée métier/configurable ?
+5. Est-ce juste une valeur choisie parce qu’elle corrige mon screenshot ?
+
+Si réponse 5 :
+STOP.
+Repenser l’architecture.
+
+## 8. QA RESPONSIVE
+
+Les tailles de QA sont des POINTS D’OBSERVATION.
+
+Elles ne doivent JAMAIS devenir des objectifs CSS.
+
+Tester resize continu :
+large → étroit → large.
+
+Une UI responsive doit fonctionner à des largeurs arbitraires jamais utilisées pendant le développement.
+
+## 9. EXCEPTIONS
+
+Toute exception à cette règle doit être explicitement justifiée dans le code ou dans le rapport :
+
+`HARDCODE_JUSTIFIED: <raison intrinsèque/protocolaire>`
+
+Pas d’exception implicite.
+
+## 10. ANTI-RÉGRESSION
+
+Étendre les gates lorsque raisonnable pour détecter :
+
+- hardcoded raw colors
+- raw structural palettes
+- magic business values
+- forbidden viewport-specific layout patches
+- overflow utilisé comme solution de composition
+
+Ne pas créer un gate naïf qui bloque les constantes légitimes.
+
+# DOCTRINE
+
+NEVER DESIGN FOR A SCREENSHOT.
+
+NEVER PATCH A LAYOUT WITH A NUMBER.
+
+NEVER INVENT BUSINESS DATA.
+
+CONTENT DEFINES THE COMPONENT.
+CONTAINER DEFINES THE AVAILABLE SPACE.
+TOKENS DEFINE THE VISUAL LANGUAGE.
+BACKEND DEFINES BUSINESS TRUTH.
