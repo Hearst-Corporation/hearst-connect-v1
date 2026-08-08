@@ -102,7 +102,7 @@ export function ExplorerRow({
 
       {isKeeper ? (
         <p className="mt-2 text-xs text-warning-400">
-          Action à effet de bord — à exécuter et confirmer depuis /admin/keeper uniquement.
+          Side-effect action — run and confirm from /admin/keeper only.
         </p>
       ) : null}
     </div>

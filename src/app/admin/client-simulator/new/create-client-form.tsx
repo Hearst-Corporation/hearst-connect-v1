@@ -72,8 +72,8 @@ export function CreateClientForm({
 
       <label className="block">
         <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
-          Saisissez <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> pour envoyer la
-          requête
+          Type <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> to send the
+          request
         </span>
         <input
           name="confirm"

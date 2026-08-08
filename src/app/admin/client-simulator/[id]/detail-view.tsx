@@ -173,12 +173,12 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         ) : null}
       </DataTableShell>
 
-      {/* ── ABSENCE NOMMÉE quand indexé mais pas trouvé (véracité) ── */}
+      {/* Named absence when directory is readable but identifier is missing */}
       {rows !== null && match === null ? (
-        <Callout tone="warning" title="Absent de l’annuaire">
+        <Callout tone="warning" title="Absent from directory">
           The identifier <span className="font-mono">{id}</span> does not appear in the current response
-          de GET /api/v1/clients. Le compte peut exister sans être encore indexé — aucune ligne n’est
-          inventée ici.
+          from GET /api/v1/clients. The account may exist without being indexed yet — no row is invented
+          here.
         </Callout>
       ) : null}
 
@@ -190,19 +190,19 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
             <span className="font-mono text-sm text-fg-tertiary dark:text-fg-secondary">{id}</span>
           </div>
           <Text>
-            Ce compte a été créé via POST /api/v1/admin/users. Le service ne restitue jamais son mot de
-            passe ; seuls l’identifiant et le libellé publiés par l’annuaire sont affichés ici.
+            This account was created via POST /api/v1/admin/users. The service never returns its password;
+            only the identifier and directory label published by the registry are shown here.
           </Text>
         </div>
       </SectionCard>
 
       {/* ── LIENS de navigation ──────────────────────────────────── */}
-      <SectionCard title="Poursuivre" tone="plain">
+      <SectionCard title="Continue" tone="plain">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge color="neutral">Simulateur</Badge>
+          <Badge color="neutral">Simulator</Badge>
           <Text>
             <Link href="/admin/client-simulator/new" className="underline">
-              Créer un autre client simulé
+              Create another simulated client
             </Link>
             {' · '}
             <Link href="/admin/clients" className="underline">

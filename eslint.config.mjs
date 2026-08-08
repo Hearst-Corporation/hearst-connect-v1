@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     'coverage/**',
     '.scannerwork/**',
     'storybook-static/**',
+    '.worktrees/**',
   ]),
   {
     // Les blocs officiels Tailwind Plus utilisent <img> : c'est du code vendoré, tel quel.

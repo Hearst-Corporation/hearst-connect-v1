@@ -328,7 +328,7 @@ export function buildCockpitDecisionQueue(registry: AdminRegistry): Availability
       items.push({
         id: `drift-${row.strategyId}`,
         severity: Math.abs(row.driftBps) >= DRIFT_THRESHOLD_BPS * 2 ? 'critique' : 'important',
-        title: `${row.vaultLabel} — dérive ${formatSignedBps(row.driftBps)} bps`,
+        title: `${row.vaultLabel} — drift ${formatSignedBps(row.driftBps)} bps`,
         detail:
           capitalLabel !== null
             ? `${capitalLabel} mal alloués · poche ${row.pocketLabel} · seuil ±${DRIFT_THRESHOLD_BPS} bps`
