@@ -1,11 +1,13 @@
 import 'server-only'
 
 import { callBackend } from '@/lib/backend/client'
+import type { ResolvedStatus } from '@/lib/resolved'
 import {
   available,
   isAvailable,
   unavailable,
   type Availability,
+  type Provenance,
 } from '@/lib/vaults/model'
 
 /** Backend `Resolved<T>` block as returned inside envelope data. */
@@ -17,22 +19,66 @@ type BackendResolved<T> = Readonly<{
   freshness?: { asOf?: string | null; ageSeconds?: number | null; stale?: boolean } | null
 }>
 
+const DISPLAYABLE_STATUSES: ReadonlySet<ResolvedStatus> = new Set(['LIVE', 'STALE', 'PARTIAL', 'EMPTY'])
+
+function mapProvenance(raw: string | null | undefined): Provenance {
+  if (raw === 'db') return 'db'
+  if (raw === 'indexed') return 'indexed'
+  if (raw === 'live') return 'live'
+  if (raw === 'manual') return 'manual'
+  if (raw === 'chain') return 'chain'
+  return 'unknown'
+}
+
+function resolvedStatus(raw: string | undefined): ResolvedStatus | 'NOT_EXPOSED' {
+  const known: ResolvedStatus[] = [
+    'LIVE',
+    'STALE',
+    'PARTIAL',
+    'EMPTY',
+    'NOT_CONFIGURED',
+    'UNAVAILABLE',
+    'NOT_SUPPORTED',
+    'PERMISSION_DENIED',
+    'SIMULATED',
+    'ERROR',
+  ]
+  if (raw !== undefined && (known as readonly string[]).includes(raw)) {
+    return raw as ResolvedStatus
+  }
+  return 'UNAVAILABLE'
+}
+
 function fromBackend<T>(bloc: BackendResolved<T> | undefined, endpoint: string): Availability<T> {
   if (bloc === undefined) {
     return unavailable({ endpoint, status: 'UNAVAILABLE', reason: 'field_absent_from_response' })
   }
-  if (bloc.value === null || bloc.value === undefined) {
-    return unavailable({
-      endpoint,
-      reason: bloc.reason ?? null,
-      status: (bloc.status as never) ?? 'UNAVAILABLE',
+
+  const status = resolvedStatus(bloc.status)
+  const provenance = mapProvenance(bloc.provenance)
+  const asOf = bloc.freshness?.asOf ?? null
+  const stale = bloc.freshness?.stale === true || status === 'STALE'
+  const hasValue = bloc.value !== null && bloc.value !== undefined
+
+  if (DISPLAYABLE_STATUSES.has(status as ResolvedStatus) && hasValue) {
+    return available(bloc.value as T, {
+      provenance,
+      asOf,
+      stale,
+      resolutionStatus: status as ResolvedStatus,
     })
   }
-  return available(bloc.value, {
-    provenance: bloc.provenance === 'db' ? 'db' : bloc.provenance === 'indexed' ? 'indexed' : 'chain',
-    asOf: bloc.freshness?.asOf ?? null,
-    stale: bloc.freshness?.stale === true,
+
+  return unavailable({
+    endpoint,
+    reason: bloc.reason ?? null,
+    status,
   })
+}
+
+/** Named NOT_CONFIGURED — market widget keeps local shell state. */
+export function isAdminNotConfigured(a: Availability<unknown>): boolean {
+  return a.kind === 'unavailable' && a.status === 'NOT_CONFIGURED'
 }
 
 export type AdminPortfolioOverview = Readonly<{
@@ -196,26 +242,60 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
 
   const exposureBloc = exposureRes.ok ? fromBackend(exposureRes.data.exposure, '/api/v1/admin/portfolio/exposure') : unavailable({ endpoint: '/api/v1/admin/portfolio/exposure', reason: 'service_did_not_respond' })
   const exposure = isAvailable(exposureBloc)
-    ? available(exposureBloc.value.strategies, { provenance: exposureBloc.provenance, asOf: exposureBloc.asOf, stale: exposureBloc.stale })
+    ? available(exposureBloc.value.strategies, {
+        provenance: exposureBloc.provenance,
+        asOf: exposureBloc.asOf,
+        stale: exposureBloc.stale,
+        resolutionStatus: exposureBloc.resolutionStatus,
+      })
     : exposureBloc
 
-  const totalAumFromExposure = isAvailable(exposureBloc) ? available(exposureBloc.value.totalAumAtomic, { provenance: exposureBloc.provenance }) : overviewRes.ok && isAvailable(overview) ? available(overview.value.totalAumAtomic, { provenance: 'chain' }) : unavailable({ endpoint: '/api/v1/admin/portfolio/overview', reason: 'total_aum_not_reported' })
+  const totalAumFromExposure = isAvailable(exposureBloc)
+    ? available(exposureBloc.value.totalAumAtomic, {
+        provenance: exposureBloc.provenance,
+        asOf: exposureBloc.asOf,
+        stale: exposureBloc.stale,
+        resolutionStatus: exposureBloc.resolutionStatus,
+      })
+    : overviewRes.ok && isAvailable(overview)
+      ? available(overview.value.totalAumAtomic, {
+          provenance: overview.provenance,
+          asOf: overview.asOf,
+          stale: overview.stale,
+          resolutionStatus: overview.resolutionStatus,
+        })
+      : unavailable({ endpoint: '/api/v1/admin/portfolio/overview', reason: 'total_aum_not_reported' })
 
   const rebalancing = rebalancingRes.ok ? fromBackend(rebalancingRes.data.summary, '/api/v1/admin/rebalancing/summary') : unavailable({ endpoint: '/api/v1/admin/rebalancing/summary', reason: 'service_did_not_respond' })
 
   const timeseriesBloc = timeseriesRes.ok ? fromBackend(timeseriesRes.data.timeseries, '/api/v1/admin/activity/timeseries') : unavailable({ endpoint: '/api/v1/admin/activity/timeseries', reason: 'service_did_not_respond' })
   const activityTimeseries = isAvailable(timeseriesBloc)
-    ? available(timeseriesBloc.value.series, { provenance: timeseriesBloc.provenance, asOf: timeseriesBloc.asOf })
+    ? available(timeseriesBloc.value.series, {
+        provenance: timeseriesBloc.provenance,
+        asOf: timeseriesBloc.asOf,
+        stale: timeseriesBloc.stale,
+        resolutionStatus: timeseriesBloc.resolutionStatus,
+      })
     : timeseriesBloc
 
   const market = marketRes.ok ? fromBackend(marketRes.data.snapshot, '/api/v1/admin/market/snapshot') : unavailable({ endpoint: '/api/v1/admin/market/snapshot', reason: 'service_did_not_respond' })
 
   const vaultsBloc = vaultsRes.ok ? fromBackend(vaultsRes.data.vaultsSummary, '/api/v1/admin/vaults/summary') : unavailable({ endpoint: '/api/v1/admin/vaults/summary', reason: 'service_did_not_respond' })
   const vaults = isAvailable(vaultsBloc)
-    ? available(vaultsBloc.value.vaults, { provenance: vaultsBloc.provenance, asOf: vaultsBloc.asOf })
+    ? available(vaultsBloc.value.vaults, {
+        provenance: vaultsBloc.provenance,
+        asOf: vaultsBloc.asOf,
+        stale: vaultsBloc.stale,
+        resolutionStatus: vaultsBloc.resolutionStatus,
+      })
     : vaultsBloc
   const vaultsTotalAum = isAvailable(vaultsBloc)
-    ? available(vaultsBloc.value.totalAumAtomic, { provenance: vaultsBloc.provenance })
+    ? available(vaultsBloc.value.totalAumAtomic, {
+        provenance: vaultsBloc.provenance,
+        asOf: vaultsBloc.asOf,
+        stale: vaultsBloc.stale,
+        resolutionStatus: vaultsBloc.resolutionStatus,
+      })
     : unavailable({ endpoint: '/api/v1/admin/vaults/summary', reason: 'total_aum_not_reported' })
 
   const recentClients = clientsRes.ok ? fromBackend(clientsRes.data.clients, '/api/v1/admin/clients/recent') : unavailable({ endpoint: '/api/v1/admin/clients/recent', reason: 'service_did_not_respond' })
@@ -229,7 +309,14 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
   return {
     overview,
     exposure,
-    totalAumAtomic: isAvailable(overview) ? available(overview.value.totalAumAtomic, { provenance: 'chain' }) : totalAumFromExposure,
+    totalAumAtomic: isAvailable(overview)
+      ? available(overview.value.totalAumAtomic, {
+          provenance: overview.provenance,
+          asOf: overview.asOf,
+          stale: overview.stale,
+          resolutionStatus: overview.resolutionStatus,
+        })
+      : totalAumFromExposure,
     rebalancing,
     activityTimeseries,
     market,

@@ -50,10 +50,10 @@ function ChartTooltip({
   const status = point.rebalanced ? 'Rééquilibrage effectué' : 'Observation'
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
-      <p className="font-medium text-zinc-950 dark:text-white">{formatDate(point.date)}</p>
-      <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">Drift: {driftPct}%</p>
-      <p className="mt-0.5 text-zinc-500 dark:text-zinc-400">{status}</p>
+    <div className="rounded-lg bg-console-card px-3 py-2 text-xs shadow-lg ring-1 ring-console-line dark:bg-console-surface">
+      <p className="font-medium text-ink dark:text-fg">{formatDate(point.date)}</p>
+      <p className="mt-1 tabular-nums text-fg-secondary dark:text-fg-secondary">Drift: {driftPct}%</p>
+      <p className="mt-0.5 text-fg-tertiary">{status}</p>
     </div>
   )
 }
@@ -63,8 +63,8 @@ export function RebalancingHistoryChart({
 }: Readonly<{ points: readonly PointDrift[] }>) {
   if (points.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
-        Aucun point d'historique de drift n'a été lu.
+      <p className="px-5 pb-5 text-sm text-fg-tertiary">
+        Aucun point d&apos;historique de drift n&apos;a été lu.
       </p>
     )
   }
@@ -83,7 +83,7 @@ export function RebalancingHistoryChart({
     <div className="px-3 pb-5 sm:px-4">
       <div className="sr-only">
         <table>
-          <caption>Historique du drift d'allocation — écart par rapport à la cible au fil du temps</caption>
+          <caption>Historique du drift d&apos;allocation — écart par rapport à la cible au fil du temps</caption>
           <thead>
             <tr>
               <th scope="col">Date</th>
@@ -162,8 +162,8 @@ export function RebalancingHistoryChart({
         </ResponsiveContainer>
       </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        {points.length} point{points.length > 1 ? 's' : ''} d'observation. La ligne pointillée ambre marque le seuil de
+      <p className="mt-3 text-xs leading-relaxed text-fg-tertiary">
+        {points.length} point{points.length > 1 ? 's' : ''} d&apos;observation. La ligne pointillée ambre marque le seuil de
         rééquilibrage (10%). Les points verts indiquent un rééquilibrage effectué.
       </p>
     </div>

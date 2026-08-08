@@ -62,6 +62,8 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 | Route | Role |
 |---|---|
 | `/admin` | **Dashboard** — KPIs, portfolio exposure, rebalancing, activity, market, vaults, recent clients, data health |
+
+**Dashboard truth contract** (`src/lib/admin-dashboard/`): backend `Resolved` status and provenance preserved in `load.ts` (`STALE`/`PARTIAL`/`NOT_CONFIGURED`/`EMPTY` — no automatic LIVE on value presence). Empty lists render as empty, not unavailable. Atomic amounts use overview `asset`/`decimals`. Data health slots keyed by stable backend `key`. Market `NOT_CONFIGURED` keeps local widget state. Gate: `tests/admin/dashboard-truth-contract.test.ts`.
 | `/admin/clients`, `/admin/compliance`, `/admin/vaults`, `/admin/operations`, `/admin/series-1`, `/admin/runtime`, `/admin/product` | Business pages — same `AdminPageHeader` pattern |
 
 **Navigation** (`src/lib/admin-nav.ts`): sidebar **Dashboard · Vaults · Clients · Compliance · Operations**; hubs **Series 1 journal · Product · Service**. Legacy `/admin/conformite` and `/admin/produit` redirect to English routes.
