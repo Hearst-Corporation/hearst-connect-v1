@@ -297,16 +297,16 @@ export default async function Page() {
         etat={
           !history.ok
             ? {
-                type: 'indisponible',
+                type: 'unavailable',
                 explication: "L'historique de rééquilibrage n'a pas pu être lu.",
               }
             : historyPoints === null || historyPoints.length === 0
               ? {
-                  type: 'vide',
+                  type: 'empty',
                   explication:
                     "Aucun point d'historique de drift n'est encore conservé — la série apparaîtra au premier snapshot.",
                 }
-              : { type: 'tracee' }
+              : { type: 'plotted' }
         }
         expectedSource={['GET /api/v1/rebalancing/history']}
       >
