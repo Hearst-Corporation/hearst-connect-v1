@@ -19,6 +19,17 @@ describe('admin operating surfaces — diagnostics stay on Service', () => {
     expect(src).toMatch(/ClientsDirectory/)
   })
 
+  it('Compliance is Som KYC read-only and does not imply Hearst decisions', () => {
+    const src = read('src/app/admin/compliance/page.tsx')
+    expect(src).not.toMatch(/Source activity/)
+    expect(src).not.toMatch(/Missing at source/)
+    expect(src).not.toMatch(/File journey/)
+    expect(src).not.toMatch(/Approve KYC|Reject KYC|Assign analyst/)
+    expect(src).toMatch(/Som/)
+    expect(src).toMatch(/read only|read-only/i)
+    expect(src).toMatch(/does not review|does not decide|Hearst does not/i)
+  })
+
   it('Profile is account session only', () => {
     const src = read('src/app/admin/profile/page.tsx')
     expect(src).not.toMatch(/Coverage path/)
@@ -49,5 +60,33 @@ describe('admin operating surfaces — diagnostics stay on Service', () => {
     expect(src).toMatch(/Exposure/)
     expect(src).not.toMatch(/rebalancing\/execute/)
     expect(src).not.toMatch(/HearstCriticalAction/)
+  })
+
+  it('Service (runtime) remains the technical observability hub', () => {
+    const src = read('src/app/admin/runtime/page.tsx')
+    expect(src).toMatch(/title="Service"/)
+    expect(src).toMatch(/DataCoverageSection/)
+    expect(src).toMatch(/System overview|Runtime|Raw responses/)
+    expect(src).toMatch(/observability|coverage/i)
+  })
+
+  it('Series 1 is an operational explorer without Missing at source walls', () => {
+    const src = read('src/app/admin/series-1/page.tsx')
+    expect(src).not.toMatch(/Missing at source/)
+    expect(src).toMatch(/Series1EventExplorer/)
+    expect(src).toMatch(/Operational event explorer/)
+  })
+
+  it('Product is business read-only without fake controls', () => {
+    const src = read('src/app/admin/product/page.tsx')
+    expect(src).not.toMatch(/<form/)
+    expect(src).not.toMatch(/Trigger|Execute|Sign transaction/)
+    expect(src).toMatch(/Consolidated product view|Production/)
+  })
+
+  it('Account nav does not describe an investor file', () => {
+    const src = read('src/lib/admin-nav.ts')
+    expect(src).not.toMatch(/investor file/i)
+    expect(src).toMatch(/Administrator session identity/)
   })
 })
