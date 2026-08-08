@@ -5,7 +5,10 @@ import {
   StatusBadge,
   UnavailableState,
 } from '@/components/admin/truthful'
+import { MarketSnapshotPanel } from '@/components/admin/dashboard/market-panel'
+import { DataHealthGrid } from '@/components/admin/dashboard/data-health-grid'
 import { resolved } from '@/lib/resolved'
+import { available } from '@/lib/vaults/model'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -89,5 +92,44 @@ describe('les états sont distincts les uns des autres', () => {
     )
     expect(screen.getByText(/\/api\/v1\/vault/)).toBeDefined()
     expect(screen.getByText(/req-77/)).toBeDefined()
+  })
+})
+
+// HC-028 P2 : une chaîne de variation vide ne devient jamais « 0 % » (Number('') === 0).
+describe('MarketSnapshotPanel — une variation vide reste absente', () => {
+  const base = {
+    btcUsd: '65000',
+    hashprice: null,
+    hashpriceChangePct: null,
+    difficulty: null,
+    energyCostUsdKwh: null,
+    miningMarginScore: null,
+    provider: null,
+    asOf: null,
+  }
+
+  it('n’affiche pas « 0% 24h » quand btcChange24hPct est une chaîne vide', () => {
+    const snapshot = available({ ...base, btcChange24hPct: '' })
+    const { container } = render(<MarketSnapshotPanel snapshot={snapshot} />)
+    expect(container.textContent).not.toContain('24h')
+    expect(container.textContent).not.toMatch(/0\s*%/)
+  })
+
+  it('affiche bien la variation quand le backend fournit un nombre réel', () => {
+    const snapshot = available({ ...base, btcChange24hPct: '2.5' })
+    const { container } = render(<MarketSnapshotPanel snapshot={snapshot} />)
+    expect(container.textContent).toContain('24h')
+  })
+})
+
+// HC-028 P2 : la fraîcheur inconnue reste « — » et ne laisse pas fuiter le statut brut.
+describe('DataHealthGrid — fraîcheur absente ne fuit pas le statut', () => {
+  it('rend « — » (jamais le statut brut) quand asOf est absent', () => {
+    const sources = available([
+      { key: 'market', label: 'Market', status: 'NOT_CONFIGURED', asOf: null, freshnessSeconds: null },
+    ] as const)
+    const { container } = render(<DataHealthGrid sources={sources} />)
+    expect(container.textContent).toContain('—')
+    expect(container.textContent).not.toContain('NOT_CONFIGURED')
   })
 })
