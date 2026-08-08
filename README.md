@@ -75,6 +75,8 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 
 **Orchestrator HC-ADMIN-CONSOLIDATION-ORCHESTRATOR-023** (2026-08-08): seven scoped branches merged locally — guardrails, dashboard truth, clients/profile (Mission 014 recovered), vaults, compliance, operations, product/service/journal/nav. Gates: `pnpm check` + `next build` green on integrated `main`.
 
+**Mission HC-BROWSER-PRODUCTION-PARITY-024** (2026-08-08): authenticated browser QA on local `main` (all admin routes × viewports including reduced-motion); hydration fixes on dashboard motion widgets and Series 1 table filters. Scripts: `scripts/capture-browser-parity-024.mjs`, `scripts/probe-production-parity-024.mjs`. Drift history **not wired** — production `GET /api/v1/rebalancing/history` responds 200 but payload is `UNAVAILABLE` (`db_error`); contract not ready for UI. `PROD_AUTODEPLOY: false` — Vercel prod may lag GitHub `main`; probe compares SHAs without deploying.
+
 **Action boundary**: `src/components/actions/` (Catalyst buttons + disabled/loading states).
 
 Open the dashboard locally (Chrome, signed in, dark theme):
