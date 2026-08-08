@@ -33,36 +33,40 @@ function StrategyDetail({
   }, [])
 
   const body = (
-    <div className={clsx(surfaceInset, 'p-4')}>
+    <div className={clsx(surfaceInset, 'p-4 @container')}>
       <p className="text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-        <div>
-          <dt className="text-fg-tertiary">Actual</dt>
-          <dd className="font-semibold tabular-nums text-fg">
-            {formatPercent(row.actualBps, { fromBps: true })}
-          </dd>
+      <div className="mt-3 flex flex-col gap-3 @[28rem]:flex-row @[28rem]:items-end @[28rem]:justify-between">
+        <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 text-xs @[28rem]:grid-cols-4">
+          <div>
+            <dt className="text-fg-tertiary">Actual</dt>
+            <dd className="font-semibold tabular-nums text-fg">
+              {formatPercent(row.actualBps, { fromBps: true })}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Target</dt>
+            <dd className="font-semibold tabular-nums text-fg">
+              {formatPercent(row.targetBps, { fromBps: true })}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Drift</dt>
+            <dd className="font-semibold tabular-nums text-warning-700 dark:text-warning-400">
+              {driftLabel(row.driftBps)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Exposure</dt>
+            <dd className="font-semibold tabular-nums text-fg">
+              {formatAdminAtomic(row.exposureAtomic, assetScale)}
+            </dd>
+          </div>
+        </dl>
+        <div className="shrink-0">
+          <HearstSecondaryAction href={`/admin/vaults/${encodeURIComponent(row.vaultId)}`}>
+            View vault
+          </HearstSecondaryAction>
         </div>
-        <div>
-          <dt className="text-fg-tertiary">Target</dt>
-          <dd className="font-semibold tabular-nums text-fg">
-            {formatPercent(row.targetBps, { fromBps: true })}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-fg-tertiary">Drift</dt>
-          <dd className="font-semibold tabular-nums text-warning-700 dark:text-warning-400">{driftLabel(row.driftBps)}</dd>
-        </div>
-        <div>
-          <dt className="text-fg-tertiary">Exposure</dt>
-          <dd className="font-semibold tabular-nums text-fg">
-            {formatAdminAtomic(row.exposureAtomic, assetScale)}
-          </dd>
-        </div>
-      </dl>
-      <div className="mt-3">
-        <HearstSecondaryAction href={`/admin/vaults/${encodeURIComponent(row.vaultId)}`}>
-          View vault
-        </HearstSecondaryAction>
       </div>
     </div>
   )
@@ -103,7 +107,7 @@ export function PortfolioExposurePanel({
        * Columns follow strategy count. A fixed 6-track grid left empty lanes
        * beside three live strategies (measured on /admin @ 1440×900).
        */}
-      <TabList className="grid grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-2">
+      <TabList className="grid w-fit max-w-full grid-cols-[repeat(auto-fit,minmax(7.5rem,9.5rem))] gap-2">
         {rows.map((row) => (
           <Tab
             key={row.strategyId}

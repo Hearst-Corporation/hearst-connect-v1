@@ -29,8 +29,11 @@ export function HearstActivityChart({
   unite,
   color = SERIE,
 }: Readonly<{ points: readonly PointActivite[]; unite: string; color?: string }>) {
-  const height = chartHeight('columns', Math.max(points.length, 1))
+  const count = points.length
+  const height = chartHeight('columns', Math.max(count, 1))
   const { ref, width } = useChartWidth()
+  const barCategoryGap = count <= 4 ? '10%' : count <= 8 ? '18%' : '28%'
+  const maxBarSize = count <= 4 ? 80 : count <= 8 ? 56 : 40
   const data = points.map((p) => ({
     label: p.label,
     value: p.value,
@@ -66,7 +69,7 @@ export function HearstActivityChart({
             height={height}
             data={data}
             margin={{ ...chartTheme.margin, right: 12, left: 0 }}
-            barCategoryGap="28%"
+            barCategoryGap={barCategoryGap}
           >
             <CartesianGrid
               stroke={chartTheme.grid}
@@ -100,7 +103,7 @@ export function HearstActivityChart({
               name={unite}
               fill={color}
               radius={[4, 4, 0, 0]}
-              maxBarSize={56}
+              maxBarSize={maxBarSize}
               isAnimationActive={false}
             />
           </BarChart>
