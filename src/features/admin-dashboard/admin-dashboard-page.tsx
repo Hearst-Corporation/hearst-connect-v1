@@ -103,30 +103,31 @@ export function AdminDashboardPage({
       <DashboardHeader userName={user.name} kpis={kpis} />
 
       {/*
-       * Composition doctrine (HC-ADMIN-LAYOUT-RECOVERY-032):
-       * content-aware ≠ full-width. Sparse panels stay in their column so
-       * desktop keeps hierarchy (8/4, 7/5). Never promote a short card to
-       * col-span-12 just because a neighbour is empty.
+       * Fluid composition (HC-ADMIN-FLUID-RESPONSIVE-035):
+       * - Per-row @container thresholds from measured min viable widths
+       * - minmax() tracks so secondary columns never collapse below ~17rem
+       * - No fixed 12-col spans (those locked 7/5·8/4 and created micro-cols
+       *   around 1024–1120 with sidebar). Hierarchy preserved via fr ratios.
+       * - Stack earlier than the old universal @[40rem] when two columns
+       *   would crush chart / alerts / health.
        */}
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
-          <DashCard
-            className="@[40rem]:col-span-8"
-            title="Portfolio exposure"
-            subtitle="Where capital is allocated vs target"
-          >
+        {/* Portfolio detail + alerts: alerts need ≥17rem; stack below ~52rem. */}
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
+          <DashCard title="Portfolio exposure" subtitle="Where capital is allocated vs target">
             <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard className="@[40rem]:col-span-4" title="Rebalancing & alerts" subtitle="Drift and indexer">
+          <DashCard title="Rebalancing & alerts" subtitle="Drift and indexer">
             <RebalancingAlertsPanel summary={data.rebalancing} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
-          <DashCard className="@[40rem]:col-span-7" title="Activity" subtitle="Daily volume · 28 days">
+        {/* Activity chart needs ~26rem plot; market sparse ≥16rem. */}
+        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
+          <DashCard title="Activity" subtitle="Daily volume · 28 days">
             {showActivityCurve ? (
               <HearstActivityChart points={activityPoints} unite="events" />
             ) : activityNotConfigured ? (
@@ -143,35 +144,33 @@ export function AdminDashboardPage({
             )}
           </DashCard>
 
-          <DashCard className="@[40rem]:col-span-5" title="Market" subtitle="Normalized snapshot">
+          <DashCard title="Market" subtitle="Normalized snapshot">
             <MarketSnapshotPanel snapshot={data.market} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
-          <DashCard className="@[40rem]:col-span-7" title="Vaults" subtitle="Capital per vault">
+        {/* Vault card denser than market; clients often sparse. */}
+        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
+          <DashCard title="Vaults" subtitle="Capital per vault">
             <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard className="@[40rem]:col-span-5" title="Recent clients" subtitle="Exposure and Som KYC">
+          <DashCard title="Recent clients" subtitle="Exposure and Som KYC">
             <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[40rem]:grid-cols-12">
-          <DashCard
-            className="@[40rem]:col-span-8"
-            title="Recent activity"
-            subtitle="Blockchain and subscription timeline"
-          >
+        {/* Timeline primary; health chips need ≥17rem to avoid microcards. */}
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
+          <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
             <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard className="@[40rem]:col-span-4" title="Data health" subtitle="Source freshness">
+          <DashCard title="Data health" subtitle="Source freshness">
             <DataHealthGrid sources={data.dataHealth} />
           </DashCard>
         </div>

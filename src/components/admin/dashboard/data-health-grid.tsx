@@ -34,7 +34,7 @@ export function DataHealthGrid({
   return (
     <ul
       data-widget="data-health-grid"
-      className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-2"
+      className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-2"
     >
       {slots.map(({ key, source }) => {
         const label = source?.label ?? key
