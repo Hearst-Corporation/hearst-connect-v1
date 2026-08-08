@@ -201,17 +201,18 @@ export default async function Page({ params }: PageProps) {
             />
           </ChartFrame>
           <DataTableShell
+            fit
             title="Allocation"
             description="Target, exposure, and drift as reported by the service."
             className="mt-6"
           >
             <TableHead>
               <TableRow>
-                <TableHeader>Strategy</TableHeader>
-                <TableHeader>Target</TableHeader>
-                <TableHeader>Exposure</TableHeader>
-                <TableHeader>Drift</TableHeader>
-                <TableHeader>Last rebalance</TableHeader>
+                <TableHeader className="w-[36%]">Strategy</TableHeader>
+                <TableHeader className="w-[16%]">Target</TableHeader>
+                <TableHeader className="w-[16%]">Exposure</TableHeader>
+                <TableHeader className="w-[16%]">Drift</TableHeader>
+                <TableHeader className="w-[16%]">Rebalance</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -263,42 +264,40 @@ export default async function Page({ params }: PageProps) {
           calme="The ledger responded but no movement is attributed to this vault."
         />
       ) : movementList !== null && movementList.length > 0 ? (
-        <DataTableShell title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
+        <DataTableShell fit title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
           <TableHead>
             <TableRow>
-              <TableHeader>Time</TableHeader>
-              <TableHeader>Type</TableHeader>
-              <TableHeader>Client</TableHeader>
-              <TableHeader>Amount</TableHeader>
-              <TableHeader>Transaction</TableHeader>
+              <TableHeader className="w-[22%]">Time</TableHeader>
+              <TableHeader className="w-[30%]">Type</TableHeader>
+              <TableHeader className="w-[24%]">Amount</TableHeader>
+              <TableHeader className="w-[24%]">Tx</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {movementList.map((movement) => {
               const txShort = movement.txHash === null ? null : formatHash(movement.txHash)
               const txUrl = explorerTxUrl(movement.chainId ?? undefined, movement.txHash ?? undefined)
+              const clientLabel =
+                movement.investorAddress === null
+                  ? null
+                  : (formatAddress(movement.investorAddress) ?? movement.investorAddress)
               return (
-                <TableRow key={movement.id} id={`movement-${movement.id}`}>
-                  <TableCell title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}>
+                <TableRow
+                  key={movement.id}
+                  id={`movement-${movement.id}`}
+                  title={clientLabel !== null ? `Client ${clientLabel}` : undefined}
+                >
+                  <TableCell
+                    className="tabular-nums"
+                    title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}
+                  >
                     {movement.occurredAt === null ? 'Unavailable' : formatRelativeTime(movement.occurredAt)}
                   </TableCell>
-                  <TableCell title={phraseMouvement(movement.eventName)}>
+                  <TableCell className="truncate" title={phraseMouvement(movement.eventName)}>
                     {libelleMouvement(movement.eventName)}
                   </TableCell>
-                  <TableCell>
-                    {movement.investorAddress === null ? (
-                      'Unavailable'
-                    ) : (
-                      <VaultEntityLink
-                        kind="client"
-                        id={movement.investorAddress}
-                        label={formatAddress(movement.investorAddress) ?? movement.investorAddress}
-                        className="font-mono"
-                      />
-                    )}
-                  </TableCell>
                   <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
-                  <TableCell className="font-mono text-sm">
+                  <TableCell className="truncate font-mono text-sm" title={movement.txHash ?? undefined}>
                     {txShort === null ? (
                       'Unavailable'
                     ) : txUrl === null ? (

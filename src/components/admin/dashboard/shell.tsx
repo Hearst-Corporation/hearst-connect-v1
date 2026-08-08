@@ -37,7 +37,8 @@ export function DashCard({
           {subtitle !== undefined ? <Text className="mt-1">{subtitle}</Text> : null}
         </header>
       ) : null}
-      <div className="flex min-h-0 flex-1 flex-col p-5">{children}</div>
+      {/* No flex-1: short cards end with their content instead of matching a taller neighbour. */}
+      <div className="flex min-h-0 flex-col p-5">{children}</div>
     </section>
   )
 }

@@ -5,7 +5,6 @@ import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { DataTableShell } from '@/components/compositions'
-import { VaultEntityLink } from '@/components/vaults/vault-entity-link'
 import { formatNumber } from '@/lib/format'
 import { dateLisible, ilYA, libelleMouvement } from '@/lib/mouvements'
 import { useMemo, useState } from 'react'
@@ -172,8 +171,9 @@ export function Series1EventExplorer({
       </FieldGroup>
 
       <DataTableShell
+        fit
         title="Event explorer"
-        description="Filter indexed Series 1 events — source /api/v1/series1/events only."
+        description="Filter indexed Series 1 events. Vault, client, and block live in the row title / event detail."
         count={count}
         calme={
           calme ??
@@ -186,35 +186,26 @@ export function Series1EventExplorer({
           <>
             <TableHead>
               <TableRow>
-                <TableHeader>Event</TableHeader>
-                <TableHeader>Vault</TableHeader>
-                <TableHeader>Client</TableHeader>
-                <TableHeader>Amount / asset</TableHeader>
-                <TableHeader>Transaction</TableHeader>
-                <TableHeader>Block</TableHeader>
-                <TableHeader>Time / status</TableHeader>
+                <TableHeader className="w-[34%]">Event</TableHeader>
+                <TableHeader className="w-[22%]">Amount</TableHeader>
+                <TableHeader className="w-[22%]">Transaction</TableHeader>
+                <TableHeader className="w-[22%]">When</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
               {filtered.map((row) => {
                 const tx = txShort(row.txHash)
+                const detailBits = [
+                  row.vaultId !== null ? `Vault ${row.vaultId}` : null,
+                  row.client !== null ? `Client ${row.client}` : null,
+                  row.blockNumber !== null && row.blockNumber !== ''
+                    ? `Block ${formatNumber(Number(row.blockNumber))}`
+                    : null,
+                ].filter(Boolean)
                 return (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{libelleMouvement(row.eventName)}</TableCell>
-                    <TableCell>
-                      {row.vaultId !== null ? (
-                        <VaultEntityLink
-                          kind="vault"
-                          id={row.vaultId}
-                          label={row.vaultId}
-                          className="font-mono"
-                        />
-                      ) : (
-                        '—'
-                      )}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{row.client ?? '—'}</TableCell>
-                    <TableCell>
+                  <TableRow key={row.id} title={detailBits.join(' · ') || undefined}>
+                    <TableCell className="truncate font-medium">{libelleMouvement(row.eventName)}</TableCell>
+                    <TableCell className="tabular-nums">
                       {row.amount !== null ? (
                         <>
                           {row.amount}
@@ -226,16 +217,11 @@ export function Series1EventExplorer({
                         '—'
                       )}
                     </TableCell>
-                    <TableCell className="font-mono text-sm" title={row.txHash ?? undefined}>
+                    <TableCell className="truncate font-mono text-sm" title={row.txHash ?? undefined}>
                       {tx ?? '—'}
                     </TableCell>
-                    <TableCell>
-                      {row.blockNumber !== null && row.blockNumber !== ''
-                        ? formatNumber(Number(row.blockNumber))
-                        : '—'}
-                    </TableCell>
                     <TableCell title={dateLisible(row.occurredAt)}>
-                      <span className="block">{ilYA(row.occurredAt)}</span>
+                      <span className="block tabular-nums">{ilYA(row.occurredAt)}</span>
                       <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
                     </TableCell>
                   </TableRow>

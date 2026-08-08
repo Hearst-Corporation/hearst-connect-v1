@@ -157,15 +157,16 @@ export default async function KeeperPage() {
       </SectionCard>
 
       <DataTableShell
+        fit
         title="Exposed routes"
         description="Backend registry, keeper category. Each route is shown as declared — no invented endpoint."
         count={`${formatNumber(keeperEndpoints.length)} routes`}
       >
         <TableHead>
           <TableRow>
-            <TableHeader>Action</TableHeader>
-            <TableHeader>Appel</TableHeader>
-            <TableHeader>Contract reserve</TableHeader>
+            <TableHeader className="w-[36%]">Action</TableHeader>
+            <TableHeader className="w-[34%]">Call</TableHeader>
+            <TableHeader className="w-[30%]">Contract reserve</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

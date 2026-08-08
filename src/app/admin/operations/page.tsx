@@ -236,16 +236,22 @@ export default async function Page() {
 
       <RebalancingSection summary={rebalancing} />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
         <OperationsIndexerCard indexerStatus={indexerStatus} />
 
-        <div className={clsx(surfaceInset, 'flex flex-col gap-2 p-4')} data-widget="operations-last-rebalance">
+        <div
+          className={clsx(surfaceInset, 'flex flex-col gap-1.5 p-4')}
+          data-widget="operations-last-rebalance"
+        >
           <p className="text-sm font-semibold text-ink dark:text-fg">Last rebalance</p>
           <p className="text-lg font-semibold text-ink dark:text-fg">
             {lastRebalance ? formatRelativeTime(lastRebalance) : '—'}
           </p>
           {isAvailable(rebalancing) && rebalancing.value.lastRebalanceTxHash ? (
-            <p className="font-mono text-xs text-fg-tertiary">
+            <p
+              className="truncate font-mono text-xs text-fg-tertiary"
+              title={rebalancing.value.lastRebalanceTxHash}
+            >
               {formatHash(rebalancing.value.lastRebalanceTxHash)}
             </p>
           ) : (

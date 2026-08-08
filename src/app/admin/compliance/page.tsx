@@ -65,8 +65,9 @@ export default async function Page() {
         </Callout>
       ) : (
         <DataTableShell
+          fit
           title="Som KYC status"
-          description="Provider: Som. No Hearst approval actions."
+          description="Provider: Som. No Hearst approval actions. Opened date is on the Updated title when relevant."
           count={reviews.length > 0 ? `${reviews.length} record(s)` : undefined}
           calme={reviews.length === 0 ? 'No Som KYC exceptions in queue.' : undefined}
         >
@@ -74,25 +75,23 @@ export default async function Page() {
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Client</TableHeader>
-                  <TableHeader>Stage</TableHeader>
-                  <TableHeader>KYC status</TableHeader>
-                  <TableHeader>Opened</TableHeader>
-                  <TableHeader>Updated</TableHeader>
+                  <TableHeader className="w-[34%]">Client</TableHeader>
+                  <TableHeader className="w-[22%]">Stage</TableHeader>
+                  <TableHeader className="w-[22%]">KYC</TableHeader>
+                  <TableHeader className="w-[22%]">Updated</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {reviews.map((review) => (
-                  <TableRow key={review.id}>
-                    <TableCell className="font-medium">{review.clientLabel}</TableCell>
-                    <TableCell>{kycStepLabel(review.stage)}</TableCell>
+                  <TableRow key={review.id} title={review.openedAt ? `Opened ${dateLisible(review.openedAt)}` : undefined}>
+                    <TableCell className="truncate font-medium">{review.clientLabel}</TableCell>
+                    <TableCell className="truncate">{kycStepLabel(review.stage)}</TableCell>
                     <TableCell>
                       <Badge color={kycBadgeColor(review.kycStatus)}>
                         {kycStatusLabel(review.kycStatus)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{dateLisible(review.openedAt)}</TableCell>
-                    <TableCell>{dateLisible(review.lastEventAt)}</TableCell>
+                    <TableCell className="tabular-nums">{dateLisible(review.lastEventAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

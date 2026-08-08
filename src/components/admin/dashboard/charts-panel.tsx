@@ -9,7 +9,7 @@ import type { ComponentType, SVGProps } from 'react'
  */
 export function ChartPlaceholder({
   title,
-  height = 280,
+  height = 140,
   icon: Icon = ChartBarIcon,
 }: Readonly<{
   title: string
@@ -21,7 +21,7 @@ export function ChartPlaceholder({
       data-widget="chart-placeholder"
       className={clsx(
         surfaceInset,
-        'flex flex-col items-center justify-center border border-dashed border-console-line p-6 text-center',
+        'flex flex-col items-center justify-center border border-dashed border-console-line px-4 py-5 text-center',
       )}
       style={{ minHeight: height }}
       role="status"
