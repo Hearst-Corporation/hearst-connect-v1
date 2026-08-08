@@ -127,7 +127,7 @@ function strategySlices(
   const scale = 10 ** assetDecimals
 
   const slices: DonutSlice[] = []
-  let deployed = 0
+  let deployedAtomic = 0
 
   for (const s of strategies) {
     // Prefer real pocket balance when available
@@ -135,8 +135,8 @@ function strategySlices(
     if (realValue !== null) {
       const n = Number(realValue)
       if (Number.isFinite(n) && n > 0) {
-        slices.push({ label: s.label, value: Math.round(n) })
-        deployed += n
+        slices.push({ label: s.label, value: Math.round(n / scale) })
+        deployedAtomic += n
         continue
       }
     }
@@ -144,16 +144,16 @@ function strategySlices(
     // Fallback: estimate from totalAssets × bps (only when total is known)
     if (hasTotal) {
       const bps = s.actualBps ?? s.targetBps ?? 0
-      const estimate = Math.round((total! * bps) / 10_000)
-      if (estimate > 0) {
-        slices.push({ label: s.label, value: estimate })
-        deployed += estimate
+      const estimateAtomic = Math.round((total! * bps) / 10_000)
+      if (estimateAtomic > 0) {
+        slices.push({ label: s.label, value: Math.round(estimateAtomic / scale) })
+        deployedAtomic += estimateAtomic
       }
     }
   }
 
   if (hasTotal) {
-    const idle = Math.round(total! - deployed)
+    const idle = Math.round((total! - deployedAtomic) / scale)
     if (idle > 0) {
       slices.push({ label: 'Idle / Non déployé', value: idle })
     }
@@ -335,11 +335,12 @@ export default async function Page() {
             const asset = valueOf(vault.asset)
             const assetDecimals = asset?.decimals ?? 6
             const slices = hasStrategies ? strategySlices(strategies, totalAssets, assetDecimals) : []
+            const assetSymbol = asset?.symbol ?? ''
             return (
               <ChartFrame
                 key={vault.id}
                 question={`Répartition des stratégies — ${vault.label}`}
-                unite="valeur en atomic units — idle inclus"
+                unite={`valeur en ${assetSymbol}`}
                 expectedSource={['GET /api/v1/vault/strategies']}
                 etat={
                   hasStrategies
@@ -350,7 +351,7 @@ export default async function Page() {
                 }
               >
                 {slices.length > 0 ? (
-                  <HearstDonutChart slices={slices} unit="%" />
+                  <HearstDonutChart slices={slices} unit={assetSymbol} />
                 ) : null}
               </ChartFrame>
             )
