@@ -26,7 +26,6 @@ import {
   CubeTransparentIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/16/solid'
-import clsx from 'clsx'
 
 function driftPtsLabel(driftBps: number): string {
   const pts = driftBps / 100
@@ -99,41 +98,29 @@ export function AdminDashboardPage({
   const showActivityCurve = activityPoints.length >= 2
   const activityNotConfigured = isAdminNotConfigured(data.activityTimeseries)
 
-  // Layout-only: sparse panels shrink to content — never full-width band rows.
-  const marketSparse = isAdminNotConfigured(data.market) || !isAvailable(data.market)
-  const clientsSparse =
-    !isAvailable(data.recentClients) ||
-    (data.recentClients.kind === 'available' && data.recentClients.value.length === 0)
-
   return (
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
+      {/*
+       * Fluid composition: each row changes structure only when both children
+       * have enough real content width. Between thresholds, minmax() tracks
+       * absorb every intermediate width instead of hard caps / auto columns.
+       */}
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1fr)_minmax(17rem,auto)]">
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
           <DashCard title="Portfolio exposure" subtitle="Where capital is allocated vs target">
             <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard
-            className="@[52rem]:max-w-sm @[52rem]:justify-self-start"
-            title="Rebalancing & alerts"
-            subtitle="Drift and indexer"
-          >
+          <DashCard title="Rebalancing & alerts" subtitle="Drift and indexer">
             <RebalancingAlertsPanel summary={data.rebalancing} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div
-          className={clsx(
-            'grid grid-cols-1 items-start gap-4',
-            marketSparse
-              ? '@[48rem]:grid-cols-[minmax(0,1fr)_auto]'
-              : '@[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]',
-          )}
-        >
+        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
           <DashCard title="Activity" subtitle="Daily volume · 28 days">
             {showActivityCurve ? (
               <HearstActivityChart points={activityPoints} unite="events" />
@@ -151,54 +138,31 @@ export function AdminDashboardPage({
             )}
           </DashCard>
 
-          <DashCard
-            className={marketSparse ? '@[48rem]:w-[min(100%,20rem)] @[48rem]:justify-self-start' : undefined}
-            title="Market"
-            subtitle="Normalized snapshot"
-          >
+          <DashCard title="Market" subtitle="Normalized snapshot">
             <MarketSnapshotPanel snapshot={data.market} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div
-          className={clsx(
-            'grid grid-cols-1 items-start gap-4',
-            clientsSparse
-              ? '@[48rem]:grid-cols-[minmax(0,1fr)_auto]'
-              : '@[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]',
-          )}
-        >
+        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
           <DashCard title="Vaults" subtitle="Capital per vault">
             <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard
-            className={
-              clientsSparse
-                ? '@[48rem]:w-[min(100%,20rem)] @[48rem]:min-w-[16rem] @[48rem]:justify-self-start'
-                : undefined
-            }
-            title="Recent clients"
-            subtitle="Exposure and Som KYC"
-          >
+          <DashCard title="Recent clients" subtitle="Exposure and Som KYC">
             <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        {/*
-         * Timeline is tall; health chips are short — side-by-side left a ~500px
-         * void under Data health. Stack: timeline full width, compact health strip.
-         */}
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
           <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
             <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard className="max-w-3xl" title="Data health" subtitle="Source freshness">
+          <DashCard title="Data health" subtitle="Source freshness">
             <DataHealthGrid sources={data.dataHealth} />
           </DashCard>
         </div>
