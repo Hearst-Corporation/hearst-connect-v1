@@ -8,6 +8,7 @@ import type { AdminVaultSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useState } from 'react'
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -57,6 +58,12 @@ export function VaultsPanel({
   assetScale: AdminAssetScale | null
 }>) {
   const reduced = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
+    setMounted(true)
+  }, [])
 
   if (!isAvailable(vaults)) {
     return <p className="text-sm text-fg-tertiary">Data unavailable</p>
@@ -79,7 +86,7 @@ export function VaultsPanel({
     </div>
   )
 
-  if (reduced) return grid
+  if (!mounted || reduced) return grid
   return (
     <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
       {grid}

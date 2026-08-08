@@ -95,4 +95,20 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/from ['"]@mui\/x-charts/)
     expect(SOURCE).not.toMatch(/from ['"]recharts['"]/)
   })
+
+  // HC-028 P1-2 regression: any dashboard panel that entry-animates with motion.div
+  // must gate on `!mounted` so SSR and first client render agree — otherwise
+  // prefers-reduced-motion triggers a React hydration mismatch (reproduced in browser).
+  it('animated panels guard entry animation with a mounted hydration gate', () => {
+    const animatedPanels = [
+      'src/components/admin/dashboard/vaults-panel.tsx',
+      'src/components/admin/dashboard/rebalancing-panel.tsx',
+      'src/components/admin/dashboard/portfolio-exposure.tsx',
+    ]
+    for (const p of animatedPanels) {
+      const src = readFileSync(root(p), 'utf8')
+      expect(src, `${p} uses motion`).toMatch(/motion\.div/)
+      expect(src, `${p} lacks mounted guard`).toMatch(/!mounted/)
+    }
+  })
 })
