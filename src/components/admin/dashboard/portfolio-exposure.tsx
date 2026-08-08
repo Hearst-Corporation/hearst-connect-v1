@@ -10,8 +10,6 @@ import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
-import { motion, useReducedMotion } from 'motion/react'
-import { useEffect, useState } from 'react'
 
 function driftLabel(driftBps: number | null): string {
   if (driftBps === null || !Number.isFinite(driftBps)) return '—'
@@ -24,17 +22,9 @@ function StrategyDetail({
   row,
   assetScale,
 }: Readonly<{ row: AdminExposureStrategy; assetScale: AdminAssetScale }>) {
-  const reduced = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
-    setMounted(true)
-  }, [])
-
-  const body = (
+  return (
     <div className={clsx(surfaceInset, 'p-4 @container')}>
-      <p className="text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
+      <p className="truncate text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
       <div className="mt-3 flex flex-col gap-3 @[28rem]:flex-row @[28rem]:items-end @[28rem]:justify-between">
         <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 text-xs @[28rem]:grid-cols-4">
           <div>
@@ -70,12 +60,6 @@ function StrategyDetail({
       </div>
     </div>
   )
-  if (!mounted || reduced) return body
-  return (
-    <motion.div key={row.strategyId} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-      {body}
-    </motion.div>
-  )
 }
 
 export function PortfolioExposurePanel({
@@ -102,32 +86,34 @@ export function PortfolioExposurePanel({
   const defaultIndex = initial >= 0 ? initial : 0
 
   return (
-    <TabGroup defaultIndex={defaultIndex} as="div" className="@container" data-widget="portfolio-exposure">
-      {/*
-       * Columns follow strategy count. A fixed 6-track grid left empty lanes
-       * beside three live strategies (measured on /admin @ 1440×900).
-       */}
-      <TabList className="grid w-fit max-w-full grid-cols-[repeat(auto-fit,minmax(7.5rem,9.5rem))] gap-2">
-        {rows.map((row) => (
-          <Tab
-            key={row.strategyId}
-            className={clsx(
-              'flex flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
-              'focus-visible:ring-2 focus-visible:ring-accent-500',
-              surfaceSelect,
-            )}
-          >
-            <span className="inline-flex size-10 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
-              <ChartBarSquareIcon className="size-5" aria-hidden="true" />
-            </span>
-            <span className="mt-2 text-xs font-semibold text-ink dark:text-fg">{row.strategyLabel}</span>
-            <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
-              {formatPercent(row.actualBps, { fromBps: true })}
-            </span>
-            <span className="mt-0.5 text-[11px] text-fg-tertiary">target {formatPercent(row.targetBps, { fromBps: true })}</span>
-          </Tab>
-        ))}
-      </TabList>
+    <TabGroup defaultIndex={defaultIndex} as="div" className="@container min-w-0" data-widget="portfolio-exposure">
+      <div className="-mx-1 min-w-0 overflow-x-auto px-1 pb-1">
+        <TabList className="grid w-full min-w-0 grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-2">
+          {rows.map((row) => (
+            <Tab
+              key={row.strategyId}
+              className={clsx(
+                'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
+                'focus-visible:ring-2 focus-visible:ring-accent-500',
+                surfaceSelect,
+              )}
+            >
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
+                <ChartBarSquareIcon className="size-5" aria-hidden="true" />
+              </span>
+              <span className="mt-2 w-full truncate text-xs font-semibold text-ink dark:text-fg" title={row.strategyLabel}>
+                {row.strategyLabel}
+              </span>
+              <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
+                {formatPercent(row.actualBps, { fromBps: true })}
+              </span>
+              <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
+                target {formatPercent(row.targetBps, { fromBps: true })}
+              </span>
+            </Tab>
+          ))}
+        </TabList>
+      </div>
       <TabPanels className="mt-4">
         {rows.map((row) => (
           <TabPanel key={row.strategyId} className="outline-none">

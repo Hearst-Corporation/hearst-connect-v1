@@ -58,7 +58,7 @@ export function MarketSnapshotPanel({
   const hashpriceChange = finiteChange(m.hashpriceChangePct)
 
   return (
-    <dl data-widget="market-snapshot" className="grid grid-cols-2 gap-4">
+    <dl data-widget="market-snapshot" className="@container grid grid-cols-1 gap-4 @[16rem]:grid-cols-2">
       <div className={surfaceInset + ' p-4'}>
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{btc}</dd>

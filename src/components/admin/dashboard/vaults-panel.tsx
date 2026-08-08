@@ -1,5 +1,3 @@
-'use client'
-
 import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset } from '@/components/admin/surface'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
@@ -7,8 +5,6 @@ import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminVaultSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
-import { motion, useReducedMotion } from 'motion/react'
-import { useEffect, useState } from 'react'
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -29,7 +25,7 @@ function VaultCard({
 
   return (
     <article className={clsx(surfaceInset, 'flex flex-col gap-2 p-4')}>
-      <h3 className="text-sm font-semibold text-ink dark:text-fg">{vault.label}</h3>
+      <h3 className="truncate text-sm font-semibold text-ink dark:text-fg">{vault.label}</h3>
       <p className="text-xl font-semibold tabular-nums text-ink dark:text-fg">
         {formatAdminAtomic(vault.totalAssetsAtomic, assetScale)}
       </p>
@@ -39,9 +35,7 @@ function VaultCard({
       </p>
       <p className="text-xs text-fg-tertiary">
         {vault.strategiesCount} strateg{vault.strategiesCount > 1 ? 'ies' : 'y'}
-        {vault.maxDriftBps !== null
-          ? ` · Worst drift ${driftPts(vault.maxDriftBps)}`
-          : null}
+        {vault.maxDriftBps !== null ? ` · Worst drift ${driftPts(vault.maxDriftBps)}` : null}
       </p>
       <HearstSecondaryAction href={`/admin/vaults/${encodeURIComponent(vault.id)}`} className="mt-1 self-start">
         Open
@@ -57,14 +51,6 @@ export function VaultsPanel({
   vaults: Availability<readonly AdminVaultSummary[]>
   assetScale: AdminAssetScale | null
 }>) {
-  const reduced = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
-    setMounted(true)
-  }, [])
-
   if (!isAvailable(vaults)) {
     return <p className="text-sm text-fg-tertiary">Data unavailable</p>
   }
@@ -75,21 +61,17 @@ export function VaultsPanel({
     return <p className="text-sm text-fg-tertiary">Portfolio asset scale unavailable</p>
   }
 
-  const grid = (
+  return (
     <div
       data-widget="vaults-panel"
-      className={clsx('grid gap-3', vaults.value.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1')}
+      className={clsx(
+        '@container grid gap-3',
+        vaults.value.length > 1 ? 'grid-cols-1 @[20rem]:grid-cols-2' : 'grid-cols-1',
+      )}
     >
       {vaults.value.map((vault) => (
         <VaultCard key={vault.id} vault={vault} assetScale={assetScale} />
       ))}
     </div>
-  )
-
-  if (!mounted || reduced) return grid
-  return (
-    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-      {grid}
-    </motion.div>
   )
 }

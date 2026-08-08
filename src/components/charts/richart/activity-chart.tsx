@@ -34,6 +34,10 @@ export function HearstActivityChart({
   const { ref, width } = useChartWidth()
   const barCategoryGap = count <= 4 ? '10%' : count <= 8 ? '18%' : '28%'
   const maxBarSize = count <= 4 ? 80 : count <= 8 ? 56 : 40
+  // Under ~28px per bucket, force Recharts to skip ticks instead of overlapping.
+  const minPxPerBucket = 28
+  const xInterval =
+    width > 0 && count * minPxPerBucket > width ? ('preserveStartEnd' as const) : (0 as const)
   const data = points.map((p) => ({
     label: p.label,
     value: p.value,
@@ -41,7 +45,7 @@ export function HearstActivityChart({
   }))
 
   return (
-    <div className="px-5 pb-5 sm:px-6">
+    <div className="min-w-0">
       <div className="sr-only">
         <table>
           <caption>Activité par période, en {unite}</caption>
@@ -82,7 +86,7 @@ export function HearstActivityChart({
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
-              interval={0}
+              interval={xInterval}
             />
             <YAxis
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}

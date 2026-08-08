@@ -6,8 +6,6 @@ import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
-import { motion, useReducedMotion } from 'motion/react'
-import { useEffect, useState } from 'react'
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -18,14 +16,6 @@ function driftPts(driftBps: number): string {
 export function RebalancingAlertsPanel({
   summary,
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
-  const reduced = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
-    setMounted(true)
-  }, [])
-
   if (!isAvailable(summary)) {
     return (
       <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
@@ -38,7 +28,7 @@ export function RebalancingAlertsPanel({
   const data = summary.value
   const stable = data.strategiesOutOfTarget === 0
 
-  const body = (
+  return (
     <div className="flex flex-col gap-4" data-widget="rebalancing-alerts">
       <div className={clsx(surfaceInset, 'flex items-start gap-3 p-4')}>
         {stable ? (
@@ -54,8 +44,7 @@ export function RebalancingAlertsPanel({
           </p>
           <p className="mt-1 text-xs text-fg-tertiary">
             {data.activeVaults} active vault{data.activeVaults > 1 ? 's' : ''} · {data.measuredStrategies} strateg
-            {data.measuredStrategies > 1 ? 'ies' : 'y'} measured · Indexer{' '}
-            {data.indexerStatus.toLowerCase()}
+            {data.measuredStrategies > 1 ? 'ies' : 'y'} measured · Indexer {data.indexerStatus.toLowerCase()}
           </p>
         </div>
       </div>
@@ -63,26 +52,22 @@ export function RebalancingAlertsPanel({
       {!stable ? (
         <ul className="space-y-2">
           {data.alerts.map((alert) => (
-            <li key={alert.strategyId} className={clsx(surfaceInset, 'flex items-center justify-between gap-2 px-3 py-2 text-sm')}>
-              <span className="font-medium text-ink dark:text-fg">{alert.strategyLabel}</span>
-              <span className="tabular-nums text-warning-700 dark:text-warning-400">{driftPts(alert.driftBps)}</span>
+            <li
+              key={alert.strategyId}
+              className={clsx(surfaceInset, 'flex min-w-0 items-center justify-between gap-2 px-3 py-2 text-sm')}
+            >
+              <span className="min-w-0 truncate font-medium text-ink dark:text-fg">{alert.strategyLabel}</span>
+              <span className="shrink-0 tabular-nums text-warning-700 dark:text-warning-400">
+                {driftPts(alert.driftBps)}
+              </span>
             </li>
           ))}
         </ul>
       ) : null}
 
       {data.lastRebalanceAt !== null ? (
-        <p className="text-xs text-fg-tertiary">
-          Last activity · {formatRelativeTime(data.lastRebalanceAt)}
-        </p>
+        <p className="text-xs text-fg-tertiary">Last activity · {formatRelativeTime(data.lastRebalanceAt)}</p>
       ) : null}
     </div>
-  )
-
-  if (!mounted || reduced) return body
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
-      {body}
-    </motion.div>
   )
 }

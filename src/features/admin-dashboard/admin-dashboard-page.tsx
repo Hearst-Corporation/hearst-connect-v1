@@ -100,77 +100,82 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
        * dimension d'écran ne pilote ce layout : il répond seulement à « combien
        * de place ai-je réellement maintenant ? ».
        *
-       * Deux flux verticaux INDÉPENDANTS, côte à côte via `flex-wrap` :
-       *  - MAIN COLUMN   (contenus denses/hauts : exposure, activity, vaults,
-       *    recent activity) — `flex: 999 1 44rem`. La base 44rem n'est pas une
-       *    largeur d'écran : c'est la largeur minimale où le chart Activity
-       *    (min-content mesuré ≈ 43,5rem) reste lisible. Elle grandit goulûment
-       *    (grow 999) pour absorber tout l'espace restant.
-       *  - SECONDARY RAIL (panneaux courts/statut : rebalancing, market, recent
-       *    clients, data health) — `flex: 1 1 18rem`. 18rem = largeur minimale
-       *    viable mesurée du panneau le plus contraint (Data health), pas une
-       *    largeur fixe : le rail grandit aussi, juste moins vite.
+       * BENTO INTRINSÈQUE — la taille de chaque tuile suit le POIDS de sa donnée,
+       * pas une dimension d'écran. `flex-wrap` de tuiles dont la `flex-basis`
+       * traduit la richesse mesurée du panneau (hauteur de contenu réelle) :
+       *  - tuiles LARGES (basis min(100%,30rem), grow 4) pour les données denses/étalées :
+       *    Portfolio exposure, Activity (le chart a besoin de largeur), Recent
+       *    activity — elles réclament ~2 unités et absorbent l'espace.
+       *  - tuiles MOYENNES (basis min(100%,18rem), grow 2) : Rebalancing, Vaults, Data
+       *    health.
+       *  - tuiles PETITES (basis min(100%,15rem), grow 1) : Market, Recent clients — souvent
+       *    peu/pas de données ; elles restent COMPACTES et se rangent côte à côte
+       *    au lieu de créer une grosse box vide. Aucune détection `sparse` : c'est
+       *    la base intrinsèque qui les garde petites, et leur hauteur = leur
+       *    contenu réel (une tuile vide finit courte, la voisine se cale à côté).
        *
-       * Le passage 2 colonnes → 1 colonne ÉMERGE des deux bases : le rail passe
-       * sous le main dès que `44rem + 18rem + gap` ne tient plus dans le
-       * container. `flex-wrap` ne wrap qu'en rétrécissant et ne déwrap qu'en
-       * agrandissant → MONOTONE par construction (pas de seuil qui se
-       * redéclenche dans la zone de saut du rail comme le cliff #61). Chaque
-       * colonne coule seule : une card courte (Market « Not configured ») finit
-       * à sa hauteur, la suivante remonte dessous — aucun trou réservé, aucun
-       * gonflage flex-1, aucun cap de largeur, aucun breakpoint nommé.
+       * Le nombre de colonnes du bento ÉMERGE des bases : `flex-wrap` ne wrap
+       * qu'en rétrécissant → MONOTONE par construction (pas de seuil dans la zone
+       * de saut du rail [680,975], donc pas de cliff #61). Aucun cap de largeur,
+       * aucun `flex-1` de remplissage, aucun breakpoint nommé. Les tuiles
+       * `items-start` gardent chacune leur hauteur naturelle.
        */}
       <div className="flex flex-wrap items-start gap-4">
-        {/* MAIN COLUMN — flux vertical propre, base = largeur min lisible du chart */}
-        <div className="flex min-w-0 flex-[999_1_44rem] flex-col gap-4">
-          <DashCard title="Portfolio exposure" subtitle="Where capital is allocated vs target">
-            <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
-          </DashCard>
+        {/* LARGE — données denses/étalées (poids fort) */}
+        <DashCard
+          className="min-w-0 flex-[4_1_min(100%,30rem)]"
+          title="Portfolio exposure"
+          subtitle="Where capital is allocated vs target"
+        >
+          <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
+        </DashCard>
 
-          <DashCard title="Activity" subtitle="Daily volume · 28 days">
-            {showActivityCurve ? (
-              <HearstActivityChart points={activityPoints} unite="events" />
-            ) : activityNotConfigured ? (
-              <div className="flex flex-col gap-1 py-4">
-                <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
-                <p className="text-fg-tertiary text-xs">
-                  {data.activityTimeseries.kind === 'unavailable'
-                    ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
-                    : null}
-                </p>
-              </div>
-            ) : (
-              <ChartPlaceholder title="Activity" height={140} icon={ChartBarIcon} />
-            )}
-          </DashCard>
+        <DashCard className="min-w-0 flex-[4_1_min(100%,30rem)]" title="Activity" subtitle="Daily volume · 28 days">
+          {showActivityCurve ? (
+            <HearstActivityChart points={activityPoints} unite="events" />
+          ) : activityNotConfigured ? (
+            <div className="flex flex-col gap-1 py-4">
+              <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
+              <p className="text-fg-tertiary text-xs">
+                {data.activityTimeseries.kind === 'unavailable'
+                  ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
+                  : null}
+              </p>
+            </div>
+          ) : (
+            <ChartPlaceholder title="Activity" height={140} icon={ChartBarIcon} />
+          )}
+        </DashCard>
 
-          <DashCard title="Vaults" subtitle="Capital per vault">
-            <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
-          </DashCard>
+        <DashCard
+          className="min-w-0 flex-[4_1_min(100%,30rem)]"
+          title="Recent activity"
+          subtitle="Blockchain and subscription timeline"
+        >
+          <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+        </DashCard>
 
-          <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
-            <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
-          </DashCard>
-        </div>
+        {/* MOYEN — données de taille intermédiaire (poids moyen) */}
+        <DashCard className="min-w-0 flex-[2_1_min(100%,18rem)]" title="Rebalancing & alerts" subtitle="Drift and indexer">
+          <RebalancingAlertsPanel summary={data.rebalancing} />
+        </DashCard>
 
-        {/* SECONDARY RAIL — panneaux courts, flux vertical propre, base = min viable */}
-        <div className="flex min-w-0 flex-[1_1_18rem] flex-col gap-4">
-          <DashCard title="Rebalancing & alerts" subtitle="Drift and indexer">
-            <RebalancingAlertsPanel summary={data.rebalancing} />
-          </DashCard>
+        <DashCard className="min-w-0 flex-[2_1_min(100%,18rem)]" title="Vaults" subtitle="Capital per vault">
+          <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
+        </DashCard>
 
-          <DashCard title="Market" subtitle="Normalized snapshot">
-            <MarketSnapshotPanel snapshot={data.market} />
-          </DashCard>
+        <DashCard className="min-w-0 flex-[2_1_min(100%,18rem)]" title="Data health" subtitle="Source freshness">
+          <DataHealthGrid sources={data.dataHealth} />
+        </DashCard>
 
-          <DashCard title="Recent clients" subtitle="Exposure and Som KYC">
-            <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
-          </DashCard>
+        {/* PETIT — données courtes/souvent sparse (poids faible) : reste compact */}
+        <DashCard className="min-w-0 flex-[1_1_min(100%,15rem)]" title="Market" subtitle="Normalized snapshot">
+          <MarketSnapshotPanel snapshot={data.market} />
+        </DashCard>
 
-          <DashCard title="Data health" subtitle="Source freshness">
-            <DataHealthGrid sources={data.dataHealth} />
-          </DashCard>
-        </div>
+        <DashCard className="min-w-0 flex-[1_1_min(100%,15rem)]" title="Recent clients" subtitle="Exposure and Som KYC">
+          <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
+        </DashCard>
       </div>
     </DashboardShell>
   )

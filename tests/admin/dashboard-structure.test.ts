@@ -85,31 +85,33 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  // HC-ADMIN-TRUE-FLUID-RESPONSIVE — intrinsic composition, no named breakpoint.
+  // HC-ADMIN-BENTO — intrinsic bento, tile size follows the DATA WEIGHT.
   //
-  // The dashboard is a MAIN COLUMN (dense/tall panels) + a SECONDARY RAIL
-  // (short/status panels), each its own vertical flow, placed side by side with
-  // `flex-wrap`. No paired rows → a tall panel never imposes its track height on
-  // a short neighbour → no reserved vertical void, no flex-1 fill, no width cap.
+  // Every panel is a bento tile in a single `flex-wrap` container. Each tile's
+  // `flex-basis` encodes the measured richness of its data, NOT a screen size:
+  //   - LARGE  (basis min(100%,30rem), grow 4): Portfolio exposure, Activity, Recent
+  //     activity — dense / wide data (chart needs width, timelines are tall).
+  //   - MEDIUM (basis min(100%,18rem), grow 2): Rebalancing, Vaults, Data health.
+  //   - SMALL  (basis min(100%,15rem), grow 1): Market, Recent clients — often sparse, so
+  //     they stay COMPACT and pack side by side instead of a big empty box. No
+  //     `sparse` flag: the small base keeps them compact and their height = their
+  //     real content (an empty tile ends short; the next tile sits beside it).
   //
-  // The 2→1 switch EMERGES from the two intrinsic flex-bases: the rail wraps
-  // under the main as soon as `44rem + 18rem + gap` no longer fits the REAL
-  // container width. `flex-wrap` only wraps while shrinking and only unwraps
-  // while growing → MONOTONE by construction, with no container-query threshold
-  // that could re-fire inside the sidebar-rail jump zone (the #61 cliff).
-  //   - main base 44rem = measured min-content of the Activity chart (legible).
-  //   - rail base 18rem = measured min-viable width of the tightest rail panel.
-  // Neither is a screen dimension; no card knows the viewport size.
-  it('composes two intrinsic columns via flex-wrap — no viewport/named breakpoint', () => {
-    // Intrinsic wrap container: flex + flex-wrap, not a device media grid.
+  // Column count EMERGES from the bases: `flex-wrap` only wraps while shrinking →
+  // MONOTONE by construction, no threshold in the rail jump zone [680,975] (the
+  // #61 cliff). No named breakpoint, no width cap, no flex-1 fill.
+  it('lays out a data-weighted bento via flex-wrap — no viewport/named breakpoint', () => {
     expect(SOURCE).toMatch(/flex flex-wrap items-start gap-4/)
-    // Two independent columns with intrinsic flex-basis (content-derived).
-    expect(SOURCE).toMatch(/flex-\[999_1_44rem\]/) // main: greedy grow, base = chart legible
-    expect(SOURCE).toMatch(/flex-\[1_1_18rem\]/) //   rail: grows too, base = min viable
-    // No named viewport breakpoints driving the dashboard layout.
+    // Data-weight tiers as intrinsic flex-bases (min caps squeeze at narrow widths).
+    const large = [...SOURCE.matchAll(/flex-\[4_1_min\(100%,30rem\)\]/g)]
+    const medium = [...SOURCE.matchAll(/flex-\[2_1_min\(100%,18rem\)\]/g)]
+    const small = [...SOURCE.matchAll(/flex-\[1_1_min\(100%,15rem\)\]/g)]
+    expect(large.length).toBe(3) //  Portfolio, Activity, Recent activity
+    expect(medium.length).toBe(3) // Rebalancing, Vaults, Data health
+    expect(small.length).toBe(2) //  Market, Recent clients
+    // No named viewport breakpoints, no container-query threshold, no grid modes.
     expect(SOURCE).not.toMatch(/\b(sm|md|lg|xl|2xl):grid-cols/)
     expect(SOURCE).not.toMatch(/min-\[\d+px\]:grid-cols/)
-    // No container-query composition threshold either (flex-wrap replaces it).
     expect(SOURCE).not.toMatch(/@\[\d/)
     expect(SOURCE).not.toMatch(/@container/)
     // No hard width caps, no data-state branching, no flex-1 fill.
@@ -118,22 +120,30 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/["' ]flex-1["' ]/) // the utility class, not the word in prose
     // All eight panels still present.
     for (const t of [
-      'Portfolio exposure', 'Activity', 'Vaults', 'Recent activity',
-      'Rebalancing & alerts', 'Market', 'Recent clients', 'Data health',
+      'Portfolio exposure',
+      'Activity',
+      'Vaults',
+      'Recent activity',
+      'Rebalancing & alerts',
+      'Market',
+      'Recent clients',
+      'Data health',
     ]) {
       expect(SOURCE).toContain(t)
     }
   })
 
-  // Monotonicity guard (the check the point-tests were missing): the combined
-  // intrinsic base of the two columns must be ≥ 976px so the wrap point sits
-  // ABOVE the sidebar-rail jump zone [680, 975] and can never re-fire there.
-  // Derived directly from the flex-[…] bases in the source.
-  it('combined column base ≥ 976px so the intrinsic wrap stays monotonic', () => {
-    const bases = [...SOURCE.matchAll(/flex-\[\d+_\d+_(\d+(?:\.\d+)?)rem\]/g)].map((m) => Number(m[1]))
-    expect(bases.length).toBe(2) // main + rail
-    const combinedPx = bases.reduce((a, b) => a + b, 0) * 16
-    expect(combinedPx, 'main+rail flex-basis must total ≥ 976px to stay monotonic across the rail jump').toBeGreaterThanOrEqual(976)
+  // Data-weight ordering: the large tiles must carry a strictly larger intrinsic
+  // basis than the small ones, so a sparse panel can never out-size a rich one.
+  it('bento tile basis is ordered by data weight (large > medium > small)', () => {
+    const basisRows = [...SOURCE.matchAll(/flex-\[(\d+)_1_min\(100%,(\d+)rem\)\]/g)].map((m) => ({
+      grow: Number(m[1]),
+      basis: Number(m[2]),
+    }))
+    expect(basisRows.length).toBe(8) // one per panel
+    const large = Math.min(...basisRows.filter((b) => b.grow === 4).map((b) => b.basis))
+    const small = Math.max(...basisRows.filter((b) => b.grow === 1).map((b) => b.basis))
+    expect(large, 'a large (rich-data) tile must have a bigger basis than any small tile').toBeGreaterThan(small)
   })
 
   it('routes route-level actions through the Hearst actions boundary', () => {
@@ -147,19 +157,16 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/from ['"]recharts['"]/)
   })
 
-  // HC-028 P1-2 regression: any dashboard panel that entry-animates with motion.div
-  // must gate on `!mounted` so SSR and first client render agree — otherwise
-  // prefers-reduced-motion triggers a React hydration mismatch (reproduced in browser).
-  it('animated panels guard entry animation with a mounted hydration gate', () => {
-    const animatedPanels = [
+  it('dashboard panels stay static — no decorative entry motion on server data', () => {
+    const staticPanels = [
       'src/components/admin/dashboard/vaults-panel.tsx',
       'src/components/admin/dashboard/rebalancing-panel.tsx',
       'src/components/admin/dashboard/portfolio-exposure.tsx',
+      'src/components/admin/dashboard/activity-timeline.tsx',
     ]
-    for (const p of animatedPanels) {
+    for (const p of staticPanels) {
       const src = readFileSync(root(p), 'utf8')
-      expect(src, `${p} uses motion`).toMatch(/motion\.div/)
-      expect(src, `${p} lacks mounted guard`).toMatch(/!mounted/)
+      expect(src, `${p} must not import motion`).not.toMatch(/from ['"]motion\/react['"]/)
     }
   })
 })
