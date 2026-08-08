@@ -1,5 +1,6 @@
-import { SectionIntro } from '@/components/marketing/section-intro'
 import { ClosingCta } from '@/components/marketing/closing-cta'
+import { SectionIntro } from '@/components/marketing/section-intro'
+import { cn } from '@/lib/utils'
 import {
   ArrowPathIcon,
   ChevronRightIcon,
@@ -15,6 +16,33 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const CONSOLE_PREVIEW = '/brand/console-preview.png'
+
+function ConsolePreviewShot({
+  alt,
+  className,
+  priority = false,
+  ariaHidden = false,
+}: Readonly<{
+  alt: string
+  className?: string
+  priority?: boolean
+  ariaHidden?: boolean
+}>) {
+  return (
+    <div className={cn('relative aspect-16/10 w-full overflow-hidden', className)}>
+      <Image
+        src={CONSOLE_PREVIEW}
+        alt={alt}
+        fill
+        sizes="(max-width: 1024px) 100vw, 36rem"
+        className="object-cover object-left-top"
+        priority={priority}
+        aria-hidden={ariaHidden}
+        draggable={false}
+      />
+    </div>
+  )
+}
 
 const primaryFeatures = [
   {
@@ -185,19 +213,12 @@ export function LandingPage() {
             <p className="mt-6 text-xs text-white/40">For Hearst workspace owners and administrators only.</p>
           </div>
 
-          <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:mt-0 lg:mr-0 lg:ml-10 lg:max-w-none lg:flex-none xl:ml-32">
-            <div className="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-              <div className="overflow-hidden rounded-xl bg-console-inset shadow-2xl ring-1 ring-console-line">
-                <Image
-                  src={CONSOLE_PREVIEW}
-                  alt="Hearst Connect administration console preview"
-                  width={2432}
-                  height={1442}
-                  className="w-full"
-                  priority
-                />
-              </div>
-            </div>
+          <div className="mx-auto mt-16 w-full max-w-xl sm:mt-24 lg:mt-0 lg:ml-10 lg:max-w-md lg:shrink-0 xl:max-w-xl">
+            <ConsolePreviewShot
+              alt="Hearst Connect administration console preview"
+              className="rounded-xl bg-console-inset shadow-2xl ring-1 ring-console-line"
+              priority
+            />
           </div>
         </div>
       </div>
@@ -271,16 +292,11 @@ export function LandingPage() {
         </div>
         <div className="relative overflow-hidden pt-16">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="overflow-hidden rounded-xl shadow-2xl ring-1 ring-console-line">
-              <Image
-                src={CONSOLE_PREVIEW}
-                alt=""
-                aria-hidden
-                width={2432}
-                height={1442}
-                className="mb-[-12%] w-full"
-              />
-            </div>
+            <ConsolePreviewShot
+              alt=""
+              ariaHidden
+              className="mx-auto mb-[-8%] max-w-5xl rounded-xl shadow-2xl ring-1 ring-console-line"
+            />
             <div aria-hidden="true" className="relative">
               <div className="absolute -inset-x-20 bottom-0 bg-linear-to-t from-console-app pt-[7%]" />
             </div>
