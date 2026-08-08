@@ -246,8 +246,9 @@ export default async function Page() {
               <TableHeader>Valeur totale</TableHeader>
               <TableHeader>Déployé</TableHeader>
               <TableHeader>Disponible</TableHeader>
+              <TableHeader>cbBTC</TableHeader>
               <TableHeader>Stratégies</TableHeader>
-              <TableHeader>Écart d’allocation</TableHeader>
+              <TableHeader>Écart d'allocation</TableHeader>
               <TableHeader>Dernier rééquilibrage</TableHeader>
             </TableRow>
           </TableHead>
@@ -292,6 +293,22 @@ export default async function Page() {
                   </TableCell>
                   <TableCell>
                     <AdminReading value={vaultAmount(vault, idleAtomic(vault))} />
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const cbbtcStrategy = strategies?.find(
+                        (s) => s.label.toLowerCase().includes('btc') || s.pocket.toLowerCase().includes('btc')
+                      )
+                      if (!cbbtcStrategy) return <span className="text-zinc-500">—</span>
+                      const balance = valueOf(cbbtcStrategy.assetsAtomic)
+                      if (balance === null) return <span className="text-zinc-500">—</span>
+                      return (
+                        <div>
+                          <span className="tabular-nums font-medium">{formatNumber(Number(balance) / 1e8, { maximumFractionDigits: 4 })}</span>
+                          <span className="text-xs text-zinc-500 ml-1">cbBTC</span>
+                        </div>
+                      )
+                    })()}
                   </TableCell>
                   <TableCell>
                     {!isAvailable(vault.strategies) ? (
