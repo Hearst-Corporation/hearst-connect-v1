@@ -36,6 +36,20 @@ describe('admin dashboard — truth contract (HC-023)', () => {
     expect(formatEventAtomic('2000000', 'cbBTC', scale)).toBe('2000000 cbBTC')
   })
 
+  // HC-028 P1-1 regression: operations + clients directory must render atomic amounts
+  // through the scale-aware formatters, never with a blind hardcoded 6-decimal divisor.
+  it('operations page does not hardcode fromAtomic 1e6 and uses the scale formatter', () => {
+    const source = readFileSync(root('src/app/admin/operations/page.tsx'), 'utf8')
+    expect(source).not.toMatch(/fromAtomic:\s*1_?000_?000/)
+    expect(source).toContain('formatEventAtomic(event.amountAtomic, event.asset, assetScale)')
+  })
+
+  it('clients directory does not hardcode fromAtomic 1e6 and uses the scale formatter', () => {
+    const source = readFileSync(root('src/components/admin/clients-directory.tsx'), 'utf8')
+    expect(source).not.toMatch(/fromAtomic:\s*1_?000_?000/)
+    expect(source).toContain('formatAdminAtomic(client.currentExposureAtomic, assetScale)')
+  })
+
   it('data health grid keys by stable backend key', () => {
     const source = readFileSync(root('src/components/admin/dashboard/data-health-grid.tsx'), 'utf8')
     expect(source).toMatch(/byKey/)

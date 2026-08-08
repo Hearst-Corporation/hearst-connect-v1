@@ -18,7 +18,8 @@ import {
   type AdminRebalancingSummary,
 } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
-import { formatCurrency, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
+import { formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
+import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import { editorial, isAvailable, type Availability } from '@/lib/vaults/model'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import {
@@ -189,7 +190,7 @@ function RebalancingSection({
 
 export default async function Page() {
   await requireSession()
-  const { rebalancing, recentActivity } = await loadAdminOperationsSurface()
+  const { rebalancing, recentActivity, assetScale } = await loadAdminOperationsSurface()
 
   const attention = isAvailable(rebalancing) ? attentionCount(rebalancing.value) : null
   const indexerStatus = isAvailable(rebalancing) ? rebalancing.value.indexerStatus : null
@@ -287,7 +288,7 @@ export default async function Page() {
                       <Badge color={statusBadgeColor(event.status)}>{event.status}</Badge>
                     </TableCell>
                     <TableCell className="tabular-nums">
-                      {formatCurrency(event.amountAtomic, { fromAtomic: 1_000_000 })}
+                      {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-fg-tertiary">
                       {event.txHash ? formatHash(event.txHash) : '—'}

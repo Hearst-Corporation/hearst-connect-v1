@@ -12,7 +12,8 @@ import {
 } from '@/components/catalyst/table'
 import { DataTableShell } from '@/components/compositions'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
-import { formatAddress, formatCurrency, formatDateTime } from '@/lib/format'
+import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import { formatAddress, formatDateTime } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { useMemo, useState } from 'react'
 
@@ -81,7 +82,8 @@ function kycBadgeColor(status: string): 'lime' | 'amber' | 'red' | 'neutral' {
 
 export function ClientsDirectory({
   clients,
-}: Readonly<{ clients: readonly AdminRecentClient[] }>) {
+  assetScale,
+}: Readonly<{ clients: readonly AdminRecentClient[]; assetScale: AdminAssetScale | null }>) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<FilterId>('all')
 
@@ -160,7 +162,9 @@ export function ClientsDirectory({
                     <div className="font-mono text-xs text-fg-tertiary">{client.id}</div>
                   </TableCell>
                   <TableCell className="tabular-nums">
-                    {formatCurrency(client.currentExposureAtomic, { fromAtomic: 1_000_000 })}
+                    {assetScale
+                      ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
+                      : '—'}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-fg-tertiary">
                     {client.vaultIds.length > 0
