@@ -4,19 +4,19 @@ Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
 **Landing `/`** — vitrine marketing (HC-LANDING-REFRESH-027, 2026-08-08). Structure Tailwind Plus
-adaptée Hearst : navbar → hero split + aperçu console → domaines → 3 features → plateforme +
-screenshot → doctrine 3 piliers → CTA → footer. **Server component** (`landing-page.tsx`) — pas de
-scroll hijack, pas de métriques inventées.
+adaptée Hearst : navbar → hero centré (copy + CTA) → domaines → 3 features → plateforme (6 points) →
+doctrine 3 piliers → CTA → footer. **Sans screenshots placeholder** — assets définitifs à intégrer plus tard.
+Server component (`landing-page.tsx`) — pas de scroll hijack, pas de métriques inventées.
 
 Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` (sticky, blur, filet bas) · `main` · `SiteFooter` · `bg-console-app`.
 Composition : `src/app/(marketing)/page.tsx` → `src/components/marketing/landing-page.tsx`.
 
 | # | Section | Fichier |
 |---|---------|---------|
-| 1 | **Hero** split ≈50/50 + screenshot | `landing-page.tsx` |
+| 1 | **Hero** centré (copy + CTA) | `landing-page.tsx` |
 | 2 | **Domaines** (badges Access · Vaults · …) | `landing-page.tsx` |
 | 3 | **Features** (3 colonnes) | `landing-page.tsx` · `section-intro.tsx` |
-| 4 | **Plateforme** (screenshot + 6 points) | `landing-page.tsx` |
+| 4 | **Plateforme** (6 points) | `landing-page.tsx` |
 | 5 | **Doctrine** (3 piliers) | `landing-page.tsx` |
 | 6 | **CTA** → `/login` · `/register` | `closing-cta.tsx` |
 

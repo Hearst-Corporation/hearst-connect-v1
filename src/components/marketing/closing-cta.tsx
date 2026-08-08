@@ -1,23 +1,21 @@
-import { CONSOLE_GLOW_SRC } from '@/lib/brand'
-import Image from 'next/image'
 import Link from 'next/link'
 
-/** Act 4 — Closing CTA. Brand mint glow watermark with console-app veil for contrast. */
+/** Closing CTA — mint radial glow via CSS tokens, no placeholder image. */
 export function ClosingCta() {
   return (
     <section
       aria-labelledby="cta-heading"
       className="relative isolate overflow-hidden border-t border-console-line-soft bg-console-app"
     >
-      <Image
-        src={CONSOLE_GLOW_SRC}
-        alt=""
+      <div
         aria-hidden
-        fill
-        sizes="100vw"
-        className="pointer-events-none absolute inset-0 -z-10 object-cover opacity-40"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            'radial-gradient(55% 45% at 50% 40%, color-mix(in oklab, var(--color-accent-400) 22%, transparent), transparent 70%)',
+        }}
       />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-console-app/70" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-console-app/75" aria-hidden />
 
       <div className="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center md:py-32">
         <h2
