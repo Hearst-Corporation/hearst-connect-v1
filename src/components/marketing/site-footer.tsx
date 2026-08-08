@@ -1,26 +1,16 @@
 import { Logo } from '@/components/logo'
+import { LOGIN_HREF, REGISTER_HREF } from '@/components/marketing/landing-content'
 import Link from 'next/link'
 
-const pages = [
-  { title: 'Console', href: '/login' },
-  { title: 'Request access', href: '/register' },
+const footerLinks = [
+  { title: 'Sign in', href: LOGIN_HREF },
+  { title: 'Request access', href: REGISTER_HREF },
   { title: 'Hearst Corporation', href: 'https://hearstcorporation.io' },
-]
-
-const socials = [
   { title: 'Contact us', href: 'mailto:connect@hearstcorporation.io' },
   { title: 'Security', href: 'mailto:security@hearstcorporation.io' },
-]
-
-const legal = [
   { title: 'Privacy', href: 'mailto:connect@hearstcorporation.io' },
   { title: 'Terms', href: 'mailto:connect@hearstcorporation.io' },
-]
-
-const register = [
-  { title: 'Create an account', href: '/register' },
-  { title: 'Sign in', href: '/login' },
-]
+] as const
 
 /** Marketing footer — watermark "Connect" background, menus on top. */
 export function SiteFooter() {
@@ -43,36 +33,18 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-4 md:gap-16">
-          <FooterColumn title="Pages" links={pages} />
-          <FooterColumn title="Contact" links={socials} />
-          <FooterColumn title="Legal" links={legal} />
-          <FooterColumn title="Account" links={register} />
-        </div>
+        <nav aria-label="Footer">
+          <ul className="grid grid-cols-2 gap-x-10 gap-y-3 sm:grid-cols-3 md:gap-x-16">
+            {footerLinks.map((link) => (
+              <li key={link.title}>
+                <Link href={link.href} className="text-white/60 transition-colors hover:text-white">
+                  {link.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </footer>
-  )
-}
-
-function FooterColumn({
-  title,
-  links,
-}: Readonly<{
-  title: string
-  links: ReadonlyArray<{ title: string; href: string }>
-}>) {
-  return (
-    <div className="flex flex-col space-y-4">
-      <p className="font-bold text-white">{title}</p>
-      <ul className="space-y-3">
-        {links.map((link) => (
-          <li key={link.title}>
-            <Link href={link.href} className="text-white/60 transition-colors hover:text-white">
-              {link.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }

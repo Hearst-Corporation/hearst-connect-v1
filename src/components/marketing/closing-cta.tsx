@@ -1,11 +1,13 @@
-import Link from 'next/link'
+import { LOGIN_HREF, REGISTER_HREF } from '@/components/marketing/landing-content'
+import { MarketingPrimaryLinkWide, MarketingSecondaryLink } from '@/components/marketing/marketing-cta'
+import { marketingSection } from '@/components/marketing/marketing-styles'
 
-/** Closing CTA — mint radial glow via CSS tokens, no placeholder image. */
+/** Closing CTA — mint radial glow via CSS tokens. */
 export function ClosingCta() {
   return (
     <section
       aria-labelledby="cta-heading"
-      className="relative isolate overflow-hidden border-t border-console-line-soft bg-console-app"
+      className={`relative isolate overflow-hidden ${marketingSection}`}
     >
       <div
         aria-hidden
@@ -29,18 +31,10 @@ export function ClosingCta() {
           from the first view to the last.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/login"
-            className="rounded-md bg-accent-400 px-4 py-2.5 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300"
-          >
-            Open the console
-          </Link>
-          <Link
-            href="/register"
-            className="text-sm/6 font-semibold text-white transition-colors hover:text-accent-300"
-          >
+          <MarketingPrimaryLinkWide href={LOGIN_HREF}>Open the console</MarketingPrimaryLinkWide>
+          <MarketingSecondaryLink href={REGISTER_HREF}>
             Request access <span aria-hidden="true">→</span>
-          </Link>
+          </MarketingSecondaryLink>
         </div>
       </div>
     </section>

@@ -2,8 +2,7 @@ import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
 
 /**
- * Shared marketing section header — mint eyebrow + title + subtitle.
- * Single rhythm for the Proof and Features acts (one title grammar).
+ * Shared marketing section header — mint eyebrow + title + optional accent + subtitle.
  */
 export function SectionIntro({
   id,
