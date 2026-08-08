@@ -50,7 +50,7 @@ export const chartTheme = {
   tooltipDark: {
     bg: 'var(--chart-tooltip-surface, var(--color-console-raised))',
     border: 'color-mix(in oklab, var(--color-white) 10%, transparent)',
-    title: 'var(--color-white)',
+    title: 'var(--color-fg)',
     body: 'var(--color-fg-secondary)',
   },
 

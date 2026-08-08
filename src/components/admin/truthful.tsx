@@ -1,4 +1,5 @@
 import { surfaceInset } from '@/components/admin/surface'
+import { ADMIN_TONE_CLASS, type AdminBadgeTone } from '@/components/admin/status-tone'
 import { formatDateTime, formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
@@ -12,9 +13,7 @@ import clsx from 'clsx'
  * requalify a status. `SIMULATED` only exists if the backend said so.
  */
 
-type BadgeTone = 'ok' | 'warn' | 'bad' | 'info' | 'neutral'
-
-const STATUS_TONE: Record<ResolvedStatus | 'SNAPSHOT', BadgeTone> = {
+const STATUS_TONE: Record<ResolvedStatus | 'SNAPSHOT', AdminBadgeTone> = {
   LIVE: 'ok',
   SNAPSHOT: 'info',
   STALE: 'warn',
@@ -42,14 +41,6 @@ const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
   ERROR: 'Error',
 }
 
-const TONE_CLASS: Record<BadgeTone, string> = {
-  ok: 'bg-success-400/15 text-success-400 ring-success-400/30',
-  warn: 'bg-warning-400/15 text-warning-400 ring-warning-400/30',
-  bad: 'bg-danger-400/20 text-danger-400 ring-danger-400/40',
-  info: 'bg-white/5 text-fg ring-console-line-strong',
-  neutral: 'bg-white/5 text-fg-secondary ring-console-line-strong',
-}
-
 export function StatusBadge({
   status,
   className,
@@ -59,7 +50,7 @@ export function StatusBadge({
       className={clsx(
         className,
         'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-        TONE_CLASS[STATUS_TONE[status]],
+        ADMIN_TONE_CLASS[STATUS_TONE[status]],
       )}
     >
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
@@ -116,7 +107,7 @@ export function ResolvedValue({
   }
 
   return (
-    <span className={clsx(className, 'tabular-nums text-ink dark:text-fg')}>
+    <span className={clsx(className, 'tabular-nums text-fg')}>
       {typeof value === 'number' ? formatNumber(value) : value}
       {unit ? <span className="ml-1 text-fg-tertiary">{unit}</span> : null}
     </span>
@@ -143,7 +134,7 @@ function StateShell({
   return (
     <div className={clsx(surfaceInset, 'border border-dashed border-console-line px-5 py-8 text-center')}>
       <StatusBadge status={status} />
-      <p className="mt-3 text-sm font-medium text-white">{title}</p>
+      <p className="mt-3 text-sm font-medium text-fg">{title}</p>
       {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-fg-secondary">{reason}</p> : null}
       {children}
     </div>
@@ -176,7 +167,7 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
       {problem ? (
         <>
           <dt className="text-fg-tertiary">Code</dt>
-          <dd className="font-mono text-white">{problem.code}</dd>
+          <dd className="font-mono text-fg">{problem.code}</dd>
           <dt className="text-fg-tertiary">Title</dt>
           <dd className="text-fg">{problem.title}</dd>
           <dt className="text-fg-tertiary">Detail</dt>
@@ -188,11 +179,11 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
       {keeper ? (
         <>
           <dt className="text-fg-tertiary">Reason</dt>
-          <dd className="font-mono text-ink dark:text-fg">{keeper.reason}</dd>
+          <dd className="font-mono text-fg">{keeper.reason}</dd>
           {keeper.detail ? (
             <>
               <dt className="text-fg-tertiary">Detail</dt>
-              <dd className="text-fg-muted dark:text-fg">{keeper.detail}</dd>
+              <dd className="text-fg">{keeper.detail}</dd>
             </>
           ) : null}
         </>

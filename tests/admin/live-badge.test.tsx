@@ -9,7 +9,8 @@ describe('Live badge / three states', () => {
     render(<AdminReading value={available('127', { provenance: 'indexed' })} />)
     const badge = screen.getByText('Live')
     expect(badge.closest('[data-live-badge]')).not.toBeNull()
-    expect(badge.className).toMatch(/green/)
+    expect(badge.className).toMatch(/success-/)
+    expect(badge.className).not.toMatch(/green-|lime-/)
   })
 
   it('Reading shows the badge for a LIVE reading', () => {

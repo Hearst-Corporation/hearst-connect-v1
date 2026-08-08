@@ -1,6 +1,6 @@
 import { AdminLabel } from '@/components/admin/typography'
 import { RequirementList, surfaceInset } from '@/components/admin/surface'
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge } from '@/components/admin/status-tone'
 import { Text } from '@/components/catalyst/text'
 import { Panel, PanelHeader } from '@/components/compositions/panel'
 import { ChartBarIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -79,7 +79,7 @@ function StateVisual({
       >
         <Icon className="size-7" aria-hidden="true" />
       </span>
-      <Badge color={danger ? 'rose' : 'neutral'}>{STATE_LABEL[etat.type]}</Badge>
+      <AdminToneBadge tone={danger ? 'bad' : 'neutral'}>{STATE_LABEL[etat.type]}</AdminToneBadge>
       <Text className="max-w-sm text-sm leading-relaxed text-fg-tertiary dark:text-fg-secondary">{etat.explication}</Text>
       {expectedSource?.length ? (
         <div className="w-full max-w-xs text-left">
@@ -134,7 +134,9 @@ export function ChartFrame({
         <>
           {children}
           <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
-            <Badge color={etat.type === 'unavailable' ? 'rose' : 'neutral'}>{STATE_LABEL[etat.type]}</Badge>
+            <AdminToneBadge tone={etat.type === 'unavailable' ? 'bad' : 'neutral'}>
+              {STATE_LABEL[etat.type]}
+            </AdminToneBadge>
             <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
               {etat.explication}
             </Text>

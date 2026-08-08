@@ -1,6 +1,7 @@
 import { backendStateFrom, backendStateLabel } from '@/lib/backend/reading-state'
 import { motifLisible } from '@/lib/mouvements'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
+import { AdminToneBadge, toneForBackendState } from '@/components/admin/status-tone'
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
 import styles from './console.module.css'
@@ -90,16 +91,14 @@ export function Reading({
   return (
     <span className="inline-flex items-center gap-2">
       <span className={clsx(styles.metricValue, className)}>{value.value}</span>
-      {etat === 'LIVE' ? (
-        <Badge color="green" data-live-badge="">
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
-          {backendStateLabel(etat)}
-        </Badge>
-      ) : (
-        <Badge color={etat === 'ISSUE' ? 'amber' : 'neutral'} data-state-badge="">
-          {backendStateLabel(etat)}
-        </Badge>
-      )}
+      <AdminToneBadge
+        tone={toneForBackendState(etat)}
+        showDot={etat === 'LIVE'}
+        data-live-badge={etat === 'LIVE' ? '' : undefined}
+        data-state-badge={etat === 'LIVE' ? undefined : ''}
+      >
+        {backendStateLabel(etat)}
+      </AdminToneBadge>
     </span>
   )
 }
