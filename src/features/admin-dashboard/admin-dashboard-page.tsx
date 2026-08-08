@@ -103,12 +103,23 @@ export function AdminDashboardPage({
       <DashboardHeader userName={user.name} kpis={kpis} />
 
       {/*
-       * Fluid composition: each row changes structure only when both children
-       * have enough real content width. Between thresholds, minmax() tracks
-       * absorb every intermediate width instead of hard caps / auto columns.
+       * Composition pilotée par le VIEWPORT (lg = 1024px), pas par le container.
+       * Raison : le rail `fixed w-64` n'existe qu'à partir de lg, donc la largeur
+       * du container de chaque row SAUTE de ~295px en franchissant lg. Une
+       * container-query dont le seuil vit dans cette zone de saut se déclenche
+       * dans les DEUX sens → cliff non-monotone 2col→1col→2col→1col (HC-038).
+       * Seuil par row (le viewport croît de façon monotone, donc pas de cliff) :
+       *  - Rows A/D (ratio large 1.85/1) → `xl` (1280px) : au break le contenu
+       *    disponible (viewport − rail − paddings ≈ 856px) suffit aux deux cartes ;
+       *    en-dessous on empile pour éviter le « desktop compressé ».
+       *  - Rows B/C (secondaire plus étroit) → `min-[1152px]` : elles composent un
+       *    cran plus tôt car leur carte secondaire (Market / Recent clients) vit
+       *    bien à ~256px. Seuils indépendants, jamais copiés d'une row à l'autre.
+       *  - En-dessous du seuil : empilé (tablette, mobile, desktop compact au rail).
+       * Les ratios `minmax()` restent fluides À L'INTÉRIEUR de chaque mode.
        */}
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
+      <div className="min-w-0">
+        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
           <DashCard title="Portfolio exposure" subtitle="Where capital is allocated vs target">
             <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
           </DashCard>
@@ -119,8 +130,8 @@ export function AdminDashboardPage({
         </div>
       </div>
 
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
+      <div className="min-w-0">
+        <div className="grid grid-cols-1 items-start gap-4 min-[1152px]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
           <DashCard title="Activity" subtitle="Daily volume · 28 days">
             {showActivityCurve ? (
               <HearstActivityChart points={activityPoints} unite="events" />
@@ -144,8 +155,8 @@ export function AdminDashboardPage({
         </div>
       </div>
 
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
+      <div className="min-w-0">
+        <div className="grid grid-cols-1 items-start gap-4 min-[1152px]:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">
           <DashCard title="Vaults" subtitle="Capital per vault">
             <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
@@ -156,8 +167,8 @@ export function AdminDashboardPage({
         </div>
       </div>
 
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
+      <div className="min-w-0">
+        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.85fr)_minmax(17rem,1fr)]">
           <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
             <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
           </DashCard>

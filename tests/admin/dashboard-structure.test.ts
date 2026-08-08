@@ -85,19 +85,52 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  // HC-ADMIN-FLUID-FLEX-037 — intrinsic tracks, no content-state width caps.
-  it('keeps fluid composed rows without hard width caps or data-dependent grid modes', () => {
+  // HC-ADMIN-RESPONSIVE-REALITY-038 — viewport-driven monotonic composition.
+  //
+  // Root cause of the earlier non-monotonic cliff: rows composed on CONTAINER
+  // width (`@[52rem]` / `@[48rem]`). The sidebar rail is `fixed w-64` only at lg
+  // (≥1024px), so the row container width JUMPS ~295px across that boundary
+  // (680px above lg → 975px just below). Any container threshold inside that
+  // jump zone [680, 975] fires in BOTH directions → the grid snapped
+  // 2col→1col→2col→1col while the window shrank. `0 overflow` / `2col/1col`
+  // point-tests never caught it because they didn't assert MONOTONICITY.
+  //
+  // Fix: bind the column count to the VIEWPORT (which changes monotonically),
+  // not the container. Per-row thresholds keep composition meaningful:
+  //  - Rows A/D (wide 1.85/1 ratio) → `xl` (1280px)
+  //  - Rows B/C (narrower secondary) → `min-[1152px]`
+  // Both are ≥ lg, so below their break the layout is stacked — no container
+  // jump can flip it back. `minmax()` keeps each mode fluid between breaks.
+  it('composes rows on the viewport (monotonic), not the container', () => {
     expect(SOURCE).not.toMatch(/marketSparse|clientsSparse/)
     expect(SOURCE).not.toMatch(/max-w-sm|max-w-3xl|w-\[min\(100%,20rem\)\]/)
     expect(SOURCE).not.toMatch(/grid-cols-\[minmax\(0,1fr\)_minmax\(17rem,auto\)\]/)
-    expect(SOURCE).toMatch(/@\[52rem\]:grid-cols-\[minmax\(0,1\.85fr\)_minmax\(17rem,1fr\)\]/)
-    expect(SOURCE).toMatch(/@\[48rem\]:grid-cols-\[minmax\(0,1\.5fr\)_minmax\(16rem,1fr\)\]/)
+    // No container-query composition: it is the source of the lg-boundary cliff.
+    expect(SOURCE).not.toMatch(/@\[\d+rem\]:grid-cols/)
+    expect(SOURCE).not.toMatch(/@container/)
+    // Rows A/D compose at xl; rows B/C at min-[1152px]. Both ≥ lg → monotonic.
+    expect(SOURCE).toMatch(/xl:grid-cols-\[minmax\(0,1\.85fr\)_minmax\(17rem,1fr\)\]/)
+    expect(SOURCE).toMatch(/min-\[1152px\]:grid-cols-\[minmax\(0,1\.5fr\)_minmax\(16rem,1fr\)\]/)
     expect(SOURCE).toMatch(/title="Activity"/)
     expect(SOURCE).toMatch(/title="Market"/)
     expect(SOURCE).toMatch(/title="Vaults"/)
     expect(SOURCE).toMatch(/title="Recent clients"/)
     expect(SOURCE).toMatch(/title="Recent activity"/)
     expect(SOURCE).toMatch(/title="Data health"/)
+  })
+
+  // Monotonicity guard (the check the point-tests were missing): as the viewport
+  // shrinks 1600→360, no row's column count may INCREASE. Every composition
+  // breakpoint must be ≥ lg (1024) so it never re-fires below the sidebar cliff.
+  it('every row breakpoint is ≥ lg so composition is monotonic across the sidebar cliff', () => {
+    // Collect every responsive grid-cols breakpoint used for row composition.
+    const bpMatches = [...SOURCE.matchAll(/(?:^|\s)((?:xl|lg|md|sm)|min-\[(\d+)px\]):grid-cols-\[minmax/g)]
+    expect(bpMatches.length).toBeGreaterThanOrEqual(4) // four rows
+    const TW: Record<string, number> = { sm: 640, md: 768, lg: 1024, xl: 1280, '2xl': 1536 }
+    for (const m of bpMatches) {
+      const px = m[2] ? Number(m[2]) : TW[m[1] ?? '']
+      expect(px, `breakpoint ${m[1]} must be ≥ lg (1024px) to stay monotonic`).toBeGreaterThanOrEqual(1024)
+    }
   })
 
   it('routes route-level actions through the Hearst actions boundary', () => {
