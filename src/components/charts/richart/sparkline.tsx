@@ -47,6 +47,3 @@ export function RichSparkline({
     </div>
   )
 }
-
-/** Alias de transition — l’ancien nom MUI. */
-export const MuiSparkline = RichSparkline
