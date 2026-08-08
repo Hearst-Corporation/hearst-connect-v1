@@ -85,13 +85,15 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  // HC-ADMIN-FLUID-RESPONSIVE-035 — per-row fluid grids, never sparse→full-width.
-  it('keeps fluid composed rows (minmax tracks, no sparse→col-span-12)', () => {
-    expect(SOURCE).not.toMatch(/marketSparse|clientsSparse/)
+  // HC-ADMIN-LAYOUT-HOLES-036 — sparse panels shrink; timeline/health stack; no col-span-12 bands.
+  it('keeps fluid composed rows with sparse-aware tracks (no full-width bands)', () => {
+    expect(SOURCE).toMatch(/marketSparse/)
+    expect(SOURCE).toMatch(/clientsSparse/)
     expect(SOURCE).not.toMatch(/\? ['"]@\[[\d.]+rem\]:col-span-12['"]/)
-    expect(SOURCE).not.toMatch(/col-span-[0-9]/)
-    expect(SOURCE).toMatch(/@\[52rem\]:grid-cols-\[minmax\(0,1\.85fr\)_minmax\(17rem,1fr\)\]/)
+    expect(SOURCE).not.toMatch(/className=[^>]*col-span-[0-9]/)
+    expect(SOURCE).toMatch(/minmax\(17rem,auto\)/)
     expect(SOURCE).toMatch(/@\[48rem\]:grid-cols-\[minmax\(0,1\.5fr\)_minmax\(16rem,1fr\)\]/)
+    expect(SOURCE).toMatch(/max-w-3xl.*Data health|Data health[\s\S]*max-w-3xl/)
     expect(SOURCE).toMatch(/title="Activity"/)
     expect(SOURCE).toMatch(/title="Market"/)
     expect(SOURCE).toMatch(/title="Vaults"/)
