@@ -36,12 +36,12 @@ import {
 import type { Metadata } from 'next'
 import { IndexerTriggerForm } from './indexer-trigger-form'
 
-export const metadata: Metadata = { title: 'Status du service' }
+export const metadata: Metadata = { title: 'Service' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Status du service — Catalyst pur.
- * Sondes : runtime, health, ready — charge utile telle que renvoyée, sans réécriture.
+ * Service — single technical observability surface (runtime, coverage, probes).
+ * Business pages must not duplicate these diagnostics.
  */
 
 type MatrixRow = {
@@ -68,15 +68,15 @@ function blockDetail(block: number | string | null | undefined): string {
   if (block === null || block === undefined) return '—'
   const numeric = typeof block === 'string' ? Number(block) : block
   if (!Number.isFinite(numeric)) return '—'
-  return `bloc ${formatNumber(numeric)}`
+  return `block ${formatNumber(numeric)}`
 }
 
 function errorsDetail(n: number | null | undefined): string {
   // Une absence de mesure n'est PAS « aucune erreur » : ce libellé est réservé
   // à un zéro réellement mesuré (n === 0). Sans mesure, l'écart reste nommé.
   if (n === null || n === undefined || !Number.isFinite(n)) return '—'
-  if (n > 0) return `${formatNumber(n)} erreur(s)`
-  return 'aucune erreur'
+  if (n > 0) return `${formatNumber(n)} error(s)`
+  return 'no errors'
 }
 
 function intervalDetail(ms: number | null | undefined): string {
@@ -114,19 +114,19 @@ function buildMatrix(input: {
     },
     {
       id: 'contract',
-      label: 'Contrat',
+      label: 'Vault contract',
       status: runtimeMatrixStatus(r?.contractStatus ?? undefined),
       detail: runtimeStatusLabel(r?.contractStatus),
     },
     {
       id: 'indexer',
-      label: 'Indexeur',
+      label: 'Indexer',
       status: runtimeMatrixStatus(r?.indexerStatus ?? undefined),
       detail: blockDetail(scheduler?.lastIndexedBlock),
     },
     {
       id: 'scheduler',
-      label: 'Ordonnanceur',
+      label: 'Scheduler',
       status: runtimeMatrixStatus(scheduler?.status ?? undefined),
       detail: errorsDetail(scheduler?.consecutiveErrors),
     },
@@ -174,7 +174,7 @@ export default async function RuntimePage() {
     },
     {
       id: 'indexer',
-      title: 'Indexeur',
+      title: 'Indexer',
       value: editorial(runtimeStatusLabel(r?.indexerStatus)),
       icon: CpuChipIcon,
     },
@@ -189,18 +189,18 @@ export default async function RuntimePage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Status du service"
-        description="Runtime, health, and ready probes — state declared by the backend, without rewriting."
+        title="Service"
+        description="Technical observability — dependency health, runtime, data coverage, and endpoint status."
         kpis={kpis}
       />
 
       <DataTableShell
-        title="State matrix"
+        title="System overview"
         description="Dependencies and operational probes."
       >
         <TableHead>
           <TableRow>
-            <TableHeader>Composant</TableHeader>
+            <TableHeader>Component</TableHeader>
             <TableHeader>Status</TableHeader>
             <TableHeader>Detail</TableHeader>
           </TableRow>
@@ -217,47 +217,47 @@ export default async function RuntimePage() {
       </DataTableShell>
 
       <SectionCard
-        title="Deployment"
-        hint="Version, environment, and scheduler settings as reported by the runtime probe."
+        title="Runtime"
+        hint="Environment, version, chain, and scheduler as reported by the runtime probe."
       >
       <DescriptionList>
-        <DescriptionTerm>Environnement</DescriptionTerm>
+        <DescriptionTerm>Environment</DescriptionTerm>
         <DescriptionDetails>{r?.environment ?? '—'}</DescriptionDetails>
         <DescriptionTerm>Version</DescriptionTerm>
         <DescriptionDetails>{r?.serviceVersion ?? '—'}</DescriptionDetails>
         <DescriptionTerm>Commit</DescriptionTerm>
         <DescriptionDetails className="font-mono text-sm">{r?.commitSha ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Availability</DescriptionTerm>
+        <DescriptionTerm>Uptime</DescriptionTerm>
         <DescriptionDetails>{formatUptime(r?.uptimeSeconds)}</DescriptionDetails>
-        <DescriptionTerm>Chain</DescriptionTerm>
+        <DescriptionTerm>Chain ID</DescriptionTerm>
         <DescriptionDetails>
           {r?.contract?.chainId === undefined || r.contract.chainId === null ? '—' : String(r.contract.chainId)}
         </DescriptionDetails>
-        <DescriptionTerm>Intervalle de l’indexeur</DescriptionTerm>
+        <DescriptionTerm>Indexer interval</DescriptionTerm>
         <DescriptionDetails>{intervalDetail(scheduler?.intervalMs)}</DescriptionDetails>
       </DescriptionList>
       </SectionCard>
 
-      <SectionCard title="Contrat">
+      <SectionCard title="Vault contract">
       <DescriptionList>
         <DescriptionTerm>Mode</DescriptionTerm>
         <DescriptionDetails>{r?.contract?.mode ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Adresse</DescriptionTerm>
+        <DescriptionTerm>Address</DescriptionTerm>
         <DescriptionDetails className="font-mono text-sm">{r?.contract?.contractAddress ?? '—'}</DescriptionDetails>
         <DescriptionTerm>Code present</DescriptionTerm>
         <DescriptionDetails>
           {r?.contract?.codePresent === undefined || r.contract.codePresent === null
             ? '—'
             : r.contract.codePresent
-              ? 'Oui'
-              : 'Non'}
+              ? 'Yes'
+              : 'No'}
         </DescriptionDetails>
-        <DescriptionTerm>Status du contrat</DescriptionTerm>
+        <DescriptionTerm>Contract status</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
       </DescriptionList>
       </SectionCard>
 
-      <SectionCard title="Ordonnanceur">
+      <SectionCard title="Scheduler">
       <DescriptionList>
         <DescriptionTerm>Status</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
@@ -272,25 +272,22 @@ export default async function RuntimePage() {
 
       <SectionCard
         title="Indexer trigger"
-        hint="POST /api/v1/admin/indexer/trigger — admin only. Ineffective while chain RPC is down."
+        hint="Admin-only write. Ineffective while chain RPC is down."
       >
         <IndexerTriggerForm />
       </SectionCard>
 
       <div className="space-y-4">
         <p className="text-sm text-fg-muted dark:text-fg-secondary">
-          The summary tiles below reflect the state declared by the{' '}
-          <span className="font-mono">/api/v1/dashboard</span> : when that state is unavailable, they
-          show &quot;Unavailable&quot;. Per-surface detail lists fields actually present in
-          the payload, and source activity comes from another read — unavailable summary
-          does not contradict the detailed counts below.
+          Data coverage and source activity below are the canonical technical diagnostics for
+          the console. Business pages no longer repeat these blocks.
         </p>
         <DataCoverageSection compteLabel={session.name} />
       </div>
 
       <SectionCard
         title="Raw responses"
-        hint="Full payload for technical verification — no probe value is rewritten by the frontend."
+        hint="Full probe payloads for technical verification — values are not rewritten by the frontend."
       >
         <div className="space-y-6">
           <div className="space-y-2">
@@ -305,7 +302,7 @@ export default async function RuntimePage() {
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-fg-tertiary">Health (health)</h3>
+            <h3 className="text-sm font-semibold text-fg-tertiary">Health</h3>
             {health.ok ? (
               <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
                 {jsonLisible(health.data)}
@@ -329,9 +326,9 @@ export default async function RuntimePage() {
       </SectionCard>
 
       <Text>
-        Side-effect operations actions:{' '}
+        Side-effect keeper actions:{' '}
         <Link href="/admin/keeper" className="underline">
-          Actions Keeper
+          Keeper
         </Link>
         {' · '}
         <Link href="/admin/api-explorer" className="underline">
