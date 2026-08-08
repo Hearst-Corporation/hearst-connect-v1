@@ -1,11 +1,6 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
-import {
-  DescriptionDetails,
-  DescriptionList,
-  DescriptionTerm,
-} from '@/components/catalyst/description-list'
 import { Text } from '@/components/catalyst/text'
 import {
   TableBody,
@@ -14,17 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { ChartFrame, HearstDonutChart, RichDistributionChart, type DistributionItem, type DonutSlice } from '@/components/charts'
 import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
-import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
-import { VaultStatusBadge } from '@/components/vaults/vault-status-badge'
+import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
-import { etatSourceLisible } from '@/lib/mouvements'
 import {
   combine,
   deployedAtomic,
-  editorial,
   idleAtomic,
   isAvailable,
   measuredCount,
@@ -32,30 +23,15 @@ import {
   valueOf,
   type Availability,
   type Unavailable,
-  type Strategy,
   type Vault,
 } from '@/lib/vaults/model'
 import { activeVaultCount } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
-import {
-  ArchiveBoxIcon,
-  ArrowsRightLeftIcon,
-  BuildingLibraryIcon,
-  SignalIcon,
-} from '@heroicons/react/16/solid'
+import { ArchiveBoxIcon, BuildingLibraryIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Vault registry' }
+export const metadata: Metadata = { title: 'Vaults' }
 export const dynamic = 'force-dynamic'
-
-const ZERO = BigInt(0)
-const BPS = BigInt(10000)
-
-function assetScale(vault: Vault): number | undefined {
-  const asset = valueOf(vault.asset)
-  if (asset === null) return undefined
-  return 10 ** asset.decimals
-}
 
 function vaultAmount(vault: Vault, reading: Availability<string | bigint>): Availability<string> {
   return combine(vault.asset, reading, (asset, raw) =>
@@ -82,85 +58,11 @@ function vaultShortAddress(vault: Vault): string {
   return `chain ${vault.chainId} · ${vault.contractAddress.slice(0, 6)}…${vault.contractAddress.slice(-4)}`
 }
 
-function valueByVaultRows(vaults: Availability<readonly Vault[]>) {
-  const list = valueOf(vaults)
-  if (list === null) return { kind: 'absent' as const, vaults }
-  if (list.length === 0) return { kind: 'empty' as const }
-
-  const measured: { vault: Vault; atomic: bigint }[] = []
-  const unmeasured: Vault[] = []
-  for (const vault of list) {
-    const atomic = valueOf(vault.totalAssetsAtomic)
-    if (atomic === null) unmeasured.push(vault)
-    else measured.push({ vault, atomic: BigInt(atomic) })
-  }
-
-  const ranked = [...measured].sort((a, b) => {
-    if (a.atomic < b.atomic) return 1
-    if (a.atomic > b.atomic) return -1
-    return 0
-  })
-  const total = ranked.reduce((sum, entry) => sum + entry.atomic, ZERO)
-
-  return { kind: 'rows' as const, ranked, unmeasured, total }
-}
-
-/** Converts strategy allocations to donut slices showing actual dollar value.
- *
- * Uses `assetsAtomic` when the backend publishes a real pocket balance that
- * agrees with the strategy's share. Falls back to `totalAssetsAtomic × bps`
- * only when no real balance is available.
- *
- * The vault may hold multiple assets (USDC + cbBTC). `totalAssetsAtomic`
- * tracks the vault's denomination asset; cbBTC is held off-book and reported
- * via `assetsAtomic` on the cbBTC strategy. A bps-based estimate would
- * misattribute cbBTC value, so `assetsAtomic` is preferred.
- */
-function strategySlices(
-  strategies: readonly Strategy[],
-  totalAssetsAtomic: string | null,
-  assetDecimals: number,
-): readonly DonutSlice[] {
-  const total = totalAssetsAtomic !== null ? Number(totalAssetsAtomic) : null
-  const hasTotal = total !== null && Number.isFinite(total) && total > 0
-
-  const scale = 10 ** assetDecimals
-
-  const slices: DonutSlice[] = []
-  let deployedAtomic = 0
-
-  for (const s of strategies) {
-    // Prefer real pocket balance when available
-    const realValue = isAvailable(s.assetsAtomic) ? valueOf(s.assetsAtomic) : null
-    if (realValue !== null) {
-      const n = Number(realValue)
-      if (Number.isFinite(n) && n > 0) {
-        slices.push({ label: s.label, value: Math.round(n / scale) })
-        deployedAtomic += n
-        continue
-      }
-    }
-
-    // Fallback: estimate from totalAssets × bps (only when total AND a real bps are known —
-    // un bps absent ne vaut pas 0, la stratégie est simplement omise de l'estimation).
-    const bps = s.actualBps ?? s.targetBps
-    if (hasTotal && typeof bps === 'number' && bps > 0) {
-      const estimateAtomic = Math.round((total! * bps) / 10_000)
-      if (estimateAtomic > 0) {
-        slices.push({ label: s.label, value: Math.round(estimateAtomic / scale) })
-        deployedAtomic += estimateAtomic
-      }
-    }
-  }
-
-  if (hasTotal) {
-    const idle = Math.round((total! - deployedAtomic) / scale)
-    if (idle > 0) {
-      slices.push({ label: 'Idle / Not deployed', value: idle })
-    }
-  }
-
-  return slices
+function recentActivityLabel(vault: Vault): string | null {
+  if (!isAvailable(vault.lastActivityAt)) return null
+  const iso = vault.lastActivityAt.value
+  if (iso === '') return null
+  return formatRelativeTime(iso)
 }
 
 export default async function Page() {
@@ -168,60 +70,25 @@ export default async function Page() {
   const registry = await loadAdminRegistry(session.name)
   const activeVaults = activeVaultCount(registry.vaults)
   const totalVaults = measuredCount(registry.vaults)
-  const liveSources = editorial(
-    `${registry.sources.filter((source) => source.status === 'LIVE').length} / ${registry.sources.length}`,
-  )
-  const movements = measuredCount(registry.movements)
-
   const vaultList = valueOf(registry.vaults)
-  const breakdown = valueByVaultRows(registry.vaults)
-
-  // Répartition « valeur par coffre » — une distribution triée sur une donnée
-  // RÉELLE par ligne (le total lisible de chaque coffre), pas un compteur
-  // inventé. On ne trace qu'à partir de deux coffres mesurés qui partagent une
-  // même échelle : comparer des montants d'échelles différentes produirait des
-  // barres dans aucune unité. En deçà, le tableau seul reste plus honnête.
-  const breakdownRows = breakdown.kind === 'rows' ? breakdown.ranked : null
-  const comparableScale =
-    breakdownRows !== null && breakdownRows.length >= 2
-      ? breakdownRows.reduce<number | null | undefined>((scale, { vault }) => {
-          if (scale === undefined) return undefined
-          const own = assetScale(vault)
-          if (own === undefined) return undefined
-          if (scale === null) return own
-          return scale === own ? scale : undefined
-        }, null)
-      : undefined
-  const valueDistribution: readonly DistributionItem[] =
-    breakdownRows !== null && comparableScale !== undefined && comparableScale !== null
-      ? breakdownRows.map(({ vault, atomic }) => ({
-          label: vault.label,
-          value: Number(atomic) / comparableScale,
-        }))
-      : []
 
   const kpis: readonly AdminHeroKpi[] = [
     { id: 'active', title: 'Active vaults', value: activeVaults, icon: ArchiveBoxIcon },
     { id: 'listed', title: 'Vaults listed', value: totalVaults, icon: BuildingLibraryIcon },
-    { id: 'live-sources', title: 'Live sources', value: liveSources, icon: SignalIcon },
-    { id: 'movements', title: 'Movements', value: movements, icon: ArrowsRightLeftIcon },
   ]
 
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Vault registry"
-        description="Vault registry read and allocation signals as reported by the service."
+        title="Vaults"
+        description="Vault capital, strategies, drift, and rebalancing status."
         kpis={kpis}
       />
 
       {vaultList === null ? (
-        <SectionCard
-          title="Vaults"
-          hint="Vault registry read and reported allocation drift from the service."
-        >
-          <Callout tone="warning" title="Registry read unavailable">
-            The registry read did not succeed.{' '}
+        <SectionCard title="Vaults" hint="Capital and allocation drift as reported by the service.">
+          <Callout tone="warning" title="Vault read unavailable">
+            The vault read did not succeed.{' '}
             <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
               Data coverage
             </Link>
@@ -230,36 +97,34 @@ export default async function Page() {
       ) : vaultList.length === 0 ? (
         <DataTableShell
           title="Vaults"
-          description="Vault registry read and reported allocation drift from the service."
+          description="Capital and allocation drift as reported by the service."
           calme="The service responded with no vault in the registry."
         />
       ) : (
         <DataTableShell
           title="Vaults"
-          description="Vault registry read and reported allocation drift from the service."
+          description="Capital and allocation drift as reported by the service."
           count={`${formatNumber(vaultList.length)} vault(s)`}
         >
           <TableHead>
             <TableRow>
               <TableHeader>Vault</TableHeader>
-              <TableHeader>Client</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Total value</TableHeader>
+              <TableHeader>AUM</TableHeader>
               <TableHeader>Deployed</TableHeader>
-              <TableHeader>Idle</TableHeader>
-              <TableHeader>cbBTC</TableHeader>
+              <TableHeader>Available</TableHeader>
               <TableHeader>Strategies</TableHeader>
-              <TableHeader>Allocation drift</TableHeader>
+              <TableHeader>Drift</TableHeader>
               <TableHeader>Last rebalance</TableHeader>
+              <TableHeader>Recent activity</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {vaultList.map((vault) => {
-              const client = valueOf(vault.client)
               const strategies = valueOf(vault.strategies)
               const driftBps = valueOf(vault.worstDriftBps)
               const rebalancing = valueOf(vault.rebalancing)
               const deployedBps = valueOf(vault.deployedBps)
+              const activity = recentActivityLabel(vault)
 
               return (
                 <TableRow key={vault.id}>
@@ -267,19 +132,12 @@ export default async function Page() {
                     <Link href={entityHref('vault', vault.id)} className="font-medium">
                       {vault.label}
                     </Link>
-                    <div className="mt-0.5 font-mono text-xs text-fg-tertiary" title={vault.contractAddress}>
+                    <div
+                      className="mt-0.5 font-mono text-xs text-fg-tertiary"
+                      title={vault.contractAddress}
+                    >
                       {vaultShortAddress(vault)}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {!isAvailable(vault.client) ? (
-                      <AdminReading value={absentReading(vault.client)} />
-                    ) : (
-                      <VaultEntityLink kind="client" id={client!.id} label={client!.label} />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <VaultStatusBadge status={vault.status} />
                   </TableCell>
                   <TableCell>
                     <AdminReading value={vaultAmount(vault, vault.totalAssetsAtomic)} />
@@ -288,28 +146,12 @@ export default async function Page() {
                     <AdminReading value={vaultAmount(vault, deployedAtomic(vault))} />
                     {deployedBps === null ? null : (
                       <div className="mt-0.5 text-xs text-fg-tertiary">
-                        {formatPercent(deployedBps, { fromBps: true })} of total
+                        {formatPercent(deployedBps, { fromBps: true })} of AUM
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
                     <AdminReading value={vaultAmount(vault, idleAtomic(vault))} />
-                  </TableCell>
-                  <TableCell>
-                    {(() => {
-                      const cbbtcStrategy = strategies?.find(
-                        (s) => s.label.toLowerCase().includes('btc') || s.pocket.toLowerCase().includes('btc')
-                      )
-                      if (!cbbtcStrategy) return <span className="text-fg-tertiary">—</span>
-                      const balance = valueOf(cbbtcStrategy.assetsAtomic)
-                      if (balance === null) return <span className="text-fg-tertiary">—</span>
-                      return (
-                        <div>
-                          <span className="tabular-nums font-medium">{formatNumber(Number(balance) / 1e8, { maximumFractionDigits: 4 })}</span>
-                          <span className="text-xs text-fg-tertiary ml-1">cbBTC</span>
-                        </div>
-                      )
-                    })()}
                   </TableCell>
                   <TableCell>
                     {!isAvailable(vault.strategies) ? (
@@ -336,6 +178,15 @@ export default async function Page() {
                       </span>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {!isAvailable(vault.lastActivityAt) ? (
+                      <AdminReading value={absentReading(vault.lastActivityAt)} />
+                    ) : activity === null ? (
+                      <span className="text-fg-tertiary">Not reported</span>
+                    ) : (
+                      <span className="tabular-nums">{activity}</span>
+                    )}
+                  </TableCell>
                 </TableRow>
               )
             })}
@@ -343,164 +194,13 @@ export default async function Page() {
         </DataTableShell>
       )}
 
-      {/* ── Répartition des stratégies par coffre ─────────────────────────── */}
-      {vaultList !== null && vaultList.length > 0 && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {vaultList.map((vault) => {
-            const strategies = valueOf(vault.strategies)
-            const hasStrategies = isAvailable(vault.strategies) && strategies !== null && strategies.length > 0
-            const totalAssets = valueOf(vault.totalAssetsAtomic)
-            const asset = valueOf(vault.asset)
-            const assetDecimals = asset?.decimals ?? 6
-            const slices = hasStrategies ? strategySlices(strategies, totalAssets, assetDecimals) : []
-            const assetSymbol = asset?.symbol ?? ''
-            return (
-              <ChartFrame
-                key={vault.id}
-                question={`Strategy breakdown — ${vault.label}`}
-                unite={`value in ${assetSymbol}`}
-                expectedSource={['GET /api/v1/vault/strategies']}
-                etat={
-                  hasStrategies
-                    ? slices.length > 0
-                      ? { type: 'plotted' }
-                      : { type: 'empty', explication: 'Strategies are listed but none carry a readable allocation.' }
-                    : { type: 'pending', explication: 'No strategy was read for this vault.' }
-                }
-              >
-                {slices.length > 0 ? (
-                  <HearstDonutChart slices={slices} unit={assetSymbol} />
-                ) : null}
-              </ChartFrame>
-            )
-          })}
-        </div>
-      )}
-
-      {breakdown.kind === 'absent' ? (
-        <SectionCard title="Value by vault">
-          <Callout tone="warning" title="Vault read unavailable">
-            The vault read did not succeed.{' '}
-            <Link href={entityHref('source', 'vault')}>Data coverage</Link>
-          </Callout>
-        </SectionCard>
-      ) : breakdown.kind === 'empty' ? (
-        <DataTableShell title="Value by vault" calme="The service responded with no vault." />
-      ) : breakdown.ranked.length === 0 ? (
-        <SectionCard
-          title="Value by vault"
-          hint="The registry lists vaults, but none carried a readable total."
-        >
-          {breakdown.unmeasured.map((vault) => (
-            <p key={vault.id} className="mt-2">
-              {vault.label} —{' '}
-              {!isAvailable(vault.totalAssetsAtomic) ? (
-                <AdminReading value={absentReading(vault.totalAssetsAtomic)} />
-              ) : null}
-            </p>
-          ))}
-        </SectionCard>
-      ) : (
-        <DataTableShell
-          title="Value by vault"
-          description={`Readable total: ${formatCurrency(breakdown.total.toString(), {
-            fromAtomic: assetScale(breakdown.ranked[0].vault),
-          })}`}
-          count={`${formatNumber(breakdown.ranked.length)} measured vault(s)`}
-        >
-          <TableHead>
-            <TableRow>
-              <TableHeader>Vault</TableHeader>
-              <TableHeader>Value</TableHeader>
-              <TableHeader>Share of total</TableHeader>
-              <TableHeader>Status</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {breakdown.ranked.map(({ vault, atomic }) => {
-              const percent =
-                breakdown.total > ZERO ? Number((atomic * BPS) / breakdown.total) / 100 : null
-              return (
-                <TableRow key={vault.id}>
-                  <TableCell>
-                    <Link href={entityHref('vault', vault.id)} className="font-medium">
-                      {vault.label}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="tabular-nums">
-                    {formatCurrency(atomic.toString(), { fromAtomic: assetScale(vault) })}
-                  </TableCell>
-                  <TableCell>{percent === null ? '—' : formatPercent(percent)}</TableCell>
-                  <TableCell>
-                    <VaultStatusBadge status={vault.status} />
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </DataTableShell>
-      )}
-      {breakdown.kind === 'rows' && breakdown.ranked.length > 0 && breakdown.unmeasured.length > 0 ? (
-        <Callout tone="info">
-          Excluded from total: {formatNumber(breakdown.unmeasured.length)} unreadable vault(s).
-        </Callout>
-      ) : null}
-
-      <ChartFrame
-        question="How is value distributed across vaults?"
-        unite="readable value, per vault"
-        expectedSource={['GET /api/v1/vault']}
-        etat={
-          breakdown.kind === 'absent'
-            ? { type: 'unavailable', explication: 'The vault read did not succeed.' }
-            : valueDistribution.length >= 2
-              ? { type: 'plotted' }
-              : {
-                  type: 'empty',
-                  explication:
-                    'Distribution is plotted only from two measured vaults sharing the same denomination — otherwise the table remains the most honest read.',
-                }
-        }
-      >
-        {valueDistribution.length >= 2 ? (
-          <RichDistributionChart items={valueDistribution} unit="value" />
-        ) : null}
-      </ChartFrame>
-
-      <DataTableShell
-        title="Source activity"
-        count={`${formatNumber(registry.sources.length)} source(s)`}
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader>Source</TableHeader>
-            <TableHeader>Status</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {registry.sources.map((source) => (
-            <TableRow key={source.endpointId}>
-              <TableCell>{source.label}</TableCell>
-              <TableCell>{etatSourceLisible(source.status)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
-
-      <SectionCard title="Data contract" eyebrow="Registry">
-        <DescriptionList>
-          <DescriptionTerm>Registry endpoint</DescriptionTerm>
-          <DescriptionDetails className="font-mono text-sm">GET /api/v1/vault</DescriptionDetails>
-          <DescriptionTerm>Threshold</DescriptionTerm>
-          <DescriptionDetails>Console threshold ±2.00 pt</DescriptionDetails>
-          <DescriptionTerm>Navigation</DescriptionTerm>
-          <DescriptionDetails>Detail pages at `/admin/vaults/{'{vaultId}'}`</DescriptionDetails>
-          <DescriptionTerm>Principle</DescriptionTerm>
-          <DescriptionDetails>
-            No fallback count when a source is unavailable.
-          </DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
+      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+        Source health and endpoint coverage:{' '}
+        <Link href="/admin/runtime" className="underline">
+          Service
+        </Link>
+        .
+      </Text>
     </div>
   )
 }

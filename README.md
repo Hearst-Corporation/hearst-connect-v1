@@ -62,7 +62,8 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 | Route | Role |
 |---|---|
 | `/admin` | **Dashboard** — KPIs, portfolio exposure, rebalancing, activity, market, vaults, recent clients, data health |
-| `/admin/clients`, `/admin/compliance`, `/admin/vaults`, `/admin/operations`, `/admin/series-1`, `/admin/runtime`, `/admin/product` | Business pages — same `AdminPageHeader` pattern |
+| `/admin/vaults`, `/admin/vaults/[vaultId]` | **Vaults** — AUM, deployed, available capital, strategies, exposure, target, drift, last rebalance, recent activity (no source panels; Service hub for coverage) |
+| `/admin/clients`, `/admin/compliance`, `/admin/operations`, `/admin/series-1`, `/admin/runtime`, `/admin/product` | Business pages — same `AdminPageHeader` pattern |
 
 **Navigation** (`src/lib/admin-nav.ts`): sidebar **Dashboard · Vaults · Clients · Compliance · Operations**; hubs **Series 1 journal · Product · Service**. Legacy `/admin/conformite` and `/admin/produit` redirect to English routes.
 
