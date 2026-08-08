@@ -1,8 +1,8 @@
 import { ClosingCta } from '@/components/marketing/closing-cta'
 import { SectionIntro } from '@/components/marketing/section-intro'
+import { cn } from '@/lib/utils'
 import {
   ArrowPathIcon,
-  ChevronRightIcon,
   DocumentTextIcon,
   FingerPrintIcon,
   KeyIcon,
@@ -11,7 +11,37 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/react/20/solid'
 import { Squares2X2Icon, UsersIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 import Link from 'next/link'
+
+const CONSOLE_PREVIEW = '/brand/console-preview.png'
+
+function ConsolePreviewShot({
+  alt,
+  className,
+  priority = false,
+  ariaHidden = false,
+}: Readonly<{
+  alt: string
+  className?: string
+  priority?: boolean
+  ariaHidden?: boolean
+}>) {
+  return (
+    <div className={cn('relative aspect-16/10 w-full overflow-hidden', className)}>
+      <Image
+        src={CONSOLE_PREVIEW}
+        alt={alt}
+        fill
+        sizes="(max-width: 1024px) 100vw, 36rem"
+        className="object-cover object-left-top"
+        priority={priority}
+        aria-hidden={ariaHidden}
+        draggable={false}
+      />
+    </div>
+  )
+}
 
 const primaryFeatures = [
   {
@@ -123,14 +153,14 @@ function HeroGlow() {
   return (
     <div
       aria-hidden="true"
-      className="absolute top-10 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl lg:top-24"
+      className="absolute top-10 left-[calc(50%-4rem)] -z-10 transform-gpu blur-3xl sm:left-[calc(50%-18rem)] lg:top-[calc(50%-30rem)] lg:left-48 xl:left-[calc(50%-24rem)]"
     >
       <div
         style={{
           clipPath:
             'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
         }}
-        className="aspect-1108/632 w-72 bg-linear-to-r from-accent-300/20 to-accent-600/15 opacity-80 sm:w-96"
+        className="aspect-1108/632 w-72 bg-linear-to-r from-accent-300/25 to-accent-600/20 opacity-80 sm:w-96"
       />
     </div>
   )
@@ -138,7 +168,7 @@ function HeroGlow() {
 
 /**
  * Hearst Connect landing — Tailwind Plus structure, Hearst tokens and copy.
- * No placeholder screenshots until final brand assets are ready.
+ * Server component: no scroll hijack, no invented metrics.
  */
 export function LandingPage() {
   return (
@@ -147,43 +177,43 @@ export function LandingPage() {
         <HeroGridPattern id="landing-hero-grid" />
         <HeroGlow />
 
-        <div className="mx-auto max-w-3xl px-6 pt-10 pb-24 text-center sm:pb-32 lg:px-8 lg:py-32">
-          <p className="text-xs font-medium tracking-[0.2em] text-accent-300 uppercase">Hearst Connect</p>
-          <div className="mt-10 sm:mt-14 lg:mt-8">
-            <Link href="/login" className="inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-              <span className="rounded-full bg-accent-400/10 px-3 py-1 text-sm/6 font-semibold text-accent-300 ring-1 ring-accent-400/25 ring-inset">
-                Admin console
-              </span>
-              <span className="inline-flex items-center space-x-2 text-sm/6 font-medium text-white/60">
-                <span>Open your workspace</span>
-                <ChevronRightIcon aria-hidden="true" className="size-5 text-white/40" />
-              </span>
-            </Link>
+        <div className="mx-auto max-w-7xl px-6 pt-10 pb-24 sm:pb-32 lg:flex lg:items-center lg:gap-x-12 lg:px-8 lg:py-32 xl:gap-x-16">
+          <div className="mx-auto max-w-2xl shrink-0 lg:mx-0">
+            <p className="text-xs font-medium tracking-[0.2em] text-fg-tertiary uppercase">Hearst</p>
+            <h1 className="mt-6 text-5xl font-semibold tracking-tight text-pretty sm:text-6xl lg:text-7xl">
+              <span className="text-white">One sign-in </span>
+              <span className="text-accent-300">for all your Hearst workspaces</span>
+            </h1>
+            <p className="mt-8 text-lg font-medium text-pretty text-white/50 sm:text-xl/8">
+              One administration console for identities, permissions, and access logs. Values are
+              read from the Hearst backend on Railway — an absence stays an absence.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <Link
+                href="/login"
+                className="rounded-md bg-accent-400 px-3.5 py-2.5 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+              >
+                Open the console
+              </Link>
+              <Link href="/register" className="text-sm/6 font-semibold text-white transition-colors hover:text-accent-300">
+                Request access <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+            <p className="mt-6 text-xs text-white/40">For Hearst workspace owners and administrators only.</p>
           </div>
-          <h1 className="mt-10 text-5xl font-semibold tracking-tight text-balance text-white sm:text-6xl lg:text-7xl">
-            One sign-in for all your Hearst workspaces
-          </h1>
-          <p className="mt-8 text-lg font-medium text-pretty text-white/50 sm:text-xl/8">
-            Identities, permissions, and access logs in one place. Every value comes from the Hearst
-            backend — an absence stays an absence.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
-            <Link
-              href="/login"
-              className="rounded-md bg-accent-400 px-3.5 py-2.5 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-            >
-              Open the console
-            </Link>
-            <Link href="/register" className="text-sm/6 font-semibold text-white transition-colors hover:text-accent-300">
-              Request access <span aria-hidden="true">→</span>
-            </Link>
+
+          <div className="mx-auto mt-16 w-full max-w-xl sm:mt-20 lg:mt-0 lg:max-w-md lg:shrink-0 xl:max-w-xl">
+            <ConsolePreviewShot
+              alt="Hearst Connect administration console preview"
+              className="rounded-xl bg-console-inset shadow-2xl ring-1 ring-console-line"
+              priority
+            />
           </div>
-          <p className="mt-6 text-xs text-white/40">For Hearst workspace owners and administrators only.</p>
         </div>
       </div>
 
-      <section aria-labelledby="domains-heading" className="border-t border-console-line-soft bg-console-app">
-        <div className="mx-auto mt-8 max-w-7xl px-6 sm:mt-16 lg:px-8">
+      <section aria-labelledby="domains-heading" className="border-t border-console-line-soft bg-console-app pb-16 sm:pb-20">
+        <div className="mx-auto max-w-7xl px-6 pt-16 sm:pt-20 lg:px-8">
           <h2 id="domains-heading" className="text-center text-lg/8 font-semibold text-white">
             One console across Hearst workspace domains
           </h2>
@@ -203,7 +233,7 @@ export function LandingPage() {
         aria-labelledby="features-heading"
         className="border-t border-console-line-soft bg-console-app"
       >
-        <div className="mx-auto mt-32 max-w-7xl px-6 sm:mt-40 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
           <SectionIntro
             id="features-heading"
             align="center"
@@ -211,7 +241,7 @@ export function LandingPage() {
             title="Everything you need to govern Hearst workspaces"
             sub="Access, vaults, and compliance on one Railway-backed surface — readable roles, attributable audit, strict data doctrine."
           />
-          <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+          <div className="mx-auto mt-16 max-w-2xl lg:mt-20 lg:max-w-none">
             <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
               {primaryFeatures.map((feature) => (
                 <div key={feature.name} className="flex flex-col">
@@ -239,8 +269,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section aria-labelledby="platform-heading" className="mt-32 border-t border-console-line-soft bg-console-app sm:mt-48">
-        <div className="mx-auto max-w-7xl px-6 pb-24 lg:px-8 lg:pb-32">
+      <section aria-labelledby="platform-heading" className="border-t border-console-line-soft bg-console-app">
+        <div className="mx-auto max-w-7xl px-6 pt-24 sm:pt-32 lg:px-8">
           <SectionIntro
             id="platform-heading"
             align="center"
@@ -248,6 +278,20 @@ export function LandingPage() {
             title="Built for production governance"
             sub="Session security, backend veracity, and an audit trail you can trust — not a demo shell with invented numbers."
           />
+        </div>
+        <div className="relative overflow-hidden pt-12 sm:pt-16">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <ConsolePreviewShot
+              alt=""
+              ariaHidden
+              className="mx-auto max-w-5xl rounded-xl shadow-2xl ring-1 ring-console-line"
+            />
+            <div aria-hidden="true" className="relative">
+              <div className="absolute -inset-x-20 bottom-0 bg-linear-to-t from-console-app pt-[7%]" />
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto max-w-7xl px-6 pb-24 sm:pb-32 lg:px-8">
           <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 text-white/50 sm:mt-20 sm:grid-cols-2 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
             {secondaryFeatures.map((feature) => (
               <div key={feature.name} className="relative pl-9">
