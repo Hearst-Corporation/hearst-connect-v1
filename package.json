@@ -25,7 +25,8 @@
     "check:no-zinc": "node scripts/check-no-zinc.mjs",
     "check:ds": "node scripts/check-design-system.mjs",
     "check:ui": "node scripts/check-ui-boundaries.mjs",
-    "check:english-ui": "node scripts/check-english-ui.mjs"
+    "check:english-ui": "node scripts/check-english-ui.mjs",
+    "check:guardrails": "pnpm run check:no-gpu1 && pnpm run check:no-zinc && pnpm run check:english-ui && pnpm run check:mocks && pnpm run check:truthful-data && pnpm run check:ds && pnpm run check:ui"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

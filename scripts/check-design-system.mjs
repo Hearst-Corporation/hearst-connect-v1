@@ -5,7 +5,7 @@
  * Doctrine : l'accent, les surfaces et les états vivent dans UNE source de
  * tokens (`src/styles/tailwind.css`, `@theme`). Une route ou un module métier
  * ne doit pas poser une couleur littérale (hex brut). Les paliers Tailwind
- * structurels sont INTERDITS — gate dédiée `check:no-zinc`
+ * structurels (slate|gray|neutral) sont INTERDITS — gate dédiée `check:no-zinc`
  * (`.cursor/rules/50-no-zinc.mdc`). Cette gate-ci ne traite que le hex brut
  * hors `var(--token, #fallback)`.
  *
