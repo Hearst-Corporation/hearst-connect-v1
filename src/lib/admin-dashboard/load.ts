@@ -240,3 +240,43 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     dataHealth,
   }
 }
+
+/**
+ * Client directory for `/admin/clients` — same backend read model as the
+ * dashboard strip, with a higher limit for the operating surface.
+ */
+export async function loadAdminClientsDirectory(
+  limit = 100,
+): Promise<Availability<readonly AdminRecentClient[]>> {
+  const clientsRes = await callBackend<{ clients: BackendResolved<readonly AdminRecentClient[]> }>(
+    'admin-clients-recent',
+    { params: { limit } },
+  )
+  return clientsRes.ok
+    ? fromBackend(clientsRes.data.clients, '/api/v1/admin/clients/recent')
+    : unavailable({ endpoint: '/api/v1/admin/clients/recent', reason: 'service_did_not_respond' })
+}
+
+export type AdminOperationsSurface = Readonly<{
+  rebalancing: Availability<AdminRebalancingSummary>
+  recentActivity: Availability<readonly AdminActivityEvent[]>
+}>
+
+/** Focused read models for `/admin/operations` — no market/portfolio extras. */
+export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurface> {
+  const [rebalancingRes, activityRes] = await Promise.all([
+    callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
+    callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
+      params: { limit: 25 },
+    }),
+  ])
+
+  return {
+    rebalancing: rebalancingRes.ok
+      ? fromBackend(rebalancingRes.data.summary, '/api/v1/admin/rebalancing/summary')
+      : unavailable({ endpoint: '/api/v1/admin/rebalancing/summary', reason: 'service_did_not_respond' }),
+    recentActivity: activityRes.ok
+      ? fromBackend(activityRes.data.events, '/api/v1/admin/activity/recent')
+      : unavailable({ endpoint: '/api/v1/admin/activity/recent', reason: 'service_did_not_respond' }),
+  }
+}
