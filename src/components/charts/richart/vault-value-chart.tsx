@@ -1,8 +1,10 @@
 'use client'
 
+import { surfaceBox } from '@/components/admin/surface'
 import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { formatCurrency, formatNumber } from '@/lib/format'
+import clsx from 'clsx'
 import {
   Area,
   AreaChart,
@@ -15,7 +17,7 @@ import {
 /**
  * Vault Value Line Chart — AUM over time.
  *
- * A line (not bars) because totalAssets is a continuous measurement :
+ * A line (not bars) because totalAssets is a continuous measurement:
  * the value exists at every point, even between snapshots.
  */
 
@@ -29,7 +31,7 @@ const SERIE = chartTheme.dataSeries.brandPrimary
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return dateStr
-  return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 function ChartTooltip({
@@ -43,9 +45,9 @@ function ChartTooltip({
   if (active !== true || point === undefined) return null
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
-      <p className="font-medium text-zinc-950 dark:text-white">{formatDate(point.takenAt)}</p>
-      <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">
+    <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
+      <p className="font-medium text-ink dark:text-fg">{formatDate(point.takenAt)}</p>
+      <p className="mt-1 tabular-nums text-fg-secondary">
         AUM: {formatCurrency(point.totalAssetsUsdc, { decimals: 0 })}
       </p>
     </div>
@@ -55,10 +57,13 @@ function ChartTooltip({
 export function VaultValueChart({
   snapshots,
 }: Readonly<{ snapshots: readonly SnapshotAum[] }>) {
+  const height = chartHeight('line', Math.max(snapshots.length, 1))
+  const { ref, width } = useChartWidth()
+
   if (snapshots.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
-        Aucun snapshot de valeur n'a été lu.
+      <p className="px-5 pb-5 text-sm text-fg-tertiary">
+        No value snapshots were read.
       </p>
     )
   }
@@ -69,14 +74,11 @@ export function VaultValueChart({
     label: formatDate(s.takenAt),
   }))
 
-  const height = chartHeight('line', Math.max(data.length, 1))
-  const { ref, width } = useChartWidth()
-
   return (
     <div className="px-5 pb-5 sm:px-6">
       <div className="sr-only">
         <table>
-          <caption>Valeur du coffre au fil du temps</caption>
+          <caption>Vault value over time</caption>
           <thead>
             <tr>
               <th scope="col">Date</th>
@@ -137,9 +139,9 @@ export function VaultValueChart({
         ) : null}
       </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        {snapshots.length} snapshot{snapshots.length > 1 ? 's' : ''}. La valeur est lue depuis le point d'accès
-        strategy-history et rendue telle que rapportée par le service.
+      <p className="mt-3 text-xs leading-relaxed text-fg-tertiary">
+        {snapshots.length} snapshot{snapshots.length > 1 ? 's' : ''}. Values are read from the
+        strategy-history endpoint and rendered as reported by the service.
       </p>
     </div>
   )

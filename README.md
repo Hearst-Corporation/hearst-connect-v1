@@ -75,7 +75,7 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 
 **Orchestrator HC-ADMIN-CONSOLIDATION-ORCHESTRATOR-023** (2026-08-08): seven scoped branches merged locally — guardrails, dashboard truth, clients/profile (Mission 014 recovered), vaults, compliance, operations, product/service/journal/nav. Gates: `pnpm check` + `next build` green on integrated `main`.
 
-**Mission HC-BROWSER-PRODUCTION-PARITY-024** (2026-08-08): authenticated browser QA on local `main` (all admin routes × viewports including reduced-motion); hydration fixes on dashboard motion widgets and Series 1 table filters. Scripts: `scripts/capture-browser-parity-024.mjs`, `scripts/probe-production-parity-024.mjs`. Drift history **not wired** — production `GET /api/v1/rebalancing/history` responds 200 but payload is `UNAVAILABLE` (`db_error`); contract not ready for UI. `PROD_AUTODEPLOY: false` — Vercel prod may lag GitHub `main`; probe compares SHAs without deploying.
+**Mission HC-BROWSER-PRODUCTION-PARITY-024** (2026-08-08): authenticated browser QA on local `main` (all admin routes × viewports including reduced-motion); hydration fixes on dashboard motion widgets and Series 1 table filters. Scripts: `scripts/capture-browser-parity-024.mjs`, `scripts/probe-production-parity-024.mjs`. Drift history **not wired** — production `GET /api/v1/rebalancing/history` responds 200 but payload is `UNAVAILABLE` (`db_error`); contract not ready for UI. `PROD_AUTODEPLOY: false` — Vercel prod may lag GitHub `main`; probe compares SHAs without deploying. HEAD regression cleanup (`95172b` vault chart): English + no-zinc + hooks + endpoint test — re-validated browser QA green.
 
 **Action boundary**: `src/components/actions/` (Catalyst buttons + disabled/loading states).
 
@@ -109,7 +109,7 @@ src/
 ## Données
 
 Aucune donnée inventée : `Availability<T>`, gates `check:mocks` et `check:truthful-data`.
-33 endpoints dans `src/lib/backend/endpoints.ts`. Spec mapping : `docs/ENDPOINT-MAPPING.md`.
+44 endpoints dans `src/lib/backend/endpoints.ts`. Spec mapping : `docs/ENDPOINT-MAPPING.md`.
 
 ## Commandes
 
