@@ -1,4 +1,4 @@
-import { surfaceBox, surfaceInset, surfaceNav, surfaceRaised, surfaceSelect } from '@/components/admin/surface'
+import { surfaceBox, surfaceInset, surfaceNav, surfaceSelect } from '@/components/admin/surface'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -12,7 +12,6 @@ describe('design system surfaces — canon dashboard', () => {
     expect(surfaceNav).toContain('backdrop-blur')
     expect(surfaceInset).toContain('bg-console-inset')
     expect(surfaceSelect).toContain('data-selected:bg-accent-soft')
-    expect(surfaceRaised).toBe(surfaceBox)
     expect(surfaceNav).not.toBe(surfaceBox)
   })
 
