@@ -1,0 +1,33 @@
+---
+description: Restart local dev server after main sync so runtime matches HEAD
+alwaysApply: true
+---
+
+# DEV SERVER — RESTART AFTER MAIN SYNC
+
+Hearst Connect dev server: `pnpm dev` on port **4105**.
+
+## Required after main sync
+
+Whenever an agent **checks out `main`**, **`git pull --ff-only`**, or **merges into `main`**, do **not** assume an existing listener on 4105 is running the current HEAD.
+
+1. **Stop** whatever holds port 4105 (prior `pnpm dev` / `next dev`).
+2. **Sync** `main` (`git checkout main && git pull --ff-only`).
+3. **Start fresh**: `pnpm dev` from repo root.
+4. **Verify** Next reports `Ready` before browser QA, manual checks, or parity scripts (`E2E_PORT=4105`).
+
+## Why
+
+A stale dev process can keep serving an older build while gates (`pnpm check`, `next build`) pass on the new commit — false green on browser QA and local review.
+
+## Commands (macOS)
+
+```bash
+# Find listener
+lsof -iTCP:4105 -sTCP:LISTEN
+
+# Kill by PID from lsof, then:
+pnpm dev
+```
+
+Do not skip the restart when resuming work after merge/push or when switching branches back to `main`.
