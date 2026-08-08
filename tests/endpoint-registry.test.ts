@@ -1,7 +1,7 @@
 import { BACKEND_ENDPOINTS, endpointById, endpointsByCategory, resolvePath } from '@/lib/backend/endpoints'
 import { describe, expect, it } from 'vitest'
 
-/** Les 42 routes du contrat backend, listées ici indépendamment du registre. */
+/** Les 44 routes du contrat backend, listées ici indépendamment du registre. */
 const CONTRACT_PATHS = [
   'GET /health',
   'GET /ready',
@@ -15,6 +15,7 @@ const CONTRACT_PATHS = [
   'GET /api/v1/compliance',
   'GET /api/v1/vault',
   'GET /api/v1/vault/strategies',
+  'GET /api/v1/vault/strategy-history',
   'GET /api/v1/strategies/:index',
   'GET /api/v1/rwa-vault',
   'GET /api/v1/rebalancing/status',
@@ -49,10 +50,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 43 routes du contrat', () => {
+  it('couvre exactement les 44 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(43)
+    expect(BACKEND_ENDPOINTS).toHaveLength(44)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -70,7 +71,7 @@ describe('registre des endpoints', () => {
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(28)
+    expect(endpointsByCategory('business')).toHaveLength(29)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(6)
   })
@@ -125,7 +126,7 @@ describe('registre des endpoints', () => {
   })
 
   it('pointe les lectures coffre vers /admin/vaults (F-10)', () => {
-    for (const id of ['vault', 'vault-strategies', 'strategy-detail', 'rwa-vault', 'rebalancing-status']) {
+    for (const id of ['vault', 'vault-strategies', 'vault-strategy-history', 'strategy-detail', 'rwa-vault', 'rebalancing-status']) {
       expect(endpointById(id).surface).toBe('/admin/vaults')
       expect(endpointById(id).surface).not.toBe('/admin/vault')
     }
