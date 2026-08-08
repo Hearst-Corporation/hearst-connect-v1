@@ -2,8 +2,11 @@
 
 import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/load'
-import { formatCurrency, formatHash, formatRelativeTime } from '@/lib/format'
+import { isAdminNotConfigured } from '@/lib/admin-dashboard/load'
+import { formatHash, formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
@@ -17,10 +20,17 @@ const STATUS_COLOR: Record<string, 'lime' | 'amber' | 'red' | 'neutral'> = {
 
 export function ActivityTimelinePanel({
   events,
-}: Readonly<{ events: Availability<readonly AdminActivityEvent[]> }>) {
+  assetScale,
+}: Readonly<{
+  events: Availability<readonly AdminActivityEvent[]>
+  assetScale: AdminAssetScale | null
+}>) {
   const reduced = useReducedMotion()
 
   if (!isAvailable(events)) {
+    if (isAdminNotConfigured(events)) {
+      return <Text>Activity index not configured</Text>
+    }
     return <Text>Data unavailable</Text>
   }
   if (events.value.length === 0) {
@@ -49,7 +59,7 @@ export function ActivityTimelinePanel({
                 <p className="mt-0.5 truncate text-xs text-fg-tertiary">
                   {event.clientLabel ?? '—'}
                   {event.amountAtomic !== null
-                    ? ` · ${formatCurrency(event.amountAtomic, { fromAtomic: 1_000_000 })}`
+                    ? ` · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
                     : null}
                 </p>
                 {event.txHash !== null ? (

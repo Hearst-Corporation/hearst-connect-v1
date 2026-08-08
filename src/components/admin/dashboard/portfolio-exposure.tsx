@@ -2,7 +2,9 @@
 
 import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset, surfaceSelect } from '@/components/admin/surface'
-import { formatCurrency, formatPercent } from '@/lib/format'
+import { formatPercent } from '@/lib/format'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminExposureStrategy } from '@/lib/admin-dashboard/load'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
@@ -17,7 +19,10 @@ function driftLabel(driftBps: number | null): string {
   return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
 }
 
-function StrategyDetail({ row }: Readonly<{ row: AdminExposureStrategy }>) {
+function StrategyDetail({
+  row,
+  assetScale,
+}: Readonly<{ row: AdminExposureStrategy; assetScale: AdminAssetScale }>) {
   const reduced = useReducedMotion()
   const body = (
     <div className={clsx(surfaceInset, 'p-4')}>
@@ -42,7 +47,7 @@ function StrategyDetail({ row }: Readonly<{ row: AdminExposureStrategy }>) {
         <div>
           <dt className="text-fg-tertiary">Exposure</dt>
           <dd className="font-semibold tabular-nums text-console-shell dark:text-white">
-            {formatCurrency(row.exposureAtomic, { fromAtomic: 1_000_000 })}
+            {formatAdminAtomic(row.exposureAtomic, assetScale)}
           </dd>
         </div>
       </dl>
@@ -63,12 +68,21 @@ function StrategyDetail({ row }: Readonly<{ row: AdminExposureStrategy }>) {
 
 export function PortfolioExposurePanel({
   strategies,
-}: Readonly<{ strategies: Availability<readonly AdminExposureStrategy[]> }>) {
+  assetScale,
+}: Readonly<{
+  strategies: Availability<readonly AdminExposureStrategy[]>
+  assetScale: AdminAssetScale | null
+}>) {
   if (!isAvailable(strategies)) {
     return <p className="text-sm text-fg-tertiary">Data unavailable</p>
   }
   if (strategies.value.length === 0) {
-    return <p className="text-sm text-fg-tertiary">Source unavailable</p>
+    return <p className="text-sm text-fg-tertiary">No strategies measured</p>
+  }
+
+  const scale = assetScale
+  if (!scale) {
+    return <p className="text-sm text-fg-tertiary">Portfolio asset scale unavailable</p>
   }
 
   const rows = strategies.value
@@ -101,7 +115,7 @@ export function PortfolioExposurePanel({
       <TabPanels className="mt-4">
         {rows.map((row) => (
           <TabPanel key={row.strategyId} className="outline-none">
-            <StrategyDetail row={row} />
+            <StrategyDetail row={row} assetScale={scale} />
           </TabPanel>
         ))}
       </TabPanels>

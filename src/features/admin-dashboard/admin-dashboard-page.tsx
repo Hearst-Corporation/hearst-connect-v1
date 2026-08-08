@@ -14,7 +14,9 @@ import {
 } from '@/components/admin/dashboard'
 import { HearstActivityChart, type PointActivite } from '@/components/charts'
 import { formatCurrency } from '@/lib/format'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/load'
+import { isAdminNotConfigured } from '@/lib/admin-dashboard/load'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, mapAvailability } from '@/lib/vaults/model'
 import {
@@ -39,6 +41,10 @@ export function AdminDashboardPage({
   data,
   user,
 }: Readonly<{ data: AdminDashboardData; user: SessionUser }>) {
+  const assetScale: AdminAssetScale | null = isAvailable(data.overview)
+    ? { asset: data.overview.value.asset, decimals: data.overview.value.decimals }
+    : null
+
   const deployedAmount = mapAvailability(data.overview, (o) =>
     formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
   )
@@ -90,6 +96,7 @@ export function AdminDashboardPage({
       }))
     : []
   const showActivityCurve = activityPoints.length >= 2
+  const activityNotConfigured = isAdminNotConfigured(data.activityTimeseries)
 
   return (
     <DashboardShell>
@@ -102,7 +109,7 @@ export function AdminDashboardPage({
             title="Portfolio exposure"
             subtitle="Where capital is allocated vs target"
           >
-            <PortfolioExposurePanel strategies={data.exposure} />
+            <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
           </DashCard>
 
           <DashCard className="@[56rem]:col-span-4" title="Rebalancing & alerts" subtitle="Drift and indexer">
@@ -120,6 +127,15 @@ export function AdminDashboardPage({
           >
             {showActivityCurve ? (
               <HearstActivityChart points={activityPoints} unite="events" />
+            ) : activityNotConfigured ? (
+              <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+                <p className="text-sm font-semibold text-ink dark:text-fg">Activity index not configured</p>
+                <p className="mt-1 text-xs text-fg-tertiary">
+                  {data.activityTimeseries.kind === 'unavailable'
+                    ? data.activityTimeseries.reason ?? 'No events indexed yet.'
+                    : null}
+                </p>
+              </div>
             ) : (
               <ChartPlaceholder title="Activity" height={300} icon={ChartBarIcon} />
             )}
@@ -134,17 +150,17 @@ export function AdminDashboardPage({
       <div className="@container min-w-0">
         <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
           <DashCard className="@[48rem]:col-span-7" title="Vaults" subtitle="Capital per vault">
-            <VaultsPanel vaults={data.vaults} />
+            <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
 
           <DashCard className="@[48rem]:col-span-5" title="Recent clients" subtitle="Exposure and Som KYC">
-            <RecentClientsPanel clients={data.recentClients} />
+            <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
           </DashCard>
         </div>
       </div>
 
       <DashCard title="Recent activity" subtitle="Blockchain and subscription timeline">
-        <ActivityTimelinePanel events={data.recentActivity} />
+        <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
       </DashCard>
 
       <DashCard title="Data health" subtitle="Source freshness">
