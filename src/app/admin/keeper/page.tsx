@@ -40,7 +40,7 @@ function Prerequisite({
       <DescriptionDetails>
         <span
           className={clsx(
-            satisfait ? 'text-ink dark:text-fg' : 'text-amber-600 dark:text-amber-400',
+            satisfait ? 'text-ink dark:text-fg' : 'text-warning-400',
           )}
         >
           {valeur}
