@@ -24,6 +24,7 @@ export {
   StatGrid,
   SectionCard,
   DataTableShell,
+  FitTable,
   Callout,
   type DeltaTone,
   type CalloutTone,

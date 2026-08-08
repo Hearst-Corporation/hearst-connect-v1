@@ -46,8 +46,11 @@ describe('admin operating surfaces — diagnostics stay on Service', () => {
     expect(src).not.toMatch(/Registry endpoint/)
     expect(src).not.toMatch(/Live sources/)
     expect(src).toMatch(/AUM/)
-    expect(src).toMatch(/Recent activity/)
+    expect(src).toMatch(/Rebalance/)
     expect(src).toMatch(/Service/)
+    expect(src).toMatch(/\bfit\b/)
+    expect(src).not.toMatch(/Recent activity/)
+    expect(src).not.toMatch(/Strategies/)
   })
 
   it('Vault detail focuses on capital and allocation without source panels', () => {

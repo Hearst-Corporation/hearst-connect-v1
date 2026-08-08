@@ -260,8 +260,9 @@ export default async function Page() {
         </Callout>
       ) : (
         <DataTableShell
+          fit
           title="Recent operations"
-          description="Rebalancing, vault, and related indexed activity."
+          description="Rebalancing, vault, and related indexed activity. Full transaction hash is on the title attribute."
           count={opsEvents.length > 0 ? `${opsEvents.length}` : undefined}
           calme={opsEvents.length === 0 ? 'No recent operational activity.' : undefined}
         >
@@ -269,20 +270,20 @@ export default async function Page() {
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Operation</TableHeader>
-                  <TableHeader>Vault</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader>Amount</TableHeader>
-                  <TableHeader>Transaction</TableHeader>
-                  <TableHeader>Occurred</TableHeader>
+                  <TableHeader className="w-[34%]">Operation</TableHeader>
+                  <TableHeader className="w-[16%]">Status</TableHeader>
+                  <TableHeader className="w-[18%]">Amount</TableHeader>
+                  <TableHeader className="w-[16%]">Tx</TableHeader>
+                  <TableHeader className="w-[16%]">When</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {opsEvents.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell className="font-medium">{event.title}</TableCell>
-                    <TableCell className="font-mono text-xs text-fg-tertiary">
-                      {event.vaultId ?? '—'}
+                    <TableCell>
+                      <div className="truncate font-medium" title={event.vaultId ?? undefined}>
+                        {event.title}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge color={statusBadgeColor(event.status)}>{event.status}</Badge>
@@ -290,10 +291,13 @@ export default async function Page() {
                     <TableCell className="tabular-nums">
                       {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-fg-tertiary">
+                    <TableCell
+                      className="truncate font-mono text-xs text-fg-tertiary"
+                      title={event.txHash ?? undefined}
+                    >
                       {event.txHash ? formatHash(event.txHash) : '—'}
                     </TableCell>
-                    <TableCell className="text-fg-tertiary">
+                    <TableCell className="tabular-nums text-fg-tertiary">
                       {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
                     </TableCell>
                   </TableRow>
