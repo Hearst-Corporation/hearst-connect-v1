@@ -11,6 +11,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useState } from 'react'
 
 function driftLabel(driftBps: number | null): string {
   if (driftBps === null || !Number.isFinite(driftBps)) return '—'
@@ -24,6 +25,13 @@ function StrategyDetail({
   assetScale,
 }: Readonly<{ row: AdminExposureStrategy; assetScale: AdminAssetScale }>) {
   const reduced = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
+    setMounted(true)
+  }, [])
+
   const body = (
     <div className={clsx(surfaceInset, 'p-4')}>
       <p className="text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
@@ -58,7 +66,7 @@ function StrategyDetail({
       </div>
     </div>
   )
-  if (reduced) return body
+  if (!mounted || reduced) return body
   return (
     <motion.div key={row.strategyId} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
       {body}

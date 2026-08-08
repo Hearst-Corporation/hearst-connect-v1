@@ -105,13 +105,8 @@ export function Series1EventExplorer({
         : '0 events'
 
   return (
-    <DataTableShell
-      title="Event explorer"
-      description="Filter indexed Series 1 events — source /api/v1/series1/events only."
-      count={count}
-      calme={calme}
-    >
-      <FieldGroup className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4">
+      <FieldGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field>
           <Label>Event</Label>
           <Select
@@ -176,68 +171,80 @@ export function Series1EventExplorer({
         </Field>
       </FieldGroup>
 
-      {filtered.length > 0 ? (
-        <>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Event</TableHeader>
-              <TableHeader>Vault</TableHeader>
-              <TableHeader>Client</TableHeader>
-              <TableHeader>Amount / asset</TableHeader>
-              <TableHeader>Transaction</TableHeader>
-              <TableHeader>Block</TableHeader>
-              <TableHeader>Time / status</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map((row) => {
-              const tx = txShort(row.txHash)
-              return (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{libelleMouvement(row.eventName)}</TableCell>
-                  <TableCell>
-                    {row.vaultId !== null ? (
-                      <VaultEntityLink
-                        kind="vault"
-                        id={row.vaultId}
-                        label={row.vaultId}
-                        className="font-mono"
-                      />
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{row.client ?? '—'}</TableCell>
-                  <TableCell>
-                    {row.amount !== null ? (
-                      <>
-                        {row.amount}
-                        {row.assetLabel !== null ? (
-                          <span className="ml-1 text-fg-tertiary">{row.assetLabel}</span>
-                        ) : null}
-                      </>
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-sm" title={row.txHash ?? undefined}>
-                    {tx ?? '—'}
-                  </TableCell>
-                  <TableCell>
-                    {row.blockNumber !== null && row.blockNumber !== ''
-                      ? formatNumber(Number(row.blockNumber))
-                      : '—'}
-                  </TableCell>
-                  <TableCell title={dateLisible(row.occurredAt)}>
-                    <span className="block">{ilYA(row.occurredAt)}</span>
-                    <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </>
-      ) : null}
-    </DataTableShell>
+      <DataTableShell
+        title="Event explorer"
+        description="Filter indexed Series 1 events — source /api/v1/series1/events only."
+        count={count}
+        calme={
+          calme ??
+          (rows.length > 0 && filtered.length === 0
+            ? 'No events match the current filters.'
+            : undefined)
+        }
+      >
+        {filtered.length > 0 ? (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Event</TableHeader>
+                <TableHeader>Vault</TableHeader>
+                <TableHeader>Client</TableHeader>
+                <TableHeader>Amount / asset</TableHeader>
+                <TableHeader>Transaction</TableHeader>
+                <TableHeader>Block</TableHeader>
+                <TableHeader>Time / status</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filtered.map((row) => {
+                const tx = txShort(row.txHash)
+                return (
+                  <TableRow key={row.id}>
+                    <TableCell className="font-medium">{libelleMouvement(row.eventName)}</TableCell>
+                    <TableCell>
+                      {row.vaultId !== null ? (
+                        <VaultEntityLink
+                          kind="vault"
+                          id={row.vaultId}
+                          label={row.vaultId}
+                          className="font-mono"
+                        />
+                      ) : (
+                        '—'
+                      )}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{row.client ?? '—'}</TableCell>
+                    <TableCell>
+                      {row.amount !== null ? (
+                        <>
+                          {row.amount}
+                          {row.assetLabel !== null ? (
+                            <span className="ml-1 text-fg-tertiary">{row.assetLabel}</span>
+                          ) : null}
+                        </>
+                      ) : (
+                        '—'
+                      )}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm" title={row.txHash ?? undefined}>
+                      {tx ?? '—'}
+                    </TableCell>
+                    <TableCell>
+                      {row.blockNumber !== null && row.blockNumber !== ''
+                        ? formatNumber(Number(row.blockNumber))
+                        : '—'}
+                    </TableCell>
+                    <TableCell title={dateLisible(row.occurredAt)}>
+                      <span className="block">{ilYA(row.occurredAt)}</span>
+                      <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </>
+        ) : null}
+      </DataTableShell>
+    </div>
   )
 }

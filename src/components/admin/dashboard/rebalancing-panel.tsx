@@ -7,6 +7,7 @@ import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useState } from 'react'
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -18,6 +19,12 @@ export function RebalancingAlertsPanel({
   summary,
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   const reduced = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
+    setMounted(true)
+  }, [])
 
   if (!isAvailable(summary)) {
     return (
@@ -72,7 +79,7 @@ export function RebalancingAlertsPanel({
     </div>
   )
 
-  if (reduced) return body
+  if (!mounted || reduced) return body
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
       {body}

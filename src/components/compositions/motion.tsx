@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from 'motion/react'
 import type React from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * FadeIn — l'apparition douce, et son court-circuit.
@@ -19,14 +20,24 @@ import type React from 'react'
  * transform — pas une animation « plus discrète », AUCUNE. L'animation par
  * défaut reste sobre : opacité + 8px de translation, 240ms, une seule fois à
  * l'entrée dans le viewport (`whileInView`, `once`).
+ *
+ * First client render matches SSR (static div) to avoid hydration mismatch when
+ * `prefers-reduced-motion` differs between server and browser.
  */
 export function FadeIn({
   children,
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
   const reduced = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
 
-  if (reduced) {
+  useEffect(() => {
+    // Defer motion until after hydration — server and first client paint stay static.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
+    setMounted(true)
+  }, [])
+
+  if (!mounted || reduced) {
     return <div className={className}>{children}</div>
   }
 
