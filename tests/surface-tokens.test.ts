@@ -47,9 +47,9 @@ describe('design system surfaces — canon dashboard', () => {
     expect(logo).toContain('HEARST_CONNECT_LOCKUP_SRC')
   })
 
-  it('parcours : sélection via surfaceSelect', () => {
+  it('portfolio exposure : sélection via surfaceSelect', () => {
     const src = readFileSync(
-      join(process.cwd(), 'src/components/admin/dashboard/subscription-journey.tsx'),
+      join(process.cwd(), 'src/components/admin/dashboard/portfolio-exposure.tsx'),
       'utf8',
     )
     expect(src).toContain('surfaceSelect')
