@@ -39,6 +39,7 @@ import type {
   AdminTimeseriesPoint,
   AdminVaultSummary,
 } from '@/lib/admin-dashboard/contracts'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 
 /** Backend `Resolved<T>` block as returned inside envelope data. */
 type BackendResolved<T> = Readonly<{
@@ -246,14 +247,35 @@ export async function loadAdminClientsDirectory(
     : unavailable({ endpoint: '/api/v1/admin/clients/recent', reason: 'service_did_not_respond' })
 }
 
+/**
+ * Portfolio asset scale (asset + decimals) from the backend overview.
+ * Returns null when the overview is unavailable — atomic amounts must then be
+ * rendered without a blind decimal assumption, never with a hardcoded 6dp.
+ */
+export async function loadAdminAssetScale(): Promise<AdminAssetScale | null> {
+  const overviewRes = await callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>(
+    'admin-portfolio-overview',
+  )
+  if (!overviewRes.ok) return null
+  const overview = fromBackend(overviewRes.data.overview, '/api/v1/admin/portfolio/overview')
+  return isAvailable(overview)
+    ? { asset: overview.value.asset, decimals: overview.value.decimals }
+    : null
+}
+
 /** Focused read models for `/admin/operations` — no market/portfolio extras. */
 export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurface> {
-  const [rebalancingRes, activityRes] = await Promise.all([
+  const [rebalancingRes, activityRes, overviewRes] = await Promise.all([
     callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
     callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
       params: { limit: 25 },
     }),
+    callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>('admin-portfolio-overview'),
   ])
+
+  const overview = overviewRes.ok
+    ? fromBackend(overviewRes.data.overview, '/api/v1/admin/portfolio/overview')
+    : unavailable({ endpoint: '/api/v1/admin/portfolio/overview', reason: 'service_did_not_respond' })
 
   return {
     rebalancing: rebalancingRes.ok
@@ -262,5 +284,9 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
     recentActivity: activityRes.ok
       ? fromBackend(activityRes.data.events, '/api/v1/admin/activity/recent')
       : unavailable({ endpoint: '/api/v1/admin/activity/recent', reason: 'service_did_not_respond' }),
+    // Real portfolio scale — absent overview stays absent (null), never a blind 6-decimal assumption.
+    assetScale: isAvailable(overview)
+      ? { asset: overview.value.asset, decimals: overview.value.decimals }
+      : null,
   }
 }

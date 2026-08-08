@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Callout, DataTableShell } from '@/components/compositions'
-import { loadAdminClientsDirectory, type AdminRecentClient } from '@/lib/admin-dashboard/load'
+import { loadAdminAssetScale, loadAdminClientsDirectory, type AdminRecentClient } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
 import { isAvailable, measuredCount } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
@@ -36,9 +36,10 @@ function toDirectoryRows(
 
 export default async function Page() {
   const session = await requireSession()
-  const [recent, registry] = await Promise.all([
+  const [recent, registry, assetScale] = await Promise.all([
     loadAdminClientsDirectory(100),
     loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW }),
+    loadAdminAssetScale(),
   ])
 
   const richRows = isAvailable(recent) ? recent.value : null
@@ -68,7 +69,7 @@ export default async function Page() {
       />
 
       {useRich ? (
-        <ClientsDirectory clients={toDirectoryRows(richRows)} />
+        <ClientsDirectory clients={toDirectoryRows(richRows)} assetScale={assetScale} />
       ) : useThin ? (
         thinRows.length === 0 ? (
           <Callout tone="info" title="No clients yet">

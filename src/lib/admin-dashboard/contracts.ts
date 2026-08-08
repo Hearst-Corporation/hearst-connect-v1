@@ -1,4 +1,5 @@
 import type { Availability } from '@/lib/vaults/model'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 
 /** Named NOT_CONFIGURED — market widget keeps local shell state. */
 export function isAdminNotConfigured(a: Availability<unknown>): boolean {
@@ -131,4 +132,6 @@ export type AdminDashboardData = Readonly<{
 export type AdminOperationsSurface = Readonly<{
   rebalancing: Availability<AdminRebalancingSummary>
   recentActivity: Availability<readonly AdminActivityEvent[]>
+  /** Portfolio scale used to render atomic amounts honestly (null when the overview is unavailable). */
+  assetScale: AdminAssetScale | null
 }>
