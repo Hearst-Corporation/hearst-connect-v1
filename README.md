@@ -3,25 +3,22 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** — vitrine marketing : récit **dark-only** premium en 4 actes, enrichi d'**interludes Motion**
-(2026-08-08). Vend l'accès unifié aux espaces Hearst.
+**Landing `/`** — vitrine marketing (HC-LANDING-REFRESH-027, 2026-08-08). Structure Tailwind Plus
+adaptée Hearst : navbar → hero split + aperçu console → domaines → 3 features → plateforme +
+screenshot → doctrine 3 piliers → CTA → footer. **Server component** (`landing-page.tsx`) — pas de
+scroll hijack, pas de métriques inventées.
 
 Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` (sticky, blur, filet bas) · `main` · `SiteFooter` · `bg-console-app`.
-Composition : `src/app/(marketing)/page.tsx` (server component) ; un filet `console-line-soft` ouvre chaque section.
+Composition : `src/app/(marketing)/page.tsx` → `src/components/marketing/landing-page.tsx`.
 
-| # | Section | Wrapper marketing | Primitive `ui/` |
-|---|---------|-------------------|-----------------|
-| 1 | **Acte 1 — Hero** (console qui se redresse au scroll) | `hero-scroll-demo.tsx` | `container-scroll-animation.tsx` |
-| 2 | Interlude — Vague / ripple | `background-ripple-band.tsx` | `background-ripple-effect.tsx` |
-| 3 | Interlude — Carousel 3D scroll-vélocité | `heritage-scroll-demo.tsx` | `scroll-velocity-planes.tsx` · `scramble-text.tsx` |
-| 4 | **Acte 2 — Preuve** (4 domaines, cartes shared-layout) | `app-store-demo.tsx` · `section-intro.tsx` | `app-store-cards.tsx` |
-| 5 | Interlude — Grille de fond | `grid-background-demo.tsx` | `grid-background.tsx` |
-| 6 | Interlude — Pin 3D → `/login` | `3d-pin-demo.tsx` | `3d-pin.tsx` |
-| 7 | **Acte 3 — Doctrine** (3 piliers, statique) | `features-doctrine.tsx` | — |
-| 8 | Interlude — Bento (5 tuiles animées) | `bento-grid-example-three.tsx` | `bento-grid.tsx` |
-| 9 | **Acte 4 — CTA** (aurore mint) → `/login` · `/register` | `closing-cta.tsx` | — |
-
-**Orphelin** : `cards-demo-3.tsx` (`ui/`) restauré mais **non monté** (logos tiers, hors marque Hearst).
+| # | Section | Fichier |
+|---|---------|---------|
+| 1 | **Hero** split ≈50/50 + screenshot | `landing-page.tsx` |
+| 2 | **Domaines** (badges Access · Vaults · …) | `landing-page.tsx` |
+| 3 | **Features** (3 colonnes) | `landing-page.tsx` · `section-intro.tsx` |
+| 4 | **Plateforme** (screenshot + 6 points) | `landing-page.tsx` |
+| 5 | **Doctrine** (3 piliers) | `landing-page.tsx` |
+| 6 | **CTA** → `/login` · `/register` | `closing-cta.tsx` |
 
 **Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
 Interdit dans `src/components/marketing/` et `src/components/ui/` : rampes Tailwind
@@ -138,4 +135,4 @@ Gate `check:no-zinc` : palette structurelle interdite — tokens sémantiques `f
 | `docs/ENDPOINT-MAPPING.md` | Contrat backend → front |
 | `docs/PASSATION-AGENT.md` | Reprise opérationnelle (Railway, Vercel, priorités) |
 
-Point de reprise : **`main`** — landing `/` = 4 actes dark-only (Hero · Preuve · Doctrine · CTA) + interludes Motion (vague, carousel 3D, grille, pin 3D, bento).
+Point de reprise : **`main`** — landing `/` = hero Tailwind Plus + domaines + features + plateforme + doctrine + CTA (tokens `console-*` / `accent-*`, assets `public/brand/`).
