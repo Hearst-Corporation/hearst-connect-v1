@@ -205,7 +205,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
           hint="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
         >
           <Text>
-            Le point d’accès du tableau de bord n’a pas répondu. No coverage is inferred.
+            The dashboard entry point did not respond. No coverage is inferred.
           </Text>
         </SectionCard>
       ) : (
