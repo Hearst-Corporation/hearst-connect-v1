@@ -1,11 +1,12 @@
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge, toneForBackendState } from '@/components/admin/status-tone'
 import { Text } from '@/components/catalyst/text'
 import { backendStateFrom, backendStateLabel } from '@/lib/backend/reading-state'
 import { formatDateTime } from '@/lib/format'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 
 /**
- * Truthful reading of an `Availability` — Catalyst only.
+ * Truthful reading of an `Availability` — semantic Hearst tones (no Catalyst
+ * raw badge palettes).
  * Three backend states: Live · Offline · Issue.
  */
 export function AdminReading({
@@ -21,37 +22,35 @@ export function AdminReading({
   if (!isAvailable(value)) {
     const etat = backendStateFrom(value)
     return (
-      <Badge color={etat === 'ISSUE' ? 'amber' : 'neutral'} className="align-middle">
+      <AdminToneBadge tone={toneForBackendState(etat)} className="align-middle">
         {etat === 'OFFLINE' ? emptyLabel : backendStateLabel(etat)}
-      </Badge>
+      </AdminToneBadge>
     )
   }
 
   const signal = signalOf(value)
   if (signal === 'editorial') {
-    return <Text className="!mt-0 inline text-ink dark:text-fg">{value.value}</Text>
+    return <Text className="!mt-0 inline text-fg">{value.value}</Text>
   }
 
   const etat = backendStateFrom(value)
   if (compact) {
-    return <Text className="!mt-0 inline tabular-nums text-ink dark:text-fg">{value.value}</Text>
+    return <Text className="!mt-0 inline tabular-nums text-fg">{value.value}</Text>
   }
 
   return (
     <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
-      <Text className="!mt-0 inline text-ink dark:text-fg">{value.value}</Text>
-      {etat === 'LIVE' ? (
-        <Badge color="green" data-live-badge="">
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
-          {backendStateLabel(etat)}
-        </Badge>
-      ) : (
-        <Badge color={etat === 'ISSUE' ? 'amber' : 'neutral'} data-state-badge="">
-          {backendStateLabel(etat)}
-        </Badge>
-      )}
+      <Text className="!mt-0 inline text-fg">{value.value}</Text>
+      <AdminToneBadge
+        tone={toneForBackendState(etat)}
+        showDot={etat === 'LIVE'}
+        data-live-badge={etat === 'LIVE' ? '' : undefined}
+        data-state-badge={etat === 'LIVE' ? undefined : ''}
+      >
+        {backendStateLabel(etat)}
+      </AdminToneBadge>
       {value.asOf !== null ? (
-        <Text className="!mt-0 text-xs text-fg-tertiary dark:text-fg-secondary">{formatDateTime(value.asOf)}</Text>
+        <Text className="!mt-0 text-xs text-fg-secondary">{formatDateTime(value.asOf)}</Text>
       ) : null}
     </span>
   )

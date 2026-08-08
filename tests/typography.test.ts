@@ -27,7 +27,7 @@ describe('admin typography', () => {
   })
 
   it('keeps the admin console on Hearst semantic text tokens', () => {
-    // Titles and numeric values: ink in light, fg in dark.
+    // Dark-only product: primary emphasis is `text-fg` (never raw white / dual ink+dark).
     const emphasis = [
       adminTypography.display,
       adminTypography.pageTitle,
@@ -37,15 +37,15 @@ describe('admin typography', () => {
       adminTypography.numericStandard,
     ]
     for (const classes of emphasis) {
-      expect(classes).toMatch(/(^|\s)text-ink(\s|$)/)
-      expect(classes).toMatch(/(^|\s)dark:text-fg(\s|$)/)
+      expect(classes).toMatch(/(^|\s)text-fg(\s|$)/)
+      expect(classes).not.toMatch(/\btext-white\b/)
+      expect(classes).not.toMatch(/\btext-ink\b/)
     }
 
-    // Secondary text: fg-tertiary in light, fg-secondary in dark.
+    // Secondary text: fg-secondary on dark console.
     const secondary = [adminTypography.bodyLarge, adminTypography.body, adminTypography.caption, adminTypography.label, adminTypography.mono]
     for (const classes of secondary) {
-      expect(classes).toMatch(/(^|\s)text-fg-tertiary(\s|$)/)
-      expect(classes).toMatch(/(^|\s)dark:text-fg-secondary(\s|$)/)
+      expect(classes).toMatch(/(^|\s)text-fg-secondary(\s|$)/)
     }
 
     // No brand-* token may reappear in the admin scale.

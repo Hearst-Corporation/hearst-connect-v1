@@ -1,14 +1,17 @@
-import { HearstCriticalAction, HearstPrimaryAction } from '@/components/actions'
+import {
+  HearstCriticalAction,
+  HearstDangerAction,
+  HearstPrimaryAction,
+  HearstSecondaryAction,
+} from '@/components/actions'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 /**
- * Frontière d'actions Hearst — HC-ADMIN-DASHBOARD-UI-ASSETS-005.
+ * Frontière d'actions Hearst — HC-ADMIN-DASHBOARD-UI-ASSETS-005 /
+ * HC-ADMIN-DESIGN-SYSTEM-FORENSIC-033.
  *
- * Prouve, sans backend factice, ce que le brief §8 exige : chaque bouton GÈRE
- * `disabled` (avec tooltip pour une action sans endpoint) et `loading`, puis
- * un `success` transitoire — et retombe proprement sur `error`. La primitive
- * reste Catalyst `<Button>` : ces composants ne réécrivent pas un bouton.
+ * Prouve : états async + contrat couleur (variables accent, jamais lime raw).
  */
 
 beforeAll(() => {
@@ -25,6 +28,10 @@ beforeAll(() => {
     })) as typeof window.matchMedia
   }
 })
+
+function classOf(el: HTMLElement): string {
+  return el.className ?? ''
+}
 
 describe('Hearst actions boundary', () => {
   it('renders an endpoint-less action as disabled with an honest tooltip (never a dead link)', () => {
@@ -49,11 +56,9 @@ describe('Hearst actions boundary', () => {
     fireEvent.click(btn)
 
     expect(onAction).toHaveBeenCalledTimes(1)
-    // loading : le bouton est désactivé pendant la promesse
     expect((screen.getByRole('button', { name: /Valider le KYC/ }) as HTMLButtonElement).disabled).toBe(true)
 
     resolveFn()
-    // success transitoire : le libellé bascule sur successLabel
     const done = await screen.findByRole('button', { name: /Fait/ })
     expect(done).toBeDefined()
   })
@@ -69,7 +74,39 @@ describe('Hearst actions boundary', () => {
       const b = screen.getByRole('button', { name: /Réessayer plus tard/ }) as HTMLButtonElement
       expect(b.disabled).toBe(false)
     })
-    // n'a jamais faussement affiché le succès
     expect(screen.queryByText('Fait')).toBeNull()
+  })
+
+  it('primary CTA emits accent CSS vars and never lime raw classes', () => {
+    render(<HearstPrimaryAction href="/admin/clients">Add client</HearstPrimaryAction>)
+    const link = screen.getByRole('link', { name: /Add client/ })
+    const cls = classOf(link)
+    const style = link.getAttribute('style') ?? ''
+
+    expect(style).toContain('--btn-bg: var(--color-accent-400)')
+    expect(style).toContain('--btn-border: var(--color-accent-500)')
+    expect(cls).toMatch(/outline-accent-500/)
+    expect(cls).not.toMatch(/lime-/)
+    expect(cls).not.toMatch(/\[--btn-bg:var\(--color-lime/)
+  })
+
+  it('danger CTA uses danger tokens without red-* Tailwind utilities', () => {
+    render(<HearstDangerAction href="/admin/runtime">Escalate</HearstDangerAction>)
+    const link = screen.getByRole('link', { name: /Escalate/ })
+    const cls = classOf(link)
+    const style = link.getAttribute('style') ?? ''
+
+    expect(style).toContain('--btn-bg: var(--color-danger-600)')
+    expect(cls).not.toMatch(/\bred-\d/)
+    expect(cls).not.toMatch(/\[--btn-bg:var\(--color-red/)
+  })
+
+  it('secondary keeps white structural Catalyst color (no status palette)', () => {
+    render(<HearstSecondaryAction href="/admin">Cancel</HearstSecondaryAction>)
+    const link = screen.getByRole('link', { name: /Cancel/ })
+    const cls = classOf(link)
+    expect(cls).toMatch(/outline-accent-500/)
+    // Vendor may still list outline-blue-500; product override + CSS remap win at runtime.
+    expect(cls).not.toMatch(/lime-|amber-|\[--btn-bg:var\(--color-(?:lime|amber|red|rose)/)
   })
 })

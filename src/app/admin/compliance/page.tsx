@@ -1,5 +1,5 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
@@ -21,16 +21,6 @@ export const dynamic = 'force-dynamic'
  * Compliance — Som KYC status exceptions (read-only).
  * Hearst does not perform KYC and does not approve/reject files here.
  */
-
-function kycBadgeColor(status: string): 'lime' | 'amber' | 'red' | 'neutral' {
-  const kyc = status.trim().toUpperCase()
-  if (kyc === 'APPROVED' || kyc === 'VERIFIED') return 'lime'
-  if (kyc === 'REJECTED' || kyc === 'DENIED' || kyc === 'HIGH_RISK') return 'red'
-  if (kyc === 'PENDING' || kyc === 'EN_ATTENTE' || kyc === 'IN_REVIEW' || kyc === 'IN_PROGRESS') {
-    return 'amber'
-  }
-  return 'neutral'
-}
 
 export default async function Page() {
   const session = await requireSession()
@@ -87,9 +77,9 @@ export default async function Page() {
                     <TableCell className="truncate font-medium">{review.clientLabel}</TableCell>
                     <TableCell className="truncate">{kycStepLabel(review.stage)}</TableCell>
                     <TableCell>
-                      <Badge color={kycBadgeColor(review.kycStatus)}>
+                      <AdminToneBadge tone={toneForKycStatus(review.kycStatus)}>
                         {kycStatusLabel(review.kycStatus)}
-                      </Badge>
+                      </AdminToneBadge>
                     </TableCell>
                     <TableCell className="tabular-nums">{dateLisible(review.lastEventAt)}</TableCell>
                   </TableRow>

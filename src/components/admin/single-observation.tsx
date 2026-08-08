@@ -50,7 +50,7 @@ export function SingleObservation({
       <AdminLabel>{periode}</AdminLabel>
 
       <p className="mt-2 flex items-baseline gap-2">
-        <span className="text-4xl/10 font-semibold tracking-tight text-ink tabular-nums dark:text-white">
+        <span className="text-4xl/10 font-semibold tracking-tight text-fg tabular-nums">
           {valeur}
         </span>
         {unite ? <span className="text-sm text-fg-tertiary dark:text-fg-secondary">{unite}</span> : null}
