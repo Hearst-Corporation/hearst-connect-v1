@@ -1,15 +1,19 @@
+import { Text } from '@/components/catalyst/text'
+
 /**
- * Account loading state — a named "loading" status, distinct from
- * empty / unavailable / error. No placeholder figures, no fabricated content.
+ * Account loading — named status inside the shared shell slot.
+ * No placeholder figures, no fabricated content.
  */
 export default function AccountLoading() {
   return (
-    <main
-      className="dark flex min-h-dvh items-center justify-center bg-console-app px-6"
+    <div
+      className="flex min-h-[50vh] items-center justify-center"
       aria-busy="true"
       aria-live="polite"
     >
-      <p className="animate-pulse text-sm/6 uppercase tracking-wide text-fg-tertiary">Loading…</p>
-    </main>
+      <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide text-fg-tertiary uppercase dark:text-fg-secondary">
+        Loading…
+      </Text>
+    </div>
   )
 }

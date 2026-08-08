@@ -33,27 +33,18 @@ describe('French legacy routes redirect to English canonical routes', () => {
     expect(source).not.toMatch(/<[A-Z]/)
   })
 
-  it('/espace/dashboard redirects to /account/dashboard', () => {
-    const source = pageSource('src/app/espace/dashboard/page.tsx')
-    expect(source).toMatch(/redirect\(['"]\/account\/dashboard['"]\)/)
-    expect(source).not.toMatch(/<[A-Z]/)
-  })
-
-  it('/espace/activite redirects to /account/activity', () => {
-    const source = pageSource('src/app/espace/activite/page.tsx')
-    expect(source).toMatch(/redirect\(['"]\/account\/activity['"]\)/)
-    expect(source).not.toMatch(/<[A-Z]/)
-  })
-
-  it('/espace/profil redirects to /account/profile', () => {
-    const source = pageSource('src/app/espace/profil/page.tsx')
-    expect(source).toMatch(/redirect\(['"]\/account\/profile['"]\)/)
-    expect(source).not.toMatch(/<[A-Z]/)
-  })
-
-  it('/espace/bitcoin redirects to /account/bitcoin', () => {
-    const source = pageSource('src/app/espace/bitcoin/page.tsx')
-    expect(source).toMatch(/redirect\(['"]\/account\/bitcoin['"]\)/)
+  it.each([
+    ['/espace/dashboard', 'src/app/espace/dashboard/page.tsx'],
+    ['/espace/activite', 'src/app/espace/activite/page.tsx'],
+    ['/espace/profil', 'src/app/espace/profil/page.tsx'],
+    ['/espace/bitcoin', 'src/app/espace/bitcoin/page.tsx'],
+    ['/account/dashboard', 'src/app/account/dashboard/page.tsx'],
+    ['/account/activity', 'src/app/account/activity/page.tsx'],
+    ['/account/profile', 'src/app/account/profile/page.tsx'],
+    ['/account/bitcoin', 'src/app/account/bitcoin/page.tsx'],
+  ] as const)('%s redirects to /account', (_route, file) => {
+    const source = pageSource(file)
+    expect(source).toMatch(/redirect\(['"]\/account['"]\)/)
     expect(source).not.toMatch(/<[A-Z]/)
   })
 })
