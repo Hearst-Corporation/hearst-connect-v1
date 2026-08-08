@@ -55,23 +55,33 @@ export function MarketSnapshotPanel({
       ? formatNumber(m.miningMarginScore, { maximumFractionDigits: 0 })
       : '—'
 
+  // A change field is only a real number when it parses finite. An empty string
+  // must NOT become 0% (Number('') === 0) — it stays absent.
+  const finiteChange = (raw: string | null): number | null => {
+    if (raw === null || raw.trim() === '') return null
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : null
+  }
+  const btcChange = finiteChange(m.btcChange24hPct)
+  const hashpriceChange = finiteChange(m.hashpriceChangePct)
+
   return (
     <dl data-widget="market-snapshot" className="grid grid-cols-2 gap-4">
       <div className={surfaceInset + ' p-4'}>
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{btc}</dd>
-        {m.btcChange24hPct !== null ? (
+        {btcChange !== null ? (
           <dd className="mt-0.5 text-xs text-fg-tertiary">
-            {formatPercent(Number(m.btcChange24hPct))} 24h
+            {formatPercent(btcChange)} 24h
           </dd>
         ) : null}
       </div>
       <div className={surfaceInset + ' p-4'}>
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Hashprice</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{hashprice}</dd>
-        {m.hashpriceChangePct !== null ? (
+        {hashpriceChange !== null ? (
           <dd className="mt-0.5 text-xs text-fg-tertiary">
-            {formatPercent(Number(m.hashpriceChangePct), { signed: true })}
+            {formatPercent(hashpriceChange, { signed: true })}
           </dd>
         ) : null}
       </div>

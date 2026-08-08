@@ -50,6 +50,14 @@ describe('admin dashboard — truth contract (HC-023)', () => {
     expect(source).toContain('formatAdminAtomic(client.currentExposureAtomic, assetScale)')
   })
 
+  // HC-028 P2 regression: a missing KYC status / stage must not be fabricated as a real
+  // Som verdict ('pending' / 'a-verifier'); it stays empty → rendered as "—" / neutral.
+  it('registry does not fabricate a KYC verdict for a missing compliance field', () => {
+    const source = readFileSync(root('src/lib/vaults/registry.ts'), 'utf8')
+    expect(source).not.toMatch(/kycStatus:[^,\n]*'pending'/)
+    expect(source).not.toMatch(/stage:[^,\n]*'a-verifier'/)
+  })
+
   it('data health grid keys by stable backend key', () => {
     const source = readFileSync(root('src/components/admin/dashboard/data-health-grid.tsx'), 'utf8')
     expect(source).toMatch(/byKey/)
