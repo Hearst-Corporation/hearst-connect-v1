@@ -15,6 +15,9 @@ export const HEARST_CONNECT_LOCKUP_SRC = '/brand/hearst-connect.svg' as const
 export const HEARST_CONNECT_LOCKUP_DARK_SRC = '/brand/hearst-connect-dark.svg' as const
 export const HEARST_CONNECT_OFFICIAL_SRC = '/brand/hearst-connect-official.svg' as const
 
-/** Classes Tailwind pour peindre le glow en couche absolue (sous le contenu). */
+/**
+ * Couche glow — fixée au viewport (HC-ADMIN-FIXED-BACKGROUND-027).
+ * `fixed` + `bg-fixed` : le mint reste en place pendant le scroll, comme `.viewport` /espace.
+ */
 export const consoleGlowLayer =
-  'pointer-events-none absolute inset-0 bg-console-app bg-cover bg-center bg-no-repeat'
+  'pointer-events-none fixed inset-0 z-0 bg-console-app bg-cover bg-center bg-fixed bg-no-repeat'

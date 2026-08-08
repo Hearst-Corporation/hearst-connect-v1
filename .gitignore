@@ -48,4 +48,5 @@ storybook-static
 /test-results/
 /playwright-report/
 /e2e-report.json
+.validation-*/
 .worktrees/

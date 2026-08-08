@@ -99,6 +99,9 @@ describe('design system surfaces — canon dashboard', () => {
       'utf8',
     )
     const brand = readFileSync(join(process.cwd(), 'src/lib/brand.ts'), 'utf8')
+    expect(brand).toContain('HC-ADMIN-FIXED-BACKGROUND-027')
+    expect(brand).toContain('bg-fixed')
+    expect(brand).toContain('fixed inset-0')
     expect(brand).toContain('/brand/console-glow.png')
     expect(brand).toContain('/brand/hearst-h.svg')
     expect(brand).toContain('/brand/hearst-connect.svg')
