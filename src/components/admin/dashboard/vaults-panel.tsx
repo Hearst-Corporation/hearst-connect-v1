@@ -2,8 +2,9 @@
 
 import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset } from '@/components/admin/surface'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminVaultSummary } from '@/lib/admin-dashboard/load'
-import { formatCurrency } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import { motion, useReducedMotion } from 'motion/react'
@@ -14,19 +15,22 @@ function driftPts(driftBps: number): string {
   return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
 }
 
-function VaultCard({ vault }: Readonly<{ vault: AdminVaultSummary }>) {
+function VaultCard({
+  vault,
+  assetScale,
+}: Readonly<{ vault: AdminVaultSummary; assetScale: AdminAssetScale }>) {
   const deployedLine =
     vault.deployedPct !== null ? `${vault.deployedPct}% deployed` : '— deployed'
   const availableLine =
     vault.availableAtomic !== null
-      ? `${formatCurrency(vault.availableAtomic, { fromAtomic: 1_000_000 })} available`
+      ? `${formatAdminAtomic(vault.availableAtomic, assetScale)} available`
       : null
 
   return (
     <article className={clsx(surfaceInset, 'flex flex-col gap-2 p-4')}>
       <h3 className="text-sm font-semibold text-ink dark:text-fg">{vault.label}</h3>
       <p className="text-xl font-semibold tabular-nums text-ink dark:text-fg">
-        {formatCurrency(vault.totalAssetsAtomic, { fromAtomic: 1_000_000 })}
+        {formatAdminAtomic(vault.totalAssetsAtomic, assetScale)}
       </p>
       <p className="text-xs text-fg-tertiary">
         {deployedLine}
@@ -45,14 +49,23 @@ function VaultCard({ vault }: Readonly<{ vault: AdminVaultSummary }>) {
   )
 }
 
-export function VaultsPanel({ vaults }: Readonly<{ vaults: Availability<readonly AdminVaultSummary[]> }>) {
+export function VaultsPanel({
+  vaults,
+  assetScale,
+}: Readonly<{
+  vaults: Availability<readonly AdminVaultSummary[]>
+  assetScale: AdminAssetScale | null
+}>) {
   const reduced = useReducedMotion()
 
   if (!isAvailable(vaults)) {
     return <p className="text-sm text-fg-tertiary">Data unavailable</p>
   }
   if (vaults.value.length === 0) {
-    return <p className="text-sm text-fg-tertiary">Source unavailable</p>
+    return <p className="text-sm text-fg-tertiary">No vaults reported</p>
+  }
+  if (!assetScale) {
+    return <p className="text-sm text-fg-tertiary">Portfolio asset scale unavailable</p>
   }
 
   const grid = (
@@ -61,7 +74,7 @@ export function VaultsPanel({ vaults }: Readonly<{ vaults: Availability<readonly
       className={clsx('grid gap-3', vaults.value.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1')}
     >
       {vaults.value.map((vault) => (
-        <VaultCard key={vault.id} vault={vault} />
+        <VaultCard key={vault.id} vault={vault} assetScale={assetScale} />
       ))}
     </div>
   )

@@ -5,7 +5,15 @@ import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 
-const ORDER = ['Vault', 'Market', 'Indexer', 'Clients', 'Runtime', 'Som KYC'] as const
+/** Stable backend keys — never join on display labels. */
+const ORDER: readonly AdminDataHealthSource['key'][] = [
+  'vault',
+  'market',
+  'indexer',
+  'clients',
+  'runtime',
+  'som_kyc',
+]
 
 function tone(status: string): 'ok' | 'warn' | 'bad' {
   if (status === 'LIVE') return 'ok'
@@ -20,22 +28,23 @@ export function DataHealthGrid({
     return <Text>Data unavailable</Text>
   }
 
-  const byLabel = new Map(sources.value.map((s) => [s.label, s]))
-  const slots = ORDER.map((label) => ({ label, source: byLabel.get(label) }))
+  const byKey = new Map(sources.value.map((s) => [s.key, s]))
+  const slots = ORDER.map((key) => ({ key, source: byKey.get(key) }))
 
   return (
     <ul
       data-widget="data-health-grid"
       className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-2"
     >
-      {slots.map(({ label, source }) => {
+      {slots.map(({ key, source }) => {
+        const label = source?.label ?? key
         const t = source === undefined ? 'warn' : tone(source.status)
         const freshness =
           source?.asOf !== null && source?.asOf !== undefined
             ? formatRelativeTime(source.asOf)
             : source?.status ?? '—'
         return (
-          <li key={label} className={clsx(surfaceBox, 'p-2.5')}>
+          <li key={key} className={clsx(surfaceBox, 'p-2.5')}>
             <div className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"

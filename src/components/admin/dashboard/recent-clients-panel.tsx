@@ -2,14 +2,20 @@
 
 import { Badge } from '@/components/catalyst/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/load'
-import { formatCurrency, formatDateTime } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { formatAddress } from '@/lib/format'
 
 export function RecentClientsPanel({
   clients,
-}: Readonly<{ clients: Availability<readonly AdminRecentClient[]> }>) {
+  assetScale,
+}: Readonly<{
+  clients: Availability<readonly AdminRecentClient[]>
+  assetScale: AdminAssetScale | null
+}>) {
   if (!isAvailable(clients)) {
     return <p className="text-sm text-fg-tertiary">Data unavailable</p>
   }
@@ -34,7 +40,9 @@ export function RecentClientsPanel({
             <TableCell className="font-medium">{client.label}</TableCell>
             <TableCell className="text-fg-tertiary">{formatDateTime(client.createdAt)}</TableCell>
             <TableCell className="tabular-nums">
-              {formatCurrency(client.currentExposureAtomic, { fromAtomic: 1_000_000 })}
+              {assetScale
+                ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
+                : '—'}
             </TableCell>
             <TableCell className="font-mono text-xs text-fg-tertiary">
               {client.vaultIds.length > 0 ? formatAddress(client.vaultIds[0] ?? null) ?? '—' : '—'}
