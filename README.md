@@ -3,21 +3,25 @@
 Front Next.js — vitrine marketing, connexion, console d'administration.
 UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
-**Landing `/`** — vitrine marketing, refonte artistique (2026-08-07) : récit **dark-only en 4 actes**,
-premium et calme, qui vend l'accès unifié aux espaces Hearst (fin de l'empilement de démos Aceternity).
+**Landing `/`** — vitrine marketing : récit **dark-only** premium en 4 actes, enrichi d'**interludes Motion**
+(2026-08-08). Vend l'accès unifié aux espaces Hearst.
 
 Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` (sticky, blur, filet bas) · `main` · `SiteFooter` · `bg-console-app`.
+Composition : `src/app/(marketing)/page.tsx` (server component) ; un filet `console-line-soft` ouvre chaque section.
 
-| Acte | Bloc | Wrapper marketing | Primitive `ui/` |
-|---|------|-------------------|-----------------|
-| 1 — Hero | La console réelle se redresse au défilement | `hero-scroll-demo.tsx` | `container-scroll-animation.tsx` |
-| 2 — Preuve | Quatre domaines, cartes qui s'ouvrent sur des captures | `app-store-demo.tsx` | `app-store-cards.tsx` |
-| 3 — Doctrine | Trois piliers de gouvernance (statique) | `features-doctrine.tsx` | — |
-| 4 — CTA | Clôture calme → `/login` · `/register` | `closing-cta.tsx` | — |
+| # | Section | Wrapper marketing | Primitive `ui/` |
+|---|---------|-------------------|-----------------|
+| 1 | **Acte 1 — Hero** (console qui se redresse au scroll) | `hero-scroll-demo.tsx` | `container-scroll-animation.tsx` |
+| 2 | Interlude — Vague / ripple | `background-ripple-band.tsx` | `background-ripple-effect.tsx` |
+| 3 | Interlude — Carousel 3D scroll-vélocité | `heritage-scroll-demo.tsx` | `scroll-velocity-planes.tsx` · `scramble-text.tsx` |
+| 4 | **Acte 2 — Preuve** (4 domaines, cartes shared-layout) | `app-store-demo.tsx` · `section-intro.tsx` | `app-store-cards.tsx` |
+| 5 | Interlude — Grille de fond | `grid-background-demo.tsx` | `grid-background.tsx` |
+| 6 | Interlude — Pin 3D → `/login` | `3d-pin-demo.tsx` | `3d-pin.tsx` |
+| 7 | **Acte 3 — Doctrine** (3 piliers, statique) | `features-doctrine.tsx` | — |
+| 8 | Interlude — Bento (5 tuiles animées) | `bento-grid-example-three.tsx` | `bento-grid.tsx` |
+| 9 | **Acte 4 — CTA** (aurore mint) → `/login` · `/register` | `closing-cta.tsx` | — |
 
-Composition : `src/app/(marketing)/page.tsx` (server component). En-tête de section partagé : `section-intro.tsx`.
-Deux moments de motion seulement (hero scroll-reveal + expansion shared-layout des cartes) ; le bas de page est immobile.
-Les démos non retenues (carousel 3D, grille de fond, pin 3D, ripple, bento, `cards-demo-3`) ont été retirées.
+**Orphelin** : `cards-demo-3.tsx` (`ui/`) restauré mais **non monté** (logos tiers, hors marque Hearst).
 
 **Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
 Interdit dans `src/components/marketing/` et `src/components/ui/` : classes `zinc-*`, `neutral-*`,
@@ -118,4 +122,4 @@ Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 | `docs/ENDPOINT-MAPPING.md` | Contrat backend → front |
 | `docs/PASSATION-AGENT.md` | Reprise opérationnelle (Railway, Vercel, priorités) |
 
-Point de reprise : **`main`** — landing `/` refondue en 4 actes dark-only (Hero · Preuve · Doctrine · CTA).
+Point de reprise : **`main`** — landing `/` = 4 actes dark-only (Hero · Preuve · Doctrine · CTA) + interludes Motion (vague, carousel 3D, grille, pin 3D, bento).

@@ -1,21 +1,33 @@
+import { Pin3dDemo } from '@/components/marketing/3d-pin-demo'
 import { AppStoreDemo } from '@/components/marketing/app-store-demo'
+import { BackgroundRippleBand } from '@/components/marketing/background-ripple-band'
+import { BentoGridExampleThree } from '@/components/marketing/bento-grid-example-three'
 import { ClosingCta } from '@/components/marketing/closing-cta'
 import { FeaturesDoctrine } from '@/components/marketing/features-doctrine'
+import { GridBackgroundDemo } from '@/components/marketing/grid-background-demo'
+import { HeritageScrollDemo } from '@/components/marketing/heritage-scroll-demo'
 import { HeroScrollDemo } from '@/components/marketing/hero-scroll-demo'
 import { SectionIntro } from '@/components/marketing/section-intro'
 
 /**
- * Landing Hearst Connect — récit en 4 actes, dark-only :
- *   Acte 1 Hero         — la console réelle se redresse au défilement (mouvement n°1).
- *   Acte 2 Preuve       — quatre domaines, cartes qui s'ouvrent sur des captures (mouvement n°2).
- *   Acte 3 Doctrine     — trois piliers de gouvernance, immobiles.
- *   Acte 4 CTA          — clôture calme vers /login et /register.
- * Server component : n'importe que les deux îlots client (hero, cartes) + deux sections statiques.
+ * Landing Hearst Connect — récit premium 4 actes (dark-only) + interludes Motion.
+ *   Acte 1 Hero            → interlude Vague (ripple) → interlude Carousel 3D (scroll-vélocité)
+ *   Acte 2 Preuve (domaines) → interlude Grille de fond → interlude Pin 3D
+ *   Acte 3 Doctrine (3 piliers) → interlude Bento
+ *   Acte 4 CTA (aurore mint)
+ * Header/footer premium conservés. Un filet `console-line-soft` ouvre chaque section.
+ * Server component : les blocs animés sont des îlots client autonomes.
  */
 export default function HomePage() {
   return (
     <>
       <HeroScrollDemo />
+
+      <BackgroundRippleBand />
+
+      <div className="border-t border-console-line-soft">
+        <HeritageScrollDemo />
+      </div>
 
       <section
         aria-labelledby="preuve-heading"
@@ -32,7 +44,19 @@ export default function HomePage() {
         <AppStoreDemo />
       </section>
 
+      <div className="border-t border-console-line-soft">
+        <GridBackgroundDemo />
+      </div>
+
+      <div className="border-t border-console-line-soft">
+        <Pin3dDemo />
+      </div>
+
       <FeaturesDoctrine />
+
+      <div className="border-t border-console-line-soft">
+        <BentoGridExampleThree />
+      </div>
 
       <ClosingCta />
     </>
