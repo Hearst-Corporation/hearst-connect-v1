@@ -37,7 +37,7 @@ export function CreateClientForm({
 
   if (disabled) {
     return (
-      <Callout tone="warning" title="Création indisponible">
+      <Callout tone="warning" title="Creation unavailable">
         {disabledReason}
       </Callout>
     )
@@ -51,7 +51,7 @@ export function CreateClientForm({
       </label>
 
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Mot de passe — min. 8 caractères</span>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">Password — min. 8 characters</span>
         <input
           name="password"
           type="password"
@@ -63,9 +63,9 @@ export function CreateClientForm({
       </label>
 
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Rôle</span>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">Role</span>
         <select name="role" required defaultValue="investor" className={FIELD_CLASS}>
-          <option value="investor">investor — client simulé</option>
+          <option value="investor">investor — simulated client</option>
           <option value="admin">admin</option>
         </select>
       </label>
@@ -85,7 +85,7 @@ export function CreateClientForm({
       </label>
 
       <Button type="submit" disabled={pending} color="dark/zinc">
-        {pending ? 'Création…' : 'Créer le compte'}
+        {pending ? 'Creating…' : 'Create account'}
       </Button>
 
       {state.validationError ? (
@@ -106,15 +106,15 @@ export function CreateClientForm({
       ) : null}
       {state.ok ? (
         <div className="space-y-2">
-          <Callout tone="success" title="Compte créé">
-            Compte créé — identifiant retourné par le backend, jamais inventé. L’indexation dans l’annuaire peut
+          <Callout tone="success" title="Account created">
+            Account created — identifiant retourné par le backend, jamais inventé. L’indexation dans l’annuaire peut
             prendre un instant : sur la fiche du client, le message « Absent de l’annuaire » signale ce délai, pas
             un échec.
           </Callout>
           {state.createdUserId ? (
             <Text>
               <Link href={`/admin/client-simulator/${state.createdUserId}`} className="underline">
-                Ouvrir le client simulé {state.createdEmail ?? state.createdUserId}
+                Ouvrir le simulated client {state.createdEmail ?? state.createdUserId}
               </Link>
             </Text>
           ) : null}

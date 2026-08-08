@@ -36,11 +36,11 @@ import {
 import type { Metadata } from 'next'
 import { IndexerTriggerForm } from './indexer-trigger-form'
 
-export const metadata: Metadata = { title: 'État du service' }
+export const metadata: Metadata = { title: 'Status du service' }
 export const dynamic = 'force-dynamic'
 
 /**
- * État du service — Catalyst pur.
+ * Status du service — Catalyst pur.
  * Sondes : runtime, health, ready — charge utile telle que renvoyée, sans réécriture.
  */
 
@@ -96,19 +96,19 @@ function buildMatrix(input: {
   return [
     {
       id: 'health',
-      label: 'Vivacité (health)',
+      label: 'Liveness (health)',
       status: healthOk ? 'LIVE' : 'UNAVAILABLE',
-      detail: healthOk ? 'HTTP 200' : 'Aucune réponse',
+      detail: healthOk ? 'HTTP 200' : 'No response',
     },
     {
       id: 'ready',
-      label: 'Disponibilité (ready)',
+      label: 'Readiness (ready)',
       status: readyOk ? 'LIVE' : 'UNAVAILABLE',
-      detail: readyOk ? (readyDb ?? '—') : 'Non prêt',
+      detail: readyOk ? (readyDb ?? '—') : 'Not ready',
     },
     {
       id: 'db',
-      label: 'Base de données',
+      label: 'Database',
       status: runtimeMatrixStatus(r?.databaseStatus ?? undefined),
       detail: latencyDetail(r?.db?.latencyMs),
     },
@@ -162,13 +162,13 @@ export default async function RuntimePage() {
   const kpis: readonly AdminHeroKpi[] = [
     {
       id: 'health',
-      title: 'Santé',
+      title: 'Health',
       value: editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE')),
       icon: HeartIcon,
     },
     {
       id: 'ready',
-      title: 'Prêt',
+      title: 'Ready',
       value: editorial(etatSourceLisibleCap(readyOk ? 'LIVE' : 'UNAVAILABLE')),
       icon: CheckCircleIcon,
     },
@@ -181,7 +181,7 @@ export default async function RuntimePage() {
     {
       id: 'version',
       title: 'Version',
-      value: editorial(r?.serviceVersion ?? 'Non renseignée'),
+      value: editorial(r?.serviceVersion ?? 'Not provided'),
       icon: TagIcon,
     },
   ]
@@ -189,20 +189,20 @@ export default async function RuntimePage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="État du service"
-        description="Sondes runtime, health et ready — état déclaré par le backend, sans réécriture."
+        title="Status du service"
+        description="Runtime, health, and ready probes — state declared by the backend, without rewriting."
         kpis={kpis}
       />
 
       <DataTableShell
-        title="Matrice d’état"
-        description="Dépendances et sondes opérationnelles."
+        title="State matrix"
+        description="Dependencies and operational probes."
       >
         <TableHead>
           <TableRow>
             <TableHeader>Composant</TableHeader>
-            <TableHeader>État</TableHeader>
-            <TableHeader>Détail</TableHeader>
+            <TableHeader>Status</TableHeader>
+            <TableHeader>Detail</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -217,8 +217,8 @@ export default async function RuntimePage() {
       </DataTableShell>
 
       <SectionCard
-        title="Déploiement"
-        hint="Version, environnement et paramètres de l’ordonnanceur tels que rapportés par la sonde d’exécution."
+        title="Deployment"
+        hint="Version, environment, and scheduler settings as reported by the runtime probe."
       >
       <DescriptionList>
         <DescriptionTerm>Environnement</DescriptionTerm>
@@ -227,9 +227,9 @@ export default async function RuntimePage() {
         <DescriptionDetails>{r?.serviceVersion ?? '—'}</DescriptionDetails>
         <DescriptionTerm>Commit</DescriptionTerm>
         <DescriptionDetails className="font-mono text-sm">{r?.commitSha ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Disponibilité</DescriptionTerm>
+        <DescriptionTerm>Availability</DescriptionTerm>
         <DescriptionDetails>{formatUptime(r?.uptimeSeconds)}</DescriptionDetails>
-        <DescriptionTerm>Chaîne</DescriptionTerm>
+        <DescriptionTerm>Chain</DescriptionTerm>
         <DescriptionDetails>
           {r?.contract?.chainId === undefined || r.contract.chainId === null ? '—' : String(r.contract.chainId)}
         </DescriptionDetails>
@@ -244,7 +244,7 @@ export default async function RuntimePage() {
         <DescriptionDetails>{r?.contract?.mode ?? '—'}</DescriptionDetails>
         <DescriptionTerm>Adresse</DescriptionTerm>
         <DescriptionDetails className="font-mono text-sm">{r?.contract?.contractAddress ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Code présent</DescriptionTerm>
+        <DescriptionTerm>Code present</DescriptionTerm>
         <DescriptionDetails>
           {r?.contract?.codePresent === undefined || r.contract.codePresent === null
             ? '—'
@@ -252,90 +252,90 @@ export default async function RuntimePage() {
               ? 'Oui'
               : 'Non'}
         </DescriptionDetails>
-        <DescriptionTerm>État du contrat</DescriptionTerm>
+        <DescriptionTerm>Status du contrat</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
       </DescriptionList>
       </SectionCard>
 
       <SectionCard title="Ordonnanceur">
       <DescriptionList>
-        <DescriptionTerm>État</DescriptionTerm>
+        <DescriptionTerm>Status</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
-        <DescriptionTerm>Dernière réussite</DescriptionTerm>
+        <DescriptionTerm>Last success</DescriptionTerm>
         <DescriptionDetails>{formatDateTime(scheduler?.lastSuccessAt)}</DescriptionDetails>
-        <DescriptionTerm>Dernier bloc indexé</DescriptionTerm>
+        <DescriptionTerm>Last indexed block</DescriptionTerm>
         <DescriptionDetails>{blockDetail(scheduler?.lastIndexedBlock)}</DescriptionDetails>
-        <DescriptionTerm>Erreurs consécutives</DescriptionTerm>
+        <DescriptionTerm>Consecutive errors</DescriptionTerm>
         <DescriptionDetails>{errorsDetail(scheduler?.consecutiveErrors)}</DescriptionDetails>
       </DescriptionList>
       </SectionCard>
 
       <SectionCard
-        title="Déclenchement indexeur"
-        hint="POST /api/v1/admin/indexer/trigger — admin uniquement. Inefficace tant que le RPC chaîne est down."
+        title="Indexer trigger"
+        hint="POST /api/v1/admin/indexer/trigger — admin only. Ineffective while chain RPC is down."
       >
         <IndexerTriggerForm />
       </SectionCard>
 
       <div className="space-y-4">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Les tuiles de synthèse ci-dessous reflètent l’état déclaré par l’enveloppe{' '}
-          <span className="font-mono">/api/v1/dashboard</span> : quand cet état est indisponible, elles
-          affichent « Indisponible ». Le détail par surface énumère les champs effectivement présents dans
-          la charge utile, et l’activité des sources provient d’un autre relevé — une synthèse indisponible
-          ne contredit donc pas les décomptes détaillés plus bas.
+          The summary tiles below reflect the state declared by the{' '}
+          <span className="font-mono">/api/v1/dashboard</span> : when that state is unavailable, they
+          show &quot;Unavailable&quot;. Per-surface detail lists fields actually present in
+          the payload, and source activity comes from another read — unavailable summary
+          does not contradict the detailed counts below.
         </p>
         <DataCoverageSection compteLabel={session.name} />
       </div>
 
       <SectionCard
-        title="Réponses brutes"
-        hint="Charge utile complète pour vérification technique — aucune valeur de sonde n’est réécrite par le frontend."
+        title="Raw responses"
+        hint="Full payload for technical verification — no probe value is rewritten by the frontend."
       >
         <div className="space-y-6">
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-zinc-500">Exécution (runtime)</h3>
+            <h3 className="text-sm font-semibold text-zinc-500">Runtime</h3>
             {runtime.ok ? (
               <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
                 {jsonLisible(runtime.data)}
               </pre>
             ) : (
-              <Callout tone="danger">La sonde d’exécution n’a pas répondu.</Callout>
+              <Callout tone="danger">The runtime probe did not respond.</Callout>
             )}
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-zinc-500">Santé (health)</h3>
+            <h3 className="text-sm font-semibold text-zinc-500">Health (health)</h3>
             {health.ok ? (
               <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
                 {jsonLisible(health.data)}
               </pre>
             ) : (
-              <Callout tone="danger">La sonde de vivacité n’a pas répondu.</Callout>
+              <Callout tone="danger">The liveness probe did not respond.</Callout>
             )}
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-zinc-500">Prêt (ready)</h3>
+            <h3 className="text-sm font-semibold text-zinc-500">Ready</h3>
             {ready.ok ? (
               <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-zinc-300')}>
                 {jsonLisible(ready.data)}
               </pre>
             ) : (
-              <Callout tone="danger">La sonde de disponibilité n’a pas répondu.</Callout>
+              <Callout tone="danger">The readiness probe did not respond.</Callout>
             )}
           </div>
         </div>
       </SectionCard>
 
       <Text>
-        Actions d’exploitation à effet de bord :{' '}
+        Side-effect operations actions:{' '}
         <Link href="/admin/keeper" className="underline">
           Actions Keeper
         </Link>
         {' · '}
         <Link href="/admin/api-explorer" className="underline">
-          Explorateur d’API
+          API explorer
         </Link>
       </Text>
     </div>

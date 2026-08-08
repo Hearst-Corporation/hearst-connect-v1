@@ -38,8 +38,8 @@ export function HearstAllocationChart({ postes }: Readonly<{ postes: readonly Po
           <thead>
             <tr>
               <th scope="col">Poche</th>
-              <th scope="col">Cible</th>
-              <th scope="col">Constaté</th>
+              <th scope="col">Target</th>
+              <th scope="col">Actual</th>
             </tr>
           </thead>
           <tbody>
@@ -95,7 +95,7 @@ export function HearstAllocationChart({ postes }: Readonly<{ postes: readonly Po
             ) : null}
             <Bar
               dataKey="ciblePct"
-              name="Cible"
+              name="Target"
               fill={CIBLE}
               radius={[0, 3, 3, 0]}
               maxBarSize={14}
@@ -104,7 +104,7 @@ export function HearstAllocationChart({ postes }: Readonly<{ postes: readonly Po
             {anyConstate ? (
               <Bar
                 dataKey="constatePct"
-                name="Constaté"
+                name="Actual"
                 fill={CONSTATE}
                 radius={[0, 3, 3, 0]}
                 maxBarSize={14}

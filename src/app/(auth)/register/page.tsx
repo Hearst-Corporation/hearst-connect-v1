@@ -5,7 +5,7 @@ import { Logo } from '@/components/logo'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Demander un accès',
+  title: 'Request access',
 }
 
 export default function RegisterPage() {
@@ -13,21 +13,21 @@ export default function RegisterPage() {
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
       <Logo className="text-zinc-950 dark:text-white" />
       <div>
-        <Heading>Accès sur invitation</Heading>
+        <Heading>Invitation-only access</Heading>
         <Text className="mt-2">
-          Les comptes Hearst Connect sont ouverts par le propriétaire de l’espace de travail : il n’y a pas
-          d’inscription libre. Écrivez-nous en indiquant votre organisation, nous ouvrons l’espace et vous invitons.
+          Hearst Connect accounts are opened by the workspace owner: there is no open registration. Email us with
+          your organization details and we will open the workspace and invite you.
         </Text>
       </div>
 
-      <Button href="mailto:connect@hearstcorporation.io?subject=Demande%20d%27acc%C3%A8s%20Hearst%20Connect" className="w-full">
-        Écrire à l’équipe
+      <Button href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20access%20request" className="w-full">
+        Email the team
       </Button>
 
       <Text>
-        Vous avez déjà un compte ?{' '}
+        Already have an account?{' '}
         <TextLink href="/login">
-          <Strong>Se connecter</Strong>
+          <Strong>Sign in</Strong>
         </TextLink>
       </Text>
     </div>

@@ -29,17 +29,17 @@ const STATUS_TONE: Record<ResolvedStatus | 'SNAPSHOT', BadgeTone> = {
 }
 
 const STATUS_LABEL: Record<ResolvedStatus | 'SNAPSHOT', string> = {
-  LIVE: 'En direct',
-  SNAPSHOT: 'Instantané',
-  STALE: 'Données obsolètes',
-  PARTIAL: 'Partiel',
-  EMPTY: 'Aucune donnée',
-  SIMULATED: 'Simulé (backend)',
-  NOT_CONFIGURED: 'Non configuré',
-  UNAVAILABLE: 'Indisponible',
-  NOT_SUPPORTED: 'Non pris en charge',
-  PERMISSION_DENIED: 'Accès refusé',
-  ERROR: 'Erreur',
+  LIVE: 'Live',
+  SNAPSHOT: 'Snapshot',
+  STALE: 'Stale data',
+  PARTIAL: 'Partial',
+  EMPTY: 'No data',
+  SIMULATED: 'Simulated (backend)',
+  NOT_CONFIGURED: 'Not configured',
+  UNAVAILABLE: 'Unavailable',
+  NOT_SUPPORTED: 'Not supported',
+  PERMISSION_DENIED: 'Access denied',
+  ERROR: 'Error',
 }
 
 const TONE_CLASS: Record<BadgeTone, string> = {
@@ -69,11 +69,11 @@ export function StatusBadge({
 }
 
 const PROVENANCE_LABEL: Record<string, string> = {
-  live: 'Source en direct',
-  db: 'Base de données',
-  indexed: 'Indexé',
-  manual: 'Source manuelle',
-  fixture: 'Fixture backend — pas une source réelle',
+  live: 'Live source',
+  db: 'Database',
+  indexed: 'Indexed',
+  manual: 'Manual source',
+  fixture: 'Backend fixture — not a real source',
 }
 
 export function DataProvenance({
@@ -109,7 +109,7 @@ export function ResolvedValue({
 
   if (!displayable) {
     return (
-      <span className={clsx(className, 'text-zinc-500')} title={status ? STATUS_LABEL[status] : 'Aucune valeur reçue'}>
+      <span className={clsx(className, 'text-zinc-500')} title={status ? STATUS_LABEL[status] : 'No value received'}>
         —
       </span>
     )
@@ -125,7 +125,7 @@ export function ResolvedValue({
 
 export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
   const bits = [
-    trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'aucune réponse',
+    trace.httpStatus !== null ? `HTTP ${trace.httpStatus}` : 'no response',
     `${trace.durationMs}ms`,
     trace.requestId ? `req ${trace.requestId}` : null,
     trace.rateLimitRemaining !== null ? `quota ${trace.rateLimitRemaining}` : null,
@@ -151,7 +151,7 @@ function StateShell({
 }
 
 export function EmptyState({ reason }: Readonly<{ reason?: string | null }>) {
-  return <StateShell status="EMPTY" title="Réponse vide" reason={reason ?? 'Le backend a répondu sans aucun élément.'} />
+  return <StateShell status="EMPTY" title="Empty response" reason={reason ?? 'The backend returned no items.'} />
 }
 
 export function UnavailableState({ state, children }: Readonly<{ state: Resolved<unknown>; children?: React.ReactNode }>) {
@@ -177,21 +177,21 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
         <>
           <dt className="text-zinc-500">Code</dt>
           <dd className="font-mono text-white">{problem.code}</dd>
-          <dt className="text-zinc-500">Titre</dt>
+          <dt className="text-zinc-500">Title</dt>
           <dd className="text-zinc-300">{problem.title}</dd>
-          <dt className="text-zinc-500">Détail</dt>
+          <dt className="text-zinc-500">Detail</dt>
           <dd className="text-zinc-300">{problem.detail}</dd>
-          <dt className="text-zinc-500">Identifiant de requête</dt>
+          <dt className="text-zinc-500">Request ID</dt>
           <dd className="font-mono break-all text-zinc-400">{problem.requestId}</dd>
         </>
       ) : null}
       {keeper ? (
         <>
-          <dt className="text-zinc-500">Motif</dt>
+          <dt className="text-zinc-500">Reason</dt>
           <dd className="font-mono text-zinc-950 dark:text-white">{keeper.reason}</dd>
           {keeper.detail ? (
             <>
-              <dt className="text-zinc-500">Détail</dt>
+              <dt className="text-zinc-500">Detail</dt>
               <dd className="text-zinc-700 dark:text-zinc-300">{keeper.detail}</dd>
             </>
           ) : null}

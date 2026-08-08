@@ -31,7 +31,7 @@ export function IndexerTriggerForm() {
         sinon l’échec reste visible dans la réponse.
       </Text>
       <Button type="submit" disabled={pending} color="dark/zinc">
-        {pending ? 'Déclenchement…' : 'Déclencher l’indexeur'}
+        {pending ? 'Triggering…' : 'Trigger indexer'}
       </Button>
       {state.validationError ? (
         <Text className="text-red-600 dark:text-red-400">{state.validationError}</Text>

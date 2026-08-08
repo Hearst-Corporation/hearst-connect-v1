@@ -2,11 +2,6 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-/**
- * Structural contract — HC-ADMIN-DASHBOARD-UI-ASSETS-005.
- * Surface canonique : `/admin` (redirect legacy `/admin/dashboard`).
- */
-
 const root = (p: string) => resolve(import.meta.dirname, '../../', p)
 const PAGE = readFileSync(root('src/app/admin/page.tsx'), 'utf8')
 const SOURCE = readFileSync(root('src/features/admin-dashboard/admin-dashboard-page.tsx'), 'utf8')
@@ -18,7 +13,7 @@ const STEPPER = readFileSync(root('src/components/admin/dashboard/subscription-j
 const QUEUE = readFileSync(root('src/components/admin/dashboard/action-queue.tsx'), 'utf8')
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
 
-describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
+describe('/admin — dashboard structure (UI-ASSETS-005)', () => {
   it('uses Catalyst shell (no gray bag) and DashboardHeader', () => {
     expect(SOURCE).toMatch(/<DashboardShell/)
     expect(SOURCE).toMatch(/<DashboardHeader/)
@@ -27,16 +22,16 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
     expect(SOURCE).not.toMatch(/from ['"]@mui\/x-charts/)
   })
 
-  it('titles metadata as pilotage des souscriptions', () => {
-    expect(PAGE).toMatch(/Pilotage des souscriptions/)
+  it('titles metadata as subscription oversight', () => {
+    expect(PAGE).toMatch(/Subscription oversight|subscription/i)
   })
 
   it('renders exactly four compact KPI metrics inside the header (no separate boxes)', () => {
     for (const label of [
-      'Taux de conversion',
-      'KYC en attente',
-      'Souscriptions à traiter',
-      'Souscriptions échouées',
+      'Conversion rate',
+      'KYC pending',
+      'Subscriptions to process',
+      'Failed subscriptions',
     ]) {
       expect(SOURCE).toContain(label)
     }
@@ -62,7 +57,7 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
     expect(SOURCE).not.toContain('Clients actifs')
     expect(SOURCE).not.toContain('Wallets actifs')
     expect(KPI).toMatch(/AdminHeroKpiMetrics as DashboardKpiMetrics/)
-    expect(HERO_KPI).not.toMatch(/En direct/)
+    expect(HERO_KPI).not.toMatch(/Live/)
     expect(HERO_KPI).not.toMatch(/SourcePill|AdminReading|showRoute/)
     expect(HERO_KPI).not.toMatch(/rounded-xl|bg-white|ring-1|backdrop-blur/)
     expect(HERO_KPI).not.toMatch(/surfaceBox/)
@@ -71,7 +66,7 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
   it('replaces the six-column funnel with a real journey stepper (no comparative bars)', () => {
     expect(SOURCE).not.toMatch(/<FunnelColumns/)
     expect(SOURCE).toMatch(/<SubscriptionJourneyStepper/)
-    expect(SOURCE).toContain('Parcours de souscription')
+    expect(SOURCE).toContain('Subscription journey')
     expect(STEPPER).toMatch(/'use client'/)
     expect(STEPPER).toMatch(/TabGroup|TabList|TabPanel/)
     expect(STEPPER).not.toMatch(/role="meter"/)
@@ -81,16 +76,16 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
 
   it('keeps actions in the priority queue and rebuilds it into a composition (not a blank card)', () => {
     expect(SOURCE).toMatch(/<ActionQueue/)
-    expect(SOURCE).toContain('À traiter')
-    expect(QUEUE).toContain('à traiter')
-    expect(QUEUE).toContain('Rien à traiter')
+    expect(SOURCE).toContain('To process')
+    expect(QUEUE).toContain('to process')
+    expect(QUEUE).toContain('Nothing to process')
     expect(QUEUE).toMatch(/HearstCriticalAction|HearstDangerAction/)
     expect(QUEUE).not.toMatch(/Math\.random\(/)
   })
 
   it('routes route-level actions through the Hearst actions boundary (not raw Aceternity)', () => {
-    expect(HEADER).toContain('Ajouter un client')
-    expect(HEADER).toContain('Création client non disponible côté backend')
+    expect(HEADER).toContain('Add client')
+    expect(HEADER).toContain('Client creation is not available on the backend')
     expect(HEADER).toMatch(/from ['"]@\/components\/actions['"]/)
     expect(HEADER).toMatch(/HearstPrimaryAction/)
     expect(HEADER).not.toContain('/admin/client-simulator')
@@ -100,10 +95,10 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
   })
 
   it('mounts charts and short placeholders — no API routes in UI copy', () => {
-    expect(SOURCE).toMatch(/Courbe d’activité|Courbe d'activité/)
-    expect(SOURCE).toMatch(/Donut KYC/)
-    expect(SOURCE).toMatch(/Souscriptions par produit/)
-    expect(SOURCE).toMatch(/Activité hebdomadaire/)
+    expect(SOURCE).toMatch(/Activity curve/)
+    expect(SOURCE).toMatch(/KYC donut/)
+    expect(SOURCE).toMatch(/Subscriptions by product/)
+    expect(SOURCE).toMatch(/Weekly activity/)
     expect(SOURCE).not.toMatch(/Wallets et dépôts/)
     expect(SOURCE).toMatch(/<ChartPlaceholder/)
     expect(SOURCE).not.toMatch(/GET \/api/)
@@ -112,10 +107,10 @@ describe('/admin — structure dashboard (UI-ASSETS-005)', () => {
   })
 
   it('renders subscriptions table (max 6) and sources at the bottom', () => {
-    expect(SOURCE).toContain('Dernières souscriptions')
+    expect(SOURCE).toContain('Latest subscriptions')
     expect(SOURCE).toMatch(/slice\(0,\s*6\)/)
     expect(SOURCE).toMatch(/<SourceStatusGrid/)
-    expect(SOURCE).toContain('État des sources')
+    expect(SOURCE).toContain('Source status')
   })
 
   it('keeps charts behind the Hearst boundary (recharts only, no MUI X)', () => {

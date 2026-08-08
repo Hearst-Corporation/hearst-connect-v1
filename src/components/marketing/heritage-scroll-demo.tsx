@@ -3,32 +3,32 @@
 import { ScrollVelocityPlanes } from '@/components/ui/scroll-velocity-planes'
 
 const LABELS = [
-  'Accès unifié',
-  'Coffres',
+  'Unified access',
+  'Vaults',
   'Clients',
-  'Conformité',
-  'Opérations',
-  'Journal Série 1',
+  'Compliance',
+  'Operations',
+  'Series 1 journal',
   'Vaults',
   'Keeper',
   'Runtime',
   'API Explorer',
-  'Profil',
-  'Membres',
-  'Connexions',
-  'Paramètres',
-  'Activité',
-  'Pilotage',
+  'Profile',
+  'Members',
+  'Sign-ins',
+  'Settings',
+  'Activity',
+  'Oversight',
 ] as const
 
-/** Motion heritage carousel — assets brand Hearst, tokens console. */
+/** Motion heritage carousel — Hearst brand assets, console tokens. */
 export function HeritageScrollDemo() {
   return (
     <ScrollVelocityPlanes
       title="HEARST CONNECT"
-      titleLine2="ESPACES"
+      titleLine2="WORKSPACES"
       count={LABELS.length}
-      hint="faire défiler"
+      hint="scroll"
       labels={LABELS}
     />
   )

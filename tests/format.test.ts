@@ -83,17 +83,17 @@ describe('formatCurrency', () => {
 
 describe('formatDateTime', () => {
   it('nomme l’absence au lieu d’inventer une date', () => {
-    expect(formatDateTime(null)).toBe('date inconnue')
-    expect(formatDateTime(undefined)).toBe('date inconnue')
-    expect(formatDateTime('')).toBe('date inconnue')
-    expect(formatDateTime('pas-une-date')).toBe('date inconnue')
+    expect(formatDateTime(null)).toBe('unknown date')
+    expect(formatDateTime(undefined)).toBe('unknown date')
+    expect(formatDateTime('')).toBe('unknown date')
+    expect(formatDateTime('pas-une-date')).toBe('unknown date')
   })
 
   it('formate une date ISO valide', () => {
     // Pas d'assertion sur la chaîne exacte : elle dépend du fuseau de la
     // machine. Ce qui est garanti, c'est que l'entrée valide ne retombe pas
     // sur le libellé d'absence.
-    expect(formatDateTime('2026-08-04T12:30:00.000Z')).not.toBe('date inconnue')
+    expect(formatDateTime('2026-08-04T12:30:00.000Z')).not.toBe('unknown date')
   })
 })
 

@@ -1,4 +1,4 @@
-import { etatBackend, libelleEtatBackend } from '@/lib/backend/lecture-etat'
+import { backendStateFrom, backendStateLabel } from '@/lib/backend/reading-state'
 import { motifLisible } from '@/lib/mouvements'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 import { Badge } from '@/components/catalyst/badge'
@@ -55,7 +55,7 @@ function Absent({
   return (
     <span className={styles.absentBlock}>
       <Badge color="zinc" className={clsx(onAccent && styles.absentOnAccent)}>
-        {status === 'NOT_EXPOSED' ? 'Non exposé' : 'Indisponible'}
+        {status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
       </Badge>
       {showRoute && detailLine !== '' && (
         <Text className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>{detailLine}</Text>
@@ -86,18 +86,18 @@ export function Reading({
   if (signal === 'editorial') {
     return <span className={clsx(styles.metricValue, className)}>{value.value}</span>
   }
-  const etat = etatBackend(value)
+  const etat = backendStateFrom(value)
   return (
     <span className="inline-flex items-center gap-2">
       <span className={clsx(styles.metricValue, className)}>{value.value}</span>
-      {etat === 'EN_DIRECT' ? (
+      {etat === 'LIVE' ? (
         <Badge color="green" data-live-badge="">
           <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
-          {libelleEtatBackend(etat)}
+          {backendStateLabel(etat)}
         </Badge>
       ) : (
-        <Badge color={etat === 'PROBLEME' ? 'amber' : 'zinc'} data-state-badge="">
-          {libelleEtatBackend(etat)}
+        <Badge color={etat === 'ISSUE' ? 'amber' : 'zinc'} data-state-badge="">
+          {backendStateLabel(etat)}
         </Badge>
       )}
     </span>

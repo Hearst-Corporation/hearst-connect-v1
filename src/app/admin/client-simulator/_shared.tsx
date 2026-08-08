@@ -5,5 +5,5 @@ import { Badge } from '@/components/catalyst/badge'
  * distinguer un compte créé via POST /api/v1/admin/users d’un client réel.
  */
 export function SimulatedBadge() {
-  return <Badge color="amber">Simulé</Badge>
+  return <Badge color="amber">Simulated</Badge>
 }

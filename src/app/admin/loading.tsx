@@ -1,8 +1,8 @@
 import { Text } from '@/components/catalyst/text'
 
 /**
- * État de chargement admin — slot contenu du SidebarLayout Catalyst.
- * État nommé « loading », distinct de vide / indisponible / erreur :
+ * Status de chargement admin — slot contenu du SidebarLayout Catalyst.
+ * Status nommé « loading », distinct de vide / indisponible / erreur :
  * aucune figure placeholder.
  */
 export default function AdminLoading() {
@@ -13,7 +13,7 @@ export default function AdminLoading() {
       aria-live="polite"
     >
       <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-        Chargement…
+        Loading…
       </Text>
     </div>
   )

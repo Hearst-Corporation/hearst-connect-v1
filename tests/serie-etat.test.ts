@@ -1,11 +1,11 @@
-import { etatSerieDe, explicationSerie, MOTIF_SERIE } from '@/lib/serie-etat'
+import { seriesStateFrom, explicationSerie, MOTIF_SERIE } from '@/lib/serie-etat'
 import { describe, expect, it } from 'vitest'
 
 describe('serie-etat', () => {
   it('reste sur le défaut quand le motif est absent ou inconnu', () => {
-    expect(explicationSerie(undefined, 'défaut')).toBe('défaut')
-    expect(explicationSerie({ status: 'LIVE', value: 1, reason: '' }, 'défaut')).toBe('défaut')
-    expect(explicationSerie({ status: 'LIVE', value: 1, reason: 'inconnu' }, 'défaut')).toBe('défaut')
+    expect(explicationSerie(undefined, 'default')).toBe('default')
+    expect(explicationSerie({ status: 'LIVE', value: 1, reason: '' }, 'default')).toBe('default')
+    expect(explicationSerie({ status: 'LIVE', value: 1, reason: 'inconnu' }, 'default')).toBe('default')
   })
 
   it('traduit les motifs connus', () => {
@@ -15,15 +15,15 @@ describe('serie-etat', () => {
   })
 
   it('décide l’état du cadre selon le statut backend', () => {
-    expect(etatSerieDe(undefined, 'attente')).toEqual({ type: 'attendue', explication: 'attente' })
-    expect(etatSerieDe({ status: 'ERROR', value: null, reason: 'rpc_error' }, 'x')).toEqual({
-      type: 'indisponible',
+    expect(seriesStateFrom(undefined, 'pending')).toEqual({ type: 'pending', explication: 'pending' })
+    expect(seriesStateFrom({ status: 'ERROR', value: null, reason: 'rpc_error' }, 'x')).toEqual({
+      type: 'unavailable',
       explication: MOTIF_SERIE.rpc_error,
     })
-    expect(etatSerieDe({ status: 'LIVE', value: null, reason: 'not_available' }, 'x')).toEqual({
-      type: 'attendue',
+    expect(seriesStateFrom({ status: 'LIVE', value: null, reason: 'not_available' }, 'x')).toEqual({
+      type: 'pending',
       explication: MOTIF_SERIE.not_available,
     })
-    expect(etatSerieDe({ status: 'LIVE', value: { ok: true } }, 'x')).toEqual({ type: 'tracee' })
+    expect(seriesStateFrom({ status: 'LIVE', value: { ok: true } }, 'x')).toEqual({ type: 'plotted' })
   })
 })

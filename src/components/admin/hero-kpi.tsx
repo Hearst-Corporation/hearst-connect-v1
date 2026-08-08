@@ -16,7 +16,7 @@ export type AdminHeroKpi = Readonly<{
 
 export function AdminHeroKpiMetrics({ items }: Readonly<{ items: readonly AdminHeroKpi[] }>) {
   return (
-    <section aria-label="Indicateurs principaux" className="min-w-0">
+    <section aria-label="Key metrics" className="min-w-0">
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4 sm:gap-x-8">
         {items.map((kpi) => {
           const Icon = kpi.icon

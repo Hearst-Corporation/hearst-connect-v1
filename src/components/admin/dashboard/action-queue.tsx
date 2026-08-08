@@ -38,23 +38,23 @@ const KIND_ICON: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
 }
 
 const KIND_PROBLEM: Record<string, string> = {
-  kyc: 'KYC en attente',
-  wallet: 'Wallet à créer',
-  depot: 'Dépôt à rapprocher',
-  souscription: 'Signature requise',
-  transaction: 'Transaction échouée',
+  kyc: 'KYC pending',
+  wallet: 'Wallet to create',
+  depot: 'Deposit to reconcile',
+  souscription: 'Signature required',
+  transaction: 'Failed transaction',
 }
 
 const KIND_LABEL: Record<string, string> = {
   kyc: 'KYC',
   wallet: 'Wallet',
-  depot: 'Dépôt',
-  souscription: 'Souscription',
+  depot: 'Deposit',
+  souscription: 'Subscription',
   transaction: 'Transaction',
 }
 
 const SEVERITY_BADGE: Record<PriorityQueueRow['severity'], { color: 'red' | 'amber' | 'zinc'; label: string }> = {
-  critique: { color: 'red', label: 'Critique' },
+  critique: { color: 'red', label: 'Critical' },
   important: { color: 'amber', label: 'Important' },
   information: { color: 'zinc', label: 'Information' },
 }
@@ -109,8 +109,8 @@ function ActionQueueBody({
     return (
       <EmptyState
         tone="unavailable"
-        title="Données indisponibles"
-        subline="La file de priorités n'a pas pu être lue."
+        title="Data unavailable"
+        subline="The priority queue could not be read."
       />
     )
   }
@@ -118,8 +118,8 @@ function ActionQueueBody({
     return (
       <EmptyState
         tone="calm"
-        title="Rien à traiter"
-        subline="La file de souscription est à jour."
+        title="Nothing to process"
+        subline="The subscription queue is up to date."
       />
     )
   }
@@ -140,9 +140,9 @@ function ActionQueueBody({
     <>
       {/* A. Résumé — compteurs mesurés sur les vraies lignes */}
       <div className="flex flex-wrap gap-2">
-        {critique > 0 ? <Chip tone="danger" count={critique} label="critiques" /> : null}
-        {important > 0 ? <Chip tone="warning" count={important} label="importants" /> : null}
-        <Chip tone="accent" count={total} label="à traiter" />
+        {critique > 0 ? <Chip tone="danger" count={critique} label="critical" /> : null}
+        {important > 0 ? <Chip tone="warning" count={important} label="important" /> : null}
+        <Chip tone="accent" count={total} label="to process" />
       </div>
 
       {/* B. Action principale — panneau « well » (action-panels/08) */}
@@ -156,11 +156,11 @@ function ActionQueueBody({
         <p className="mt-2 truncate text-sm font-semibold text-zinc-950 dark:text-white">{primary.clientLabel}</p>
         <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
           <div className="min-w-0">
-            <dt className="text-zinc-500 dark:text-zinc-400">Problème</dt>
+            <dt className="text-zinc-500 dark:text-zinc-400">Issue</dt>
             <dd className="truncate font-medium text-zinc-800 dark:text-zinc-200">{primaryProblem}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-zinc-500 dark:text-zinc-400">Ancienneté</dt>
+            <dt className="text-zinc-500 dark:text-zinc-400">Age</dt>
             <dd className="truncate font-medium text-zinc-800 dark:text-zinc-200">{primary.ageLabel}</dd>
           </div>
         </dl>
@@ -197,7 +197,7 @@ function ActionQueueBody({
                 <HearstIconAction
                   href={row.actionHref}
                   icon={<ChevronRightIcon />}
-                  aria-label={`Ouvrir ${row.clientLabel}`}
+                  aria-label={`Open ${row.clientLabel}`}
                 />
               </li>
             )
@@ -207,7 +207,7 @@ function ActionQueueBody({
 
       {remaining > 0 ? (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          +{remaining} autre{remaining > 1 ? 's' : ''} en file.
+          +{remaining} other{remaining > 1 ? 's' : ''} in queue.
         </p>
       ) : null}
     </>

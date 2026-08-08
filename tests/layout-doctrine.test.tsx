@@ -28,12 +28,12 @@ import { describe, expect, it } from 'vitest'
 describe('primary navigation', () => {
   it('offers exactly five primary destinations', () => {
     expect(ADMIN_NAV).toHaveLength(5)
-    expect(ADMIN_NAV.map((e) => e.libelle)).toEqual([
-      'Tableau de bord',
-      'Coffres',
+    expect(ADMIN_NAV.map((e) => e.label)).toEqual([
+      'Dashboard',
+      'Vaults',
       'Clients',
-      'Conformité',
-      'Opérations',
+      'Compliance',
+      'Operations',
     ])
   })
 
@@ -42,9 +42,9 @@ describe('primary navigation', () => {
       ...ADMIN_NAV.map((e) => e.href),
       ...ADMIN_SECTION_HUBS.map((h) => h.href),
       ...ADMIN_SECONDARY_FLAT.map((e) => e.href),
-      '/admin/produit',
+      '/admin/product',
     ])
-    const demoted = ['/admin/series-1', '/admin/produit', '/admin/runtime']
+    const demoted = ['/admin/series-1', '/admin/product', '/admin/runtime']
     for (const href of demoted) expect(reachable.has(href)).toBe(true)
     expect(reachable.has('/admin')).toBe(true)
   })
@@ -64,10 +64,10 @@ describe('primary navigation', () => {
     expect(sousMenusCorps('/admin/runtime')?.length).toBe(3)
     expect(groupeSecondaireActif('/admin/runtime')?.titre).toBe('Service')
     // Production et Portfolio restent mono-entrée : pas de sous-nav horizontale.
-    expect(sousMenusCorps('/admin/produit')).toBeUndefined()
+    expect(sousMenusCorps('/admin/product')).toBeUndefined()
     expect(sousMenusCorps('/admin/series-1')).toBeUndefined()
     expect(sousMenusCorps('/admin')).toBeUndefined()
-    expect(groupeSecondaireActif('/admin/produit')?.titre).toBe('Production')
+    expect(groupeSecondaireActif('/admin/product')?.titre).toBe('Production')
     expect(groupeSecondaireActif('/admin/series-1')?.titre).toBe('Portfolio')
   })
 

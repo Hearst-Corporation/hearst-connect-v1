@@ -32,17 +32,17 @@ export const metadata: Metadata = { title: 'Clients' }
 export const dynamic = 'force-dynamic'
 
 const ISSUE_LABEL: Record<ClientIssue, string> = {
-  NO_VAULT_ASSIGNED: 'Aucun coffre attribué',
-  COMPLIANCE_REVIEW_PENDING: 'Revue de conformité en attente',
-  VAULT_INACTIVE: 'Coffre inactif',
-  DEPLOYMENT_BLOCKED: 'Déploiement bloqué',
-  MISSING_INVESTOR_RECORD: 'Aucun dossier investisseur',
-  NO_ACTIVE_STRATEGY: 'Aucune stratégie active',
+  NO_VAULT_ASSIGNED: 'No vault assigned',
+  COMPLIANCE_REVIEW_PENDING: 'Compliance review pending',
+  VAULT_INACTIVE: 'Vault inactive',
+  DEPLOYMENT_BLOCKED: 'Deployment blocked',
+  MISSING_INVESTOR_RECORD: 'No investor record',
+  NO_ACTIVE_STRATEGY: 'No active strategy',
 }
 
 const MISSING_FROM_SOURCE = [
-  'Identifiant client sur chaque coffre (owner non porté par /vault)',
-  'État de conformité joint dans la même ligne (voir /admin/conformite)',
+  'Per-vault client identifier (owner not carried by /vault)',
+  'Compliance status joined on the same row (see /admin/compliance)',
 ] as const
 
 /**
@@ -55,7 +55,7 @@ export default async function Page() {
 
   // KPI dérivés de l'Availability réelle — jamais de valeur inventée, jamais de ?? 0.
   const complianceDirectory = mapAvailability(registry.compliance, (rows) =>
-    rows.length === 0 ? 'File vide' : formatNumber(rows.length),
+    rows.length === 0 ? 'Empty queue' : formatNumber(rows.length),
   )
   const clientExceptionCount = mapAvailability(registry.clientExceptions, (rows) => formatNumber(rows.length))
   const clientCount = measuredCount(registry.clients)
@@ -65,14 +65,14 @@ export default async function Page() {
   const exceptions = isAvailable(registry.clientExceptions) ? registry.clientExceptions.value : null
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'clients', title: 'Clients recensés', value: clientCount, icon: UsersIcon },
+    { id: 'clients', title: 'Clients listed', value: clientCount, icon: UsersIcon },
     { id: 'anomalies', title: 'Anomalies', value: clientExceptionCount, icon: ExclamationTriangleIcon },
-    { id: 'vaults', title: 'Coffres joignables', value: reachableVaults, icon: BuildingLibraryIcon },
+    { id: 'vaults', title: 'Reachable vaults', value: reachableVaults, icon: BuildingLibraryIcon },
     {
       id: 'compliance',
-      title: 'Conformité',
+      title: 'Compliance',
       value: complianceDirectory,
-      unit: 'dossiers',
+      unit: 'files',
       icon: ClipboardDocumentCheckIcon,
     },
   ]
@@ -81,7 +81,7 @@ export default async function Page() {
     <div className="space-y-8">
       <AdminPageHeader
         title="Clients"
-        description="Annuaire des investisseurs et signaux clients issus du backend."
+        description="Investor directory and client signals from the backend."
         kpis={kpis}
       />
 
@@ -90,49 +90,49 @@ export default async function Page() {
           donc rendu dans son état vide/indisponible selon l'Availability réelle,
           sans jamais fabriquer de série. ──────────────────────────────────── */}
       <ChartFrame
-        question="Comment les clients se répartissent-ils dans le temps ?"
-        unite="nombre de clients, par période"
+        question="How are clients distributed over time?"
+        unite="number of clients, per period"
         expectedSource={['GET /api/v1/clients']}
         etat={
           clients === null
             ? {
-                type: 'indisponible',
-                explication: 'La lecture de l’annuaire clients n’a pas abouti — aucune série ne peut être tracée.',
+                type: 'unavailable',
+                explication: 'The client directory read did not succeed — no series can be plotted.',
               }
             : {
-                type: 'vide',
+                type: 'empty',
                 explication:
-                  'L’annuaire /api/v1/clients ne porte pas de série temporelle — aucune répartition à tracer aujourd’hui.',
+                  'The /api/v1/clients directory carries no time series — nothing to plot today.',
               }
         }
       />
 
       {clients === null ? (
         <DataTableShell
-          title="Annuaire"
-          description="Source /api/v1/clients uniquement."
+          title="Directory"
+          description="Source /api/v1/clients only."
           source={{
-            quoi: 'Annuaire clients',
-            detail: 'La lecture de l’annuaire n’a pas abouti — aucune ligne ne peut être présentée.',
+            quoi: 'Client directory',
+            detail: 'The directory read did not succeed — no row can be shown.',
             requis: ['GET /api/v1/clients'],
           }}
         />
       ) : clients.length === 0 ? (
         <DataTableShell
-          title="Annuaire"
-          description="Source /api/v1/clients uniquement."
-          calme="Aucun investisseur en base pour cet annuaire."
+          title="Directory"
+          description="Source /api/v1/clients only."
+          calme="No investor in the database for this directory."
         />
       ) : (
         <DataTableShell
-          title="Annuaire"
-          description="Source /api/v1/clients uniquement."
+          title="Directory"
+          description="Source /api/v1/clients only."
           count={`${clients.length} client(s)`}
         >
           <TableHead>
             <TableRow>
-              <TableHeader>Identifiant</TableHeader>
-              <TableHeader>Libellé</TableHeader>
+              <TableHeader>Identifier</TableHeader>
+              <TableHeader>Label</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -147,15 +147,15 @@ export default async function Page() {
       )}
 
       {exceptions === null ? (
-        <Callout tone="warning" title="Anomalies clients illisibles">
-          Les signaux clients n’ont pas pu être lus depuis le back-end.
+        <Callout tone="warning" title="Unreadable client anomalies">
+          Client signals could not be read from the backend.
         </Callout>
       ) : (
         <DataTableShell
-          title="Anomalies clients"
-          description="Signaux dérivés du dossier investisseur (GET /api/v1/dashboard)."
-          count={exceptions.length > 0 ? `${exceptions.length} à traiter` : undefined}
-          calme={exceptions.length === 0 ? 'Aucun signal client à traiter pour l’instant.' : undefined}
+          title="Client anomalies"
+          description="Signals derived from the investor record (GET /api/v1/dashboard)."
+          count={exceptions.length > 0 ? `${exceptions.length} to review` : undefined}
+          calme={exceptions.length === 0 ? 'No client signal to review for now.' : undefined}
         >
           {exceptions.length > 0 ? (
             <>
@@ -187,17 +187,17 @@ export default async function Page() {
       )}
 
       <Text>
-        Propriété des coffres : non portée par /vault — voir{' '}
+        Vault ownership: not carried by /vault — see{' '}
         <Link href={VAULT_REGISTRY_ENTRY.href} className="underline">
-          {VAULT_REGISTRY_ENTRY.libelle}
+          {VAULT_REGISTRY_ENTRY.label}
         </Link>
         {' · '}
         <Link href={DATA_COVERAGE_ENTRY.href} className="underline">
-          {DATA_COVERAGE_ENTRY.libelle}
+          {DATA_COVERAGE_ENTRY.label}
         </Link>
       </Text>
 
-      <SectionCard title="Manquant à la source" tone="plain">
+      <SectionCard title="Missing at source" tone="plain">
         <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
           {MISSING_FROM_SOURCE.map((item) => (
             <li key={item}>{item}</li>
@@ -205,11 +205,11 @@ export default async function Page() {
         </ul>
       </SectionCard>
 
-      <DataTableShell title="Activité des sources" description="Six sources les plus récentes.">
+      <DataTableShell title="Source activity" description="Six most recent sources.">
         <TableHead>
           <TableRow>
             <TableHeader>Source</TableHeader>
-            <TableHeader>État</TableHeader>
+            <TableHeader>Status</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

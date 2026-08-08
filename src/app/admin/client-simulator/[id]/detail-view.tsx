@@ -59,21 +59,21 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
   const rows = clientsFromResponse(clientsRes)
   const match = rows?.find((c) => c.id === id) ?? null
 
-  // Libellé annuaire : présent si l'identifiant est indexé, absence nommée sinon.
+  // Label annuaire : présent si l'identifiant est indexé, absence nommée sinon.
   const directoryLabel =
     rows === null
       ? unavailable({
           status: 'UNAVAILABLE',
           reason: clientsRes.ok
-            ? (clientsRes.data.clients?.reason ?? 'Annuaire illisible')
-            : 'Aucune réponse',
+            ? (clientsRes.data.clients?.reason ?? 'Directory unreadable')
+            : 'No response',
           endpoint: '/api/v1/clients',
         })
       : match !== null
         ? available(match.label, { provenance: 'db' })
         : unavailable({
             status: 'EMPTY',
-            reason: 'Identifiant absent de l’annuaire — le compte peut exister sans être encore listé.',
+            reason: 'Identifier absent from directory — the account may exist without being listed yet.',
             endpoint: '/api/v1/clients',
           })
 
@@ -82,12 +82,12 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
     rows === null
       ? unavailable({
           status: 'UNAVAILABLE',
-          reason: 'Annuaire illisible',
+          reason: 'Directory unreadable',
           endpoint: '/api/v1/clients',
         })
       : match !== null
-        ? available('Indexé', { provenance: 'db' })
-        : available('Non indexé', { provenance: 'db' })
+        ? available('Indexed', { provenance: 'db' })
+        : available('Not indexed', { provenance: 'db' })
 
   // Taille de l'annuaire : compte mesuré, absence propagée (jamais un zéro inventé).
   const directorySize = measuredCount(rows === null ? unavailable({ endpoint: '/api/v1/clients' }) : available(rows))
@@ -100,8 +100,8 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
 
   const kpis: readonly AdminHeroKpi[] = [
     { id: 'indexation', title: 'Indexation', value: indexationStatus, icon: CheckBadgeIcon },
-    { id: 'libelle', title: 'Libellé', value: directoryLabel, icon: TagIcon },
-    { id: 'annuaire', title: 'Annuaire', value: directorySize, icon: UsersIcon },
+    { id: 'libelle', title: 'Label', value: directoryLabel, icon: TagIcon },
+    { id: 'annuaire', title: 'Directory', value: directorySize, icon: UsersIcon },
     { id: 'source', title: 'Source', value: sourceState, icon: LinkIcon },
   ]
 
@@ -110,18 +110,18 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
       <AdminPageHeader
         title={displayName}
-        description="Jointure sur GET /api/v1/clients — absence nommée si non indexé."
+        description="Join on GET /api/v1/clients — named absence if not indexed."
         kpis={kpis}
       />
 
       {/* ── GRAPHIQUE (état honnête : cette fiche n'expose aucune série) ─ */}
       <ChartFrame
-        question="Activité du client simulé"
-        unite="événements par jour"
+        question="Simulated client activity"
+        unite="events per day"
         etat={{
-          type: 'vide',
+          type: 'empty',
           explication:
-            'GET /api/v1/clients ne renvoie que l’identité de ce client — aucune série temporelle à tracer aujourd’hui.',
+            'GET /api/v1/clients returns only this client identity — no time series to plot today.',
         }}
       />
 
@@ -134,14 +134,14 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
           rows === null
             ? {
                 quoi: 'Fiche annuaire',
-                detail: 'L’annuaire n’a pas pu être lu — impossible de joindre cet identifiant.',
-                requis: ['GET /api/v1/clients (rôle admin)'],
+                detail: 'The directory could not be read — cannot join this identifier.',
+                requis: ['GET /api/v1/clients (admin role)'],
               }
             : undefined
         }
         calme={
           rows !== null && match === null
-            ? 'Identifiant absent de l’annuaire pour l’instant.'
+            ? 'Identifier absent de l’annuaire pour l’instant.'
             : undefined
         }
       >
@@ -155,11 +155,11 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell className="font-medium">Identifiant</TableCell>
+                <TableCell className="font-medium">Identifier</TableCell>
                 <TableCell className="font-mono text-sm">{match.id}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">Libellé</TableCell>
+                <TableCell className="font-medium">Label</TableCell>
                 <TableCell>{match.label}</TableCell>
               </TableRow>
               <TableRow>
@@ -176,14 +176,14 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       {/* ── ABSENCE NOMMÉE quand indexé mais pas trouvé (véracité) ── */}
       {rows !== null && match === null ? (
         <Callout tone="warning" title="Absent de l’annuaire">
-          L’identifiant <span className="font-mono">{id}</span> n’apparaît pas dans la réponse actuelle
+          The identifier <span className="font-mono">{id}</span> does not appear in the current response
           de GET /api/v1/clients. Le compte peut exister sans être encore indexé — aucune ligne n’est
           inventée ici.
         </Callout>
       ) : null}
 
       {/* ── SECTION éditoriale : identité du compte (pas des compteurs) ─ */}
-      <SectionCard title="Identité du compte" hint="Repères stables du client simulé — définition UI." tone="plain">
+      <SectionCard title="Account identity" hint="Stable markers for the simulated client — UI definition." tone="plain">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <SimulatedBadge />
@@ -206,7 +206,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
             </Link>
             {' · '}
             <Link href="/admin/clients" className="underline">
-              Annuaire clients
+              Client directory
             </Link>
           </Text>
         </div>

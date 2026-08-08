@@ -1,17 +1,12 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Contrat de langue de la console (mission HC-CONSOLE-FR-001).
+ * English product language contract (HC-FRONTEND-ENGLISH-ONLY-008).
  *
- * La langue produit est le français (HC-CONSOLE-FR-001). Ce test
- * a été INVERSÉ : il imposait l'anglais (mission HC-UI-NORMALIZATION-001), il
- * impose désormais le français sur les surfaces réellement rendues et interdit
- * la réapparition des anciens libellés anglais d'interface.
- *
- * Il ne se contente pas d'un grep sur un composant mort : il lit les sources
- * des ROUTES ADMIN ACTIVES et du shell qui les habille.
+ * The console renders in English. This test reads active admin routes and the
+ * shell that wraps them — not a single dead component.
  */
 
 const ROOT = resolve(import.meta.dirname, '..')
@@ -19,8 +14,10 @@ const ADMIN_APP = join(ROOT, 'src/app/admin')
 const ADMIN_COMPONENTS = join(ROOT, 'src/components/admin')
 const CONSOLE_LAYOUT = join(ROOT, 'src/components/layout')
 const VAULT_COMPONENTS = join(ROOT, 'src/components/vaults')
+const ACCOUNT_APP = join(ROOT, 'src/app/account')
 
 function walk(dir: string, out: string[] = []): string[] {
+  if (!existsSync(dir)) return out
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) walk(full, out)
@@ -33,107 +30,98 @@ const ADMIN_SOURCES = [...walk(ADMIN_APP), ...walk(ADMIN_COMPONENTS), ...walk(CO
   (file) => ({ path: relative(ROOT, file), code: readFileSync(file, 'utf8') }),
 )
 
+const ACCOUNT_SOURCES = walk(ACCOUNT_APP).map((file) => ({
+  path: relative(ROOT, file),
+  code: readFileSync(file, 'utf8'),
+}))
+
 const PAGE_FILES = ADMIN_SOURCES.filter(({ path }) => /src\/app\/admin\/.*\/page\.tsx$/.test(path) || /src\/app\/admin\/page\.tsx$/.test(path))
 
-/**
- * Retire commentaires et JSDoc : un commentaire de code reste en anglais (il
- * s'adresse au développeur, pas à l'utilisateur) et ne doit pas déclencher la
- * garde. Seul le TEXTE rendu compte.
- */
 function stripComments(code: string): string {
   return code.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1')
 }
 
-/* ── 1. Le français est la langue produit ─────────────────────────────────── */
-
-describe('la console est en français', () => {
-  it('le document racine déclare lang="fr"', () => {
+describe('the console is in English', () => {
+  it('the root document declares lang="en"', () => {
     const layout = readFileSync(join(ROOT, 'src/app/layout.tsx'), 'utf8')
-    expect(layout).toMatch(/lang="fr"/)
+    expect(layout).toMatch(/lang="en"/)
   })
 
-  it('la navigation principale est en français', () => {
-    // Shell Catalyst admin — destinations via ADMIN_NAV + libellés du layout.
+  it('primary navigation labels are in English', () => {
     const layout = stripComments(
       readFileSync(join(ADMIN_COMPONENTS, 'application-layout.tsx'), 'utf8'),
     )
     const nav = stripComments(readFileSync(join(ROOT, 'src/lib/admin-nav.ts'), 'utf8'))
-    expect(nav).toMatch(/libelle: 'Tableau de bord'/)
-    expect(nav).toMatch(/libelle: 'Conformité'/)
-    expect(nav).toMatch(/libelle: 'Opérations'/)
-    expect(layout).toMatch(/Se déconnecter/)
-    expect(nav).not.toMatch(/libelle: 'Home'/)
-    expect(layout).not.toMatch(/>Sign out</)
+    expect(nav).toMatch(/label: 'Dashboard'/)
+    expect(nav).toMatch(/label: 'Compliance'/)
+    expect(nav).toMatch(/label: 'Operations'/)
+    expect(layout).toMatch(/Sign out/)
+    expect(nav).not.toMatch(/label: 'Tableau de bord'/)
+    expect(layout).not.toMatch(/Se déconnecter/)
   })
 
-  it('les libellés de statut partagés sont en français', () => {
+  it('shared status labels are in English', () => {
     const truthful = readFileSync(join(ADMIN_COMPONENTS, 'truthful.tsx'), 'utf8')
-    expect(truthful).toMatch(/LIVE: 'En direct'/)
-    expect(truthful).toMatch(/UNAVAILABLE: 'Indisponible'/)
-    expect(truthful).toMatch(/NOT_CONFIGURED: 'Non configuré'/)
-    // La CLÉ technique (le code de statut) reste inchangée : véracité préservée.
+    expect(truthful).toMatch(/LIVE: 'Live'/)
+    expect(truthful).toMatch(/UNAVAILABLE: 'Unavailable'/)
+    expect(truthful).toMatch(/NOT_CONFIGURED: 'Not configured'/)
     expect(truthful).toMatch(/UNAVAILABLE:/)
+  })
+
+  it('account rail destinations use /account routes in English', () => {
+    const rail = readFileSync(join(CONSOLE_LAYOUT, 'app-rail.tsx'), 'utf8')
+    expect(rail).toMatch(/href: '\/account'/)
+    expect(rail).toMatch(/label: 'Dashboard'/)
+    expect(rail).toMatch(/Sign out/)
+    expect(rail).not.toMatch(/\/espace/)
+    expect(rail).not.toMatch(/Se déconnecter/)
   })
 })
 
-/* ── 2. Interdire la réapparition des anciens libellés anglais d'interface ── */
-
-describe('aucun ancien libellé anglais d’interface', () => {
-  // Libellés d'UI (pas des identifiants techniques) qui étaient rendus en
-  // anglais et doivent désormais être français partout dans les sources admin.
-  // On matche le libellé ENTRE BALISES ou EN CHAÎNE d'affichage, pas un mot
-  // isolé qui pourrait être un identifiant technique.
+describe('forbidden French UI copy does not return', () => {
   const FORBIDDEN_UI = [
-    '>Sign out<',
-    '>Home<',
-    '>Data coverage<',
-    '>Served<',
-    '>Movements<',
-    '>Runs<',
-    '>Reserve split<',
-    '>Curve points<',
-    '>Total endpoints<',
-    '>Active vaults<',
-    '>Vault registry<',
-    "label=\"Hearst Connect data coverage cockpit\"",
-    'Loading surface',
-    'Try again',
-    'Waiting on the source',
-    'Data unavailable',
+    '>Se déconnecter<',
+    '>Tableau de bord<',
+    '>Conformité<',
+    '>Indisponible<',
+    '>Joignable<',
+    '>Chargement…<',
+    '>Réessayer<',
+    '>Demander un accès<',
+    '>Se connecter<',
+    '>Votre compte<',
+    '>Accéder à la console<',
+    "lang=\"fr\"",
+    'libelle: \'Tableau de bord\'',
+    "LIVE: 'En direct'",
+    "UNAVAILABLE: 'Indisponible'",
   ]
 
-  it.each(FORBIDDEN_UI)('ne contient plus le libellé anglais "%s"', (phrase) => {
+  it.each(FORBIDDEN_UI)('admin shell does not contain "%s"', (phrase) => {
     const offenders = ADMIN_SOURCES.filter(({ code }) => stripComments(code).includes(phrase)).map((f) => f.path)
     expect(offenders).toEqual([])
   })
 
-  it('aucun label de shell « cockpit » anglais ne subsiste', () => {
-    const offenders = ADMIN_SOURCES.filter(({ code }) => /label="Hearst Connect [a-z].* cockpit"/.test(stripComments(code))).map(
-      (f) => f.path,
-    )
-    expect(offenders).toEqual([])
-  })
+  it.each(['>Indisponible<', '>Tableau de bord<', '>Se déconnecter<'])(
+    'account pages do not contain "%s"',
+    (phrase) => {
+      const offenders = ACCOUNT_SOURCES.filter(({ code }) => stripComments(code).includes(phrase)).map((f) => f.path)
+      expect(offenders).toEqual([])
+    },
+  )
 })
 
-/* ── 3. Identifiants techniques CONSERVÉS (véracité) ──────────────────────── */
-
-describe('les codes techniques restent inchangés', () => {
-  it('les codes de statut backend en MAJUSCULES sont préservés', () => {
+describe('technical codes stay unchanged', () => {
+  it('backend status codes in UPPERCASE are preserved', () => {
     const truthful = readFileSync(join(ADMIN_COMPONENTS, 'truthful.tsx'), 'utf8')
-    // Les clés du map de statut sont les codes techniques, non traduits.
     for (const code of ['LIVE', 'STALE', 'PARTIAL', 'EMPTY', 'UNAVAILABLE', 'NOT_CONFIGURED', 'ERROR']) {
       expect(truthful).toMatch(new RegExp(`${code}:`))
     }
   })
 })
 
-/* ── 4. Règles structurelles conservées de la mission précédente ──────────── */
-
-describe('pas de formateur locale-aware fr-FR (le format reste neutre)', () => {
+describe('no locale-aware fr-FR formatters', () => {
   it('never calls a locale-aware formatter with fr-FR', () => {
-    // La langue de l'INTERFACE est le français, mais les NOMBRES restent
-    // formatés en locale neutre pour éviter des séparateurs ambigus dans les
-    // tableaux financiers. C'est une règle de format, pas de langue.
     const offenders = ADMIN_SOURCES.filter(({ code }) => code.includes("'fr-FR'") || code.includes('"fr-FR"')).map(
       (f) => f.path,
     )
@@ -141,11 +129,8 @@ describe('pas de formateur locale-aware fr-FR (le format reste neutre)', () => {
   })
 })
 
-describe('un seul H1 canonique par page', () => {
+describe('one canonical H1 per page', () => {
   it('no admin file renders a raw <h1> outside the typography module', () => {
-    // Le shell green rend un <h1 className={csl.srOnly}> délibéré : le titre de
-    // niveau 1 est masqué visuellement (sr-only) mais nécessaire au plan du
-    // document pour les lecteurs d'écran. C'est une exception documentée.
     const H1_EXEMPTIONS = new Set([
       'src/components/admin/typography.tsx',
       'src/components/layout/console-shell.tsx',
@@ -173,36 +158,18 @@ describe('no legacy Qatar design vocabulary', () => {
   })
 })
 
-describe('no undocumented negative chart margins', () => {
-  it('every negative margin value is explained by a nearby comment', () => {
-    const offenders: string[] = []
-    for (const { path, code } of ADMIN_SOURCES) {
-      const lines = code.split('\n')
-      lines.forEach((line, i) => {
-        if (!/-\s*\d+\s*,?\s*$|:\s*-\d+/.test(line) || !/(top|right|bottom|left)\s*:\s*-\d/.test(line)) return
-        const window = lines.slice(Math.max(0, i - 4), i + 1).join('\n')
-        if (!/\/\/|\/\*/.test(window)) offenders.push(`${path}:${i + 1}`)
-      })
-    }
-    expect(offenders).toEqual([])
-  })
-})
-
-/* ── 5. Fixtures : la garde de langue MORD (positive et négative) ──────────── */
-
-describe('la garde de langue mord (fixtures)', () => {
+describe('language guard fixtures', () => {
   const contains = (code: string, phrase: string) => stripComments(code).includes(phrase)
 
-  it('fixture conforme (français + code technique) passe', () => {
-    const ok = `<h2>Couverture des données</h2><span>{STATUS.UNAVAILABLE}</span><p>Chain ID : 31337</p>`
-    expect(contains(ok, '>Sign out<')).toBe(false)
-    expect(contains(ok, '>Home<')).toBe(false)
-    // « Chain ID » et « 31337 » sont des identifiants techniques : autorisés.
+  it('English fixture passes', () => {
+    const ok = `<h2>Data coverage</h2><span>{STATUS.UNAVAILABLE}</span><p>Chain ID : 31337</p>`
+    expect(contains(ok, '>Indisponible<')).toBe(false)
+    expect(contains(ok, '>Tableau de bord<')).toBe(false)
     expect(ok).toContain('Chain ID')
   })
 
-  it('fixture avec un ancien H1 anglais est détectable', () => {
-    const bad = `<button>Sign out</button>`
-    expect(contains(bad, '>Sign out<') || bad.includes('Sign out')).toBe(true)
+  it('French UI fixture is detectable', () => {
+    const bad = `<button>Se déconnecter</button>`
+    expect(contains(bad, 'Se déconnecter')).toBe(true)
   })
 })

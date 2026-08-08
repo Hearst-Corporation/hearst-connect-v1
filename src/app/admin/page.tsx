@@ -6,11 +6,11 @@ import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Pilotage des souscriptions · Hearst Connect' },
+  title: { absolute: 'Subscription oversight · Hearst Connect' },
 }
 export const dynamic = 'force-dynamic'
 
-/** Tableau de bord admin unique — pilotage des souscriptions. */
+/** Dashboard admin unique — pilotage des souscriptions. */
 export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW })

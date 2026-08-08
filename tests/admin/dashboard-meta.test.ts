@@ -13,14 +13,14 @@ function meta(status: EnvelopeMeta['status']): EnvelopeMeta {
   }
 }
 
-describe('dashboard — statut agrégat (F-02)', () => {
-  it('lit meta.status au lieu d’un booléen joignable', () => {
-    expect(etatSourceLisible(statusFromMeta(meta('UNAVAILABLE')))).toBe('indisponible')
-    expect(etatSourceLisible(statusFromMeta(meta('STALE')))).toBe('obsolète')
-    expect(etatSourceLisible(statusFromMeta(meta('LIVE')))).toBe('en direct')
+describe('dashboard — aggregate status (F-02)', () => {
+  it('reads meta.status instead of a reachable boolean', () => {
+    expect(etatSourceLisible(statusFromMeta(meta('UNAVAILABLE')))).toBe('unavailable')
+    expect(etatSourceLisible(statusFromMeta(meta('STALE')))).toBe('stale')
+    expect(etatSourceLisible(statusFromMeta(meta('LIVE')))).toBe('live')
   })
 
-  it('absence de meta retombe sur LIVE (contrat client)', () => {
-    expect(etatSourceLisible(statusFromMeta(null))).toBe('en direct')
+  it('missing meta falls back to LIVE (client contract)', () => {
+    expect(etatSourceLisible(statusFromMeta(null))).toBe('live')
   })
 })

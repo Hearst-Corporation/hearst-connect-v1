@@ -34,8 +34,8 @@ export function ChartPlaceholder({
       aria-label={title}
     >
       <Icon className="size-8 text-zinc-300 dark:text-zinc-600" aria-hidden="true" />
-      <p className="mt-3 text-sm/6 font-semibold text-zinc-950 dark:text-white">Données indisponibles</p>
-      <Text className="mt-1">Aucun historique disponible</Text>
+      <p className="mt-3 text-sm/6 font-semibold text-zinc-950 dark:text-white">Data unavailable</p>
+      <Text className="mt-1">No history available</Text>
     </div>
   )
 }
@@ -44,20 +44,20 @@ export function ActivityHeatmap({
   cells,
 }: Readonly<{ cells: Availability<readonly HeatmapCell[]> }>) {
   if (!isAvailable(cells) || cells.value.length === 0) {
-    return <ChartPlaceholder title="Activité hebdomadaire" height={180} icon={CubeTransparentIcon} />
+    return <ChartPlaceholder title="Weekly activity" height={180} icon={CubeTransparentIcon} />
   }
 
   const max = Math.max(...cells.value.map((c) => c.count), 1)
 
   return (
     <div data-widget="activity-heatmap">
-      <div className="grid grid-cols-7 gap-1.5" role="img" aria-label="Activité hebdomadaire">
+      <div className="grid grid-cols-7 gap-1.5" role="img" aria-label="Weekly activity">
         {cells.value.map((cell) => {
           const intensity = cell.count / max
           return (
             <div
               key={cell.day}
-              title={`${cell.label} : ${cell.count}`}
+              title={`${cell.label}: ${cell.count}`}
               className={clsx(
                 'flex aspect-square flex-col items-center justify-center rounded-md text-[9px] font-medium',
                 intensity > 0.66
@@ -75,7 +75,7 @@ export function ActivityHeatmap({
       <ul className="sr-only">
         {cells.value.map((cell) => (
           <li key={cell.day}>
-            {cell.label} : {cell.count} action(s)
+            {cell.label}: {cell.count} action(s)
           </li>
         ))}
       </ul>
@@ -87,7 +87,7 @@ export function ProductBars({
   products,
 }: Readonly<{ products: Availability<readonly ProductVolume[]> }>) {
   if (!isAvailable(products) || products.value.length === 0) {
-    return <ChartPlaceholder title="Souscriptions par produit" height={180} icon={ChartPieIcon} />
+    return <ChartPlaceholder title="Subscriptions by product" height={180} icon={ChartPieIcon} />
   }
 
   const max = Math.max(...products.value.map((p) => p.count), 1)

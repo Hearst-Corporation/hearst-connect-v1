@@ -4,15 +4,15 @@ import { unavailable } from '@/lib/vaults/model'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-describe('motifLisible — parts de poches', () => {
-  it('traduit les motifs capital déployé en français', () => {
-    expect(motifLisible('some_pocket_shares_unreadable')).toMatch(/poches/)
-    expect(motifLisible('no_pocket_share_readable')).toMatch(/poche/)
+describe('motifLisible — pocket shares', () => {
+  it('renders deployed-capital pocket reasons in English', () => {
+    expect(motifLisible('some_pocket_shares_unreadable')).toMatch(/vault pockets/)
+    expect(motifLisible('no_pocket_share_readable')).toMatch(/vault pocket/)
   })
 })
 
 describe('Reading / Absent', () => {
-  it('n’affiche jamais un code snake_case sous Indisponible', () => {
+  it('never shows a snake_case code under Unavailable', () => {
     render(
       <Reading
         value={unavailable({
@@ -23,19 +23,19 @@ describe('Reading / Absent', () => {
         showRoute
       />,
     )
-    expect(screen.getByText('Indisponible')).toBeTruthy()
+    expect(screen.getByText('Unavailable')).toBeTruthy()
     expect(screen.queryByText(/some_pocket_shares_unreadable/)).toBeNull()
-    expect(screen.getByText(/poches/)).toBeTruthy()
+    expect(screen.getByText(/vault pockets/)).toBeTruthy()
   })
 
-  it('ne fuit pas un motif inconnu', () => {
+  it('does not leak an unknown reason', () => {
     render(
       <Reading
         value={unavailable({ reason: 'totally_unknown_backend_code_xyz' })}
         showRoute
       />,
     )
-    expect(screen.getByText('Indisponible')).toBeTruthy()
+    expect(screen.getByText('Unavailable')).toBeTruthy()
     expect(screen.queryByText(/totally_unknown_backend_code_xyz/)).toBeNull()
   })
 })

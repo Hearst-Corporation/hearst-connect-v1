@@ -152,9 +152,9 @@ describe('SourceAttendue', () => {
 
   it('accueille une action quand la route en fournit une', () => {
     render(
-      <SourceAttendue quoi="Q" detail="D" requis={[]} action={<button type="button">Ouvrir</button>} />,
+      <SourceAttendue quoi="Q" detail="D" requis={[]} action={<button type="button">Open</button>} />,
     )
-    expect(screen.getByRole('button', { name: 'Ouvrir' })).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Open' })).toBeDefined()
   })
 
   it('sans action, ne rend aucun bouton fantôme', () => {

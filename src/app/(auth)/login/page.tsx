@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { LoginForm } from './login-form'
 
 export const metadata: Metadata = {
-  title: 'Connexion',
+  title: 'Sign in',
 }
 
 export const dynamic = 'force-dynamic'
@@ -25,7 +25,7 @@ export default async function LoginPage({
 
   const { reason } = await searchParams
   const notice =
-    reason === 'expired' ? 'Votre session a expiré. Connectez-vous à nouveau pour accéder à la console.' : null
+    reason === 'expired' ? 'Your session has expired. Sign in again to access the console.' : null
 
   const { loginReady } = checkConfiguration()
 

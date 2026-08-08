@@ -51,13 +51,13 @@ const estFinancier = (m: Mouvement): boolean =>
   m.assetAmountAtomic !== null && m.assetAmountAtomic !== undefined && m.assetAmountAtomic !== ''
 
 const MANQUANT_A_LA_SOURCE = [
-  'Solde et valeur nette par investisseur — non exposés par ce flux d’événements',
-  'Total inter-types : impossible, les lignes couvrent des actifs aux décimales différentes',
-  'Rapprochement on-chain ↔ registre : à faire côté backend, pas dans cette console',
+  'Balance and net asset value per investor — not exposed by this event stream',
+  'Cross-type total: impossible — rows cover assets with different decimals',
+  'On-chain ↔ registry reconciliation: backend work, not in this console',
 ] as const
 
 /**
- * Journal Série 1 — blocs de composition. Endpoint : series1-events.
+ * Series 1 journal — blocs de composition. Endpoint : series1-events.
  */
 export default async function Page() {
   await requireSession()
@@ -82,79 +82,79 @@ export default async function Page() {
   const repartition = [...parNature.entries()].sort((a, b) => b[1] - a[1])
   const distributionItems: readonly DistributionItem[] = repartition.map(([label, value]) => ({ label, value }))
 
-  // Tendance d'activité : un compte de mouvements par jour, dérivé du seul
+  // Activity trend: movement count per day, derived only from real
   // `occurredAt` réel (aucune dénomination lue ici — les lignes couvrent des
   // types d'actifs aux décimales différentes). En dessous de deux jours
   // ordonnés, une absence nommée, jamais un point unique présenté en pente.
   const trend = movementCountTrend(eventsAvail)
   const trendPoints = isAvailable(trend) ? trend.value : []
   const etatTrend = !reponse.ok
-    ? ({ type: 'indisponible', explication: 'L’activité par période n’a pas pu être lue.' } as const)
+    ? ({ type: 'unavailable', explication: 'Activity by period could not be read.' } as const)
     : trendPoints.length < 2
       ? ({
-          type: 'vide',
+          type: 'empty',
           explication:
-            'Moins de deux jours d’activité mesurés — une tendance ne se trace pas sur un point unique. Le journal ci-dessous reste la lecture fidèle.',
+            'Fewer than two days of measured activity — a trend is not plotted from a single point. The journal below remains the faithful read.',
         } as const)
-      : ({ type: 'tracee' } as const)
+      : ({ type: 'plotted' } as const)
 
   const etatRepartition = !readable
-    ? ({ type: 'indisponible', explication: 'La lecture du journal des mouvements n’a pas abouti.' } as const)
+    ? ({ type: 'unavailable', explication: 'The movement ledger read did not succeed.' } as const)
     : distributionItems.length === 0
-      ? ({ type: 'vide', explication: 'Aucun mouvement à répartir pour l’instant.' } as const)
-      : ({ type: 'tracee' } as const)
+      ? ({ type: 'empty', explication: 'No movement to distribute for now.' } as const)
+      : ({ type: 'plotted' } as const)
 
   const journalCalme = !reponse.ok
-    ? 'Le journal des mouvements n’a pas pu être lu. Aucun mouvement n’est supposé : une liste vide se lirait à tort comme « rien ne s’est passé ».'
+    ? 'The movement ledger could not be read. No movement is assumed — an empty list would wrongly read as nothing happened.'
     : !readable || mouvements.length === 0
-      ? `Aucun mouvement enregistré à ce jour${
+      ? `No movement recorded to date${
           motifLisible(bloc?.reason)
             ? ` : ${motifLisible(bloc?.reason)}`
-            : ' : la chaîne n’a encore rien déposé pour ce fonds'
-        }. Ce n’est pas une panne.`
+            : ' — the chain has not deposited anything for this fund yet'
+        }. This is not an outage.`
       : undefined
 
-  const journalCount = readable && mouvements.length > 0 ? `${formatNumber(mouvements.length)} mouvements` : undefined
+  const journalCount = readable && mouvements.length > 0 ? `${formatNumber(mouvements.length)} movements` : undefined
 
   const kpis: readonly AdminHeroKpi[] = [
     {
       id: 'source',
-      title: 'État source',
-      value: editorial(reponse.ok ? 'Joignable' : 'Indisponible'),
+      title: 'Status source',
+      value: editorial(reponse.ok ? 'Reachable' : 'Unavailable'),
       icon: SignalIcon,
     },
-    { id: 'movements', title: 'Mouvements', value: movementCount, icon: ArrowsRightLeftIcon },
-    { id: 'financial', title: 'Écritures financières', value: financialCount, icon: BanknotesIcon },
-    { id: 'types', title: 'Types distincts', value: typesCount, icon: Squares2X2Icon },
+    { id: 'movements', title: 'Movements', value: movementCount, icon: ArrowsRightLeftIcon },
+    { id: 'financial', title: 'Financial entries', value: financialCount, icon: BanknotesIcon },
+    { id: 'types', title: 'Distinct types', value: typesCount, icon: Squares2X2Icon },
   ]
 
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Journal Série 1"
-        description="Événements Series 1 indexés — source /api/v1/series1/events uniquement."
+        title="Series 1 journal"
+        description="Indexed Series 1 events — source /api/v1/series1/events only."
         kpis={kpis}
       />
 
       <ChartFrame
-        question="À quel rythme les mouvements arrivent-ils ?"
-        unite="nombre de mouvements, par jour observé"
+        question="How fast do movements arrive?"
+        unite="number of movements, per observed day"
         etat={etatTrend}
       >
-        <HearstActivityChart points={trendPoints} unite="mouvements" />
+        <HearstActivityChart points={trendPoints} unite="movements" />
       </ChartFrame>
 
       <ChartFrame
-        question="De quoi ce journal est-il fait ?"
-        unite="nombre de mouvements, par type"
+        question="What is this journal made of?"
+        unite="number of movements, by type"
         etat={etatRepartition}
       >
-        <RichDistributionChart items={distributionItems} unit="mouvements" />
+        <RichDistributionChart items={distributionItems} unit="movements" />
       </ChartFrame>
 
       <DataTableShell
-        title="Que s’est-il passé ?"
-        description="Journal du plus récent au plus ancien — source /api/v1/series1/events uniquement."
+        title="What happened?"
+        description="Journal from newest to oldest — source /api/v1/series1/events only."
         count={journalCount}
         calme={journalCalme}
       >
@@ -162,10 +162,10 @@ export default async function Page() {
           <>
             <TableHead>
               <TableRow>
-                <TableHeader>Événement</TableHeader>
-                <TableHeader>Montant</TableHeader>
-                <TableHeader>Détail</TableHeader>
-                <TableHeader>Quand</TableHeader>
+                <TableHeader>Event</TableHeader>
+                <TableHeader>Amount</TableHeader>
+                <TableHeader>Detail</TableHeader>
+                <TableHeader>When</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -194,7 +194,7 @@ export default async function Page() {
         ) : null}
       </DataTableShell>
 
-      <SectionCard title="Manquant à la source" hint="Définition UI — pas des compteurs." tone="plain">
+      <SectionCard title="Missing at source" hint="UI definition — not counters." tone="plain">
         <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
           {MANQUANT_A_LA_SOURCE.map((item) => (
             <li key={item}>{item}</li>

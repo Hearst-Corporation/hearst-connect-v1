@@ -3,26 +3,26 @@ import Link from 'next/link'
 
 const pages = [
   { title: 'Console', href: '/login' },
-  { title: 'Demander un accès', href: '/register' },
+  { title: 'Request access', href: '/register' },
   { title: 'Hearst Corporation', href: 'https://hearstcorporation.io' },
 ]
 
 const socials = [
-  { title: 'Nous écrire', href: 'mailto:connect@hearstcorporation.io' },
-  { title: 'Sécurité', href: 'mailto:security@hearstcorporation.io' },
+  { title: 'Contact us', href: 'mailto:connect@hearstcorporation.io' },
+  { title: 'Security', href: 'mailto:security@hearstcorporation.io' },
 ]
 
 const legal = [
-  { title: 'Confidentialité', href: 'mailto:connect@hearstcorporation.io' },
-  { title: 'Conditions', href: 'mailto:connect@hearstcorporation.io' },
+  { title: 'Privacy', href: 'mailto:connect@hearstcorporation.io' },
+  { title: 'Terms', href: 'mailto:connect@hearstcorporation.io' },
 ]
 
 const register = [
-  { title: 'Créer un compte', href: '/register' },
-  { title: 'Se connecter', href: '/login' },
+  { title: 'Create an account', href: '/register' },
+  { title: 'Sign in', href: '/login' },
 ]
 
-/** Footer Aceternity « four grids » — watermark « Connect » en fond, menus par-dessus. */
+/** Marketing footer — watermark "Connect" background, menus on top. */
 export function SiteFooter() {
   return (
     <footer className="relative w-full overflow-hidden border-t border-console-line-soft bg-console-app">
@@ -39,15 +39,15 @@ export function SiteFooter() {
             <Logo />
           </Link>
           <p className="mt-4 max-w-[14rem] text-sm/6 text-white/60">
-            © Hearst Corporation {new Date().getFullYear()}. Tous droits réservés.
+            © Hearst Corporation {new Date().getFullYear()}. All rights reserved.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4 md:gap-16">
           <FooterColumn title="Pages" links={pages} />
           <FooterColumn title="Contact" links={socials} />
-          <FooterColumn title="Légal" links={legal} />
-          <FooterColumn title="Compte" links={register} />
+          <FooterColumn title="Legal" links={legal} />
+          <FooterColumn title="Account" links={register} />
         </div>
       </div>
     </footer>

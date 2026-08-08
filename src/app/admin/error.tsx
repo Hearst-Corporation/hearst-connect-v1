@@ -39,14 +39,13 @@ export default function AdminError({
             margin: 0,
           }}
         >
-          Surface indisponible
+          Surface unavailable
         </p>
         <p style={{ fontSize: '1.4rem', fontWeight: 600, margin: '10px 0 8px' }}>
-          Cette surface n’a pas pu être affichée
+          This surface could not be rendered
         </p>
         <p style={{ color: 'var(--color-zinc-400, #b3b3b3)', fontSize: '0.95rem', margin: '0 0 20px' }}>
-          Une erreur est survenue pendant le rendu. Aucune donnée n’est affichée plutôt qu’une donnée
-          fausse. Réessayez ; si le problème persiste, la référence ci-dessous aide au diagnostic.
+          An error occurred while rendering. No data is shown rather than false data. Try again; if the problem persists, the reference below helps with diagnosis.
         </p>
         {error.digest ? (
           <p
@@ -57,7 +56,7 @@ export default function AdminError({
               margin: '0 0 20px',
             }}
           >
-            Référence : {error.digest}
+            Reference: {error.digest}
           </p>
         ) : null}
         <button
@@ -74,7 +73,7 @@ export default function AdminError({
             cursor: 'pointer',
           }}
         >
-          Réessayer
+          Try again
         </button>
       </div>
     </main>

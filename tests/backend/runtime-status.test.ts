@@ -19,7 +19,7 @@ describe('runtimeMatrixStatus', () => {
 
 describe('runtimeStatusLabel', () => {
   it('libelle STALLED sans le masquer', () => {
-    expect(runtimeStatusLabel('STALLED')).toBe('Bloqué')
-    expect(runtimeStatusLabel('stalled')).toBe('Bloqué')
+    expect(runtimeStatusLabel('STALLED')).toBe('Blocked')
+    expect(runtimeStatusLabel('stalled')).toBe('Blocked')
   })
 })

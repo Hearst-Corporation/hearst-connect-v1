@@ -14,7 +14,7 @@ import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
-import { libelleRole } from '@/lib/session'
+import { roleLabel } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
 import {
   CheckCircleIcon,
@@ -63,9 +63,9 @@ export default async function KeeperPage() {
 
   let disabledReason: string | null = null
   if (!isAdmin) {
-    disabledReason = `Le rôle ${libelleRole(session.role)} ne donne pas accès aux actions Keeper.`
+    disabledReason = `Role ${roleLabel(session.role)} does not grant access to Keeper actions.`
   } else if (!backendConfigured) {
-    disabledReason = 'HEARST_API_URL n’est pas défini : aucune requête ne peut être émise.'
+    disabledReason = 'HEARST_API_URL is not set — no request can be sent.'
   }
 
   const actionsDisponibles = disabledReason === null
@@ -73,26 +73,26 @@ export default async function KeeperPage() {
   const kpis: readonly AdminHeroKpi[] = [
     {
       id: 'actions',
-      title: 'Actions exposées',
+      title: 'Exposed actions',
       value: editorial(formatNumber(keeperEndpoints.length)),
       icon: CommandLineIcon,
     },
     {
       id: 'role',
-      title: 'Rôle',
-      value: editorial(libelleRole(session.role)),
+      title: 'Role',
+      value: editorial(roleLabel(session.role)),
       icon: UserIcon,
     },
     {
       id: 'service',
-      title: 'Adresse service',
-      value: editorial(backendConfigured ? 'Configuré' : 'Non défini'),
+      title: 'Service address',
+      value: editorial(backendConfigured ? 'Configured' : 'Not set'),
       icon: ServerIcon,
     },
     {
       id: 'disponibilite',
-      title: 'Disponibilité',
-      value: editorial(actionsDisponibles ? 'Actions disponibles' : 'Actions inertes'),
+      title: 'Availability',
+      value: editorial(actionsDisponibles ? 'Actions available' : 'Actions inactive'),
       icon: CheckCircleIcon,
     },
   ]
@@ -106,16 +106,16 @@ export default async function KeeperPage() {
       />
 
       <ChartFrame
-        question="Combien d’actions Keeper ont-elles été déclenchées dans le temps ?"
-        unite="requêtes Keeper par jour"
+        question="How many Keeper actions were triggered over time?"
+        unite="Keeper requests per day"
         etat={{
-          type: 'vide',
+          type: 'empty',
           explication:
-            'Aucune série à tracer : ces routes journalisent une requête sans historique exploitable par cette console. Rien n’est fabriqué pour combler l’axe.',
+            'No series to plot — these routes log a request without history usable by this console. Nothing is fabricated to fill the axis.',
         }}
       />
 
-      <SectionCard title="Périmètre" hint="Ces routes journalisent une requête — elles ne signent rien.">
+      <SectionCard title="Scope" hint="These routes log a request — they sign nothing.">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Badge color="zinc">Aucune signature on-chain</Badge>
           <Text className="!mt-0 font-medium text-zinc-950 dark:text-white">
@@ -123,24 +123,24 @@ export default async function KeeperPage() {
           </Text>
         </div>
         <Text className="mt-4">
-          Le backend n’a aucun assistant d’écriture on-chain : ces routes journalisent une requête, elles ne
+          The backend has no on-chain write assistant — these routes log a request, they do not
           produisent ni signature ni hash de transaction. Trois d’entre elles renvoient actuellement un HTTP 501 avec
           un <span className="font-mono">KeeperActionResult</span>. Cette console n’affichera jamais un hash
-          fabriqué.
+          fabricated.
         </Text>
         <Text className="mt-4">
-          Deux garde-fous supplémentaires côté backend : un quota de 5 requêtes par minute et par utilisateur, et le
-          disjoncteur <span className="font-mono">KEEPER_ENABLED</span> — désactivé par défaut, il renvoie 503{' '}
+          Two additional backend safeguards: a quota of 5 requests per minute per user, and the
+          circuit breaker <span className="font-mono">KEEPER_ENABLED</span> — disabled by default, it returns 503{' '}
           <span className="font-mono">NOT_CONFIGURED</span>.
         </Text>
       </SectionCard>
 
-      <SectionCard title="Peuvent-elles s’exécuter maintenant ?">
+      <SectionCard title="Can they run now?">
         <DescriptionList>
-          <Prerequisite libelle="Votre rôle" valeur={libelleRole(session.role)} satisfait={isAdmin} />
+          <Prerequisite libelle="Your role" valeur={roleLabel(session.role)} satisfait={isAdmin} />
           <Prerequisite
             libelle="Adresse du service"
-            valeur={backendConfigured ? 'Configuré' : 'Non défini'}
+            valeur={backendConfigured ? 'Configured' : 'Not set'}
             satisfait={backendConfigured}
           />
         </DescriptionList>
@@ -150,22 +150,22 @@ export default async function KeeperPage() {
           </Callout>
         ) : (
           <Text className="mt-4">
-            Les deux prérequis sont satisfaits. Le service peut tout de même refuser un appel — son disjoncteur et son
-            quota sont vérifiés de son côté, et sa réponse est affichée sous l’action qui l’a déclenché.
+            Both prerequisites are met. The service may still refuse a call — its circuit breaker and its
+            quota are checked on its side, and its response is shown under the action that triggered it.
           </Text>
         )}
       </SectionCard>
 
       <DataTableShell
-        title="Routes exposées"
-        description="Registre backend, catégorie keeper. Chaque route est présentée telle qu’elle est déclarée — aucun endpoint inventé."
+        title="Exposed routes"
+        description="Backend registry, keeper category. Each route is shown as declared — no invented endpoint."
         count={`${formatNumber(keeperEndpoints.length)} routes`}
       >
         <TableHead>
           <TableRow>
             <TableHeader>Action</TableHeader>
             <TableHeader>Appel</TableHeader>
-            <TableHeader>Réserve du contrat</TableHeader>
+            <TableHeader>Contract reserve</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -183,7 +183,7 @@ export default async function KeeperPage() {
 
       <SectionCard
         title="Actions"
-        hint={`${formatNumber(keeperEndpoints.length)} routes exposées par le service. Rien ne quitte cette page tant que le mot CONFIRM n’a pas été saisi dans le champ propre à l’action.`}
+        hint={`${formatNumber(keeperEndpoints.length)} routes exposed by the service. Nothing leaves this page until CONFIRM is typed in the action-specific field.`}
       >
         <div className="grid gap-6 md:grid-cols-2">
           {keeperEndpoints.map((endpoint) => (
