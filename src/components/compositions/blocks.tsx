@@ -233,6 +233,21 @@ export function SectionCard({
  * de son `Availability`, et passe les lignes en `children`. Le `count` est un
  * libellé DÉJÀ formaté (« 12 mouvements ») — le bloc ne compte pas.
  */
+/**
+ * Table that must fit its panel — no overflow-x-auto, no forced nowrap.
+ * Prefer fewer primary columns + detail links over horizontal scrolling.
+ */
+export function FitTable({
+  children,
+  className,
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return (
+    <div className={clsx('w-full min-w-0', className)} data-table="fit">
+      <table className="w-full min-w-0 table-fixed text-left text-sm/6 text-ink dark:text-fg">{children}</table>
+    </div>
+  )
+}
+
 export function DataTableShell({
   title,
   description,
@@ -241,6 +256,7 @@ export function DataTableShell({
   calme,
   children,
   className,
+  fit = false,
 }: Readonly<{
   title: string
   description?: string
@@ -252,12 +268,19 @@ export function DataTableShell({
   calme?: string
   children?: React.ReactNode
   className?: string
+  /**
+   * When true, render without Catalyst's overflow-x-auto wrapper.
+   * Use only when the column set is content-aware and fits the panel.
+   */
+  fit?: boolean
 }>) {
   const body =
     source !== undefined ? (
       <SourceAttendue {...source} />
     ) : calme !== undefined ? (
       <CalmState message={calme} />
+    ) : fit ? (
+      <FitTable className={csl.heroTable}>{children}</FitTable>
     ) : (
       <Table className={csl.heroTable}>{children}</Table>
     )

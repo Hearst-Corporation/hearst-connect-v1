@@ -11,7 +11,13 @@ import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 export function AdminReading({
   value,
   emptyLabel = 'Offline',
-}: Readonly<{ value: Availability<string>; emptyLabel?: string }>) {
+  compact = false,
+}: Readonly<{
+  value: Availability<string>
+  emptyLabel?: string
+  /** Primary lists: value only — Live badge / asOf stay on detail surfaces. */
+  compact?: boolean
+}>) {
   if (!isAvailable(value)) {
     const etat = backendStateFrom(value)
     return (
@@ -27,8 +33,12 @@ export function AdminReading({
   }
 
   const etat = backendStateFrom(value)
+  if (compact) {
+    return <Text className="!mt-0 inline tabular-nums text-ink dark:text-fg">{value.value}</Text>
+  }
+
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
       <Text className="!mt-0 inline text-ink dark:text-fg">{value.value}</Text>
       {etat === 'LIVE' ? (
         <Badge color="green" data-live-badge="">

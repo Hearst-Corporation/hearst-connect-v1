@@ -32,4 +32,15 @@ describe('Live badge / three states', () => {
     expect(screen.getByText('Issue')).toBeDefined()
     expect(screen.queryByText('Live')).toBeNull()
   })
+
+  it('compact mode shows the value without Live badge or asOf', () => {
+    render(
+      <AdminReading
+        compact
+        value={available('127', { provenance: 'indexed', asOf: '2026-08-08T12:00:00.000Z' })}
+      />,
+    )
+    expect(screen.getByText('127')).toBeDefined()
+    expect(screen.queryByText('Live')).toBeNull()
+  })
 })

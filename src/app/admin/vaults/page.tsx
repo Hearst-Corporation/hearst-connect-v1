@@ -1,7 +1,6 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
 import {
   TableBody,
   TableCell,
@@ -9,11 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import { Text } from '@/components/catalyst/text'
 import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
 import {
+  available,
   combine,
   deployedAtomic,
   idleAtomic,
@@ -51,18 +52,102 @@ function absentReading(source: Unavailable): Availability<string> {
   })
 }
 
-function vaultShortAddress(vault: Vault): string {
-  if (vault.chainId === null) {
-    return `${vault.contractAddress.slice(0, 6)}…${vault.contractAddress.slice(-4)}`
-  }
-  return `chain ${vault.chainId} · ${vault.contractAddress.slice(0, 6)}…${vault.contractAddress.slice(-4)}`
+function rebalanceLabel(vault: Vault): Availability<string> {
+  if (!isAvailable(vault.rebalancing)) return absentReading(vault.rebalancing)
+  const at = vault.rebalancing.value.lastRebalanceAt
+  if (at === null) return unavailable({ status: 'EMPTY', reason: 'last_rebalance_not_reported' })
+  return available(formatRelativeTime(at), {
+    provenance: vault.rebalancing.provenance,
+    asOf: vault.rebalancing.asOf,
+    stale: vault.rebalancing.stale,
+  })
 }
 
-function recentActivityLabel(vault: Vault): string | null {
-  if (!isAvailable(vault.lastActivityAt)) return null
-  const iso = vault.lastActivityAt.value
-  if (iso === '') return null
-  return formatRelativeTime(iso)
+/** Primary desk: six fields. Chain, strategies, activity live on vault detail. */
+function VaultPrimaryRow({ vault }: Readonly<{ vault: Vault }>) {
+  const href = entityHref('vault', vault.id)
+  const driftBps = valueOf(vault.worstDriftBps)
+  const deployedBps = valueOf(vault.deployedBps)
+
+  return (
+    <TableRow href={href} title={`Open ${vault.label}`}>
+      <TableCell className="truncate font-medium">{vault.label}</TableCell>
+      <TableCell className="tabular-nums">
+        <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} />
+      </TableCell>
+      <TableCell className="tabular-nums">
+        <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
+        {deployedBps === null ? null : (
+          <div className="mt-0.5 text-xs text-fg-tertiary">
+            {formatPercent(deployedBps, { fromBps: true })}
+          </div>
+        )}
+      </TableCell>
+      <TableCell className="tabular-nums">
+        <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />
+      </TableCell>
+      <TableCell className="tabular-nums">
+        {!isAvailable(vault.worstDriftBps) ? (
+          <AdminReading compact value={absentReading(vault.worstDriftBps)} />
+        ) : (
+          driftPoints(driftBps!)
+        )}
+      </TableCell>
+      <TableCell className="tabular-nums">
+        <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
+  const href = entityHref('vault', vault.id)
+  const driftBps = valueOf(vault.worstDriftBps)
+  const deployedBps = valueOf(vault.deployedBps)
+
+  return (
+    <li>
+      <Link
+        href={href}
+        className="block rounded-lg bg-console-card p-4 ring-1 ring-console-line-soft transition-colors hover:bg-console-card-top"
+      >
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="truncate text-sm font-semibold text-ink dark:text-fg">{vault.label}</p>
+          <p className="shrink-0 tabular-nums text-sm text-ink dark:text-fg">
+            {!isAvailable(vault.worstDriftBps) ? '—' : driftPoints(driftBps!)}
+          </p>
+        </div>
+        <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
+          <div>
+            <dt className="text-fg-tertiary">AUM</dt>
+            <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+              <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} />
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Deployed</dt>
+            <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+              <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
+              {deployedBps === null ? null : (
+                <span className="mt-0.5 block text-fg-tertiary">
+                  {formatPercent(deployedBps, { fromBps: true })}
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Available</dt>
+            <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+              <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-xs text-fg-tertiary">
+          Rebalance · <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />
+        </p>
+      </Link>
+    </li>
+  )
 }
 
 export default async function Page() {
@@ -101,97 +186,47 @@ export default async function Page() {
           calme="The service responded with no vault in the registry."
         />
       ) : (
-        <DataTableShell
-          title="Vaults"
-          description="Capital and allocation drift as reported by the service."
-          count={`${formatNumber(vaultList.length)} vault(s)`}
-        >
-          <TableHead>
-            <TableRow>
-              <TableHeader>Vault</TableHeader>
-              <TableHeader>AUM</TableHeader>
-              <TableHeader>Deployed</TableHeader>
-              <TableHeader>Available</TableHeader>
-              <TableHeader>Strategies</TableHeader>
-              <TableHeader>Drift</TableHeader>
-              <TableHeader>Last rebalance</TableHeader>
-              <TableHeader>Recent activity</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {vaultList.map((vault) => {
-              const strategies = valueOf(vault.strategies)
-              const driftBps = valueOf(vault.worstDriftBps)
-              const rebalancing = valueOf(vault.rebalancing)
-              const deployedBps = valueOf(vault.deployedBps)
-              const activity = recentActivityLabel(vault)
-
-              return (
-                <TableRow key={vault.id}>
-                  <TableCell>
-                    <Link href={entityHref('vault', vault.id)} className="font-medium">
-                      {vault.label}
-                    </Link>
-                    <div
-                      className="mt-0.5 font-mono text-xs text-fg-tertiary"
-                      title={vault.contractAddress}
-                    >
-                      {vaultShortAddress(vault)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <AdminReading value={vaultAmount(vault, vault.totalAssetsAtomic)} />
-                  </TableCell>
-                  <TableCell>
-                    <AdminReading value={vaultAmount(vault, deployedAtomic(vault))} />
-                    {deployedBps === null ? null : (
-                      <div className="mt-0.5 text-xs text-fg-tertiary">
-                        {formatPercent(deployedBps, { fromBps: true })} of AUM
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <AdminReading value={vaultAmount(vault, idleAtomic(vault))} />
-                  </TableCell>
-                  <TableCell>
-                    {!isAvailable(vault.strategies) ? (
-                      <AdminReading value={absentReading(vault.strategies)} />
-                    ) : (
-                      <span className="tabular-nums">{formatNumber(strategies!.length)}</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {!isAvailable(vault.worstDriftBps) ? (
-                      <AdminReading value={absentReading(vault.worstDriftBps)} />
-                    ) : (
-                      <span className="tabular-nums">{driftPoints(driftBps!)}</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {!isAvailable(vault.rebalancing) ? (
-                      <AdminReading value={absentReading(vault.rebalancing)} />
-                    ) : rebalancing!.lastRebalanceAt === null ? (
-                      <span className="text-fg-tertiary">Not reported</span>
-                    ) : (
-                      <span className="tabular-nums text-console-fill dark:text-fg">
-                        {formatRelativeTime(rebalancing!.lastRebalanceAt)}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {!isAvailable(vault.lastActivityAt) ? (
-                      <AdminReading value={absentReading(vault.lastActivityAt)} />
-                    ) : activity === null ? (
-                      <span className="text-fg-tertiary">Not reported</span>
-                    ) : (
-                      <span className="tabular-nums">{activity}</span>
-                    )}
-                  </TableCell>
+        <>
+          <div className="hidden min-w-0 md:block">
+            <DataTableShell
+              fit
+              title="Vaults"
+              description="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
+              count={`${formatNumber(vaultList.length)} vault(s)`}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeader className="w-[26%]">Vault</TableHeader>
+                  <TableHeader className="w-[16%]">AUM</TableHeader>
+                  <TableHeader className="w-[16%]">Deployed</TableHeader>
+                  <TableHeader className="w-[16%]">Available</TableHeader>
+                  <TableHeader className="w-[12%]">Drift</TableHeader>
+                  <TableHeader className="w-[14%]">Rebalance</TableHeader>
                 </TableRow>
-              )
-            })}
-          </TableBody>
-        </DataTableShell>
+              </TableHead>
+              <TableBody>
+                {vaultList.map((vault) => (
+                  <VaultPrimaryRow key={vault.id} vault={vault} />
+                ))}
+              </TableBody>
+            </DataTableShell>
+          </div>
+
+          <SectionCard
+            title="Vaults"
+            hint="Capital and allocation drift as reported by the service."
+            className="md:hidden"
+            actions={
+              <span className="text-xs text-fg-tertiary">{formatNumber(vaultList.length)} vault(s)</span>
+            }
+          >
+            <ul className="space-y-3">
+              {vaultList.map((vault) => (
+                <VaultMobileCard key={vault.id} vault={vault} />
+              ))}
+            </ul>
+          </SectionCard>
+        </>
       )}
 
       <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
