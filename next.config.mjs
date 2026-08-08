@@ -54,10 +54,14 @@ const nextConfig = {
       { source: '/admin/produit', destination: '/admin/product', permanent: true },
       { source: '/admin/administration/produit', destination: '/admin/product', permanent: true },
       { source: '/espace', destination: '/account', permanent: true },
-      { source: '/espace/dashboard', destination: '/account/dashboard', permanent: true },
-      { source: '/espace/bitcoin', destination: '/account/bitcoin', permanent: true },
-      { source: '/espace/activite', destination: '/account/activity', permanent: true },
-      { source: '/espace/profil', destination: '/account/profile', permanent: true },
+      { source: '/espace/dashboard', destination: '/account', permanent: true },
+      { source: '/espace/bitcoin', destination: '/account', permanent: true },
+      { source: '/espace/activite', destination: '/account', permanent: true },
+      { source: '/espace/profil', destination: '/account', permanent: true },
+      { source: '/account/dashboard', destination: '/account', permanent: true },
+      { source: '/account/bitcoin', destination: '/account', permanent: true },
+      { source: '/account/activity', destination: '/account', permanent: true },
+      { source: '/account/profile', destination: '/account', permanent: true },
     ]
   },
   async headers() {
