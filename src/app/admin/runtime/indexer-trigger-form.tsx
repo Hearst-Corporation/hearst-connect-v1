@@ -27,11 +27,11 @@ export function IndexerTriggerForm() {
     <form action={action} className="space-y-3">
       <input type="hidden" name="confirm" value="CONFIRM" />
       <Text>
-        Déclenche une passe de l’indexeur Series 1. Utile seulement si le RPC chaîne est joignable —
-        sinon l’échec reste visible dans la réponse.
+        Starts one Series 1 indexer pass. Useful only when chain RPC is reachable — otherwise the
+        failure stays visible in the response. This does not sign vault transactions.
       </Text>
       <Button type="submit" disabled={pending} color="dark/neutral">
-        {pending ? 'Triggering…' : 'Trigger indexer'}
+        {pending ? 'Triggering…' : 'Run indexer'}
       </Button>
       {state.validationError ? (
         <Text className="text-red-600 dark:text-red-400">{state.validationError}</Text>

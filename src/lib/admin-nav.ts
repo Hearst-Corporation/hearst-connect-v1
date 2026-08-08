@@ -74,7 +74,7 @@ export const PRODUIT_ENTRY: EntreeSecondaire = {
   label: 'Product',
   href: '/admin/product',
   icone: DocumentTextIcon,
-  detail: 'Production, reserve, remuneration, and backtests on one screen',
+  detail: 'Business production, reserve, yield, and backtests — backend-owned facts only',
 }
 
 /**
@@ -85,7 +85,7 @@ export const DATA_COVERAGE_ENTRY: EntreeSecondaire = {
   label: 'Data coverage',
   href: '/admin/runtime',
   icone: TableCellsIcon,
-  detail: 'What the service actually serves, surface by surface',
+  detail: 'Canonical source health and coverage — Service hub only',
 }
 
 /**
@@ -101,7 +101,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         label: 'Series 1 journal',
         href: '/admin/series-1',
         icone: Squares2X2Icon,
-        detail: 'The indexed on-chain journal for Series 1',
+        detail: 'Operational event explorer with filters on indexed Series 1',
       },
     ],
   },
@@ -116,7 +116,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         label: 'Service status',
         href: '/admin/runtime',
         icone: SignalIcon,
-        detail: 'Dependency probes, deployment, data coverage, and raw responses',
+        detail: 'Single observability surface — probes, runtime, coverage, raw responses',
       },
       {
         label: 'API explorer',
@@ -139,7 +139,7 @@ export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
         label: 'Your account',
         href: '/admin/profile',
         icone: IdentificationIcon,
-        detail: 'The investor file attached to this account, if any',
+        detail: 'Administrator session identity',
       },
     ],
   },
