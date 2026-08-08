@@ -2,7 +2,7 @@ import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-head
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
+import { ChartFrame, HearstAllocationChart, RebalancingHistoryChart, type PosteAllocation, type PointDrift } from '@/components/charts'
 import { DataTableShell, SectionCard } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { availabilityFromResolu } from '@/lib/backend/availability'
@@ -63,6 +63,14 @@ type EvenementRebalancing = {
 }
 
 type ReponseEvenementsRebalancing = { readonly events?: Resolu<readonly EvenementRebalancing[]> }
+
+type PointRebalancingHistory = {
+  readonly date: string
+  readonly driftBps: number
+  readonly rebalanced: boolean
+}
+
+type ReponseRebalancingHistory = { readonly history?: Resolu<readonly PointRebalancingHistory[]> }
 
 type RuntimeContrat = {
   readonly mode?: string | null
@@ -183,12 +191,13 @@ function onChainReading(rebalancing: BackendResult<RebalancingStatus>): string {
  */
 export default async function Page() {
   await requireSession()
-  const [reponse, rebalancingEvents, rebalancing, dashboard, runtime] = await Promise.all([
+  const [reponse, rebalancingEvents, rebalancing, dashboard, runtime, history] = await Promise.all([
     callBackend<ReponseEvenements>('series1-events', { params: { limit: 50 } }),
     callBackend<ReponseEvenementsRebalancing>('events-rebalancing', { params: { limit: 50 } }),
     callBackend<RebalancingStatus>('rebalancing-status'),
     callBackend<Dashboard>('dashboard'),
     callBackend<Runtime>('runtime'),
+    callBackend<ReponseRebalancingHistory>('rebalancing-history', { params: { limit: 90 } }),
   ])
 
   const mouvements = reponse.ok ? (reponse.data.events?.value ?? null) : null
@@ -197,6 +206,7 @@ export default async function Page() {
   const mesure = dashboard.ok ? dashboard.data.rebalancing?.value : undefined
   const planificateur = runtime.ok ? runtime.data.indexerScheduler : undefined
   const contrat = rebalancing.ok ? rebalancing.data.runtime : undefined
+  const historyPoints = history.ok ? (history.data.history?.value ?? null) : null
 
   const eventsAvail = availabilityFromResolu<readonly MouvementIndexe[]>(
     reponse.ok ? reponse.data.events : undefined,
@@ -278,6 +288,37 @@ export default async function Page() {
             constatePct: d.constate,
           }))}
         />
+      </ChartFrame>
+
+      {/* ── CHART : historique du drift ──────────────────────────── */}
+      <ChartFrame
+        question="Comment le drift d'allocation a-t-il évolué au fil du temps ?"
+        unite="drift en pourcentage — seuil de rééquilibrage à 10%"
+        etat={
+          !history.ok
+            ? {
+                type: 'indisponible',
+                explication: "L'historique de rééquilibrage n'a pas pu être lu.",
+              }
+            : historyPoints === null || historyPoints.length === 0
+              ? {
+                  type: 'vide',
+                  explication:
+                    "Aucun point d'historique de drift n'est encore conservé — la série apparaîtra au premier snapshot.",
+                }
+              : { type: 'tracee' }
+        }
+        expectedSource={['GET /api/v1/rebalancing/history']}
+      >
+        {historyPoints !== null && historyPoints.length > 0 ? (
+          <RebalancingHistoryChart
+            points={historyPoints.map((p) => ({
+              date: p.date,
+              driftBps: p.driftBps,
+              rebalanced: p.rebalanced,
+            }))}
+          />
+        ) : null}
       </ChartFrame>
 
       {/* ── TABLE : écart par poche ──────────────────────────────── */}

@@ -35,3 +35,7 @@ export {
 } from '@/components/charts/richart/distribution-chart'
 export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'
 export { RichSparkline, MuiSparkline } from '@/components/charts/richart/sparkline'
+export {
+  RebalancingHistoryChart,
+  type PointDrift,
+} from '@/components/charts/richart/rebalancing-history-chart'

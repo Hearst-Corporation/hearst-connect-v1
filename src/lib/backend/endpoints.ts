@@ -154,6 +154,15 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'DB-only read model — indexer is the sole writer.',
   }),
   defineEndpoint({
+    id: 'rebalancing-history',
+    path: '/api/v1/rebalancing/history',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin/operations',
+    summary: 'Historical drift series — periodic snapshots of allocation drift over time.',
+    caveat: 'Time-series read model — one row per observation period.',
+  }),
+  defineEndpoint({
     id: 'clients',
     path: '/api/v1/clients',
     category: 'business',
