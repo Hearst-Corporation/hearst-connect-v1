@@ -40,7 +40,7 @@ function Prerequisite({
       <DescriptionDetails>
         <span
           className={clsx(
-            satisfait ? 'text-zinc-950 dark:text-white' : 'text-amber-600 dark:text-amber-400',
+            satisfait ? 'text-ink dark:text-fg' : 'text-amber-600 dark:text-amber-400',
           )}
         >
           {valeur}
@@ -117,8 +117,8 @@ export default async function KeeperPage() {
 
       <SectionCard title="Scope" hint="These routes log a request — they sign nothing.">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <Badge color="zinc">Aucune signature on-chain</Badge>
-          <Text className="!mt-0 font-medium text-zinc-950 dark:text-white">
+          <Badge color="neutral">Aucune signature on-chain</Badge>
+          <Text className="!mt-0 font-medium text-ink dark:text-fg">
             Aucune de ces routes ne signe une transaction
           </Text>
         </div>
@@ -172,10 +172,10 @@ export default async function KeeperPage() {
           {keeperEndpoints.map((endpoint) => (
             <TableRow key={endpoint.id}>
               <TableCell className="font-medium">{endpoint.summary}</TableCell>
-              <TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+              <TableCell className="font-mono text-xs text-fg-tertiary dark:text-fg-secondary">
                 {endpoint.method} {endpoint.path}
               </TableCell>
-              <TableCell className="text-zinc-500 dark:text-zinc-400">{endpoint.caveat ?? '—'}</TableCell>
+              <TableCell className="text-fg-tertiary dark:text-fg-secondary">{endpoint.caveat ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

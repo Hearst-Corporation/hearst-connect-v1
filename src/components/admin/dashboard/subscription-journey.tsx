@@ -103,7 +103,7 @@ const CIRCLE: Record<StepState, string> = {
   clear: 'bg-console-inset text-accent-300 ring-1 ring-console-line-soft',
   attention:
     'bg-warning-400/10 text-warning-400 ring-1 ring-warning-400/30',
-  unavailable: 'bg-console-inset text-zinc-500 ring-1 ring-console-line-soft',
+  unavailable: 'bg-console-inset text-fg-tertiary ring-1 ring-console-line-soft',
 }
 
 const STATE_ICON: Record<StepState, ComponentType<SVGProps<SVGSVGElement>>> = {
@@ -125,13 +125,13 @@ function StepDetail({ step }: Readonly<{ step: FunnelStepView }>) {
     <div className={clsx(surfaceInset, 'p-4')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-zinc-950 dark:text-white">{step.label}</p>
-          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm font-semibold text-ink dark:text-fg">{step.label}</p>
+          <p className="mt-0.5 text-xs text-fg-tertiary dark:text-fg-secondary">
             {countText === null ? (
               'Source unavailable — no measured value.'
             ) : (
               <>
-                <span className="font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">{countText}</span>{' '}
+                <span className="font-semibold tabular-nums text-fg-muted dark:text-fg-secondary">{countText}</span>{' '}
                 recorded
                 {hasWork ? (
                   <>
@@ -158,7 +158,7 @@ function StepDetail({ step }: Readonly<{ step: FunnelStepView }>) {
         )}
       </div>
       {caveat !== null ? (
-        <p className="mt-3 border-t border-zinc-950/5 pt-2 text-[11px] leading-4 text-zinc-400 dark:border-white/10 dark:text-zinc-500">
+        <p className="mt-3 border-t border-ink/5 pt-2 text-[11px] leading-4 text-fg-secondary dark:border-white/10 dark:text-fg-tertiary">
           {caveat}
         </p>
       ) : null}
@@ -229,18 +229,18 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
                       'size-3',
                       state === 'clear' && 'text-accent-600 dark:text-accent-400',
                       state === 'attention' && 'text-warning-600 dark:text-warning-400',
-                      state === 'unavailable' && 'text-zinc-400',
+                      state === 'unavailable' && 'text-fg-secondary',
                     )}
                     aria-hidden="true"
                   />
                 </span>
               </span>
 
-              <span className="mt-2 flex items-center gap-1 text-xs font-semibold text-zinc-950 dark:text-white">
-                <span className="text-zinc-400 tabular-nums dark:text-zinc-500">{index + 1}.</span>
+              <span className="mt-2 flex items-center gap-1 text-xs font-semibold text-ink dark:text-fg">
+                <span className="text-fg-secondary tabular-nums dark:text-fg-tertiary">{index + 1}.</span>
                 {label}
               </span>
-              <span className="mt-0.5 text-lg font-semibold tabular-nums tracking-tight text-zinc-950 dark:text-white">
+              <span className="mt-0.5 text-lg font-semibold tabular-nums tracking-tight text-ink dark:text-fg">
                 {value === null ? '—' : value}
               </span>
               <span
@@ -249,8 +249,8 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
                   hasWork
                     ? 'font-medium text-warning-700 dark:text-warning-400'
                     : state === 'clear'
-                      ? 'text-zinc-500 dark:text-zinc-400'
-                      : 'text-zinc-400 dark:text-zinc-500',
+                      ? 'text-fg-tertiary dark:text-fg-secondary'
+                      : 'text-fg-secondary dark:text-fg-tertiary',
                 )}
               >
                 {state === 'unavailable'
@@ -272,7 +272,7 @@ export function SubscriptionJourneyStepper({ steps }: Readonly<{ steps: readonly
         ))}
       </TabPanels>
 
-      <p className="mt-3 flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
+      <p className="mt-3 flex items-center gap-1 text-[11px] text-fg-secondary dark:text-fg-tertiary">
         <ChevronRightIcon className="size-3" aria-hidden="true" />
         Select a step for its detail and action. Each counter reads its own real source.
       </p>

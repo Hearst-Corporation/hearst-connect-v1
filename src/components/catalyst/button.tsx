@@ -42,50 +42,50 @@ const styles = {
   ],
   outline: [
     // Base
-    'border-zinc-950/10 text-zinc-950 data-active:bg-zinc-950/2.5 data-hover:bg-zinc-950/2.5',
+    'border-ink/10 text-ink data-active:bg-ink/2.5 data-hover:bg-ink/2.5',
     // Dark mode
     'dark:border-white/15 dark:text-white dark:[--btn-bg:transparent] dark:data-active:bg-white/5 dark:data-hover:bg-white/5',
     // Icon
-    '[--btn-icon:var(--color-zinc-500)] data-active:[--btn-icon:var(--color-zinc-700)] data-hover:[--btn-icon:var(--color-zinc-700)] dark:data-active:[--btn-icon:var(--color-zinc-400)] dark:data-hover:[--btn-icon:var(--color-zinc-400)]',
+    '[--btn-icon:var(--color-fg-tertiary)] data-active:[--btn-icon:var(--color-console-fill-muted)] data-hover:[--btn-icon:var(--color-console-fill-muted)] dark:data-active:[--btn-icon:var(--color-fg-secondary)] dark:data-hover:[--btn-icon:var(--color-fg-secondary)]',
   ],
   plain: [
     // Base
-    'border-transparent text-zinc-950 data-active:bg-zinc-950/5 data-hover:bg-zinc-950/5',
+    'border-transparent text-ink data-active:bg-ink/5 data-hover:bg-ink/5',
     // Dark mode
     'dark:text-white dark:data-active:bg-white/10 dark:data-hover:bg-white/10',
     // Icon
-    '[--btn-icon:var(--color-zinc-500)] data-active:[--btn-icon:var(--color-zinc-700)] data-hover:[--btn-icon:var(--color-zinc-700)] dark:[--btn-icon:var(--color-zinc-500)] dark:data-active:[--btn-icon:var(--color-zinc-400)] dark:data-hover:[--btn-icon:var(--color-zinc-400)]',
+    '[--btn-icon:var(--color-fg-tertiary)] data-active:[--btn-icon:var(--color-console-fill-muted)] data-hover:[--btn-icon:var(--color-console-fill-muted)] dark:[--btn-icon:var(--color-fg-tertiary)] dark:data-active:[--btn-icon:var(--color-fg-secondary)] dark:data-hover:[--btn-icon:var(--color-fg-secondary)]',
   ],
   colors: {
-    'dark/zinc': [
-      'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
-      'dark:text-white dark:[--btn-bg:var(--color-zinc-600)] dark:[--btn-hover-overlay:var(--color-white)]/5',
-      '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)]',
+    'dark/neutral': [
+      'text-white [--btn-bg:var(--color-console-shell)] [--btn-border:var(--color-ink)]/90 [--btn-hover-overlay:var(--color-white)]/10',
+      'dark:text-white dark:[--btn-bg:var(--color-console-fill)] dark:[--btn-hover-overlay:var(--color-white)]/5',
+      '[--btn-icon:var(--color-fg-secondary)] data-active:[--btn-icon:var(--color-fg)] data-hover:[--btn-icon:var(--color-fg)]',
     ],
     light: [
-      'text-zinc-950 [--btn-bg:white] [--btn-border:var(--color-zinc-950)]/10 [--btn-hover-overlay:var(--color-zinc-950)]/2.5 data-active:[--btn-border:var(--color-zinc-950)]/15 data-hover:[--btn-border:var(--color-zinc-950)]/15',
-      'dark:text-white dark:[--btn-hover-overlay:var(--color-white)]/5 dark:[--btn-bg:var(--color-zinc-800)]',
-      '[--btn-icon:var(--color-zinc-500)] data-active:[--btn-icon:var(--color-zinc-700)] data-hover:[--btn-icon:var(--color-zinc-700)] dark:[--btn-icon:var(--color-zinc-500)] dark:data-active:[--btn-icon:var(--color-zinc-400)] dark:data-hover:[--btn-icon:var(--color-zinc-400)]',
+      'text-ink [--btn-bg:white] [--btn-border:var(--color-ink)]/10 [--btn-hover-overlay:var(--color-ink)]/2.5 data-active:[--btn-border:var(--color-ink)]/15 data-hover:[--btn-border:var(--color-ink)]/15',
+      'dark:text-white dark:[--btn-hover-overlay:var(--color-white)]/5 dark:[--btn-bg:var(--color-console-raised)]',
+      '[--btn-icon:var(--color-fg-tertiary)] data-active:[--btn-icon:var(--color-console-fill-muted)] data-hover:[--btn-icon:var(--color-console-fill-muted)] dark:[--btn-icon:var(--color-fg-tertiary)] dark:data-active:[--btn-icon:var(--color-fg-secondary)] dark:data-hover:[--btn-icon:var(--color-fg-secondary)]',
     ],
     'dark/white': [
-      'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
-      'dark:text-zinc-950 dark:[--btn-bg:white] dark:[--btn-hover-overlay:var(--color-zinc-950)]/5',
-      '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)] dark:[--btn-icon:var(--color-zinc-500)] dark:data-active:[--btn-icon:var(--color-zinc-400)] dark:data-hover:[--btn-icon:var(--color-zinc-400)]',
+      'text-white [--btn-bg:var(--color-console-shell)] [--btn-border:var(--color-ink)]/90 [--btn-hover-overlay:var(--color-white)]/10',
+      'dark:text-ink dark:[--btn-bg:white] dark:[--btn-hover-overlay:var(--color-ink)]/5',
+      '[--btn-icon:var(--color-fg-secondary)] data-active:[--btn-icon:var(--color-fg)] data-hover:[--btn-icon:var(--color-fg)] dark:[--btn-icon:var(--color-fg-tertiary)] dark:data-active:[--btn-icon:var(--color-fg-secondary)] dark:data-hover:[--btn-icon:var(--color-fg-secondary)]',
     ],
     dark: [
-      'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
-      'dark:[--btn-hover-overlay:var(--color-white)]/5 dark:[--btn-bg:var(--color-zinc-800)]',
-      '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)]',
+      'text-white [--btn-bg:var(--color-console-shell)] [--btn-border:var(--color-ink)]/90 [--btn-hover-overlay:var(--color-white)]/10',
+      'dark:[--btn-hover-overlay:var(--color-white)]/5 dark:[--btn-bg:var(--color-console-raised)]',
+      '[--btn-icon:var(--color-fg-secondary)] data-active:[--btn-icon:var(--color-fg)] data-hover:[--btn-icon:var(--color-fg)]',
     ],
     white: [
-      'text-zinc-950 [--btn-bg:white] [--btn-border:var(--color-zinc-950)]/10 [--btn-hover-overlay:var(--color-zinc-950)]/2.5 data-active:[--btn-border:var(--color-zinc-950)]/15 data-hover:[--btn-border:var(--color-zinc-950)]/15',
-      'dark:[--btn-hover-overlay:var(--color-zinc-950)]/5',
-      '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-500)] data-hover:[--btn-icon:var(--color-zinc-500)]',
+      'text-ink [--btn-bg:white] [--btn-border:var(--color-ink)]/10 [--btn-hover-overlay:var(--color-ink)]/2.5 data-active:[--btn-border:var(--color-ink)]/15 data-hover:[--btn-border:var(--color-ink)]/15',
+      'dark:[--btn-hover-overlay:var(--color-ink)]/5',
+      '[--btn-icon:var(--color-fg-secondary)] data-active:[--btn-icon:var(--color-fg-tertiary)] data-hover:[--btn-icon:var(--color-fg-tertiary)]',
     ],
-    zinc: [
-      'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-zinc-600)] [--btn-border:var(--color-zinc-700)]/90',
+    neutral: [
+      'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-console-fill)] [--btn-border:var(--color-console-fill-muted)]/90',
       'dark:[--btn-hover-overlay:var(--color-white)]/5',
-      '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)]',
+      '[--btn-icon:var(--color-fg-secondary)] data-active:[--btn-icon:var(--color-fg)] data-hover:[--btn-icon:var(--color-fg)]',
     ],
     indigo: [
       'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-indigo-500)] [--btn-border:var(--color-indigo-600)]/90',
@@ -174,7 +174,7 @@ export const Button = forwardRef(function Button(
   let classes = clsx(
     className,
     styles.base,
-    outline ? styles.outline : plain ? styles.plain : clsx(styles.solid, styles.colors[color ?? 'dark/zinc'])
+    outline ? styles.outline : plain ? styles.plain : clsx(styles.solid, styles.colors[color ?? 'dark/neutral'])
   )
 
   return typeof props.href === 'string' ? (

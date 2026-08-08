@@ -103,7 +103,7 @@ export default async function Page() {
         <Panel tone="plain" className={csl.heroChart}>
           <div className={csl.heroHead}><h2 className={csl.cardTitle}>Welcome to your account</h2></div>
           <div className={csl.heroBody}>
-            <p className="mb-6 max-w-prose text-sm/6 text-zinc-500 dark:text-zinc-400">
+            <p className="mb-6 max-w-prose text-sm/6 text-fg-tertiary dark:text-fg-secondary">
               Your account brings together what the fund produces and what happens there. Every value shown is
               measured by the service: a missing datum is named as such, never replaced with a zero.
             </p>
@@ -112,8 +112,8 @@ export default async function Page() {
                 <AdminCol key={section.href} span={6}>
                   <Link href={section.href} className="block h-full">
                     <Panel tone="plain" className="flex h-full flex-col gap-1 p-6 transition-colors hover:bg-console-card-top">
-                      <span className="text-base font-medium text-zinc-950 dark:text-white">{section.titre}</span>
-                      <span className="text-sm/6 text-zinc-500 dark:text-zinc-400">{section.detail}</span>
+                      <span className="text-base font-medium text-ink dark:text-fg">{section.titre}</span>
+                      <span className="text-sm/6 text-fg-tertiary dark:text-fg-secondary">{section.detail}</span>
                       <span className="mt-2 text-sm text-accent-600 dark:text-accent-300">Open →</span>
                     </Panel>
                   </Link>

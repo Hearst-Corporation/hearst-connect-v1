@@ -65,23 +65,23 @@ export function HearstDonutChart({
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-semibold tabular-nums text-zinc-950 dark:text-white">
+          <span className="text-2xl font-semibold tabular-nums text-ink dark:text-fg">
             {formatNumber(total)}
           </span>
-          <span className="text-[11px] text-zinc-500">{unit}</span>
+          <span className="text-[11px] text-fg-tertiary">{unit}</span>
         </div>
       </div>
 
       <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
         {data.map((s, index) => (
-          <li key={s.label} className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+          <li key={s.label} className="flex items-center gap-2 text-xs text-console-fill dark:text-fg">
             <span
               className="size-2 shrink-0 rounded-full"
               style={{ background: categoricalColor(index) }}
               aria-hidden="true"
             />
             <span className="truncate">{s.label}</span>
-            <span className="ml-auto tabular-nums font-medium text-zinc-950 dark:text-white">
+            <span className="ml-auto tabular-nums font-medium text-ink dark:text-fg">
               {formatNumber(s.value)}
             </span>
           </li>

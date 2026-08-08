@@ -141,7 +141,7 @@ export default async function Page() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <SectionCard title="File journey" hint="UI definition — not counters." tone="plain">
-          <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+          <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
             {SEGMENTS.map((segment, index) => (
               <li key={segment.id}>
                 {index + 1}. {segment.label} · {segment.hint}
@@ -151,7 +151,7 @@ export default async function Page() {
         </SectionCard>
 
         <SectionCard title="Missing at source" hint="What /api/v1/compliance does not expose yet." tone="plain">
-          <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+          <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
             {MISSING_FROM_SOURCE.map((item) => (
               <li key={item}>{item}</li>
             ))}

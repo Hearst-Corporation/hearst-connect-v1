@@ -32,8 +32,8 @@ export type SeriesState =
 export type EtatSerie = SeriesState
 
 const STATE_TONE: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
-  empty: 'text-zinc-500 dark:text-zinc-400',
-  pending: 'text-zinc-500 dark:text-zinc-400',
+  empty: 'text-fg-tertiary dark:text-fg-secondary',
+  pending: 'text-fg-tertiary dark:text-fg-secondary',
   unavailable: 'text-danger-400',
 }
 
@@ -74,13 +74,13 @@ function StateVisual({
           'flex size-14 items-center justify-center rounded-2xl ring-1',
           danger
             ? 'bg-danger-400/10 text-danger-500 ring-danger-400/20 dark:text-danger-400'
-            : clsx(surfaceInset, 'text-zinc-500'),
+            : clsx(surfaceInset, 'text-fg-tertiary'),
         )}
       >
         <Icon className="size-7" aria-hidden="true" />
       </span>
-      <Badge color={danger ? 'rose' : 'zinc'}>{STATE_LABEL[etat.type]}</Badge>
-      <Text className="max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{etat.explication}</Text>
+      <Badge color={danger ? 'rose' : 'neutral'}>{STATE_LABEL[etat.type]}</Badge>
+      <Text className="max-w-sm text-sm leading-relaxed text-fg-tertiary dark:text-fg-secondary">{etat.explication}</Text>
       {expectedSource?.length ? (
         <div className="w-full max-w-xs text-left">
           <AdminLabel>Expected source</AdminLabel>
@@ -134,8 +134,8 @@ export function ChartFrame({
         <>
           {children}
           <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
-            <Badge color={etat.type === 'unavailable' ? 'rose' : 'zinc'}>{STATE_LABEL[etat.type]}</Badge>
-            <Text className="max-w-prose text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <Badge color={etat.type === 'unavailable' ? 'rose' : 'neutral'}>{STATE_LABEL[etat.type]}</Badge>
+            <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
               {etat.explication}
             </Text>
           </div>

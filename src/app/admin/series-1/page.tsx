@@ -176,7 +176,7 @@ export default async function Page() {
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{phraseMouvement(m.eventName)}</TableCell>
                     <TableCell>{estFinancier(m) ? montantUsdc(m.assetAmountAtomic) : '—'}</TableCell>
-                    <TableCell className="text-zinc-500">
+                    <TableCell className="text-fg-tertiary">
                       {investisseur !== null ? <span className="font-mono">{investisseur}</span> : null}
                       {blocNum !== null && blocNum !== undefined && blocNum !== '' ? (
                         <span className={investisseur !== null ? 'ml-2' : undefined}>
@@ -195,7 +195,7 @@ export default async function Page() {
       </DataTableShell>
 
       <SectionCard title="Missing at source" hint="UI definition — not counters." tone="plain">
-        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
           {MANQUANT_A_LA_SOURCE.map((item) => (
             <li key={item}>{item}</li>
           ))}

@@ -139,7 +139,7 @@ export default async function Page() {
           !reponse.ok ? (
             <Badge color="amber">Unreadable</Badge>
           ) : identite === null || identite === undefined ? (
-            <Badge color="zinc">No file</Badge>
+            <Badge color="neutral">No file</Badge>
           ) : (
             <Badge color="lime">Present</Badge>
           )
@@ -160,8 +160,8 @@ export default async function Page() {
             <Text className="mt-4">
               This is normal for an administrator account — managing the workspace and subscribing to the fund are distinct, and one does not imply the other. No file is shown here rather than an empty file that would look lost.
             </Text>
-            <Text className="mt-4 font-medium text-zinc-700 dark:text-zinc-300">For a file to appear</Text>
-            <ul className="list-disc space-y-1 pl-5 text-sm/6 text-zinc-500">
+            <Text className="mt-4 font-medium text-fg-muted dark:text-fg">For a file to appear</Text>
+            <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
               <li>A fund subscription completed with this email address</li>
               <li>A KYC file reviewed and approved</li>
               <li>A wallet address linked to the file</li>

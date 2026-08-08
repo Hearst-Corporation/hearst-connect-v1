@@ -50,10 +50,10 @@ export function SingleObservation({
       <AdminLabel>{periode}</AdminLabel>
 
       <p className="mt-2 flex items-baseline gap-2">
-        <span className="text-4xl/10 font-semibold tracking-tight text-zinc-950 tabular-nums dark:text-white">
+        <span className="text-4xl/10 font-semibold tracking-tight text-ink tabular-nums dark:text-white">
           {valeur}
         </span>
-        {unite ? <span className="text-sm text-zinc-500 dark:text-zinc-400">{unite}</span> : null}
+        {unite ? <span className="text-sm text-fg-tertiary dark:text-fg-secondary">{unite}</span> : null}
       </p>
 
       {contexte ? <AdminCaption className="mt-1.5">{contexte}</AdminCaption> : null}
@@ -67,13 +67,13 @@ export function SingleObservation({
           />
         </div>
         {comparaison ? (
-          <p className="mt-1.5 text-xs text-zinc-500 tabular-nums dark:text-zinc-400">
+          <p className="mt-1.5 text-xs text-fg-tertiary tabular-nums dark:text-fg-secondary">
             {comparaison.libelle}
           </p>
         ) : null}
       </div>
 
-      <p className="mt-4 border-t border-zinc-950/5 pt-3 text-xs leading-relaxed text-zinc-500 dark:border-console-line dark:text-zinc-400">
+      <p className="mt-4 border-t border-ink/5 pt-3 text-xs leading-relaxed text-fg-tertiary dark:border-console-line dark:text-fg-secondary">
         {note}
       </p>
     </div>

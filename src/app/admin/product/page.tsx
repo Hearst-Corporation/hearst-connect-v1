@@ -350,7 +350,7 @@ export default async function Page() {
           {lecturesEnAttente.map((lecture) => (
             <TableRow key={lecture.cle}>
               <TableCell className="font-medium">{lecture.libelle}</TableCell>
-              <TableCell className="text-zinc-500">{lecture.explication}</TableCell>
+              <TableCell className="text-fg-tertiary">{lecture.explication}</TableCell>
               <TableCell>
                 {lecture.statut ? etatSourceLisible(lecture.statut) : 'Not reported'}
               </TableCell>

@@ -30,7 +30,7 @@ export function IndexerTriggerForm() {
         Déclenche une passe de l’indexeur Series 1. Utile seulement si le RPC chaîne est joignable —
         sinon l’échec reste visible dans la réponse.
       </Text>
-      <Button type="submit" disabled={pending} color="dark/zinc">
+      <Button type="submit" disabled={pending} color="dark/neutral">
         {pending ? 'Triggering…' : 'Trigger indexer'}
       </Button>
       {state.validationError ? (
@@ -46,7 +46,7 @@ export function IndexerTriggerForm() {
         </Text>
       ) : null}
       {state.ok ? (
-        <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-zinc-300')}>
+        <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-fg')}>
           {state.detail ?? 'OK'}
         </pre>
       ) : null}

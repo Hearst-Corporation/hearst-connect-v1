@@ -26,7 +26,7 @@ const STATUS: Record<VaultStatus, { label: string; title: string; tone: string; 
   ACTIVE: {
     label: 'Actif',
     title: 'The contract has code and the vault snapshot was read.',
-    tone: 'bg-white/5 text-zinc-700 ring-zinc-950/10 dark:text-zinc-200 dark:ring-console-line-strong',
+    tone: 'bg-white/5 text-console-fill-muted ring-ink/10 dark:text-fg-secondary dark:ring-console-line-strong',
     dot: 'bg-accent-600 dark:bg-accent-400',
   },
   NO_CODE: {

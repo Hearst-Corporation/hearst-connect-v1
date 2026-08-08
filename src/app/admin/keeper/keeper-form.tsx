@@ -25,18 +25,18 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
       {needsMetrics ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">hashrateTh — integer ≥ 0</span>
+            <span className="text-xs text-fg-tertiary dark:text-fg-secondary">hashrateTh — integer ≥ 0</span>
             <input name="hashrateTh" type="number" min={0} step={1} required className={fieldClass} />
           </label>
           <label className="block">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">btcEarnedSats — integer ≥ 0</span>
+            <span className="text-xs text-fg-tertiary dark:text-fg-secondary">btcEarnedSats — integer ≥ 0</span>
             <input name="btcEarnedSats" type="number" min={0} step={1} required className={fieldClass} />
           </label>
         </div>
       ) : null}
 
       <label className="block">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
           Type <span className="font-mono text-amber-600 dark:text-amber-400">CONFIRM</span> to send the
           request
         </span>
@@ -55,22 +55,22 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
 function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
   if (outcome.validationError) {
     return (
-      <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
+      <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
         <p className="text-xs text-amber-600 dark:text-amber-400">{outcome.validationError}</p>
       </div>
     )
   }
 
   return (
-    <div className="mt-4 border-t border-zinc-950/5 pt-4 dark:border-console-line-soft">
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+    <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
+      <p className="text-xs text-fg-tertiary dark:text-fg-secondary">
         Backend response:{' '}
-        <span className="font-mono text-zinc-950 dark:text-white">
+        <span className="font-mono text-ink dark:text-fg">
           {outcome.result?.status ?? outcome.stateReason ?? '—'}
         </span>
       </p>
       {outcome.result?.reason ? (
-        <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">reason: {outcome.result.reason}</p>
+        <p className="mt-1 font-mono text-xs text-fg-tertiary dark:text-fg-secondary">reason: {outcome.result.reason}</p>
       ) : null}
       <ProblemState problem={outcome.problem} keeper={outcome.result} />
       {outcome.trace ? (
@@ -94,8 +94,8 @@ export function KeeperForm({
     <section className={clsx(surfaceBox, 'p-5')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">{endpoint.summary}</h2>
-          <p className="mt-0.5 font-mono text-xs text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-sm font-semibold text-ink dark:text-fg">{endpoint.summary}</h2>
+          <p className="mt-0.5 font-mono text-xs text-fg-tertiary dark:text-fg-secondary">
             {endpoint.method} {endpoint.path}
           </p>
         </div>
@@ -109,7 +109,7 @@ export function KeeperForm({
       ) : null}
 
       {disabled ? (
-        <p className={clsx(surfaceInset, 'mt-4 px-3 py-2 text-xs text-zinc-400')}>
+        <p className={clsx(surfaceInset, 'mt-4 px-3 py-2 text-xs text-fg-secondary')}>
           {disabledReason}
         </p>
       ) : (

@@ -37,13 +37,13 @@ describe('polices — Satoshi Variable uniquement', () => {
   })
 })
 
-describe('texte blanc deep sous .dark', () => {
-  it('la rampe zinc dark pose du blanc deep sur 300/400/500', () => {
+describe('Hearst semantic text tokens', () => {
+  it('declares fg / fg-secondary / fg-tertiary / ink in @theme', () => {
     const css = readFileSync(join(process.cwd(), 'src/styles/tailwind.css'), 'utf8')
-    const dark = css.slice(css.indexOf('.dark {'))
-    expect(dark).toMatch(/--color-zinc-300:\s*#ffffff;/)
-    expect(dark).toMatch(/--color-zinc-400:\s*#f2f2f2;/)
-    expect(dark).toMatch(/--color-zinc-500:\s*#e0e0e0;/)
+    expect(css).toMatch(/--color-fg:\s*#f3f5f2;/)
+    expect(css).toMatch(/--color-fg-secondary:\s*#a8aea9;/)
+    expect(css).toMatch(/--color-fg-tertiary:\s*#737a75;/)
+    expect(css).toMatch(/--color-ink:\s*#0b0f10;/)
   })
 
   it('le thème forcé reste dark', () => {

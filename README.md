@@ -24,8 +24,9 @@ Composition : `src/app/(marketing)/page.tsx` (server component) ; un filet `cons
 **Orphelin** : `cards-demo-3.tsx` (`ui/`) restauré mais **non monté** (logos tiers, hors marque Hearst).
 
 **Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
-Interdit dans `src/components/marketing/` et `src/components/ui/` : classes `zinc-*`, `neutral-*`,
-`slate-*`, `gray-*` (gate `tests/marketing-no-zinc.test.ts`). Police : Satoshi uniquement.
+Interdit dans `src/components/marketing/` et `src/components/ui/` : rampes Tailwind
+structurelles `neutral-*` / `slate-*` / `gray-*` (test `tests/marketing-no-zinc.test.ts`)
+et toute utilitaire de la palette interdite (gate `pnpm run check:no-zinc`). Police : Satoshi uniquement.
 Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG — pas d’URLs externes.
 
 ## Architecture
@@ -114,8 +115,9 @@ pnpm exec next build     # build prod (hors gate)
 
 Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
 `surfaceBox` (cards verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint sélection).
-Header console partagé : `AdminPageHeader` — glow + monogramme H + titre + KPI hero. Fond : `public/brand/console-glow.png`. Monogramme : `public/brand/hearst-h.svg`. Lockup officiel (Hearst-Defi) : `public/brand/hearst-connect.svg` (+ `-dark` / `-official`). Favicon onglet : `src/app/icon.svg` (H mint sur fond zinc).
+Header console partagé : `AdminPageHeader` — glow + monogramme H + titre + KPI hero. Fond : `public/brand/console-glow.png`. Monogramme : `public/brand/hearst-h.svg`. Lockup officiel (Hearst-Defi) : `public/brand/hearst-connect.svg` (+ `-dark` / `-official`). Favicon onglet : `src/app/icon.svg` (H mint sur fond graphite).
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
+Gate `check:no-zinc` : palette structurelle interdite — tokens sémantiques `fg` / `ink` / `console-*` uniquement (`.cursor/rules/50-no-zinc.mdc`).
 
 ## Documentation
 

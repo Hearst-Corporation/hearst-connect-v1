@@ -58,13 +58,13 @@ export function AdminSection({
   const hasHeader = Boolean(title || actions || description)
 
   return (
-    <section id={id} className={clsx(className, hasHeader && 'border-t border-zinc-950/10 pt-8 dark:border-console-line')}>
+    <section id={id} className={clsx(className, hasHeader && 'border-t border-ink/10 pt-8 dark:border-console-line')}>
       {hasHeader ? (
         <>
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
             <div className="flex items-baseline gap-3">
               {index ? (
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-console-inset text-[0.6875rem] font-semibold tabular-nums text-zinc-300 ring-1 ring-console-line-soft">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-console-inset text-[0.6875rem] font-semibold tabular-nums text-fg ring-1 ring-console-line-soft">
                   {index}
                 </span>
               ) : null}
@@ -111,10 +111,10 @@ export function AdminMetric({
         {displayable ? (
           <span className={clsx(adminTypography.numericStandard, 'wrap-break-word')}>
             {typeof value === 'number' ? formatNumber(value) : value}
-            {unit ? <span className="ml-1 text-sm/6 font-medium text-zinc-500 dark:text-zinc-400">{unit}</span> : null}
+            {unit ? <span className="ml-1 text-sm/6 font-medium text-fg-tertiary dark:text-fg-secondary">{unit}</span> : null}
           </span>
         ) : (
-          <span className={clsx(adminTypography.numericStandard, 'text-zinc-500 dark:text-zinc-400')} title={status ?? 'Aucune valeur'}>—</span>
+          <span className={clsx(adminTypography.numericStandard, 'text-fg-tertiary dark:text-fg-secondary')} title={status ?? 'Aucune valeur'}>—</span>
         )}
       </p>
       {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
@@ -142,14 +142,14 @@ export function AdminProbeResult({
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>
-      {reason ? <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{reason}</p> : null}
+      {reason ? <p className="mt-2 text-xs text-fg-tertiary dark:text-fg-secondary">{reason}</p> : null}
       <div className="mt-2">
         <RequestMetadata trace={trace} />
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">JSON brut</summary>
-          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-zinc-950 dark:text-white/80">{rawJson}</pre>
+          <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-white">JSON brut</summary>
+          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-ink dark:text-fg/80">{rawJson}</pre>
         </details>
       ) : null}
       <ProblemState problem={problem ?? null} keeper={keeper ?? null} />

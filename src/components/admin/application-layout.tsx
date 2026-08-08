@@ -153,10 +153,10 @@ export function AdminApplicationLayout({
                 <span className="flex min-w-0 items-center gap-3">
                   <Avatar initials={initials || 'HC'} className="size-10" square alt="" />
                   <span className="min-w-0">
-                    <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
+                    <span className="block truncate text-sm/5 font-medium text-ink dark:text-fg">
                       {user.name}
                     </span>
-                    <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
+                    <span className="block truncate text-xs/5 font-normal text-fg-tertiary dark:text-fg-secondary">
                       {user.email}
                     </span>
                   </span>

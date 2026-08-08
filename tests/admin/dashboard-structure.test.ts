@@ -24,7 +24,7 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).toMatch(/<DashboardShell/)
     expect(SOURCE).toMatch(/<DashboardHeader/)
     expect(SOURCE).not.toMatch(/DashboardLightShell/)
-    expect(SOURCE).not.toMatch(/bg-zinc-100/)
+    expect(SOURCE).not.toMatch(/bg-fg/)
     expect(SOURCE).not.toMatch(/from ['"]@mui\/x-charts/)
   })
 

@@ -46,7 +46,7 @@ export function DataHealthGrid({
                   t === 'bad' && 'bg-danger-500',
                 )}
               />
-              <p className="truncate text-[11px] font-semibold text-zinc-950 dark:text-white">{label}</p>
+              <p className="truncate text-[11px] font-semibold text-ink dark:text-fg">{label}</p>
             </div>
             <Text className="mt-1 truncate text-[10px]">{freshness}</Text>
           </li>

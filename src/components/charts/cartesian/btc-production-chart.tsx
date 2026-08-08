@@ -70,9 +70,9 @@ function ChartTooltip({
   return (
     <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
       <p className="font-medium text-white">{mois.libelle}</p>
-      <p className="mt-1 text-zinc-300 tabular-nums">Produced this month: {mois.btcExact} BTC</p>
+      <p className="mt-1 text-fg tabular-nums">Produced this month: {mois.btcExact} BTC</p>
       {mois.cumulExact === null ? null : (
-        <p className="mt-0.5 text-zinc-400 tabular-nums">
+        <p className="mt-0.5 text-fg-secondary tabular-nums">
           Cumulative to date: {mois.cumulExact} BTC
         </p>
       )}
@@ -187,7 +187,7 @@ export function ProductionMensuelleChart({
         </ResponsiveContainer>
       </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+      <p className="mt-3 text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
         {readabilityNote(mois)}
         {cumulBtc === null ? null : (
           <>

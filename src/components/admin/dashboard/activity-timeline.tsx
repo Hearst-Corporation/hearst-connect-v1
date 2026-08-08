@@ -7,7 +7,7 @@ import { formatCurrency, formatHash, formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-const STATUS_COLOR: Record<string, 'lime' | 'amber' | 'red' | 'zinc'> = {
+const STATUS_COLOR: Record<string, 'lime' | 'amber' | 'red' | 'neutral'> = {
   CONFIRMED: 'lime',
   indexed: 'lime',
   REQUESTED: 'amber',
@@ -45,20 +45,20 @@ export function ActivityTimelinePanel({
             />
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-zinc-950 dark:text-white">{event.title}</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-500">
+                <p className="text-sm font-semibold text-ink dark:text-fg">{event.title}</p>
+                <p className="mt-0.5 truncate text-xs text-fg-tertiary">
                   {event.clientLabel ?? '—'}
                   {event.amountAtomic !== null
                     ? ` · ${formatCurrency(event.amountAtomic, { fromAtomic: 1_000_000 })}`
                     : null}
                 </p>
                 {event.txHash !== null ? (
-                  <p className="mt-0.5 font-mono text-[11px] text-zinc-400">{formatHash(event.txHash)}</p>
+                  <p className="mt-0.5 font-mono text-[11px] text-fg-secondary">{formatHash(event.txHash)}</p>
                 ) : null}
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
-                <Badge color={STATUS_COLOR[event.status] ?? 'zinc'}>{event.status}</Badge>
-                <span className="text-[11px] text-zinc-500">{formatRelativeTime(event.occurredAt)}</span>
+                <Badge color={STATUS_COLOR[event.status] ?? 'neutral'}>{event.status}</Badge>
+                <span className="text-[11px] text-fg-tertiary">{formatRelativeTime(event.occurredAt)}</span>
               </div>
             </div>
           </motion.li>

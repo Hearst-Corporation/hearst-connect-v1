@@ -11,10 +11,10 @@ export function RecentClientsPanel({
   clients,
 }: Readonly<{ clients: Availability<readonly AdminRecentClient[]> }>) {
   if (!isAvailable(clients)) {
-    return <p className="text-sm text-zinc-500">Data unavailable</p>
+    return <p className="text-sm text-fg-tertiary">Data unavailable</p>
   }
   if (clients.value.length === 0) {
-    return <p className="text-sm text-zinc-500">No recent clients</p>
+    return <p className="text-sm text-fg-tertiary">No recent clients</p>
   }
 
   return (
@@ -32,15 +32,15 @@ export function RecentClientsPanel({
         {clients.value.map((client) => (
           <TableRow key={client.id}>
             <TableCell className="font-medium">{client.label}</TableCell>
-            <TableCell className="text-zinc-500">{formatDateTime(client.createdAt)}</TableCell>
+            <TableCell className="text-fg-tertiary">{formatDateTime(client.createdAt)}</TableCell>
             <TableCell className="tabular-nums">
               {formatCurrency(client.currentExposureAtomic, { fromAtomic: 1_000_000 })}
             </TableCell>
-            <TableCell className="font-mono text-xs text-zinc-500">
+            <TableCell className="font-mono text-xs text-fg-tertiary">
               {client.vaultIds.length > 0 ? formatAddress(client.vaultIds[0] ?? null) ?? '—' : '—'}
             </TableCell>
             <TableCell>
-              <Badge color="zinc">{client.kycStatus}</Badge>
+              <Badge color="neutral">{client.kycStatus}</Badge>
             </TableCell>
           </TableRow>
         ))}

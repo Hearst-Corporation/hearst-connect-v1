@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-zinc-950 dark:text-white" />
+      <Logo className="text-ink dark:text-fg" />
       <div>
         <Heading>Invitation-only access</Heading>
         <Text className="mt-2">

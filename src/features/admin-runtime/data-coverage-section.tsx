@@ -225,7 +225,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
               <TableRow key={surface.key}>
                 <TableCell className="font-medium">{surface.name}</TableCell>
                 <TableCell>{TIER_TITLE[surface.tier]}</TableCell>
-                <TableCell className="text-zinc-500">{surface.reason ?? '—'}</TableCell>
+                <TableCell className="text-fg-tertiary">{surface.reason ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -261,7 +261,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
             <TableRow key={source.endpointId}>
               <TableCell className="font-medium">{source.label}</TableCell>
               <TableCell>{etatSourceLisible(source.status)}</TableCell>
-              <TableCell className="text-zinc-500">{source.detail ?? '—'}</TableCell>
+              <TableCell className="text-fg-tertiary">{source.detail ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

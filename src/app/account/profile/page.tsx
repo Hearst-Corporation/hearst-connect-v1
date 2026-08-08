@@ -74,7 +74,7 @@ function DossierInvestisseur({
   return (
     <Panel>
       <PanelHeader title="Investor file" hint="Transmitted as-is by the service, unedited" />
-      <dl className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+      <dl className="divide-y divide-console-line-soft">
         <Ligne libelle="File name" valeur={identite.displayName} />
         <Ligne libelle="Email address" valeur={identite.email} />
         <Ligne libelle="Wallet" valeur={identite.walletAddress} mono />
@@ -132,7 +132,7 @@ export default async function Page() {
                         No valid session was found. Sign in again to view your account.
                       </p>
                     ) : (
-                      <dl className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+                      <dl className="divide-y divide-console-line-soft">
                         <Ligne libelle="Name" valeur={session.name} />
                         <Ligne libelle="Email address" valeur={session.email} />
                         <Ligne libelle="Role" valeur={ROLE_LABELS[session.role]} />
@@ -187,12 +187,12 @@ function Ligne({
   const affiche = valeur === null || valeur === undefined || valeur === '' ? '—' : valeur
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 sm:px-6">
-      <dt className="w-40 shrink-0 text-sm text-zinc-500 dark:text-zinc-400">{libelle}</dt>
+      <dt className="w-40 shrink-0 text-sm text-fg-tertiary dark:text-fg-secondary">{libelle}</dt>
       <dd
         className={
           mono
-            ? 'min-w-0 truncate font-mono text-sm text-zinc-700 dark:text-zinc-200'
-            : 'min-w-0 text-sm text-zinc-950 dark:text-white'
+            ? 'min-w-0 truncate font-mono text-sm text-fg-muted dark:text-fg-secondary'
+            : 'min-w-0 text-sm text-ink dark:text-fg'
         }
       >
         {affiche}

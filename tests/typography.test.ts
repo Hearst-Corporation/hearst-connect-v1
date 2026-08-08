@@ -26,8 +26,8 @@ describe('admin typography', () => {
     expect(adminTypography.caption).toContain('text-xs/5')
   })
 
-  it('keeps the admin console on neutral zinc, including the dark branch', () => {
-    // Titles and numeric values: zinc-950 in light, white in dark.
+  it('keeps the admin console on Hearst semantic text tokens', () => {
+    // Titles and numeric values: ink in light, fg in dark.
     const emphasis = [
       adminTypography.display,
       adminTypography.pageTitle,
@@ -37,15 +37,15 @@ describe('admin typography', () => {
       adminTypography.numericStandard,
     ]
     for (const classes of emphasis) {
-      expect(classes).toMatch(/(^|\s)text-zinc-950(\s|$)/)
-      expect(classes).toMatch(/(^|\s)dark:text-white(\s|$)/)
+      expect(classes).toMatch(/(^|\s)text-ink(\s|$)/)
+      expect(classes).toMatch(/(^|\s)dark:text-fg(\s|$)/)
     }
 
-    // Secondary text: zinc-500 in light, zinc-400 in dark.
+    // Secondary text: fg-tertiary in light, fg-secondary in dark.
     const secondary = [adminTypography.bodyLarge, adminTypography.body, adminTypography.caption, adminTypography.label, adminTypography.mono]
     for (const classes of secondary) {
-      expect(classes).toMatch(/(^|\s)text-zinc-500(\s|$)/)
-      expect(classes).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
+      expect(classes).toMatch(/(^|\s)text-fg-tertiary(\s|$)/)
+      expect(classes).toMatch(/(^|\s)dark:text-fg-secondary(\s|$)/)
     }
 
     // No brand-* token may reappear in the admin scale.

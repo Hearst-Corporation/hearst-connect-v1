@@ -204,7 +204,7 @@ function Journal({ mouvements }: Readonly<{ mouvements: readonly Mouvement[] }>)
         main={
           <Panel>
             <PanelHeader title="What happened?" hint="Newest to oldest" />
-            <ol className="divide-y divide-zinc-950/5 dark:divide-console-line-soft">
+            <ol className="divide-y divide-console-line-soft">
               {mouvements.map((m) => (
                 <LigneMouvement key={m.id} mouvement={m} />
               ))}
@@ -231,20 +231,20 @@ function LigneMouvement({ mouvement }: Readonly<{ mouvement: Mouvement }>) {
   return (
     <li className="px-5 py-3.5 sm:px-6">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-sm text-zinc-950 dark:text-white">{phraseMouvement(mouvement.eventName)}</span>
+        <span className="text-sm text-ink dark:text-fg">{phraseMouvement(mouvement.eventName)}</span>
         {estFinancier(mouvement) ? (
           <span className="text-sm font-semibold text-accent-600 tabular-nums dark:text-accent-300">
             {montantUsdc(mouvement.assetAmountAtomic)}
           </span>
         ) : null}
-        <span className="ml-auto shrink-0 text-xs text-zinc-500 dark:text-zinc-400" title={dateLisible(mouvement.occurredAt)}>
+        <span className="ml-auto shrink-0 text-xs text-fg-tertiary dark:text-fg-secondary" title={dateLisible(mouvement.occurredAt)}>
           {ilYA(mouvement.occurredAt)}
         </span>
       </div>
-      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-fg-tertiary dark:text-fg-secondary">
         {investisseur !== null ? (
           <span>
-            investor <span className="font-mono text-zinc-600 dark:text-zinc-400">{investisseur}</span>
+            investor <span className="font-mono text-fg-muted dark:text-fg-secondary">{investisseur}</span>
           </span>
         ) : null}
         {bloc === null || bloc === undefined || bloc === '' ? null : <span className="tabular-nums">block {formatNumber(Number(bloc))}</span>}

@@ -28,7 +28,7 @@ export function LoginForm({
 
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-zinc-950 dark:text-white" />
+      <Logo className="text-ink dark:text-fg" />
       <div>
         <Heading>Sign in to your workspace</Heading>
         <Text className="mt-2">Use the professional email address linked to your organization.</Text>
@@ -42,7 +42,7 @@ export function LoginForm({
       ) : null}
 
       {!loginReady ? (
-        <output className="block rounded-lg bg-zinc-50 px-4 py-3 text-sm text-zinc-700 ring-1 ring-zinc-950/10 dark:bg-white/5 dark:text-zinc-300 dark:ring-white/10">
+        <output className="block rounded-lg bg-fg px-4 py-3 text-sm text-console-fill-muted ring-1 ring-ink/10 dark:bg-white/5 dark:text-fg dark:ring-white/10">
           Authentication is not configured on this deployment: sign-in is not available right now.
         </output>
       ) : null}
@@ -86,7 +86,7 @@ export function LoginForm({
       </form>
 
       {devQuickLoginAvailable ? (
-        <form action={quickAction} className="border-t border-zinc-950/10 pt-6 dark:border-white/10">
+        <form action={quickAction} className="border-t border-ink/10 pt-6 dark:border-white/10">
           <Field>
             <Button type="submit" outline className="w-full" disabled={quickPending}>
               {quickPending ? 'Signing in…' : 'Quick owner sign-in (local dev)'}
