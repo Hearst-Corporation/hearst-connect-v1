@@ -327,3 +327,19 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     dataHealth,
   }
 }
+
+/**
+ * Client directory for `/admin/clients` — same backend read model as the
+ * dashboard strip, with a higher limit for the operating surface.
+ */
+export async function loadAdminClientsDirectory(
+  limit = 100,
+): Promise<Availability<readonly AdminRecentClient[]>> {
+  const clientsRes = await callBackend<{ clients: BackendResolved<readonly AdminRecentClient[]> }>(
+    'admin-clients-recent',
+    { params: { limit } },
+  )
+  return clientsRes.ok
+    ? fromBackend(clientsRes.data.clients, '/api/v1/admin/clients/recent')
+    : unavailable({ endpoint: '/api/v1/admin/clients/recent', reason: 'service_did_not_respond' })
+}
