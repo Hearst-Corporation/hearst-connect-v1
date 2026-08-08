@@ -33,7 +33,7 @@ const SEUIL_WARNING = 1000 // 10%
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return dateStr
-  return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 function ChartTooltip({
@@ -47,13 +47,13 @@ function ChartTooltip({
   if (active !== true || point === undefined) return null
 
   const driftPct = formatNumber(point.driftBps / 100, { maximumFractionDigits: 2 })
-  const status = point.rebalanced ? 'Rééquilibrage effectué' : 'Observation'
+  const status = point.rebalanced ? 'Rebalanced' : 'Observation'
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-zinc-950/10 dark:bg-zinc-800 dark:ring-console-line">
-      <p className="font-medium text-zinc-950 dark:text-white">{formatDate(point.date)}</p>
-      <p className="mt-1 text-zinc-600 tabular-nums dark:text-zinc-300">Drift: {driftPct}%</p>
-      <p className="mt-0.5 text-zinc-500 dark:text-zinc-400">{status}</p>
+    <div className="rounded-lg bg-console-card px-3 py-2 text-xs shadow-lg ring-1 ring-console-line">
+      <p className="font-medium text-fg">{formatDate(point.date)}</p>
+      <p className="mt-1 tabular-nums text-fg-secondary">Drift: {driftPct}%</p>
+      <p className="mt-0.5 text-fg-tertiary">{status}</p>
     </div>
   )
 }
@@ -63,8 +63,8 @@ export function RebalancingHistoryChart({
 }: Readonly<{ points: readonly PointDrift[] }>) {
   if (points.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-zinc-500 dark:text-zinc-400">
-        Aucun point d'historique de drift n'a été lu.
+      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+        No drift history points were read.
       </p>
     )
   }
@@ -83,12 +83,12 @@ export function RebalancingHistoryChart({
     <div className="px-3 pb-5 sm:px-4">
       <div className="sr-only">
         <table>
-          <caption>Historique du drift d'allocation — écart par rapport à la cible au fil du temps</caption>
+          <caption>Allocation drift history over time</caption>
           <thead>
             <tr>
               <th scope="col">Date</th>
               <th scope="col">Drift</th>
-              <th scope="col">Rééquilibré</th>
+              <th scope="col">Rebalanced</th>
             </tr>
           </thead>
           <tbody>
@@ -96,7 +96,7 @@ export function RebalancingHistoryChart({
               <tr key={p.date}>
                 <th scope="row">{formatDate(p.date)}</th>
                 <td>{formatNumber(p.driftBps / 100, { maximumFractionDigits: 2 })}%</td>
-                <td>{p.rebalanced ? 'Oui' : 'Non'}</td>
+                <td>{p.rebalanced ? 'Yes' : 'No'}</td>
               </tr>
             ))}
           </tbody>
@@ -162,9 +162,9 @@ export function RebalancingHistoryChart({
         </ResponsiveContainer>
       </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        {points.length} point{points.length > 1 ? 's' : ''} d'observation. La ligne pointillée ambre marque le seuil de
-        rééquilibrage (10%). Les points verts indiquent un rééquilibrage effectué.
+      <p className="mt-3 text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
+        {points.length} observation point{points.length > 1 ? 's' : ''}. The amber dashed line marks the 10%
+        rebalancing threshold. Green dots indicate a completed rebalance.
       </p>
     </div>
   )
