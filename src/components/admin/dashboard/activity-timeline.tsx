@@ -6,7 +6,7 @@ import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
-import { formatHash, formatRelativeTime } from '@/lib/format'
+import { formatAddress, formatHash, formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
@@ -56,8 +56,19 @@ export function ActivityTimelinePanel({
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink dark:text-fg">{event.title}</p>
-                <p className="mt-0.5 truncate text-xs text-fg-tertiary">
-                  {event.clientLabel ?? '—'}
+                <p
+                  className="mt-0.5 truncate text-xs text-fg-tertiary"
+                  title={
+                    event.clientLabel
+                      ? `${event.clientLabel}${
+                          event.amountAtomic !== null
+                            ? ` · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
+                            : ''
+                        }`
+                      : undefined
+                  }
+                >
+                  {formatAddress(event.clientLabel) ?? event.clientLabel ?? '—'}
                   {event.amountAtomic !== null
                     ? ` · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
                     : null}

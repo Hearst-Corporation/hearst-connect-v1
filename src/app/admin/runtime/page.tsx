@@ -287,41 +287,29 @@ export default async function RuntimePage() {
 
       <SectionCard
         title="Raw responses"
-        hint="Full probe payloads for technical verification — values are not rewritten by the frontend."
+        hint="Full probe payloads for technical verification — expand a probe only when needed."
       >
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-fg-tertiary">Runtime</h3>
-            {runtime.ok ? (
-              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
-                {jsonLisible(runtime.data)}
-              </pre>
-            ) : (
-              <Callout tone="danger">The runtime probe did not respond.</Callout>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-fg-tertiary">Health</h3>
-            {health.ok ? (
-              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
-                {jsonLisible(health.data)}
-              </pre>
-            ) : (
-              <Callout tone="danger">The liveness probe did not respond.</Callout>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-fg-tertiary">Ready</h3>
-            {ready.ok ? (
-              <pre className={clsx(surfaceInset, 'overflow-x-auto p-4 text-xs/5 text-fg')}>
-                {jsonLisible(ready.data)}
-              </pre>
-            ) : (
-              <Callout tone="danger">The readiness probe did not respond.</Callout>
-            )}
-          </div>
+        <div className="space-y-3">
+          {(
+            [
+              ['Runtime', runtime.ok ? jsonLisible(runtime.data) : null, !runtime.ok],
+              ['Health', health.ok ? jsonLisible(health.data) : null, !health.ok],
+              ['Ready', ready.ok ? jsonLisible(ready.data) : null, !ready.ok],
+            ] as const
+          ).map(([label, payload, failed]) => (
+            <details key={label} className={clsx(surfaceInset, 'group p-3')}>
+              <summary className="cursor-pointer text-sm font-semibold text-ink dark:text-fg">
+                {label}
+              </summary>
+              {failed ? (
+                <div className="mt-3">
+                  <Callout tone="danger">The {label.toLowerCase()} probe did not respond.</Callout>
+                </div>
+              ) : (
+                <pre className="mt-3 max-h-64 overflow-auto p-1 text-xs/5 text-fg">{payload}</pre>
+              )}
+            </details>
+          ))}
         </div>
       </SectionCard>
 

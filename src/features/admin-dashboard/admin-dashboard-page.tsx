@@ -97,13 +97,17 @@ export function AdminDashboardPage({
     : []
   const showActivityCurve = activityPoints.length >= 2
   const activityNotConfigured = isAdminNotConfigured(data.activityTimeseries)
+  const marketSparse = isAdminNotConfigured(data.market) || !isAvailable(data.market)
+  const clientsSparse =
+    !isAvailable(data.recentClients) ||
+    (data.recentClients.kind === 'available' && data.recentClients.value.length === 0)
 
   return (
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 gap-4 @[56rem]:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-4 @[56rem]:grid-cols-12">
           <DashCard
             className="@[56rem]:col-span-8"
             title="Portfolio exposure"
@@ -119,41 +123,53 @@ export function AdminDashboardPage({
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-12">
           <DashCard
-            className="@[48rem]:col-span-7"
+            className={marketSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-7'}
             title="Activity"
             subtitle="Daily volume · 28 days"
           >
             {showActivityCurve ? (
               <HearstActivityChart points={activityPoints} unite="events" />
             ) : activityNotConfigured ? (
-              <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+              <div className="flex flex-col gap-1 py-4">
                 <p className="text-sm font-semibold text-ink dark:text-fg">Activity index not configured</p>
-                <p className="mt-1 text-xs text-fg-tertiary">
+                <p className="text-xs text-fg-tertiary">
                   {data.activityTimeseries.kind === 'unavailable'
                     ? data.activityTimeseries.reason ?? 'No events indexed yet.'
                     : null}
                 </p>
               </div>
             ) : (
-              <ChartPlaceholder title="Activity" height={300} icon={ChartBarIcon} />
+              <ChartPlaceholder title="Activity" height={140} icon={ChartBarIcon} />
             )}
           </DashCard>
 
-          <DashCard className="@[48rem]:col-span-5" title="Market" subtitle="Normalized snapshot">
+          <DashCard
+            className={marketSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-5'}
+            title="Market"
+            subtitle="Normalized snapshot"
+          >
             <MarketSnapshotPanel snapshot={data.market} />
           </DashCard>
         </div>
       </div>
 
       <div className="@container min-w-0">
-        <div className="grid grid-cols-1 gap-4 @[48rem]:grid-cols-12">
-          <DashCard className="@[48rem]:col-span-7" title="Vaults" subtitle="Capital per vault">
+        <div className="grid grid-cols-1 items-start gap-4 @[48rem]:grid-cols-12">
+          <DashCard
+            className={clientsSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-7'}
+            title="Vaults"
+            subtitle="Capital per vault"
+          >
             <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
 
-          <DashCard className="@[48rem]:col-span-5" title="Recent clients" subtitle="Exposure and Som KYC">
+          <DashCard
+            className={clientsSparse ? '@[48rem]:col-span-12' : '@[48rem]:col-span-5'}
+            title="Recent clients"
+            subtitle="Exposure and Som KYC"
+          >
             <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
           </DashCard>
         </div>

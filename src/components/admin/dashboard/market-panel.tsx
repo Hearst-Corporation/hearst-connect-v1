@@ -12,10 +12,7 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className={
-          surfaceInset +
-          ' flex min-h-[260px] flex-col items-center justify-center gap-2 p-6 text-center'
-        }
+        className={surfaceInset + ' flex flex-col gap-2 px-4 py-5'}
       >
         <StatusBadge status="NOT_CONFIGURED" />
         <p className="text-sm font-semibold text-ink dark:text-fg">Market feed not configured</p>
@@ -30,13 +27,10 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className={
-          surfaceInset +
-          ' flex min-h-[260px] flex-col items-center justify-center p-6 text-center'
-        }
+        className={surfaceInset + ' flex flex-col gap-1 px-4 py-5'}
       >
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <p className="mt-1 text-xs text-fg-tertiary">{snapshot.reason ?? 'Source unavailable'}</p>
+        <p className="text-xs text-fg-tertiary">{snapshot.reason ?? 'Source unavailable'}</p>
       </div>
     )
   }
