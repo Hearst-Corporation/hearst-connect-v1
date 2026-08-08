@@ -24,7 +24,7 @@ export function AdminBodyNav() {
 
   return (
     <nav aria-label="Sub-navigation" className="mb-8 border-b border-ink/10 dark:border-white/10">
-      <Navbar className="gap-0! overflow-x-auto pb-0 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
+      <Navbar className="gap-0! flex-wrap pb-0">
         <NavbarSection className="shrink-0">
           {sousMenus.map((entree) => (
             <NavbarItem

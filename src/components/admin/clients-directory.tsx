@@ -3,7 +3,6 @@
 import { Badge } from '@/components/catalyst/badge'
 import { Input } from '@/components/catalyst/input'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -13,7 +12,7 @@ import {
 import { DataTableShell } from '@/components/compositions'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-import { formatAddress, formatDateTime } from '@/lib/format'
+import { formatRelativeTime } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { useMemo, useState } from 'react'
 
@@ -101,18 +100,16 @@ export function ClientsDirectory({
   }, [clients, filter, query])
 
   return (
-    <div className="space-y-4" data-widget="clients-directory">
+    <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="w-full max-w-sm">
-          <label htmlFor="clients-search" className="sr-only">
-            Search clients
-          </label>
+        <div className="min-w-0 flex-1 sm:max-w-xs">
           <Input
-            id="clients-search"
             type="search"
-            placeholder="Search by name, id, or KYC…"
+            name="client-search"
+            placeholder="Search clients"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(event) => setQuery(event.target.value)}
+            aria-label="Search clients"
           />
         </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Client filters">
@@ -123,10 +120,11 @@ export function ClientsDirectory({
                 key={item.id}
                 type="button"
                 onClick={() => setFilter(item.id)}
+                aria-pressed={active}
                 className={
                   active
-                    ? 'rounded-md bg-accent-400 px-2.5 py-1 text-xs font-medium text-accent-ink'
-                    : 'rounded-md bg-console-inset px-2.5 py-1 text-xs font-medium text-fg-secondary ring-1 ring-console-line-soft'
+                    ? 'rounded-lg bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30'
+                    : 'rounded-lg px-3 py-1.5 text-xs font-medium text-fg-tertiary ring-1 ring-console-line-soft hover:text-fg'
                 }
               >
                 {item.label}
@@ -136,60 +134,91 @@ export function ClientsDirectory({
         </div>
       </div>
 
-      <DataTableShell
-        title="Directory"
-        description="Partner KYC via Som — read only."
-        count={`${filtered.length} of ${clients.length}`}
-        calme={filtered.length === 0 ? 'No clients match this search or filter.' : undefined}
-      >
-        {filtered.length > 0 ? (
-          <Table dense>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Client</TableHeader>
-                <TableHeader>Exposure</TableHeader>
-                <TableHeader>Vaults</TableHeader>
-                <TableHeader>KYC (Som)</TableHeader>
-                <TableHeader>Last activity</TableHeader>
-                <TableHeader>Created</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell>
-                    <div className="font-medium text-fg">{client.label}</div>
-                    <div className="font-mono text-xs text-fg-tertiary">{client.id}</div>
-                  </TableCell>
-                  <TableCell className="tabular-nums">
-                    {assetScale
-                      ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-fg-tertiary">
-                    {client.vaultIds.length > 0
-                      ? client.vaultIds
-                          .slice(0, 2)
-                          .map((id) => formatAddress(id) ?? id)
-                          .join(', ')
-                      : '—'}
-                    {client.vaultIds.length > 2 ? ` +${client.vaultIds.length - 2}` : ''}
-                  </TableCell>
-                  <TableCell>
-                    <Badge color={kycBadgeColor(client.kycStatus)}>
-                      {kycStatusLabel(client.kycStatus)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-fg-tertiary">
-                    {client.lastActivityAt ? formatDateTime(client.lastActivityAt) : '—'}
-                  </TableCell>
-                  <TableCell className="text-fg-tertiary">{formatDateTime(client.createdAt)}</TableCell>
+      <div className="hidden min-w-0 md:block">
+        <DataTableShell
+          fit
+          title="Directory"
+          description="Partner KYC via Som — read only. Vault membership and created date live on the client record when available."
+          count={`${filtered.length} of ${clients.length}`}
+          calme={filtered.length === 0 ? 'No clients match this search or filter.' : undefined}
+        >
+          {filtered.length > 0 ? (
+            <>
+              <TableHead>
+                <TableRow>
+                  <TableHeader className="w-[36%]">Client</TableHeader>
+                  <TableHeader className="w-[20%]">Exposure</TableHeader>
+                  <TableHeader className="w-[16%]">Vaults</TableHeader>
+                  <TableHeader className="w-[14%]">KYC</TableHeader>
+                  <TableHeader className="w-[14%]">Activity</TableHeader>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : null}
-      </DataTableShell>
+              </TableHead>
+              <TableBody>
+                {filtered.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell>
+                      <div className="truncate font-medium text-fg">{client.label}</div>
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {assetScale
+                        ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-fg-tertiary">
+                      {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge color={kycBadgeColor(client.kycStatus)}>
+                        {kycStatusLabel(client.kycStatus)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-fg-tertiary">
+                      {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </>
+          ) : null}
+        </DataTableShell>
+      </div>
+
+      <ul className="space-y-3 md:hidden" aria-label="Client directory">
+        {filtered.length === 0 ? (
+          <li className="rounded-lg bg-console-card p-4 text-sm text-fg-tertiary ring-1 ring-console-line-soft">
+            No clients match this search or filter.
+          </li>
+        ) : (
+          filtered.map((client) => (
+            <li
+              key={client.id}
+              className="rounded-lg bg-console-card p-4 ring-1 ring-console-line-soft"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <p className="truncate text-sm font-semibold text-ink dark:text-fg">{client.label}</p>
+                <Badge color={kycBadgeColor(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</Badge>
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <dt className="text-fg-tertiary">Exposure</dt>
+                  <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+                    {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-fg-tertiary">Vaults</dt>
+                  <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+                    {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-3 text-xs text-fg-tertiary">
+                Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+              </p>
+            </li>
+          ))
+        )}
+      </ul>
     </div>
   )
 }

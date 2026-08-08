@@ -1,11 +1,17 @@
 import { Badge } from '@/components/catalyst/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/catalyst/table'
+import { FitTable } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
-import { formatDateTime } from '@/lib/format'
+import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
-import { formatAddress } from '@/lib/format'
 
 export function RecentClientsPanel({
   clients,
@@ -22,35 +28,34 @@ export function RecentClientsPanel({
   }
 
   return (
-    <Table dense data-widget="recent-clients">
-      <TableHead>
-        <TableRow>
-          <TableHeader>Client</TableHeader>
-          <TableHeader>Date</TableHeader>
-          <TableHeader>Exposure</TableHeader>
-          <TableHeader>Vault</TableHeader>
-          <TableHeader>KYC Som</TableHeader>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {clients.value.map((client) => (
-          <TableRow key={client.id}>
-            <TableCell className="font-medium">{client.label}</TableCell>
-            <TableCell className="text-fg-tertiary">{formatDateTime(client.createdAt)}</TableCell>
-            <TableCell className="tabular-nums">
-              {assetScale
-                ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
-                : '—'}
-            </TableCell>
-            <TableCell className="font-mono text-xs text-fg-tertiary">
-              {client.vaultIds.length > 0 ? formatAddress(client.vaultIds[0] ?? null) ?? '—' : '—'}
-            </TableCell>
-            <TableCell>
-              <Badge color="neutral">{client.kycStatus}</Badge>
-            </TableCell>
+    <div data-widget="recent-clients">
+      <FitTable>
+        <TableHead>
+          <TableRow>
+            <TableHeader className="w-[40%]">Client</TableHeader>
+            <TableHeader className="w-[30%]">Exposure</TableHeader>
+            <TableHeader className="w-[30%]">KYC</TableHeader>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHead>
+        <TableBody>
+          {clients.value.map((client) => (
+            <TableRow key={client.id}>
+              <TableCell>
+                <div className="truncate font-medium">{client.label}</div>
+                <div className="mt-0.5 text-[11px] text-fg-tertiary">
+                  {client.createdAt ? formatRelativeTime(client.createdAt) : '—'}
+                </div>
+              </TableCell>
+              <TableCell className="tabular-nums">
+                {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
+              </TableCell>
+              <TableCell>
+                <Badge color="neutral">{client.kycStatus}</Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </FitTable>
+    </div>
   )
 }
