@@ -38,13 +38,13 @@ function StrategyDetail({
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
         <div>
           <dt className="text-fg-tertiary">Actual</dt>
-          <dd className="font-semibold tabular-nums text-console-shell dark:text-white">
+          <dd className="font-semibold tabular-nums text-fg">
             {formatPercent(row.actualBps, { fromBps: true })}
           </dd>
         </div>
         <div>
           <dt className="text-fg-tertiary">Target</dt>
-          <dd className="font-semibold tabular-nums text-console-shell dark:text-white">
+          <dd className="font-semibold tabular-nums text-fg">
             {formatPercent(row.targetBps, { fromBps: true })}
           </dd>
         </div>
@@ -54,7 +54,7 @@ function StrategyDetail({
         </div>
         <div>
           <dt className="text-fg-tertiary">Exposure</dt>
-          <dd className="font-semibold tabular-nums text-console-shell dark:text-white">
+          <dd className="font-semibold tabular-nums text-fg">
             {formatAdminAtomic(row.exposureAtomic, assetScale)}
           </dd>
         </div>

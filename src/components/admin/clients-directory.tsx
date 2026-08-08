@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { Input } from '@/components/catalyst/input'
 import {
   TableBody,
@@ -60,23 +60,6 @@ function matchesFilter(client: AdminRecentClient, filter: FilterId): boolean {
         kyc === 'HIGH_RISK'
       )
   }
-}
-
-function kycBadgeColor(status: string): 'lime' | 'amber' | 'red' | 'neutral' {
-  const kyc = kycKey(status)
-  if (kyc === 'APPROVED' || kyc === 'VERIFIED') return 'lime'
-  if (kyc === 'REJECTED' || kyc === 'DENIED' || kyc === 'HIGH_RISK') return 'red'
-  if (
-    kyc === 'PENDING' ||
-    kyc === 'EN_ATTENTE' ||
-    kyc === 'IN_REVIEW' ||
-    kyc === 'IN_PROGRESS' ||
-    kyc === 'REQUIRED' ||
-    kyc === 'EXPIRED'
-  ) {
-    return 'amber'
-  }
-  return 'neutral'
 }
 
 export function ClientsDirectory({
@@ -168,9 +151,9 @@ export function ClientsDirectory({
                       {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
                     </TableCell>
                     <TableCell>
-                      <Badge color={kycBadgeColor(client.kycStatus)}>
+                      <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>
                         {kycStatusLabel(client.kycStatus)}
-                      </Badge>
+                      </AdminToneBadge>
                     </TableCell>
                     <TableCell className="text-fg-tertiary">
                       {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
@@ -196,7 +179,7 @@ export function ClientsDirectory({
             >
               <div className="flex items-start justify-between gap-3">
                 <p className="truncate text-sm font-semibold text-ink dark:text-fg">{client.label}</p>
-                <Badge color={kycBadgeColor(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</Badge>
+                <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
               </div>
               <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div>

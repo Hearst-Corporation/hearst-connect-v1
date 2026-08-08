@@ -56,7 +56,7 @@ function ChartTooltip({
   if (active !== true || payload === undefined || payload.length === 0) return null
   return (
     <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
-      <p className="font-medium text-white">{label}</p>
+      <p className="font-medium text-fg">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="mt-0.5 text-fg tabular-nums">
           {p.name}: {typeof p.value === 'number' ? `${formatNumber(p.value)} ${unit}` : '—'}

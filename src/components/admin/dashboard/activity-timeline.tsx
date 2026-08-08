@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
 import { Text } from '@/components/catalyst/text'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
@@ -9,14 +9,6 @@ import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { formatAddress, formatHash, formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-
-const STATUS_COLOR: Record<string, 'lime' | 'amber' | 'red' | 'neutral'> = {
-  CONFIRMED: 'lime',
-  indexed: 'lime',
-  REQUESTED: 'amber',
-  PENDING: 'amber',
-  FAILED: 'red',
-}
 
 export function ActivityTimelinePanel({
   events,
@@ -78,7 +70,7 @@ export function ActivityTimelinePanel({
                 ) : null}
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
-                <Badge color={STATUS_COLOR[event.status] ?? 'neutral'}>{event.status}</Badge>
+                <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
                 <span className="text-[11px] text-fg-tertiary">{formatRelativeTime(event.occurredAt)}</span>
               </div>
             </div>

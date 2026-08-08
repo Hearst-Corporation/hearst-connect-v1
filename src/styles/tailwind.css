@@ -221,3 +221,19 @@
   --color-accent-300: #c1fcb1;
   --color-accent-400: #a7fb90;
 }
+
+/*
+ * Focus contract (HC-ADMIN-DESIGN-SYSTEM-FORENSIC-033).
+ *
+ * Catalyst vendor hardcodes `data-focus:outline-blue-500` on Button / Input /
+ * Checkbox / Switch / BadgeButton / etc. Vendor stays immutable. The product
+ * remaps the *rendered* outline color to the Hearst accent token so keyboard
+ * focus is brand-coherent without `outline-none`.
+ *
+ * Specificity + cascade: attribute selector under `.dark`, after `@theme`,
+ * with `!important` so it wins over Catalyst utilities in the stylesheet.
+ * Do not remove focus — only recolor it.
+ */
+.dark [data-focus] {
+  outline-color: var(--color-accent-500) !important;
+}
