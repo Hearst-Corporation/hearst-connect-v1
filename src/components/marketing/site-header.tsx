@@ -1,4 +1,6 @@
 import { Logo } from '@/components/logo'
+import { REGISTER_HREF } from '@/components/marketing/landing-content'
+import { MarketingSignInLink } from '@/components/marketing/marketing-cta'
 import Link from 'next/link'
 
 /** Marketing header — sticky, translucent blur on bg-console-app, bottom rule. */
@@ -15,17 +17,12 @@ export function SiteHeader() {
         </Link>
         <div className="flex items-center gap-4 sm:gap-6">
           <Link
-            href="/register"
-            className="hidden text-sm/6 font-semibold text-white/60 transition-colors hover:text-white sm:block"
+            href={REGISTER_HREF}
+            className="hidden text-sm/6 font-semibold text-white/60 transition-colors hover:text-white sm:inline"
           >
             Request access
           </Link>
-          <Link
-            href="/login"
-            className="rounded-md bg-accent-400 px-3.5 py-2 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300"
-          >
-            Sign in
-          </Link>
+          <MarketingSignInLink />
         </div>
       </nav>
     </header>

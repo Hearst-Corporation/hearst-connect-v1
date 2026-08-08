@@ -1,170 +1,18 @@
 import { ClosingCta } from '@/components/marketing/closing-cta'
-import { SectionIntro } from '@/components/marketing/section-intro'
-import { cn } from '@/lib/utils'
+import { ConsolePreviewShot } from '@/components/marketing/console-preview-shot'
+import { HeroGlow, HeroGridPattern } from '@/components/marketing/hero-decoration'
 import {
-  ArrowPathIcon,
-  DocumentTextIcon,
-  FingerPrintIcon,
-  KeyIcon,
-  LockClosedIcon,
-  ServerIcon,
-  ShieldCheckIcon,
-} from '@heroicons/react/20/solid'
-import { Squares2X2Icon, UsersIcon } from '@heroicons/react/24/outline'
-import Image from 'next/image'
+  doctrinePillars,
+  domainBadges,
+  LOGIN_HREF,
+  platformCapabilities,
+  primaryFeatures,
+  REGISTER_HREF,
+} from '@/components/marketing/landing-content'
+import { MarketingPrimaryLink, MarketingSecondaryLink } from '@/components/marketing/marketing-cta'
+import { marketingContainer, marketingSection } from '@/components/marketing/marketing-styles'
+import { SectionIntro } from '@/components/marketing/section-intro'
 import Link from 'next/link'
-
-const CONSOLE_PREVIEW = '/brand/console-preview.png'
-
-function ConsolePreviewShot({
-  alt,
-  className,
-  priority = false,
-  ariaHidden = false,
-}: Readonly<{
-  alt: string
-  className?: string
-  priority?: boolean
-  ariaHidden?: boolean
-}>) {
-  return (
-    <div className={cn('relative aspect-16/10 w-full overflow-hidden', className)}>
-      <Image
-        src={CONSOLE_PREVIEW}
-        alt={alt}
-        fill
-        sizes="(max-width: 1024px) 100vw, 36rem"
-        className="object-cover object-left-top"
-        priority={priority}
-        aria-hidden={ariaHidden}
-        draggable={false}
-      />
-    </div>
-  )
-}
-
-const primaryFeatures = [
-  {
-    name: 'Unified access',
-    description:
-      'Identities, permissions, and access logs in one console. Each member sees only what their role allows — risk postures are named, never hidden.',
-    href: '/login',
-    icon: KeyIcon,
-  },
-  {
-    name: 'Vault oversight',
-    description:
-      'Track vault status, contract addresses, and indexed movements. An empty series stays empty; unavailability is shown as such.',
-    href: '/login',
-    icon: Squares2X2Icon,
-  },
-  {
-    name: 'Compliance surface',
-    description:
-      'Client files and watchpoints raised by Hearst services, with traceable status. No forced green badge when the backend confirms nothing.',
-    href: '/login',
-    icon: ShieldCheckIcon,
-  },
-] as const
-
-const secondaryFeatures = [
-  {
-    name: 'Backend-sourced data.',
-    description: 'Every value comes from the Hearst API on Railway — an absence stays an absence.',
-    icon: ServerIcon,
-  },
-  {
-    name: 'Encrypted sessions.',
-    description: 'HttpOnly session cookie carries identity and bearer token — never readable client-side.',
-    icon: LockClosedIcon,
-  },
-  {
-    name: 'Attributable audit.',
-    description: 'Sign-ins and movements are timestamped. Audit reads as-is, without reconstructing history.',
-    icon: ArrowPathIcon,
-  },
-  {
-    name: 'Role governance.',
-    description: 'Owner, admin, and member postures are explicit — including MFA and policy exceptions.',
-    icon: FingerPrintIcon,
-  },
-  {
-    name: 'Workspace members.',
-    description: 'Invite, revoke, and review who can open each Hearst workspace from one place.',
-    icon: UsersIcon,
-  },
-  {
-    name: 'Operations journal.',
-    description: 'Product, runtime, and compliance consoles share the same source of truth.',
-    icon: DocumentTextIcon,
-  },
-] as const
-
-const doctrinePillars = [
-  {
-    icon: KeyIcon,
-    title: 'Role reading',
-    desc: 'Each member sees exactly what their role allows. Risk postures are named, never hidden.',
-  },
-  {
-    icon: DocumentTextIcon,
-    title: 'Traceable access journal',
-    desc: 'Every sign-in and movement is timestamped and attributable — no manual reconstruction.',
-  },
-  {
-    icon: ShieldCheckIcon,
-    title: 'Data veracity',
-    desc: 'An unavailable source is shown as unavailable. Absence is a state, not filler.',
-  },
-] as const
-
-const domainBadges = ['Access', 'Vaults', 'Compliance', 'Operations', 'Product'] as const
-
-function HeroGridPattern({ id }: Readonly<{ id: string }>) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="absolute inset-0 -z-10 size-full mask-[radial-gradient(100%_100%_at_top_right,white,transparent)] stroke-white/10"
-    >
-      <defs>
-        <pattern
-          x="50%"
-          y={-1}
-          id={id}
-          width={200}
-          height={200}
-          patternUnits="userSpaceOnUse"
-        >
-          <path d="M.5 200V.5H200" fill="none" />
-        </pattern>
-      </defs>
-      <svg x="50%" y={-1} className="overflow-visible fill-console-surface/30">
-        <path
-          d="M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z"
-          strokeWidth={0}
-        />
-      </svg>
-      <rect fill={`url(#${id})`} width="100%" height="100%" strokeWidth={0} />
-    </svg>
-  )
-}
-
-function HeroGlow() {
-  return (
-    <div
-      aria-hidden="true"
-      className="absolute top-10 left-[calc(50%-4rem)] -z-10 transform-gpu blur-3xl sm:left-[calc(50%-18rem)] lg:top-[calc(50%-30rem)] lg:left-48 xl:left-[calc(50%-24rem)]"
-    >
-      <div
-        style={{
-          clipPath:
-            'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
-        }}
-        className="aspect-1108/632 w-72 bg-linear-to-r from-accent-300/25 to-accent-600/20 opacity-80 sm:w-96"
-      />
-    </div>
-  )
-}
 
 /**
  * Hearst Connect landing — Tailwind Plus structure, Hearst tokens and copy.
@@ -177,7 +25,9 @@ export function LandingPage() {
         <HeroGridPattern id="landing-hero-grid" />
         <HeroGlow />
 
-        <div className="mx-auto max-w-7xl px-6 pt-10 pb-24 sm:pb-32 lg:flex lg:items-center lg:gap-x-12 lg:px-8 lg:py-32 xl:gap-x-16">
+        <div
+          className={`${marketingContainer} pt-10 pb-24 sm:pb-32 lg:flex lg:items-center lg:gap-x-12 lg:py-32 xl:gap-x-16`}
+        >
           <div className="mx-auto max-w-2xl shrink-0 lg:mx-0">
             <p className="text-xs font-medium tracking-[0.2em] text-fg-tertiary uppercase">Hearst</p>
             <h1 className="mt-6 text-5xl font-semibold tracking-tight text-pretty sm:text-6xl lg:text-7xl">
@@ -189,15 +39,10 @@ export function LandingPage() {
               read from the Hearst backend on Railway — an absence stays an absence.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
-              <Link
-                href="/login"
-                className="rounded-md bg-accent-400 px-3.5 py-2.5 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-              >
-                Open the console
-              </Link>
-              <Link href="/register" className="text-sm/6 font-semibold text-white transition-colors hover:text-accent-300">
+              <MarketingPrimaryLink href={LOGIN_HREF}>Open the console</MarketingPrimaryLink>
+              <MarketingSecondaryLink href={REGISTER_HREF}>
                 Request access <span aria-hidden="true">→</span>
-              </Link>
+              </MarketingSecondaryLink>
             </div>
             <p className="mt-6 text-xs text-white/40">For Hearst workspace owners and administrators only.</p>
           </div>
@@ -212,8 +57,8 @@ export function LandingPage() {
         </div>
       </div>
 
-      <section aria-labelledby="domains-heading" className="border-t border-console-line-soft bg-console-app pb-16 sm:pb-20">
-        <div className="mx-auto max-w-7xl px-6 pt-16 sm:pt-20 lg:px-8">
+      <section aria-labelledby="domains-heading" className={`${marketingSection} pb-16 sm:pb-20`}>
+        <div className={`${marketingContainer} pt-16 sm:pt-20`}>
           <h2 id="domains-heading" className="text-center text-lg/8 font-semibold text-white">
             One console across Hearst workspace domains
           </h2>
@@ -229,11 +74,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section
-        aria-labelledby="features-heading"
-        className="border-t border-console-line-soft bg-console-app"
-      >
-        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
+      <section aria-labelledby="features-heading" className={marketingSection}>
+        <div className={`${marketingContainer} py-24 sm:py-32`}>
           <SectionIntro
             id="features-heading"
             align="center"
@@ -241,36 +83,34 @@ export function LandingPage() {
             title="Everything you need to govern Hearst workspaces"
             sub="Access, vaults, and compliance on one Railway-backed surface — readable roles, attributable audit, strict data doctrine."
           />
-          <div className="mx-auto mt-16 max-w-2xl lg:mt-20 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-              {primaryFeatures.map((feature) => (
-                <div key={feature.name} className="flex flex-col">
-                  <dt className="text-base/7 font-semibold text-white">
-                    <div className="mb-6 flex size-10 items-center justify-center rounded-lg bg-accent-400">
-                      <feature.icon aria-hidden="true" className="size-6 text-accent-ink" />
-                    </div>
-                    {feature.name}
-                  </dt>
-                  <dd className="mt-1 flex flex-auto flex-col text-base/7 text-white/50">
-                    <p className="flex-auto">{feature.description}</p>
-                    <p className="mt-6">
-                      <Link
-                        href={feature.href}
-                        className="text-sm/6 font-semibold text-accent-300 transition-colors hover:text-accent-200"
-                      >
-                        Open console <span aria-hidden="true">→</span>
-                      </Link>
-                    </p>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+          <dl className="mx-auto mt-16 grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:mt-20 lg:max-w-none lg:grid-cols-3">
+            {primaryFeatures.map((feature) => (
+              <div key={feature.name} className="flex flex-col">
+                <dt className="text-base/7 font-semibold text-white">
+                  <div className="mb-6 flex size-10 items-center justify-center rounded-lg bg-accent-400">
+                    <feature.icon aria-hidden="true" className="size-6 text-accent-ink" />
+                  </div>
+                  {feature.name}
+                </dt>
+                <dd className="mt-1 flex flex-auto flex-col text-base/7 text-white/50">
+                  <p className="flex-auto">{feature.description}</p>
+                  <p className="mt-6">
+                    <Link
+                      href={feature.href}
+                      className="text-sm/6 font-semibold text-accent-300 transition-colors hover:text-accent-200"
+                    >
+                      Open console <span aria-hidden="true">→</span>
+                    </Link>
+                  </p>
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
-      <section aria-labelledby="platform-heading" className="border-t border-console-line-soft bg-console-app">
-        <div className="mx-auto max-w-7xl px-6 pt-24 sm:pt-32 lg:px-8">
+      <section aria-labelledby="platform-heading" className={marketingSection}>
+        <div className={`${marketingContainer} py-24 sm:py-32`}>
           <SectionIntro
             id="platform-heading"
             align="center"
@@ -278,22 +118,8 @@ export function LandingPage() {
             title="Built for production governance"
             sub="Session security, backend veracity, and an audit trail you can trust — not a demo shell with invented numbers."
           />
-        </div>
-        <div className="relative overflow-hidden pt-12 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <ConsolePreviewShot
-              alt=""
-              ariaHidden
-              className="mx-auto max-w-5xl rounded-xl shadow-2xl ring-1 ring-console-line"
-            />
-            <div aria-hidden="true" className="relative">
-              <div className="absolute -inset-x-20 bottom-0 bg-linear-to-t from-console-app pt-[7%]" />
-            </div>
-          </div>
-        </div>
-        <div className="mx-auto max-w-7xl px-6 pb-24 sm:pb-32 lg:px-8">
           <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 text-white/50 sm:mt-20 sm:grid-cols-2 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
-            {secondaryFeatures.map((feature) => (
+            {platformCapabilities.map((feature) => (
               <div key={feature.name} className="relative pl-9">
                 <dt className="inline font-semibold text-white">
                   <feature.icon aria-hidden="true" className="absolute top-1 left-0 size-5 text-accent-300" />
@@ -306,16 +132,13 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section
-        aria-labelledby="doctrine-heading"
-        className="border-t border-console-line-soft bg-console-app"
-      >
-        <div className="mx-auto max-w-7xl px-6 py-24 md:px-8 md:py-32">
+      <section aria-labelledby="doctrine-heading" className={marketingSection}>
+        <div className={`${marketingContainer} py-24 md:py-32`}>
           <SectionIntro
             id="doctrine-heading"
             eyebrow="Product doctrine"
             title="Built for governance, not for demo"
-            sub="Readable roles, attributable audit, strict data doctrine — three principles that hold in production."
+            sub="Three principles that hold in production — separate from the feature lists above."
           />
           <div className="mt-12 grid grid-cols-1 gap-4 md:mt-16 md:grid-cols-3">
             {doctrinePillars.map((pillar) => (

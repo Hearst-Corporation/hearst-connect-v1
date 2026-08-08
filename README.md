@@ -5,9 +5,10 @@ UI : kit **Catalyst** (Tailwind Plus) + dataviz **richart** (Recharts).
 
 **Landing `/`** — vitrine marketing (HC-LANDING-REFRESH-027, 2026-08-08). Structure Tailwind Plus
 adaptée Hearst : navbar → hero split (copy + preview `console-preview.png`) → domaines → 3 features →
-plateforme (preview + 6 points) → doctrine 3 piliers → CTA → footer. Preview contrainte en
-`aspect-16/10` via `ConsolePreviewShot`. Server component (`landing-page.tsx`) — pas de scroll hijack,
-pas de métriques inventées. Captures locales : `E2E_PORT=4105 node scripts/capture-landing-026.mjs`.
+plateforme (6 points) → doctrine 3 piliers → CTA → footer. Preview unique en hero (`ConsolePreviewShot`,
+`aspect-16/10`). Contenu centralisé dans `landing-content.ts` ; CTAs partagés dans `marketing-cta.tsx`.
+Server component (`landing-page.tsx`) — pas de scroll hijack, pas de métriques inventées.
+Captures : `E2E_PORT=4105 node scripts/capture-landing-026.mjs`.
 
 Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` (sticky, blur, filet bas) · `main` · `SiteFooter` · `bg-console-app`.
 Composition : `src/app/(marketing)/page.tsx` → `src/components/marketing/landing-page.tsx`.
@@ -17,14 +18,14 @@ Composition : `src/app/(marketing)/page.tsx` → `src/components/marketing/landi
 | 1 | **Hero** split (copy + preview) | `landing-page.tsx` |
 | 2 | **Domaines** (badges Access · Vaults · …) | `landing-page.tsx` |
 | 3 | **Features** (3 colonnes) | `landing-page.tsx` · `section-intro.tsx` |
-| 4 | **Plateforme** (preview + 6 points) | `landing-page.tsx` |
+| 4 | **Plateforme** (6 points) | `landing-content.ts` · `landing-page.tsx` |
 | 5 | **Doctrine** (3 piliers) | `landing-page.tsx` |
 | 6 | **CTA** → `/login` · `/register` | `closing-cta.tsx` |
 
 **Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
-Interdit dans `src/components/marketing/` et `src/components/ui/` : rampes Tailwind
-structurelles `neutral-*` / `slate-*` / `gray-*` (test `tests/marketing-no-zinc.test.ts`)
-et toute utilitaire de la palette interdite (gate `pnpm run check:no-zinc`). Police : Satoshi uniquement.
+Interdit dans `src/components/marketing/` : rampes Tailwind structurelles `neutral-*` / `slate-*` / `gray-*`
+(test `tests/marketing-no-zinc.test.ts`) et toute utilitaire de la palette interdite (gate `pnpm run check:no-zinc`).
+Police : Satoshi uniquement.
 Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG — pas d’URLs externes.
 
 ## Architecture
@@ -92,8 +93,7 @@ src/
 │   └── admin/                  routes console
 ├── components/
 │   ├── catalyst/               kit officiel (non modifié sauf link Next)
-│   ├── marketing/              wrappers landing (copy FR, assets brand)
-│   ├── ui/                     primitives Aceternity/Motion tokenisées
+│   ├── marketing/              landing shell (content, CTAs, preview, layout)
 │   ├── admin/                  page-header, hero-kpi, surfaces + dashboard/
 │   ├── actions/                boutons d'action partagés
 │   ├── charts/                 richart + cartesian
