@@ -98,8 +98,12 @@ export function PortfolioExposurePanel({
   const defaultIndex = initial >= 0 ? initial : 0
 
   return (
-    <TabGroup defaultIndex={defaultIndex} as="div" data-widget="portfolio-exposure">
-      <TabList className="grid grid-cols-2 gap-2 @[28rem]:grid-cols-3 @[52rem]:grid-cols-6">
+    <TabGroup defaultIndex={defaultIndex} as="div" className="@container" data-widget="portfolio-exposure">
+      {/*
+       * Columns follow strategy count. A fixed 6-track grid left empty lanes
+       * beside three live strategies (measured on /admin @ 1440×900).
+       */}
+      <TabList className="grid grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-2">
         {rows.map((row) => (
           <Tab
             key={row.strategyId}

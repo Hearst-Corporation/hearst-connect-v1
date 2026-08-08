@@ -259,6 +259,7 @@ export default async function Page() {
               <ReserveExpositionChart postes={postesGraphique} />
             </ChartFrame>
             <DataTableShell
+              fit
               title="Capital allocation"
               description="Reserve and exposure read on-chain — the exact figures the chart positions."
               count={`${postes.length} positions`}
@@ -266,8 +267,8 @@ export default async function Page() {
             >
               <TableHead>
                 <TableRow>
-                  <TableHeader>Position</TableHeader>
-                  <TableHeader>Amount (USD)</TableHeader>
+                  <TableHeader className="w-[50%]">Position</TableHeader>
+                  <TableHeader className="w-[50%]">Amount (USD)</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -309,6 +310,7 @@ export default async function Page() {
         </ChartFrame>
         {points.length > 0 ? (
           <DataTableShell
+            fit
             title="Yield curve"
             description="Rate recorded per milestone — the exact figures the curve positions."
             count={`${points.length} milestones`}
@@ -316,8 +318,8 @@ export default async function Page() {
           >
             <TableHead>
               <TableRow>
-                <TableHeader>Month</TableHeader>
-                <TableHeader>Rate %</TableHeader>
+                <TableHeader className="w-[50%]">Month</TableHeader>
+                <TableHeader className="w-[50%]">Rate %</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
