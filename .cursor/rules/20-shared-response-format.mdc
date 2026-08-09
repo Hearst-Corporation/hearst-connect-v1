@@ -5,24 +5,30 @@ alwaysApply: true
 
 # Format de réponse — RÈGLE ABSOLUE
 
-Les **livrables opérationnels** (rapport de mission, audit, checklist, synthèse de ship, instructions finales) doivent être dans **UNE SEULE** fence copiable :
+Les **livrables opérationnels** (rapport, audit, checklist, synthèse ship, instructions finales) = **UNE SEULE** fence copiable :
 
 ```text
 contenu complet ici
 ```
 
-## Interdit sur les livrables opérationnels
+## Interdit (livrables opérationnels)
 
 - prose avant la box ;
 - prose après la box ;
 - plusieurs boxes quand une seule suffit.
 
-## Exceptions
+## Citations code (hors box ou dans box)
 
-- contraintes techniques de l'interface ou d'un outil (citations code `startLine:endLine:filepath`, images, canvas) ;
-- échanges conversationnels courts (question → réponse directe) — pas de box forcée ;
-- code proposé inline quand l'utilisateur demande un extrait ponctuel.
+Format obligatoire : ```startLine:endLine:filepath — fence seule sur sa ligne.
 
-## Qualité du contenu
+## Qualité
 
-Français par défaut. Phrases complètes. Liens et chemins complets. Pas de télégraphique.
+- Français par défaut. Phrases complètes. Liens et chemins complets.
+- Réponse proportionnée — pas de sur-formatage décoratif.
+- Mermaid / ASCII seulement si utile pour un flux complexe.
+
+## Exceptions (pas de box forcée)
+
+- échange conversationnel court (question → réponse directe) ;
+- extrait code inline ponctuel demandé ;
+- contraintes interface/outil (images, canvas).
