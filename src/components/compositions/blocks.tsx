@@ -234,26 +234,11 @@ export function SectionCard({
  * libellé DÉJÀ formaté (« 12 mouvements ») — le bloc ne compte pas.
  */
 /**
- * Column roles for `FitTable` (`table-fixed`): primary absorbs remaining width;
- * compact columns shrink to their intrinsic minimum.
+ * Column hints for wide tables inside scrollable `Table` shells.
+ * Primary columns may truncate; compact columns keep nowrap without zero width.
  */
 export const fitTableColPrimary = 'min-w-0'
-export const fitTableColCompact = 'w-0 whitespace-nowrap'
-
-/**
- * Table that must fit its panel — no overflow-x-auto, no forced nowrap.
- * Prefer fewer primary columns + detail links over horizontal scrolling.
- */
-export function FitTable({
-  children,
-  className,
-}: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return (
-    <div className={clsx('w-full min-w-0', className)} data-table="fit">
-      <table className="w-full min-w-0 table-fixed text-left text-sm/6 text-ink dark:text-fg">{children}</table>
-    </div>
-  )
-}
+export const fitTableColCompact = 'whitespace-nowrap'
 
 export function DataTableShell({
   title,
@@ -263,7 +248,6 @@ export function DataTableShell({
   calme,
   children,
   className,
-  fit = false,
 }: Readonly<{
   title: string
   description?: string
@@ -275,19 +259,12 @@ export function DataTableShell({
   calme?: string
   children?: React.ReactNode
   className?: string
-  /**
-   * When true, render without Catalyst's overflow-x-auto wrapper.
-   * Use only when the column set is content-aware and fits the panel.
-   */
-  fit?: boolean
 }>) {
   let body: React.ReactNode
   if (source !== undefined) {
     body = <SourceAttendue {...source} />
   } else if (calme !== undefined) {
     body = <CalmState message={calme} />
-  } else if (fit) {
-    body = <FitTable className={csl.heroTable}>{children}</FitTable>
   } else {
     body = <Table className={csl.heroTable}>{children}</Table>
   }

@@ -64,9 +64,8 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   existe bel et bien, `check:ds` (`scripts/check-design-system.mjs`), et elle est bloquante en
   CI. Elle n'impose pas un design : elle interdit un hexadécimal brut hors `var(--token, #repli)`
   dans les routes et modules métier, pour qu'une couleur passe toujours par un token.
-  **Doctrine DS locale (2026-08-09) :** autorité visuelle = ce dépôt
-  (`.cursor/rules/60-design-system.mdc` + `src/styles/tailwind.css`) — pas le DS `--ct-*`
-  de `Hearst-Defi`. Étendez `50-no-zinc` ; ne le recopiez pas.
+  **Doctrine DS locale (2026-08-09) :** autorité visuelle = `src/styles/tailwind.css` +
+  gates `check:ds` / `check:no-zinc` — pas le DS `--ct-*` de `Hearst-Defi`.
 - Ce que chaque étape garantit :
   - `typecheck` (`tsc --noEmit`) — TypeScript strict, aucune erreur de type.
   - `lint` (`eslint`) — `src/components/catalyst/**` volontairement ignoré.

@@ -157,7 +157,6 @@ export default async function KeeperPage() {
       </SectionCard>
 
       <DataTableShell
-        fit
         title="Exposed routes"
         description="Backend registry, keeper category. Each route is shown as declared — no invented endpoint."
         count={`${formatNumber(keeperEndpoints.length)} routes`}

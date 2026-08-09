@@ -239,7 +239,6 @@ function VaultAllocationSection({
         />
       </ChartFrame>
       <DataTableShell
-        fit
         title="Allocation"
         description="Target, exposure, and drift as reported by the service."
         className="mt-6"
@@ -324,7 +323,7 @@ function VaultRecentActivitySection({
 
   if (movementList !== null && movementList.length > 0) {
     return (
-      <DataTableShell fit title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
+      <DataTableShell title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
         <TableHead>
           <TableRow>
             <TableHeader className={fitTableColCompact}>Time</TableHeader>

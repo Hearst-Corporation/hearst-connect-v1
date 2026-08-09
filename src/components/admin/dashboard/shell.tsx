@@ -5,15 +5,6 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 /**
- * Stable chart viewport for dashboard summaries.
- * Internal chart slot only — never a card shell height.
- *
- * HARDCODE_JUSTIFIED: 176px = 11rem chart viewport protocol size (`--dashboard-chart-slot-block-size`).
- */
-export const DASHBOARD_CHART_SLOT_HEIGHT = 176
-export const DASHBOARD_CHART_SLOT_CLASS = 'min-h-[var(--dashboard-chart-slot-block-size)]'
-
-/**
  * Conteneur pilotage dashboard.
  * Matière des cartes = `surfaceBox` (canon PASS 2) — pas un second verre.
  */
@@ -29,11 +20,9 @@ export function DashboardShell({
 }
 
 /**
- * DashCard — CARD sémantique dashboard (Rule 60).
+ * DashCard — CARD sémantique dashboard.
  *
- * Ce n'est PAS une deuxième matière : même `surfaceBox` que `Panel`.
- * Shell intrinsèque ; seules les zones de contenu quantitatives peuvent demander
- * un slot stable.
+ * Même matière `surfaceBox` que `Panel` ; hauteur intrinsèque au contenu.
  */
 export function DashCard({
   children,

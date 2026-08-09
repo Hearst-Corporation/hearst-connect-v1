@@ -2,22 +2,27 @@ import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
 import {
+  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { FitTable, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
-import { formatRelativeTime, pluralSuffix } from '@/lib/format'
+import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 
-const MAX_VISIBLE_CLIENTS = 3
-const CLIENTS_SLOT_CLASS = 'min-h-[var(--dashboard-list-slot-block-size)]'
+function ClientsFooter() {
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
+      <HearstSecondaryAction href="/admin/clients">View all clients</HearstSecondaryAction>
+    </div>
+  )
+}
 
 export function RecentClientsPanel({
   clients,
@@ -28,49 +33,39 @@ export function RecentClientsPanel({
 }>) {
   if (!isAvailable(clients)) {
     return (
-      <div className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
-        <div className={clsx(surfaceInset, CLIENTS_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+      <div className="space-y-4">
+        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
           <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
           <p className="text-xs text-fg-tertiary">Client directory source unavailable.</p>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-          <HearstSecondaryAction href="/admin/clients">View all clients</HearstSecondaryAction>
-        </div>
+        <ClientsFooter />
       </div>
     )
   }
   if (clients.value.length === 0) {
     return (
-      <div className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
-        <div className={clsx(surfaceInset, CLIENTS_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+      <div className="space-y-4">
+        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
           <p className="text-sm font-semibold text-ink dark:text-fg">No recent clients</p>
-          <p className="text-xs text-fg-tertiary">The dashboard keeps the same client summary slot when no new client appears.</p>
+          <p className="text-xs text-fg-tertiary">No client rows in the recent directory read.</p>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-          <HearstSecondaryAction href="/admin/clients">View all clients</HearstSecondaryAction>
-        </div>
+        <ClientsFooter />
       </div>
     )
   }
 
-  const visibleClients = clients.value.slice(0, MAX_VISIBLE_CLIENTS)
-  const hiddenClients = Math.max(clients.value.length - visibleClients.length, 0)
-
   return (
-    <div
-      className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4"
-      data-widget="recent-clients"
-    >
-      <FitTable className={CLIENTS_SLOT_CLASS}>
+    <div className="space-y-4" data-widget="recent-clients">
+      <Table>
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Client</TableHeader>
-            <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
-            <TableHeader className={fitTableColCompact}>KYC</TableHeader>
+            <TableHeader>Client</TableHeader>
+            <TableHeader>Exposure</TableHeader>
+            <TableHeader>KYC</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
-          {visibleClients.map((client) => (
+          {clients.value.map((client) => (
             <TableRow key={client.id}>
               <TableCell>
                 <div className="truncate font-medium">{client.label}</div>
@@ -87,16 +82,9 @@ export function RecentClientsPanel({
             </TableRow>
           ))}
         </TableBody>
-      </FitTable>
+      </Table>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
-        <p className="text-xs text-fg-tertiary">
-          {hiddenClients > 0
-            ? `${hiddenClients} more client${pluralSuffix(hiddenClients)} available in the directory.`
-            : 'Latest client snapshot.'}
-        </p>
-        <HearstSecondaryAction href="/admin/clients">View all clients</HearstSecondaryAction>
-      </div>
+      <ClientsFooter />
     </div>
   )
 }
