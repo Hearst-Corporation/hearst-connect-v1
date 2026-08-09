@@ -1,0 +1,139 @@
+---
+description: "Hearst Connect V1 — Design System local (box, layout, responsive, data states)"
+alwaysApply: true
+---
+
+# DESIGN SYSTEM — Hearst Connect V1 (autorité locale)
+
+## Autorité
+
+- **Source de vérité DS** = ce dépôt : `src/styles/tailwind.css` + primitives surfaces admin /
+  compositions (`surface.tsx`, `Panel`, `DashCard`, `adminTypography`, `chart-theme`).
+- Gouvernance externe / DS `Hearst-Defi` (`--ct-*`, Storybook bloquant, runner `gpu1`) =
+  **référence organisationnelle uniquement** — jamais autorité tokens, layout, infra ou gates.
+- Interdit d'introduire un second namespace (`--ct-*`, zinc/slate/gray structurels, surfaces ad hoc).
+
+## Extends (ne pas recopier)
+
+- `30-shared-no-hardcode.mdc` — principes génériques no-hardcode / intrinsic layout.
+- `50-no-zinc.mdc` — neutrals = `fg` / `ink` / `console-*` uniquement.
+- Gates : `check:ds` · `check:no-zinc` · `check:admin-ds` · `check:ui`.
+
+Cette règle **étend** ces owners ; elle ne les redéfinit pas.
+
+## Foundations (minimales)
+
+| Domaine | Canon local |
+|---|---|
+| Color | `fg*` · `ink` · `console-*` · `accent-*` · `success/warning/danger` · `--chart-*` |
+| Type | Satoshi only · échelle `adminTypography` |
+| Spacing | sémantique : inline → compact → component → panel → section → page (pas de px screenshot) |
+| Radius | control (md) · panel (xl) · pill (full) |
+| Elevation | flat glass / `shadow-xs` box / dialog — pas de glow-as-elevation |
+| Motion | base ~240ms · `prefers-reduced-motion` = hard cut DS-wide |
+
+Pas d'usine à tokens. Trim / merge avant d'ajouter. Hex brut hors `var(--token, #fallback)` = interdit produit.
+
+## Box contract
+
+Une **box** = conteneur UI (card / panel / surface), **pas** la fence agent ` ```text `.
+
+Dimensionnement = **CONTENU + CONTAINER + INTENTION** — jamais screenshot, jamais « remplir le trou ».
+
+| Famille | Usage | Comportement |
+|---|---|---|
+| SURFACE | canvas app (`console-app`) | pas une card |
+| PANEL | zone fonctionnelle titrée | padding panel · `console-card` + ring · height = content |
+| CARD | unité d'information | même matière · pas de nested panel-for-chrome |
+| COMPACT CARD | KPI / métrique | dense · pas de min-height décoratif |
+| DATA PANEL | chart / table | hauteur = données · FitTable par défaut |
+| UTILITY PANEL | filtres / actions / état | inset ou callout · glow NONE |
+
+### Interdit
+
+- grandes cards vides · hauteurs forcées · `flex-1` pour étirer une card
+- largeurs/rail px « pour faire joli » · bandes full-width sans intention
+- scroll interne inutile · bento par défaut · panel dans panel pour se cadrer
+
+### Densité admin
+
+`COMPACT` (KPI, chips, filtres) · `DEFAULT` (sections) · `DATA-DENSE` (explorers/tables).
+Information-rich, lisible — sans vide artificiel ni compression illisible.
+
+## Layout
+
+Hiérarchie : `APP SHELL → PAGE → HEADER → PRIMARY → SECONDARY → PANELS → CONTENT`.
+
+| Pattern | Quand |
+|---|---|
+| Single column / stack | **défaut** pages admin |
+| Main + rail | secondaire durable ; main = `minmax(0,1fr)` prioritaire ; aside sous le main quand le container le demande |
+| Grid CQ (`AdminGrid`) | multi-colonnes réelle — sinon ne pas l'inventer |
+| Intrinsic collection | `auto-fit` / `min(100%, measure)` / `items-start` |
+| Bento | **opt-in** (ex. dashboard) · poids de donnée · jamais layout par défaut |
+| Table | `FitTable` / `DataTableShell fit` — scroll-x seulement si données non compressibles |
+
+Shell chrome (rail nav fixe / drawer) ≠ content rail. Une seule mesure shell documentée — pas de ladder px viewport pour l'aside contenu.
+
+## Responsive
+
+Doctrine : **intrinsic · fluid · content-driven · container-driven**.
+
+| Mécanisme | USE | FORBIDDEN |
+|---|---|---|
+| `min()` / `max()` / `minmax()` / `clamp()` justifié | bases flex, tracks, chart height | remplir un vide |
+| Container queries | reflow **composant** | seuils copiés d'une capture |
+| Media queries | chrome **global** (rail→drawer, dialog) | composer des cards |
+| `flex-wrap` + `min-w-0` + `items-start` | collections | equal-height stretch empty |
+| Viewport breakpoints | shell / marketing | « ça marche à 1440/768 » |
+
+Survie au **resize continu** obligatoire. QA sizes = points d'observation, jamais objectifs CSS.
+
+## Overflow
+
+- **Page scroll** = normal.
+- **Panel scroll** = seulement fenêtre volontaire sur un dataset.
+- **Horizontal scroll** = dernier recours (données atomiques non compressibles).
+- **Tabs** : pas d'`overflow-x-auto` automatique si `auto-fit` suffit.
+- **Texte** : wrap par défaut ; truncate seulement donnée intrinsèquement atomique (hash, label identité).
+
+## Data states (vérité backend)
+
+`0` ≠ `NULL` ≠ `UNAVAILABLE` ≠ `EMPTY COLLECTION` ≠ `LOADING` ≠ `ERROR`.
+
+- `NULL` / absent → `—` (jamais `0` inventé).
+- `UNAVAILABLE` → badge / motif nommé — pas de faux live.
+- Empty / loading → hauteur ≈ contenu ; **interdit** de réserver un grand canvas vide.
+- Charts : hauteur dérivée des points (`chartHeight`) ; série non plottable → `SingleObservation` / état court — pas de chrome chart vide géant.
+
+## Glow
+
+| Niveau | Où |
+|---|---|
+| NONE | défaut cards / panels / tables |
+| SUBTLE | fond shell PNG uniquement |
+| ACCENT | sélection / focus soft (`accent-soft`) — pas blur filter sur listes |
+| HERO_ONLY | page-header strip + marketing hero |
+
+Interdit : glow sur chaque card · filters coûteux permanents · décor qui tue le contraste.
+
+## Charts / a11y
+
+- Largeur pilotée par le **panel réel** (mesure container) — pas taille capture.
+- Animations chart off ou respect `prefers-reduced-motion`.
+- Tables sr-only / équivalent textuel pour dataviz.
+- Focus visible · landmarks sémantiques · cibles interactives intrinsèques.
+
+## Primitives DS (appartenance)
+
+Appartiennent au DS : tokens `@theme` · `surfaceBox` / `surfaceNav` / `surfaceInset` · `Panel` /
+`SectionCard` / `DashCard` · `adminTypography` · `FitTable` · `status-tone` · empty/truthful states ·
+`chart-theme`.
+
+N'appartiennent **pas** au DS à sacraliser : hex/`--csl-*` locaux module CSS, largeurs aside
+viewport, `AdminGrid` orphelin, hauteurs chart legacy non dérivées des points, namespaces externes.
+
+## Avant toute valeur littérale UI
+
+1. Intrinsèque composant ? 2. Token DS local ? 3. Constante protocolaire nommée ?
+4. Donnée métier ? 5. Patch screenshot ? → **STOP**.
