@@ -73,7 +73,7 @@ export function HearstDonutChart({
         </div>
       </div>
 
-      <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+      <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
         {data.map((s) => (
           <li key={s.label} className="flex items-center gap-2 text-xs text-console-fill dark:text-fg">
             <span

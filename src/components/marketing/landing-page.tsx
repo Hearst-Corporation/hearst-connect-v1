@@ -83,7 +83,7 @@ export function LandingPage() {
             title="Everything you need to govern Hearst workspaces"
             sub="Access, vaults, and compliance on one Railway-backed surface — readable roles, attributable audit, strict data doctrine."
           />
-          <dl className="mx-auto mt-16 grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:mt-20 lg:max-w-none lg:grid-cols-3">
+          <dl className="mx-auto mt-16 flex flex-wrap max-w-xl gap-8 lg:mt-20 lg:max-w-none *:flex-1 *:min-w-[16rem]">
             {primaryFeatures.map((feature) => (
               <div key={feature.name} className="flex flex-col">
                 <dt className="text-base/7 font-semibold text-white">
@@ -118,7 +118,7 @@ export function LandingPage() {
             title="Built for production governance"
             sub="Session security, backend veracity, and an audit trail you can trust — not a demo shell with invented numbers."
           />
-          <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 text-white/50 sm:mt-20 sm:grid-cols-2 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
+          <dl className="mx-auto mt-16 flex flex-wrap max-w-2xl gap-x-6 gap-y-10 text-base/7 text-white/50 sm:mt-20 lg:max-w-none *:flex-1 *:min-w-[16rem]">
             {platformCapabilities.map((feature) => (
               <div key={feature.name} className="relative pl-9">
                 <dt className="inline font-semibold text-white">
@@ -140,7 +140,7 @@ export function LandingPage() {
             title="Built for governance, not for demo"
             sub="Three principles that hold in production — separate from the feature lists above."
           />
-          <div className="mt-12 grid grid-cols-1 gap-4 md:mt-16 md:grid-cols-3">
+          <div className="mt-12 flex flex-wrap gap-4 md:mt-16 *:flex-1 *:min-w-[16rem]">
             {doctrinePillars.map((pillar) => (
               <article
                 key={pillar.title}

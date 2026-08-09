@@ -1,5 +1,6 @@
 import { surfaceInset } from '@/components/admin/surface'
 import { StatusBadge } from '@/components/admin/truthful'
+import { AdminMetricGrid } from '@/components/admin/grid'
 import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
@@ -58,9 +59,10 @@ export function MarketSnapshotPanel({
   const hashpriceChange = finiteChange(m.hashpriceChangePct)
 
   return (
-    <dl
+    <AdminMetricGrid
       data-widget="market-snapshot"
-      className="@container grid grid-cols-1 gap-4 @[16rem]:grid-cols-2"
+      count={4}
+      as="dl"
     >
       <div className={surfaceInset + ' p-4'}>
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
@@ -88,6 +90,6 @@ export function MarketSnapshotPanel({
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Margin</dt>
         <dd className="mt-1 text-lg font-semibold tabular-nums text-ink dark:text-fg">{margin}</dd>
       </div>
-    </dl>
+    </AdminMetricGrid>
   )
 }

@@ -1,4 +1,5 @@
 import { csl, Reading } from '@/components/layout/console'
+import { AdminMetricGrid } from '@/components/admin/grid'
 import type { Availability } from '@/lib/vaults/model'
 import { Panel, PanelBody } from '@/components/compositions/panel'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
@@ -145,16 +146,9 @@ export function StatGrid({
   columns?: 2 | 3 | 4
   className?: string
 }>) {
-  // Container queries (pas breakpoints viewport) : la colonne admin est déjà
-  // réduite par le rail — forcer 4 colonnes sur largeur fenêtre écrasait les cartes.
-  const COLS: Record<2 | 3 | 4, string> = {
-    2: '@[24rem]:grid-cols-2',
-    3: '@[24rem]:grid-cols-2 @[40rem]:grid-cols-3',
-    4: '@[24rem]:grid-cols-2 @[48rem]:grid-cols-4',
-  }
   return (
     <section aria-label={label} className={clsx('@container min-w-0', className)}>
-      <div className={clsx('grid grid-cols-1 gap-3', COLS[columns])}>{children}</div>
+      <AdminMetricGrid count={columns}>{children}</AdminMetricGrid>
     </section>
   )
 }

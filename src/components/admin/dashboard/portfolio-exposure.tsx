@@ -27,7 +27,7 @@ function StrategyDetail({
     <div className={clsx(surfaceInset, 'p-4 @container')}>
       <p className="truncate text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
       <div className="mt-3 flex flex-col gap-3 @[28rem]:flex-row @[28rem]:items-end @[28rem]:justify-between">
-        <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 text-xs @[28rem]:grid-cols-4">
+        <dl className="flex min-w-0 flex-1 flex-wrap gap-x-6 gap-y-2 text-xs">
           <div>
             <dt className="text-fg-tertiary">Actual</dt>
             <dd className="font-semibold tabular-nums text-fg">
@@ -123,33 +123,31 @@ export function PortfolioExposurePanel({
       data-widget="portfolio-exposure"
     >
       <div className="flex min-w-0 flex-col gap-4">
-        <div className="-mx-1 min-w-0 overflow-x-auto px-1 pb-1">
-          <TabList className="grid min-w-max grid-flow-col auto-cols-[minmax(8rem,1fr)] gap-2">
-            {rows.map((row) => (
-              <Tab
-                key={row.strategyId}
-                className={clsx(
-                  'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
-                  'focus-visible:ring-2 focus-visible:ring-accent-500',
-                  surfaceSelect,
-                )}
-              >
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
-                  <ChartBarSquareIcon className="size-5" aria-hidden="true" />
-                </span>
-                <span className="mt-2 w-full truncate text-xs font-semibold text-ink dark:text-fg" title={row.strategyLabel}>
-                  {row.strategyLabel}
-                </span>
-                <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
-                  {formatPercent(row.actualBps, { fromBps: true })}
-                </span>
-                <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
-                  target {formatPercent(row.targetBps, { fromBps: true })}
-                </span>
-              </Tab>
-            ))}
-          </TabList>
-        </div>
+        <TabList className="grid grid-cols-2 gap-2 @[28rem]:grid-cols-4">
+          {rows.map((row) => (
+            <Tab
+              key={row.strategyId}
+              className={clsx(
+                'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
+                'focus-visible:ring-2 focus-visible:ring-accent-500',
+                surfaceSelect,
+              )}
+            >
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
+                <ChartBarSquareIcon className="size-5" aria-hidden="true" />
+              </span>
+              <span className="mt-2 w-full truncate text-xs font-semibold text-ink dark:text-fg" title={row.strategyLabel}>
+                {row.strategyLabel}
+              </span>
+              <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
+                {formatPercent(row.actualBps, { fromBps: true })}
+              </span>
+              <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
+                target {formatPercent(row.targetBps, { fromBps: true })}
+              </span>
+            </Tab>
+          ))}
+        </TabList>
         <TabPanels>
           {rows.map((row) => (
             <TabPanel key={row.strategyId} className="outline-none">
