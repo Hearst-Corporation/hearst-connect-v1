@@ -1,0 +1,28 @@
+---
+description: "Format réponse — une seule box copiable pour les livrables opérationnels"
+alwaysApply: true
+---
+
+# Format de réponse — RÈGLE ABSOLUE
+
+Les **livrables opérationnels** (rapport de mission, audit, checklist, synthèse de ship, instructions finales) doivent être dans **UNE SEULE** fence copiable :
+
+```text
+contenu complet ici
+```
+
+## Interdit sur les livrables opérationnels
+
+- prose avant la box ;
+- prose après la box ;
+- plusieurs boxes quand une seule suffit.
+
+## Exceptions
+
+- contraintes techniques de l'interface ou d'un outil (citations code `startLine:endLine:filepath`, images, canvas) ;
+- échanges conversationnels courts (question → réponse directe) — pas de box forcée ;
+- code proposé inline quand l'utilisateur demande un extrait ponctuel.
+
+## Qualité du contenu
+
+Français par défaut. Phrases complètes. Liens et chemins complets. Pas de télégraphique.

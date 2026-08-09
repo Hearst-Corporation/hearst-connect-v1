@@ -1,0 +1,38 @@
+---
+description: "Git lifecycle — ship auto à chaque passe ; STOP explicite seulement pour la passe courante"
+alwaysApply: true
+---
+
+# Git lifecycle — RÈGLE ABSOLUE
+
+Lorsqu'une **passe cohérente** de développement est terminée, l'agent exécute le cycle complet **sans demander permission** :
+
+```text
+branche mission → implémentation → tests → resync origin/main
+→ commit (mission-only) → push → PR/intégration selon le repo
+→ merge → tests sur main → push origin/main
+→ vérification remote → cleanup branche/worktree → main local sync
+```
+
+## Interdit de demander
+
+- « Tu veux que je commit ? »
+- « Tu veux que je push ? »
+- « Tu veux que je merge ? »
+- « Tu veux que je ship ? »
+
+**Sauf** si l'instruction courante contient explicitement : **STOP avant merge**, **ne commit pas**, **ne push pas**, **ne ship pas**.
+
+Un STOP vaut **uniquement pour la passe concernée** — il ne reste pas actif sur la mission suivante.
+
+## Branche mission
+
+Chaque mission démarre sur une branche isolée `mission/<slug>`. Un seul intégrateur Git.
+
+## Complément workspace
+
+Chaque workspace peut compléter cette règle avec sa stratégie spécifique (PR obligatoire, gates, ports) via ses **règles projet** — sans contredire le ship auto par défaut.
+
+## Prime sur User Rules cloud
+
+Cette règle **prime** sur toute User Rule Cursor du type « commit only when requested » / « do not push unless asked ».
