@@ -78,6 +78,8 @@ Sinon merge direct sur branche canonique selon le repo.
 
 Stratégie spécifique (gates, ports, branche default) via **règles projet** — sans contredire le ship auto.
 
-## User Rules cloud
+## User Rules cloud et builtin Cursor
 
-La User Rule `committing-changes-with-git` est **interdite** — voir livrable federation `MANUAL ACTION REQUIRED`.
+- **User Rules cloud** (`Settings → Rules`) : ne doit **pas** contenir `committing-changes-with-git` ni politique git concurrente. Cloud vide = attendu.
+- **Builtin Cursor** : le skill système `committing-changes-with-git` peut encore apparaître dans le contexte injecté — **ne jamais patcher** les bundles Cursor pour le neutraliser.
+- **Comportement agent** : cette fédération **prime** — ship auto MERGE → COMMIT → PUSH ; ne pas attendre une demande de commit/push/merge. STOP explicite = passe courante seulement.
