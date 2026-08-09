@@ -106,7 +106,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
        */}
       <div className="@container flex flex-col gap-4">
         {/* Primary region: exposure needs slightly more scan width than the chart. */}
-        <div className="grid grid-cols-1 gap-4 @[52rem]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <DashCard
             className="min-w-0"
             title="Portfolio exposure"
@@ -142,7 +142,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         </div>
 
         {/* Secondary region: timeline carries the summary; side panels support it. */}
-        <div className="grid grid-cols-1 gap-4 @[52rem]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
           <DashCard
             className="min-w-0"
             title="Recent activity"
@@ -165,7 +165,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         </div>
 
         {/* Tertiary region: three balanced supporting summaries. */}
-        <div className="grid grid-cols-1 gap-4 @[52rem]:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-3">
           <DashCard
             className="min-w-0"
             title="Data health"

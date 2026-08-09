@@ -5,6 +5,8 @@ import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 
+const HEALTH_SLOT_CLASS = 'min-h-[var(--dashboard-summary-slot-block-size)]'
+
 /** Stable backend keys — never join on display labels. */
 const ORDER: readonly AdminDataHealthSource['key'][] = [
   'vault',
@@ -26,7 +28,12 @@ export function DataHealthGrid({
 }: Readonly<{ sources: Availability<readonly AdminDataHealthSource[]> }>) {
   if (!isAvailable(sources)) {
     return (
-      <div className="flex h-full min-h-0 flex-col justify-center rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+      <div
+        className={clsx(
+          HEALTH_SLOT_CLASS,
+          'flex min-h-0 flex-col justify-center rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft',
+        )}
+      >
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <Text className="mt-1">Source freshness unavailable.</Text>
       </div>
@@ -39,7 +46,10 @@ export function DataHealthGrid({
   return (
     <ul
       data-widget="data-health-grid"
-      className="grid h-full min-h-0 grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] content-start gap-2"
+      className={clsx(
+        HEALTH_SLOT_CLASS,
+        'grid min-h-0 grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] content-start gap-2',
+      )}
     >
       {slots.map(({ key, source }) => {
         const label = source?.label ?? key
