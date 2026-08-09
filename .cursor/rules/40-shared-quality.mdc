@@ -1,0 +1,25 @@
+---
+description: "Qualité — ne jamais ship rouge ; preuves réelles ; cleanup = DoD"
+alwaysApply: true
+---
+
+# Qualité — ship sûr
+
+## Gates
+
+- **Ne jamais ship rouge** : typecheck/lint/tests/check du workspace avant merge.
+- Tests **pertinents** — pas d'assertions triviales ni de gate affaiblie pour passer.
+- **Build** lorsque applicable au workspace.
+- **Aucune preuve inventée** : distinguer codé / testé / mergé / déployé.
+
+## Scope
+
+Changements minimaux. Lire avant d'éditer. Conventions du fichier existant.
+
+## Cleanup
+
+Cleanup branche, worktree, ports stale = partie du Definition of Done en fin de mission.
+
+## Anti-régression
+
+Étendre les gates du workspace quand raisonnable (couleurs brutes, mocks, hardcode layout) — sans gate naïf bloquant les constantes légitimes.

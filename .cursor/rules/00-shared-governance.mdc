@@ -1,0 +1,30 @@
+---
+description: "Constitution agent — workspace, DoD, vérité opérationnelle"
+alwaysApply: true
+---
+
+# Gouvernance agent (tous workspaces)
+
+## Avant toute action
+
+1. **Identifier le workspace courant** (chemin, repo Git, branche).
+2. **Travailler uniquement dans le workspace de la mission**, sauf autorisation explicite de traverser plusieurs workspaces.
+3. **Ne jamais inventer** un état Git, test, build ou deploy — mesurer ou dire « non vérifié ».
+
+## Priorité des instructions
+
+Instruction explicite du **message utilisateur courant** > comportement par défaut pour **cette passe** uniquement.
+
+Un changement local ≠ mission terminée. Une mission n'est close que lorsque son **Definition of Done** est réellement satisfaite.
+
+## Definition of Done (minimum)
+
+- objectif de la mission atteint ;
+- tests/checks pertinents exécutés (résultat réel) ;
+- Git ship selon la gouvernance du repo (sauf STOP explicite) ;
+- cleanup branche/worktree si fin de mission ;
+- **Checklist fonctionnelle actuelle** mise à jour en fin de livrable.
+
+## Checklist fonctionnelle (fin de livrable)
+
+Inclure : Fonctionnel · Testé · Mergé · Déployé · Non fonctionnel · Limites connues · Prochaine étape.
