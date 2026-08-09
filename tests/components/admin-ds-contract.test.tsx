@@ -41,6 +41,8 @@ describe('Admin status tone contract', () => {
 describe('check-admin-ds-contract gate', () => {
   it('selftest passes', () => {
     const script = resolve(process.cwd(), 'scripts/check-admin-ds-contract.mjs')
-    execFileSync(process.execPath, [script, '--selftest'], { stdio: 'pipe' })
+    expect(() => {
+      execFileSync(process.execPath, [script, '--selftest'], { stdio: 'pipe' })
+    }).not.toThrow()
   })
 })
