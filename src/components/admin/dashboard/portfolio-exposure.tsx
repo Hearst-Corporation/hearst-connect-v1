@@ -11,6 +11,8 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
+const EXPOSURE_SLOT_CLASS = 'min-h-[var(--dashboard-list-slot-block-size)]'
+
 function driftLabel(driftBps: number | null): string {
   if (driftBps === null || !Number.isFinite(driftBps)) return '—'
   const pts = driftBps / 100
@@ -62,6 +64,23 @@ function StrategyDetail({
   )
 }
 
+function ExposureEmptyState({
+  title,
+  detail,
+}: Readonly<{ title: string; detail: string }>) {
+  return (
+    <div className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+      <div className={clsx(surfaceInset, EXPOSURE_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+        <p className="text-sm font-semibold text-ink dark:text-fg">{title}</p>
+        <p className="text-xs text-fg-tertiary">{detail}</p>
+      </div>
+      <div className="flex justify-end border-t border-console-line-soft pt-3">
+        <HearstSecondaryAction href="/admin/vaults">Open vault registry</HearstSecondaryAction>
+      </div>
+    </div>
+  )
+}
+
 export function PortfolioExposurePanel({
   strategies,
   assetScale,
@@ -71,28 +90,25 @@ export function PortfolioExposurePanel({
 }>) {
   if (!isAvailable(strategies)) {
     return (
-      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5')}>
-        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <p className="text-xs text-fg-tertiary">Portfolio exposure source unavailable.</p>
-      </div>
+      <ExposureEmptyState title="Data unavailable" detail="Portfolio exposure source unavailable." />
     )
   }
   if (strategies.value.length === 0) {
     return (
-      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5')}>
-        <p className="text-sm font-semibold text-ink dark:text-fg">No strategies measured</p>
-        <p className="text-xs text-fg-tertiary">The portfolio viewport stays reserved until strategies are indexed.</p>
-      </div>
+      <ExposureEmptyState
+        title="No strategies measured"
+        detail="The portfolio viewport stays reserved until strategies are indexed."
+      />
     )
   }
 
   const scale = assetScale
   if (!scale) {
     return (
-      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5')}>
-        <p className="text-sm font-semibold text-ink dark:text-fg">Portfolio asset scale unavailable</p>
-        <p className="text-xs text-fg-tertiary">Exposure amounts stay hidden until the asset scale is readable.</p>
-      </div>
+      <ExposureEmptyState
+        title="Portfolio asset scale unavailable"
+        detail="Exposure amounts stay hidden until the asset scale is readable."
+      />
     )
   }
 
@@ -104,44 +120,46 @@ export function PortfolioExposurePanel({
     <TabGroup
       defaultIndex={defaultIndex}
       as="div"
-      className="flex h-full min-h-0 flex-col @container min-w-0"
+      className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4 @container min-w-0"
       data-widget="portfolio-exposure"
     >
-      <div className="-mx-1 min-w-0 overflow-x-auto px-1 pb-1">
-        <TabList className="grid min-w-max grid-flow-col auto-cols-[minmax(8rem,1fr)] gap-2">
+      <div className={clsx(EXPOSURE_SLOT_CLASS, 'flex min-h-0 flex-col gap-4')}>
+        <div className="-mx-1 min-w-0 overflow-x-auto px-1 pb-1">
+          <TabList className="grid min-w-max grid-flow-col auto-cols-[minmax(8rem,1fr)] gap-2">
+            {rows.map((row) => (
+              <Tab
+                key={row.strategyId}
+                className={clsx(
+                  'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
+                  'focus-visible:ring-2 focus-visible:ring-accent-500',
+                  surfaceSelect,
+                )}
+              >
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
+                  <ChartBarSquareIcon className="size-5" aria-hidden="true" />
+                </span>
+                <span className="mt-2 w-full truncate text-xs font-semibold text-ink dark:text-fg" title={row.strategyLabel}>
+                  {row.strategyLabel}
+                </span>
+                <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
+                  {formatPercent(row.actualBps, { fromBps: true })}
+                </span>
+                <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
+                  target {formatPercent(row.targetBps, { fromBps: true })}
+                </span>
+              </Tab>
+            ))}
+          </TabList>
+        </div>
+        <TabPanels className="min-h-0 flex-1">
           {rows.map((row) => (
-            <Tab
-              key={row.strategyId}
-              className={clsx(
-                'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
-                'focus-visible:ring-2 focus-visible:ring-accent-500',
-                surfaceSelect,
-              )}
-            >
-              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
-                <ChartBarSquareIcon className="size-5" aria-hidden="true" />
-              </span>
-              <span className="mt-2 w-full truncate text-xs font-semibold text-ink dark:text-fg" title={row.strategyLabel}>
-                {row.strategyLabel}
-              </span>
-              <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
-                {formatPercent(row.actualBps, { fromBps: true })}
-              </span>
-              <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
-                target {formatPercent(row.targetBps, { fromBps: true })}
-              </span>
-            </Tab>
+            <TabPanel key={row.strategyId} className="outline-none">
+              <StrategyDetail row={row} assetScale={scale} />
+            </TabPanel>
           ))}
-        </TabList>
+        </TabPanels>
       </div>
-      <TabPanels className="mt-4 min-h-0 flex-1">
-        {rows.map((row) => (
-          <TabPanel key={row.strategyId} className="outline-none">
-            <StrategyDetail row={row} assetScale={scale} />
-          </TabPanel>
-        ))}
-      </TabPanels>
-      <div className="mt-4 flex justify-end border-t border-console-line-soft pt-3">
+      <div className="flex justify-end border-t border-console-line-soft pt-3">
         <HearstSecondaryAction href="/admin/vaults">Open vault registry</HearstSecondaryAction>
       </div>
     </TabGroup>

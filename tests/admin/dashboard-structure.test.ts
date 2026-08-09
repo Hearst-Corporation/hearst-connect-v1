@@ -55,6 +55,7 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).toMatch(/<PortfolioExposurePanel/)
     expect(SOURCE).toContain('Portfolio exposure')
     expect(EXPOSURE).toMatch(/data-widget="portfolio-exposure"/)
+    expect(EXPOSURE).toMatch(/dashboard-list-slot-block-size/)
   })
 
   it('replaces priority queue with rebalancing alerts panel', () => {
@@ -90,20 +91,30 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  it('lays out the dashboard with explicit container-driven regions', () => {
-    expect(SOURCE).toMatch(/@container flex flex-col gap-4/)
-    const rowGrids = [
-      ...SOURCE.matchAll(/grid grid-cols-1 items-start gap-4 @\[52rem\]:grid-cols-\[minmax\(0,7fr\)_minmax\(0,5fr\)\]/g),
-      ...SOURCE.matchAll(/grid grid-cols-1 items-start gap-4 @\[52rem\]:grid-cols-\[minmax\(0,2fr\)_minmax\(0,1fr\)_minmax\(0,1fr\)\]/g),
-      ...SOURCE.matchAll(/grid grid-cols-1 items-start gap-4 @\[52rem\]:grid-cols-3/g),
-    ]
-    expect(rowGrids.length).toBe(3)
-    expect(SOURCE).toMatch(/items-start gap-4/)
+  it('lays out the dashboard with AdminGrid regions on a shared 12-column ladder', () => {
+    expect(SOURCE).toMatch(/from ['"]@\/components\/admin\/grid['"]/)
+    expect(SOURCE).toMatch(/<AdminGrid>/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{7\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{5\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{6\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{3\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{4\}/)
+    expect(SOURCE).not.toMatch(/grid-cols-\[minmax\(0,7fr\)/)
+    expect(SOURCE).not.toMatch(/grid-cols-\[minmax\(0,2fr\)/)
+    expect(SOURCE).not.toMatch(/@\[52rem\]:grid-cols-3/)
     expect(SOURCE).not.toMatch(/flex flex-wrap/)
     expect(SOURCE).not.toMatch(/flex-\[\d+_1_min\(100%,\d+rem\)\]/)
     expect(SHELL).not.toMatch(/data-footprint=/)
     expect(SHELL).not.toMatch(/dashboard-footprint/)
     expect(SOURCE).not.toMatch(/footprint="/)
+
+    // Tertiary 4+4+4 must not also set md={4}: on the 8-column ladder that
+    // fills one row then strands a half-row empty cell next to the third card.
+    const tertiarySpanFours = SOURCE.match(/<AdminCol span=\{4\}[^>]*>/g) ?? []
+    expect(tertiarySpanFours.length).toBeGreaterThanOrEqual(3)
+    for (const col of tertiarySpanFours) {
+      expect(col).not.toMatch(/md=\{4\}/)
+    }
 
     for (const t of [
       'Portfolio exposure',
@@ -144,8 +155,11 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
 
   it('uses one shared dashboard chart viewport for empty and populated activity states', () => {
     expect(SHELL).toMatch(/DASHBOARD_CHART_SLOT_HEIGHT = 176/)
+    expect(SHELL).toMatch(/DASHBOARD_CHART_SLOT_CLASS/)
     expect(SOURCE).toMatch(/<HearstActivityChart[\s\S]*height=\{DASHBOARD_CHART_SLOT_HEIGHT\}/)
-    expect(SOURCE).toMatch(/<ChartPlaceholder title="Activity" height=\{DASHBOARD_CHART_SLOT_HEIGHT\}/)
+    expect(SOURCE).toMatch(/<ChartPlaceholder title="Activity" dashboardSlot/)
+    expect(SOURCE).toMatch(/DASHBOARD_CHART_SLOT_CLASS/)
+    expect(SHELL).toMatch(/dashboard-chart-slot-block-size/)
     expect(SOURCE).not.toMatch(/height=\{140\}/)
   })
 

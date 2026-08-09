@@ -22,9 +22,14 @@ export function RebalancingAlertsPanel({
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   if (!isAvailable(summary)) {
     return (
-      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col items-center justify-center px-4 py-8 text-center')}>
-        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
+      <div className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+        <div className={clsx(ALERTS_SLOT_CLASS, surfaceInset, 'flex flex-col items-center justify-center px-4 py-8 text-center')}>
+          <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
+          <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
+          <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
+        </div>
       </div>
     )
   }
