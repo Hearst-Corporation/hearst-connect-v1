@@ -20,10 +20,10 @@ export const metadata: Metadata = { title: 'New simulated client' }
 export const dynamic = 'force-dynamic'
 
 const CHAMPS_REQUIS = [
-  'Email — identifiant de connexion du compte',
+  'Email — the account’s login identifier',
   'Password — min. 8 characters, never returned by the service',
   'Role — investor (simulated client) or admin',
-  'CONFIRM — garde-fou explicite avant tout envoi',
+  'CONFIRM — explicit safeguard before any submission',
 ] as const
 
 const NON_RESTITUE = [
@@ -44,7 +44,7 @@ export default async function Page() {
 
   let disabledReason: string | null = null
   if (!isAdmin) {
-    disabledReason = `Role « ${ROLE_LABELS[session.role]} » does not grant access to account creation.`
+    disabledReason = `Role “${ROLE_LABELS[session.role]}” does not grant access to account creation.`
   } else if (!backendConfigured) {
     disabledReason = 'HEARST_API_URL is not set — no request can be sent.'
   }
@@ -83,7 +83,7 @@ export default async function Page() {
       <SectionCard title="Recent creations" hint="Accounts created from this screen, by day." tone="chart">
         <ChartFrame
           question="Account creations per day"
-          unite="comptes / jour"
+          unite="accounts / day"
           etat={{
             type: 'empty',
             explication:

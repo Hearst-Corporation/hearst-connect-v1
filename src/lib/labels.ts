@@ -21,24 +21,6 @@ function key(code: string | null | undefined): string {
 }
 
 /**
- * Status of a deployment / subscription request.
- *
- * Product-confirmed codes: REQUESTED, PENDING, CONFIRMED, FAILED.
- */
-const DEPLOYMENT_STATUS: Record<string, string> = {
-  REQUESTED: 'Requested',
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  FAILED: 'Failed',
-}
-
-export function deploymentStatusLabel(code: string | null | undefined): string {
-  const k = key(code)
-  if (k === '') return '—'
-  return DEPLOYMENT_STATUS[k] ?? k.toLowerCase()
-}
-
-/**
  * Global status of a KYC verification.
  *
  * ⚠️ The EXACT list of codes returned by /api/v1/compliance is to be confirmed

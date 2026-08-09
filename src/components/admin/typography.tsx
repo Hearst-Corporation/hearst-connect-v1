@@ -22,18 +22,6 @@ export const adminTypography = {
 
 type TypoProps = Readonly<{ children: React.ReactNode; className?: string }>
 
-export function AdminSectionTitle({
-  children,
-  className,
-  as: Tag = 'h2',
-}: TypoProps & { as?: 'h2' | 'h3' }) {
-  return <Tag className={clsx(adminTypography.sectionTitle, className)}>{children}</Tag>
-}
-
-export function AdminBody({ children, className }: TypoProps) {
-  return <p className={clsx(adminTypography.body, className)}>{children}</p>
-}
-
 export function AdminCaption({ children, className }: TypoProps) {
   return <p className={clsx(adminTypography.caption, className)}>{children}</p>
 }

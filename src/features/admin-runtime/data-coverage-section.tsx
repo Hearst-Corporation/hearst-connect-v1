@@ -144,7 +144,10 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
   const dashboardEndpoint = '/api/v1/dashboard'
   const dashboardBloc =
     response.ok && aggregate !== null
-      ? { status: response.meta?.status ?? 'LIVE', value: aggregate, reason: null }
+      ? // Pas de `?? 'LIVE'` : une réponse sans `meta.status` n'a pas déclaré sa
+        // fraîcheur — on ne la certifie pas « live ». `UNAVAILABLE` → absence
+        // nommée via `availabilityFromResolu` (même doctrine que statusFromMeta).
+        { status: response.meta?.status ?? 'UNAVAILABLE', value: aggregate, reason: null }
       : null
   const dashboardSource = availabilityFromResolu(dashboardBloc, dashboardEndpoint)
 

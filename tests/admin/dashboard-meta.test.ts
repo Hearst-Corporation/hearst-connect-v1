@@ -20,7 +20,10 @@ describe('dashboard — aggregate status (F-02)', () => {
     expect(etatSourceLisible(statusFromMeta(meta('LIVE')))).toBe('live')
   })
 
-  it('missing meta falls back to LIVE (client contract)', () => {
-    expect(etatSourceLisible(statusFromMeta(null))).toBe('live')
+  it('missing meta is UNAVAILABLE, never LIVE (VER-10 — no freshness declared)', () => {
+    // Une réponse sans métadonnée n'a pas déclaré son statut de fraîcheur :
+    // l'afficher « live » certifierait un frais que rien n'établit. Même
+    // doctrine que src/lib/statut-affichage.ts (STATUT_INCONNU = UNAVAILABLE).
+    expect(etatSourceLisible(statusFromMeta(null))).toBe('unavailable')
   })
 })

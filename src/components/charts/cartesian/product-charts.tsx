@@ -85,7 +85,7 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
   if (postes.length === 0) {
     return (
       <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
-        Aucune allocation lisible on-chain. Rien n’est tracé, plutôt qu’une répartition à zéro.
+        No allocation readable on-chain. Nothing is plotted, rather than a split at zero.
       </p>
     )
   }
@@ -94,11 +94,11 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
     <div className="px-3 pb-5 sm:px-4">
       <div className="sr-only">
         <table>
-          <caption>Réserve et exposition, en dollars</caption>
+          <caption>Reserve and exposure, in dollars</caption>
           <thead>
             <tr>
-              <th scope="col">Poste</th>
-              <th scope="col">Montant</th>
+              <th scope="col">Item</th>
+              <th scope="col">Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -139,7 +139,7 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
             <Tooltip content={<ChartTooltip unit="$" />} cursor={{ fill: chartTheme.cursor }} />
             <Bar
               dataKey="montant"
-              name="Montant"
+              name="Amount"
               shape={PostBar}
               radius={[0, 3, 3, 0]}
               maxBarSize={22}

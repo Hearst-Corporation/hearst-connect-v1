@@ -107,14 +107,13 @@ export function CreateClientForm({
       {state.ok ? (
         <div className="space-y-2">
           <Callout tone="success" title="Account created">
-            Account created — identifiant retourné par le backend, jamais inventé. L’indexation dans l’annuaire peut
-            prendre un instant : sur la fiche du client, le message « Absent de l’annuaire » signale ce délai, pas
-            un échec.
+            Account created — identifier returned by the backend, never invented. Directory indexing may take a
+            moment: on the client record, the “Absent from directory” message signals this delay, not a failure.
           </Callout>
           {state.createdUserId ? (
             <Text>
               <Link href={`/admin/client-simulator/${state.createdUserId}`} className="underline">
-                Ouvrir le simulated client {state.createdEmail ?? state.createdUserId}
+                Open the simulated client {state.createdEmail ?? state.createdUserId}
               </Link>
             </Text>
           ) : null}
