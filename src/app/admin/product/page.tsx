@@ -343,9 +343,9 @@ export default async function Page() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader>Reading</TableHeader>
-            <TableHeader>Why it does not appear yet</TableHeader>
-            <TableHeader>Source state</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Reading</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Why it does not appear yet</TableHeader>
+            <TableHeader className={fitTableColCompact}>Source state</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

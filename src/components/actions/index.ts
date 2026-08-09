@@ -8,6 +8,5 @@ export {
   HearstCriticalAction,
   HearstDangerAction,
   HearstSecondaryAction,
-  HearstIconAction,
   type HearstActionProps,
 } from '@/components/actions/hearst-actions'

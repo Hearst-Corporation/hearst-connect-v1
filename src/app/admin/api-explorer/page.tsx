@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
-import { DataTableShell, SectionCard } from '@/components/compositions'
+import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
@@ -171,9 +171,9 @@ export default async function ApiExplorerPage() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader>Level</TableHeader>
-            <TableHeader>Endpoints</TableHeader>
-            <TableHeader>What it requires</TableHeader>
+            <TableHeader className={fitTableColCompact}>Level</TableHeader>
+            <TableHeader className={fitTableColCompact}>Endpoints</TableHeader>
+            <TableHeader className={fitTableColPrimary}>What it requires</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

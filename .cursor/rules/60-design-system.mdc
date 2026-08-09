@@ -16,7 +16,6 @@ alwaysApply: true
 
 ## Extends (ne pas recopier)
 
-- `30-shared-no-hardcode.mdc` — principes génériques no-hardcode / intrinsic layout.
 - `50-no-zinc.mdc` — neutrals = `fg` / `ink` / `console-*` uniquement.
 - Gates : `check:ds` · `check:no-zinc` · `check:admin-ds` · `check:ui`.
 

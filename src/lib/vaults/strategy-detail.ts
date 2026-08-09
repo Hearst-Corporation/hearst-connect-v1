@@ -32,6 +32,13 @@ export async function loadStrategyDetail(index: number) {
   return callBackend<StrategyDetailReponse>('strategy-detail', { params: { index } })
 }
 
+/** Absence nommée quand le service n'a pas répondu — même raison partout. */
+const STRATEGY_DETAIL_UNREACHABLE = unavailable({
+  endpoint: ENDPOINT,
+  status: 'UNAVAILABLE' as const,
+  reason: 'strategy_detail_unreachable',
+})
+
 export function lectureStrategieDetail(
   index: number | null,
   reponse: Awaited<ReturnType<typeof loadStrategyDetail>> | null,
@@ -40,11 +47,7 @@ export function lectureStrategieDetail(
     return unavailable({ endpoint: ENDPOINT, status: 'EMPTY', reason: 'no_strategy_in_register' })
   }
   if (reponse === null || !reponse.ok) {
-    return unavailable({
-      endpoint: ENDPOINT,
-      status: 'UNAVAILABLE',
-      reason: 'strategy_detail_unreachable',
-    })
+    return STRATEGY_DETAIL_UNREACHABLE
   }
   const bloc = blocNormalise(reponse.data.strategy)
   return mapAvailability(availabilityFromResolu(bloc, ENDPOINT), () =>
@@ -56,11 +59,7 @@ export function libelleStrategieDetail(
   reponse: Awaited<ReturnType<typeof loadStrategyDetail>> | null,
 ): Availability<string> {
   if (reponse === null || !reponse.ok) {
-    return unavailable({
-      endpoint: ENDPOINT,
-      status: 'UNAVAILABLE',
-      reason: 'strategy_detail_unreachable',
-    })
+    return STRATEGY_DETAIL_UNREACHABLE
   }
   const bloc = blocNormalise(reponse.data.strategy)
   return mapAvailability(availabilityFromResolu(bloc, ENDPOINT), (value) => {

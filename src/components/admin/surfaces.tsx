@@ -1,6 +1,5 @@
 import { surfaceBox, surfaceInset } from '@/components/admin/surface'
-import { sectionContentGap } from '@/lib/layout-tokens'
-import { AdminBody, AdminCaption, AdminLabel, AdminSectionTitle, adminTypography } from '@/components/admin/typography'
+import { AdminCaption, AdminLabel, adminTypography } from '@/components/admin/typography'
 import { ProblemState, RequestMetadata, StatusBadge } from '@/components/admin/truthful'
 import { formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
@@ -36,48 +35,6 @@ export function AdminSurface({
     >
       {children}
     </Tag>
-  )
-}
-
-export function AdminSection({
-  title,
-  description,
-  actions,
-  index,
-  children,
-  id,
-  className,
-}: Readonly<{
-  title?: string
-  description?: string
-  actions?: React.ReactNode
-  index?: string
-  children: React.ReactNode
-  id?: string
-  className?: string
-}>) {
-  const hasHeader = Boolean(title || actions || description)
-
-  return (
-    <section id={id} className={clsx(className, hasHeader && 'border-t border-ink/10 pt-8 dark:border-console-line')}>
-      {hasHeader ? (
-        <>
-          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-            <div className="flex items-baseline gap-3">
-              {index ? (
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-console-inset text-[0.6875rem] font-semibold tabular-nums text-fg ring-1 ring-console-line-soft">
-                  {index}
-                </span>
-              ) : null}
-              {title ? <AdminSectionTitle>{title}</AdminSectionTitle> : null}
-            </div>
-            {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
-          </div>
-          {description ? <AdminBody className="mt-1.5 max-w-3xl">{description}</AdminBody> : null}
-        </>
-      ) : null}
-      <div className={clsx(hasHeader && 'mt-6', sectionContentGap)}>{children}</div>
-    </section>
   )
 }
 

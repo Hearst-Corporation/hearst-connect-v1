@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -200,9 +200,9 @@ export default async function RuntimePage() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader>Component</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Detail</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Component</TableHeader>
+            <TableHeader className={fitTableColCompact}>Status</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Detail</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

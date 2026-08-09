@@ -16,6 +16,8 @@ import {
   StatGrid,
   SectionCard,
   DataTableShell,
+  fitTableColCompact,
+  fitTableColPrimary,
 } from '@/components/compositions'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
@@ -215,9 +217,9 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
         >
           <TableHead>
             <TableRow>
-              <TableHeader>Surface</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Reason</TableHeader>
+              <TableHeader className={fitTableColPrimary}>Surface</TableHeader>
+              <TableHeader className={fitTableColCompact}>Status</TableHeader>
+              <TableHeader className={fitTableColPrimary}>Reason</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -251,9 +253,9 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
       >
         <TableHead>
           <TableRow>
-            <TableHeader>Source</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Detail</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Source</TableHeader>
+            <TableHeader className={fitTableColCompact}>Status</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Detail</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

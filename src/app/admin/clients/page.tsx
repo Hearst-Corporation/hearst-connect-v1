@@ -9,8 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell } from '@/components/compositions'
-import { loadAdminAssetScale, loadAdminClientsDirectory, type AdminRecentClient } from '@/lib/admin-dashboard/load'
+import { Callout, DataTableShell, fitTableColPrimary } from '@/components/compositions'
+import { loadAdminAssetScale, loadAdminClientsDirectory } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
 import { isAvailable, measuredCount } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
@@ -27,12 +27,6 @@ export const dynamic = 'force-dynamic'
  * Fall back to GET /api/v1/clients (id + label) when the rich read is empty/unavailable.
  * No Create client button — POST /api/v1/admin/users creates an application user, not a client record.
  */
-
-function toDirectoryRows(
-  recent: readonly AdminRecentClient[],
-): readonly AdminRecentClient[] {
-  return recent
-}
 
 export default async function Page() {
   const session = await requireSession()
@@ -69,7 +63,7 @@ export default async function Page() {
       />
 
       {useRich ? (
-        <ClientsDirectory clients={toDirectoryRows(richRows)} assetScale={assetScale} />
+        <ClientsDirectory clients={richRows} assetScale={assetScale} />
       ) : useThin ? (
         thinRows.length === 0 ? (
           <Callout tone="info" title="No clients yet">
@@ -83,8 +77,8 @@ export default async function Page() {
           >
             <TableHead>
               <TableRow>
-                <TableHeader>Client</TableHeader>
-                <TableHeader>Identifier</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Client</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Identifier</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
