@@ -1,7 +1,5 @@
 import {
   ActivityTimelinePanel,
-  DASHBOARD_CHART_SLOT_CLASS,
-  DASHBOARD_CHART_SLOT_HEIGHT,
   ChartPlaceholder,
   DashCard,
   DashboardHeader,
@@ -59,7 +57,7 @@ function ActivityChartSlot({
       <HearstActivityChart
         points={activityPoints}
         unite="events"
-        height={DASHBOARD_CHART_SLOT_HEIGHT}
+        height={176}
       />
     )
   }
@@ -70,16 +68,14 @@ function ActivityChartSlot({
         ? (activityTimeseries.reason ?? 'No events indexed yet.')
         : null
     return (
-      <div
-        className={`flex h-full min-h-0 flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft ${DASHBOARD_CHART_SLOT_CLASS}`}
-      >
+      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
         <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
         <p className="text-fg-tertiary text-xs">{reason}</p>
       </div>
     )
   }
 
-  return <ChartPlaceholder title="Activity" dashboardSlot icon={ChartBarIcon} />
+  return <ChartPlaceholder title="Activity" height={176} icon={ChartBarIcon} />
 }
 
 /**
@@ -140,21 +136,6 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
-      {/*
-       * Dashboard deterministic regions — one AdminGrid row per band.
-       * Spans 7+5 / 6+3+3 / 4+4+4 share the same 12-column tracks so vertical
-       * edges align across rows. Card shells stay intrinsic; only content slots
-       * inside widgets stay stable between data states.
-       *
-       * Medium spans: never put three `md={4}` in one band — on the 8-column
-       * ladder that yields 4+4 then a stranded half-row. Tertiary columns keep
-       * the default md=8 (stack) until the 12-column ladder; secondary side
-       * panels may share an 8-column row as a deliberate 4+4 pair after the
-       * timeline stacks.
-       *
-       * Primary band: stretch shells so Exposure + Activity share one baseline
-       * (no page hole under the shorter chart card). Chart viewport stays 11rem.
-       */}
       <div className="flex flex-col gap-4">
         <AdminGrid align="stretch">
           <AdminCol span={7}>
@@ -195,7 +176,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
             </DashCard>
           </AdminCol>
 
-          <AdminCol span={3} md={4}>
+          <AdminCol span={3}>
             <DashCard
               className="min-w-0"
               title="Rebalancing & alerts"
@@ -205,7 +186,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
             </DashCard>
           </AdminCol>
 
-          <AdminCol span={3} md={4}>
+          <AdminCol span={3}>
             <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
               <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
             </DashCard>

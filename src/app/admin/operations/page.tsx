@@ -304,7 +304,6 @@ export default async function Page() {
         </Callout>
       ) : (
         <DataTableShell
-          fit
           title="Recent operations"
           description="Rebalancing, vault, and related indexed activity. Full transaction hash is on the title attribute."
           count={opsEvents.length > 0 ? `${opsEvents.length}` : undefined}

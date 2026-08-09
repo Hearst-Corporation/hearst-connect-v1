@@ -153,9 +153,8 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
 function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>) {
   return (
     <>
-      <div className="hidden min-w-0 md:block">
+      <div className="hidden min-w-0 lg:block">
         <DataTableShell
-          fit
           title="Vaults"
           description="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
           count={`${formatNumber(vaultList.length)} vault(s)`}
@@ -181,7 +180,7 @@ function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[]
       <SectionCard
         title="Vaults"
         hint="Capital and allocation drift as reported by the service."
-        className="md:hidden"
+        className="lg:hidden"
         actions={
           <span className="text-xs text-fg-tertiary">{formatNumber(vaultList.length)} vault(s)</span>
         }

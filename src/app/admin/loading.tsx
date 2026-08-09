@@ -8,7 +8,7 @@ import { Text } from '@/components/catalyst/text'
 export default function AdminLoading() {
   return (
     <div
-      className="flex min-h-[var(--dashboard-summary-slot-block-size)] items-center justify-center"
+      className="flex min-h-36 items-center justify-center"
       aria-busy="true"
       aria-live="polite"
     >
