@@ -63,11 +63,20 @@ export type BaseSpan = keyof typeof BASE_SPAN
 export function AdminGrid({
   children,
   className,
+  align = 'start',
   as: Tag = 'div',
   ...rest
 }: Readonly<{
   children: React.ReactNode
   className?: string
+  /**
+   * Row cross-axis alignment.
+   * - `start` (default): intrinsic card shells — short mates do not grow.
+   * - `stretch`: deliberate shared baseline for a matched pair/band (caller
+   *   must put `h-full` on the card shells). Prefer this over fighting
+   *   `items-start` via className — Tailwind conflict resolution is not a contract.
+   */
+  align?: 'start' | 'stretch'
   as?: 'div' | 'section' | 'ul' | 'dl' | 'nav'
 }> &
   Omit<React.HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
@@ -112,13 +121,10 @@ export function AdminGrid({
       <Tag
         {...rest}
         className={clsx(
-          // `items-start` is the default on purpose. Grid items stretch to the
-          // tallest row-mate unless told otherwise, and that is exactly how a
-          // card holding four lines ends up 200px tall next to a long list —
-          // "a giant card with tiny content", in the reviewer's words. Every
-          // card now ends where its content ends. A caller that genuinely wants
-          // two cards to share a baseline can pass `items-stretch`.
-          'grid grid-cols-4 items-start @[34rem]:grid-cols-8 @[60rem]:grid-cols-12',
+          // Default `start`: short cards stay short. Opt into `stretch` only
+          // when a band deliberately shares one baseline (see dashboard primary).
+          'grid grid-cols-4 @[34rem]:grid-cols-8 @[60rem]:grid-cols-12',
+          align === 'stretch' ? 'items-stretch' : 'items-start',
           gridGap,
           className,
         )}

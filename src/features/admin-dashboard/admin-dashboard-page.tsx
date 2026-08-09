@@ -109,12 +109,15 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
        * the default md=8 (stack) until the 12-column ladder; secondary side
        * panels may share an 8-column row as a deliberate 4+4 pair after the
        * timeline stacks.
+       *
+       * Primary band: stretch shells so Exposure + Activity share one baseline
+       * (no page hole under the shorter chart card). Chart viewport stays 11rem.
        */}
       <div className="flex flex-col gap-4">
-        <AdminGrid>
+        <AdminGrid align="stretch">
           <AdminCol span={7}>
             <DashCard
-              className="min-w-0"
+              className="h-full min-w-0"
               title="Portfolio exposure"
               subtitle="Where capital is allocated vs target"
             >
@@ -123,7 +126,12 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
           </AdminCol>
 
           <AdminCol span={5}>
-            <DashCard className="min-w-0" title="Activity" subtitle="Daily volume · 28 days">
+            <DashCard
+              className="h-full min-w-0"
+              contentClassName="flex-1"
+              title="Activity"
+              subtitle="Daily volume · 28 days"
+            >
               {showActivityCurve ? (
                 <HearstActivityChart
                   points={activityPoints}
