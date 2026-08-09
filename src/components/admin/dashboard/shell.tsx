@@ -5,7 +5,8 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 /**
- * Conteneur pilotage — surfaces via tokens (`surfaceBox` = verre console-card).
+ * Conteneur pilotage dashboard.
+ * Matière des cartes = `surfaceBox` (canon PASS 2) — pas un second verre.
  */
 export function DashboardShell({
   children,
@@ -18,6 +19,12 @@ export function DashboardShell({
   )
 }
 
+/**
+ * DashCard — CARD sémantique dashboard (Rule 60).
+ *
+ * Ce n'est PAS une deuxième matière : même `surfaceBox` que `Panel`.
+ * API utile (title/subtitle + anti-stretch) ; le parent (bento) décide la place.
+ */
 export function DashCard({
   children,
   className,
@@ -30,7 +37,7 @@ export function DashCard({
   subtitle?: string
 }>) {
   return (
-    <section className={clsx(surfaceBox, 'flex flex-col', className)}>
+    <section data-surface="box" className={clsx(surfaceBox, 'flex flex-col', className)}>
       {title !== undefined ? (
         <header className="px-5 pt-5 pb-1">
           <Subheading>{title}</Subheading>

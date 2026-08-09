@@ -13,17 +13,10 @@ import clsx from 'clsx'
  */
 
 /*
- * `Panel` a été retiré d'ici le 2026-08-04 (HC-UI-CONVERGENCE-001).
- *
- * Il vit désormais dans `@/components/compositions/panel` — une seule surface
- * canonique pour toute la console, avec la matière déclarée par un `tone`
- * explicite au lieu d'un `className` deviné. Ce fichier ne garde que ce qui
- * relève vraiment de la matière de la console : la grammaire de l'absence
- * (`Absent`, `Reading`) et les classes du module CSS (`csl`).
- *
- * L'ancre de géométrie `data-csl` reste disponible : `Panel` accepte les
- * attributs HTML arbitraires, donc les revues visuelles qui mesurent les boîtes
- * par `[data-csl='…']` continuent de fonctionner.
+ * `Panel` vit dans `@/components/compositions/panel` (PASS 2) : matière =
+ * `surfaceBox` (tokens Tailwind), tones csl = géométrie seulement.
+ * Ici : grammaire d'absence (`Absent`, `Reading`) + classes `csl` (géométrie /
+ * typo métriques / états). `.panel` CSS-module n'est plus la matière des boxes.
  */
 
 /**

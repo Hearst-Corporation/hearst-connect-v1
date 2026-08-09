@@ -127,12 +127,17 @@ Interdit : glow sur chaque card · filters coûteux permanents · décor qui tue
 
 ## Primitives DS (appartenance)
 
-Appartiennent au DS : tokens `@theme` · `surfaceBox` / `surfaceNav` / `surfaceInset` · `Panel` /
+Appartiennent au DS : tokens `@theme` · **matière** `surfaceBox` / `surfaceNav` / `surfaceInset` /
+`surfaceSelect` · **composition** `Panel` (matière = `surfaceBox`, tones = géométrie) ·
 `SectionCard` / `DashCard` · `adminTypography` · `FitTable` · `status-tone` · empty/truthful states ·
 `chart-theme`.
 
-N'appartiennent **pas** au DS à sacraliser : hex/`--csl-*` locaux module CSS, largeurs aside
-viewport, `AdminGrid` orphelin, hauteurs chart legacy non dérivées des points, namespaces externes.
+Frontière PASS 2 : une box = `surfaceBox` ; `Panel` et `DashCard` composent cette matière.
+Les classes csl `wavePanel` / `metricCard` / … = géométrie/densité, **pas** un second verre.
+
+N'appartiennent **pas** au DS à sacraliser : hex/`--csl-*` couleur locaux, `.panel` CSS-module
+comme matière, largeurs aside viewport, `AdminGrid` orphelin, hauteurs chart non dérivées,
+namespaces externes.
 
 ## Avant toute valeur littérale UI
 

@@ -628,7 +628,11 @@
   --panel-fallback-border: var(--color-console-line, rgba(255, 255, 255, 0.13));
 }
 
-/* The one panel material every surface shares — verre + blur. */
+/*
+ * LEGACY matière CSS (PASS 2) : les boxes React utilisent `surfaceBox`
+ * (Tailwind tokens). `.panel` n'est plus branché par `Panel` — conservé
+ * uniquement si une géométrie csl historique le référence encore.
+ */
 .panel {
   border: 1px solid var(--csl-panel-border, var(--panel-fallback-border));
   border-radius: 0.75rem;
