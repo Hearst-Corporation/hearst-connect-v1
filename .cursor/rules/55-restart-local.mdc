@@ -1,0 +1,42 @@
+---
+description: Redémarrer le runtime local (pnpm dev :4105) au début de chaque mission
+alwaysApply: true
+---
+
+# RÈGLE — Redémarrer le local à chaque mission
+
+Pour toute **mission de travail** dans ce workspace (implémentation, QA UI,
+parcours navigateur, debug runtime), **redémarrer le serveur local** au début
+de la passe — ne pas réutiliser un `pnpm dev` potentiellement stale.
+
+## Runtime canonique
+
+| Élément | Valeur |
+|---|---|
+| Commande | `pnpm dev` |
+| Port | **4105** |
+| URL | `http://localhost:4105` |
+
+## Procédure (début de mission / début de passe cohérente)
+
+1. Libérer le port 4105 s’il est occupé (processus stale) — sans tuer d’autres
+   services hors périmètre.
+2. Lancer `pnpm dev` depuis la racine du repo.
+3. Vérifier que le serveur répond sur `http://localhost:4105` avant toute QA
+   navigateur ou preuve runtime UI.
+
+## Fin de mission
+
+Cleanup ports stale = partie du DoD (voir `40-shared-quality.mdc`).
+
+## Exceptions (pas de redémarrage obligatoire)
+
+- Question pure / bootstrap rules / lecture seule sans preuve runtime.
+- Gate pure (`pnpm check`, typecheck, lint, tests unitaires) sans parcours UI.
+- Instruction explicite d’Adrien : ne pas toucher au local.
+
+## Interdit
+
+- Empiler plusieurs `pnpm dev` sur le même port.
+- Utiliser un autre port « parce que 4105 est pris » sans d’abord libérer 4105.
+- Présenter une preuve UI sur un serveur non redémarré pour la mission courante.
