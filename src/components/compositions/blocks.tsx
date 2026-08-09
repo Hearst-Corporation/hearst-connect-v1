@@ -234,6 +234,13 @@ export function SectionCard({
  * libellé DÉJÀ formaté (« 12 mouvements ») — le bloc ne compte pas.
  */
 /**
+ * Column roles for `FitTable` (`table-fixed`): primary absorbs remaining width;
+ * compact columns shrink to their intrinsic minimum.
+ */
+export const fitTableColPrimary = 'min-w-0'
+export const fitTableColCompact = 'w-0 whitespace-nowrap'
+
+/**
  * Table that must fit its panel — no overflow-x-auto, no forced nowrap.
  * Prefer fewer primary columns + detail links over horizontal scrolling.
  */

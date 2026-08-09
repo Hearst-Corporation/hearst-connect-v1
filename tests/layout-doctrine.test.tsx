@@ -262,6 +262,7 @@ describe('chart sizing', () => {
   it('derives height from data volume rather than one global constant', () => {
     expect(chartHeight('rows', 3)).toBeLessThan(chartHeight('rows', 8))
     expect(chartHeight('columns', 2)).toBeLessThan(chartHeight('columns', 20))
+    expect(chartHeight('donut', 4)).toBe(220)
     // …and never grows without bound: a long series is scrolled, not stretched.
     expect(chartHeight('rows', 50)).toBeLessThanOrEqual(420)
     expect(chartHeight('columns', 400)).toBeLessThanOrEqual(320)

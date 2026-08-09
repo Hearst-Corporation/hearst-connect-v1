@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
@@ -196,12 +196,12 @@ export default async function Page() {
             >
               <TableHead>
                 <TableRow>
-                  <TableHeader className="w-[26%]">Vault</TableHeader>
-                  <TableHeader className="w-[16%]">AUM</TableHeader>
-                  <TableHeader className="w-[16%]">Deployed</TableHeader>
-                  <TableHeader className="w-[16%]">Available</TableHeader>
-                  <TableHeader className="w-[12%]">Drift</TableHeader>
-                  <TableHeader className="w-[14%]">Rebalance</TableHeader>
+                  <TableHeader className={fitTableColPrimary}>Vault</TableHeader>
+                  <TableHeader className={fitTableColCompact}>AUM</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Deployed</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Available</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Drift</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>

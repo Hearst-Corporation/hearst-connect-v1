@@ -8,7 +8,7 @@ import {
   ReserveExpositionChart,
   type PosteBitcoin,
 } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { figureDepuisResolu } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
@@ -267,8 +267,8 @@ export default async function Page() {
             >
               <TableHead>
                 <TableRow>
-                  <TableHeader className="w-[50%]">Position</TableHeader>
-                  <TableHeader className="w-[50%]">Amount (USD)</TableHeader>
+                  <TableHeader className={fitTableColPrimary}>Position</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Amount (USD)</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -318,8 +318,8 @@ export default async function Page() {
           >
             <TableHead>
               <TableRow>
-                <TableHeader className="w-[50%]">Month</TableHeader>
-                <TableHeader className="w-[50%]">Rate %</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Month</TableHeader>
+                <TableHeader className={fitTableColCompact}>Rate %</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>

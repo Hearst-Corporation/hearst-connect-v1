@@ -4,7 +4,7 @@ import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
-import { DataTableShell, SectionCard } from '@/components/compositions'
+import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { requireSession } from '@/lib/auth'
@@ -208,11 +208,11 @@ export default async function Page({ params }: PageProps) {
           >
             <TableHead>
               <TableRow>
-                <TableHeader className="w-[36%]">Strategy</TableHeader>
-                <TableHeader className="w-[16%]">Target</TableHeader>
-                <TableHeader className="w-[16%]">Exposure</TableHeader>
-                <TableHeader className="w-[16%]">Drift</TableHeader>
-                <TableHeader className="w-[16%]">Rebalance</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Strategy</TableHeader>
+                <TableHeader className={fitTableColCompact}>Target</TableHeader>
+                <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
+                <TableHeader className={fitTableColCompact}>Drift</TableHeader>
+                <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -267,10 +267,10 @@ export default async function Page({ params }: PageProps) {
         <DataTableShell fit title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
           <TableHead>
             <TableRow>
-              <TableHeader className="w-[22%]">Time</TableHeader>
-              <TableHeader className="w-[30%]">Type</TableHeader>
-              <TableHeader className="w-[24%]">Amount</TableHeader>
-              <TableHeader className="w-[24%]">Tx</TableHeader>
+              <TableHeader className={fitTableColCompact}>Time</TableHeader>
+              <TableHeader className={fitTableColPrimary}>Type</TableHeader>
+              <TableHeader className={fitTableColCompact}>Amount</TableHeader>
+              <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>

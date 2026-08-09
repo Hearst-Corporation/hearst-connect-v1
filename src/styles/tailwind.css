@@ -180,6 +180,9 @@
   --dashboard-chart-slot-block-size: 11rem;
   --dashboard-list-slot-block-size: 15rem;
   --dashboard-summary-slot-block-size: 9rem;
+  /* Donut chart — stable categorical viewport (not panel-driven). */
+  --chart-donut-viewport-block-size: 13.75rem;
+  --chart-donut-viewport-max-inline-size: 16.25rem;
   /*
    * Alias `--color-hearst-*` / `--color-cockpit-*` retirés (2026-08-04 LOT E +
    * 2026-08-07) : plus aucun consommateur runtime. Surfaces enfoncées =

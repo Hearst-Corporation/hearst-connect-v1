@@ -8,7 +8,7 @@ import {
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -164,9 +164,9 @@ export default async function KeeperPage() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader className="w-[36%]">Action</TableHeader>
-            <TableHeader className="w-[34%]">Call</TableHeader>
-            <TableHeader className="w-[30%]">Contract reserve</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Action</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Call</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Contract reserve</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

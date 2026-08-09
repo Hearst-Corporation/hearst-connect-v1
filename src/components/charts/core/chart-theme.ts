@@ -122,6 +122,12 @@ export type ChartKind =
   | 'columns'
   /** Continuous series. */
   | 'line'
+  /** Categorical donut — square viewport, slice count does not resize the slot. */
+  | 'donut'
+
+/** Stable donut viewport — mirrors `--chart-donut-viewport-*` in `tailwind.css`. */
+export const DONUT_VIEWPORT_BLOCK_SIZE = 'var(--chart-donut-viewport-block-size)'
+export const DONUT_VIEWPORT_MAX_INLINE_SIZE = 'var(--chart-donut-viewport-max-inline-size)'
 
 /** Row height and chrome for a horizontal bar chart, in px. */
 const ROW_HEIGHT = 44
@@ -153,6 +159,8 @@ export function chartHeight(kind: ChartKind, points: number): number {
       if (points <= 6) return 200
       if (points <= 24) return 240
       return 280
+    case 'donut':
+      return 220
   }
 }
 

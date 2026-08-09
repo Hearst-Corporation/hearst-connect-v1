@@ -25,6 +25,8 @@ export {
   SectionCard,
   DataTableShell,
   FitTable,
+  fitTableColPrimary,
+  fitTableColCompact,
   Callout,
   type DeltaTone,
   type CalloutTone,

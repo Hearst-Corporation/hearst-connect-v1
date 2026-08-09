@@ -3,7 +3,7 @@ import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Callout, DataTableShell } from '@/components/compositions'
+import { Callout, DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { kycStatusLabel, kycStepLabel } from '@/lib/labels'
@@ -65,10 +65,10 @@ export default async function Page() {
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader className="w-[34%]">Client</TableHeader>
-                  <TableHeader className="w-[22%]">Stage</TableHeader>
-                  <TableHeader className="w-[22%]">KYC</TableHeader>
-                  <TableHeader className="w-[22%]">Updated</TableHeader>
+                  <TableHeader className={fitTableColPrimary}>Client</TableHeader>
+                  <TableHeader className={fitTableColPrimary}>Stage</TableHeader>
+                  <TableHeader className={fitTableColCompact}>KYC</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Updated</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
