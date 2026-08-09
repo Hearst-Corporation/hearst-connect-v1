@@ -391,7 +391,7 @@ export function movementDailyHeatmap(
   if (buckets.size === 0) {
     return available([], { provenance: 'indexed' })
   }
-  const sortedDays = [...buckets.keys()].sort()
+  const sortedDays = [...buckets.keys()].sort((a, b) => a.localeCompare(b))
   const latest = sortedDays[sortedDays.length - 1]!
   const end = Date.parse(`${latest}T00:00:00.000Z`)
   const cells: HeatmapCell[] = []
