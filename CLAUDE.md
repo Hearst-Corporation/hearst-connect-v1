@@ -52,8 +52,8 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
 
 ## Gates & tests
 
-- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:no-zinc` → `check:mocks` → `check:truthful-data` → `check:ds` → `check:ui` → `test`, en
-  série (le premier rouge arrête tout). Pas de build dans la gate (le build vit dans le
+- Gate canonique : `pnpm check` = `typecheck` → `lint` → `check:no-gpu1` → `check:no-zinc` → `check:mocks` → `check:truthful-data` → `check:ds` → `check:admin-ds` → `check:ui` → `check:english-ui` → `test`, en
+  série (le premier rouge arrête tout). Source de vérité des scripts : `package.json`. Pas de build dans la gate (le build vit dans le
   déploiement).
 - **Pas de gate de design *imposée* (décision du 2026-07-31).** Pas de Storybook obligatoire,
   pas de captures ni de revue visuelle imposées, aucune bibliothèque de composants imposée. Le
@@ -89,8 +89,12 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   - `check:ds` (`scripts/check-design-system.mjs`) — aucun hexadécimal brut hors token dans
     `src/app`, `components/admin`, `components/vaults`, `components/marketing`. Sa propre preuve :
     `node scripts/check-design-system.mjs --selftest`.
+  - `check:admin-ds` (`scripts/check-admin-ds-contract.mjs`) — contrat de composition admin
+    (header / KPI / surfaces) aligné sur les pages console.
   - `check:ui` (`scripts/check-ui-boundaries.mjs`) — frontières compositions / charts / Catalyst.
-  - `test` (`vitest run`) — suite dans `tests/` (40 fichiers / 315 tests, mesuré au 2026-08-05),
+  - `check:english-ui` (`scripts/check-english-ui.mjs`) — UI produit English-only (`lang="en"`,
+    routes canoniques EN, pas de copy FR runtime hors legacy redirects).
+  - `test` (`vitest run`) — suite dans `tests/` (59 fichiers / 455 tests, mesuré au 2026-08-09),
     dont `truthful-rendering`, `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`,
     `veracity-p0`, `language-regression`.
 - En complément de la gate, avant livraison : parcours réel (connexion → dashboard → déconnexion).
