@@ -11,7 +11,8 @@ alwaysApply: true
   compositions (`surface.tsx`, `Panel`, `DashCard`, `adminTypography`, `chart-theme`).
 - Gouvernance externe / DS `Hearst-Defi` (`--ct-*`, Storybook bloquant, runner `gpu1`) =
   **référence organisationnelle uniquement** — jamais autorité tokens, layout, infra ou gates.
-- Interdit d'introduire un second namespace (`--ct-*`, zinc/slate/gray structurels, surfaces ad hoc).
+- Interdit d'introduire un second namespace (`--ct-*`, rampes structurelles Tailwind
+  interdites par `50-no-zinc.mdc`, surfaces ad hoc).
 
 ## Extends (ne pas recopier)
 

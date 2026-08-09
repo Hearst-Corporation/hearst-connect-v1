@@ -15,13 +15,6 @@
  * sensible default: full width below `lg`.
  */
 
-/**
- * Mesure de lecture optionnelle pour un bloc de prose — le shell admin
- * n’impose plus de plafond global (`max-w-6xl` retiré) : le contenu est fluide
- * dans la colonne à côté du rail.
- */
-export const pageMaxWidth = 'max-w-[1280px]'
-
 /** Between content blocks inside one section. */
 export const sectionContentGap = 'space-y-6'
 
@@ -32,6 +25,9 @@ export const gridGap = 'gap-6'
  * Retirés le 2026-08-04 (LOT B) : `pageInlinePadding`, `pageBlockPadding`,
  * `surfacePadding`, `surfaceCompactPadding`, `tableCellPadding` et
  * `toolbarPadding`. Créés par HC-UI-NORMALIZATION-001, ils n'ont jamais trouvé
- * de consommateur — les surfaces déclarent leur propre inset. Les quatre
- * tokens ci-dessus sont, eux, réellement utilisés.
+ * de consommateur — les surfaces déclarent leur propre inset.
+ *
+ * Retiré PASS 1 (2026-08-09) : `pageMaxWidth` (`max-w-[1280px]`) — plus aucun
+ * import runtime ; le shell admin reste fluide à côté du rail. Les deux tokens
+ * ci-dessus sont réellement utilisés (`surfaces.tsx`, `grid.tsx`).
  */
