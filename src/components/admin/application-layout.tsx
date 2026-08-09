@@ -1,6 +1,5 @@
 'use client'
 
-import { Avatar } from '@/components/catalyst/avatar'
 import {
   Dropdown,
   DropdownButton,
@@ -23,6 +22,7 @@ import {
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
 import { AdminBodyNav } from '@/components/admin/body-nav'
+import { NavbarAvatar, SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
 import { HearstConnectLockupImage } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {
@@ -79,12 +79,7 @@ export function AdminApplicationLayout({
   const groupeActif = groupeSecondaireActif(pathname)
   const primaireActif = hrefActif(pathname)
   const compteActif = estRouteCompte(pathname)
-  const initials = user.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('')
+  const initials = userInitials(user.name)
 
   return (
     <SidebarLayout
@@ -94,7 +89,7 @@ export function AdminApplicationLayout({
           <NavbarSection>
             <Dropdown>
               <DropdownButton as={NavbarItem}>
-                <Avatar initials={initials || 'HC'} square alt="" />
+                <NavbarAvatar initials={initials} />
               </DropdownButton>
               <AccountMenu anchor="bottom end" compteActif={compteActif} />
             </Dropdown>
@@ -150,17 +145,7 @@ export function AdminApplicationLayout({
           <SidebarFooter className="max-lg:hidden">
             <Dropdown>
               <DropdownButton as={SidebarItem}>
-                <span className="flex min-w-0 items-center gap-3">
-                  <Avatar initials={initials || 'HC'} className="size-10" square alt="" />
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm/5 font-medium text-ink dark:text-fg">
-                      {user.name}
-                    </span>
-                    <span className="block truncate text-xs/5 font-normal text-fg-tertiary dark:text-fg-secondary">
-                      {user.email}
-                    </span>
-                  </span>
-                </span>
+                <SidebarFooterIdentity initials={initials} name={user.name} email={user.email} />
                 <ChevronUpIcon />
               </DropdownButton>
               <AccountMenu anchor="top start" compteActif={compteActif} />

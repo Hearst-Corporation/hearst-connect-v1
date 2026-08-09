@@ -28,13 +28,13 @@ export type EntreeNav = Readonly<{
   icone: IconeNav
 }>
 
-export const CLIENTS_ENTRY: EntreeNav = {
+const CLIENTS_ENTRY: EntreeNav = {
   label: 'Clients',
   href: '/admin/clients',
   icone: BuildingOffice2Icon,
 }
 
-export const VAULTS_ENTRY: EntreeNav = {
+const VAULTS_ENTRY: EntreeNav = {
   label: 'Vaults',
   href: '/admin/vaults',
   icone: CircleStackIcon,
@@ -62,7 +62,7 @@ export type GroupeSecondaire = Readonly<{
   entrees: readonly EntreeSecondaire[]
 }>
 
-export const PRODUIT_ENTRY: EntreeSecondaire = {
+const PRODUIT_ENTRY: EntreeSecondaire = {
   label: 'Product',
   href: '/admin/product',
   icone: DocumentTextIcon,

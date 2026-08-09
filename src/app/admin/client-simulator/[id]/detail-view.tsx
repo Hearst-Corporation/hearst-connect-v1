@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, fitTableColPrimary } from '@/components/compositions'
 import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { available, mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
@@ -149,8 +149,8 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
           <>
             <TableHead>
               <TableRow>
-                <TableHeader>Champ</TableHeader>
-                <TableHeader>Valeur</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Champ</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Valeur</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>

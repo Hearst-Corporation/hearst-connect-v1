@@ -222,23 +222,3 @@ export function AdminMetricGrid({
 }>) {
   return <Tag className={clsx(className, 'grid gap-4', balancedColumns(count))}>{children}</Tag>
 }
-
-/**
- * Table page — a full-width toolbar and table, with a deliberate secondary
- * column for the summary rather than a panel floating wherever it lands.
- */
-export function AdminTableSplit({
-  main,
-  aside,
-  className,
-}: Readonly<{ main: React.ReactNode; aside?: React.ReactNode; className?: string }>) {
-  if (aside === undefined) return <div className={clsx(className, 'min-w-0')}>{main}</div>
-  return (
-    <AdminGrid className={className}>
-      <AdminCol span={8}>{main}</AdminCol>
-      <AdminCol span={4} as="aside">
-        {aside}
-      </AdminCol>
-    </AdminGrid>
-  )
-}

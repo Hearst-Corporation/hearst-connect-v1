@@ -130,10 +130,10 @@ function RebalancingSection({
           <DataTableShell title="Needs attention" count={`${data.alerts.length}`}>
             <TableHead>
               <TableRow>
-                <TableHeader>Strategy</TableHeader>
-                <TableHeader>Drift</TableHeader>
-                <TableHeader>Vault</TableHeader>
-                <TableHeader className="text-right">Action</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Strategy</TableHeader>
+                <TableHeader className={fitTableColCompact}>Drift</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Vault</TableHeader>
+                <TableHeader className={`${fitTableColCompact} text-right`}>Action</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>

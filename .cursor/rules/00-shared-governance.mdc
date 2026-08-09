@@ -35,7 +35,7 @@ Instruction explicite d'Adrien = autorisation opérationnelle — ne pas redeman
 
 Les domaines transversaux ont **un owner canonique unique** : gouvernance = ce fichier (00) ·
 git = `10-shared-git-lifecycle.mdc` · format de réponse = `20-shared-response-format.mdc` ·
-no-hardcode = `30-shared-no-hardcode.mdc` · qualité = `40-shared-quality.mdc`.
+qualité = `40-shared-quality.mdc`.
 
 - Une **règle projet peut ÉTENDRE** une règle shared (ajouter une contrainte spécifique, la durcir).
 - Elle **ne doit pas la recopier ni la redéfinir silencieusement** : elle **pointe** vers la règle

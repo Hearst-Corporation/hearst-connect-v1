@@ -66,7 +66,7 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   dans les routes et modules métier, pour qu'une couleur passe toujours par un token.
   **Doctrine DS locale (2026-08-09) :** autorité visuelle = ce dépôt
   (`.cursor/rules/60-design-system.mdc` + `src/styles/tailwind.css`) — pas le DS `--ct-*`
-  de `Hearst-Defi`. Étendez `30-shared-no-hardcode` / `50-no-zinc` ; ne les recopiez pas.
+  de `Hearst-Defi`. Étendez `50-no-zinc` ; ne le recopiez pas.
 - Ce que chaque étape garantit :
   - `typecheck` (`tsc --noEmit`) — TypeScript strict, aucune erreur de type.
   - `lint` (`eslint`) — `src/components/catalyst/**` volontairement ignoré.

@@ -18,6 +18,26 @@ function textField(formData: FormData, name: string): string {
 }
 
 /**
+ * Authenticates against the backend and seals the result into the session
+ * cookie. Shared tail for `login` and `quickLoginOwner`: same handoff from
+ * credentials to a live session, whichever way the credentials were sourced.
+ */
+async function authenticateAndStartSession(email: string, password: string): Promise<LoginState> {
+  const result = await authenticate(email, password)
+  if (!result.ok) {
+    return { error: result.error }
+  }
+
+  const started = await startSession(result.session)
+  if (!started) {
+    // Token already expired on receipt: don't set a stillborn cookie.
+    return { error: loginErrorMessage('malformed_response') }
+  }
+
+  redirect('/admin')
+}
+
+/**
  * Server Action for the login form.
  *
  * Everything happens server side: credentials go to the backend from here,
@@ -32,18 +52,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     return { error: loginErrorMessage('missing_fields') }
   }
 
-  const result = await authenticate(email, password)
-  if (!result.ok) {
-    return { error: result.error }
-  }
-
-  const started = await startSession(result.session)
-  if (!started) {
-    // Token already expired on receipt: don't set a stillborn cookie.
-    return { error: loginErrorMessage('malformed_response') }
-  }
-
-  redirect('/admin')
+  return authenticateAndStartSession(email, password)
 }
 
 /** Server Action for logout. */
@@ -75,15 +84,5 @@ export async function quickLoginOwner(_prevState: LoginState): Promise<LoginStat
     return { error: 'DEV_QUICK_LOGIN_EMAIL / DEV_QUICK_LOGIN_PASSWORD missing from .env.local.' }
   }
 
-  const result = await authenticate(credentials.email, credentials.password)
-  if (!result.ok) {
-    return { error: result.error }
-  }
-
-  const started = await startSession(result.session)
-  if (!started) {
-    return { error: loginErrorMessage('malformed_response') }
-  }
-
-  redirect('/admin')
+  return authenticateAndStartSession(credentials.email, credentials.password)
 }

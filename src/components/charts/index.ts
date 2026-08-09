@@ -21,7 +21,6 @@ export { ChartFrame, type SeriesState, type EtatSerie } from '@/components/chart
 export { plottableAsChart } from '@/components/charts/core/chart-theme'
 
 /* ── Cartésiens ───────────────────────────────────────────────────────────── */
-export { ProductionMensuelleChart, type MoisProduction } from '@/components/charts/cartesian/btc-production-chart'
 export { ReserveExpositionChart, type PosteBitcoin } from '@/components/charts/cartesian/product-charts'
 
 /* ── richart ──────────────────────────────────────────────────────────────── */
@@ -30,7 +29,6 @@ export { HearstAllocationChart, type PosteAllocation } from '@/components/charts
 export { HearstCourbeChart, type PointCourbe } from '@/components/charts/richart/courbe-chart'
 export {
   RichDistributionChart,
-  MuiDistributionChart,
   type DistributionItem,
 } from '@/components/charts/richart/distribution-chart'
 export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'

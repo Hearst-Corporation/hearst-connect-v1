@@ -1,6 +1,5 @@
 'use client'
 
-import { Avatar } from '@/components/catalyst/avatar'
 import {
   Dropdown,
   DropdownButton,
@@ -19,6 +18,7 @@ import {
   SidebarSpacer,
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
+import { NavbarAvatar, SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
 import { HearstConnectLockupImage } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import type { SessionUser } from '@/lib/session'
@@ -48,12 +48,7 @@ export function AccountApplicationLayout({
   user,
   children,
 }: Readonly<{ user: SessionUser; children: React.ReactNode }>) {
-  const initials = user.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('')
+  const initials = userInitials(user.name)
 
   return (
     <SidebarLayout
@@ -63,7 +58,7 @@ export function AccountApplicationLayout({
           <NavbarSection>
             <Dropdown>
               <DropdownButton as={NavbarItem}>
-                <Avatar initials={initials || 'HC'} square alt="" />
+                <NavbarAvatar initials={initials} />
               </DropdownButton>
               <AccountMenu anchor="bottom end" />
             </Dropdown>
@@ -87,17 +82,7 @@ export function AccountApplicationLayout({
           <SidebarFooter className="max-lg:hidden">
             <Dropdown>
               <DropdownButton as={SidebarItem}>
-                <span className="flex min-w-0 items-center gap-3">
-                  <Avatar initials={initials || 'HC'} className="size-10" square alt="" />
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm/5 font-medium text-ink dark:text-fg">
-                      {user.name}
-                    </span>
-                    <span className="block truncate text-xs/5 font-normal text-fg-tertiary dark:text-fg-secondary">
-                      {user.email}
-                    </span>
-                  </span>
-                </span>
+                <SidebarFooterIdentity initials={initials} name={user.name} email={user.email} />
                 <ChevronUpIcon />
               </DropdownButton>
               <AccountMenu anchor="top start" />

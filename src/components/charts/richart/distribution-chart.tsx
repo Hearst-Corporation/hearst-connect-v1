@@ -75,6 +75,3 @@ export function RichDistributionChart({
     </div>
   )
 }
-
-/** Alias de transition — l’ancien nom MUI. */
-export const MuiDistributionChart = RichDistributionChart
