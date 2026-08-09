@@ -82,4 +82,5 @@ Stratégie spécifique (gates, ports, branche default) via **règles projet** �
 
 - **User Rules cloud** (`Settings → Rules`) : ne doit **pas** contenir `committing-changes-with-git` ni politique git concurrente. Cloud vide = attendu.
 - **Builtin Cursor** : le skill système `committing-changes-with-git` peut encore apparaître dans le contexte injecté — **ne jamais patcher** les bundles Cursor pour le neutraliser.
-- **Comportement agent** : cette fédération **prime** — ship auto MERGE → COMMIT → PUSH ; ne pas attendre une demande de commit/push/merge. STOP explicite = passe courante seulement.
+- **Politique workspace attendue** : définie par cette règle — ship auto MERGE → COMMIT → PUSH ; ne pas attendre une demande de commit/push/merge. STOP explicite = passe courante seulement.
+- **Conflit runtime** : le builtin contradictoire peut être injecté par Cursor ; priorité formelle Project Rule > builtin **non garantie** par le produit. Comportement validé empiriquement post-restauration ; toute régression = audit provenance, **jamais** patch du bundle Cursor.
