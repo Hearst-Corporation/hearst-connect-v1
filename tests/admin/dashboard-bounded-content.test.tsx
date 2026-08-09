@@ -86,103 +86,59 @@ const EXPOSURE_ROW: AdminExposureStrategy = {
   status: 'out_of_target',
 }
 
-describe('dashboard bounded content geometry', () => {
-  it('Portfolio exposure keeps the same list slot across empty and populated states', () => {
+describe('dashboard panel content', () => {
+  it('Portfolio exposure renders empty and populated states', () => {
     const empty = render(<PortfolioExposurePanel strategies={available([])} assetScale={SCALE} />)
-    const emptyRoot = empty.container.firstElementChild as HTMLElement
-    expect(emptyRoot.className).toContain('dashboard-list-slot-block-size')
+    expect(screen.getByText('No strategies measured')).toBeTruthy()
     empty.unmount()
 
-    const populated = render(
-      <PortfolioExposurePanel strategies={available([EXPOSURE_ROW])} assetScale={SCALE} />,
-    )
-    const populatedRoot = populated.container.firstElementChild as HTMLElement
-    expect(populatedRoot.className).toContain('dashboard-list-slot-block-size')
+    render(<PortfolioExposurePanel strategies={available([EXPOSURE_ROW])} assetScale={SCALE} />)
     expect(screen.getAllByText('Strategy 1').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('Recent activity keeps the same slot class and windows to 5 rows', () => {
+  it('Recent activity lists all events from the read model', () => {
     const empty = render(<ActivityTimelinePanel events={available([])} assetScale={SCALE} />)
-    const emptyRoot = empty.container.firstElementChild as HTMLElement
-    expect(emptyRoot.className).toContain('dashboard-list-slot-block-size')
     expect(screen.getByText('No recent activity')).toBeTruthy()
     expect(screen.getByText('View all activity')).toBeTruthy()
     empty.unmount()
 
-    const one = render(<ActivityTimelinePanel events={available([eventAt(1)])} assetScale={SCALE} />)
-    expect(within(one.container).getAllByRole('listitem')).toHaveLength(1)
-    one.unmount()
-
-    const five = render(
-      <ActivityTimelinePanel events={available(Array.from({ length: 5 }, (_, i) => eventAt(i + 1)))} assetScale={SCALE} />,
-    )
-    expect(within(five.container).getAllByRole('listitem')).toHaveLength(5)
-    five.unmount()
-
     const dense = render(
-      <ActivityTimelinePanel events={available(Array.from({ length: 50 }, (_, i) => eventAt(i + 1)))} assetScale={SCALE} />,
+      <ActivityTimelinePanel events={available(Array.from({ length: 8 }, (_, i) => eventAt(i + 1)))} assetScale={SCALE} />,
     )
-    const denseRoot = dense.container.firstElementChild as HTMLElement
-    expect(denseRoot.className).toBe(emptyRoot.className)
-    expect(within(dense.container).getAllByRole('listitem')).toHaveLength(5)
-    expect(screen.getByText(/45 older events available in Operations\./)).toBeTruthy()
+    expect(within(dense.container).getAllByRole('listitem')).toHaveLength(8)
+    dense.unmount()
   })
 
-  it('Recent clients keeps one summary slot across 0, 1, 3 and 20 rows', () => {
+  it('Recent clients lists all rows from the read model', () => {
     const empty = render(<RecentClientsPanel clients={available([])} assetScale={SCALE} />)
-    const emptyRoot = empty.container.firstElementChild as HTMLElement
-    expect(emptyRoot.className).toContain('dashboard-list-slot-block-size')
     expect(screen.getByText('No recent clients')).toBeTruthy()
     empty.unmount()
 
-    const one = render(<RecentClientsPanel clients={available([clientAt(1)])} assetScale={SCALE} />)
-    expect(within(one.container).getAllByRole('row')).toHaveLength(2)
-    one.unmount()
-
-    const three = render(
-      <RecentClientsPanel clients={available(Array.from({ length: 3 }, (_, i) => clientAt(i + 1)))} assetScale={SCALE} />,
+    const populated = render(
+      <RecentClientsPanel clients={available(Array.from({ length: 5 }, (_, i) => clientAt(i + 1)))} assetScale={SCALE} />,
     )
-    expect(within(three.container).getAllByRole('row')).toHaveLength(4)
-    three.unmount()
-
-    const dense = render(
-      <RecentClientsPanel clients={available(Array.from({ length: 20 }, (_, i) => clientAt(i + 1)))} assetScale={SCALE} />,
-    )
-    const denseRoot = dense.container.firstElementChild as HTMLElement
-    expect(denseRoot.className).toBe(emptyRoot.className)
-    expect(within(dense.container).getAllByRole('row')).toHaveLength(4)
-    expect(screen.getByText(/17 more clients available in the directory\./)).toBeTruthy()
+    expect(within(populated.container).getAllByRole('row')).toHaveLength(6)
+    populated.unmount()
   })
 
-  it('Vaults keeps one summary slot across 0, 1 and several rows', () => {
+  it('Vaults lists all summary rows from the read model', () => {
     const empty = render(<VaultsPanel vaults={available([])} assetScale={SCALE} />)
-    const emptyRoot = empty.container.firstElementChild as HTMLElement
-    expect(emptyRoot.className).toContain('dashboard-list-slot-block-size')
     expect(screen.getByText('No vaults reported')).toBeTruthy()
     empty.unmount()
 
-    const one = render(<VaultsPanel vaults={available([vaultAt(1)])} assetScale={SCALE} />)
-    expect(within(one.container).getAllByText('Open')).toHaveLength(1)
-    one.unmount()
-
-    const many = render(
+    const populated = render(
       <VaultsPanel vaults={available(Array.from({ length: 6 }, (_, i) => vaultAt(i + 1)))} assetScale={SCALE} />,
     )
-    const manyRoot = many.container.firstElementChild as HTMLElement
-    expect(manyRoot.className).toBe(emptyRoot.className)
-    expect(within(many.container).getAllByText('Open')).toHaveLength(4)
-    expect(screen.getByText(/2 more vaults available in the registry\./)).toBeTruthy()
+    expect(within(populated.container).getAllByText('Open')).toHaveLength(6)
+    populated.unmount()
   })
 
-  it('Market keeps the same summary slot across unavailable and populated states', () => {
+  it('Market renders unavailable and populated states', () => {
     const unavailableView = render(<MarketSnapshotPanel snapshot={unavailable({ status: 'UNAVAILABLE' })} />)
-    const unavailableRoot = unavailableView.container.firstElementChild as HTMLElement
-    expect(unavailableRoot.className).toContain('dashboard-summary-slot-block-size')
+    expect(screen.getByText('Data unavailable')).toBeTruthy()
     unavailableView.unmount()
 
-    const populated = render(<MarketSnapshotPanel snapshot={available(MARKET)} />)
-    const populatedRoot = populated.container.firstElementChild as HTMLElement
-    expect(populatedRoot.className).toContain('dashboard-summary-slot-block-size')
+    render(<MarketSnapshotPanel snapshot={available(MARKET)} />)
     expect(screen.getByText('BTC / USD')).toBeTruthy()
   })
 })

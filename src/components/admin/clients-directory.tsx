@@ -120,7 +120,6 @@ export function ClientsDirectory({
 
       <div className="hidden min-w-0 md:block">
         <DataTableShell
-          fit
           title="Directory"
           description="Partner KYC via Som — read only. Vault membership and created date live on the client record when available."
           count={`${filtered.length} of ${clients.length}`}

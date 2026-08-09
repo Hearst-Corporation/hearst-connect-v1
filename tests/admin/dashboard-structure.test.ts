@@ -19,7 +19,6 @@ const REBALANCING = readFileSync(root('src/components/admin/dashboard/rebalancin
 const ACTIVITY = readFileSync(root('src/components/admin/dashboard/activity-timeline.tsx'), 'utf8')
 const VAULTS = readFileSync(root('src/components/admin/dashboard/vaults-panel.tsx'), 'utf8')
 const CLIENTS = readFileSync(root('src/components/admin/dashboard/recent-clients-panel.tsx'), 'utf8')
-const SHELL = readFileSync(root('src/components/admin/dashboard/shell.tsx'), 'utf8')
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
 const LOAD = readFileSync(root('src/lib/admin-dashboard/load.ts'), 'utf8')
 
@@ -55,7 +54,6 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).toMatch(/<PortfolioExposurePanel/)
     expect(SOURCE).toContain('Portfolio exposure')
     expect(EXPOSURE).toMatch(/data-widget="portfolio-exposure"/)
-    expect(EXPOSURE).toMatch(/dashboard-list-slot-block-size/)
   })
 
   it('replaces priority queue with rebalancing alerts panel', () => {
@@ -63,7 +61,6 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).toMatch(/<RebalancingAlertsPanel/)
     expect(SOURCE).toContain('Rebalancing & alerts')
     expect(REBALANCING).toMatch(/data-widget="rebalancing-alerts"/)
-    expect(REBALANCING).toMatch(/dashboard-list-slot-block-size/)
   })
 
   it('loads admin dashboard read models server-side — no registry pilotage math', () => {
@@ -79,7 +76,7 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/\.reduce\(/)
   })
 
-  it('mounts asset cockpit cards in preserved grid slots', () => {
+  it('mounts asset cockpit cards', () => {
     expect(SOURCE).toMatch(/title="Activity"/)
     expect(SOURCE).toMatch(/title="Market"/)
     expect(SOURCE).toMatch(/<VaultsPanel/)
@@ -91,32 +88,15 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  it('lays out the dashboard with AdminGrid regions on a shared 12-column ladder', () => {
+  it('lays out dashboard cards in a bento AdminGrid (7+5 / 6+3+3 / 4+4+4)', () => {
     expect(SOURCE).toMatch(/from ['"]@\/components\/admin\/grid['"]/)
     expect(SOURCE).toMatch(/<AdminGrid align="stretch">/)
-    expect(SOURCE).toMatch(/<AdminGrid>/)
     expect(SOURCE).toMatch(/<AdminCol span=\{7\}/)
     expect(SOURCE).toMatch(/<AdminCol span=\{5\}/)
-    expect(SOURCE).toMatch(/className="h-full min-w-0"/)
     expect(SOURCE).toMatch(/<AdminCol span=\{6\}/)
     expect(SOURCE).toMatch(/<AdminCol span=\{3\}/)
+    expect(SOURCE).not.toMatch(/<AdminCol span=\{3\} md=\{4\}/)
     expect(SOURCE).toMatch(/<AdminCol span=\{4\}/)
-    expect(SOURCE).not.toMatch(/grid-cols-\[minmax\(0,7fr\)/)
-    expect(SOURCE).not.toMatch(/grid-cols-\[minmax\(0,2fr\)/)
-    expect(SOURCE).not.toMatch(/@\[52rem\]:grid-cols-3/)
-    expect(SOURCE).not.toMatch(/flex flex-wrap/)
-    expect(SOURCE).not.toMatch(/flex-\[\d+_1_min\(100%,\d+rem\)\]/)
-    expect(SHELL).not.toMatch(/data-footprint=/)
-    expect(SHELL).not.toMatch(/dashboard-footprint/)
-    expect(SOURCE).not.toMatch(/footprint="/)
-
-    // Tertiary 4+4+4 must not also set md={4}: on the 8-column ladder that
-    // fills one row then strands a half-row empty cell next to the third card.
-    const tertiarySpanFours = SOURCE.match(/<AdminCol span=\{4\}[^>]*>/g) ?? []
-    expect(tertiarySpanFours.length).toBeGreaterThanOrEqual(3)
-    for (const col of tertiarySpanFours) {
-      expect(col).not.toMatch(/md=\{4\}/)
-    }
 
     for (const t of [
       'Portfolio exposure',
@@ -132,37 +112,18 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     }
   })
 
-  it('keeps dashboard summaries windowed instead of stretching with long datasets', () => {
-    expect(ACTIVITY).toMatch(/const MAX_VISIBLE_EVENTS = 5/)
-    expect(ACTIVITY).toMatch(/slice\(0, MAX_VISIBLE_EVENTS\)/)
-    expect(ACTIVITY).toMatch(/dashboard-list-slot-block-size/)
+  it('dashboard panels link to full views instead of artificial row caps', () => {
     expect(ACTIVITY).toContain('View all activity')
-    expect(ACTIVITY).not.toMatch(/events\.value\.map\(/)
+    expect(ACTIVITY).toMatch(/events\.value\.map\(/)
 
-    expect(REBALANCING).toMatch(/const MAX_VISIBLE_ALERTS = 4/)
-    expect(REBALANCING).toMatch(/slice\(0, MAX_VISIBLE_ALERTS\)/)
     expect(REBALANCING).toContain('Open operations')
+    expect(REBALANCING).toMatch(/data\.alerts\.map\(/)
 
-    expect(VAULTS).toMatch(/const MAX_VISIBLE_VAULTS = 4/)
-    expect(VAULTS).toMatch(/slice\(0, MAX_VISIBLE_VAULTS\)/)
-    expect(VAULTS).toMatch(/dashboard-list-slot-block-size/)
     expect(VAULTS).toContain('View all vaults')
-    expect(VAULTS).not.toMatch(/vaults\.value\.length > 1 \?/)
+    expect(VAULTS).toMatch(/vaults\.value\.map\(/)
 
-    expect(CLIENTS).toMatch(/const MAX_VISIBLE_CLIENTS = 3/)
-    expect(CLIENTS).toMatch(/slice\(0, MAX_VISIBLE_CLIENTS\)/)
-    expect(CLIENTS).toMatch(/dashboard-list-slot-block-size/)
     expect(CLIENTS).toContain('View all clients')
-  })
-
-  it('uses one shared dashboard chart viewport for empty and populated activity states', () => {
-    expect(SHELL).toMatch(/DASHBOARD_CHART_SLOT_HEIGHT = 176/)
-    expect(SHELL).toMatch(/DASHBOARD_CHART_SLOT_CLASS/)
-    expect(SOURCE).toMatch(/<HearstActivityChart[\s\S]*height=\{DASHBOARD_CHART_SLOT_HEIGHT\}/)
-    expect(SOURCE).toMatch(/<ChartPlaceholder title="Activity" dashboardSlot/)
-    expect(SOURCE).toMatch(/DASHBOARD_CHART_SLOT_CLASS/)
-    expect(SHELL).toMatch(/dashboard-chart-slot-block-size/)
-    expect(SOURCE).not.toMatch(/height=\{140\}/)
+    expect(CLIENTS).toMatch(/clients\.value\.map\(/)
   })
 
   it('routes route-level actions through the Hearst actions boundary', () => {

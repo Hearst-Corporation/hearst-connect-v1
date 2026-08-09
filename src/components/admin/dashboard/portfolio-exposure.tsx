@@ -12,8 +12,6 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
-const EXPOSURE_SLOT_CLASS = 'min-h-[var(--dashboard-list-slot-block-size)]'
-
 function driftLabel(driftBps: number | null): string {
   if (driftBps === null || !Number.isFinite(driftBps)) return '—'
   const pts = driftBps / 100
@@ -70,8 +68,8 @@ function ExposureEmptyState({
   detail,
 }: Readonly<{ title: string; detail: string }>) {
   return (
-    <div className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
-      <div className={clsx(surfaceInset, EXPOSURE_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+    <div className="space-y-4">
+      <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
         <p className="text-sm font-semibold text-ink dark:text-fg">{title}</p>
         <p className="text-xs text-fg-tertiary">{detail}</p>
       </div>
@@ -98,7 +96,7 @@ export function PortfolioExposurePanel({
     return (
       <ExposureEmptyState
         title="No strategies measured"
-        detail="The portfolio viewport stays reserved until strategies are indexed."
+        detail="No indexed strategies in the portfolio read."
       />
     )
   }
@@ -121,10 +119,10 @@ export function PortfolioExposurePanel({
     <TabGroup
       defaultIndex={defaultIndex}
       as="div"
-      className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4 @container min-w-0"
+      className="space-y-4 @container min-w-0"
       data-widget="portfolio-exposure"
     >
-      <div className={clsx(EXPOSURE_SLOT_CLASS, 'flex min-h-0 flex-col gap-4')}>
+      <div className="flex min-w-0 flex-col gap-4">
         <div className="-mx-1 min-w-0 overflow-x-auto px-1 pb-1">
           <TabList className="grid min-w-max grid-flow-col auto-cols-[minmax(8rem,1fr)] gap-2">
             {rows.map((row) => (
@@ -152,7 +150,7 @@ export function PortfolioExposurePanel({
             ))}
           </TabList>
         </div>
-        <TabPanels className="min-h-0 flex-1">
+        <TabPanels>
           {rows.map((row) => (
             <TabPanel key={row.strategyId} className="outline-none">
               <StrategyDetail row={row} assetScale={scale} />
