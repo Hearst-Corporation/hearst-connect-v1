@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="w-full max-w-sm space-y-8">
+    <div className="grid w-full max-w-sm grid-cols-1 gap-8">
       <Logo className="text-ink dark:text-fg" />
       <div>
         <Heading>Invitation-only access</Heading>

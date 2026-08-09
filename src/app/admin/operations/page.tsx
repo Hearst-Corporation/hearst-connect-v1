@@ -102,7 +102,7 @@ function RebalancingSection({
       title="Rebalancing"
       hint={rebalancingHint(stable, data.strategiesOutOfTarget)}
     >
-      <div className="flex flex-wrap gap-3 *:flex-1 *:min-w-[10rem]">
+      <div className="grid gap-3 sm:grid-cols-3">
         <div className={clsx(surfaceInset, 'p-3')}>
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Strategies out of target
@@ -274,7 +274,7 @@ export default async function Page() {
 
       <RebalancingSection summary={rebalancing} />
 
-      <div className="flex flex-wrap items-start gap-4 *:flex-1 *:min-w-[14rem]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
         <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
 
         <div

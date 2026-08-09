@@ -117,7 +117,7 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
             {!isAvailable(vault.worstDriftBps) ? '—' : driftPoints(driftBps!)}
           </p>
         </div>
-        <dl className="mt-3 flex flex-wrap gap-4 text-xs">
+        <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
           <div>
             <dt className="text-fg-tertiary">AUM</dt>
             <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">

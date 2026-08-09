@@ -34,7 +34,7 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Footer">
-          <ul className="flex flex-wrap gap-x-10 gap-y-3 md:gap-x-16">
+          <ul className="grid grid-cols-2 gap-x-10 gap-y-3 sm:grid-cols-3 md:gap-x-16">
             {footerLinks.map((link) => (
               <li key={link.title}>
                 <Link href={link.href} className="text-white/60 transition-colors hover:text-white">

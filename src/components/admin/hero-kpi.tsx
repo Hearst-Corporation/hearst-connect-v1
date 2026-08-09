@@ -1,4 +1,3 @@
-import { AdminMetricGrid } from '@/components/admin/grid'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
@@ -18,7 +17,7 @@ export type AdminHeroKpi = Readonly<{
 export function AdminHeroKpiMetrics({ items }: Readonly<{ items: readonly AdminHeroKpi[] }>) {
   return (
     <section aria-label="Key metrics" className="@container min-w-0">
-      <AdminMetricGrid count={items.length} as="dl">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-4 @[36rem]:grid-cols-4 @[36rem]:gap-x-6">
         {items.map((kpi) => {
           const Icon = kpi.icon
           const available = isAvailable(kpi.value)
@@ -44,7 +43,7 @@ export function AdminHeroKpiMetrics({ items }: Readonly<{ items: readonly AdminH
             </div>
           )
         })}
-      </AdminMetricGrid>
+      </dl>
     </section>
   )
 }
