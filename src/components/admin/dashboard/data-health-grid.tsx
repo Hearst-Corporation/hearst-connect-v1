@@ -1,4 +1,5 @@
 import { surfaceBox } from '@/components/admin/surface'
+import { AdminMetricGrid } from '@/components/admin/grid'
 import { Text } from '@/components/catalyst/text'
 import type { AdminDataHealthSource } from '@/lib/admin-dashboard/contracts'
 import { formatRelativeTime } from '@/lib/format'
@@ -39,9 +40,10 @@ export function DataHealthGrid({
   const slots = ORDER.map((key) => ({ key, source: byKey.get(key) }))
 
   return (
-    <ul
+    <AdminMetricGrid
       data-widget="data-health-grid"
-      className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-2"
+      count={slots.length}
+      as="ul"
     >
       {slots.map(({ key, source }) => {
         const label = source?.label ?? key
@@ -71,6 +73,6 @@ export function DataHealthGrid({
           </li>
         )
       })}
-    </ul>
+    </AdminMetricGrid>
   )
 }

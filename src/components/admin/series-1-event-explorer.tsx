@@ -108,7 +108,7 @@ export function Series1EventExplorer({
 
   return (
     <div className="space-y-4">
-      <FieldGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <FieldGroup className="flex flex-wrap gap-4 *:flex-1 *:min-w-[12rem]">
         <Field>
           <Label>Event</Label>
           <Select
@@ -163,7 +163,7 @@ export function Series1EventExplorer({
             onChange={(e) => setFilters((prev) => ({ ...prev, block: e.target.value }))}
           />
         </Field>
-        <Field className="sm:col-span-2">
+        <Field className="min-w-[12rem] flex-1">
           <Label>Time / status</Label>
           <Input
             placeholder="Occurred, indexed, or status"

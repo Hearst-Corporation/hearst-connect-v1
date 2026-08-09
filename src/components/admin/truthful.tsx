@@ -163,28 +163,20 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
   if (!problem && !keeper) return null
 
   return (
-    <dl className={clsx(surfaceInset, 'mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 p-4 text-xs')}>
+    <dl className={clsx(surfaceInset, 'mt-4 space-y-2 p-4 text-xs')}>
       {problem ? (
         <>
-          <dt className="text-fg-tertiary">Code</dt>
-          <dd className="font-mono text-fg">{problem.code}</dd>
-          <dt className="text-fg-tertiary">Title</dt>
-          <dd className="text-fg">{problem.title}</dd>
-          <dt className="text-fg-tertiary">Detail</dt>
-          <dd className="text-fg">{problem.detail}</dd>
-          <dt className="text-fg-tertiary">Request ID</dt>
-          <dd className="font-mono break-all text-fg-secondary">{problem.requestId}</dd>
+          <div className="flex gap-2"><dt className="w-20 shrink-0 text-fg-tertiary">Code</dt><dd className="font-mono text-fg">{problem.code}</dd></div>
+          <div className="flex gap-2"><dt className="w-20 shrink-0 text-fg-tertiary">Title</dt><dd className="text-fg">{problem.title}</dd></div>
+          <div className="flex gap-2"><dt className="w-20 shrink-0 text-fg-tertiary">Detail</dt><dd className="text-fg">{problem.detail}</dd></div>
+          <div className="flex gap-2"><dt className="w-20 shrink-0 text-fg-tertiary">Request ID</dt><dd className="font-mono break-all text-fg-secondary">{problem.requestId}</dd></div>
         </>
       ) : null}
       {keeper ? (
         <>
-          <dt className="text-fg-tertiary">Reason</dt>
-          <dd className="font-mono text-fg">{keeper.reason}</dd>
+          <div className="flex gap-2"><dt className="w-20 shrink-0 text-fg-tertiary">Reason</dt><dd className="font-mono text-fg">{keeper.reason}</dd></div>
           {keeper.detail ? (
-            <>
-              <dt className="text-fg-tertiary">Detail</dt>
-              <dd className="text-fg">{keeper.detail}</dd>
-            </>
+            <div className="flex gap-2"><dt className="w-20 shrink-0 text-fg-tertiary">Detail</dt><dd className="text-fg">{keeper.detail}</dd></div>
           ) : null}
         </>
       ) : null}

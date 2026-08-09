@@ -185,7 +185,7 @@ export default async function KeeperPage() {
         title="Actions"
         hint={`${formatNumber(keeperEndpoints.length)} routes exposed by the service. Nothing leaves this page until CONFIRM is typed in the action-specific field.`}
       >
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="flex flex-wrap gap-6 *:flex-1 *:min-w-[18rem]">
           {keeperEndpoints.map((endpoint) => (
             <KeeperForm
               key={endpoint.id}
