@@ -1,9 +1,11 @@
 import { ActivityTimelinePanel } from '@/components/admin/dashboard/activity-timeline'
 import { MarketSnapshotPanel } from '@/components/admin/dashboard/market-panel'
+import { PortfolioExposurePanel } from '@/components/admin/dashboard/portfolio-exposure'
 import { RecentClientsPanel } from '@/components/admin/dashboard/recent-clients-panel'
 import { VaultsPanel } from '@/components/admin/dashboard/vaults-panel'
 import type {
   AdminActivityEvent,
+  AdminExposureStrategy,
   AdminMarketSnapshot,
   AdminRecentClient,
   AdminVaultSummary,
@@ -73,7 +75,32 @@ const MARKET: AdminMarketSnapshot = {
   asOf: '2026-08-09T05:00:00.000Z',
 }
 
+const EXPOSURE_ROW: AdminExposureStrategy = {
+  strategyId: 's1',
+  strategyLabel: 'Strategy 1',
+  vaultId: 'vault-1',
+  targetBps: 5000,
+  actualBps: 6200,
+  driftBps: 1200,
+  exposureAtomic: '1000000',
+  status: 'out_of_target',
+}
+
 describe('dashboard bounded content geometry', () => {
+  it('Portfolio exposure keeps the same list slot across empty and populated states', () => {
+    const empty = render(<PortfolioExposurePanel strategies={available([])} assetScale={SCALE} />)
+    const emptyRoot = empty.container.firstElementChild as HTMLElement
+    expect(emptyRoot.className).toContain('dashboard-list-slot-block-size')
+    empty.unmount()
+
+    const populated = render(
+      <PortfolioExposurePanel strategies={available([EXPOSURE_ROW])} assetScale={SCALE} />,
+    )
+    const populatedRoot = populated.container.firstElementChild as HTMLElement
+    expect(populatedRoot.className).toContain('dashboard-list-slot-block-size')
+    expect(screen.getAllByText('Strategy 1').length).toBeGreaterThanOrEqual(1)
+  })
+
   it('Recent activity keeps the same slot class and windows to 5 rows', () => {
     const empty = render(<ActivityTimelinePanel events={available([])} assetScale={SCALE} />)
     const emptyRoot = empty.container.firstElementChild as HTMLElement

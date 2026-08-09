@@ -1,5 +1,6 @@
 import {
   ActivityTimelinePanel,
+  DASHBOARD_CHART_SLOT_CLASS,
   DASHBOARD_CHART_SLOT_HEIGHT,
   ChartPlaceholder,
   DashCard,
@@ -13,6 +14,7 @@ import {
   VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
+import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { HearstActivityChart, type PointActivite } from '@/components/charts'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
@@ -97,95 +99,102 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
       <DashboardHeader userName={user.name} kpis={kpis} />
 
       {/*
-       * Dashboard deterministic regions:
-       * - responsive = container-driven (tracks recompose when width shrinks)
-       * - regions own composition
-       * - card shells stay intrinsic
-       * - only variable content slots stay stable
-       * - data = never geometry-driven (states and long datasets stay inside)
+       * Dashboard deterministic regions — one AdminGrid row per band.
+       * Spans 7+5 / 6+3+3 / 4+4+4 share the same 12-column tracks so vertical
+       * edges align across rows. Card shells stay intrinsic; only content slots
+       * inside widgets stay stable between data states.
+       *
+       * Medium spans: never put three `md={4}` in one band — on the 8-column
+       * ladder that yields 4+4 then a stranded half-row. Tertiary columns keep
+       * the default md=8 (stack) until the 12-column ladder; secondary side
+       * panels may share an 8-column row as a deliberate 4+4 pair after the
+       * timeline stacks.
        */}
-      <div className="@container flex flex-col gap-4">
-        {/* Primary region: exposure needs slightly more scan width than the chart. */}
-        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          <DashCard
-            className="min-w-0"
-            title="Portfolio exposure"
-            subtitle="Where capital is allocated vs target"
-          >
-            <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
-          </DashCard>
+      <div className="flex flex-col gap-4">
+        <AdminGrid>
+          <AdminCol span={7}>
+            <DashCard
+              className="min-w-0"
+              title="Portfolio exposure"
+              subtitle="Where capital is allocated vs target"
+            >
+              <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
+            </DashCard>
+          </AdminCol>
 
-          <DashCard
-            className="min-w-0"
-            title="Activity"
-            subtitle="Daily volume · 28 days"
-          >
-            {showActivityCurve ? (
-              <HearstActivityChart
-                points={activityPoints}
-                unite="events"
-                height={DASHBOARD_CHART_SLOT_HEIGHT}
-              />
-            ) : activityNotConfigured ? (
-              <div className="flex h-full min-h-0 flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
-                <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
-                <p className="text-fg-tertiary text-xs">
-                  {data.activityTimeseries.kind === 'unavailable'
-                    ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
-                    : null}
-                </p>
-              </div>
-            ) : (
-              <ChartPlaceholder title="Activity" height={DASHBOARD_CHART_SLOT_HEIGHT} icon={ChartBarIcon} />
-            )}
-          </DashCard>
-        </div>
+          <AdminCol span={5}>
+            <DashCard className="min-w-0" title="Activity" subtitle="Daily volume · 28 days">
+              {showActivityCurve ? (
+                <HearstActivityChart
+                  points={activityPoints}
+                  unite="events"
+                  height={DASHBOARD_CHART_SLOT_HEIGHT}
+                />
+              ) : activityNotConfigured ? (
+                <div
+                  className={`flex h-full min-h-0 flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft ${DASHBOARD_CHART_SLOT_CLASS}`}
+                >
+                  <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
+                  <p className="text-fg-tertiary text-xs">
+                    {data.activityTimeseries.kind === 'unavailable'
+                      ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
+                      : null}
+                  </p>
+                </div>
+              ) : (
+                <ChartPlaceholder title="Activity" dashboardSlot icon={ChartBarIcon} />
+              )}
+            </DashCard>
+          </AdminCol>
+        </AdminGrid>
 
-        {/* Secondary region: timeline carries the summary; side panels support it. */}
-        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-          <DashCard
-            className="min-w-0"
-            title="Recent activity"
-            subtitle="Blockchain and subscription timeline"
-          >
-            <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
-          </DashCard>
+        <AdminGrid>
+          <AdminCol span={6}>
+            <DashCard
+              className="min-w-0"
+              title="Recent activity"
+              subtitle="Blockchain and subscription timeline"
+            >
+              <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+            </DashCard>
+          </AdminCol>
 
-          <DashCard
-            className="min-w-0"
-            title="Rebalancing & alerts"
-            subtitle="Drift and indexer"
-          >
-            <RebalancingAlertsPanel summary={data.rebalancing} />
-          </DashCard>
+          <AdminCol span={3} md={4}>
+            <DashCard
+              className="min-w-0"
+              title="Rebalancing & alerts"
+              subtitle="Drift and indexer"
+            >
+              <RebalancingAlertsPanel summary={data.rebalancing} />
+            </DashCard>
+          </AdminCol>
 
-          <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
-            <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
-          </DashCard>
-        </div>
+          <AdminCol span={3} md={4}>
+            <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
+              <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
+            </DashCard>
+          </AdminCol>
+        </AdminGrid>
 
-        {/* Tertiary region: three balanced supporting summaries. */}
-        <div className="grid grid-cols-1 items-start gap-4 @[52rem]:grid-cols-3">
-          <DashCard
-            className="min-w-0"
-            title="Data health"
-            subtitle="Source freshness"
-          >
-            <DataHealthGrid sources={data.dataHealth} />
-          </DashCard>
+        <AdminGrid>
+          <AdminCol span={4}>
+            <DashCard className="min-w-0" title="Data health" subtitle="Source freshness">
+              <DataHealthGrid sources={data.dataHealth} />
+            </DashCard>
+          </AdminCol>
 
-          <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
-            <MarketSnapshotPanel snapshot={data.market} />
-          </DashCard>
+          <AdminCol span={4}>
+            <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
+              <MarketSnapshotPanel snapshot={data.market} />
+            </DashCard>
+          </AdminCol>
 
-          <DashCard
-            className="min-w-0"
-            title="Recent clients"
-            subtitle="Exposure and Som KYC"
-          >
-            <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
-          </DashCard>
-        </div>
+          <AdminCol span={4}>
+            <DashCard className="min-w-0" title="Recent clients" subtitle="Exposure and Som KYC">
+              <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
+            </DashCard>
+          </AdminCol>
+        </AdminGrid>
       </div>
     </DashboardShell>
   )

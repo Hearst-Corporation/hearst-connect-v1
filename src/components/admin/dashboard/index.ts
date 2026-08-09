@@ -2,6 +2,7 @@ export {
   DashboardShell,
   DashCard,
   DASHBOARD_CHART_SLOT_HEIGHT,
+  DASHBOARD_CHART_SLOT_CLASS,
 } from '@/components/admin/dashboard/shell'
 export { DashboardHeader } from '@/components/admin/dashboard/header'
 export { type DashboardKpi } from '@/components/admin/dashboard/kpi-grid'

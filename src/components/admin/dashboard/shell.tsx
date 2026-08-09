@@ -7,8 +7,11 @@ import type { ReactNode } from 'react'
 /**
  * Stable chart viewport for dashboard summaries.
  * Internal chart slot only — never a card shell height.
+ *
+ * HARDCODE_JUSTIFIED: 176px = 11rem chart viewport protocol size (`--dashboard-chart-slot-block-size`).
  */
 export const DASHBOARD_CHART_SLOT_HEIGHT = 176
+export const DASHBOARD_CHART_SLOT_CLASS = 'min-h-[var(--dashboard-chart-slot-block-size)]'
 
 /**
  * Conteneur pilotage dashboard.
