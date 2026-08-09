@@ -24,6 +24,18 @@ export type PointActivite = {
 
 const SERIE = chartTheme.dataSeries.brandPrimary
 
+function barCategoryGapForCount(count: number): string {
+  if (count <= 4) return '10%'
+  if (count <= 8) return '18%'
+  return '28%'
+}
+
+function maxBarSizeForCount(count: number): number {
+  if (count <= 4) return 80
+  if (count <= 8) return 56
+  return 40
+}
+
 export function HearstActivityChart({
   points,
   unite,
@@ -33,8 +45,8 @@ export function HearstActivityChart({
   const count = points.length
   const viewportHeight = height ?? chartHeight('columns', Math.max(count, 1))
   const { ref, width } = useChartWidth()
-  const barCategoryGap = count <= 4 ? '10%' : count <= 8 ? '18%' : '28%'
-  const maxBarSize = count <= 4 ? 80 : count <= 8 ? 56 : 40
+  const barCategoryGap = barCategoryGapForCount(count)
+  const maxBarSize = maxBarSizeForCount(count)
   // Under ~28px per bucket, force Recharts to skip ticks instead of overlapping.
   const minPxPerBucket = 28
   const xInterval =

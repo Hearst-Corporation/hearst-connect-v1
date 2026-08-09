@@ -30,11 +30,13 @@ import {
   mapAvailability,
   measuredCount,
   unavailable,
-  type AdminRegistry,
-  type Availability,
-  type ComplianceReview,
-  type Deployment,
-  type Movement,
+} from '@/lib/vaults/model'
+import type {
+  AdminRegistry,
+  Availability,
+  ComplianceReview,
+  Deployment,
+  Movement,
 } from '@/lib/vaults/model'
 
 /* ── Funnel ────────────────────────────────────────────────────────────────── */
@@ -392,7 +394,10 @@ export function movementDailyHeatmap(
     return available([], { provenance: 'indexed' })
   }
   const sortedDays = [...buckets.keys()].sort((a, b) => a.localeCompare(b))
-  const latest = sortedDays[sortedDays.length - 1]!
+  const latest = sortedDays.at(-1)
+  if (latest === undefined) {
+    return available([], { provenance: 'indexed' })
+  }
   const end = Date.parse(`${latest}T00:00:00.000Z`)
   const cells: HeatmapCell[] = []
   const fmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric' })

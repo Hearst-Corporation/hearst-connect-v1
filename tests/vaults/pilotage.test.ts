@@ -216,7 +216,7 @@ describe('buildPriorityQueue', () => {
       }),
     )
     expect(isAvailable(queue)).toBe(true)
-    expect(valueOf(queue)!.length).toBe(1)
+    expect(valueOf(queue)).toHaveLength(1)
   })
 
   it('names a resolution action on every row — no row without a route', () => {

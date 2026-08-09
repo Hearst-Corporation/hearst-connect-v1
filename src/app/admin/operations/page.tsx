@@ -63,6 +63,14 @@ function attentionCount(summary: AdminRebalancingSummary): number {
   return summary.alerts.length
 }
 
+function rebalancingHint(stable: boolean, strategiesOutOfTarget: number): string {
+  if (stable) {
+    return 'Portfolio within target — no rebalancing action required.'
+  }
+  const label = strategiesOutOfTarget === 1 ? 'strategy' : 'strategies'
+  return `${formatNumber(strategiesOutOfTarget)} ${label} outside target`
+}
+
 function filterOpsActivity(
   events: readonly AdminActivityEvent[],
 ): readonly AdminActivityEvent[] {
@@ -92,11 +100,7 @@ function RebalancingSection({
   return (
     <SectionCard
       title="Rebalancing"
-      hint={
-        stable
-          ? 'Portfolio within target — no rebalancing action required.'
-          : `${formatNumber(data.strategiesOutOfTarget)} strateg${data.strategiesOutOfTarget === 1 ? 'y' : 'ies'} outside target`
-      }
+      hint={rebalancingHint(stable, data.strategiesOutOfTarget)}
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <div className={clsx(surfaceInset, 'p-3')}>
@@ -179,43 +183,86 @@ function RebalancingSection({
   )
 }
 
-export default async function Page() {
-  await requireSession()
-  const { rebalancing, recentActivity, assetScale } = await loadAdminOperationsSurface()
+type RebalancingSnapshot = {
+  readonly attention: number | null
+  readonly indexerStatus: string | null
+  readonly lastRebalance: string | null
+  readonly lastRebalanceTxHash: string | null
+  readonly strategiesOutOfTarget: number | null
+}
 
-  const attention = isAvailable(rebalancing) ? attentionCount(rebalancing.value) : null
-  const indexerStatus = isAvailable(rebalancing) ? rebalancing.value.indexerStatus : null
-  const lastRebalance = isAvailable(rebalancing) ? rebalancing.value.lastRebalanceAt : null
+function rebalancingSnapshotDe(
+  rebalancing: Availability<AdminRebalancingSummary>,
+): RebalancingSnapshot {
+  if (!isAvailable(rebalancing)) {
+    return {
+      attention: null,
+      indexerStatus: null,
+      lastRebalance: null,
+      lastRebalanceTxHash: null,
+      strategiesOutOfTarget: null,
+    }
+  }
 
-  const opsEvents = isAvailable(recentActivity)
-    ? filterOpsActivity(recentActivity.value)
-    : null
+  const data = rebalancing.value
+  return {
+    attention: attentionCount(data),
+    indexerStatus: data.indexerStatus,
+    lastRebalance: data.lastRebalanceAt,
+    lastRebalanceTxHash: data.lastRebalanceTxHash,
+    strategiesOutOfTarget: data.strategiesOutOfTarget,
+  }
+}
 
-  const kpis: readonly AdminHeroKpi[] = [
+function kpisOperationsDe(
+  snapshot: RebalancingSnapshot,
+): readonly AdminHeroKpi[] {
+  const attentionValue =
+    snapshot.attention === null
+      ? editorial('Unavailable')
+      : editorial(formatNumber(snapshot.attention))
+
+  const outOfTargetValue =
+    snapshot.strategiesOutOfTarget === null
+      ? editorial('Unavailable')
+      : editorial(formatNumber(snapshot.strategiesOutOfTarget))
+
+  return [
     {
       id: 'attention',
       title: 'Needs attention',
-      value:
-        attention === null
-          ? editorial('Unavailable')
-          : editorial(formatNumber(attention)),
+      value: attentionValue,
       icon: ExclamationTriangleIcon,
     },
     {
       id: 'out-of-target',
       title: 'Strategies out of target',
-      value: isAvailable(rebalancing)
-        ? editorial(formatNumber(rebalancing.value.strategiesOutOfTarget))
-        : editorial('Unavailable'),
+      value: outOfTargetValue,
       icon: ArrowsRightLeftIcon,
     },
     {
       id: 'indexer',
       title: 'Indexer',
-      value: editorial(indexerStatus ?? 'Unavailable'),
+      value: editorial(snapshot.indexerStatus ?? 'Unavailable'),
       icon: SignalIcon,
     },
   ]
+}
+
+function opsEventsDe(
+  recentActivity: Availability<readonly AdminActivityEvent[]>,
+): readonly AdminActivityEvent[] | null {
+  if (!isAvailable(recentActivity)) return null
+  return filterOpsActivity(recentActivity.value)
+}
+
+export default async function Page() {
+  await requireSession()
+  const { rebalancing, recentActivity, assetScale } = await loadAdminOperationsSurface()
+
+  const snapshot = rebalancingSnapshotDe(rebalancing)
+  const opsEvents = opsEventsDe(recentActivity)
+  const kpis = kpisOperationsDe(snapshot)
 
   return (
     <div className="space-y-8">
@@ -228,7 +275,7 @@ export default async function Page() {
       <RebalancingSection summary={rebalancing} />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
-        <OperationsIndexerCard indexerStatus={indexerStatus} />
+        <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
 
         <div
           className={clsx(surfaceInset, 'flex flex-col gap-1.5 p-4')}
@@ -236,14 +283,14 @@ export default async function Page() {
         >
           <p className="text-sm font-semibold text-ink dark:text-fg">Last rebalance</p>
           <p className="text-lg font-semibold text-ink dark:text-fg">
-            {lastRebalance ? formatRelativeTime(lastRebalance) : '—'}
+            {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
           </p>
-          {isAvailable(rebalancing) && rebalancing.value.lastRebalanceTxHash ? (
+          {snapshot.lastRebalanceTxHash ? (
             <p
               className="truncate font-mono text-xs text-fg-tertiary"
-              title={rebalancing.value.lastRebalanceTxHash}
+              title={snapshot.lastRebalanceTxHash}
             >
-              {formatHash(rebalancing.value.lastRebalanceTxHash)}
+              {formatHash(snapshot.lastRebalanceTxHash)}
             </p>
           ) : (
             <p className="text-xs text-fg-tertiary">No transaction hash reported.</p>

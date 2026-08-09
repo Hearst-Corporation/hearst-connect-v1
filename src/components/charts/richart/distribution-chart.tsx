@@ -3,7 +3,7 @@
 import { categoricalColor, chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
-import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
  * richart — distribution horizontale triée décroissante.
@@ -19,7 +19,9 @@ export function RichDistributionChart({
   items,
   unit = '',
 }: Readonly<{ items: readonly DistributionItem[]; unit?: string }>) {
-  const sortedItems = [...items].sort((a, b) => b.value - a.value)
+  const sortedItems = [...items]
+    .sort((a, b) => b.value - a.value)
+    .map((item, index) => ({ ...item, fill: categoricalColor(index) }))
   const height = chartHeight('rows', Math.max(sortedItems.length, 1))
 
   return (
@@ -64,11 +66,7 @@ export function RichDistributionChart({
               width={100}
             />
             <Tooltip content={<RichTooltip unit={unit.trim()} />} cursor={{ fill: chartTheme.cursor }} />
-            <Bar dataKey="value" name="Valeur" radius={[0, 3, 3, 0]} maxBarSize={22} isAnimationActive={false}>
-              {sortedItems.map((item, index) => (
-                <Cell key={item.label} fill={categoricalColor(index)} />
-              ))}
-            </Bar>
+            <Bar dataKey="value" name="Valeur" radius={[0, 3, 3, 0]} maxBarSize={22} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

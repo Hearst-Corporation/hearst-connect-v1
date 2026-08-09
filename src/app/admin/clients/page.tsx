@@ -10,9 +10,16 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Callout, DataTableShell, fitTableColPrimary } from '@/components/compositions'
+import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { loadAdminAssetScale, loadAdminClientsDirectory } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
-import { isAvailable, measuredCount } from '@/lib/vaults/model'
+import {
+  isAvailable,
+  measuredCount,
+  type Availability,
+  type ClientRef,
+} from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { UsersIcon } from '@heroicons/react/16/solid'
@@ -28,6 +35,88 @@ export const dynamic = 'force-dynamic'
  * No Create client button — POST /api/v1/admin/users creates an application user, not a client record.
  */
 
+type ClientsView =
+  | Readonly<{ kind: 'rich'; listedCount: Availability<string>; clients: readonly AdminRecentClient[] }>
+  | Readonly<{ kind: 'thin'; listedCount: Availability<string>; clients: readonly ClientRef[] }>
+  | Readonly<{ kind: 'thin-empty'; listedCount: Availability<string> }>
+  | Readonly<{ kind: 'unavailable'; listedCount: Availability<string> }>
+
+function resolveClientsView(
+  recent: Availability<readonly AdminRecentClient[]>,
+  registryClients: Availability<readonly ClientRef[]>,
+): ClientsView {
+  const richRows = isAvailable(recent) ? recent.value : null
+  const thinRows = isAvailable(registryClients) ? registryClients.value : null
+
+  if (richRows !== null && richRows.length > 0) {
+    return { kind: 'rich', listedCount: measuredCount(recent), clients: richRows }
+  }
+
+  if (thinRows !== null) {
+    const listedCount = measuredCount(registryClients)
+    if (thinRows.length === 0) {
+      return { kind: 'thin-empty', listedCount }
+    }
+    return { kind: 'thin', listedCount, clients: thinRows }
+  }
+
+  const listedCount =
+    richRows !== null ? measuredCount(recent) : measuredCount(registryClients)
+  return { kind: 'unavailable', listedCount }
+}
+
+function ClientsMainContent({
+  view,
+  assetScale,
+}: Readonly<{ view: ClientsView; assetScale: AdminAssetScale | null }>) {
+  if (view.kind === 'rich') {
+    return <ClientsDirectory clients={view.clients} assetScale={assetScale} />
+  }
+
+  if (view.kind === 'thin-empty') {
+    return (
+      <Callout tone="info" title="No clients yet">
+        No client records were returned for this directory.
+      </Callout>
+    )
+  }
+
+  if (view.kind === 'thin') {
+    return (
+      <DataTableShell
+        title="Directory"
+        description="Identity from the client directory. Exposure and Som KYC appear when the admin read model returns them."
+        count={`${view.clients.length} client(s)`}
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader className={fitTableColPrimary}>Client</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Identifier</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {view.clients.map((client) => (
+            <TableRow key={client.id}>
+              <TableCell className="font-medium">{client.label}</TableCell>
+              <TableCell className="font-mono text-sm text-fg-tertiary">{client.id}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
+    )
+  }
+
+  return (
+    <Callout tone="warning" title="Client directory unavailable">
+      Client records could not be read. Technical detail lives under{' '}
+      <Link href="/admin/runtime" className="underline">
+        Service
+      </Link>
+      .
+    </Callout>
+  )
+}
+
 export default async function Page() {
   const session = await requireSession()
   const [recent, registry, assetScale] = await Promise.all([
@@ -36,22 +125,10 @@ export default async function Page() {
     loadAdminAssetScale(),
   ])
 
-  const richRows = isAvailable(recent) ? recent.value : null
-  const thinRows = isAvailable(registry.clients) ? registry.clients.value : null
-
-  const useRich = richRows !== null && richRows.length > 0
-  const useThin = !useRich && thinRows !== null
-
-  const listedCount = useRich
-    ? measuredCount(recent)
-    : useThin
-      ? measuredCount(registry.clients)
-      : richRows !== null
-        ? measuredCount(recent)
-        : measuredCount(registry.clients)
+  const view = resolveClientsView(recent, registry.clients)
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'clients', title: 'Clients listed', value: listedCount, icon: UsersIcon },
+    { id: 'clients', title: 'Clients listed', value: view.listedCount, icon: UsersIcon },
   ]
 
   return (
@@ -62,44 +139,7 @@ export default async function Page() {
         kpis={kpis}
       />
 
-      {useRich ? (
-        <ClientsDirectory clients={richRows} assetScale={assetScale} />
-      ) : useThin ? (
-        thinRows.length === 0 ? (
-          <Callout tone="info" title="No clients yet">
-            No client records were returned for this directory.
-          </Callout>
-        ) : (
-          <DataTableShell
-            title="Directory"
-            description="Identity from the client directory. Exposure and Som KYC appear when the admin read model returns them."
-            count={`${thinRows.length} client(s)`}
-          >
-            <TableHead>
-              <TableRow>
-                <TableHeader className={fitTableColPrimary}>Client</TableHeader>
-                <TableHeader className={fitTableColPrimary}>Identifier</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {thinRows.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.label}</TableCell>
-                  <TableCell className="font-mono text-sm text-fg-tertiary">{client.id}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </DataTableShell>
-        )
-      ) : (
-        <Callout tone="warning" title="Client directory unavailable">
-          Client records could not be read. Technical detail lives under{' '}
-          <Link href="/admin/runtime" className="underline">
-            Service
-          </Link>
-          .
-        </Callout>
-      )}
+      <ClientsMainContent view={view} assetScale={assetScale} />
 
       <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
         Som provides KYC — status is read-only here. Source health:{' '}

@@ -3,7 +3,7 @@
 import { categoricalColor } from '@/components/charts/core/chart-theme'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 /**
  * richart — donut de répartition catégorielle (KYC, etc.).
@@ -19,7 +19,9 @@ export function HearstDonutChart({
   slices,
   unit = 'dossiers',
 }: Readonly<{ slices: readonly DonutSlice[]; unit?: string }>) {
-  const data = slices.filter((s) => s.value > 0)
+  const data = slices
+    .filter((s) => s.value > 0)
+    .map((s, index) => ({ ...s, fill: categoricalColor(index) }))
   const total = data.reduce((sum, s) => sum + s.value, 0)
 
   return (
@@ -51,7 +53,7 @@ export function HearstDonutChart({
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={[...data]}
+              data={data}
               dataKey="value"
               nameKey="label"
               innerRadius="58%"
@@ -59,11 +61,7 @@ export function HearstDonutChart({
               paddingAngle={2}
               strokeWidth={0}
               isAnimationActive={false}
-            >
-              {data.map((s, index) => (
-                <Cell key={s.label} fill={categoricalColor(index)} />
-              ))}
-            </Pie>
+            />
             <Tooltip content={<RichTooltip unit={unit} />} />
           </PieChart>
         </ResponsiveContainer>
@@ -76,11 +74,11 @@ export function HearstDonutChart({
       </div>
 
       <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
-        {data.map((s, index) => (
+        {data.map((s) => (
           <li key={s.label} className="flex items-center gap-2 text-xs text-console-fill dark:text-fg">
             <span
               className="size-2 shrink-0 rounded-full"
-              style={{ background: categoricalColor(index) }}
+              style={{ background: s.fill }}
               aria-hidden="true"
             />
             <span className="truncate">{s.label}</span>

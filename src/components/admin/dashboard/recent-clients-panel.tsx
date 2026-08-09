@@ -12,7 +12,7 @@ import { FitTable, fitTableColCompact, fitTableColPrimary } from '@/components/c
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
-import { formatRelativeTime } from '@/lib/format'
+import { formatRelativeTime, pluralSuffix } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 
@@ -92,7 +92,7 @@ export function RecentClientsPanel({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
         <p className="text-xs text-fg-tertiary">
           {hiddenClients > 0
-            ? `${hiddenClients} more client${hiddenClients > 1 ? 's' : ''} available in the directory.`
+            ? `${hiddenClients} more client${pluralSuffix(hiddenClients)} available in the directory.`
             : 'Latest client snapshot.'}
         </p>
         <HearstSecondaryAction href="/admin/clients">View all clients</HearstSecondaryAction>

@@ -1,6 +1,6 @@
 import { csl, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
-import { Panel, PanelBody, PanelHeader } from '@/components/compositions/panel'
+import { Panel, PanelBody } from '@/components/compositions/panel'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
 import { FadeIn } from '@/components/compositions/motion'
 import { RichSparkline } from '@/components/charts'
@@ -281,16 +281,16 @@ export function DataTableShell({
    */
   fit?: boolean
 }>) {
-  const body =
-    source !== undefined ? (
-      <SourceAttendue {...source} />
-    ) : calme !== undefined ? (
-      <CalmState message={calme} />
-    ) : fit ? (
-      <FitTable className={csl.heroTable}>{children}</FitTable>
-    ) : (
-      <Table className={csl.heroTable}>{children}</Table>
-    )
+  let body: React.ReactNode
+  if (source !== undefined) {
+    body = <SourceAttendue {...source} />
+  } else if (calme !== undefined) {
+    body = <CalmState message={calme} />
+  } else if (fit) {
+    body = <FitTable className={csl.heroTable}>{children}</FitTable>
+  } else {
+    body = <Table className={csl.heroTable}>{children}</Table>
+  }
   return (
     <SectionCard
       title={title}

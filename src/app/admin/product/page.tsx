@@ -114,8 +114,167 @@ function explicationCourbe(
 
 function explicationSerie(champ: Resolu<unknown> | undefined, defaut: string): string {
   const etat = etatDe(champ, defaut)
-    if (etat.type === 'pending' || etat.type === 'unavailable') return etat.explication
+  if (etat.type === 'pending' || etat.type === 'unavailable') return etat.explication
   return defaut
+}
+
+type EtatChartCourbe =
+  | { readonly type: 'unavailable'; readonly explication: string }
+  | { readonly type: 'pending'; readonly explication: string }
+  | { readonly type: 'plotted' }
+
+function etatChartCourbe(factsheetOk: boolean, courbeParametree: boolean): EtatChartCourbe {
+  if (!factsheetOk) {
+    return {
+      type: 'unavailable',
+      explication: 'The product factsheet did not respond — the yield curve cannot be read.',
+    }
+  }
+  if (!courbeParametree) {
+    return {
+      type: 'pending',
+      explication: 'The yield curve is not configured yet.',
+    }
+  }
+  return { type: 'plotted' }
+}
+
+function CapitalReserveSection({
+  postes,
+  seulPoste,
+  postesGraphique,
+}: Readonly<{
+  postes: readonly PosteReserve[]
+  seulPoste: PosteReserve | undefined
+  postesGraphique: readonly PosteBitcoin[]
+}>) {
+  if (postes.length === 0) {
+    return <Callout tone="warning">Neither reserve nor exposure could be read on-chain.</Callout>
+  }
+
+  if (seulPoste !== undefined) {
+    return (
+      <>
+        <DescriptionList>
+          <DescriptionTerm>{seulPoste.poste}</DescriptionTerm>
+          <DescriptionDetails>
+            {formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
+          </DescriptionDetails>
+        </DescriptionList>
+        <Callout tone="info" className="mt-4">
+          The other position could not be read on-chain. Only one of the two positions is readable — reserve and
+          exposure cannot be compared yet.
+        </Callout>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <ChartFrame
+        question="Where is the fund's capital?"
+        unite="in dollars — idle reserve vs exposed value"
+        etat={{ type: 'plotted' }}
+      >
+        <ReserveExpositionChart postes={postesGraphique} />
+      </ChartFrame>
+      <DataTableShell
+        fit
+        title="Capital allocation"
+        description="Reserve and exposure read on-chain — the exact figures the chart positions."
+        count={`${postes.length} positions`}
+        className="mt-6"
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader className={fitTableColPrimary}>Position</TableHeader>
+            <TableHeader className={fitTableColCompact}>Amount (USD)</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {postes.map((p) => (
+            <TableRow key={p.poste}>
+              <TableCell className="font-medium">{p.poste}</TableCell>
+              <TableCell>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
+    </>
+  )
+}
+
+type LectureEnAttente = {
+  readonly cle: string
+  readonly libelle: string
+  readonly explication: string
+  readonly statut: string | undefined
+}
+
+function lecturesEnAttenteDe(
+  backtest: Awaited<ReturnType<typeof callBackend<Backtest>>>,
+  b: Btc | null,
+  m: Mining | null,
+): readonly LectureEnAttente[] {
+  return [
+    {
+      cle: 'backtest',
+      libelle: 'Performance vs history',
+      explication: explicationSerie(
+        backtest.ok ? backtest.data.runs : undefined,
+        'No backtest has been run on this deployment yet.',
+      ),
+      statut: backtest.ok ? backtest.data.runs?.status : undefined,
+    },
+    {
+      cle: 'attribution',
+      libelle: 'Yield breakdown',
+      explication: explicationSerie(b?.attribution, 'The yield breakdown has not been calculated yet.'),
+      statut: b?.attribution?.status,
+    },
+    {
+      cle: 'telemetrie',
+      libelle: 'Operational telemetry',
+      explication: explicationSerie(
+        m?.operationalTelemetry,
+        'Operational telemetry has not been submitted yet.',
+      ),
+      statut: m?.operationalTelemetry?.status,
+    },
+  ]
+}
+
+function kpisProduitDe(
+  mining: Awaited<ReturnType<typeof callBackend<Mining>>>,
+  btc: Awaited<ReturnType<typeof callBackend<Btc>>>,
+  factsheet: Awaited<ReturnType<typeof callBackend<Factsheet>>>,
+  m: Mining | null,
+  b: Btc | null,
+  f: Factsheet | null,
+): readonly AdminHeroKpi[] {
+  const hashrateCell = figureDepuisResolu(mining.ok ? m?.hashrate : undefined, MINING_ENDPOINT, (h) =>
+    formatNumber(Number(h.reportedHashrateTh)),
+  )
+  const btcProduitCell = figureDepuisResolu(
+    btc.ok ? b?.btcProduced : undefined,
+    BTC_ENDPOINT,
+    (p) => bitcoinProduitDe(p.totalSats) ?? '—',
+  )
+  const plafondCell = figureDepuisResolu(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
+    formatCurrency(c, { decimals: 0 }),
+  )
+
+  return [
+    { id: 'hashrate', title: 'Hashrate', value: hashrateCell, unit: 'TH/s', icon: CpuChipIcon },
+    { id: 'btc-produced', title: 'BTC produced', value: btcProduitCell, unit: 'BTC', icon: CircleStackIcon },
+    { id: 'cap', title: 'Cap', value: plafondCell, icon: Square3Stack3DIcon },
+    {
+      id: 'source-btc',
+      title: 'BTC source',
+      value: editorial(b === null ? 'Unavailable' : 'Reachable'),
+      icon: SignalIcon,
+    },
+  ]
 }
 
 export default async function Page() {
@@ -146,61 +305,8 @@ export default async function Page() {
   const courbeParametree = courbeParametreeDe(points)
   const plafond = f?.tvlCap?.value
 
-  const lecturesEnAttente: readonly {
-    readonly cle: string
-    readonly libelle: string
-    readonly explication: string
-    readonly statut: string | undefined
-  }[] = [
-    {
-      cle: 'backtest',
-      libelle: 'Performance vs history',
-      explication: explicationSerie(
-        backtest.ok ? backtest.data.runs : undefined,
-        'No backtest has been run on this deployment yet.',
-      ),
-      statut: backtest.ok ? backtest.data.runs?.status : undefined,
-    },
-    {
-      cle: 'attribution',
-      libelle: 'Yield breakdown',
-      explication: explicationSerie(b?.attribution, 'The yield breakdown has not been calculated yet.'),
-      statut: b?.attribution?.status,
-    },
-    {
-      cle: 'telemetrie',
-      libelle: 'Operational telemetry',
-      explication: explicationSerie(
-        m?.operationalTelemetry,
-        'Operational telemetry has not been submitted yet.',
-      ),
-      statut: m?.operationalTelemetry?.status,
-    },
-  ]
-
-  const hashrateCell = figureDepuisResolu(mining.ok ? m?.hashrate : undefined, MINING_ENDPOINT, (h) =>
-    formatNumber(Number(h.reportedHashrateTh)),
-  )
-  const btcProduitCell = figureDepuisResolu(
-    btc.ok ? b?.btcProduced : undefined,
-    BTC_ENDPOINT,
-    (p) => bitcoinProduitDe(p.totalSats) ?? '—',
-  )
-  const plafondCell = figureDepuisResolu(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
-    formatCurrency(c, { decimals: 0 }),
-  )
-
-  const kpis: readonly AdminHeroKpi[] = [
-    { id: 'hashrate', title: 'Hashrate', value: hashrateCell, unit: 'TH/s', icon: CpuChipIcon },
-    { id: 'btc-produced', title: 'BTC produced', value: btcProduitCell, unit: 'BTC', icon: CircleStackIcon },
-    { id: 'cap', title: 'Cap', value: plafondCell, icon: Square3Stack3DIcon },
-    {
-      id: 'source-btc',
-      title: 'BTC source',
-      value: editorial(b === null ? 'Unavailable' : 'Reachable'),
-      icon: SignalIcon,
-    },
-  ]
+  const lecturesEnAttente = lecturesEnAttenteDe(backtest, b, m)
+  const kpis = kpisProduitDe(mining, btc, factsheet, m, b, f)
 
   return (
     <div className="space-y-8">
@@ -234,54 +340,7 @@ export default async function Page() {
         eyebrow="Reserve and yield"
         hint="The two readings the product is actually measured on today."
       >
-        {postes.length === 0 ? (
-          <Callout tone="warning">Neither reserve nor exposure could be read on-chain.</Callout>
-        ) : seulPoste !== undefined ? (
-          <>
-            <DescriptionList>
-              <DescriptionTerm>{seulPoste.poste}</DescriptionTerm>
-              <DescriptionDetails>
-                {formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
-              </DescriptionDetails>
-            </DescriptionList>
-            <Callout tone="info" className="mt-4">
-              The other position could not be read on-chain. Only one of the two positions is readable — reserve and
-              exposure cannot be compared yet.
-            </Callout>
-          </>
-        ) : (
-          <>
-            <ChartFrame
-              question="Where is the fund's capital?"
-              unite="in dollars — idle reserve vs exposed value"
-              etat={{ type: 'plotted' }}
-            >
-              <ReserveExpositionChart postes={postesGraphique} />
-            </ChartFrame>
-            <DataTableShell
-              fit
-              title="Capital allocation"
-              description="Reserve and exposure read on-chain — the exact figures the chart positions."
-              count={`${postes.length} positions`}
-              className="mt-6"
-            >
-              <TableHead>
-                <TableRow>
-                  <TableHeader className={fitTableColPrimary}>Position</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Amount (USD)</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {postes.map((p) => (
-                  <TableRow key={p.poste}>
-                    <TableCell className="font-medium">{p.poste}</TableCell>
-                    <TableCell>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </DataTableShell>
-          </>
-        )}
+        <CapitalReserveSection postes={postes} seulPoste={seulPoste} postesGraphique={postesGraphique} />
       </SectionCard>
 
       <SectionCard
@@ -292,19 +351,7 @@ export default async function Page() {
         <ChartFrame
           question="How does yield evolve over time?"
           unite="as a percentage, per product milestone"
-          etat={
-            !factsheet.ok
-              ? {
-                  type: 'unavailable',
-                  explication: 'The product factsheet did not respond — the yield curve cannot be read.',
-                }
-              : !courbeParametree
-                ? {
-                    type: 'pending',
-                    explication: 'The yield curve is not configured yet.',
-                  }
-                : { type: 'plotted' }
-          }
+          etat={etatChartCourbe(factsheet.ok, courbeParametree)}
         >
           <HearstCourbeChart points={points} />
         </ChartFrame>

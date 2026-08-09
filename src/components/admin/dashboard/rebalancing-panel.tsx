@@ -2,7 +2,7 @@
 
 import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset } from '@/components/admin/surface'
-import { formatRelativeTime } from '@/lib/format'
+import { formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -17,21 +17,49 @@ function driftPts(driftBps: number): string {
   return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
 }
 
+function RebalancingUnavailable() {
+  return (
+    <div className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+      <div className={clsx(ALERTS_SLOT_CLASS, surfaceInset, 'flex flex-col items-center justify-center px-4 py-8 text-center')}>
+        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
+        <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
+      </div>
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
+        <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
+      </div>
+    </div>
+  )
+}
+
+function statusHeadline(data: AdminRebalancingSummary, stable: boolean): string {
+  if (stable) return '✓ Portfolio stable'
+  return `⚠ ${data.strategiesOutOfTarget} drift${pluralSuffix(data.strategiesOutOfTarget)} detected`
+}
+
+function statusDetail(data: AdminRebalancingSummary): string {
+  return `${data.activeVaults} active vault${pluralSuffix(data.activeVaults)} · ${data.measuredStrategies} strateg${strategySuffix(data.measuredStrategies)} measured · Indexer ${data.indexerStatus.toLowerCase()}`
+}
+
+function footerNote(
+  data: AdminRebalancingSummary,
+  stable: boolean,
+  hiddenAlerts: number,
+): string {
+  if (data.lastRebalanceAt !== null) {
+    return `Last activity · ${formatRelativeTime(data.lastRebalanceAt)}`
+  }
+  if (stable) return 'Monitoring all measured strategies.'
+  if (hiddenAlerts > 0) {
+    return `${hiddenAlerts} more alert${pluralSuffix(hiddenAlerts)} in Operations.`
+  }
+  return 'Latest alert snapshot.'
+}
+
 export function RebalancingAlertsPanel({
   summary,
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   if (!isAvailable(summary)) {
-    return (
-      <div className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
-        <div className={clsx(ALERTS_SLOT_CLASS, surfaceInset, 'flex flex-col items-center justify-center px-4 py-8 text-center')}>
-          <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-          <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-          <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
-        </div>
-      </div>
-    )
+    return <RebalancingUnavailable />
   }
 
   const data = summary.value
@@ -52,15 +80,8 @@ export function RebalancingAlertsPanel({
             <ExclamationTriangleIcon className="size-6 shrink-0 text-warning-500" aria-hidden="true" />
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-ink dark:text-fg">
-              {stable
-                ? '✓ Portfolio stable'
-                : `⚠ ${data.strategiesOutOfTarget} drift${data.strategiesOutOfTarget > 1 ? 's' : ''} detected`}
-            </p>
-            <p className="mt-1 text-xs text-fg-tertiary">
-              {data.activeVaults} active vault{data.activeVaults > 1 ? 's' : ''} · {data.measuredStrategies} strateg
-              {data.measuredStrategies > 1 ? 'ies' : 'y'} measured · Indexer {data.indexerStatus.toLowerCase()}
-            </p>
+            <p className="text-sm font-semibold text-ink dark:text-fg">{statusHeadline(data, stable)}</p>
+            <p className="mt-1 text-xs text-fg-tertiary">{statusDetail(data)}</p>
           </div>
         </div>
 
@@ -82,15 +103,7 @@ export function RebalancingAlertsPanel({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
-        <p className="text-xs text-fg-tertiary">
-          {data.lastRebalanceAt !== null
-            ? `Last activity · ${formatRelativeTime(data.lastRebalanceAt)}`
-            : stable
-              ? 'Monitoring all measured strategies.'
-              : hiddenAlerts > 0
-                ? `${hiddenAlerts} more alert${hiddenAlerts > 1 ? 's' : ''} in Operations.`
-                : 'Latest alert snapshot.'}
-        </p>
+        <p className="text-xs text-fg-tertiary">{footerNote(data, stable, hiddenAlerts)}</p>
         <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
       </div>
     </div>

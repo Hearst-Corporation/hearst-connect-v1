@@ -20,6 +20,7 @@ import {
   fitTableColPrimary,
 } from '@/components/compositions'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
+import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
 import { availabilityFromResolu } from '@/lib/backend/availability'
 import { motifLisible, etatSourceLisible } from '@/lib/mouvements'
@@ -95,6 +96,27 @@ type SourceActivityRow = {
 
 const countIn = (surfaces: readonly Surface[], tier: CoverageTier): number =>
   surfaces.filter((s) => s.tier === tier).length
+
+function coverageChartState(
+  aggregate: Record<string, unknown> | null,
+  surfaces: readonly Surface[],
+  filledTiers: number,
+): SeriesState {
+  if (aggregate === null) {
+    return { type: 'unavailable', explication: 'The dashboard endpoint did not respond.' }
+  }
+  if (surfaces.length === 0) {
+    return { type: 'empty', explication: 'The dashboard exposed no surface.' }
+  }
+  if (filledTiers < 2) {
+    return {
+      type: 'empty',
+      explication:
+        'Only one tier is filled — the per-surface list remains more readable than a single-slice ring.',
+    }
+  }
+  return { type: 'plotted' }
+}
 
 export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabel: string }>) {
   const response = await callBackend<Record<string, unknown>>('dashboard')
@@ -181,19 +203,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
       <ChartFrame
         question="How is coverage distributed by tier?"
         unite="number of surfaces, by tier"
-        etat={
-          aggregate === null
-            ? { type: 'unavailable', explication: 'The dashboard endpoint did not respond.' }
-            : surfaces.length === 0
-              ? { type: 'empty', explication: 'The dashboard exposed no surface.' }
-              : filledTiers < 2
-                ? {
-                    type: 'empty',
-                    explication:
-                      'Only one tier is filled — the per-surface list remains more readable than a single-slice ring.',
-                  }
-                : { type: 'plotted' }
-        }
+        etat={coverageChartState(aggregate, surfaces, filledTiers)}
         expectedSource={['GET /api/v1/dashboard']}
       >
         {aggregate !== null && filledTiers >= 2 ? (

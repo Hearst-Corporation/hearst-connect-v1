@@ -54,7 +54,6 @@ export default defineConfig({
         'src/lib/backend/http-failure.ts',
         'src/lib/backend/probe.ts',
         'src/lib/backend/availability.ts',
-        'src/lib/backend/lecture-etat.ts',
         'src/lib/backend/reading-state.ts',
       ],
     },

@@ -907,9 +907,6 @@
   font-weight: 700;
 }
 
-.decisionMeta b {
-}
-
 .decisionAction,
 .decisionActionMuted {
   display: inline-flex;

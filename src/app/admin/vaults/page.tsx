@@ -150,6 +150,79 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
   )
 }
 
+function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>) {
+  return (
+    <>
+      <div className="hidden min-w-0 md:block">
+        <DataTableShell
+          fit
+          title="Vaults"
+          description="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
+          count={`${formatNumber(vaultList.length)} vault(s)`}
+        >
+          <TableHead>
+            <TableRow>
+              <TableHeader className={fitTableColPrimary}>Vault</TableHeader>
+              <TableHeader className={fitTableColCompact}>AUM</TableHeader>
+              <TableHeader className={fitTableColCompact}>Deployed</TableHeader>
+              <TableHeader className={fitTableColCompact}>Available</TableHeader>
+              <TableHeader className={fitTableColCompact}>Drift</TableHeader>
+              <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {vaultList.map((vault) => (
+              <VaultPrimaryRow key={vault.id} vault={vault} />
+            ))}
+          </TableBody>
+        </DataTableShell>
+      </div>
+
+      <SectionCard
+        title="Vaults"
+        hint="Capital and allocation drift as reported by the service."
+        className="md:hidden"
+        actions={
+          <span className="text-xs text-fg-tertiary">{formatNumber(vaultList.length)} vault(s)</span>
+        }
+      >
+        <ul className="space-y-3">
+          {vaultList.map((vault) => (
+            <VaultMobileCard key={vault.id} vault={vault} />
+          ))}
+        </ul>
+      </SectionCard>
+    </>
+  )
+}
+
+function VaultRegistryContent({ vaultList }: Readonly<{ vaultList: readonly Vault[] | null }>) {
+  if (vaultList === null) {
+    return (
+      <SectionCard title="Vaults" hint="Capital and allocation drift as reported by the service.">
+        <Callout tone="warning" title="Vault read unavailable">
+          The vault read did not succeed.{' '}
+          <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
+            Data coverage
+          </Link>
+        </Callout>
+      </SectionCard>
+    )
+  }
+
+  if (vaultList.length === 0) {
+    return (
+      <DataTableShell
+        title="Vaults"
+        description="Capital and allocation drift as reported by the service."
+        calme="The service responded with no vault in the registry."
+      />
+    )
+  }
+
+  return <VaultRegistryBody vaultList={vaultList} />
+}
+
 export default async function Page() {
   const session = await requireSession()
   const registry = await loadAdminRegistry(session.name)
@@ -170,64 +243,7 @@ export default async function Page() {
         kpis={kpis}
       />
 
-      {vaultList === null ? (
-        <SectionCard title="Vaults" hint="Capital and allocation drift as reported by the service.">
-          <Callout tone="warning" title="Vault read unavailable">
-            The vault read did not succeed.{' '}
-            <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
-              Data coverage
-            </Link>
-          </Callout>
-        </SectionCard>
-      ) : vaultList.length === 0 ? (
-        <DataTableShell
-          title="Vaults"
-          description="Capital and allocation drift as reported by the service."
-          calme="The service responded with no vault in the registry."
-        />
-      ) : (
-        <>
-          <div className="hidden min-w-0 md:block">
-            <DataTableShell
-              fit
-              title="Vaults"
-              description="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
-              count={`${formatNumber(vaultList.length)} vault(s)`}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableHeader className={fitTableColPrimary}>Vault</TableHeader>
-                  <TableHeader className={fitTableColCompact}>AUM</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Deployed</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Available</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Drift</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {vaultList.map((vault) => (
-                  <VaultPrimaryRow key={vault.id} vault={vault} />
-                ))}
-              </TableBody>
-            </DataTableShell>
-          </div>
-
-          <SectionCard
-            title="Vaults"
-            hint="Capital and allocation drift as reported by the service."
-            className="md:hidden"
-            actions={
-              <span className="text-xs text-fg-tertiary">{formatNumber(vaultList.length)} vault(s)</span>
-            }
-          >
-            <ul className="space-y-3">
-              {vaultList.map((vault) => (
-                <VaultMobileCard key={vault.id} vault={vault} />
-              ))}
-            </ul>
-          </SectionCard>
-        </>
-      )}
+      <VaultRegistryContent vaultList={vaultList} />
 
       <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
         Source health and endpoint coverage:{' '}

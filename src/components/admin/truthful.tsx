@@ -1,6 +1,6 @@
 import { surfaceInset } from '@/components/admin/surface'
 import { ADMIN_TONE_CLASS, type AdminBadgeTone } from '@/components/admin/status-tone'
-import { formatDateTime, formatNumber } from '@/lib/format'
+import { formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { Resolved, ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'

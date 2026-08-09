@@ -528,7 +528,6 @@ function buildVaultRecord(
   const runtime = vaultData.runtime
   const contractAddress = runtime?.contractAddress as string
   const listeStrategies = isAvailable(strategies) ? strategies.value : []
-  const derniereActivite = isAvailable(snapshot) ? snapshot.asOf : null
 
   return {
     id: vaultId,
