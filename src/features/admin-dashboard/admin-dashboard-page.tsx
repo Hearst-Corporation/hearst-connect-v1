@@ -12,8 +12,8 @@ import {
   VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
-import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { HearstActivityChart, type PointActivite } from '@/components/charts'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
@@ -136,83 +136,83 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
-      <div className="flex flex-col gap-4">
-        <AdminGrid align="stretch">
-          <AdminCol span={7}>
-            <DashCard
-              className="h-full min-w-0"
-              title="Portfolio exposure"
-              subtitle="Where capital is allocated vs target"
-            >
-              <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
-            </DashCard>
-          </AdminCol>
+      <BentoGrid>
+        {/*
+         * Masonry flow: cards drop into the shortest column, top to bottom. The
+         * order below is chosen so the two tallest panels (Portfolio exposure,
+         * Recent activity) don't both land in the same column — no size prop is
+         * involved, only sequence.
+         */}
+        <BentoCard>
+          <DashCard
+            className="min-w-0"
+            title="Portfolio exposure"
+            subtitle="Where capital is allocated vs target"
+          >
+            <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
+          </DashCard>
+        </BentoCard>
 
-          <AdminCol span={5}>
-            <DashCard
-              className="h-full min-w-0"
-              contentClassName="flex-1"
-              title="Activity"
-              subtitle="Daily volume · 28 days"
-            >
-              <ActivityChartSlot
-                showActivityCurve={showActivityCurve}
-                activityNotConfigured={activityNotConfigured}
-                activityPoints={activityPoints}
-                activityTimeseries={data.activityTimeseries}
-              />
-            </DashCard>
-          </AdminCol>
-        </AdminGrid>
+        <BentoCard>
+          <DashCard
+            className="min-w-0"
+            contentClassName="flex-1"
+            title="Activity"
+            subtitle="Daily volume · 28 days"
+          >
+            <ActivityChartSlot
+              showActivityCurve={showActivityCurve}
+              activityNotConfigured={activityNotConfigured}
+              activityPoints={activityPoints}
+              activityTimeseries={data.activityTimeseries}
+            />
+          </DashCard>
+        </BentoCard>
 
-        <AdminGrid>
-          <AdminCol span={6}>
-            <DashCard
-              className="min-w-0"
-              title="Recent activity"
-              subtitle="Blockchain and subscription timeline"
-            >
-              <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
-            </DashCard>
-          </AdminCol>
+        <BentoCard>
+          <DashCard
+            className="min-w-0"
+            title="Recent activity"
+            subtitle="Blockchain and subscription timeline"
+          >
+            <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+          </DashCard>
+        </BentoCard>
 
-          <AdminCol span={3}>
-            <DashCard
-              className="min-w-0"
-              title="Rebalancing & alerts"
-              subtitle="Drift and indexer"
-            >
-              <RebalancingAlertsPanel summary={data.rebalancing} />
-            </DashCard>
-          </AdminCol>
+        <BentoCard>
+          <DashCard
+            className="min-w-0"
+            title="Rebalancing & alerts"
+            subtitle="Drift and indexer"
+          >
+            <RebalancingAlertsPanel summary={data.rebalancing} />
+          </DashCard>
+        </BentoCard>
 
-          <AdminCol span={3}>
-            <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
-              <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
-            </DashCard>
-          </AdminCol>
-        </AdminGrid>
+        <BentoCard>
+          <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
+            <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
+          </DashCard>
+        </BentoCard>
 
-        <AdminGrid>
-          <AdminCol span={4}>
-            <DashCard className="min-w-0" title="Data health" subtitle="Source freshness">
-              <DataHealthGrid sources={data.dataHealth} />
-            </DashCard>
-          </AdminCol>
+        <BentoCard>
+          <DashCard className="min-w-0" title="Data health" subtitle="Source freshness">
+            <DataHealthGrid sources={data.dataHealth} />
+          </DashCard>
+        </BentoCard>
 
-          <AdminCol span={4}>
-            <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
-              <MarketSnapshotPanel snapshot={data.market} />
-            </DashCard>
-          </AdminCol>
+        <BentoCard>
+          <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
+            <MarketSnapshotPanel snapshot={data.market} />
+          </DashCard>
+        </BentoCard>
 
-          <AdminCol span={4}>
-            <DashCard className="min-w-0" title="Recent clients" subtitle="Exposure and Som KYC">
-              <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
-            </DashCard>
-          </AdminCol>
-        </AdminGrid>
-      </div>
+        <BentoCard>
+          <DashCard className="min-w-0" title="Recent clients" subtitle="Exposure and Som KYC">
+            <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
     </DashboardShell>
   )
 }
