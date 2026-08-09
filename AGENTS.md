@@ -8,7 +8,8 @@ Autorité **opérationnelle locale** de l'agent dans ce workspace, dans l'ordre 
 2. **fédération shared** (`.cursor/rules/{00,10,20,30,40}-shared-*.mdc`) — gouvernance,
    git, format de réponse, no-hardcode, qualité ;
 3. **règles projet locales** (`.cursor/rules/30-no-gpu1.mdc`, `.cursor/rules/50-no-zinc.mdc`,
-   `.cursor/rules/55-restart-local.mdc`) et `CLAUDE.md` — overlays produit propres à ce dépôt ;
+   `.cursor/rules/55-restart-local.mdc`, `.cursor/rules/60-design-system.mdc`) et `CLAUDE.md` —
+   overlays produit propres à ce dépôt ;
 4. mission active.
 
 Les règles projet **complètent** la fédération shared sans la réécrire (voir la doctrine
@@ -30,8 +31,8 @@ shared ci-dessus.
 - Elle mandate un **runner CI `gpu1`** — **interdit ici** par `.cursor/rules/30-no-gpu1.mdc`
   (règle absolue). En cas de conflit, **`30-no-gpu1.mdc` prime** dans ce workspace.
 - Elle décrit un design system **dark-only / tokens `--ct-*` / accent `#A7FB90`** ; ce dépôt
-  utilise ses propres tokens sémantiques (`fg` / `ink` / `console-*`, cf. `50-no-zinc.mdc` et
-  `CLAUDE.md`). Ne pas importer le DS de `Hearst-Defi` ici.
+  a son **DS local comme autorité** (`fg` / `ink` / `console-*`, cf. `50-no-zinc.mdc` et
+  `60-design-system.mdc`). Ne pas importer le DS de `Hearst-Defi` ici.
 
 Toute mission qui voudrait rattacher ce dépôt à la gouvernance centrale (rafraîchir le SHA,
 résoudre l'identité de repo, aligner le DS) est une **décision dédiée d'Adrien**, pas un
@@ -44,5 +45,7 @@ ajustement d'agent.
   GitHub + Railway ; front = Vercel `hearst-connect-v1` ; jamais GPU1 ni `connect-api.hearst.app`).
 - **Palette / interdiction** → `.cursor/rules/50-no-zinc.mdc` (neutrals = tokens sémantiques
   `fg` / `ink` / `console-*` ; gate `pnpm run check:no-zinc`).
+- **Design system / box / layout / responsive** → `.cursor/rules/60-design-system.mdc`
+  (autorité DS locale ; étend `30-shared-no-hardcode` + `50-no-zinc` ; pas de `--ct-*`).
 - **Runtime local** → `.cursor/rules/55-restart-local.mdc` (redémarrer `pnpm dev` sur le port
   **4105** en début de mission de travail UI/runtime).
