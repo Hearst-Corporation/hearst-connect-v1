@@ -62,6 +62,7 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).toMatch(/<RebalancingAlertsPanel/)
     expect(SOURCE).toContain('Rebalancing & alerts')
     expect(REBALANCING).toMatch(/data-widget="rebalancing-alerts"/)
+    expect(REBALANCING).toMatch(/dashboard-list-slot-block-size/)
   })
 
   it('loads admin dashboard read models server-side — no registry pilotage math', () => {
@@ -92,11 +93,12 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
   it('lays out the dashboard with explicit container-driven regions', () => {
     expect(SOURCE).toMatch(/@container flex flex-col gap-4/)
     const rowGrids = [
-      ...SOURCE.matchAll(/grid grid-cols-1 gap-4 @\[52rem\]:grid-cols-\[minmax\(0,7fr\)_minmax\(0,5fr\)\]/g),
-      ...SOURCE.matchAll(/grid grid-cols-1 gap-4 @\[52rem\]:grid-cols-\[minmax\(0,2fr\)_minmax\(0,1fr\)_minmax\(0,1fr\)\]/g),
-      ...SOURCE.matchAll(/grid grid-cols-1 gap-4 @\[52rem\]:grid-cols-3/g),
+      ...SOURCE.matchAll(/grid grid-cols-1 items-start gap-4 @\[52rem\]:grid-cols-\[minmax\(0,7fr\)_minmax\(0,5fr\)\]/g),
+      ...SOURCE.matchAll(/grid grid-cols-1 items-start gap-4 @\[52rem\]:grid-cols-\[minmax\(0,2fr\)_minmax\(0,1fr\)_minmax\(0,1fr\)\]/g),
+      ...SOURCE.matchAll(/grid grid-cols-1 items-start gap-4 @\[52rem\]:grid-cols-3/g),
     ]
     expect(rowGrids.length).toBe(3)
+    expect(SOURCE).toMatch(/items-start gap-4/)
     expect(SOURCE).not.toMatch(/flex flex-wrap/)
     expect(SOURCE).not.toMatch(/flex-\[\d+_1_min\(100%,\d+rem\)\]/)
     expect(SHELL).not.toMatch(/data-footprint=/)

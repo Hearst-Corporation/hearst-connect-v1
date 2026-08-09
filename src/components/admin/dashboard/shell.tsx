@@ -46,14 +46,14 @@ export function DashCard({
   subtitle?: string
 }>) {
   return (
-    <section data-surface="box" className={clsx(surfaceBox, 'flex h-full flex-col', className)}>
+    <section data-surface="box" className={clsx(surfaceBox, 'flex flex-col', className)}>
       {title !== undefined ? (
         <header className="px-5 pt-5 pb-1">
           <Subheading>{title}</Subheading>
           {subtitle !== undefined ? <Text className="mt-1">{subtitle}</Text> : null}
         </header>
       ) : null}
-      <div className={clsx('flex min-h-0 flex-1 flex-col p-5', contentClassName)}>{children}</div>
+      <div className={clsx('flex min-h-0 flex-col p-5', contentClassName)}>{children}</div>
     </section>
   )
 }
