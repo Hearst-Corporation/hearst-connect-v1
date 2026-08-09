@@ -1,6 +1,8 @@
 # Passation agent — Hearst Connect V1
 
-> Dernière mise à jour : **2026-08-07** · Branche : **`main` uniquement**
+> **DESCRIPTIVE** (runbook de reprise) — pas d’autorité d’implémentation.
+> Git / ship : `.cursor/rules/10-shared-git-lifecycle.mdc` (fédération shared).
+> Dernière mise à jour : **2026-08-09** · Branche : **`main` uniquement**
 
 ## Mission
 
@@ -16,15 +18,15 @@ Pas de SSH GPU1, pas de `connect-api.hearst.app`, pas de workflow `deploy.yml` G
 | Front | Vercel **`hearst-connect-v1`** → https://hearst-connect-v1.vercel.app |
 | Variable | `HEARST_API_URL` (Railway) |
 
-Références : `.cursor/rules/30-no-gpu1.mdc`, `docs/ENDPOINT-MAPPING.md`, `README.md`.
+Références : `.cursor/rules/30-no-gpu1.mdc`, `docs/ENDPOINT-MAPPING.md`, `README.md`, `AGENTS.md`.
 
 ## UI — ligne directrice
 
 **Référence** : `/admin` (pilotage des souscriptions). Composants : `src/components/admin/dashboard/`, `src/components/actions/`. `/admin/dashboard` redirige ici.
 
-## État code (main @ 899833c)
+## État code (mesurer `git rev-parse --short HEAD` — ne pas figer un SHA fantôme ici)
 
-- `pnpm check` vert (375 tests vitest)
+- Gate : `pnpm check` (voir `package.json` — source de vérité)
 - e2e utiles : `access-control`, `audit-closure`, `veracity` (plus de specs capture PNG)
 - `docs/` allégé : `ENDPOINT-MAPPING.md` + ce fichier seulement (hors `.keep`)
 
@@ -48,7 +50,7 @@ E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
 
 1. GPU1 / connect-api ≠ Railway
 2. `pnpm` only (pas `npm install`)
-3. Pas de commit sans demande explicite d'Adrien
+3. Ship Git : gouvernance workspace (`10-shared-git-lifecycle.mdc`) — STOP explicite seulement sur instruction courante
 4. Pas de données inventées (`check:mocks`)
 5. Vercel : **`hearst-connect-v1`** uniquement
 
@@ -57,5 +59,5 @@ E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
 ```
 Hearst Connect V1, branche main. Backend Railway (HEARST_API_URL).
 GPU1 interdit. UI référence = /admin (Catalyst + pilotage). `/admin/dashboard` redirige.
-Autres pages admin à aligner une par une. Pas de commit sans demande.
+Autorité : AGENTS.md + .cursor/rules + CLAUDE.md. Passation = DESCRIPTIVE.
 ```

@@ -7,8 +7,8 @@ Autorité **opérationnelle locale** de l'agent dans ce workspace, dans l'ordre 
 1. instruction explicite d'Adrien dans la conversation en cours ;
 2. **fédération shared** (`.cursor/rules/{00,10,20,30,40}-shared-*.mdc`) — gouvernance,
    git, format de réponse, no-hardcode, qualité ;
-3. **règles projet locales** (`.cursor/rules/30-no-gpu1.mdc`, `.cursor/rules/50-no-zinc.mdc`)
-   et `CLAUDE.md` — overlays produit propres à ce dépôt ;
+3. **règles projet locales** (`.cursor/rules/30-no-gpu1.mdc`, `.cursor/rules/50-no-zinc.mdc`,
+   `.cursor/rules/55-restart-local.mdc`) et `CLAUDE.md` — overlays produit propres à ce dépôt ;
 4. mission active.
 
 Les règles projet **complètent** la fédération shared sans la réécrire (voir la doctrine
@@ -42,5 +42,7 @@ ajustement d'agent.
 
 - **GPU1 / placement backend** → `.cursor/rules/30-no-gpu1.mdc` (règle absolue : backend =
   GitHub + Railway ; front = Vercel `hearst-connect-v1` ; jamais GPU1 ni `connect-api.hearst.app`).
-- **Palette / interdiction Zinc** → `.cursor/rules/50-no-zinc.mdc` (neutrals = tokens sémantiques
+- **Palette / interdiction** → `.cursor/rules/50-no-zinc.mdc` (neutrals = tokens sémantiques
   `fg` / `ink` / `console-*` ; gate `pnpm run check:no-zinc`).
+- **Runtime local** → `.cursor/rules/55-restart-local.mdc` (redémarrer `pnpm dev` sur le port
+  **4105** en début de mission de travail UI/runtime).
