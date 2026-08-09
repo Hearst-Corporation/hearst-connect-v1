@@ -12,6 +12,7 @@ import {
   VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
+import { AdminCol, AdminGrid } from '@/components/admin/grid'
 import { HearstActivityChart, type PointActivite } from '@/components/charts'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
@@ -135,9 +136,9 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
     <DashboardShell>
       <DashboardHeader userName={user.name} kpis={kpis} />
 
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-stretch gap-6">
-          <div className="min-w-[20rem] flex-[7_1_0%]">
+      <div className="flex flex-col gap-4">
+        <AdminGrid align="stretch">
+          <AdminCol span={7}>
             <DashCard
               className="h-full min-w-0"
               title="Portfolio exposure"
@@ -145,9 +146,9 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
             >
               <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
             </DashCard>
-          </div>
+          </AdminCol>
 
-          <div className="min-w-[18rem] flex-[5_1_0%]">
+          <AdminCol span={5}>
             <DashCard
               className="h-full min-w-0"
               contentClassName="flex-1"
@@ -161,11 +162,11 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
                 activityTimeseries={data.activityTimeseries}
               />
             </DashCard>
-          </div>
-        </div>
+          </AdminCol>
+        </AdminGrid>
 
-        <div className="flex flex-wrap items-start gap-6">
-          <div className="min-w-[20rem] flex-[2_1_0%]">
+        <AdminGrid>
+          <AdminCol span={6}>
             <DashCard
               className="min-w-0"
               title="Recent activity"
@@ -173,9 +174,9 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
             >
               <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
             </DashCard>
-          </div>
+          </AdminCol>
 
-          <div className="min-w-[15rem] flex-1">
+          <AdminCol span={3}>
             <DashCard
               className="min-w-0"
               title="Rebalancing & alerts"
@@ -183,34 +184,34 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
             >
               <RebalancingAlertsPanel summary={data.rebalancing} />
             </DashCard>
-          </div>
+          </AdminCol>
 
-          <div className="min-w-[15rem] flex-1">
+          <AdminCol span={3}>
             <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
               <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
             </DashCard>
-          </div>
-        </div>
+          </AdminCol>
+        </AdminGrid>
 
-        <div className="flex flex-wrap items-start gap-6">
-          <div className="min-w-[15rem] flex-1">
+        <AdminGrid>
+          <AdminCol span={4}>
             <DashCard className="min-w-0" title="Data health" subtitle="Source freshness">
               <DataHealthGrid sources={data.dataHealth} />
             </DashCard>
-          </div>
+          </AdminCol>
 
-          <div className="min-w-[15rem] flex-1">
+          <AdminCol span={4}>
             <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
               <MarketSnapshotPanel snapshot={data.market} />
             </DashCard>
-          </div>
+          </AdminCol>
 
-          <div className="min-w-[15rem] flex-1">
+          <AdminCol span={4}>
             <DashCard className="min-w-0" title="Recent clients" subtitle="Exposure and Som KYC">
               <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
             </DashCard>
-          </div>
-        </div>
+          </AdminCol>
+        </AdminGrid>
       </div>
     </DashboardShell>
   )

@@ -27,14 +27,14 @@ export function LoginForm({
   const [quickState, quickAction, quickPending] = useActionState(quickLoginOwner, initialState)
 
   return (
-    <div className="w-full max-w-sm space-y-8">
+    <div className="grid w-full max-w-sm grid-cols-1 gap-8">
       <Logo className="text-ink dark:text-fg" />
       <div>
         <Heading>Sign in to your workspace</Heading>
         <Text className="mt-2">Use the professional email address linked to your organization.</Text>
       </div>
 
-      <form action={formAction} className="space-y-8">
+      <form action={formAction} className="grid grid-cols-1 gap-8">
       {notice ? (
         <output className="block rounded-lg bg-warning-400/10 px-4 py-3 text-sm text-warning-400 ring-1 ring-warning-400/20">
           {notice}

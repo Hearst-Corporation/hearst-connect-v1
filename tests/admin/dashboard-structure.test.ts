@@ -88,7 +88,16 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  it('lays out dashboard cards with flexible responsive layout', () => {
+  it('lays out dashboard cards in a bento AdminGrid (7+5 / 6+3+3 / 4+4+4)', () => {
+    expect(SOURCE).toMatch(/from ['"]@\/components\/admin\/grid['"]/)
+    expect(SOURCE).toMatch(/<AdminGrid align="stretch">/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{7\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{5\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{6\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{3\}/)
+    expect(SOURCE).not.toMatch(/<AdminCol span=\{3\} md=\{4\}/)
+    expect(SOURCE).toMatch(/<AdminCol span=\{4\}/)
+
     for (const t of [
       'Portfolio exposure',
       'Activity',

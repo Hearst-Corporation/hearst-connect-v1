@@ -20,7 +20,7 @@ describe('layout fluide — pas de plafond fixe qui écrase les grilles', () => 
     const end = src.indexOf('export function SectionCard', start)
     const statGrid = src.slice(start, end)
     expect(statGrid).toContain('@container')
-    expect(statGrid).toContain('AdminMetricGrid')
+    expect(statGrid).toContain('@[48rem]:grid-cols-4')
     expect(statGrid).not.toContain('lg:grid-cols-4')
     expect(statGrid).not.toContain('sm:grid-cols-2')
   })

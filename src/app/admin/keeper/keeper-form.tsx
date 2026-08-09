@@ -23,7 +23,7 @@ function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }
   return (
     <>
       {needsMetrics ? (
-        <div className="flex flex-wrap gap-3 *:flex-1 *:min-w-[12rem]">
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs text-fg-tertiary dark:text-fg-secondary">hashrateTh — integer ≥ 0</span>
             <input name="hashrateTh" type="number" min={0} step={1} required className={fieldClass} />
