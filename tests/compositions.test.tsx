@@ -35,15 +35,22 @@ describe('Panel', () => {
     expect(container.querySelector('article')).toBeNull()
   })
 
-  it('applique une matière distincte par `tone`', () => {
+  it('partage la matière surfaceBox ; les tones ne sont que de la géométrie', () => {
     const { container: wave } = render(<Panel tone="wave">x</Panel>)
     const { container: chart } = render(<Panel tone="chart">x</Panel>)
+    const { container: plain } = render(<Panel tone="plain">x</Panel>)
     const classesWave = wave.firstElementChild?.getAttribute('class') ?? ''
     const classesChart = chart.firstElementChild?.getAttribute('class') ?? ''
+    const classesPlain = plain.firstElementChild?.getAttribute('class') ?? ''
+    // Canon PASS 2 : une seule matière verre.
+    for (const classes of [classesWave, classesChart, classesPlain]) {
+      expect(classes).toContain('bg-console-card')
+      expect(classes).toContain('ring-console-line')
+    }
+    expect(wave.firstElementChild?.getAttribute('data-surface')).toBe('box')
+    // Les tones diffèrent par la géométrie, pas par un second verre.
     expect(classesWave).not.toBe(classesChart)
-    // `plain` ne pose aucune matière : c'est le cas « l'appelant compose ».
-    const { container: plain } = render(<Panel tone="plain">x</Panel>)
-    expect(plain.firstElementChild?.getAttribute('class') ?? '').not.toBe(classesWave)
+    expect(classesPlain).not.toBe(classesWave)
   })
 })
 

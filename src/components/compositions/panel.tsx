@@ -1,40 +1,40 @@
+import { surfaceBox } from '@/components/admin/surface'
 import { csl } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**
- * Panel — la surface canonique de la console.
+ * Panel — composition canonique d'une box Hearst.
  *
- * ── Ce qu'il remplace ─────────────────────────────────────────────────────
- * Dix routes déclaraient leur propre `Card` locale. Neuf d'entre elles étaient
- * identiques au caractère près :
+ * ── Matière ───────────────────────────────────────────────────────────────
+ * Toujours `surfaceBox` (`src/components/admin/surface.tsx`). Plus de
+ * `csl.panel` comme second verre CSS-module. Une box = une matière.
  *
- *   function Card({ children, className = '' }) {
- *     return <Panel className={className === '' ? csl.wavePanel : className}>{children}</Panel>
- *   }
+ * ── Tones ─────────────────────────────────────────────────────────────────
+ * Les `tone` ne changent PAS le verre : ils ajoutent une géométrie / densité
+ * (flex, overflow, padding intrinsèque KPI). Ce ne sont pas des palettes.
  *
- * La dixième (`operations`) composait `csl.heroChart` au lieu de `csl.wavePanel`.
- * Ce n'était donc pas dix besoins différents, mais un seul contrat recopié —
- * avec une variante de matière. `Panel` porte le contrat ; `tone` porte la
- * variante, explicitement.
+ * | tone    | Rôle sémantique Rule 60      | Géométrie csl        |
+ * |---------|------------------------------|----------------------|
+ * | wave    | PANEL / CARD défaut          | wavePanel            |
+ * | chart   | DATA PANEL (chart chrome)    | heroChart            |
+ * | metric  | COMPACT CARD (KPI)           | metricCard           |
+ * | signal  | UTILITY / signal compact     | signalCard           |
+ * | plain   | matière seule, géométrie caller | —                 |
  *
- * ── Le contrat ────────────────────────────────────────────────────────────
- * - une surface, une seule bordure : un panneau ne contient pas un second
- *   panneau pour se cadrer lui-même ;
- * - la matière vient des tokens de la console, jamais d'une couleur littérale ;
- * - l'élément HTML est choisi par l'appelant (`as`), parce qu'une carte de
- *   métrique n'est pas une section de page et que le plan du document doit
- *   rester lisible pour un lecteur d'écran.
+ * ── Contrat ───────────────────────────────────────────────────────────────
+ * - une surface, une seule bordure : pas de panneau-dans-panneau pour se cadrer ;
+ * - height = content (pas d'étirement décoratif) ;
+ * - l'élément HTML est choisi par l'appelant (`as`).
  */
 
-/** La matière du panneau. `wave` est la surface ordinaire, `chart` porte un graphique. */
+/** Géométrie du panneau — pas une matière alternative. */
 export type PanelTone = 'wave' | 'chart' | 'metric' | 'signal' | 'plain'
 
-const TONE_CLASS: Record<PanelTone, string | undefined> = {
+const TONE_GEOMETRY: Record<PanelTone, string | undefined> = {
   wave: csl.wavePanel,
   chart: csl.heroChart,
   metric: csl.metricCard,
   signal: csl.signalCard,
-  // `plain` : la surface nue, quand l'appelant compose lui-même sa géométrie.
   plain: undefined,
 }
 
@@ -52,7 +52,11 @@ export function Panel({
 }> &
   Omit<React.HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
   return (
-    <Tag {...rest} className={clsx(csl.panel, TONE_CLASS[tone], className)}>
+    <Tag
+      {...rest}
+      data-surface="box"
+      className={clsx(surfaceBox, TONE_GEOMETRY[tone], className)}
+    >
       {children}
     </Tag>
   )
@@ -61,10 +65,7 @@ export function Panel({
 /**
  * PanelHeader — le bloc titre d'un panneau.
  *
- * Sept routes le redéclaraient sous le nom `CardHeader`, avec le même corps.
- * `hint` est la phrase qui dit ce que le panneau montre : elle est facultative
- * ici alors qu'elle était obligatoire dans les copies locales, parce que
- * plusieurs panneaux n'ont qu'un titre et devaient passer une chaîne vide.
+ * `hint` est facultatif : plusieurs panneaux n'ont qu'un titre.
  */
 export function PanelHeader({
   title,

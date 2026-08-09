@@ -1,18 +1,23 @@
 /**
- * Design system surfaces — canon tableau de bord `/admin`.
+ * Design system surfaces — matière canonique Hearst Connect.
  *
- * Toute box produit passe par ICI. Pas de `bg-white` / `dark:bg-console-shell` /
- * `ring-*` structurels Tailwind ad hoc sur les pages.
+ * ── Architecture PASS 2 ───────────────────────────────────────────────────
+ * UNE matière de box : `surfaceBox` (verre `console-card`).
+ * Les composants (`Panel`, `DashCard`, tooltips…) COMPOSENT cette matière.
+ * Ils ne redéclarent pas un second verre via CSS module (`.panel` / csl).
  *
+ * Autres matières = rôles DISTINCTS, pas des doublons de box :
  * | Token class     | Matière                              | Usage                       |
  * |-----------------|--------------------------------------|-----------------------------|
- * | `surfaceBox`    | verre `console-card` + blur          | DashCard, Section/Stat         |
- * | `surfaceNav`    | verre `console-glass` + blur         | Menu / rail                    |
- * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, champs, sous-blocs        |
- * | `surfaceSelect` | voile mint `data-selected:`          | sélection parcours             |
+ * | `surfaceBox`    | verre `console-card` + blur          | Panel, DashCard, tooltips   |
+ * | `surfaceNav`    | verre `console-glass` + blur         | Menu / rail                 |
+ * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, wells, sous-blocs      |
+ * | `surfaceSelect` | voile mint `data-selected:`          | sélection parcours          |
+ *
+ * Dimensions : content-driven. Aucune largeur/hauteur ici.
  */
 
-/** Box — face vitrée (transparence + profondeur). DashCard / Panel. */
+/** Box — face vitrée (transparence + profondeur). Matière unique des boxes. */
 export const surfaceBox =
   'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line backdrop-blur-xl backdrop-saturate-150'
 
