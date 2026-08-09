@@ -29,11 +29,24 @@ describe('design system surfaces — canon dashboard', () => {
     const header = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/header.tsx'), 'utf8')
     const pageHeader = readFileSync(join(process.cwd(), 'src/components/admin/page-header.tsx'), 'utf8')
     expect(shell).toContain('surfaceBox')
+    expect(shell).toContain('data-surface="box"')
+    expect(shell).toMatch(/No flex-1/)
     expect(surfaces).toContain('surfaceBox')
     expect(header).toContain('AdminPageHeader')
     expect(pageHeader).toContain('data-dashboard-kpi-bandeau')
     expect(pageHeader).toContain('LogoMark')
     expect(pageHeader).toContain('AdminHeroKpiMetrics')
+  })
+
+  it('Panel compose surfaceBox — plus de csl.panel comme matière', () => {
+    const panel = readFileSync(join(process.cwd(), 'src/components/compositions/panel.tsx'), 'utf8')
+    expect(panel).toContain("from '@/components/admin/surface'")
+    expect(panel).toContain('surfaceBox')
+    expect(panel).toContain('data-surface="box"')
+    expect(panel).toContain('TONE_GEOMETRY')
+    // Runtime : matière = surfaceBox ; pas `clsx(csl.panel, …)`.
+    expect(panel).toMatch(/clsx\(surfaceBox,\s*TONE_GEOMETRY/)
+    expect(panel).not.toMatch(/clsx\(csl\.panel/)
   })
 
   it('sidebar admin : lockup officiel Illustrator', () => {
