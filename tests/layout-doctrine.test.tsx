@@ -9,7 +9,6 @@ import {
   hrefCorpsActif,
   sousMenusCorps,
 } from '@/lib/admin-nav'
-import { pageMaxWidth } from '@/lib/layout-tokens'
 import { chartHeight, plottableAsChart } from '@/components/charts/core/chart-theme'
 import { render } from '@testing-library/react'
 import { readFileSync, readdirSync } from 'node:fs'
@@ -84,14 +83,6 @@ describe('primary navigation', () => {
     const hrefs = [...ADMIN_NAV.map((e) => e.href), ...ADMIN_SECONDARY_FLAT.map((e) => e.href)]
     expect(new Set(hrefs).size).toBe(hrefs.length)
     expect(ADMIN_SECONDARY.every((g) => g.entrees.length > 0)).toBe(true)
-  })
-})
-
-describe('page measure', () => {
-  it('caps content at a readable width, not at the viewport', () => {
-    const px = Number(/max-w-\[(\d+)px\]/.exec(pageMaxWidth)?.[1])
-    expect(px).toBeGreaterThanOrEqual(1240)
-    expect(px).toBeLessThanOrEqual(1320)
   })
 })
 

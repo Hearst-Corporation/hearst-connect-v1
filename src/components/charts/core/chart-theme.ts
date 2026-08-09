@@ -24,15 +24,8 @@
 import { formatNumber } from '@/lib/format'
 
 export const chartTheme = {
-  /**
-   * Legacy class-based heights. Prefer `chartHeight()` — these remain for
-   * frames whose content genuinely is a fixed-size block (gauges, meters).
-   */
-  height: {
-    small: 'h-[180px]',
-    medium: 'h-[220px]',
-    large: 'h-[280px]',
-  },
+  /* Legacy `height.small|medium|large` retiré PASS 1 (2026-08-09) — zéro
+   * consommateur ; la hauteur live passe par `chartHeight(kind, points)`. */
   margin: { top: 8, right: 16, bottom: 8, left: 8 },
   axisFontSize: 11,
   // Doctrine §7.5 : la grille et les axes parlent les tokens `--chart-*`.
