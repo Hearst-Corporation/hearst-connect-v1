@@ -1,37 +1,46 @@
 # AGENTS.md — hearst-connect-v1
 
+## Autorité — qui possède quoi
+
+Autorité **opérationnelle locale** de l'agent dans ce workspace, dans l'ordre :
+
+1. instruction explicite d'Adrien dans la conversation en cours ;
+2. **fédération shared** (`.cursor/rules/{00,10,20,30,40}-shared-*.mdc`) — gouvernance,
+   git, format de réponse, no-hardcode, qualité ;
+3. **règles projet locales** (`.cursor/rules/30-no-gpu1.mdc`, `.cursor/rules/50-no-zinc.mdc`)
+   et `CLAUDE.md` — overlays produit propres à ce dépôt ;
+4. mission active.
+
+Les règles projet **complètent** la fédération shared sans la réécrire (voir la doctrine
+anti-drift dans `00-shared-governance.mdc`).
+
 <!-- HEARST-GOVERNANCE:START -->
-## Gouvernance — ordre de lecture obligatoire
-Ce projet est rattaché à la gouvernance centrale Hearst via `.hearst/governance.json`
-(repo `Hearst-Corporation/governance`, ref figée au SHA canonique). Avant toute intervention,
-lire dans cet ordre :
+## Gouvernance centrale Hearst — RÉFÉRENCE produit/organisationnelle (non-opérationnelle ici)
 
-1. `.hearst/governance.json`
-2. doctrine globale
-3. règles globales
-4. doctrine projet (`doctrine/projects/hearst-connect.md` dans le repo governance)
-5. règles projet (`rules/projects/hearst-connect.md` dans le repo governance)
-6. AGENTS.md / CLAUDE.md local (ce fichier)
-7. mission active
+`.hearst/governance.json` pointe vers le repo externe `Hearst-Corporation/governance`
+(ref figée `47a1c989…`). Ce corpus (doctrine globale, règles globales, doctrine/règles
+projet) est une **référence produit et organisationnelle**, à consulter, **pas** l'autorité
+git/format/qualité opérationnelle de l'agent dans ce workspace — celle-ci reste la fédération
+shared ci-dessus.
 
-Les règles locales complètent — sans les affaiblir — la doctrine et les règles globales.
+⚠️ **Divergences connues à ne pas appliquer aveuglément dans ce dépôt** (état 2026-08-09) :
+
+- La doctrine/règles projet du repo governance décrivent le repo **`Hearst-Corporation/Hearst-Defi`**
+  (package `hearst-connect`), **pas** ce dépôt `hearst-connect-v1`. Identité de repo différente.
+- Elle mandate un **runner CI `gpu1`** — **interdit ici** par `.cursor/rules/30-no-gpu1.mdc`
+  (règle absolue). En cas de conflit, **`30-no-gpu1.mdc` prime** dans ce workspace.
+- Elle décrit un design system **dark-only / tokens `--ct-*` / accent `#A7FB90`** ; ce dépôt
+  utilise ses propres tokens sémantiques (`fg` / `ink` / `console-*`, cf. `50-no-zinc.mdc` et
+  `CLAUDE.md`). Ne pas importer le DS de `Hearst-Defi` ici.
+
+Toute mission qui voudrait rattacher ce dépôt à la gouvernance centrale (rafraîchir le SHA,
+résoudre l'identité de repo, aligner le DS) est une **décision dédiée d'Adrien**, pas un
+ajustement d'agent.
 <!-- HEARST-GOVERNANCE:END -->
 
-## Règle absolue — GPU1 interdit
+## Overlays projet obligatoires (pointeurs — doctrine non recopiée)
 
-Ce dépôt (**hearst-connect-v1**) ne touche **jamais** GPU1 : pas de SSH, pas de
-`connect-api.hearst.app`, pas de déploiement via le workflow GPU1 du backend.
-
-**Backend canonique** : code sur GitHub `Hearst-Corporation/hearst-connect-backend`,
-runtime sur **Railway** (`HEARST_API_URL` dans `.env.example`). Déploiement backend
-= push `main` GitHub → Railway.
-
-**Front** : Vercel `hearst-connect-v1` uniquement.
-
-Détail opérationnel : `.cursor/rules/30-no-gpu1.mdc` et section Architecture du `README.md`.
-
-## Design system — structural neutrals forbidden
-
-Neutrals use Hearst semantic tokens (`fg` / `ink` / `console-*`) only — never a
-Tailwind structural neutral ramp. Permanent rule : `.cursor/rules/50-no-zinc.mdc`.
-Gate : `pnpm run check:no-zinc`.
+- **GPU1 / placement backend** → `.cursor/rules/30-no-gpu1.mdc` (règle absolue : backend =
+  GitHub + Railway ; front = Vercel `hearst-connect-v1` ; jamais GPU1 ni `connect-api.hearst.app`).
+- **Palette / interdiction Zinc** → `.cursor/rules/50-no-zinc.mdc` (neutrals = tokens sémantiques
+  `fg` / `ink` / `console-*` ; gate `pnpm run check:no-zinc`).

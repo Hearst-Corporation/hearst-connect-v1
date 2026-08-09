@@ -31,12 +31,26 @@ Instruction explicite d'Adrien = autorisation opérationnelle — ne pas redeman
 - Sous-agents : max 4, périmètres indépendants, un seul intégrateur Git.
 - Worktree mission seulement si collision parallèle sur le même repo.
 
+## Frontière règles shared / règles projet (anti-drift)
+
+Les domaines transversaux ont **un owner canonique unique** : gouvernance = ce fichier (00) ·
+git = `10-shared-git-lifecycle.mdc` · format de réponse = `20-shared-response-format.mdc` ·
+no-hardcode = `30-shared-no-hardcode.mdc` · qualité = `40-shared-quality.mdc`.
+
+- Une **règle projet peut ÉTENDRE** une règle shared (ajouter une contrainte spécifique, la durcir).
+- Elle **ne doit pas la recopier ni la redéfinir silencieusement** : elle **pointe** vers la règle
+  shared et ne liste que ses ajouts propres au produit.
+- Un **override réel** d'un domaine shared doit être **explicitement nommé `PROJECT_OVERRIDE`**,
+  justifié et scoped au workspace — jamais implicite.
+- **Aucune priorité Cursor implicite** entre règles n'est supposée : la frontière est portée par
+  le texte (pointeur / extension / `PROJECT_OVERRIDE`), pas par un ordre de chargement présumé.
+
 ## Definition of Done (minimum)
 
 - objectif atteint ;
 - tests/checks pertinents exécutés (résultat réel) ;
 - Git ship selon gouvernance (sauf STOP explicite) ;
-- cleanup branche/worktree si fin de mission ;
+- cleanup technique (branche/worktree/ports) exécuté selon `40-shared-quality.mdc` si fin de mission ;
 - **Checklist fonctionnelle actuelle** en fin de livrable.
 
 ## Checklist fonctionnelle (fin de livrable)
