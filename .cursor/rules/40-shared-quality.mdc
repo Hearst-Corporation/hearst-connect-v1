@@ -8,18 +8,32 @@ alwaysApply: true
 ## Gates
 
 - **Ne jamais ship rouge** : typecheck/lint/tests/check du workspace avant merge.
-- Tests **pertinents** — pas d'assertions triviales ni de gate affaiblie pour passer.
-- **Build** lorsque applicable au workspace.
+- **Build** lorsque applicable.
 - **Aucune preuve inventée** : distinguer codé / testé / mergé / déployé.
+- Tests **pertinents** — pas d'assertions triviales ni gate affaiblie.
 
-## Scope
+## Code
 
-Changements minimaux. Lire avant d'éditer. Conventions du fichier existant.
+1. Scope minimal — plus petit diff correct.
+2. Pas d'over-engineering ni abstractions spéculatives.
+3. Conventions du fichier/repo existant.
+4. Commentaires seulement pour logique métier non évidente.
+5. Tests utiles seulement.
+
+## Rythme
+
+Contrôles ciblés pendant la passe ; validation consolidée en fin de passe.
+Pas de build/lint/tests complets après chaque micro-étape.
 
 ## Cleanup
 
-Cleanup branche, worktree, ports stale = partie du Definition of Done en fin de mission.
+Cleanup branche, worktree, ports stale = partie du DoD en fin de mission.
 
 ## Anti-régression
 
-Étendre les gates du workspace quand raisonnable (couleurs brutes, mocks, hardcode layout) — sans gate naïf bloquant les constantes légitimes.
+Étendre les gates workspace quand raisonnable — sans gate naïf bloquant constantes légitimes.
+
+## Actions destructives
+
+Exécuter si Adrien l'a demandé explicitement ; sinon demander.
+rm / migrations / reset DB / force push / suppressions : idem.

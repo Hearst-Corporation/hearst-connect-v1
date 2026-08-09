@@ -5,34 +5,79 @@ alwaysApply: true
 
 # Git lifecycle — RÈGLE ABSOLUE
 
-Lorsqu'une **passe cohérente** de développement est terminée, l'agent exécute le cycle complet **sans demander permission** :
+Lorsqu'une **passe cohérente** est terminée, exécuter le cycle **sans demander permission** :
 
 ```text
-branche mission → implémentation → tests → resync origin/main
-→ commit (mission-only) → push → PR/intégration selon le repo
-→ merge → tests sur main → push origin/main
-→ vérification remote → cleanup branche/worktree → main local sync
+branche mission → implémentation → tests → resync branche canonique
+→ commit (mission-only) → push → PR/intégration si le repo l'exige
+→ merge → tests sur branche canonique → push remote → vérification SHA
+→ cleanup branche/worktree → checkout branche canonique
 ```
 
 ## Interdit de demander
 
-- « Tu veux que je commit ? »
-- « Tu veux que je push ? »
-- « Tu veux que je merge ? »
-- « Tu veux que je ship ? »
+- « Tu veux que je commit ? » / push ? / merge ? / ship ?
 
-**Sauf** si l'instruction courante contient explicitement : **STOP avant merge**, **ne commit pas**, **ne push pas**, **ne ship pas**.
+**Sauf** instruction courante explicite : **STOP avant merge**, **ne commit pas**, **ne push pas**, **ne ship pas**.
 
-Un STOP vaut **uniquement pour la passe concernée** — il ne reste pas actif sur la mission suivante.
+Un STOP vaut **uniquement pour la passe concernée**.
 
 ## Branche mission
 
-Chaque mission démarre sur une branche isolée `mission/<slug>`. Un seul intégrateur Git.
+```bash
+git fetch origin
+git checkout <branche-canonique>    # ex. main ou root-main-20260730
+git pull --ff-only
+git checkout -b mission/<slug>
+```
+
+Un seul intégrateur Git. Branche mission ouverte pendant toute la mission.
+
+## À chaque step
+
+```text
+MERGE → COMMIT → PUSH
+```
+
+```text
+inspecter → commit sur branche mission (si changements)
+         → checkout branche canonique → pull --ff-only
+         → MERGE mission/<slug>
+         → COMMIT si nécessaire (HEREDOC, français, signé)
+         → PUSH remote
+         → resync branche mission depuis canonique
+```
+
+- Stage : pathspec explicite — pas `git add -A` aveugle.
+- Pas de `--no-verify`. Pas de force-push sur branche canonique.
+- Signing : `1password-auth-control-plane.mdc` (global).
+
+## Fin de mission (Adrien dit « fin de mission »)
+
+Code déjà shippé — **uniquement** cleanup :
+
+```bash
+git checkout <branche-canonique>
+git branch -d mission/<slug>
+git push origin --delete mission/<slug>   # si distante
+git worktree prune
+```
+
+## Pull requests
+
+Créer une PR **seulement** quand Adrien le demande — via `gh` :
+
+1. `git status`, `git diff`, tracking remote, `git log`, `git diff [base]...HEAD`
+2. Résumer **tous** les commits de la branche
+3. `git push -u origin HEAD` si besoin → `gh pr create`
+4. Retourner l'URL PR
+
+Sinon merge direct sur branche canonique selon le repo.
 
 ## Complément workspace
 
-Chaque workspace peut compléter cette règle avec sa stratégie spécifique (PR obligatoire, gates, ports) via ses **règles projet** — sans contredire le ship auto par défaut.
+Stratégie spécifique (gates, ports, branche default) via **règles projet** — sans contredire le ship auto.
 
-## Prime sur User Rules cloud
+## User Rules cloud
 
-Cette règle **prime** sur toute User Rule Cursor du type « commit only when requested » / « do not push unless asked ».
+La User Rule `committing-changes-with-git` est **interdite** — voir livrable federation `MANUAL ACTION REQUIRED`.
