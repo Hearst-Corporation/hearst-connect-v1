@@ -16,6 +16,10 @@ const HERO_KPI = readFileSync(root('src/components/admin/hero-kpi.tsx'), 'utf8')
 const KPI = readFileSync(root('src/components/admin/dashboard/kpi-grid.tsx'), 'utf8')
 const EXPOSURE = readFileSync(root('src/components/admin/dashboard/portfolio-exposure.tsx'), 'utf8')
 const REBALANCING = readFileSync(root('src/components/admin/dashboard/rebalancing-panel.tsx'), 'utf8')
+const ACTIVITY = readFileSync(root('src/components/admin/dashboard/activity-timeline.tsx'), 'utf8')
+const VAULTS = readFileSync(root('src/components/admin/dashboard/vaults-panel.tsx'), 'utf8')
+const CLIENTS = readFileSync(root('src/components/admin/dashboard/recent-clients-panel.tsx'), 'utf8')
+const SHELL = readFileSync(root('src/components/admin/dashboard/shell.tsx'), 'utf8')
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
 const LOAD = readFileSync(root('src/lib/admin-dashboard/load.ts'), 'utf8')
 
@@ -85,40 +89,20 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  // HC-ADMIN-BENTO — intrinsic bento, tile size follows the DATA WEIGHT.
-  //
-  // Every panel is a bento tile in a single `flex-wrap` container. Each tile's
-  // `flex-basis` encodes the measured richness of its data, NOT a screen size:
-  //   - LARGE  (basis min(100%,30rem), grow 4): Portfolio exposure, Activity, Recent
-  //     activity — dense / wide data (chart needs width, timelines are tall).
-  //   - MEDIUM (basis min(100%,18rem), grow 2): Rebalancing, Vaults, Data health.
-  //   - SMALL  (basis min(100%,15rem), grow 1): Market, Recent clients — often sparse, so
-  //     they stay COMPACT and pack side by side instead of a big empty box. No
-  //     `sparse` flag: the small base keeps them compact and their height = their
-  //     real content (an empty tile ends short; the next tile sits beside it).
-  //
-  // Column count EMERGES from the bases: `flex-wrap` only wraps while shrinking →
-  // MONOTONE by construction, no threshold in the rail jump zone [680,975] (the
-  // #61 cliff). No named breakpoint, no width cap, no flex-1 fill.
-  it('lays out a data-weighted bento via flex-wrap — no viewport/named breakpoint', () => {
-    expect(SOURCE).toMatch(/flex flex-wrap items-start gap-4/)
-    // Data-weight tiers as intrinsic flex-bases (min caps squeeze at narrow widths).
-    const large = [...SOURCE.matchAll(/flex-\[4_1_min\(100%,30rem\)\]/g)]
-    const medium = [...SOURCE.matchAll(/flex-\[2_1_min\(100%,18rem\)\]/g)]
-    const small = [...SOURCE.matchAll(/flex-\[1_1_min\(100%,15rem\)\]/g)]
-    expect(large.length).toBe(3) //  Portfolio, Activity, Recent activity
-    expect(medium.length).toBe(3) // Rebalancing, Vaults, Data health
-    expect(small.length).toBe(2) //  Market, Recent clients
-    // No named viewport breakpoints, no container-query threshold, no grid modes.
-    expect(SOURCE).not.toMatch(/\b(sm|md|lg|xl|2xl):grid-cols/)
-    expect(SOURCE).not.toMatch(/min-\[\d+px\]:grid-cols/)
-    expect(SOURCE).not.toMatch(/@\[\d/)
-    expect(SOURCE).not.toMatch(/@container/)
-    // No hard width caps, no data-state branching, no flex-1 fill.
-    expect(SOURCE).not.toMatch(/marketSparse|clientsSparse/)
-    expect(SOURCE).not.toMatch(/max-w-sm|max-w-3xl|w-\[min\(100%,20rem\)\]|w-\[\d/)
-    expect(SOURCE).not.toMatch(/["' ]flex-1["' ]/) // the utility class, not the word in prose
-    // All eight panels still present.
+  it('lays out the dashboard with explicit container-driven regions', () => {
+    expect(SOURCE).toMatch(/@container flex flex-col gap-4/)
+    const rowGrids = [
+      ...SOURCE.matchAll(/grid grid-cols-1 gap-4 @\[52rem\]:grid-cols-\[minmax\(0,7fr\)_minmax\(0,5fr\)\]/g),
+      ...SOURCE.matchAll(/grid grid-cols-1 gap-4 @\[52rem\]:grid-cols-\[minmax\(0,2fr\)_minmax\(0,1fr\)_minmax\(0,1fr\)\]/g),
+      ...SOURCE.matchAll(/grid grid-cols-1 gap-4 @\[52rem\]:grid-cols-3/g),
+    ]
+    expect(rowGrids.length).toBe(3)
+    expect(SOURCE).not.toMatch(/flex flex-wrap/)
+    expect(SOURCE).not.toMatch(/flex-\[\d+_1_min\(100%,\d+rem\)\]/)
+    expect(SHELL).not.toMatch(/data-footprint=/)
+    expect(SHELL).not.toMatch(/dashboard-footprint/)
+    expect(SOURCE).not.toMatch(/footprint="/)
+
     for (const t of [
       'Portfolio exposure',
       'Activity',
@@ -133,17 +117,34 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     }
   })
 
-  // Data-weight ordering: the large tiles must carry a strictly larger intrinsic
-  // basis than the small ones, so a sparse panel can never out-size a rich one.
-  it('bento tile basis is ordered by data weight (large > medium > small)', () => {
-    const basisRows = [...SOURCE.matchAll(/flex-\[(\d+)_1_min\(100%,(\d+)rem\)\]/g)].map((m) => ({
-      grow: Number(m[1]),
-      basis: Number(m[2]),
-    }))
-    expect(basisRows.length).toBe(8) // one per panel
-    const large = Math.min(...basisRows.filter((b) => b.grow === 4).map((b) => b.basis))
-    const small = Math.max(...basisRows.filter((b) => b.grow === 1).map((b) => b.basis))
-    expect(large, 'a large (rich-data) tile must have a bigger basis than any small tile').toBeGreaterThan(small)
+  it('keeps dashboard summaries windowed instead of stretching with long datasets', () => {
+    expect(ACTIVITY).toMatch(/const MAX_VISIBLE_EVENTS = 5/)
+    expect(ACTIVITY).toMatch(/slice\(0, MAX_VISIBLE_EVENTS\)/)
+    expect(ACTIVITY).toMatch(/dashboard-list-slot-block-size/)
+    expect(ACTIVITY).toContain('View all activity')
+    expect(ACTIVITY).not.toMatch(/events\.value\.map\(/)
+
+    expect(REBALANCING).toMatch(/const MAX_VISIBLE_ALERTS = 4/)
+    expect(REBALANCING).toMatch(/slice\(0, MAX_VISIBLE_ALERTS\)/)
+    expect(REBALANCING).toContain('Open operations')
+
+    expect(VAULTS).toMatch(/const MAX_VISIBLE_VAULTS = 4/)
+    expect(VAULTS).toMatch(/slice\(0, MAX_VISIBLE_VAULTS\)/)
+    expect(VAULTS).toMatch(/dashboard-list-slot-block-size/)
+    expect(VAULTS).toContain('View all vaults')
+    expect(VAULTS).not.toMatch(/vaults\.value\.length > 1 \?/)
+
+    expect(CLIENTS).toMatch(/const MAX_VISIBLE_CLIENTS = 3/)
+    expect(CLIENTS).toMatch(/slice\(0, MAX_VISIBLE_CLIENTS\)/)
+    expect(CLIENTS).toMatch(/dashboard-list-slot-block-size/)
+    expect(CLIENTS).toContain('View all clients')
+  })
+
+  it('uses one shared dashboard chart viewport for empty and populated activity states', () => {
+    expect(SHELL).toMatch(/DASHBOARD_CHART_SLOT_HEIGHT = 176/)
+    expect(SOURCE).toMatch(/<HearstActivityChart[\s\S]*height=\{DASHBOARD_CHART_SLOT_HEIGHT\}/)
+    expect(SOURCE).toMatch(/<ChartPlaceholder title="Activity" height=\{DASHBOARD_CHART_SLOT_HEIGHT\}/)
+    expect(SOURCE).not.toMatch(/height=\{140\}/)
   })
 
   it('routes route-level actions through the Hearst actions boundary', () => {

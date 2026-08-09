@@ -39,16 +39,45 @@ Pas d'usine à tokens. Trim / merge avant d'ajouter. Hex brut hors `var(--token,
 
 Une **box** = conteneur UI (card / panel / surface), **pas** la fence agent ` ```text `.
 
-Dimensionnement = **CONTENU + CONTAINER + INTENTION** — jamais screenshot, jamais « remplir le trou ».
+DATASET SIZE MUST NOT CONTROL LAYOUT GEOMETRY.
+
+Responsive = **container-driven**. Placement = **layout-driven**. Largeur = **intrinsic / container-driven**.
+Jamais screenshot, jamais « remplir le trou », jamais dataset-driven geometry.
+
+Distinction obligatoire :
+
+- `CARD SHELL` → intrinsèque par défaut ;
+- `CONTENT SLOT` → stable si le contenu varie quantitativement ;
+- `CHART VIEWPORT` → stable ;
+- `PLACEHOLDER` → remplit exactement le content slot correspondant ;
+- `GRID REGION` → structure la composition.
+
+Jamais par :
+
+- le nombre de lignes ;
+- le nombre de transactions ;
+- la longueur du dataset ;
+- la présence / absence de données ;
+- un état `loading` ;
+- un état vide ;
+- un état d'erreur.
+
+Invariant obligatoire : `LOADING` = `EMPTY` = `UNAVAILABLE` = `ERROR` = `POPULATED`
+du point de vue du footprint externe.
+
+Le dashboard n'utilise PAS une doctrine générique de hauteur uniforme appliquée à toutes les cards.
+La stabilité s'applique aux **slots** et aux **viewports** qui le nécessitent, pas
+automatiquement à toute la card.
 
 | Famille | Usage | Comportement |
 |---|---|---|
 | SURFACE | canvas app (`console-app`) | pas une card |
-| PANEL | zone fonctionnelle titrée | padding panel · `console-card` + ring · height = content |
-| CARD | unité d'information | même matière · pas de nested panel-for-chrome |
-| COMPACT CARD | KPI / métrique | dense · pas de min-height décoratif |
-| DATA PANEL | chart / table | hauteur = données · FitTable par défaut |
-| UTILITY PANEL | filtres / actions / état | inset ou callout · glow NONE |
+| PANEL | zone fonctionnelle titrée | shell intrinsèque ; la région décide la place commune si nécessaire |
+| CARD | unité d'information | même matière · shell intrinsèque · pas de nested panel-for-chrome |
+| COMPACT CARD | KPI / métrique | densité compacte, sans min-height décoratif |
+| DATA PANEL | chart / table / liste dashboard | content slot stable si le dataset varie quantitativement |
+| UTILITY PANEL | filtres / actions / état | shell intrinsèque ; glow NONE |
+| CHART PANEL | dataviz dashboard | chart viewport stable ; shell non forcé globalement |
 
 ### Interdit
 
@@ -60,6 +89,14 @@ Dimensionnement = **CONTENU + CONTAINER + INTENTION** — jamais screenshot, jam
 
 `COMPACT` (KPI, chips, filtres) · `DEFAULT` (sections) · `DATA-DENSE` (explorers/tables).
 Information-rich, lisible — sans vide artificiel ni compression illisible.
+
+Dashboard = résumé, pas base de données entière :
+
+- une liste dashboard ne grandit jamais pour afficher toute la collection ;
+- préférer un nombre limité de lignes représentatives + action vers la vue complète ;
+- sinon scroll interne volontaire / pagination / viewport virtualisé ;
+- `rows.length` ne décide jamais la hauteur d'une page ou d'une row ;
+- si la stabilité visuelle est nécessaire, elle se fait sur le **content slot**, pas sur toute la card.
 
 ## Layout
 
@@ -78,15 +115,24 @@ Shell chrome (rail nav fixe / drawer) ≠ content rail. Une seule mesure shell d
 
 ## Responsive
 
-Doctrine : **intrinsic · fluid · content-driven · container-driven**.
+Doctrine : **intrinsic shells · stable quantitative slots only where needed · container-driven composition**.
 
 | Mécanisme | USE | FORBIDDEN |
 |---|---|---|
-| `min()` / `max()` / `minmax()` / `clamp()` justifié | bases flex, tracks, chart height | remplir un vide |
+| `min()` / `max()` / `minmax()` / `clamp()` justifié | bases flex, tracks, slot/viewports stables | remplir un vide |
 | Container queries | reflow **composant** | seuils copiés d'une capture |
 | Media queries | chrome **global** (rail→drawer, dialog) | composer des cards |
 | `flex-wrap` + `min-w-0` + `items-start` | collections | equal-height stretch empty |
 | Viewport breakpoints | shell / marketing | « ça marche à 1440/768 » |
+
+Le responsive modifie :
+
+- le nombre de colonnes ;
+- les spans ;
+- le stacking ;
+- la largeur disponible.
+
+Il ne modifie pas la géométrie en fonction de la quantité de données.
 
 Survie au **resize continu** obligatoire. QA sizes = points d'observation, jamais objectifs CSS.
 
@@ -104,8 +150,9 @@ Survie au **resize continu** obligatoire. QA sizes = points d'observation, jamai
 
 - `NULL` / absent → `—` (jamais `0` inventé).
 - `UNAVAILABLE` → badge / motif nommé — pas de faux live.
-- Empty / loading → hauteur ≈ contenu ; **interdit** de réserver un grand canvas vide.
-- Charts : hauteur dérivée des points (`chartHeight`) ; série non plottable → `SingleObservation` / état court — pas de chrome chart vide géant.
+- `LOADING` / `EMPTY` / `UNAVAILABLE` / `ERROR` conservent le **même content slot** que l'état peuplé quand ce slot est stabilisé.
+- Une card vide ne devient pas une mini-card ; une card dense n'agrandit pas toute la page.
+- Charts dashboard : le chart viewport reste identique entre vide, chargement et état peuplé.
 
 ## Glow
 
@@ -121,6 +168,7 @@ Interdit : glow sur chaque card · filters coûteux permanents · décor qui tue
 ## Charts / a11y
 
 - Largeur pilotée par le **panel réel** (mesure container) — pas taille capture.
+- La data adapte points / axes / labels / domain, pas la hauteur du chart viewport stabilisé.
 - Animations chart off ou respect `prefers-reduced-motion`.
 - Tables sr-only / équivalent textuel pour dataviz.
 - Focus visible · landmarks sémantiques · cibles interactives intrinsèques.

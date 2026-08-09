@@ -1,6 +1,6 @@
-import type { AdminDataHealthSource } from '@/lib/admin-dashboard/contracts'
 import { surfaceBox } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
+import type { AdminDataHealthSource } from '@/lib/admin-dashboard/contracts'
 import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
@@ -25,7 +25,12 @@ export function DataHealthGrid({
   sources,
 }: Readonly<{ sources: Availability<readonly AdminDataHealthSource[]> }>) {
   if (!isAvailable(sources)) {
-    return <Text>Data unavailable</Text>
+    return (
+      <div className="flex h-full min-h-0 flex-col justify-center rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
+        <Text className="mt-1">Source freshness unavailable.</Text>
+      </div>
+    )
   }
 
   const byKey = new Map(sources.value.map((s) => [s.key, s]))
@@ -34,7 +39,7 @@ export function DataHealthGrid({
   return (
     <ul
       data-widget="data-health-grid"
-      className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-2"
+      className="grid h-full min-h-0 grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] content-start gap-2"
     >
       {slots.map(({ key, source }) => {
         const label = source?.label ?? key

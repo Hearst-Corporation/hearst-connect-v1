@@ -70,15 +70,30 @@ export function PortfolioExposurePanel({
   assetScale: AdminAssetScale | null
 }>) {
   if (!isAvailable(strategies)) {
-    return <p className="text-sm text-fg-tertiary">Data unavailable</p>
+    return (
+      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5')}>
+        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
+        <p className="text-xs text-fg-tertiary">Portfolio exposure source unavailable.</p>
+      </div>
+    )
   }
   if (strategies.value.length === 0) {
-    return <p className="text-sm text-fg-tertiary">No strategies measured</p>
+    return (
+      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5')}>
+        <p className="text-sm font-semibold text-ink dark:text-fg">No strategies measured</p>
+        <p className="text-xs text-fg-tertiary">The portfolio viewport stays reserved until strategies are indexed.</p>
+      </div>
+    )
   }
 
   const scale = assetScale
   if (!scale) {
-    return <p className="text-sm text-fg-tertiary">Portfolio asset scale unavailable</p>
+    return (
+      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5')}>
+        <p className="text-sm font-semibold text-ink dark:text-fg">Portfolio asset scale unavailable</p>
+        <p className="text-xs text-fg-tertiary">Exposure amounts stay hidden until the asset scale is readable.</p>
+      </div>
+    )
   }
 
   const rows = strategies.value
@@ -86,9 +101,14 @@ export function PortfolioExposurePanel({
   const defaultIndex = initial >= 0 ? initial : 0
 
   return (
-    <TabGroup defaultIndex={defaultIndex} as="div" className="@container min-w-0" data-widget="portfolio-exposure">
+    <TabGroup
+      defaultIndex={defaultIndex}
+      as="div"
+      className="flex h-full min-h-0 flex-col @container min-w-0"
+      data-widget="portfolio-exposure"
+    >
       <div className="-mx-1 min-w-0 overflow-x-auto px-1 pb-1">
-        <TabList className="grid w-full min-w-0 grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-2">
+        <TabList className="grid min-w-max grid-flow-col auto-cols-[minmax(8rem,1fr)] gap-2">
           {rows.map((row) => (
             <Tab
               key={row.strategyId}
@@ -114,13 +134,16 @@ export function PortfolioExposurePanel({
           ))}
         </TabList>
       </div>
-      <TabPanels className="mt-4">
+      <TabPanels className="mt-4 min-h-0 flex-1">
         {rows.map((row) => (
           <TabPanel key={row.strategyId} className="outline-none">
             <StrategyDetail row={row} assetScale={scale} />
           </TabPanel>
         ))}
       </TabPanels>
+      <div className="mt-4 flex justify-end border-t border-console-line-soft pt-3">
+        <HearstSecondaryAction href="/admin/vaults">Open vault registry</HearstSecondaryAction>
+      </div>
     </TabGroup>
   )
 }

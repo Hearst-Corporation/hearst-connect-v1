@@ -6,6 +6,9 @@ import type { AdminVaultSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 
+const MAX_VISIBLE_VAULTS = 4
+const VAULTS_SLOT_CLASS = 'min-h-[var(--dashboard-list-slot-block-size)]'
+
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
   const sign = pts > 0 ? '+' : ''
@@ -52,26 +55,64 @@ export function VaultsPanel({
   assetScale: AdminAssetScale | null
 }>) {
   if (!isAvailable(vaults)) {
-    return <p className="text-sm text-fg-tertiary">Data unavailable</p>
+    return (
+      <div className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+        <div className={clsx(surfaceInset, VAULTS_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+          <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
+          <p className="text-xs text-fg-tertiary">Vault source unavailable.</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
+          <HearstSecondaryAction href="/admin/vaults">View all vaults</HearstSecondaryAction>
+        </div>
+      </div>
+    )
   }
   if (vaults.value.length === 0) {
-    return <p className="text-sm text-fg-tertiary">No vaults reported</p>
+    return (
+      <div className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+        <div className={clsx(surfaceInset, VAULTS_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+          <p className="text-sm font-semibold text-ink dark:text-fg">No vaults reported</p>
+          <p className="text-xs text-fg-tertiary">This dashboard keeps the same vault slot when no summary row is available.</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
+          <HearstSecondaryAction href="/admin/vaults">View all vaults</HearstSecondaryAction>
+        </div>
+      </div>
+    )
   }
   if (!assetScale) {
-    return <p className="text-sm text-fg-tertiary">Portfolio asset scale unavailable</p>
+    return (
+      <div className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+        <div className={clsx(surfaceInset, VAULTS_SLOT_CLASS, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+          <p className="text-sm font-semibold text-ink dark:text-fg">Portfolio asset scale unavailable</p>
+          <p className="text-xs text-fg-tertiary">Amounts stay hidden until the portfolio scale is readable.</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
+          <HearstSecondaryAction href="/admin/vaults">View all vaults</HearstSecondaryAction>
+        </div>
+      </div>
+    )
   }
 
+  const visibleVaults = vaults.value.slice(0, MAX_VISIBLE_VAULTS)
+  const hiddenVaults = Math.max(vaults.value.length - visibleVaults.length, 0)
+
   return (
-    <div
-      data-widget="vaults-panel"
-      className={clsx(
-        '@container grid gap-3',
-        vaults.value.length > 1 ? 'grid-cols-1 @[20rem]:grid-cols-2' : 'grid-cols-1',
-      )}
-    >
-      {vaults.value.map((vault) => (
-        <VaultCard key={vault.id} vault={vault} assetScale={assetScale} />
-      ))}
+    <div className="grid h-full min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
+      <div data-widget="vaults-panel" className={clsx(VAULTS_SLOT_CLASS, '@container grid grid-cols-1 gap-3 @[20rem]:grid-cols-2')}>
+        {visibleVaults.map((vault) => (
+          <VaultCard key={vault.id} vault={vault} assetScale={assetScale} />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
+        <p className="text-xs text-fg-tertiary">
+          {hiddenVaults > 0
+            ? `${hiddenVaults} more vault${hiddenVaults > 1 ? 's' : ''} available in the registry.`
+            : 'Latest vault snapshot.'}
+        </p>
+        <HearstSecondaryAction href="/admin/vaults">View all vaults</HearstSecondaryAction>
+      </div>
     </div>
   )
 }
