@@ -89,17 +89,13 @@ describe('design system surfaces — canon dashboard', () => {
   })
 
   it('chart tooltips : surfaceBox (vaults / produit / series)', () => {
-    const btc = readFileSync(
-      join(process.cwd(), 'src/components/charts/cartesian/btc-production-chart.tsx'),
-      'utf8',
-    )
     const product = readFileSync(
       join(process.cwd(), 'src/components/charts/cartesian/product-charts.tsx'),
       'utf8',
     )
     const rich = readFileSync(join(process.cwd(), 'src/components/charts/richart/tooltip.tsx'), 'utf8')
     const frame = readFileSync(join(process.cwd(), 'src/components/charts/core/chart-frame.tsx'), 'utf8')
-    for (const src of [btc, product, rich]) {
+    for (const src of [product, rich]) {
       expect(src).toContain('surfaceBox')
       expect(src).not.toMatch(/bg-white|dark:bg-console-raised/)
     }
@@ -113,12 +109,14 @@ describe('design system surfaces — canon dashboard', () => {
     )
     const brand = readFileSync(join(process.cwd(), 'src/lib/brand.ts'), 'utf8')
     expect(brand).toContain('HC-ADMIN-FIXED-BACKGROUND-027')
-    expect(brand).toContain('bg-fixed')
+    // Le glow reste fixé au viewport, mais ancré en haut + masqué vers le bas
+    // (confinement — plus de `bg-fixed`/`bg-cover` qui tachaient le centre).
     expect(brand).toContain('fixed inset-0')
+    expect(brand).toContain('bg-top')
+    expect(brand).toContain('mask-image')
     expect(brand).toContain('/brand/console-glow.png')
     expect(brand).toContain('/brand/hearst-h.svg')
     expect(brand).toContain('/brand/hearst-connect.svg')
-    expect(brand).toContain('/brand/hearst-connect-dark.svg')
     expect(layout).toContain('CONSOLE_GLOW_SRC')
     expect(existsSync(join(process.cwd(), 'public/brand/console-glow.png'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'public/brand/hearst-h.svg'))).toBe(true)

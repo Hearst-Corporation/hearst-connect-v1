@@ -24,19 +24,19 @@ import clsx from 'clsx'
 
 const STATUS: Record<VaultStatus, { label: string; title: string; tone: string; dot: string }> = {
   ACTIVE: {
-    label: 'Actif',
+    label: 'Active',
     title: 'The contract has code and the vault snapshot was read.',
     tone: 'bg-white/5 text-console-fill-muted ring-ink/10 dark:text-fg-secondary dark:ring-console-line-strong',
     dot: 'bg-accent-600 dark:bg-accent-400',
   },
   NO_CODE: {
-    label: 'Aucun code de contrat',
+    label: 'No contract code',
     title: 'The service read the address and found no contract code.',
     tone: 'bg-danger-500/15 text-danger-700 ring-danger-500/30 dark:text-danger-400',
     dot: 'bg-danger-500 dark:bg-danger-400',
   },
   UNREADABLE: {
-    label: 'Illisible',
+    label: 'Unreadable',
     title: 'The service responded but could not read the vault.',
     tone: 'bg-warning-500/15 text-warning-700 ring-warning-500/30 dark:text-warning-400',
     dot: 'bg-warning-500 dark:bg-warning-400',

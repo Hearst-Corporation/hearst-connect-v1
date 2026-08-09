@@ -15,9 +15,6 @@
  * sensible default: full width below `lg`.
  */
 
-/** Between content blocks inside one section. */
-export const sectionContentGap = 'space-y-6'
-
 /** The grid gutter, used by every `AdminGrid`. */
 export const gridGap = 'gap-6'
 

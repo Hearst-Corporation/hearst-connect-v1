@@ -153,15 +153,15 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         }}
       />
 
-      {/* ── FICHE ANNUAIRE (table nommée : match / absence / illisible) ─ */}
+      {/* ── DIRECTORY RECORD (named table: match / absence / unreadable) ─ */}
       <DataTableShell
-        title="Fiche annuaire"
-        description="Jointure par identifiant sur GET /api/v1/clients — la seule source de cette fiche."
-        count={match !== null ? '1 correspondance' : undefined}
+        title="Directory record"
+        description="Joined by identifier on GET /api/v1/clients — the only source of this record."
+        count={match !== null ? '1 match' : undefined}
         source={
           rows === null
             ? {
-                quoi: 'Fiche annuaire',
+                quoi: 'Directory record',
                 detail: 'The directory could not be read — cannot join this identifier.',
                 requis: ['GET /api/v1/clients (admin role)'],
               }
@@ -169,7 +169,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         }
         calme={
           rows !== null && match === null
-            ? 'Identifier absent de l’annuaire pour l’instant.'
+            ? 'Identifier not in the directory yet.'
             : undefined
         }
       >
@@ -177,8 +177,8 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
           <>
             <TableHead>
               <TableRow>
-                <TableHeader className={fitTableColPrimary}>Champ</TableHeader>
-                <TableHeader className={fitTableColPrimary}>Valeur</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Field</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Value</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -191,7 +191,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
                 <TableCell>{match.label}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">Marqueur</TableCell>
+                <TableCell className="font-medium">Marker</TableCell>
                 <TableCell>
                   <SimulatedBadge />
                 </TableCell>

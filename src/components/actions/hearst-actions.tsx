@@ -344,9 +344,4 @@ export function HearstSecondaryAction(props: HearstActionProps) {
   return <HearstAction tone="secondary" {...props} />
 }
 
-/** Action icône seule — `Button plain` + `aria-label` requis, tap 0.94. */
-export function HearstIconAction(props: HearstActionProps) {
-  return <HearstAction tone="icon" {...props} />
-}
-
 export type { HearstActionProps }

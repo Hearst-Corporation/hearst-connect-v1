@@ -9,8 +9,8 @@ import { useActionState } from 'react'
 
 function authLabelFor(auth: BackendEndpoint['auth']): string {
   if (auth === 'public') return 'public'
-  if (auth === 'admin') return 'admin requis'
-  return 'session requise'
+  if (auth === 'admin') return 'admin required'
+  return 'session required'
 }
 
 function CopyButton({ text }: Readonly<{ text: string }>) {
@@ -20,7 +20,7 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
       onClick={() => navigator.clipboard.writeText(text)}
       className="rounded border border-console-line px-2 py-0.5 text-xs text-fg-secondary hover:bg-console-inset hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
     >
-      Copier
+      Copy
     </button>
   )
 }
@@ -30,7 +30,7 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
  * `null` when the route reads as-is.
  */
 function unrunnableLabel(method: BackendEndpoint['method'], pathParams: readonly string[]): string | null {
-  if (method === 'POST') return 'Action Keeper — page Keeper'
+  if (method === 'POST') return 'Keeper action — Keeper page'
   // The registry's caveat already says where the value comes from: here we
   // only announce that it's missing, without repeating it.
   if (pathParams.length > 0) {
@@ -83,7 +83,7 @@ export function ExplorerRow({
           <div className="mb-2 flex items-center gap-2">
             <CopyButton text={outcome.rawJson} />
             {outcome.metaStatus ? (
-              <span className="text-xs text-fg-tertiary dark:text-fg-secondary">enveloppe : {outcome.metaStatus}</span>
+              <span className="text-xs text-fg-tertiary dark:text-fg-secondary">envelope: {outcome.metaStatus}</span>
             ) : null}
           </div>
           <AdminProbeResult

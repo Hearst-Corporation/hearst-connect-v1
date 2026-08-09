@@ -1,8 +1,5 @@
 import clsx from 'clsx'
-import {
-  HEARST_CONNECT_LOCKUP_SRC,
-  HEARST_H_SRC,
-} from '@/lib/brand'
+import { HEARST_CONNECT_LOCKUP_SRC } from '@/lib/brand'
 
 /** Glyphe H Hearst (monogramme officiel) — hérite de `currentColor`. */
 export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
@@ -32,14 +29,6 @@ export function Logo({ className, ...props }: Readonly<React.ComponentPropsWitho
       <span className="text-base font-semibold tracking-tight whitespace-nowrap">Hearst Connect</span>
     </span>
   )
-}
-
-/** Image publique du monogramme (`public/brand/hearst-h.svg`). */
-export function HearstHImage({
-  className,
-  alt = '',
-}: Readonly<{ className?: string; alt?: string }>) {
-  return <img src={HEARST_H_SRC} alt={alt} className={clsx(className, 'shrink-0')} />
 }
 
 /** Lockup officiel Illustrator (Hearst-Defi) — fond sombre. */

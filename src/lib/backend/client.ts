@@ -354,7 +354,12 @@ function buildResult<T>(
 
 /** Backend envelope status → display status, without requalification. */
 export function statusFromMeta(meta: EnvelopeMeta | null): Resolved<never>['status'] {
-  if (!meta) return 'LIVE'
+  // Pas de métadonnée = aucun statut de fraîcheur déclaré par la source.
+  // `UNAVAILABLE`, pas `LIVE` : afficher « En direct » sur une réponse qui n'a
+  // jamais annoncé sa fraîcheur certifierait un frais que rien n'établit — même
+  // doctrine que `statutAffichage` (`src/lib/statut-affichage.ts`) et que le
+  // `default` ci-dessous. Voir VER-10 (faux live sur métadonnée absente).
+  if (!meta) return 'UNAVAILABLE'
   switch (meta.status) {
     case 'LIVE':
       return 'LIVE'
