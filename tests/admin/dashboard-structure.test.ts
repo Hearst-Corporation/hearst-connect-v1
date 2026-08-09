@@ -93,9 +93,11 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
 
   it('lays out the dashboard with AdminGrid regions on a shared 12-column ladder', () => {
     expect(SOURCE).toMatch(/from ['"]@\/components\/admin\/grid['"]/)
+    expect(SOURCE).toMatch(/<AdminGrid align="stretch">/)
     expect(SOURCE).toMatch(/<AdminGrid>/)
     expect(SOURCE).toMatch(/<AdminCol span=\{7\}/)
     expect(SOURCE).toMatch(/<AdminCol span=\{5\}/)
+    expect(SOURCE).toMatch(/className="h-full min-w-0"/)
     expect(SOURCE).toMatch(/<AdminCol span=\{6\}/)
     expect(SOURCE).toMatch(/<AdminCol span=\{3\}/)
     expect(SOURCE).toMatch(/<AdminCol span=\{4\}/)
