@@ -88,16 +88,13 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  it('lays out dashboard cards in a bento AdminGrid (7+5 / 6+3+3 / 4+4+4)', () => {
-    expect(SOURCE).toMatch(/from ['"]@\/components\/admin\/grid['"]/)
-    expect(SOURCE).toMatch(/<AdminGrid align="stretch">/)
-    expect(SOURCE).toMatch(/<AdminCol span=\{7\}/)
-    expect(SOURCE).toMatch(/<AdminCol span=\{5\}/)
-    expect(SOURCE).toMatch(/<AdminCol span=\{6\}/)
-    expect(SOURCE).toMatch(/<AdminCol span=\{3\}/)
-    expect(SOURCE).not.toMatch(/<AdminCol span=\{3\} md=\{4\}/)
-    expect(SOURCE).toMatch(/<AdminCol span=\{4\}/)
-
+  it('renders every dashboard card, without imposing a fixed grid shape', () => {
+    // Layout is deliberately NOT pinned here: the dashboard composes its cards
+    // through a fluid, container-driven Bento (`src/components/admin/grid.tsx`)
+    // that reflows on the real width of the content column. Asserting literal
+    // spans (`span={7}`…) is what previously froze the grid into crammed tracks
+    // behind the rail — see the git history of this test. What still matters is
+    // that every card is present; their arrangement is free.
     for (const t of [
       'Portfolio exposure',
       'Activity',

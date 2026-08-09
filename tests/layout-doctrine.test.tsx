@@ -1,4 +1,4 @@
-import { AdminCol, AdminGrid, AdminMetricGrid } from '@/components/admin/grid'
+import { AdminMetricGrid, BentoCard, BentoGrid } from '@/components/admin/grid'
 import {
   ADMIN_NAV,
   ADMIN_SECONDARY,
@@ -86,66 +86,57 @@ describe('primary navigation', () => {
   })
 })
 
-describe('12-column grid', () => {
-  it('declares a real 4 / 8 / 12 ladder', () => {
+describe('masonry Bento grid', () => {
+  it('reflows on the container, not the viewport', () => {
     const { container } = render(
-      <AdminGrid>
-        <AdminCol span={8}>main</AdminCol>
-        <AdminCol span={4}>aside</AdminCol>
-      </AdminGrid>,
+      <BentoGrid>
+        <BentoCard>main</BentoCard>
+        <BentoCard>aside</BentoCard>
+      </BentoGrid>,
     )
     /*
-     * Deux nœuds depuis la correction du 2026-08-04 : l'enveloppe DÉCLARE le
-     * conteneur, la grille l'INTERROGE. Les réunir était le défaut — un
-     * élément en `container-type: inline-size` ne s'interroge pas lui-même,
-     * `@[60rem]:` remontait au conteneur au-dessus (`.workspace`, 1200 px) et
-     * une grille de 360 px ouvrait ses 12 colonnes : douze pistes de 8 px.
+     * Deux nœuds : l'enveloppe DÉCLARE le conteneur (`@container`), la grille
+     * l'INTERROGE (`@[Nrem]:`). Les réunir était le défaut historique — un
+     * élément en `container-type: inline-size` ne s'interroge pas lui-même :
+     * `@[60rem]:` remonterait au conteneur au-dessus (`.workspace`, 1200 px) et
+     * une grille de 360 px ouvrirait toutes ses colonnes.
      */
     const enveloppe = container.firstElementChild
     const grid = enveloppe?.firstElementChild
     expect(enveloppe?.className).toContain('@container')
-    /*
-     * L'échelle est 4 / 8 / 12. Le palier haut est passé de `lg` (1024 px) à
-     * `xl` (1280 px) — HC-VISUAL-LAYOUT-RECOVERY-001 : à 1024 px, une colonne
-     * de 4/12 laissait ~85 px et le titre du ChartFrame s'y rendait sur 48 px
-     * de large pour 168 de haut. Ce qui est vérifié ici est l'ÉCHELLE, pas le
-     * nom du palier : asserter `lg:` faisait échouer le test sur une décision
-     * de mise en page délibérée et mesurée.
-     */
-    expect(grid?.className).toContain('grid-cols-4')
-    /*
-     * L'échelle est 4 / 8 / 12 — c'est ELLE le contrat, pas l'unité qui la
-     * déclenche. Les paliers sont passés de `md:`/`xl:` (viewport) à
-     * `@[34rem]:`/`@[60rem]:` (conteneur) : une grille imbriquée dans une
-     * colonne dont la largeur dépend du rail et de l'aside ne peut pas se
-     * régler sur la taille de la fenêtre. Mesuré avant correction : 12
-     * colonnes ouvertes dans un conteneur de 748 px, soit 37 px par piste.
-     */
-    expect(grid?.className).toMatch(/(md:|@\[[\d.]+rem\]:)grid-cols-8/)
-    expect(grid?.className).toMatch(/(lg:|xl:|@\[[\d.]+rem\]:)grid-cols-12/)
-    /*
-     * Le conteneur et la requête ne doivent PAS revenir sur le même nœud :
-     * c'est exactement le défaut corrigé, et il est invisible à la lecture.
-     */
     expect(grid?.className).not.toContain('@container')
+
+    /*
+     * Masonry natif via CSS multi-column, piloté par le CONTENEUR : 1 colonne →
+     * 2 en `@[60rem]:`. Aucun palier `sm:`/`md:`/`lg:` de fenêtre — la grille
+     * vit dans une colonne dont la largeur dépend du rail et de l'aside, que la
+     * taille de la fenêtre ne décrit pas. Pas de `grid-cols`/`col-span` : un
+     * masonry ne dimensionne pas ses cartes, elles coulent.
+     */
+    expect(grid?.className).toContain('columns-1')
+    expect(grid?.className).toMatch(/@\[[\d.]+rem\]:columns-2/)
+    expect(grid?.className).not.toMatch(/\b(sm|md|lg|xl):columns-/)
+    expect(grid?.className).not.toMatch(/grid-cols-/)
   })
 
-  it('emits literal span classes Tailwind can actually see', () => {
+  it('lets cards flow instead of declaring a span, and never splits one', () => {
     const { container } = render(
-      <AdminGrid>
-        <AdminCol span={5} md={4} base={2}>
-          five
-        </AdminCol>
-      </AdminGrid>,
+      <BentoGrid>
+        <BentoCard>a</BentoCard>
+        <BentoCard>b</BentoCard>
+      </BentoGrid>,
     )
-    // enveloppe (`@container`) → grille → colonne.
-    const col = container.firstElementChild?.firstElementChild?.firstElementChild
-    // Même règle : le span du palier haut suit la grille (`xl` depuis
-    // HC-VISUAL-LAYOUT-RECOVERY-001). C'est la classe LITTÉRALE qui compte —
-    // Tailwind ne voit pas une classe construite par concaténation.
-    expect(col?.className).toMatch(/(lg:|xl:|@\[[\d.]+rem\]:)col-span-5/)
-    expect(col?.className).toMatch(/(md:|@\[[\d.]+rem\]:)col-span-4/)
-    expect(col?.className).toContain('col-span-2')
+    const grid = container.firstElementChild?.firstElementChild
+    for (const card of Array.from(grid?.children ?? [])) {
+      /*
+       * Une carte ne déclare PAS un nombre de colonnes (`span={7}`) — c'est ce
+       * hardcode qui figeait et écrasait l'ancienne grille sous le rail. Dans un
+       * masonry, la carte tombe dans la colonne la plus courte ; elle doit juste
+       * ne jamais être coupée par un saut de colonne.
+       */
+      expect(card.className).toContain('break-inside-avoid')
+      expect(card.className).not.toMatch(/col-span-/)
+    }
   })
 })
 
