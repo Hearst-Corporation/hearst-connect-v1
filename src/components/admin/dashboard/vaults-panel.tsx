@@ -1,5 +1,6 @@
 import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset } from '@/components/admin/surface'
+import { pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminVaultSummary } from '@/lib/admin-dashboard/contracts'
@@ -37,7 +38,7 @@ function VaultCard({
         {availableLine !== null ? ` · ${availableLine}` : null}
       </p>
       <p className="text-xs text-fg-tertiary">
-        {vault.strategiesCount} strateg{vault.strategiesCount > 1 ? 'ies' : 'y'}
+        {vault.strategiesCount} strateg{strategySuffix(vault.strategiesCount)}
         {vault.maxDriftBps !== null ? ` · Worst drift ${driftPts(vault.maxDriftBps)}` : null}
       </p>
       <HearstSecondaryAction href={`/admin/vaults/${encodeURIComponent(vault.id)}`} className="mt-1 self-start">
@@ -108,7 +109,7 @@ export function VaultsPanel({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
         <p className="text-xs text-fg-tertiary">
           {hiddenVaults > 0
-            ? `${hiddenVaults} more vault${hiddenVaults > 1 ? 's' : ''} available in the registry.`
+            ? `${hiddenVaults} more vault${pluralSuffix(hiddenVaults)} available in the registry.`
             : 'Latest vault snapshot.'}
         </p>
         <HearstSecondaryAction href="/admin/vaults">View all vaults</HearstSecondaryAction>

@@ -307,6 +307,98 @@ function formatSignedBps(bps: number): string {
   return `${sign}${formatNumber(bps)}`
 }
 
+function driftDecisionSeverity(driftBps: number): CockpitDecisionSeverity {
+  return Math.abs(driftBps) >= DRIFT_THRESHOLD_BPS * 2 ? 'critique' : 'important'
+}
+
+function buildDriftDecision(row: PocketDrift, asset: Availability<Denomination>): CockpitDecision {
+  let capitalLabel: string | null = null
+  if (row.misallocatedAtomic !== null && isAvailable(asset)) {
+    capitalLabel = formatCurrency(row.misallocatedAtomic.toString(), {
+      decimals: 0,
+      fromAtomic: 10 ** asset.value.decimals,
+    })
+  }
+  return {
+    id: `drift-${row.strategyId}`,
+    severity: driftDecisionSeverity(row.driftBps),
+    title: `${row.vaultLabel} — drift ${formatSignedBps(row.driftBps)} bps`,
+    detail:
+      capitalLabel !== null
+        ? `${capitalLabel} mal alloués · poche ${row.pocketLabel} · seuil ±${DRIFT_THRESHOLD_BPS} bps`
+        : `Poche ${row.pocketLabel} hors ±${DRIFT_THRESHOLD_BPS} bps · montant de poche illisible`,
+    capitalLabel,
+    capitalRankAtomic: row.misallocatedAtomic,
+    actionHref: `/admin/vaults/${encodeURIComponent(row.vaultId)}`,
+    actionLabel: 'Open vault',
+  }
+}
+
+function appendDriftDecisions(
+  items: CockpitDecision[],
+  pockets: Availability<readonly PocketDrift[]>,
+  asset: Availability<Denomination>,
+): void {
+  if (!isAvailable(pockets)) return
+  for (const row of pockets.value.filter((r) => r.beyondThreshold)) {
+    items.push(buildDriftDecision(row, asset))
+  }
+}
+
+function appendOwnerDecisions(items: CockpitDecision[], vaults: Availability<readonly Vault[]>): void {
+  if (!isAvailable(vaults)) return
+  for (const vault of vaults.value) {
+    if (isAvailable(vault.client)) continue
+    items.push({
+      id: `owner-${vault.id}`,
+      severity: 'information',
+      title: 'Vault owner not mapped',
+      detail: `${vault.label} — ${vault.client.reason ?? 'owner not reported'}`,
+      capitalLabel: null,
+      capitalRankAtomic: null,
+      actionHref: '/admin/clients',
+      actionLabel: 'Open clients',
+    })
+  }
+}
+
+function exceptionDecisionSeverity(issue: string): CockpitDecisionSeverity {
+  return issue === 'DEPLOYMENT_BLOCKED' || issue === 'COMPLIANCE_REVIEW_PENDING'
+    ? 'critique'
+    : 'important'
+}
+
+function appendExceptionDecisions(
+  items: CockpitDecision[],
+  clientExceptions: AdminRegistry['clientExceptions'],
+): void {
+  if (!isAvailable(clientExceptions)) return
+  for (const ex of clientExceptions.value) {
+    items.push({
+      id: `ex-${ex.clientId ?? ex.clientLabel}-${ex.issue}`,
+      severity: exceptionDecisionSeverity(ex.issue),
+      title: ex.clientLabel,
+      detail: ex.issue.replaceAll('_', ' ').toLowerCase(),
+      capitalLabel: null,
+      capitalRankAtomic: null,
+      actionHref: ex.actionHref,
+      actionLabel: ex.actionLabel,
+    })
+  }
+}
+
+function compareCockpitDecisions(a: CockpitDecision, b: CockpitDecision): number {
+  const bySev = SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]
+  if (bySev !== 0) return bySev
+  const ca = a.capitalRankAtomic
+  const cb = b.capitalRankAtomic
+  if (ca === null && cb === null) return 0
+  if (ca === null) return 1
+  if (cb === null) return -1
+  if (ca === cb) return 0
+  return ca > cb ? -1 : 1
+}
+
 /**
  * File décisionnelle patrimoine : dérives hors seuil, coffres sans propriétaire,
  * exceptions client. Classée par sévérité puis capital en jeu.
@@ -316,64 +408,9 @@ export function buildCockpitDecisionQueue(registry: AdminRegistry): Availability
   const pockets = pocketDrifts(registry)
   const items: CockpitDecision[] = []
 
-  if (isAvailable(pockets)) {
-    for (const row of pockets.value.filter((r) => r.beyondThreshold)) {
-      let capitalLabel: string | null = null
-      if (row.misallocatedAtomic !== null && isAvailable(asset)) {
-        capitalLabel = formatCurrency(row.misallocatedAtomic.toString(), {
-          decimals: 0,
-          fromAtomic: 10 ** asset.value.decimals,
-        })
-      }
-      items.push({
-        id: `drift-${row.strategyId}`,
-        severity: Math.abs(row.driftBps) >= DRIFT_THRESHOLD_BPS * 2 ? 'critique' : 'important',
-        title: `${row.vaultLabel} — drift ${formatSignedBps(row.driftBps)} bps`,
-        detail:
-          capitalLabel !== null
-            ? `${capitalLabel} mal alloués · poche ${row.pocketLabel} · seuil ±${DRIFT_THRESHOLD_BPS} bps`
-            : `Poche ${row.pocketLabel} hors ±${DRIFT_THRESHOLD_BPS} bps · montant de poche illisible`,
-        capitalLabel,
-        capitalRankAtomic: row.misallocatedAtomic,
-        actionHref: `/admin/vaults/${encodeURIComponent(row.vaultId)}`,
-        actionLabel: 'Open vault',
-      })
-    }
-  }
-
-  if (isAvailable(registry.vaults)) {
-    for (const vault of registry.vaults.value) {
-      if (isAvailable(vault.client)) continue
-      items.push({
-        id: `owner-${vault.id}`,
-        severity: 'information',
-        title: 'Vault owner not mapped',
-        detail: `${vault.label} — ${vault.client.reason ?? 'owner not reported'}`,
-        capitalLabel: null,
-        capitalRankAtomic: null,
-        actionHref: '/admin/clients',
-        actionLabel: 'Open clients',
-      })
-    }
-  }
-
-  if (isAvailable(registry.clientExceptions)) {
-    for (const ex of registry.clientExceptions.value) {
-      items.push({
-        id: `ex-${ex.clientId ?? ex.clientLabel}-${ex.issue}`,
-        severity:
-          ex.issue === 'DEPLOYMENT_BLOCKED' || ex.issue === 'COMPLIANCE_REVIEW_PENDING'
-            ? 'critique'
-            : 'important',
-        title: ex.clientLabel,
-        detail: ex.issue.replaceAll('_', ' ').toLowerCase(),
-        capitalLabel: null,
-        capitalRankAtomic: null,
-        actionHref: ex.actionHref,
-        actionLabel: ex.actionLabel,
-      })
-    }
-  }
+  appendDriftDecisions(items, pockets, asset)
+  appendOwnerDecisions(items, registry.vaults)
+  appendExceptionDecisions(items, registry.clientExceptions)
 
   // Si ni stratégies ni exceptions ni vaults ne répondent → absence.
   if (
@@ -385,18 +422,7 @@ export function buildCockpitDecisionQueue(registry: AdminRegistry): Availability
     return registry.vaults
   }
 
-  items.sort((a, b) => {
-    const bySev = SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]
-    if (bySev !== 0) return bySev
-    const ca = a.capitalRankAtomic
-    const cb = b.capitalRankAtomic
-    if (ca === null && cb === null) return 0
-    if (ca === null) return 1
-    if (cb === null) return -1
-    if (ca === cb) return 0
-    return ca > cb ? -1 : 1
-  })
-
+  items.sort(compareCockpitDecisions)
   return available(items, { provenance: 'indexed' })
 }
 

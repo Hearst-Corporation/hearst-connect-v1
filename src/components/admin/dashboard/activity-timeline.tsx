@@ -8,11 +8,20 @@ import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
-import { formatAddress, formatHash, formatRelativeTime } from '@/lib/format'
+import { formatAddress, formatHash, formatRelativeTime, pluralSuffix } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
 const MAX_VISIBLE_EVENTS = 5
 const TIMELINE_SLOT_CLASS = 'min-h-[var(--dashboard-list-slot-block-size)]'
+
+function eventClientTitle(
+  event: AdminActivityEvent,
+  assetScale: AdminAssetScale | null,
+): string | undefined {
+  if (event.clientLabel === null || event.clientLabel === '') return undefined
+  if (event.amountAtomic === null) return event.clientLabel
+  return `${event.clientLabel} · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
+}
 
 export function ActivityTimelinePanel({
   events,
@@ -82,15 +91,7 @@ export function ActivityTimelinePanel({
                   <p className="text-sm font-semibold text-ink dark:text-fg">{event.title}</p>
                   <p
                     className="mt-0.5 truncate text-xs text-fg-tertiary"
-                    title={
-                      event.clientLabel
-                        ? `${event.clientLabel}${
-                            event.amountAtomic !== null
-                              ? ` · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
-                              : ''
-                          }`
-                        : undefined
-                    }
+                    title={eventClientTitle(event, assetScale)}
                   >
                     {formatAddress(event.clientLabel) ?? event.clientLabel ?? '—'}
                     {event.amountAtomic !== null
@@ -114,7 +115,7 @@ export function ActivityTimelinePanel({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
         <Text>
           {hiddenCount > 0
-            ? `${hiddenCount} older event${hiddenCount > 1 ? 's' : ''} available in Operations.`
+            ? `${hiddenCount} older event${pluralSuffix(hiddenCount)} available in Operations.`
             : 'Latest activity snapshot.'}
         </Text>
         <HearstSecondaryAction href="/admin/operations">View all activity</HearstSecondaryAction>

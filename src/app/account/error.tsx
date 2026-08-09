@@ -19,14 +19,12 @@ export default function AccountError({
         className="size-6 shrink-0 text-warning-400"
         aria-hidden="true"
       />
-      <p
-        role="heading"
-        aria-level={1}
+      <h1
         id="account-error-title"
         className="mt-4 text-xl font-semibold tracking-tight text-fg"
       >
         Unable to load this page
-      </p>
+      </h1>
       <p className="mt-2 text-sm leading-6 text-fg-tertiary">
         Something went wrong while loading your space. Try again. If the issue continues, use the
         reference below when reporting it.

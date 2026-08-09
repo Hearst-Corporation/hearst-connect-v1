@@ -44,9 +44,13 @@ export async function createAdminUser(
     return { ...base, validationError: 'Missing confirmation: no request was sent.' }
   }
 
-  const email = String(form.get('email') ?? '').trim()
-  const password = String(form.get('password') ?? '')
-  const role = String(form.get('role') ?? '')
+  // FormData.get may return a File; never coerce with String() (S6551).
+  const rawEmail = form.get('email')
+  const rawPassword = form.get('password')
+  const rawRole = form.get('role')
+  const email = (typeof rawEmail === 'string' ? rawEmail : '').trim()
+  const password = typeof rawPassword === 'string' ? rawPassword : ''
+  const role = typeof rawRole === 'string' ? rawRole : ''
 
   if (!email) {
     return { ...base, validationError: 'Email is required.' }

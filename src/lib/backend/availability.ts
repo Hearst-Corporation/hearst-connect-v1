@@ -55,10 +55,10 @@ export function availabilityFromResolu<T>(
   bloc: BlocResolu<T> | null | undefined,
   endpoint: string,
 ): Availability<T> {
-  if (bloc === null || bloc === undefined || bloc.value === null || bloc.value === undefined) {
+  if (bloc?.value == null) {
     return unavailable({
       endpoint,
-      status: bloc ? statutCanonique(bloc.status) : 'UNAVAILABLE',
+      status: bloc != null ? statutCanonique(bloc.status) : 'UNAVAILABLE',
       reason: bloc?.reason ?? null,
     })
   }

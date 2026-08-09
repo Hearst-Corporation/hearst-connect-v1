@@ -22,7 +22,7 @@ export function ChartPlaceholder({
   icon?: ComponentType<SVGProps<SVGSVGElement>>
 }>) {
   return (
-    <div
+    <output
       data-widget="chart-placeholder"
       className={clsx(
         surfaceInset,
@@ -30,12 +30,11 @@ export function ChartPlaceholder({
         dashboardSlot && DASHBOARD_CHART_SLOT_CLASS,
       )}
       style={dashboardSlot ? undefined : { minHeight: height }}
-      role="status"
       aria-label={title}
     >
       <Icon className="size-8 text-fg dark:text-console-fill" aria-hidden="true" />
       <p className="mt-3 text-sm/6 font-semibold text-ink dark:text-fg">Data unavailable</p>
       <Text className="mt-1">No history available</Text>
-    </div>
+    </output>
   )
 }

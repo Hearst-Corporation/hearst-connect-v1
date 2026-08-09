@@ -5,7 +5,7 @@ import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
-import { formatNumber } from '@/lib/format'
+import { formatNumber, pluralSuffix } from '@/lib/format'
 import { dateLisible, ilYA, libelleMouvement } from '@/lib/mouvements'
 import { useMemo, useState } from 'react'
 
@@ -80,6 +80,14 @@ function txShort(hash: string | null): string | null {
   return `${hash.slice(0, 8)}…${hash.slice(-6)}`
 }
 
+function explorerCount(filteredLength: number, totalLength: number): string | undefined {
+  if (filteredLength > 0) {
+    return `${formatNumber(filteredLength)} event${pluralSuffix(filteredLength)}`
+  }
+  if (totalLength === 0) return undefined
+  return '0 events'
+}
+
 export function Series1EventExplorer({
   rows,
   calme,
@@ -96,12 +104,7 @@ export function Series1EventExplorer({
 
   const filtered = useMemo(() => rows.filter((row) => rowMatches(row, filters)), [rows, filters])
 
-  const count =
-    filtered.length > 0
-      ? `${formatNumber(filtered.length)} event${filtered.length === 1 ? '' : 's'}`
-      : rows.length === 0
-        ? undefined
-        : '0 events'
+  const count = explorerCount(filtered.length, rows.length)
 
   return (
     <div className="space-y-4">

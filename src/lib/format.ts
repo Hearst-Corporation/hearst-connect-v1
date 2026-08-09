@@ -6,6 +6,16 @@
 
 const LOCALE = 'en-US'
 
+/** English count suffix: 1 → '' ; otherwise → 's' (e.g. vault / vaults). */
+export function pluralSuffix(count: number): string {
+  return count === 1 ? '' : 's'
+}
+
+/** Irregular strategy suffix: 1 → 'y' ; otherwise → 'ies'. */
+export function strategySuffix(count: number): string {
+  return count === 1 ? 'y' : 'ies'
+}
+
 export function formatNumber(value: number | null | undefined, opts?: Intl.NumberFormatOptions): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return '—'
   return value.toLocaleString(LOCALE, opts)

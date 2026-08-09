@@ -95,7 +95,8 @@ export function ClientsDirectory({
             aria-label="Search clients"
           />
         </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Client filters">
+        <fieldset className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
+          <legend className="sr-only">Client filters</legend>
           {FILTERS.map((item) => {
             const active = filter === item.id
             return (
@@ -114,7 +115,7 @@ export function ClientsDirectory({
               </button>
             )
           })}
-        </div>
+        </fieldset>
       </div>
 
       <div className="hidden min-w-0 md:block">

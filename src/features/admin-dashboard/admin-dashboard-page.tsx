@@ -36,6 +36,52 @@ function driftPtsLabel(driftBps: number): string {
   return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
 }
 
+function vaultsKpiUnit(data: AdminDashboardData): string | undefined {
+  if (!isAvailable(data.overview)) return undefined
+  const { totalVaults, activeVaults } = data.overview.value
+  if (totalVaults > activeVaults) return `/ ${totalVaults} total`
+  return 'active'
+}
+
+function ActivityChartSlot({
+  showActivityCurve,
+  activityNotConfigured,
+  activityPoints,
+  activityTimeseries,
+}: Readonly<{
+  showActivityCurve: boolean
+  activityNotConfigured: boolean
+  activityPoints: PointActivite[]
+  activityTimeseries: AdminDashboardData['activityTimeseries']
+}>) {
+  if (showActivityCurve) {
+    return (
+      <HearstActivityChart
+        points={activityPoints}
+        unite="events"
+        height={DASHBOARD_CHART_SLOT_HEIGHT}
+      />
+    )
+  }
+
+  if (activityNotConfigured) {
+    const reason =
+      activityTimeseries.kind === 'unavailable'
+        ? (activityTimeseries.reason ?? 'No events indexed yet.')
+        : null
+    return (
+      <div
+        className={`flex h-full min-h-0 flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft ${DASHBOARD_CHART_SLOT_CLASS}`}
+      >
+        <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
+        <p className="text-fg-tertiary text-xs">{reason}</p>
+      </div>
+    )
+  }
+
+  return <ChartPlaceholder title="Activity" dashboardSlot icon={ChartBarIcon} />
+}
+
 /**
  * Admin dashboard — portfolio cockpit (HC-ADMIN-DASHBOARD-BACKEND-FIRST-006).
  * Shell layout unchanged; data from backend read models only.
@@ -61,11 +107,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
       id: 'vaults',
       title: 'Vaults',
       value: mapAvailability(data.overview, (o) => String(o.activeVaults)),
-      unit: isAvailable(data.overview)
-        ? data.overview.value.totalVaults > data.overview.value.activeVaults
-          ? `/ ${data.overview.value.totalVaults} total`
-          : 'active'
-        : undefined,
+      unit: vaultsKpiUnit(data),
       icon: CubeTransparentIcon,
     },
     {
@@ -132,26 +174,12 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
               title="Activity"
               subtitle="Daily volume · 28 days"
             >
-              {showActivityCurve ? (
-                <HearstActivityChart
-                  points={activityPoints}
-                  unite="events"
-                  height={DASHBOARD_CHART_SLOT_HEIGHT}
-                />
-              ) : activityNotConfigured ? (
-                <div
-                  className={`flex h-full min-h-0 flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft ${DASHBOARD_CHART_SLOT_CLASS}`}
-                >
-                  <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
-                  <p className="text-fg-tertiary text-xs">
-                    {data.activityTimeseries.kind === 'unavailable'
-                      ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
-                      : null}
-                  </p>
-                </div>
-              ) : (
-                <ChartPlaceholder title="Activity" dashboardSlot icon={ChartBarIcon} />
-              )}
+              <ActivityChartSlot
+                showActivityCurve={showActivityCurve}
+                activityNotConfigured={activityNotConfigured}
+                activityPoints={activityPoints}
+                activityTimeseries={data.activityTimeseries}
+              />
             </DashCard>
           </AdminCol>
         </AdminGrid>

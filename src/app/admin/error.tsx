@@ -1,6 +1,7 @@
 'use client'
 
 import { surfaceBox, surfaceInset } from '@/components/admin/surface'
+import { AdminHeroTitle } from '@/components/admin/typography'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 /**
@@ -18,14 +19,12 @@ export default function AdminError({
   return (
     <section aria-labelledby="admin-error-title" className="mx-auto w-full max-w-3xl">
       <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">System status</p>
-      <p
-        role="heading"
-        aria-level={1}
+      <AdminHeroTitle
         id="admin-error-title"
-        className="mt-2 text-2xl font-semibold tracking-tight text-ink dark:text-fg"
+        className="mt-2 text-ink dark:text-fg"
       >
         Unable to load this page
-      </p>
+      </AdminHeroTitle>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-fg-tertiary">
         Something went wrong while loading this section of the administration console. Try again. If
         the issue continues, use the reference below when reporting it.

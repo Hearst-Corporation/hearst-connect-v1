@@ -13,20 +13,13 @@ describe('AdminBodyNav', () => {
     usePathname.mockReset()
   })
 
-  it('n’affiche rien sur le tableau de bord principal', () => {
-    usePathname.mockReturnValue('/admin')
-    const { container } = render(<AdminBodyNav />)
-    expect(container.firstChild).toBeNull()
-  })
-
-  it('n’affiche rien sur un écran principal sans sous-menu', () => {
-    usePathname.mockReturnValue('/admin/operations')
-    const { container } = render(<AdminBodyNav />)
-    expect(container.firstChild).toBeNull()
-  })
-
-  it('n’affiche rien sur une section dont le groupe ne porte qu’une entrée', () => {
-    usePathname.mockReturnValue('/admin/product')
+  it.each([
+    { pathname: '/admin', label: 'le tableau de bord principal' },
+    { pathname: '/admin/operations', label: 'un écran principal sans sous-menu' },
+    { pathname: '/admin/product', label: 'une section dont le groupe ne porte qu’une entrée' },
+    { pathname: '/admin/series-1', label: 'Portfolio mono-entrée sur le Journal Série 1' },
+  ])('n’affiche rien sur $label', ({ pathname }) => {
+    usePathname.mockReturnValue(pathname)
     const { container } = render(<AdminBodyNav />)
     expect(container.firstChild).toBeNull()
   })
@@ -35,11 +28,5 @@ describe('AdminBodyNav', () => {
     usePathname.mockReturnValue('/admin/runtime')
     const { container } = render(<AdminBodyNav />)
     expect(container.firstChild).not.toBeNull()
-  })
-
-  it('n’affiche pas de sous-menu Portfolio mono-entrée sur le Journal Série 1', () => {
-    usePathname.mockReturnValue('/admin/series-1')
-    const { container } = render(<AdminBodyNav />)
-    expect(container.firstChild).toBeNull()
   })
 })

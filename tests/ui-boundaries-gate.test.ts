@@ -59,44 +59,40 @@ describe('check-ui-boundaries — self-test intégré', () => {
 })
 
 describe('check-ui-boundaries — la gate mord sur du vrai code', () => {
-  it('refuse une Card redéclarée dans une route', () => {
-    const racine = racineAvec(
-      'src/app/admin/x/page.tsx',
-      'function Card({ children }: { children: React.ReactNode }) {\n  return <div>{children}</div>\n}\nexport default function Page() {\n  return <Card>x</Card>\n}\n',
-    )
+  it.each([
+    {
+      label: 'une Card redéclarée dans une route',
+      chemin: 'src/app/admin/x/page.tsx',
+      contenu:
+        'function Card({ children }: { children: React.ReactNode }) {\n  return <div>{children}</div>\n}\nexport default function Page() {\n  return <Card>x</Card>\n}\n',
+      regle: 'NO_LOCAL_PANEL',
+    },
+    {
+      label: 'un import direct de moteur de dataviz depuis une route',
+      chemin: 'src/app/admin/x/page.tsx',
+      contenu:
+        "import { AreaChart } from 'recharts'\nexport default function Page() {\n  return <AreaChart />\n}\n",
+      regle: 'NO_ENGINE_IN_ROUTE',
+    },
+    {
+      label: 'un import depuis design-lab',
+      chemin: 'src/components/x.tsx',
+      contenu:
+        "import { Panel } from '@/components/design-lab/legacy/primitives'\nexport const X = Panel\n",
+      regle: 'NO_DESIGN_LAB',
+    },
+    {
+      label: 'une primitive Catalyst recréée à la main',
+      chemin: 'src/app/admin/x/page.tsx',
+      contenu:
+        'function Badge({ children }: { children: React.ReactNode }) {\n  return <span>{children}</span>\n}\nexport default Badge\n',
+      regle: 'NO_LOCAL_CATALYST',
+    },
+  ])('refuse $label', ({ chemin, contenu, regle }) => {
+    const racine = racineAvec(chemin, contenu)
     const { code, sortie } = lancer(racine)
     expect(code).toBe(1)
-    expect(sortie).toContain('NO_LOCAL_PANEL')
-  })
-
-  it('refuse un import direct de moteur de dataviz depuis une route', () => {
-    const racine = racineAvec(
-      'src/app/admin/x/page.tsx',
-      "import { AreaChart } from 'recharts'\nexport default function Page() {\n  return <AreaChart />\n}\n",
-    )
-    const { code, sortie } = lancer(racine)
-    expect(code).toBe(1)
-    expect(sortie).toContain('NO_ENGINE_IN_ROUTE')
-  })
-
-  it('refuse un import depuis design-lab', () => {
-    const racine = racineAvec(
-      'src/components/x.tsx',
-      "import { Panel } from '@/components/design-lab/legacy/primitives'\nexport const X = Panel\n",
-    )
-    const { code, sortie } = lancer(racine)
-    expect(code).toBe(1)
-    expect(sortie).toContain('NO_DESIGN_LAB')
-  })
-
-  it('refuse une primitive Catalyst recréée à la main', () => {
-    const racine = racineAvec(
-      'src/app/admin/x/page.tsx',
-      'function Badge({ children }: { children: React.ReactNode }) {\n  return <span>{children}</span>\n}\nexport default Badge\n',
-    )
-    const { code, sortie } = lancer(racine)
-    expect(code).toBe(1)
-    expect(sortie).toContain('NO_LOCAL_CATALYST')
+    expect(sortie).toContain(regle)
   })
 
   it('laisse passer une route conforme', () => {

@@ -12,7 +12,13 @@ import { Text } from '@/components/catalyst/text'
 import { Callout, DataTableShell, SectionCard, fitTableColPrimary } from '@/components/compositions'
 import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
-import { available, mapAvailability, measuredCount, unavailable } from '@/lib/vaults/model'
+import {
+  available,
+  mapAvailability,
+  measuredCount,
+  unavailable,
+  type Availability,
+} from '@/lib/vaults/model'
 import {
   CheckBadgeIcon,
   LinkIcon,
@@ -48,6 +54,59 @@ function clientsFromResponse(
   return rows
 }
 
+type ClientsBackendResult = Awaited<ReturnType<typeof callBackend<ClientsReponse>>>
+
+function directoryLabelAvailability(
+  rows: readonly ClientRow[] | null,
+  match: ClientRow | null,
+  clientsRes: ClientsBackendResult,
+): Availability<string> {
+  if (rows === null) {
+    const reason = clientsRes.ok
+      ? (clientsRes.data.clients?.reason ?? 'Directory unreadable')
+      : 'No response'
+    return unavailable({
+      status: 'UNAVAILABLE',
+      reason,
+      endpoint: '/api/v1/clients',
+    })
+  }
+  if (match !== null) {
+    return available(match.label, { provenance: 'db' })
+  }
+  return unavailable({
+    status: 'EMPTY',
+    reason: 'Identifier absent from directory — the account may exist without being listed yet.',
+    endpoint: '/api/v1/clients',
+  })
+}
+
+function indexationStatusAvailability(
+  rows: readonly ClientRow[] | null,
+  match: ClientRow | null,
+): Availability<string> {
+  if (rows === null) {
+    return unavailable({
+      status: 'UNAVAILABLE',
+      reason: 'Directory unreadable',
+      endpoint: '/api/v1/clients',
+    })
+  }
+  if (match !== null) {
+    return available('Indexed', { provenance: 'db' })
+  }
+  return available('Not indexed', { provenance: 'db' })
+}
+
+function directoryRowsAvailability(
+  rows: readonly ClientRow[] | null,
+): Availability<readonly ClientRow[]> {
+  if (rows === null) {
+    return unavailable({ endpoint: '/api/v1/clients' })
+  }
+  return available(rows)
+}
+
 /**
  * Détail d’un client simulé — lecture honnête via GET /api/v1/clients.
  * Aucune ligne inventée : si l’identifiant n’est pas encore dans l’annuaire,
@@ -58,43 +117,12 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
   const clientsRes = await callBackend<ClientsReponse>('clients')
   const rows = clientsFromResponse(clientsRes)
   const match = rows?.find((c) => c.id === id) ?? null
+  const directoryRows = directoryRowsAvailability(rows)
 
-  // Label annuaire : présent si l'identifiant est indexé, absence nommée sinon.
-  const directoryLabel =
-    rows === null
-      ? unavailable({
-          status: 'UNAVAILABLE',
-          reason: clientsRes.ok
-            ? (clientsRes.data.clients?.reason ?? 'Directory unreadable')
-            : 'No response',
-          endpoint: '/api/v1/clients',
-        })
-      : match !== null
-        ? available(match.label, { provenance: 'db' })
-        : unavailable({
-            status: 'EMPTY',
-            reason: 'Identifier absent from directory — the account may exist without being listed yet.',
-            endpoint: '/api/v1/clients',
-          })
-
-  // Statut d'indexation : dérivé de l'Availability réelle, jamais forcé.
-  const indexationStatus =
-    rows === null
-      ? unavailable({
-          status: 'UNAVAILABLE',
-          reason: 'Directory unreadable',
-          endpoint: '/api/v1/clients',
-        })
-      : match !== null
-        ? available('Indexed', { provenance: 'db' })
-        : available('Not indexed', { provenance: 'db' })
-
-  // Taille de l'annuaire : compte mesuré, absence propagée (jamais un zéro inventé).
-  const directorySize = measuredCount(rows === null ? unavailable({ endpoint: '/api/v1/clients' }) : available(rows))
-  const sourceState = mapAvailability(
-    rows === null ? unavailable({ endpoint: '/api/v1/clients' }) : available(rows),
-    () => 'GET /api/v1/clients',
-  )
+  const directoryLabel = directoryLabelAvailability(rows, match, clientsRes)
+  const indexationStatus = indexationStatusAvailability(rows, match)
+  const directorySize = measuredCount(directoryRows)
+  const sourceState = mapAvailability(directoryRows, () => 'GET /api/v1/clients')
 
   const displayName = match !== null ? libelleClient(match.label, id) : id
 

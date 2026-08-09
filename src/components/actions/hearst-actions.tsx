@@ -183,12 +183,43 @@ function PhaseContent({
   )
 }
 
-function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
-  const { children, icon, className, disabledReason, disabled: disabledProp, successLabel } = props
-  const ariaLabel = props['aria-label']
-  const href = 'href' in props ? props.href : undefined
-  const onAction = 'onAction' in props ? props.onAction : undefined
+function resolveDisabled(
+  disabledProp: boolean | undefined,
+  href: string | undefined,
+  onAction: (() => void | Promise<void>) | undefined,
+  disabledReason: string | undefined,
+): boolean {
+  return disabledProp === true || (href === undefined && onAction === undefined && disabledReason !== undefined)
+}
 
+function resolveMergedClass(tone: Tone, className: string | undefined): string {
+  if (tone === 'icon') return clsx(FOCUS_ACCENT, className)
+  return clsx(TONE_CLASS[tone], className)
+}
+
+function renderActionContent(
+  onAction: (() => void | Promise<void>) | undefined,
+  phase: Phase,
+  icon: ReactNode | undefined,
+  children: ReactNode | undefined,
+  successLabel: string | undefined,
+): ReactNode {
+  if (onAction !== undefined) {
+    return (
+      <PhaseContent phase={phase} icon={icon} successLabel={successLabel}>
+        {children}
+      </PhaseContent>
+    )
+  }
+  return (
+    <>
+      {iconSlot(icon)}
+      {children}
+    </>
+  )
+}
+
+function useAsyncActionPhase(onAction: (() => void | Promise<void>) | undefined) {
   const [phase, setPhase] = useState<Phase>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
@@ -206,42 +237,89 @@ function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
     }
   }
 
-  const isDisabled = disabledProp === true || (href === undefined && onAction === undefined && disabledReason !== undefined)
-  const busy = phase === 'loading'
-  const tapScale = tone === 'icon' ? 0.94 : 0.98
-  const mergedClass =
-    tone === 'icon' ? clsx(FOCUS_ACCENT, className) : clsx(TONE_CLASS[tone], className)
+  return { phase, run, busy: phase === 'loading' }
+}
 
-  const content =
-    onAction !== undefined ? (
-      <PhaseContent phase={phase} icon={icon} successLabel={successLabel}>
-        {children}
-      </PhaseContent>
-    ) : (
-      <>
-        {iconSlot(icon)}
-        {children}
-      </>
-    )
+type CatalystButtonShared = Readonly<{
+  className: string
+  'aria-label'?: string
+  title?: string
+  children: ReactNode
+}>
+
+function renderCatalystButton({
+  tone,
+  href,
+  mergedClass,
+  ariaLabel,
+  disabledReason,
+  isDisabled,
+  busy,
+  onAction,
+  run,
+  content,
+}: Readonly<{
+  tone: Tone
+  href: string | undefined
+  mergedClass: string
+  ariaLabel: string | undefined
+  disabledReason: string | undefined
+  isDisabled: boolean
+  busy: boolean
+  onAction: (() => void | Promise<void>) | undefined
+  run: () => Promise<void>
+  content: ReactNode
+}>): ReactNode {
+  const shared: CatalystButtonShared = {
+    className: mergedClass,
+    'aria-label': ariaLabel,
+    title: disabledReason,
+    children: content,
+  }
+
+  if (tone === 'icon') {
+    return href !== undefined
+      ? <Button plain href={href} {...shared} />
+      : <Button plain disabled={isDisabled || busy} onClick={onAction ? run : undefined} {...shared} />
+  }
+  if (tone === 'secondary') {
+    return href !== undefined
+      ? <Button color="white" href={href} {...shared} />
+      : <Button color="white" disabled={isDisabled || busy} onClick={onAction ? run : undefined} {...shared} />
+  }
+  const style = TONE_STYLE[tone]
+  return href !== undefined
+    ? <Button href={href} style={style} {...shared} />
+    : <Button disabled={isDisabled || busy} onClick={onAction ? run : undefined} style={style} {...shared} />
+}
+
+function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
+  const { children, icon, className, disabledReason, disabled: disabledProp, successLabel } = props
+  const ariaLabel = props['aria-label']
+  const href = 'href' in props ? props.href : undefined
+  const onAction = 'onAction' in props ? props.onAction : undefined
+
+  const { phase, run, busy } = useAsyncActionPhase(onAction)
+  const isDisabled = resolveDisabled(disabledProp, href, onAction, disabledReason)
+  const tapScale = tone === 'icon' ? 0.94 : 0.98
+  const mergedClass = resolveMergedClass(tone, className)
+  const content = renderActionContent(onAction, phase, icon, children, successLabel)
 
   // Bouton Catalyst résolu par ton — jamais un <button> maison.
   // Structure = défaut `dark/neutral` (tokens console) ou `white` / `plain`.
   // Couleur sémantique = variables Hearst uniquement (pas de color="lime").
-  let button: ReactNode
-  if (tone === 'icon') {
-    button = href !== undefined
-      ? <Button plain href={href} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-      : <Button plain disabled={isDisabled || busy} onClick={onAction ? run : undefined} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-  } else if (tone === 'secondary') {
-    button = href !== undefined
-      ? <Button color="white" href={href} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-      : <Button color="white" disabled={isDisabled || busy} onClick={onAction ? run : undefined} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-  } else {
-    const style = TONE_STYLE[tone]
-    button = href !== undefined
-      ? <Button href={href} style={style} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-      : <Button disabled={isDisabled || busy} onClick={onAction ? run : undefined} style={style} className={mergedClass} aria-label={ariaLabel} title={disabledReason}>{content}</Button>
-  }
+  const button = renderCatalystButton({
+    tone,
+    href,
+    mergedClass,
+    ariaLabel,
+    disabledReason,
+    isDisabled,
+    busy,
+    onAction,
+    run,
+    content,
+  })
 
   return <Interactive active={TONE_MOTION[tone] && !isDisabled && !busy} tapScale={tapScale}>{button}</Interactive>
 }

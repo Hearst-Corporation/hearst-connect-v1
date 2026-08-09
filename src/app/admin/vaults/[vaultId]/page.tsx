@@ -100,6 +100,251 @@ function movementAmount(movement: Movement, vault: Vault): string {
   return formatCurrency(movement.assetAmountAtomic, { fromAtomic: 10 ** decimals })
 }
 
+function clientOwnerEmptyLabel(client: Unavailable): string {
+  if (client.reason === 'vault_owner_not_reported') return 'Owner not reported on vault'
+  return 'Unavailable'
+}
+
+function formatExposureBps(actualBps: number | null): string {
+  if (actualBps === null) return 'Unavailable'
+  return formatPercent(actualBps, { fromBps: true, maximumFractionDigits: 2 })
+}
+
+function formatRebalanceAt(lastRebalanceAt: RebalancingRow['lastRebalanceAt']): string {
+  if (!isAvailable(lastRebalanceAt) || lastRebalanceAt.value === '') return 'Unavailable'
+  return formatDateTime(lastRebalanceAt.value)
+}
+
+function movementInvestorLabel(movement: Movement): string | null {
+  if (movement.investorAddress === null) return null
+  return formatAddress(movement.investorAddress) ?? movement.investorAddress
+}
+
+function movementOccurredLabel(occurredAt: string | null): string {
+  if (occurredAt === null) return 'Unavailable'
+  return formatRelativeTime(occurredAt)
+}
+
+function TxExplorerLink({
+  txShort,
+  txUrl,
+}: Readonly<{ txShort: string | null; txUrl: string | null }>) {
+  if (txShort === null) return 'Unavailable'
+  if (txUrl === null) return txShort
+  return (
+    <a
+      href={txUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-accent-600 dark:text-accent-400"
+    >
+      {txShort}
+    </a>
+  )
+}
+
+function VaultClientPresence({
+  client,
+}: Readonly<{ client: Vault['client'] }>) {
+  if (isAvailable(client)) {
+    return <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
+  }
+  return (
+    <AdminReading value={absentReading(client)} emptyLabel={clientOwnerEmptyLabel(client)} />
+  )
+}
+
+function RebalancingTableRow({ row }: Readonly<{ row: RebalancingRow }>) {
+  const pocket = pocketOf(row)
+  const drift = driftPointsNullable(row.varianceBps)
+  return (
+    <TableRow>
+      <TableCell>
+        <VaultEntityLink
+          kind="strategy"
+          id={row.strategyId}
+          label={row.strategyLabel}
+          sub={pocket !== null && pocket !== row.strategyLabel ? pocket : undefined}
+        />
+      </TableCell>
+      <TableCell>
+        {formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })}
+      </TableCell>
+      <TableCell>{formatExposureBps(row.actualBps)}</TableCell>
+      <TableCell className="tabular-nums">{drift ?? 'Unavailable'}</TableCell>
+      <TableCell>{formatRebalanceAt(row.lastRebalanceAt)}</TableCell>
+    </TableRow>
+  )
+}
+
+function VaultAllocationSection({
+  scopedRebalancing,
+  rebalancingList,
+}: Readonly<{
+  scopedRebalancing: Availability<readonly RebalancingRow[]>
+  rebalancingList: readonly RebalancingRow[] | null
+}>) {
+  if (!isAvailable(scopedRebalancing)) {
+    return (
+      <>
+        <ChartFrame
+          question="How is exposure distributed by pocket?"
+          unite="in percent — target vs exposure"
+          etat={{
+            type: 'unavailable',
+            explication: 'Allocation read did not succeed for this vault.',
+          }}
+        />
+        <SectionCard title="Allocation" hint="Target, exposure, and drift as reported by the service." className="mt-6">
+          <Text>
+            <AdminReading value={absentReading(scopedRebalancing)} />{' '}
+            <Link href={entityHref('source', 'rebalancing-status')}>Data coverage</Link>
+          </Text>
+        </SectionCard>
+      </>
+    )
+  }
+
+  if (rebalancingList === null || rebalancingList.length === 0) {
+    return (
+      <>
+        <ChartFrame
+          question="How is exposure distributed by pocket?"
+          unite="in percent — target vs exposure"
+          etat={{ type: 'empty', explication: 'No measured pocket for this vault.' }}
+        />
+        <DataTableShell
+          title="Allocation"
+          description="Target, exposure, and drift as reported by the service."
+          calme="No measured pocket for this vault."
+          className="mt-6"
+        />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <ChartFrame
+        question="How is exposure distributed by pocket?"
+        unite="in percent — target vs exposure"
+        etat={{ type: 'plotted' }}
+      >
+        <HearstAllocationChart
+          postes={rebalancingList.map<PosteAllocation>((row) => ({
+            label: row.strategyLabel,
+            ciblePct: row.targetBps / 100,
+            constatePct: row.actualBps === null ? null : row.actualBps / 100,
+          }))}
+        />
+      </ChartFrame>
+      <DataTableShell
+        fit
+        title="Allocation"
+        description="Target, exposure, and drift as reported by the service."
+        className="mt-6"
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader className={fitTableColPrimary}>Strategy</TableHeader>
+            <TableHeader className={fitTableColCompact}>Target</TableHeader>
+            <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
+            <TableHeader className={fitTableColCompact}>Drift</TableHeader>
+            <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rebalancingList.map((row) => <RebalancingTableRow key={row.strategyId} row={row} />)}
+        </TableBody>
+      </DataTableShell>
+    </>
+  )
+}
+
+function MovementTableRow({
+  movement,
+  vault,
+}: Readonly<{ movement: Movement; vault: Vault }>) {
+  const txShort = movement.txHash === null ? null : formatHash(movement.txHash)
+  const txUrl = explorerTxUrl(movement.chainId ?? undefined, movement.txHash ?? undefined)
+  const clientLabel = movementInvestorLabel(movement)
+  return (
+    <TableRow
+      key={movement.id}
+      id={`movement-${movement.id}`}
+      title={clientLabel !== null ? `Client ${clientLabel}` : undefined}
+    >
+      <TableCell
+        className="tabular-nums"
+        title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}
+      >
+        {movementOccurredLabel(movement.occurredAt)}
+      </TableCell>
+      <TableCell className="truncate" title={phraseMouvement(movement.eventName)}>
+        {libelleMouvement(movement.eventName)}
+      </TableCell>
+      <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
+      <TableCell className="truncate font-mono text-sm" title={movement.txHash ?? undefined}>
+        <TxExplorerLink txShort={txShort} txUrl={txUrl} />
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function VaultRecentActivitySection({
+  scopedMovements,
+  ledgerIsEmptyForThisVault,
+  movementList,
+  vault,
+}: Readonly<{
+  scopedMovements: Availability<readonly Movement[]>
+  ledgerIsEmptyForThisVault: boolean
+  movementList: readonly Movement[] | null
+  vault: Vault
+}>) {
+  if (!isAvailable(scopedMovements)) {
+    return (
+      <SectionCard title="Recent activity">
+        <Text>
+          Recent activity could not be read.{' '}
+          <Link href={entityHref('source', 'data-coverage')}>Data coverage</Link>
+        </Text>
+      </SectionCard>
+    )
+  }
+
+  if (ledgerIsEmptyForThisVault) {
+    return (
+      <DataTableShell
+        title="Recent activity"
+        calme="The ledger responded but no movement is attributed to this vault."
+      />
+    )
+  }
+
+  if (movementList !== null && movementList.length > 0) {
+    return (
+      <DataTableShell fit title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
+        <TableHead>
+          <TableRow>
+            <TableHeader className={fitTableColCompact}>Time</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Type</TableHeader>
+            <TableHeader className={fitTableColCompact}>Amount</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {movementList.map((movement) => (
+            <MovementTableRow key={movement.id} movement={movement} vault={vault} />
+          ))}
+        </TableBody>
+      </DataTableShell>
+    )
+  }
+
+  return <DataTableShell title="Recent activity" calme="No indexed movement for this vault." />
+}
+
 export default async function Page({ params }: PageProps) {
   const { vaultId } = await params
   const session = await requireSession()
@@ -142,185 +387,17 @@ export default async function Page({ params }: PageProps) {
 
       <div className="flex flex-wrap items-center gap-3">
         <VaultStatusBadge status={vault.status} />
-        {isAvailable(client) ? (
-          <VaultEntityLink kind="client" id={client.value.id} label={client.value.label} />
-        ) : (
-          <AdminReading
-            value={absentReading(client)}
-            emptyLabel={
-              client.reason === 'vault_owner_not_reported' ? 'Owner not reported on vault' : 'Unavailable'
-            }
-          />
-        )}
+        <VaultClientPresence client={client} />
       </div>
 
-      {!isAvailable(scopedRebalancing) ? (
-        <>
-          <ChartFrame
-            question="How is exposure distributed by pocket?"
-            unite="in percent — target vs exposure"
-            etat={{
-              type: 'unavailable',
-              explication: 'Allocation read did not succeed for this vault.',
-            }}
-          />
-          <SectionCard title="Allocation" hint="Target, exposure, and drift as reported by the service." className="mt-6">
-            <Text>
-              <AdminReading value={absentReading(scopedRebalancing)} />{' '}
-              <Link href={entityHref('source', 'rebalancing-status')}>Data coverage</Link>
-            </Text>
-          </SectionCard>
-        </>
-      ) : rebalancingList !== null && rebalancingList.length === 0 ? (
-        <>
-          <ChartFrame
-            question="How is exposure distributed by pocket?"
-            unite="in percent — target vs exposure"
-            etat={{ type: 'empty', explication: 'No measured pocket for this vault.' }}
-          />
-          <DataTableShell
-            title="Allocation"
-            description="Target, exposure, and drift as reported by the service."
-            calme="No measured pocket for this vault."
-            className="mt-6"
-          />
-        </>
-      ) : rebalancingList !== null ? (
-        <>
-          <ChartFrame
-            question="How is exposure distributed by pocket?"
-            unite="in percent — target vs exposure"
-            etat={{ type: 'plotted' }}
-          >
-            <HearstAllocationChart
-              postes={rebalancingList.map<PosteAllocation>((row) => ({
-                label: row.strategyLabel,
-                ciblePct: row.targetBps / 100,
-                constatePct: row.actualBps === null ? null : row.actualBps / 100,
-              }))}
-            />
-          </ChartFrame>
-          <DataTableShell
-            fit
-            title="Allocation"
-            description="Target, exposure, and drift as reported by the service."
-            className="mt-6"
-          >
-            <TableHead>
-              <TableRow>
-                <TableHeader className={fitTableColPrimary}>Strategy</TableHeader>
-                <TableHeader className={fitTableColCompact}>Target</TableHeader>
-                <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
-                <TableHeader className={fitTableColCompact}>Drift</TableHeader>
-                <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rebalancingList.map((row) => {
-                const pocket = pocketOf(row)
-                const drift = driftPointsNullable(row.varianceBps)
-                return (
-                  <TableRow key={row.strategyId}>
-                    <TableCell>
-                      <VaultEntityLink
-                        kind="strategy"
-                        id={row.strategyId}
-                        label={row.strategyLabel}
-                        sub={pocket !== null && pocket !== row.strategyLabel ? pocket : undefined}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
-                      {row.actualBps === null
-                        ? 'Unavailable'
-                        : formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="tabular-nums">{drift ?? 'Unavailable'}</TableCell>
-                    <TableCell>
-                      {isAvailable(row.lastRebalanceAt) && row.lastRebalanceAt.value !== ''
-                        ? formatDateTime(row.lastRebalanceAt.value)
-                        : 'Unavailable'}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </DataTableShell>
-        </>
-      ) : null}
+      <VaultAllocationSection scopedRebalancing={scopedRebalancing} rebalancingList={rebalancingList} />
 
-      {!isAvailable(scopedMovements) ? (
-        <SectionCard title="Recent activity">
-          <Text>
-            Recent activity could not be read.{' '}
-            <Link href={entityHref('source', 'data-coverage')}>Data coverage</Link>
-          </Text>
-        </SectionCard>
-      ) : ledgerIsEmptyForThisVault ? (
-        <DataTableShell
-          title="Recent activity"
-          calme="The ledger responded but no movement is attributed to this vault."
-        />
-      ) : movementList !== null && movementList.length > 0 ? (
-        <DataTableShell fit title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
-          <TableHead>
-            <TableRow>
-              <TableHeader className={fitTableColCompact}>Time</TableHeader>
-              <TableHeader className={fitTableColPrimary}>Type</TableHeader>
-              <TableHeader className={fitTableColCompact}>Amount</TableHeader>
-              <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {movementList.map((movement) => {
-              const txShort = movement.txHash === null ? null : formatHash(movement.txHash)
-              const txUrl = explorerTxUrl(movement.chainId ?? undefined, movement.txHash ?? undefined)
-              const clientLabel =
-                movement.investorAddress === null
-                  ? null
-                  : (formatAddress(movement.investorAddress) ?? movement.investorAddress)
-              return (
-                <TableRow
-                  key={movement.id}
-                  id={`movement-${movement.id}`}
-                  title={clientLabel !== null ? `Client ${clientLabel}` : undefined}
-                >
-                  <TableCell
-                    className="tabular-nums"
-                    title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}
-                  >
-                    {movement.occurredAt === null ? 'Unavailable' : formatRelativeTime(movement.occurredAt)}
-                  </TableCell>
-                  <TableCell className="truncate" title={phraseMouvement(movement.eventName)}>
-                    {libelleMouvement(movement.eventName)}
-                  </TableCell>
-                  <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
-                  <TableCell className="truncate font-mono text-sm" title={movement.txHash ?? undefined}>
-                    {txShort === null ? (
-                      'Unavailable'
-                    ) : txUrl === null ? (
-                      txShort
-                    ) : (
-                      <a
-                        href={txUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-accent-600 dark:text-accent-400"
-                      >
-                        {txShort}
-                      </a>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </DataTableShell>
-      ) : (
-        <DataTableShell title="Recent activity" calme="No indexed movement for this vault." />
-      )}
+      <VaultRecentActivitySection
+        scopedMovements={scopedMovements}
+        ledgerIsEmptyForThisVault={ledgerIsEmptyForThisVault}
+        movementList={movementList}
+        vault={vault}
+      />
 
       <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
         Source health and endpoint coverage:{' '}

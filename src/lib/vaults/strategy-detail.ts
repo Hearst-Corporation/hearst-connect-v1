@@ -46,10 +46,10 @@ export function lectureStrategieDetail(
   if (index === null) {
     return unavailable({ endpoint: ENDPOINT, status: 'EMPTY', reason: 'no_strategy_in_register' })
   }
-  if (reponse === null || !reponse.ok) {
+  if (!reponse?.ok) {
     return STRATEGY_DETAIL_UNREACHABLE
   }
-  const bloc = blocNormalise(reponse.data.strategy)
+  const bloc = blocNormalise(reponse.data?.strategy)
   return mapAvailability(availabilityFromResolu(bloc, ENDPOINT), () =>
     etatSourceLisible(statutAffichage(bloc?.status)),
   )
@@ -58,14 +58,16 @@ export function lectureStrategieDetail(
 export function libelleStrategieDetail(
   reponse: Awaited<ReturnType<typeof loadStrategyDetail>> | null,
 ): Availability<string> {
-  if (reponse === null || !reponse.ok) {
+  if (!reponse?.ok) {
     return STRATEGY_DETAIL_UNREACHABLE
   }
-  const bloc = blocNormalise(reponse.data.strategy)
+  const bloc = blocNormalise(reponse.data?.strategy)
   return mapAvailability(availabilityFromResolu(bloc, ENDPOINT), (value) => {
     const pocket = typeof value.pocket === 'string' ? value.pocket : null
     const label = typeof value.label === 'string' ? value.label : null
-    return pocket ?? label ?? `Stratégie ${String(value.index ?? '—')}`
+    const index =
+      typeof value.index === 'string' || typeof value.index === 'number' ? String(value.index) : '—'
+    return pocket ?? label ?? `Stratégie ${index}`
   })
 }
 

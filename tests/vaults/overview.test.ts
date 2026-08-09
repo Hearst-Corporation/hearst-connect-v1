@@ -147,7 +147,7 @@ describe('movementTypeBars', () => {
     const bars = movementTypeBars(
       available([{ eventName: 'Deposit' }, { eventName: 'Deposit' }, { eventName: 'ElectricityPaid' }]),
     )
-    expect(bars.length).toBe(2)
+    expect(bars).toHaveLength(2)
     expect(bars[0]?.value).toBe(2)
     expect(bars[1]?.value).toBe(1)
   })

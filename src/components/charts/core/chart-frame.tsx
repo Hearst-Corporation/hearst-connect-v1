@@ -28,9 +28,6 @@ export type SeriesState =
   | { readonly type: 'pending'; readonly explication: string }
   | { readonly type: 'unavailable'; readonly explication: string }
 
-/** @deprecated Use `SeriesState` */
-export type EtatSerie = SeriesState
-
 const STATE_TONE: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
   empty: 'text-fg-tertiary dark:text-fg-secondary',
   pending: 'text-fg-tertiary dark:text-fg-secondary',
@@ -100,6 +97,50 @@ function StateVisual({
   )
 }
 
+function ChartFrameContent({
+  etat,
+  children,
+  expectedSource,
+  onRetry,
+  retryLabel,
+  hauteur,
+}: Readonly<{
+  etat: SeriesState
+  children?: React.ReactNode
+  expectedSource?: readonly string[]
+  onRetry?: () => void
+  retryLabel: string
+  hauteur?: number
+}>) {
+  if (etat.type === 'plotted') {
+    return children
+  }
+  if (children != null) {
+    return (
+      <>
+        {children}
+        <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
+          <AdminToneBadge tone={etat.type === 'unavailable' ? 'bad' : 'neutral'}>
+            {STATE_LABEL[etat.type]}
+          </AdminToneBadge>
+          <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
+            {etat.explication}
+          </Text>
+        </div>
+      </>
+    )
+  }
+  return (
+    <StateVisual
+      etat={etat}
+      expectedSource={expectedSource}
+      onRetry={onRetry}
+      retryLabel={retryLabel}
+      hauteur={hauteur}
+    />
+  )
+}
+
 export function ChartFrame({
   question,
   unite,
@@ -128,29 +169,15 @@ export function ChartFrame({
     <Panel tone="chart" className="flex h-full flex-col">
       <PanelHeader title={question} hint={unite} />
 
-      {etat.type === 'plotted' ? (
-        children
-      ) : children != null ? (
-        <>
-          {children}
-          <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
-            <AdminToneBadge tone={etat.type === 'unavailable' ? 'bad' : 'neutral'}>
-              {STATE_LABEL[etat.type]}
-            </AdminToneBadge>
-            <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
-              {etat.explication}
-            </Text>
-          </div>
-        </>
-      ) : (
-        <StateVisual
-          etat={etat}
-          expectedSource={expectedSource}
-          onRetry={onRetry}
-          retryLabel={retryLabel}
-          hauteur={hauteur}
-        />
-      )}
+      <ChartFrameContent
+        etat={etat}
+        expectedSource={expectedSource}
+        onRetry={onRetry}
+        retryLabel={retryLabel}
+        hauteur={hauteur}
+      >
+        {children}
+      </ChartFrameContent>
     </Panel>
   )
 }

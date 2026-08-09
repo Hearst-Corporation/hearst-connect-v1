@@ -133,6 +133,11 @@ function buildMatrix(input: {
   ]
 }
 
+function formatCodePresent(codePresent: boolean | null | undefined): string {
+  if (codePresent === undefined || codePresent === null) return '—'
+  return codePresent ? 'Yes' : 'No'
+}
+
 function jsonLisible(data: unknown): string {
   try {
     return JSON.stringify(data, null, 2)
@@ -245,13 +250,7 @@ export default async function RuntimePage() {
         <DescriptionTerm>Address</DescriptionTerm>
         <DescriptionDetails className="font-mono text-sm">{r?.contract?.contractAddress ?? '—'}</DescriptionDetails>
         <DescriptionTerm>Code present</DescriptionTerm>
-        <DescriptionDetails>
-          {r?.contract?.codePresent === undefined || r.contract.codePresent === null
-            ? '—'
-            : r.contract.codePresent
-              ? 'Yes'
-              : 'No'}
-        </DescriptionDetails>
+        <DescriptionDetails>{formatCodePresent(r?.contract?.codePresent)}</DescriptionDetails>
         <DescriptionTerm>Contract status</DescriptionTerm>
         <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
       </DescriptionList>

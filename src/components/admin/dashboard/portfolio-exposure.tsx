@@ -6,7 +6,8 @@ import { formatPercent } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminExposureStrategy } from '@/lib/admin-dashboard/contracts'
-import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { isAvailable } from '@/lib/vaults/model'
+import type { Availability } from '@/lib/vaults/model'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
@@ -113,8 +114,8 @@ export function PortfolioExposurePanel({
   }
 
   const rows = strategies.value
-  const initial = rows.findIndex((r) => r.status !== 'on_target')
-  const defaultIndex = initial >= 0 ? initial : 0
+  const offTargetIndex = rows.findIndex((r) => r.status !== 'on_target')
+  const defaultIndex = Math.max(offTargetIndex, 0)
 
   return (
     <TabGroup

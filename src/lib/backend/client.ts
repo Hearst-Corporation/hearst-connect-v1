@@ -155,6 +155,92 @@ async function resolveAuthorization(endpoint: BackendEndpoint, path: string): Pr
   return { ok: true, authorization: authorizationHeader(session.backendToken) }
 }
 
+function notConfiguredResult(
+  endpoint: BackendEndpoint,
+  path: string,
+  startedAt: number,
+): BackendResult<never> {
+  return {
+    ok: false,
+    problem: null,
+    keeper: null,
+    trace: trace(endpoint, path, startedAt, {}),
+    state: resolved.notConfigured(
+      'HEARST_API_URL is not defined on this deployment: no request is sent.',
+      { route: path },
+    ),
+  }
+}
+
+function authDeniedResult(
+  endpoint: BackendEndpoint,
+  path: string,
+  startedAt: number,
+  state: Resolved<never>,
+): BackendResult<never> {
+  return {
+    ok: false,
+    problem: null,
+    keeper: null,
+    trace: trace(endpoint, path, startedAt, {}),
+    state,
+  }
+}
+
+function parseRateLimitRemaining(header: string | null): number | null {
+  if (header === null) return null
+  const parsed = Number.parseInt(header, 10)
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+type FetchOutcome =
+  | { ok: true; response: Response }
+  | { ok: false; result: BackendResult<never> }
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+  endpoint: BackendEndpoint,
+  path: string,
+  startedAt: number,
+  requestId: string,
+): Promise<FetchOutcome> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetch(url, { ...init, signal: controller.signal })
+    return { ok: true, response }
+  } catch (cause) {
+    const aborted = cause instanceof Error && cause.name === 'AbortError'
+    const failTrace = trace(endpoint, path, startedAt, { requestId })
+    logCall(failTrace, 'error', aborted ? 'timeout' : 'unreachable')
+    return {
+      ok: false,
+      result: {
+        ok: false,
+        problem: null,
+        keeper: null,
+        trace: failTrace,
+        state: resolved.unavailable(
+          aborted ? `The backend did not respond within the allotted time.` : 'Backend unreachable.',
+          { route: path, requestId },
+        ),
+      },
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function parseJsonBody(response: Response): Promise<unknown> {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
 /**
  * Calls a registry endpoint.
  *
@@ -175,41 +261,20 @@ export async function callBackend<T = unknown>(
   const base = baseUrl()
 
   if (!base) {
-    return {
-      ok: false,
-      problem: null,
-      keeper: null,
-      trace: trace(endpoint, path, startedAt, {}),
-      state: resolved.notConfigured(
-        'HEARST_API_URL is not defined on this deployment: no request is sent.',
-        { route: path },
-      ),
-    }
+    return notConfiguredResult(endpoint, path, startedAt)
   }
 
-  // Bearer token issued by the backend, read from the server session. It is
-  // neither fabricated nor derived here: the frontend no longer signs anything.
   const authOutcome = await resolveAuthorization(endpoint, path)
   if (!authOutcome.ok) {
-    return {
-      ok: false,
-      problem: null,
-      keeper: null,
-      trace: trace(endpoint, path, startedAt, {}),
-      state: authOutcome.state,
-    }
+    return authDeniedResult(endpoint, path, startedAt, authOutcome.state)
   }
   const authorization = authOutcome.authorization
 
   const requestId = crypto.randomUUID()
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS)
-
-  let response: Response
-  try {
-    response = await fetch(`${base}${path}`, {
+  const fetchOutcome = await fetchWithTimeout(
+    `${base}${path}`,
+    {
       method: endpoint.method,
-      signal: controller.signal,
       cache: 'no-store',
       headers: {
         Accept: 'application/json',
@@ -218,42 +283,27 @@ export async function callBackend<T = unknown>(
         ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
-    })
-  } catch (cause) {
-    const aborted = cause instanceof Error && cause.name === 'AbortError'
-    const failTrace = trace(endpoint, path, startedAt, { requestId })
-    logCall(failTrace, 'error', aborted ? 'timeout' : 'unreachable')
-    return {
-      ok: false,
-      problem: null,
-      keeper: null,
-      trace: failTrace,
-      state: resolved.unavailable(
-        aborted ? `The backend did not respond within the allotted time.` : 'Backend unreachable.',
-        { route: path, requestId },
-      ),
-    }
-  } finally {
-    clearTimeout(timer)
+    },
+    options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    endpoint,
+    path,
+    startedAt,
+    requestId,
+  )
+  if (!fetchOutcome.ok) {
+    return fetchOutcome.result
   }
+  const response = fetchOutcome.response
 
   const serverRequestId = response.headers.get('X-Request-Id') ?? requestId
-  const rateHeader = response.headers.get('X-RateLimit-Remaining')
-  const rateLimitRemaining = rateHeader === null ? null : Number.parseInt(rateHeader, 10)
   const callTrace = trace(endpoint, path, startedAt, {
     httpStatus: response.status,
     requestId: serverRequestId,
-    rateLimitRemaining: Number.isNaN(rateLimitRemaining) ? null : rateLimitRemaining,
+    rateLimitRemaining: parseRateLimitRemaining(response.headers.get('X-RateLimit-Remaining')),
   })
   logCall(callTrace, response.ok ? 'ok' : 'error', response.ok ? null : `http_${response.status}`)
 
-  let body: unknown = null
-  try {
-    body = await response.json()
-  } catch {
-    body = null
-  }
-
+  const body = await parseJsonBody(response)
   return buildResult<T>(endpoint, response, body, path, serverRequestId, callTrace)
 }
 
