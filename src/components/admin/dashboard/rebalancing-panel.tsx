@@ -8,9 +8,6 @@ import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
-const MAX_VISIBLE_ALERTS = 4
-const ALERTS_SLOT_CLASS = 'min-h-[var(--dashboard-list-slot-block-size)]'
-
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
   const sign = pts > 0 ? '+' : ''
@@ -19,8 +16,8 @@ function driftPts(driftBps: number): string {
 
 function RebalancingUnavailable() {
   return (
-    <div className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4">
-      <div className={clsx(ALERTS_SLOT_CLASS, surfaceInset, 'flex flex-col items-center justify-center px-4 py-8 text-center')}>
+    <div className="space-y-4">
+      <div className={clsx(surfaceInset, 'flex flex-col items-center justify-center px-4 py-8 text-center')}>
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
       </div>
@@ -40,19 +37,12 @@ function statusDetail(data: AdminRebalancingSummary): string {
   return `${data.activeVaults} active vault${pluralSuffix(data.activeVaults)} · ${data.measuredStrategies} strateg${strategySuffix(data.measuredStrategies)} measured · Indexer ${data.indexerStatus.toLowerCase()}`
 }
 
-function footerNote(
-  data: AdminRebalancingSummary,
-  stable: boolean,
-  hiddenAlerts: number,
-): string {
+function footerNote(data: AdminRebalancingSummary, stable: boolean): string {
   if (data.lastRebalanceAt !== null) {
     return `Last activity · ${formatRelativeTime(data.lastRebalanceAt)}`
   }
   if (stable) return 'Monitoring all measured strategies.'
-  if (hiddenAlerts > 0) {
-    return `${hiddenAlerts} more alert${pluralSuffix(hiddenAlerts)} in Operations.`
-  }
-  return 'Latest alert snapshot.'
+  return 'Review drift alerts in Operations.'
 }
 
 export function RebalancingAlertsPanel({
@@ -64,15 +54,10 @@ export function RebalancingAlertsPanel({
 
   const data = summary.value
   const stable = data.strategiesOutOfTarget === 0
-  const visibleAlerts = data.alerts.slice(0, MAX_VISIBLE_ALERTS)
-  const hiddenAlerts = Math.max(data.alerts.length - visibleAlerts.length, 0)
 
   return (
-    <div
-      className="grid min-h-0 grid-rows-[minmax(var(--dashboard-list-slot-block-size),auto)_auto] gap-4"
-      data-widget="rebalancing-alerts"
-    >
-      <div className={clsx(ALERTS_SLOT_CLASS, 'flex min-h-0 flex-col gap-3')}>
+    <div className="space-y-4" data-widget="rebalancing-alerts">
+      <div className="flex min-w-0 flex-col gap-3">
         <div className={clsx(surfaceInset, 'flex items-start gap-3 p-4')}>
           {stable ? (
             <CheckCircleIcon className="size-6 shrink-0 text-accent-500" aria-hidden="true" />
@@ -87,7 +72,7 @@ export function RebalancingAlertsPanel({
 
         {!stable ? (
           <ul className="space-y-2">
-            {visibleAlerts.map((alert) => (
+            {data.alerts.map((alert) => (
               <li
                 key={alert.strategyId}
                 className={clsx(surfaceInset, 'flex min-w-0 items-center justify-between gap-2 px-3 py-2 text-sm')}
@@ -103,7 +88,7 @@ export function RebalancingAlertsPanel({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
-        <p className="text-xs text-fg-tertiary">{footerNote(data, stable, hiddenAlerts)}</p>
+        <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
         <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
       </div>
     </div>

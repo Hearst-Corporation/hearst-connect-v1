@@ -1,4 +1,3 @@
-import { DASHBOARD_CHART_SLOT_CLASS } from '@/components/admin/dashboard/shell'
 import { surfaceInset } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
 import { ChartBarIcon } from '@heroicons/react/16/solid'
@@ -11,14 +10,10 @@ import type { ComponentType, SVGProps } from 'react'
 export function ChartPlaceholder({
   title,
   height = 140,
-  dashboardSlot = false,
   icon: Icon = ChartBarIcon,
 }: Readonly<{
   title: string
-  /** Legacy pixel height when not using the dashboard chart slot token. */
   height?: number
-  /** Use the stable dashboard chart viewport token instead of inline height. */
-  dashboardSlot?: boolean
   icon?: ComponentType<SVGProps<SVGSVGElement>>
 }>) {
   return (
@@ -27,9 +22,8 @@ export function ChartPlaceholder({
       className={clsx(
         surfaceInset,
         'flex flex-col items-center justify-center border border-dashed border-console-line px-4 py-5 text-center',
-        dashboardSlot && DASHBOARD_CHART_SLOT_CLASS,
       )}
-      style={dashboardSlot ? undefined : { minHeight: height }}
+      style={{ minHeight: height }}
       aria-label={title}
     >
       <Icon className="size-8 text-fg dark:text-console-fill" aria-hidden="true" />

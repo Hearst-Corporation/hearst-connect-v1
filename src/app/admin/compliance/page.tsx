@@ -55,7 +55,6 @@ export default async function Page() {
         </Callout>
       ) : (
         <DataTableShell
-          fit
           title="Som KYC status"
           description="Provider: Som. No Hearst approval actions. Opened date is on the Updated title when relevant."
           count={reviews.length > 0 ? `${reviews.length} record(s)` : undefined}

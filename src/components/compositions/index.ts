@@ -24,7 +24,6 @@ export {
   StatGrid,
   SectionCard,
   DataTableShell,
-  FitTable,
   fitTableColPrimary,
   fitTableColCompact,
   Callout,

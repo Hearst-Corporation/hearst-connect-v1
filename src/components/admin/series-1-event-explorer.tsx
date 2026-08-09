@@ -174,7 +174,6 @@ export function Series1EventExplorer({
       </FieldGroup>
 
       <DataTableShell
-        fit
         title="Event explorer"
         description="Filter indexed Series 1 events. Vault, client, and block live in the row title / event detail."
         count={count}

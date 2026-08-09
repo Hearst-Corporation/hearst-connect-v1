@@ -30,7 +30,6 @@ describe('design system surfaces — canon dashboard', () => {
     const pageHeader = readFileSync(join(process.cwd(), 'src/components/admin/page-header.tsx'), 'utf8')
     expect(shell).toContain('surfaceBox')
     expect(shell).toContain('data-surface="box"')
-    expect(shell).toContain('DASHBOARD_CHART_SLOT_HEIGHT')
     expect(shell).toContain('flex min-h-0 flex-col p-5')
     expect(shell).not.toContain('flex h-full flex-col')
     expect(surfaces).toContain('surfaceBox')
