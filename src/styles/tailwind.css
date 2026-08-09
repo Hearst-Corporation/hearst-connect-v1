@@ -173,6 +173,13 @@
   --chart-axis: var(--color-fg-tertiary);
   --chart-tooltip-surface: var(--color-console-raised);
 
+  /* ── Dashboard content slots — stable internal viewports only ──────────────
+   * The card shell stays intrinsic. Only the content area that would otherwise
+   * expand and contract with quantitative data gets a reusable block size.
+     */
+  --dashboard-chart-slot-block-size: 11rem;
+  --dashboard-list-slot-block-size: 15rem;
+  --dashboard-summary-slot-block-size: 9rem;
   /*
    * Alias `--color-hearst-*` / `--color-cockpit-*` retirés (2026-08-04 LOT E +
    * 2026-08-07) : plus aucun consommateur runtime. Surfaces enfoncées =

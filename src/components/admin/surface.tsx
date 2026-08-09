@@ -14,7 +14,8 @@
  * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, wells, sous-blocs      |
  * | `surfaceSelect` | voile mint `data-selected:`          | sélection parcours          |
  *
- * Dimensions : content-driven. Aucune largeur/hauteur ici.
+ * Dimensions : largeur intrinsèque / container-driven ; hauteur portée par les
+ * primitives de layout et les footprints sémantiques, jamais par la data.
  */
 
 /** Box — face vitrée (transparence + profondeur). Matière unique des boxes. */

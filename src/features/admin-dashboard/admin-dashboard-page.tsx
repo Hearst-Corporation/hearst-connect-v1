@@ -1,5 +1,6 @@
 import {
   ActivityTimelinePanel,
+  DASHBOARD_CHART_SLOT_HEIGHT,
   ChartPlaceholder,
   DashCard,
   DashboardHeader,
@@ -96,86 +97,95 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
       <DashboardHeader userName={user.name} kpis={kpis} />
 
       {/*
-       * Composition INTRINSÈQUE (HC-ADMIN-TRUE-FLUID-RESPONSIVE). Aucune
-       * dimension d'écran ne pilote ce layout : il répond seulement à « combien
-       * de place ai-je réellement maintenant ? ».
-       *
-       * BENTO INTRINSÈQUE — la taille de chaque tuile suit le POIDS de sa donnée,
-       * pas une dimension d'écran. `flex-wrap` de tuiles dont la `flex-basis`
-       * traduit la richesse mesurée du panneau (hauteur de contenu réelle) :
-       *  - tuiles LARGES (basis min(100%,30rem), grow 4) pour les données denses/étalées :
-       *    Portfolio exposure, Activity (le chart a besoin de largeur), Recent
-       *    activity — elles réclament ~2 unités et absorbent l'espace.
-       *  - tuiles MOYENNES (basis min(100%,18rem), grow 2) : Rebalancing, Vaults, Data
-       *    health.
-       *  - tuiles PETITES (basis min(100%,15rem), grow 1) : Market, Recent clients — souvent
-       *    peu/pas de données ; elles restent COMPACTES et se rangent côte à côte
-       *    au lieu de créer une grosse box vide. Aucune détection `sparse` : c'est
-       *    la base intrinsèque qui les garde petites, et leur hauteur = leur
-       *    contenu réel (une tuile vide finit courte, la voisine se cale à côté).
-       *
-       * Le nombre de colonnes du bento ÉMERGE des bases : `flex-wrap` ne wrap
-       * qu'en rétrécissant → MONOTONE par construction (pas de seuil dans la zone
-       * de saut du rail [680,975], donc pas de cliff #61). Aucun cap de largeur,
-       * aucun `flex-1` de remplissage, aucun breakpoint nommé. Les tuiles
-       * `items-start` gardent chacune leur hauteur naturelle.
+       * Dashboard deterministic regions:
+       * - responsive = container-driven (tracks recompose when width shrinks)
+       * - regions own composition
+       * - card shells stay intrinsic
+       * - only variable content slots stay stable
+       * - data = never geometry-driven (states and long datasets stay inside)
        */}
-      <div className="flex flex-wrap items-start gap-4">
-        {/* LARGE — données denses/étalées (poids fort) */}
-        <DashCard
-          className="min-w-0 flex-[4_1_min(100%,30rem)]"
-          title="Portfolio exposure"
-          subtitle="Where capital is allocated vs target"
-        >
-          <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
-        </DashCard>
+      <div className="@container flex flex-col gap-4">
+        {/* Primary region: exposure needs slightly more scan width than the chart. */}
+        <div className="grid grid-cols-1 gap-4 @[52rem]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+          <DashCard
+            className="min-w-0"
+            title="Portfolio exposure"
+            subtitle="Where capital is allocated vs target"
+          >
+            <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
+          </DashCard>
 
-        <DashCard className="min-w-0 flex-[4_1_min(100%,30rem)]" title="Activity" subtitle="Daily volume · 28 days">
-          {showActivityCurve ? (
-            <HearstActivityChart points={activityPoints} unite="events" />
-          ) : activityNotConfigured ? (
-            <div className="flex flex-col gap-1 py-4">
-              <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
-              <p className="text-fg-tertiary text-xs">
-                {data.activityTimeseries.kind === 'unavailable'
-                  ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
-                  : null}
-              </p>
-            </div>
-          ) : (
-            <ChartPlaceholder title="Activity" height={140} icon={ChartBarIcon} />
-          )}
-        </DashCard>
+          <DashCard
+            className="min-w-0"
+            title="Activity"
+            subtitle="Daily volume · 28 days"
+          >
+            {showActivityCurve ? (
+              <HearstActivityChart
+                points={activityPoints}
+                unite="events"
+                height={DASHBOARD_CHART_SLOT_HEIGHT}
+              />
+            ) : activityNotConfigured ? (
+              <div className="flex h-full min-h-0 flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+                <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
+                <p className="text-fg-tertiary text-xs">
+                  {data.activityTimeseries.kind === 'unavailable'
+                    ? (data.activityTimeseries.reason ?? 'No events indexed yet.')
+                    : null}
+                </p>
+              </div>
+            ) : (
+              <ChartPlaceholder title="Activity" height={DASHBOARD_CHART_SLOT_HEIGHT} icon={ChartBarIcon} />
+            )}
+          </DashCard>
+        </div>
 
-        <DashCard
-          className="min-w-0 flex-[4_1_min(100%,30rem)]"
-          title="Recent activity"
-          subtitle="Blockchain and subscription timeline"
-        >
-          <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
-        </DashCard>
+        {/* Secondary region: timeline carries the summary; side panels support it. */}
+        <div className="grid grid-cols-1 gap-4 @[52rem]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <DashCard
+            className="min-w-0"
+            title="Recent activity"
+            subtitle="Blockchain and subscription timeline"
+          >
+            <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+          </DashCard>
 
-        {/* MOYEN — données de taille intermédiaire (poids moyen) */}
-        <DashCard className="min-w-0 flex-[2_1_min(100%,18rem)]" title="Rebalancing & alerts" subtitle="Drift and indexer">
-          <RebalancingAlertsPanel summary={data.rebalancing} />
-        </DashCard>
+          <DashCard
+            className="min-w-0"
+            title="Rebalancing & alerts"
+            subtitle="Drift and indexer"
+          >
+            <RebalancingAlertsPanel summary={data.rebalancing} />
+          </DashCard>
 
-        <DashCard className="min-w-0 flex-[2_1_min(100%,18rem)]" title="Vaults" subtitle="Capital per vault">
-          <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
-        </DashCard>
+          <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
+            <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
+          </DashCard>
+        </div>
 
-        <DashCard className="min-w-0 flex-[2_1_min(100%,18rem)]" title="Data health" subtitle="Source freshness">
-          <DataHealthGrid sources={data.dataHealth} />
-        </DashCard>
+        {/* Tertiary region: three balanced supporting summaries. */}
+        <div className="grid grid-cols-1 gap-4 @[52rem]:grid-cols-3">
+          <DashCard
+            className="min-w-0"
+            title="Data health"
+            subtitle="Source freshness"
+          >
+            <DataHealthGrid sources={data.dataHealth} />
+          </DashCard>
 
-        {/* PETIT — données courtes/souvent sparse (poids faible) : reste compact */}
-        <DashCard className="min-w-0 flex-[1_1_min(100%,15rem)]" title="Market" subtitle="Normalized snapshot">
-          <MarketSnapshotPanel snapshot={data.market} />
-        </DashCard>
+          <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
+            <MarketSnapshotPanel snapshot={data.market} />
+          </DashCard>
 
-        <DashCard className="min-w-0 flex-[1_1_min(100%,15rem)]" title="Recent clients" subtitle="Exposure and Som KYC">
-          <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
-        </DashCard>
+          <DashCard
+            className="min-w-0"
+            title="Recent clients"
+            subtitle="Exposure and Som KYC"
+          >
+            <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
+          </DashCard>
+        </div>
       </div>
     </DashboardShell>
   )

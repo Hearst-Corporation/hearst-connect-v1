@@ -1,11 +1,14 @@
 'use client'
 
+import { HearstSecondaryAction } from '@/components/actions'
 import { surfaceInset } from '@/components/admin/surface'
 import { formatRelativeTime } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
+
+const MAX_VISIBLE_ALERTS = 4
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -18,7 +21,7 @@ export function RebalancingAlertsPanel({
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   if (!isAvailable(summary)) {
     return (
-      <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+      <div className={clsx(surfaceInset, 'flex h-full min-h-0 flex-col items-center justify-center px-4 py-8 text-center')}>
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
       </div>
@@ -27,9 +30,14 @@ export function RebalancingAlertsPanel({
 
   const data = summary.value
   const stable = data.strategiesOutOfTarget === 0
+  const visibleAlerts = data.alerts.slice(0, MAX_VISIBLE_ALERTS)
+  const hiddenAlerts = Math.max(data.alerts.length - visibleAlerts.length, 0)
 
   return (
-    <div className="flex flex-col gap-4" data-widget="rebalancing-alerts">
+    <div
+      className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-4"
+      data-widget="rebalancing-alerts"
+    >
       <div className={clsx(surfaceInset, 'flex items-start gap-3 p-4')}>
         {stable ? (
           <CheckCircleIcon className="size-6 shrink-0 text-accent-500" aria-hidden="true" />
@@ -50,8 +58,8 @@ export function RebalancingAlertsPanel({
       </div>
 
       {!stable ? (
-        <ul className="space-y-2">
-          {data.alerts.map((alert) => (
+        <ul className="space-y-2 self-start">
+          {visibleAlerts.map((alert) => (
             <li
               key={alert.strategyId}
               className={clsx(surfaceInset, 'flex min-w-0 items-center justify-between gap-2 px-3 py-2 text-sm')}
@@ -63,11 +71,22 @@ export function RebalancingAlertsPanel({
             </li>
           ))}
         </ul>
-      ) : null}
+      ) : (
+        <div />
+      )}
 
-      {data.lastRebalanceAt !== null ? (
-        <p className="text-xs text-fg-tertiary">Last activity · {formatRelativeTime(data.lastRebalanceAt)}</p>
-      ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
+        <p className="text-xs text-fg-tertiary">
+          {data.lastRebalanceAt !== null
+            ? `Last activity · ${formatRelativeTime(data.lastRebalanceAt)}`
+            : stable
+              ? 'Monitoring all measured strategies.'
+              : hiddenAlerts > 0
+                ? `${hiddenAlerts} more alert${hiddenAlerts > 1 ? 's' : ''} in Operations.`
+                : 'Latest alert snapshot.'}
+        </p>
+        <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
+      </div>
     </div>
   )
 }

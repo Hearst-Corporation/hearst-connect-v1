@@ -5,6 +5,8 @@ import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 
+const MARKET_SLOT_CLASS = 'min-h-[var(--dashboard-summary-slot-block-size)]'
+
 export function MarketSnapshotPanel({
   snapshot,
 }: Readonly<{ snapshot: Availability<AdminMarketSnapshot> }>) {
@@ -12,7 +14,7 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className={surfaceInset + ' flex flex-col gap-2 px-4 py-5'}
+        className={surfaceInset + ` ${MARKET_SLOT_CLASS} flex h-full min-h-0 flex-col justify-center gap-2 px-4 py-5`}
       >
         <StatusBadge status="NOT_CONFIGURED" />
         <p className="text-sm font-semibold text-ink dark:text-fg">Market feed not configured</p>
@@ -27,7 +29,7 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className={surfaceInset + ' flex flex-col gap-1 px-4 py-5'}
+        className={surfaceInset + ` ${MARKET_SLOT_CLASS} flex h-full min-h-0 flex-col justify-center gap-1 px-4 py-5`}
       >
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <p className="text-xs text-fg-tertiary">{snapshot.reason ?? 'Source unavailable'}</p>
@@ -58,7 +60,10 @@ export function MarketSnapshotPanel({
   const hashpriceChange = finiteChange(m.hashpriceChangePct)
 
   return (
-    <dl data-widget="market-snapshot" className="@container grid grid-cols-1 gap-4 @[16rem]:grid-cols-2">
+    <dl
+      data-widget="market-snapshot"
+      className={`@container grid h-full min-h-0 ${MARKET_SLOT_CLASS} grid-cols-1 gap-4 @[16rem]:grid-cols-2`}
+    >
       <div className={surfaceInset + ' p-4'}>
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{btc}</dd>

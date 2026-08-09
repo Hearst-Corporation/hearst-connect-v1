@@ -28,9 +28,10 @@ export function HearstActivityChart({
   points,
   unite,
   color = SERIE,
-}: Readonly<{ points: readonly PointActivite[]; unite: string; color?: string }>) {
+  height,
+}: Readonly<{ points: readonly PointActivite[]; unite: string; color?: string; height?: number }>) {
   const count = points.length
-  const height = chartHeight('columns', Math.max(count, 1))
+  const viewportHeight = height ?? chartHeight('columns', Math.max(count, 1))
   const { ref, width } = useChartWidth()
   const barCategoryGap = count <= 4 ? '10%' : count <= 8 ? '18%' : '28%'
   const maxBarSize = count <= 4 ? 80 : count <= 8 ? 56 : 40
@@ -66,11 +67,11 @@ export function HearstActivityChart({
         </table>
       </div>
 
-      <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height }}>
+      <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height: viewportHeight }}>
         {width > 0 ? (
           <BarChart
             width={width}
-            height={height}
+            height={viewportHeight}
             data={data}
             margin={{ ...chartTheme.margin, right: 12, left: 0 }}
             barCategoryGap={barCategoryGap}

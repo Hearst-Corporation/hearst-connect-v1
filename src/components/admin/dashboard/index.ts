@@ -1,4 +1,8 @@
-export { DashboardShell, DashCard } from '@/components/admin/dashboard/shell'
+export {
+  DashboardShell,
+  DashCard,
+  DASHBOARD_CHART_SLOT_HEIGHT,
+} from '@/components/admin/dashboard/shell'
 export { DashboardHeader } from '@/components/admin/dashboard/header'
 export { type DashboardKpi } from '@/components/admin/dashboard/kpi-grid'
 export { ChartPlaceholder } from '@/components/admin/dashboard/charts-panel'
