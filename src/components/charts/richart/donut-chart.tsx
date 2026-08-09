@@ -1,6 +1,6 @@
 'use client'
 
-import { categoricalColor, chartTheme } from '@/components/charts/core/chart-theme'
+import { categoricalColor } from '@/components/charts/core/chart-theme'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
@@ -44,7 +44,10 @@ export function HearstDonutChart({
         </table>
       </div>
 
-      <div aria-hidden="true" className="relative mx-auto w-full max-w-[260px]" style={{ height: 220 }}>
+      <div
+        aria-hidden="true"
+        className="relative mx-auto w-full max-w-[var(--chart-donut-viewport-max-inline-size)] h-[var(--chart-donut-viewport-block-size)]"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -87,7 +90,7 @@ export function HearstDonutChart({
           </li>
         ))}
       </ul>
-      <span className="sr-only" style={{ color: chartTheme.tick }}>
+      <span className="sr-only text-fg-tertiary">
         donut
       </span>
     </div>

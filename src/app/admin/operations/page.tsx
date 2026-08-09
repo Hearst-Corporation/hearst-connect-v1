@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import {
   loadAdminOperationsSurface,
   type AdminActivityEvent,
@@ -267,11 +267,11 @@ export default async function Page() {
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader className="w-[34%]">Operation</TableHeader>
-                  <TableHeader className="w-[16%]">Status</TableHeader>
-                  <TableHeader className="w-[18%]">Amount</TableHeader>
-                  <TableHeader className="w-[16%]">Tx</TableHeader>
-                  <TableHeader className="w-[16%]">When</TableHeader>
+                  <TableHeader className={fitTableColPrimary}>Operation</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Status</TableHeader>
+                  <TableHeader className={fitTableColCompact}>Amount</TableHeader>
+                  <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
+                  <TableHeader className={fitTableColCompact}>When</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>

@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { FitTable } from '@/components/compositions'
+import { FitTable, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
@@ -64,9 +64,9 @@ export function RecentClientsPanel({
       <FitTable className={CLIENTS_SLOT_CLASS}>
         <TableHead>
           <TableRow>
-            <TableHeader className="w-[40%]">Client</TableHeader>
-            <TableHeader className="w-[30%]">Exposure</TableHeader>
-            <TableHeader className="w-[30%]">KYC</TableHeader>
+            <TableHeader className={fitTableColPrimary}>Client</TableHeader>
+            <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
+            <TableHeader className={fitTableColCompact}>KYC</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

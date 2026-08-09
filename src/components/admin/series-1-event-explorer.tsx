@@ -4,7 +4,7 @@ import { Field, FieldGroup, Label } from '@/components/catalyst/fieldset'
 import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { DataTableShell } from '@/components/compositions'
+import { DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { formatNumber } from '@/lib/format'
 import { dateLisible, ilYA, libelleMouvement } from '@/lib/mouvements'
 import { useMemo, useState } from 'react'
@@ -186,10 +186,10 @@ export function Series1EventExplorer({
           <>
             <TableHead>
               <TableRow>
-                <TableHeader className="w-[34%]">Event</TableHeader>
-                <TableHeader className="w-[22%]">Amount</TableHeader>
-                <TableHeader className="w-[22%]">Transaction</TableHeader>
-                <TableHeader className="w-[22%]">When</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Event</TableHeader>
+                <TableHeader className={fitTableColCompact}>Amount</TableHeader>
+                <TableHeader className={fitTableColPrimary}>Transaction</TableHeader>
+                <TableHeader className={fitTableColCompact}>When</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>

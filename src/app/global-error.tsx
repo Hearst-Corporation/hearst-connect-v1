@@ -1,5 +1,6 @@
 'use client'
 
+import '@/styles/tailwind.css'
 import satoshiUrl from '../assets/fonts/Satoshi-Variable.woff2'
 
 /**
@@ -22,49 +23,19 @@ export default function GlobalError({
           }}
         />
       </head>
-      <body
-        style={{
-          margin: 0,
-          minHeight: '100dvh',
-          display: 'grid',
-          placeItems: 'center',
-          background: 'var(--color-console-app, #101010)',
-          color: 'var(--color-white, #ffffff)',
-          fontFamily: "'Satoshi', ui-sans-serif, system-ui, sans-serif",
-        }}
-      >
-        <div style={{ maxWidth: '32rem', textAlign: 'center', padding: '24px' }}>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 8px', color: 'var(--color-white, #ffffff)' }}>
-            Hearst Connect is temporarily unavailable
-          </h1>
-          <p style={{ color: 'var(--color-fg-secondary, #f2f2f2)', fontSize: '0.95rem', margin: '0 0 20px' }}>
+      <body className="m-0 grid min-h-dvh place-items-center bg-console-app font-sans text-fg">
+        <div className="max-w-lg px-6 text-center">
+          <h1 className="m-0 mb-2 text-[1.4rem] font-semibold text-fg">Hearst Connect is temporarily unavailable</h1>
+          <p className="m-0 mb-5 text-[0.95rem] text-fg-secondary">
             An unexpected error prevented the page from rendering. Try again in a moment.
           </p>
           {error.digest ? (
-            <p
-              style={{
-                fontFamily: "'Satoshi', ui-sans-serif, system-ui, sans-serif",
-                fontSize: '0.75rem',
-                color: 'var(--color-fg-tertiary, #e0e0e0)',
-                margin: '0 0 20px',
-              }}
-            >
-              Reference: {error.digest}
-            </p>
+            <p className="m-0 mb-5 font-sans text-xs text-fg-tertiary">Reference: {error.digest}</p>
           ) : null}
           <button
             type="button"
             onClick={reset}
-            style={{
-              fontSize: '0.85rem',
-              padding: '10px 18px',
-              borderRadius: '8px',
-              border: '1px solid var(--color-accent-300, #a7fb90)',
-              background: 'transparent',
-              color: 'var(--color-accent-300, #a7fb90)',
-              cursor: 'pointer',
-              fontFamily: "'Satoshi', ui-sans-serif, system-ui, sans-serif",
-            }}
+            className="cursor-pointer rounded-lg border border-accent-300 bg-transparent px-[18px] py-2.5 font-sans text-[0.85rem] text-accent-300"
           >
             Try again
           </button>
