@@ -27,7 +27,7 @@ All neutral surfaces / text / borders use Hearst semantic tokens from
 | Role | Tokens |
 |---|---|
 | Text | `fg`, `fg-secondary`, `fg-tertiary`, `fg-muted`, `ink` |
-| Surfaces | `console-app`, `console-main`, `console-shell`, `console-surface`, `console-kpi`, `console-raised`, `console-fill`, `console-fill-muted`, `console-card`, `console-inset`, `console-line*` |
+| Surfaces | `console-app`, `console-shell`, `console-surface`, `console-raised`, `console-fill`, `console-fill-muted`, `console-card`, `console-inset`, `console-line*` |
 | Accent / status | `accent-*`, `success-*`, `warning-*`, `danger-*` |
 
 Badge / button neutral variant name: **`neutral`** (semantic), never `zinc`.
