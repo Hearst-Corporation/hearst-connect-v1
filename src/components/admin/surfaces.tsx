@@ -8,8 +8,9 @@ import type { ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
- * Hearst Connect admin surface primitives.
- * Sunken band (AdminSection) + raised cards (AdminSurface).
+ * Hearst Connect admin surface wrappers.
+ * Matière = `surfaceBox` / `surfaceInset` (canon PASS 2) — pas un second verre.
+ * Préférer `Panel` / `DashCard` pour le neuf.
  * Every component here renders what the backend gives it — none of them fabricate data.
  */
 
