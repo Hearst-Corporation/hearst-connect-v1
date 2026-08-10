@@ -59,7 +59,11 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   pas de captures ni de revue visuelle imposées, aucune bibliothèque de composants imposée. Le
   kit Catalyst (`src/components/catalyst/`) reste un **outil disponible**, jamais une
   obligation ; il n'est pas modifié quand on l'utilise. La gate `check:catalyst` et son script
-  ont été supprimés à cette date.
+  ont été supprimés à cette date. **Nuance (2026-08-10) :** seuls les composants Catalyst
+  réellement consommés sont vendored — les 10 composants orphelins (`alert`, `checkbox`,
+  `combobox`, `divider`, `listbox`, `pagination`, `radio`, `stacked-layout`, `switch`,
+  `textarea`) ont été retirés. Réintroduire un composant Catalyst = le re-copier depuis la
+  source officielle, sans le modifier.
   **Nuance ajoutée depuis (UI-04, 2026-08-03) :** une gate de *convergence des couleurs*
   existe bel et bien, `check:ds` (`scripts/check-design-system.mjs`), et elle est bloquante en
   CI. Elle n'impose pas un design : elle interdit un hexadécimal brut hors `var(--token, #repli)`
