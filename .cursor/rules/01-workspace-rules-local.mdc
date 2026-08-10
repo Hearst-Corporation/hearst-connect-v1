@@ -1,0 +1,13 @@
+---
+description: "Règles workspace locales à ce dépôt"
+alwaysApply: true
+---
+
+# Règles locales du dépôt
+
+Toutes les règles dans `.cursor/rules/` sont **locales à ce dépôt** `hearst-connect-v1`.
+
+- Elles ne sont **pas synchronisées** depuis une source externe.
+- Elles sont **éditables directement ici** quand le workspace doit évoluer.
+- Les fichiers dont le nom contient `shared` restent des **règles locales** de ce dépôt ; ce nom ne crée aucune fédération active.
+- Ne pas dépendre de `~/Dev/adrien-cursor-rules` ni de `cursor-rules-sync` pour comprendre, appliquer ou modifier ces règles.

@@ -33,6 +33,9 @@ git checkout -b mission/<slug>
 
 Un seul intégrateur Git. Branche mission ouverte pendant toute la mission.
 
+Worktree mission : seulement si collision parallèle sur le même repo, ou si une règle projet
+l'exige explicitement. Sinon la branche mission dans le workspace suffit.
+
 ## À chaque step
 
 ```text
@@ -48,7 +51,7 @@ inspecter → commit sur branche mission (si changements)
          → resync branche mission depuis canonique
 ```
 
-- Stage : pathspec explicite — pas `git add -A` aveugle.
+- Stage : pathspec explicite — pas `git add -A` / `git add -u` aveugle.
 - Pas de `--no-verify`. Pas de force-push sur branche canonique.
 - Signing : `1password-auth-control-plane.mdc` (global).
 
@@ -83,4 +86,5 @@ Stratégie spécifique (gates, ports, branche default) via **règles projet** �
 - **User Rules cloud** (`Settings → Rules`) : ne doit **pas** contenir `committing-changes-with-git` ni politique git concurrente. Cloud vide = attendu.
 - **Builtin Cursor** : le skill système `committing-changes-with-git` peut encore apparaître dans le contexte injecté — **ne jamais patcher** les bundles Cursor pour le neutraliser.
 - **Politique workspace attendue** : définie par cette règle — ship auto MERGE → COMMIT → PUSH ; ne pas attendre une demande de commit/push/merge. STOP explicite = passe courante seulement.
-- **Conflit runtime** : le builtin contradictoire peut être injecté par Cursor ; priorité formelle Project Rule > builtin **non garantie** par le produit. Comportement validé empiriquement post-restauration ; toute régression = audit provenance, **jamais** patch du bundle Cursor.
+- **Conflit runtime** : le builtin contradictoire peut être injecté par Cursor ; priorité formelle Project Rule > builtin **non garantie** par le produit. Critère utile = **comportement effectif** de la session ; toute régression = audit provenance, **jamais** patch du bundle Cursor.
+- **Interdit** : modifier `/Applications/Cursor.app`, `main.js`, ASAR, runtime, binaires, mécanismes d'update Cursor — y compris via `tools/patch-cursor-git-runtime.mjs` (historique RULES-LOCK-02). `--check` seul reste autorisé pour documenter l'état.

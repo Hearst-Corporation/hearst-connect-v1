@@ -29,7 +29,7 @@ Instruction explicite d'Adrien = autorisation opérationnelle — ne pas redeman
 - Terminal pour tester le runtime produit (pas MCP par défaut).
 - Jamais de MD non demandé. Changements minimaux ; lire avant d'éditer ; ne pas inventer d'API.
 - Sous-agents : max 4, périmètres indépendants, un seul intégrateur Git.
-- Worktree mission seulement si collision parallèle sur le même repo.
+- Branche mission pour toute mission mutante ; worktree seulement si collision parallèle sur le même repo, ou si une règle projet l'exige — voir `10-shared-git-lifecycle.mdc`.
 
 ## Frontière règles shared / règles projet (anti-drift)
 

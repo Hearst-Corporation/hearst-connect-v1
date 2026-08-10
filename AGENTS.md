@@ -5,15 +5,12 @@
 Autorité **opérationnelle locale** de l'agent dans ce workspace, dans l'ordre :
 
 1. instruction explicite d'Adrien dans la conversation en cours ;
-2. **fédération shared** (`.cursor/rules/{00,10,20,30,40}-shared-*.mdc`) — gouvernance,
-   git, format de réponse, no-hardcode, qualité ;
-3. **règles projet locales** (`.cursor/rules/30-no-gpu1.mdc`, `.cursor/rules/50-no-zinc.mdc`,
-   `.cursor/rules/55-restart-local.mdc`) et `CLAUDE.md` —
-   overlays produit propres à ce dépôt ;
-4. mission active.
+2. **règles locales du dépôt** (`.cursor/rules/*.mdc`) et `CLAUDE.md` — gouvernance,
+   git, format de réponse, contraintes produit et runtime propres à ce dépôt ;
+3. mission active.
 
-Les règles projet **complètent** la fédération shared sans la réécrire (voir la doctrine
-anti-drift dans `00-shared-governance.mdc`).
+Les règles dans `.cursor/rules/` sont **locales à ce dépôt**, non synchronisées depuis une
+source externe, et s'éditent directement ici quand ce workspace doit évoluer.
 
 <!-- HEARST-GOVERNANCE:START -->
 ## Gouvernance centrale Hearst — RÉFÉRENCE produit/organisationnelle (non-opérationnelle ici)
@@ -21,8 +18,8 @@ anti-drift dans `00-shared-governance.mdc`).
 `.hearst/governance.json` pointe vers le repo externe `Hearst-Corporation/governance`
 (ref figée `47a1c989…`). Ce corpus (doctrine globale, règles globales, doctrine/règles
 projet) est une **référence produit et organisationnelle**, à consulter, **pas** l'autorité
-git/format/qualité opérationnelle de l'agent dans ce workspace — celle-ci reste la fédération
-shared ci-dessus.
+git/format/qualité opérationnelle de l'agent dans ce workspace — celle-ci reste le corpus local
+`.cursor/rules/` de ce dépôt.
 
 ⚠️ **Divergences connues à ne pas appliquer aveuglément dans ce dépôt** (état 2026-08-09) :
 
