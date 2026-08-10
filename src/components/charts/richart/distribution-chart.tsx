@@ -6,8 +6,8 @@ import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
- * richart — distribution horizontale triée décroissante.
- * La première catégorie porte l’accent ; les suivantes la rampe neutre.
+ * richart — horizontal distribution sorted in descending order.
+ * The first category carries the accent; the following ones use the neutral ramp.
  */
 
 export type DistributionItem = {
@@ -31,8 +31,8 @@ export function RichDistributionChart({
           <caption>Distribution{unit === '' ? '' : ` (${unit})`}</caption>
           <thead>
             <tr>
-              <th scope="col">Catégorie</th>
-              <th scope="col">Valeur</th>
+              <th scope="col">Category</th>
+              <th scope="col">Value</th>
             </tr>
           </thead>
           <tbody>
@@ -66,7 +66,7 @@ export function RichDistributionChart({
               width={100}
             />
             <Tooltip content={<RichTooltip unit={unit.trim()} />} cursor={{ fill: chartTheme.cursor }} />
-            <Bar dataKey="value" name="Valeur" radius={[0, 3, 3, 0]} maxBarSize={22} isAnimationActive={false} />
+            <Bar dataKey="value" name="Value" radius={[0, 3, 3, 0]} maxBarSize={22} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -50,7 +50,7 @@ import {
 
 /* ── Wire shapes, as the service actually returns them ────────────────────── */
 
-type Resolu<T> = Readonly<{
+type Resolved<T> = Readonly<{
   status?: string
   value: T | null
   reason?: string | null
@@ -58,7 +58,7 @@ type Resolu<T> = Readonly<{
   freshness?: { asOf?: string | null; ageSeconds?: number | null; stale?: boolean } | null
 }>
 
-type RuntimeBloc = Readonly<{
+type RuntimeBlock = Readonly<{
   mode?: string | null
   chainId?: number | null
   contractAddress?: string | null
@@ -66,16 +66,16 @@ type RuntimeBloc = Readonly<{
   codePresence?: string | null
 }>
 
-type VaultReponse = Readonly<{
-  runtime?: RuntimeBloc
-  snapshot?: Resolu<{
+type VaultResponse = Readonly<{
+  runtime?: RuntimeBlock
+  snapshot?: Resolved<{
     asset?: string | null
     assetDecimals?: number | null
     totalAssets?: string | null
     totalShares?: string | null
     navPerShare?: string | null
   }>
-  capacity?: Resolu<{
+  capacity?: Resolved<{
     tvlCap?: string | null
     totalAssets?: string | null
     availableCapacity?: string | null
@@ -83,7 +83,7 @@ type VaultReponse = Readonly<{
   }>
 }>
 
-type PocheWire = Readonly<{
+type PocketWire = Readonly<{
   pocket?: string | null
   label?: string | null
   targetBps?: number | null
@@ -95,14 +95,14 @@ type PocheWire = Readonly<{
   pocketAssets?: string | null
 }>
 
-type StrategiesReponse = Readonly<{ runtime?: RuntimeBloc; strategies?: Resolu<readonly PocheWire[]> }>
-type RwaReponse = Readonly<{ runtime?: RuntimeBloc; pockets?: Resolu<readonly PocheWire[]> }>
-type RebalancingReponse = Readonly<{
-  runtime?: RuntimeBloc
-  rebalancing?: Resolu<{ lastRebalanceAt?: string | null; driftBps?: number | null }>
+type StrategiesResponse = Readonly<{ runtime?: RuntimeBlock; strategies?: Resolved<readonly PocketWire[]> }>
+type RwaResponse = Readonly<{ runtime?: RuntimeBlock; pockets?: Resolved<readonly PocketWire[]> }>
+type RebalancingResponse = Readonly<{
+  runtime?: RuntimeBlock
+  rebalancing?: Resolved<{ lastRebalanceAt?: string | null; driftBps?: number | null }>
 }>
 
-type MouvementWire = Readonly<{
+type MovementWire = Readonly<{
   id?: string | null
   eventName?: string | null
   chainId?: number | null
@@ -116,10 +116,10 @@ type MouvementWire = Readonly<{
   indexedAt?: string | null
 }>
 
-type EvenementsReponse = Readonly<{ events?: Resolu<readonly MouvementWire[]> }>
+type EventsResponse = Readonly<{ events?: Resolved<readonly MovementWire[]> }>
 
 type ClientWire = Readonly<{ id?: string | null; label?: string | null }>
-type ClientsReponse = Readonly<{ clients?: Resolu<readonly ClientWire[]> }>
+type ClientsResponse = Readonly<{ clients?: Resolved<readonly ClientWire[]> }>
 
 type DeploymentWire = Readonly<{
   id?: string | null
@@ -133,7 +133,7 @@ type DeploymentWire = Readonly<{
   status?: string | null
   reference?: string | null
 }>
-type DeploymentsReponse = Readonly<{ deployments?: Resolu<readonly DeploymentWire[]> }>
+type DeploymentsResponse = Readonly<{ deployments?: Resolved<readonly DeploymentWire[]> }>
 
 type ComplianceWire = Readonly<{
   id?: string | null
@@ -144,11 +144,11 @@ type ComplianceWire = Readonly<{
   openedAt?: string | null
   lastEventAt?: string | null
 }>
-type ComplianceReponse = Readonly<{ reviews?: Resolu<readonly ComplianceWire[]> }>
+type ComplianceResponse = Readonly<{ reviews?: Resolved<readonly ComplianceWire[]> }>
 
-type DashboardReponse = Readonly<{
-  identity?: Resolu<unknown>
-  allocation?: Resolu<{ pockets?: readonly PocheWire[] }>
+type DashboardResponse = Readonly<{
+  identity?: Resolved<unknown>
+  allocation?: Resolved<{ pockets?: readonly PocketWire[] }>
 }>
 
 /* ── Resolved → Availability ──────────────────────────────────────────────── */
@@ -173,21 +173,21 @@ function provenanceDe(raw: string | null | undefined): Provenance {
  * the status describes the read, the value is the reading, and only the
  * second one can be rendered.
  */
-function fromResolu<T>(bloc: Resolu<T> | undefined, endpoint: string): Availability<T> {
-  if (bloc === undefined) {
+function fromResolved<T>(block: Resolved<T> | undefined, endpoint: string): Availability<T> {
+  if (block === undefined) {
     return unavailable({ endpoint, status: 'UNAVAILABLE', reason: 'field_absent_from_response' })
   }
-  if (bloc.value === null || bloc.value === undefined) {
+  if (block.value === null || block.value === undefined) {
     return unavailable({
       endpoint,
-      reason: bloc.reason ?? null,
-      status: (bloc.status as never) ?? 'UNAVAILABLE',
+      reason: block.reason ?? null,
+      status: (block.status as never) ?? 'UNAVAILABLE',
     })
   }
-  return available(bloc.value, {
-    provenance: provenanceDe(bloc.provenance),
-    asOf: bloc.freshness?.asOf ?? null,
-    stale: bloc.freshness?.stale === true,
+  return available(block.value, {
+    provenance: provenanceDe(block.provenance),
+    asOf: block.freshness?.asOf ?? null,
+    stale: block.freshness?.stale === true,
   })
 }
 
@@ -246,66 +246,66 @@ function pocketAssetsAccordants(
 
 /* ── Strategies ───────────────────────────────────────────────────────────── */
 
-function readPocketKey(poche: PocheWire): string | null {
-  const pocket = poche.pocket
-  if (typeof pocket !== 'string' || pocket === '') return null
-  return pocket
+function readPocketKey(pocket: PocketWire): string | null {
+  const pocketKey = pocket.pocket
+  if (typeof pocketKey !== 'string' || pocketKey === '') return null
+  return pocketKey
 }
 
-function readTargetBps(poche: PocheWire): number | null {
-  const target = poche.targetBps
+function readTargetBps(pocket: PocketWire): number | null {
+  const target = pocket.targetBps
   if (typeof target !== 'number' || !Number.isFinite(target)) return null
   return target
 }
 
-function readActualBps(poche: PocheWire): number | null {
-  const actual = poche.actualBps
+function readActualBps(pocket: PocketWire): number | null {
+  const actual = pocket.actualBps
   if (typeof actual !== 'number' || !Number.isFinite(actual)) return null
   return actual
 }
 
-function readDriftBps(poche: PocheWire): number | null {
-  const drift = poche.driftBps
+function readDriftBps(pocket: PocketWire): number | null {
+  const drift = pocket.driftBps
   if (typeof drift !== 'number' || !Number.isFinite(drift)) return null
   return drift
 }
 
-function buildStrategy(vault: VaultId, poche: PocheWire, rwa: PocheWire | undefined, totalAssets: string | null): Strategy | null {
-  const pocket = readPocketKey(poche)
-  if (pocket === null) return null
+function buildStrategy(vault: VaultId, pocket: PocketWire, rwa: PocketWire | undefined, totalAssets: string | null): Strategy | null {
+  const pocketKey = readPocketKey(pocket)
+  if (pocketKey === null) return null
 
-  const target = readTargetBps(poche)
+  const target = readTargetBps(pocket)
   if (target === null) return null
 
-  const actual = readActualBps(poche)
-  const drift = readDriftBps(poche)
-  const label = typeof poche.label === 'string' && poche.label !== '' ? poche.label : pocket
-  const adapter = typeof poche.adapter === 'string' && poche.adapter !== '' ? poche.adapter : null
+  const actual = readActualBps(pocket)
+  const drift = readDriftBps(pocket)
+  const label = typeof pocket.label === 'string' && pocket.label !== '' ? pocket.label : pocketKey
+  const adapter = typeof pocket.adapter === 'string' && pocket.adapter !== '' ? pocket.adapter : null
 
   return {
-    id: strategyId(vault, pocket),
+    id: strategyId(vault, pocketKey),
     vaultId: vault,
-    pocket,
+    pocket: pocketKey,
     label,
     targetBps: target,
     actualBps: actual,
     driftBps: drift,
-    enabled: poche.enabled !== false,
-    isIdle: poche.isIdle === true,
+    enabled: pocket.enabled !== false,
+    isIdle: pocket.isIdle === true,
     adapter,
-    assetsAtomic: pocketAssetsAccordants(rwa?.pocketAssets, poche.actualBps, totalAssets),
+    assetsAtomic: pocketAssetsAccordants(rwa?.pocketAssets, pocket.actualBps, totalAssets),
   }
 }
 
-function construireStrategies(
+function buildStrategies(
   vault: VaultId,
-  poches: readonly PocheWire[],
-  rwaParPoche: Map<string, PocheWire>,
+  pockets: readonly PocketWire[],
+  rwaByPocket: Map<string, PocketWire>,
   totalAssets: string | null,
 ): readonly Strategy[] {
   const sorties: Strategy[] = []
-  for (const poche of poches) {
-    const strategy = buildStrategy(vault, poche, rwaParPoche.get(poche.pocket ?? ''), totalAssets)
+  for (const pocket of pockets) {
+    const strategy = buildStrategy(vault, pocket, rwaByPocket.get(pocket.pocket ?? ''), totalAssets)
     if (strategy === null) continue
     sorties.push(strategy)
   }
@@ -346,32 +346,32 @@ function pireDeriveBps(strategies: readonly Strategy[]): Availability<number> {
   return available(pire, { provenance: 'chain' })
 }
 
-function statutVault(runtime: RuntimeBloc | undefined, snapshotLu: boolean): VaultStatus {
-  if (!snapshotLu) return 'UNREADABLE'
+function vaultStatus(runtime: RuntimeBlock | undefined, snapshotRead: boolean): VaultStatus {
+  if (!snapshotRead) return 'UNREADABLE'
   if (runtime?.codePresent === false || runtime?.codePresence === 'absent') return 'NO_CODE'
   return 'ACTIVE'
 }
 
 /* ── Movements ────────────────────────────────────────────────────────────── */
 
-function buildMovement(mouvement: MouvementWire, vaultParContrat: Map<string, VaultId>): Movement | null {
-  const id = mouvement.id
-  const nom = mouvement.eventName
+function buildMovement(movement: MovementWire, vaultByContract: Map<string, VaultId>): Movement | null {
+  const id = movement.id
+  const nom = movement.eventName
   if (typeof id !== 'string' || id === '' || typeof nom !== 'string' || nom === '') return null
 
-  const contrat = typeof mouvement.contractAddress === 'string' ? mouvement.contractAddress.toLowerCase() : null
+  const contract = typeof movement.contractAddress === 'string' ? movement.contractAddress.toLowerCase() : null
   return {
     id: movementId(id),
-    vaultId: contrat === null ? null : (vaultParContrat.get(contrat) ?? null),
+    vaultId: contract === null ? null : (vaultByContract.get(contract) ?? null),
     eventName: nom,
-    blockNumber: mouvement.blockNumber ?? null,
-    txHash: mouvement.txHash ?? null,
-    chainId: typeof mouvement.chainId === 'number' ? mouvement.chainId : null,
-    investorAddress: mouvement.investorAddress ?? null,
-    assetAmountAtomic: mouvement.assetAmountAtomic ?? null,
-    shareAmountAtomic: mouvement.shareAmountAtomic ?? null,
-    occurredAt: mouvement.occurredAt ?? null,
-    indexedAt: mouvement.indexedAt ?? null,
+    blockNumber: movement.blockNumber ?? null,
+    txHash: movement.txHash ?? null,
+    chainId: typeof movement.chainId === 'number' ? movement.chainId : null,
+    investorAddress: movement.investorAddress ?? null,
+    assetAmountAtomic: movement.assetAmountAtomic ?? null,
+    shareAmountAtomic: movement.shareAmountAtomic ?? null,
+    occurredAt: movement.occurredAt ?? null,
+    indexedAt: movement.indexedAt ?? null,
     // The ledger carries no pocket on any event type it currently emits.
     // Guessing one from the event name would be a fabricated relationship.
     strategyId: unavailable({ status: 'NOT_EXPOSED', reason: 'ledger_carries_no_pocket' }),
@@ -379,12 +379,12 @@ function buildMovement(mouvement: MouvementWire, vaultParContrat: Map<string, Va
 }
 
 function construireMouvements(
-  bruts: readonly MouvementWire[],
-  vaultParContrat: Map<string, VaultId>,
+  raws: readonly MovementWire[],
+  vaultByContract: Map<string, VaultId>,
 ): readonly Movement[] {
   const sorties: Movement[] = []
-  for (const m of bruts) {
-    const movement = buildMovement(m, vaultParContrat)
+  for (const m of raws) {
+    const movement = buildMovement(m, vaultByContract)
     if (movement === null) continue
     sorties.push(movement)
   }
@@ -434,7 +434,7 @@ function fileRebalancing(vaults: readonly Vault[]): Availability<readonly Rebala
 function exceptionsClients(
   identity: Availability<unknown>,
   identityReason: string | null,
-  compteLabel: string,
+  accountLabel: string,
 ): Availability<readonly ClientException[]> {
   if (isAvailable(identity)) {
     // Investor record present: no synthetic client exception.
@@ -451,7 +451,7 @@ function exceptionsClients(
     [
       {
         clientId: null,
-        clientLabel: compteLabel,
+        clientLabel: accountLabel,
         issue: 'MISSING_INVESTOR_RECORD',
         relatedVaultId: null,
         compliance: unavailable({
@@ -482,33 +482,33 @@ function sourceHealth(
 
 /* ── Vault assembly ───────────────────────────────────────────────────────── */
 
-function readVaultId(vaultData: VaultReponse | null): VaultId | null {
+function readVaultId(vaultData: VaultResponse | null): VaultId | null {
   if (vaultData === null) return null
   const runtime = vaultData.runtime
   return vaultId(runtime?.chainId, runtime?.contractAddress)
 }
 
-function buildRwaMap(rwaBloc: Availability<readonly PocheWire[]>): Map<string, PocheWire> {
-  const rwaParPoche = new Map<string, PocheWire>()
-  if (!isAvailable(rwaBloc)) return rwaParPoche
+function buildRwaMap(rwaBloc: Availability<readonly PocketWire[]>): Map<string, PocketWire> {
+  const rwaByPocket = new Map<string, PocketWire>()
+  if (!isAvailable(rwaBloc)) return rwaByPocket
   for (const p of rwaBloc.value) {
-    if (typeof p.pocket === 'string') rwaParPoche.set(p.pocket, p)
+    if (typeof p.pocket === 'string') rwaByPocket.set(p.pocket, p)
   }
-  return rwaParPoche
+  return rwaByPocket
 }
 
 function buildVaultStrategies(
   vaultId: VaultId,
-  strategiesBloc: Availability<readonly PocheWire[]>,
-  rwaBloc: Availability<readonly PocheWire[]>,
+  strategiesBloc: Availability<readonly PocketWire[]>,
+  rwaBloc: Availability<readonly PocketWire[]>,
   totalAssets: string | null,
 ): Availability<readonly Strategy[]> {
-  return mapAvailability(strategiesBloc, (poches) => construireStrategies(vaultId, poches, buildRwaMap(rwaBloc), totalAssets))
+  return mapAvailability(strategiesBloc, (pockets) => buildStrategies(vaultId, pockets, buildRwaMap(rwaBloc), totalAssets))
 }
 
 function buildVaultRecord(
   vaultId: VaultId,
-  vaultData: VaultReponse,
+  vaultData: VaultResponse,
   snapshot: Availability<{
     asset?: string | null
     assetDecimals?: number | null
@@ -536,7 +536,7 @@ function buildVaultRecord(
     label: `Série 1 · ${contractAddress.slice(0, 6)}…${contractAddress.slice(-4)}`,
     chainId: typeof runtime?.chainId === 'number' ? runtime.chainId : null,
     contractAddress,
-    status: statutVault(runtime, isAvailable(snapshot)),
+    status: vaultStatus(runtime, isAvailable(snapshot)),
     asset: combine(field(snapshot, 'asset'), field(snapshot, 'assetDecimals'), (symbol, decimals) => ({
       symbol,
       decimals,
@@ -572,15 +572,15 @@ function buildVaultRecord(
 /* ── Loader ───────────────────────────────────────────────────────────────── */
 
 type BackendResponses = Readonly<{
-  vaultRes: Awaited<ReturnType<typeof callBackend<VaultReponse>>>
-  strategiesRes: Awaited<ReturnType<typeof callBackend<StrategiesReponse>>>
-  rwaRes: Awaited<ReturnType<typeof callBackend<RwaReponse>>>
-  rebalRes: Awaited<ReturnType<typeof callBackend<RebalancingReponse>>>
-  eventsRes: Awaited<ReturnType<typeof callBackend<EvenementsReponse>>>
-  dashboardRes: Awaited<ReturnType<typeof callBackend<DashboardReponse>>>
-  clientsRes: Awaited<ReturnType<typeof callBackend<ClientsReponse>>>
-  deploymentsRes: Awaited<ReturnType<typeof callBackend<DeploymentsReponse>>>
-  complianceRes: Awaited<ReturnType<typeof callBackend<ComplianceReponse>>>
+  vaultRes: Awaited<ReturnType<typeof callBackend<VaultResponse>>>
+  strategiesRes: Awaited<ReturnType<typeof callBackend<StrategiesResponse>>>
+  rwaRes: Awaited<ReturnType<typeof callBackend<RwaResponse>>>
+  rebalRes: Awaited<ReturnType<typeof callBackend<RebalancingResponse>>>
+  eventsRes: Awaited<ReturnType<typeof callBackend<EventsResponse>>>
+  dashboardRes: Awaited<ReturnType<typeof callBackend<DashboardResponse>>>
+  clientsRes: Awaited<ReturnType<typeof callBackend<ClientsResponse>>>
+  deploymentsRes: Awaited<ReturnType<typeof callBackend<DeploymentsResponse>>>
+  complianceRes: Awaited<ReturnType<typeof callBackend<ComplianceResponse>>>
 }>
 
 async function fetchRegistryResponses(
@@ -597,15 +597,15 @@ async function fetchRegistryResponses(
     deploymentsRes,
     complianceRes,
   ] = await Promise.all([
-    callBackend<VaultReponse>('vault'),
-    callBackend<StrategiesReponse>('vault-strategies'),
-    callBackend<RwaReponse>('rwa-vault'),
-    callBackend<RebalancingReponse>('rebalancing-status'),
-    callBackend<EvenementsReponse>('series1-events', { params: { limit: movementLimit } }),
-    callBackend<DashboardReponse>('dashboard'),
-    callBackend<ClientsReponse>('clients'),
-    callBackend<DeploymentsReponse>('deployments'),
-    callBackend<ComplianceReponse>('compliance'),
+    callBackend<VaultResponse>('vault'),
+    callBackend<StrategiesResponse>('vault-strategies'),
+    callBackend<RwaResponse>('rwa-vault'),
+    callBackend<RebalancingResponse>('rebalancing-status'),
+    callBackend<EventsResponse>('series1-events', { params: { limit: movementLimit } }),
+    callBackend<DashboardResponse>('dashboard'),
+    callBackend<ClientsResponse>('clients'),
+    callBackend<DeploymentsResponse>('deployments'),
+    callBackend<ComplianceResponse>('compliance'),
   ])
   return { vaultRes, strategiesRes, rwaRes, rebalRes, eventsRes, dashboardRes, clientsRes, deploymentsRes, complianceRes }
 }
@@ -614,7 +614,7 @@ function buildClients(
   clientsRes: BackendResponses['clientsRes'],
   sources: SourceHealth[],
 ): Availability<readonly ClientRef[]> {
-  const bloc = fromResolu(clientsRes.ok ? clientsRes.data.clients : undefined, '/api/v1/clients')
+  const bloc = fromResolved(clientsRes.ok ? clientsRes.data.clients : undefined, '/api/v1/clients')
   sources.push(
     sourceHealth(
       'clients',
@@ -645,7 +645,7 @@ function buildDeployments(
   defaultVaultId: VaultId | null,
   sources: SourceHealth[],
 ): Availability<readonly Deployment[]> {
-  const bloc = fromResolu(deploymentsRes.ok ? deploymentsRes.data.deployments : undefined, '/api/v1/deployments')
+  const bloc = fromResolved(deploymentsRes.ok ? deploymentsRes.data.deployments : undefined, '/api/v1/deployments')
   sources.push(
     sourceHealth(
       'deployments',
@@ -696,7 +696,7 @@ function buildCompliance(
   complianceRes: BackendResponses['complianceRes'],
   sources: SourceHealth[],
 ): Availability<readonly ComplianceReview[]> {
-  const bloc = fromResolu(complianceRes.ok ? complianceRes.data.reviews : undefined, '/api/v1/compliance')
+  const bloc = fromResolved(complianceRes.ok ? complianceRes.data.reviews : undefined, '/api/v1/compliance')
   sources.push(
     sourceHealth(
       'compliance',
@@ -739,14 +739,14 @@ function buildCompliance(
 function buildVaults(
   responses: BackendResponses,
   sources: SourceHealth[],
-): { vaults: Availability<readonly Vault[]>; vaultParContrat: Map<string, VaultId> } {
+): { vaults: Availability<readonly Vault[]>; vaultByContract: Map<string, VaultId> } {
   const { vaultRes, strategiesRes, rwaRes, rebalRes } = responses
   const vaultData = vaultRes.ok ? vaultRes.data : null
   const runtime = vaultData?.runtime
   const id = readVaultId(vaultData)
 
-  const snapshot = fromResolu(vaultData?.snapshot, '/api/v1/vault')
-  const capacity = fromResolu(vaultData?.capacity, '/api/v1/vault')
+  const snapshot = fromResolved(vaultData?.snapshot, '/api/v1/vault')
+  const capacity = fromResolved(vaultData?.capacity, '/api/v1/vault')
   sources.push(
     sourceHealth(
       'vault',
@@ -757,22 +757,22 @@ function buildVaults(
     ),
   )
 
-  const vaultParContrat = new Map<string, VaultId>()
+  const vaultByContract = new Map<string, VaultId>()
   if (id === null) {
     return {
       vaults: unavailable({
         endpoint: '/api/v1/vault',
         reason: vaultRes.ok ? 'no_contract_address_reported' : 'service_did_not_respond',
       }),
-      vaultParContrat,
+      vaultByContract,
     }
   }
 
   const contractAddress = (runtime?.contractAddress as string).toLowerCase()
-  vaultParContrat.set(contractAddress, id)
+  vaultByContract.set(contractAddress, id)
   const totalAssets = isAvailable(snapshot) ? (snapshot.value.totalAssets ?? null) : null
 
-  const strategiesBloc = fromResolu(strategiesRes.ok ? strategiesRes.data.strategies : undefined, '/api/v1/vault/strategies')
+  const strategiesBloc = fromResolved(strategiesRes.ok ? strategiesRes.data.strategies : undefined, '/api/v1/vault/strategies')
   sources.push(
     sourceHealth(
       'vault-strategies',
@@ -783,12 +783,12 @@ function buildVaults(
     ),
   )
 
-  const rwaBloc = fromResolu(rwaRes.ok ? rwaRes.data.pockets : undefined, '/api/v1/rwa-vault')
+  const rwaBloc = fromResolved(rwaRes.ok ? rwaRes.data.pockets : undefined, '/api/v1/rwa-vault')
   sources.push(
     sourceHealth('rwa-vault', 'Poches RWA', isAvailable(rwaBloc), null, isAvailable(rwaBloc) ? rwaBloc.asOf : null),
   )
 
-  const rebalancingBloc = fromResolu(
+  const rebalancingBloc = fromResolved(
     rebalRes.ok ? rebalRes.data.rebalancing : undefined,
     '/api/v1/rebalancing/status',
   )
@@ -803,47 +803,47 @@ function buildVaults(
   )
 
   const strategies = buildVaultStrategies(id, strategiesBloc, rwaBloc, totalAssets)
-  const vault = buildVaultRecord(id, vaultData as VaultReponse, snapshot, capacity, strategies, rebalancingBloc)
+  const vault = buildVaultRecord(id, vaultData as VaultResponse, snapshot, capacity, strategies, rebalancingBloc)
   const vaults = available([vault], { provenance: 'chain', asOf: vault.lastActivityAt.kind === 'available' ? vault.lastActivityAt.value : null })
 
-  return { vaults, vaultParContrat }
+  return { vaults, vaultByContract }
 }
 
 function buildMovements(
   eventsRes: BackendResponses['eventsRes'],
-  vaultParContrat: Map<string, VaultId>,
+  vaultByContract: Map<string, VaultId>,
   sources: SourceHealth[],
 ): Availability<readonly Movement[]> {
-  const eventsBloc = fromResolu(eventsRes.ok ? eventsRes.data.events : undefined, '/api/v1/series1/events')
+  const eventsBloc = fromResolved(eventsRes.ok ? eventsRes.data.events : undefined, '/api/v1/series1/events')
   sources.push(
     sourceHealth('series1-events', 'Journal', isAvailable(eventsBloc), null, isAvailable(eventsBloc) ? eventsBloc.asOf : null),
   )
-  return mapAvailability(eventsBloc, (bruts) => construireMouvements(bruts, vaultParContrat))
+  return mapAvailability(eventsBloc, (raws) => construireMouvements(raws, vaultByContract))
 }
 
 function buildClientExceptions(
   dashboardRes: BackendResponses['dashboardRes'],
-  compteLabel: string,
+  accountLabel: string,
   sources: SourceHealth[],
 ): Availability<readonly ClientException[]> {
-  const identityBloc = fromResolu(dashboardRes.ok ? dashboardRes.data.identity : undefined, '/api/v1/dashboard')
+  const identityBloc = fromResolved(dashboardRes.ok ? dashboardRes.data.identity : undefined, '/api/v1/dashboard')
   const identityReason = dashboardRes.ok ? (dashboardRes.data.identity?.reason ?? null) : null
   sources.push(
     sourceHealth('dashboard', 'Dossier investisseur', isAvailable(identityBloc), identityReason, null),
   )
-  return exceptionsClients(identityBloc, identityReason, compteLabel)
+  return exceptionsClients(identityBloc, identityReason, accountLabel)
 }
 
 export async function loadAdminRegistry(
-  compteLabel: string,
+  accountLabel: string,
   opts: { movementLimit?: number } = {},
 ): Promise<AdminRegistry> {
   const responses = await fetchRegistryResponses(opts.movementLimit ?? 25)
   const sources: SourceHealth[] = []
 
-  const { vaults, vaultParContrat } = buildVaults(responses, sources)
-  const movements = buildMovements(responses.eventsRes, vaultParContrat, sources)
-  const clientExceptions = buildClientExceptions(responses.dashboardRes, compteLabel, sources)
+  const { vaults, vaultByContract } = buildVaults(responses, sources)
+  const movements = buildMovements(responses.eventsRes, vaultByContract, sources)
+  const clientExceptions = buildClientExceptions(responses.dashboardRes, accountLabel, sources)
   const listeVaults = isAvailable(vaults) ? vaults.value : []
   const defaultVaultId = listeVaults.length > 0 ? listeVaults[0].id : null
   const clients = buildClients(responses.clientsRes, sources)
@@ -865,17 +865,16 @@ export async function loadAdminRegistry(
 /** Reads one vault by its route identifier. `null` when the id matches nothing. */
 export async function loadVault(
   id: VaultId,
-  compteLabel: string,
+  accountLabel: string,
 ): Promise<{ registry: AdminRegistry; vault: Vault | null }> {
-  const registry = await loadAdminRegistry(compteLabel, { movementLimit: 50 })
+  const registry = await loadAdminRegistry(accountLabel, { movementLimit: 50 })
   const liste = isAvailable(registry.vaults) ? registry.vaults.value : []
   return { registry, vault: liste.find((v) => v.id === id) ?? null }
 }
 
 /*
- * Retiré le 2026-08-04 (LOT B3) : `export type { ClientRef, Deployment } from
- * '@/lib/vaults/model'`. Ce ré-export n'avait aucun consommateur — les modules
- * qui ont besoin de ces types les importent directement depuis `model.ts`
- * directement depuis `@/lib/vaults/model`. Deux chemins d'import
- * pour un même type ne servent qu'à faire diverger les conventions.
+ * Removed on 2026-08-04 (LOT B3): `export type { ClientRef, Deployment } from
+ * '@/lib/vaults/model'`. That re-export had no consumer — the modules that
+ * need these types import them directly from `@/lib/vaults/model`. Two import
+ * paths for the same type only serve to make the conventions diverge.
  */

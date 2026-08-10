@@ -5,8 +5,8 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 /**
- * Conteneur pilotage dashboard.
- * Matière des cartes = `surfaceBox` (canon PASS 2) — pas un second verre.
+ * Dashboard control container.
+ * Card material = `surfaceBox` (PASS 2 canon) — not a second glass layer.
  */
 export function DashboardShell({
   children,
@@ -20,9 +20,9 @@ export function DashboardShell({
 }
 
 /**
- * DashCard — CARD sémantique dashboard.
+ * DashCard — semantic dashboard CARD.
  *
- * Même matière `surfaceBox` que `Panel` ; hauteur intrinsèque au contenu.
+ * Same `surfaceBox` material as `Panel`; height intrinsic to the content.
  */
 export function DashCard({
   children,

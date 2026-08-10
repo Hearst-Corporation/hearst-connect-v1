@@ -8,14 +8,14 @@ import {
   type SeriesState,
 } from '@/components/charts'
 import { requireSession } from '@/lib/auth'
-import { availabilityFromResolu } from '@/lib/backend/availability'
+import { availabilityFromResolved } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
 import {
   adresseCourte,
-  libelleMouvement,
-  montantUsdc,
-  motifLisible,
-} from '@/lib/mouvements'
+  movementLabel,
+  usdcAmount,
+  readableReason,
+} from '@/lib/movements'
 import {
   editorial,
   isAvailable,
@@ -36,7 +36,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = { title: 'Series 1 journal' }
 export const dynamic = 'force-dynamic'
 
-type Mouvement = {
+type Movement = {
   readonly id: string
   readonly eventName: string
   readonly chainId?: number | null
@@ -50,20 +50,20 @@ type Mouvement = {
   readonly indexedAt?: string | null
 }
 
-type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
-type ReponseEvenements = { readonly events?: Resolu<readonly Mouvement[]> }
+type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type ReponseEvenements = { readonly events?: Resolved<readonly Movement[]> }
 
-const estFinancier = (m: Mouvement): boolean =>
+const estFinancier = (m: Movement): boolean =>
   m.assetAmountAtomic !== null && m.assetAmountAtomic !== undefined && m.assetAmountAtomic !== ''
 
-function ligneEvenement(m: Mouvement): Series1EventRow {
+function ligneEvenement(m: Movement): Series1EventRow {
   const resolvedVaultId = vaultId(m.chainId, m.contractAddress)
   return {
     id: m.id,
     eventName: m.eventName,
     vaultId: resolvedVaultId,
     client: adresseCourte(m.investorAddress),
-    amount: estFinancier(m) ? montantUsdc(m.assetAmountAtomic) : null,
+    amount: estFinancier(m) ? usdcAmount(m.assetAmountAtomic) : null,
     assetLabel: estFinancier(m) ? 'USDC' : null,
     txHash: m.txHash ?? null,
     blockNumber: m.blockNumber ?? null,
@@ -72,36 +72,36 @@ function ligneEvenement(m: Mouvement): Series1EventRow {
   }
 }
 
-function repartitionParNature(mouvements: readonly Mouvement[]): readonly DistributionItem[] {
+function repartitionParNature(movements: readonly Movement[]): readonly DistributionItem[] {
   const parNature = new Map<string, number>()
-  for (const m of mouvements) {
-    const nom = libelleMouvement(m.eventName)
-    const vu = parNature.get(nom)
-    parNature.set(nom, vu === undefined ? 1 : vu + 1)
+  for (const m of movements) {
+    const name = movementLabel(m.eventName)
+    const vu = parNature.get(name)
+    parNature.set(name, vu === undefined ? 1 : vu + 1)
   }
   return [...parNature.entries()].sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value }))
 }
 
-function etatTrendChart(reponseOk: boolean, trendPointCount: number): SeriesState {
+function trendChartState(reponseOk: boolean, trendPointCount: number): SeriesState {
   if (!reponseOk) {
-    return { type: 'unavailable', explication: 'Activity by period could not be read.' }
+    return { type: 'unavailable', explanation: 'Activity by period could not be read.' }
   }
   if (trendPointCount < 2) {
     return {
       type: 'empty',
-      explication:
+      explanation:
         'Fewer than two days of measured activity — a trend is not plotted from a single point. The explorer below remains the faithful read.',
     }
   }
   return { type: 'plotted' }
 }
 
-function etatRepartitionChart(readable: boolean, distributionItems: readonly DistributionItem[]): SeriesState {
+function breakdownChartState(readable: boolean, distributionItems: readonly DistributionItem[]): SeriesState {
   if (!readable) {
-    return { type: 'unavailable', explication: 'The movement ledger read did not succeed.' }
+    return { type: 'unavailable', explanation: 'The movement ledger read did not succeed.' }
   }
   if (distributionItems.length === 0) {
-    return { type: 'empty', explication: 'No movement to distribute for now.' }
+    return { type: 'empty', explanation: 'No movement to distribute for now.' }
   }
   return { type: 'plotted' }
 }
@@ -109,14 +109,14 @@ function etatRepartitionChart(readable: boolean, distributionItems: readonly Dis
 function messageJournalCalme(
   reponseOk: boolean,
   readable: boolean,
-  mouvements: readonly Mouvement[] | null | undefined,
+  movements: readonly Movement[] | null | undefined,
   reason?: string | null,
 ): string | undefined {
   if (!reponseOk) {
     return 'The movement ledger could not be read. No movement is assumed — an empty list would wrongly read as nothing happened.'
   }
-  if (!readable || mouvements === null || mouvements === undefined || mouvements.length === 0) {
-    const motif = motifLisible(reason)
+  if (!readable || movements === null || movements === undefined || movements.length === 0) {
+    const motif = readableReason(reason)
     if (motif) {
       return `No movement recorded to date : ${motif}. This is not an outage.`
     }
@@ -151,21 +151,21 @@ export default async function Page() {
   await requireSession()
   const reponse = await callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } })
   const bloc = reponse.ok ? reponse.data.events : undefined
-  const mouvements = bloc?.value
+  const movements = bloc?.value
 
-  const eventsAvail = availabilityFromResolu<readonly Mouvement[]>(bloc, '/api/v1/series1/events')
+  const eventsAvail = availabilityFromResolved<readonly Movement[]>(bloc, '/api/v1/series1/events')
   const movementCount = measuredCount(eventsAvail)
   const financialCount = measuredCount(mapAvailability(eventsAvail, (list) => list.filter(estFinancier)))
   const typesCount = mapAvailability(eventsAvail, (list) => String(new Set(list.map((m) => m.eventName)).size))
-  const readable = mouvements !== null && mouvements !== undefined
-  const distributionItems = readable ? repartitionParNature(mouvements) : []
+  const readable = movements !== null && movements !== undefined
+  const distributionItems = readable ? repartitionParNature(movements) : []
 
   const trend = movementCountTrend(eventsAvail)
   const trendPoints = isAvailable(trend) ? trend.value : []
-  const etatTrend = etatTrendChart(reponse.ok, trendPoints.length)
-  const etatRepartition = etatRepartitionChart(readable, distributionItems)
-  const journalCalme = messageJournalCalme(reponse.ok, readable, mouvements, bloc?.reason)
-  const rows = readable ? mouvements.map(ligneEvenement) : []
+  const trendState = trendChartState(reponse.ok, trendPoints.length)
+  const breakdownState = breakdownChartState(readable, distributionItems)
+  const journalCalme = messageJournalCalme(reponse.ok, readable, movements, bloc?.reason)
+  const rows = readable ? movements.map(ligneEvenement) : []
   const kpis = serie1Kpis(reponse.ok, movementCount, financialCount, typesCount)
 
   return (
@@ -178,16 +178,16 @@ export default async function Page() {
 
       <ChartFrame
         question="How fast do movements arrive?"
-        unite="number of movements, per observed day"
-        etat={etatTrend}
+        unit="number of movements, per observed day"
+        state={trendState}
       >
-        <HearstActivityChart points={trendPoints} unite="movements" />
+        <HearstActivityChart points={trendPoints} unit="movements" />
       </ChartFrame>
 
       <ChartFrame
         question="What is this journal made of?"
-        unite="number of movements, by type"
-        etat={etatRepartition}
+        unit="number of movements, by type"
+        state={breakdownState}
       >
         <RichDistributionChart items={distributionItems} unit="movements" />
       </ChartFrame>

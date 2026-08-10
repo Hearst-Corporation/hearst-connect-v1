@@ -2,39 +2,40 @@ import { available, mapAvailability, unavailable, type Availability } from '@/li
 import type { ResolvedStatus } from '@/lib/resolved'
 
 /**
- * Adaptateur canonique : un champ résolu backend `{ status, value, reason }`
- * → `Availability<T>`, en LISANT le statut réel de la source.
+ * Canonical adapter: a backend resolved field `{ status, value, reason }`
+ * → `Availability<T>`, by READING the source's actual status.
  *
- * ── Pourquoi (VER-10 / audit F-05) ─────────────────────────────────────────
- * Les pages badgeaient un compte dérivé (`list.length`) en `provenance:'live'`
- * dès que la VALEUR était présente, sans jamais consulter `bloc.status`. Une
- * donnée que le backend a lui-même signalée `STALE`/`PARTIAL` s'affichait donc
- * aussi fraîche qu'une donnée `LIVE`. C'est la cause racine du faux « En direct ».
+ * ── Why (VER-10 / audit F-05) ──────────────────────────────────────────────
+ * Pages badged a derived count (`list.length`) as `provenance:'live'` as soon
+ * as the VALUE was present, without ever consulting `block.status`. Data the
+ * backend had itself flagged as `STALE`/`PARTIAL` was therefore displayed as
+ * fresh as `LIVE` data. This is the root cause of the false "Live" badge.
  *
- * Cet adaptateur est le point de passage unique manquant : une valeur `LIVE`
- * devient `available(..., provenance:'indexed', stale:false)` → signal `live` ;
- * une valeur `STALE`/`SNAPSHOT`/`PARTIAL` devient `stale:true` → signal `stale` ;
- * toute autre issue (valeur absente, `NOT_CONFIGURED`, `ERROR`, …) devient une
- * absence nommée. Combiné à `measuredCount`, un compte hérite alors de la
- * fraîcheur réelle de sa source — « 0 mesuré » et « non mesurable » restent des
- * faits opposés, par construction.
+ * This adapter is the missing single point of passage: a `LIVE` value becomes
+ * `available(..., provenance:'indexed', stale:false)` → `live` signal; a
+ * `STALE`/`SNAPSHOT`/`PARTIAL` value becomes `stale:true` → `stale` signal;
+ * any other outcome (absent value, `NOT_CONFIGURED`, `ERROR`, …) becomes a
+ * named absence. Combined with `measuredCount`, a count then inherits the real
+ * freshness of its source — "0 measured" and "not measurable" remain opposite
+ * facts, by construction.
  *
- * Frontend pur : ne touche ni au contrat, ni à la donnée, ni à la frontière
- * fork↔back-end. Il ne fait que RENDRE honnêtement ce que la source annonce déjà.
+ * Pure frontend: touches neither the contract, nor the data, nor the
+ * fork↔backend boundary. It only HONESTLY RENDERS what the source already
+ * announces.
  */
 
-export type BlocResolu<T> = {
+export type ResolvedBlock<T> = {
   readonly status: string
   readonly value: T | null
   readonly reason?: string | null
 }
 
-/** Statuts qui portent une valeur affichable et fraîche. */
-const FRAIS: ReadonlySet<string> = new Set(['LIVE'])
-/** Statuts qui portent une valeur affichable mais datée. */
-const DATE: ReadonlySet<string> = new Set(['STALE', 'SNAPSHOT', 'PARTIAL'])
-/** Statuts connus du modèle `Resolved` — les autres retombent sur `UNAVAILABLE`. */
-const CONNUS: ReadonlySet<string> = new Set([
+/** Statuses that carry a displayable and fresh value. */
+const FRESH: ReadonlySet<string> = new Set(['LIVE'])
+/** Statuses that carry a displayable but dated value. */
+const DATED: ReadonlySet<string> = new Set(['STALE', 'SNAPSHOT', 'PARTIAL'])
+/** Statuses known to the `Resolved` model — the others fall back to `UNAVAILABLE`. */
+const KNOWN: ReadonlySet<string> = new Set([
   'LIVE',
   'STALE',
   'PARTIAL',
@@ -47,40 +48,40 @@ const CONNUS: ReadonlySet<string> = new Set([
   'ERROR',
 ])
 
-function statutCanonique(brut: string): ResolvedStatus | 'NOT_EXPOSED' {
-  return (CONNUS.has(brut) ? brut : 'UNAVAILABLE') as ResolvedStatus | 'NOT_EXPOSED'
+function canonicalStatus(raw: string): ResolvedStatus | 'NOT_EXPOSED' {
+  return (KNOWN.has(raw) ? raw : 'UNAVAILABLE') as ResolvedStatus | 'NOT_EXPOSED'
 }
 
-export function availabilityFromResolu<T>(
-  bloc: BlocResolu<T> | null | undefined,
+export function availabilityFromResolved<T>(
+  block: ResolvedBlock<T> | null | undefined,
   endpoint: string,
 ): Availability<T> {
-  if (bloc?.value == null) {
+  if (block?.value == null) {
     return unavailable({
       endpoint,
-      status: bloc != null ? statutCanonique(bloc.status) : 'UNAVAILABLE',
-      reason: bloc?.reason ?? null,
+      status: block != null ? canonicalStatus(block.status) : 'UNAVAILABLE',
+      reason: block?.reason ?? null,
     })
   }
-  if (FRAIS.has(bloc.status)) {
-    return available(bloc.value, { provenance: 'indexed', stale: false, asOf: null })
+  if (FRESH.has(block.status)) {
+    return available(block.value, { provenance: 'indexed', stale: false, asOf: null })
   }
-  if (DATE.has(bloc.status)) {
-    return available(bloc.value, { provenance: 'indexed', stale: true, asOf: null })
+  if (DATED.has(block.status)) {
+    return available(block.value, { provenance: 'indexed', stale: true, asOf: null })
   }
-  // Valeur présente sous un statut non affichable (NOT_CONFIGURED, ERROR, …) :
-  // on ne la présente pas comme une lecture — c'est une absence nommée.
-  return unavailable({ endpoint, status: statutCanonique(bloc.status), reason: bloc.reason ?? null })
+  // Value present under a non-displayable status (NOT_CONFIGURED, ERROR, …):
+  // we do not present it as a reading — it is a named absence.
+  return unavailable({ endpoint, status: canonicalStatus(block.status), reason: block.reason ?? null })
 }
 
 /**
- * Formate une valeur résolue backend en lecture affichable, en propageant
- * le statut réel — jamais de `stale: false` forcé.
+ * Formats a resolved backend value into a displayable reading, propagating
+ * the real status — never a forced `stale: false`.
  */
-export function figureDepuisResolu<T>(
-  bloc: BlocResolu<T> | null | undefined,
+export function figureFromResolved<T>(
+  block: ResolvedBlock<T> | null | undefined,
   endpoint: string,
   format: (value: T) => string,
 ): Availability<string> {
-  return mapAvailability(availabilityFromResolu(bloc, endpoint), format)
+  return mapAvailability(availabilityFromResolved(block, endpoint), format)
 }

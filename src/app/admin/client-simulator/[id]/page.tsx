@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic'
 type PageProps = Readonly<{ params: Promise<{ id: string }> }>
 
 /**
- * Détail client simulé — enveloppe serveur mince.
- * La lecture et l’affichage vivent dans `detail-view.tsx`.
+ * Simulated client detail — thin server wrapper.
+ * Data reading and rendering live in `detail-view.tsx`.
  */
 export default async function Page({ params }: PageProps) {
   const { id } = await params

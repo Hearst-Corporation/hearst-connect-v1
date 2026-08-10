@@ -8,8 +8,8 @@ import clsx from 'clsx'
 
 /**
  * Hearst Connect admin surface wrappers.
- * Matière = `surfaceBox` / `surfaceInset` (canon PASS 2) — pas un second verre.
- * Préférer `Panel` / `DashCard` pour le neuf.
+ * Material = `surfaceBox` / `surfaceInset` (PASS 2 canon) — not a second glass layer.
+ * Prefer `Panel` / `DashCard` for new work.
  * Every component here renders what the backend gives it — none of them fabricate data.
  */
 
@@ -72,7 +72,7 @@ export function AdminMetric({
             {unit ? <span className="ml-1 text-sm/6 font-medium text-fg-tertiary dark:text-fg-secondary">{unit}</span> : null}
           </span>
         ) : (
-          <span className={clsx(adminTypography.numericStandard, 'text-fg-tertiary dark:text-fg-secondary')} title={status ?? 'Aucune valeur'}>—</span>
+          <span className={clsx(adminTypography.numericStandard, 'text-fg-tertiary dark:text-fg-secondary')} title={status ?? 'No value'}>—</span>
         )}
       </p>
       {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}

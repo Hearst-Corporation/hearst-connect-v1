@@ -47,7 +47,7 @@ describe('frontière dataviz richart', () => {
 
   it('la frontière ré-exporte les wrappers richart', () => {
     const index = readFileSync(join(REPO, 'src/components/charts/index.ts'), 'utf8')
-    expect(index).toMatch(/HearstCourbeChart/)
+    expect(index).toMatch(/HearstCurveChart/)
     expect(index).toMatch(/HearstAllocationChart/)
     expect(index).toMatch(/HearstActivityChart/)
     expect(index).toMatch(/RichSparkline/)

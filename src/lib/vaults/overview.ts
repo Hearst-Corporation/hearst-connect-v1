@@ -15,7 +15,7 @@
  */
 
 import { formatCurrency, formatNumber } from '@/lib/format'
-import { libelleMouvement } from '@/lib/mouvements'
+import { movementLabel } from '@/lib/movements'
 import {
   available,
   combine,
@@ -55,13 +55,13 @@ function deploymentRatioBpsFrom(
 }
 
 /*
- * Étiquettes d'axe de la courbe d'activité. Ces deux formateurs étaient
- * construits À CHAQUE point et à chaque tour de boucle de regroupement ;
- * `Intl.DateTimeFormat` est coûteux à instancier et n'a aucune raison de l'être
- * plus d'une fois. Même locale, mêmes options, donc rendu strictement
- * identique. Ils restent locaux à ce module : ce sont des étiquettes de
- * graphique, pas le formatage de date du produit (`formatDate` /
- * `formatDateTime` dans `lib/format.ts`), qui a d'autres options.
+ * Axis labels for the activity curve. These two formatters used to be built at
+ * EVERY point and on every pass of the grouping loop; `Intl.DateTimeFormat` is
+ * expensive to instantiate and has no reason to be instantiated more than once.
+ * Same locale, same options, so the rendering is strictly identical. They stay
+ * local to this module: they are chart labels, not the product's date
+ * formatting (`formatDate` / `formatDateTime` in `lib/format.ts`), which has
+ * other options.
  */
 const JOUR = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
 const JOUR_HEURE = new Intl.DateTimeFormat('en-US', {
@@ -152,7 +152,7 @@ export function movementTypeBars(movements: Availability<readonly { eventName: s
   if (!isAvailable(movements)) return []
   const counts = new Map<string, number>()
   for (const movement of movements.value) {
-    const label = libelleMouvement(movement.eventName)
+    const label = movementLabel(movement.eventName)
     const previous = counts.get(label)
     counts.set(label, previous === undefined ? 1 : previous + 1)
   }

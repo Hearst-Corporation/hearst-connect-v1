@@ -34,7 +34,7 @@ const NON_RESTITUE = [
 
 /**
  * New simulated client — POST /api/v1/admin/users (admin only).
- * Crée un compte réel en base ; le mot de passe n’est jamais restitué par le service.
+ * Creates a real account in the database; the password is never returned by the service.
  */
 export default async function Page() {
   const session = await requireSession()
@@ -83,10 +83,10 @@ export default async function Page() {
       <SectionCard title="Recent creations" hint="Accounts created from this screen, by day." tone="chart">
         <ChartFrame
           question="Account creations per day"
-          unite="accounts / day"
-          etat={{
+          unit="accounts / day"
+          state={{
             type: 'empty',
-            explication:
+            explanation:
               'No series to plot — this screen emits one creation at a time and does not measure history. The real account count lives in the client directory.',
           }}
         />

@@ -13,48 +13,48 @@ import {
 } from 'recharts'
 
 /**
- * richart — courbe de taux en escalier (`stepAfter`).
+ * richart — stepped rate curve (`stepAfter`).
  *
- * Un spline lissé inventerait un taux entre deux jalons ; le produit n’en a pas.
+ * A smoothed spline would invent a rate between two milestones; the product has none.
  */
 
-export type PointCourbe = {
-  readonly mois: number
-  readonly taux: number
+export type CurvePoint = {
+  readonly month: number
+  readonly rate: number
 }
 
 const SERIE = chartTheme.dataSeries.brandPrimary
 
-export function HearstCourbeChart({
+export function HearstCurveChart({
   points,
-  domaineLabel = 'Mois',
-}: Readonly<{ points: readonly PointCourbe[]; domaineLabel?: string }>) {
-  const ordonnes = [...points].sort((a, b) => a.mois - b.mois)
-  const height = chartHeight('line', Math.max(ordonnes.length, 1))
-  const data = ordonnes.map((p) => ({
-    mois: p.mois,
-    taux: p.taux,
-    label: `${domaineLabel} ${p.mois}`,
+  domainLabel = 'Mois',
+}: Readonly<{ points: readonly CurvePoint[]; domainLabel?: string }>) {
+  const sorted = [...points].sort((a, b) => a.month - b.month)
+  const height = chartHeight('line', Math.max(sorted.length, 1))
+  const data = sorted.map((p) => ({
+    month: p.month,
+    rate: p.rate,
+    label: `${domainLabel} ${p.month}`,
   }))
 
   return (
     <div className="px-5 pb-5 sm:px-6">
       <div className="sr-only">
         <table>
-          <caption>Taux de rémunération par mois-jalon du produit</caption>
+          <caption>Yield rate per product milestone month</caption>
           <thead>
             <tr>
-              <th scope="col">{domaineLabel}</th>
+              <th scope="col">{domainLabel}</th>
               <th scope="col">Taux</th>
             </tr>
           </thead>
           <tbody>
-            {ordonnes.map((p) => (
-              <tr key={p.mois}>
+            {sorted.map((p) => (
+              <tr key={p.month}>
                 <th scope="row">
-                  {domaineLabel} {p.mois}
+                  {domainLabel} {p.month}
                 </th>
-                <td>{formatChartPercent(p.taux)}</td>
+                <td>{formatChartPercent(p.rate)}</td>
               </tr>
             ))}
           </tbody>
@@ -86,7 +86,7 @@ export function HearstCourbeChart({
             <Tooltip content={<RichTooltip unit="%" />} cursor={{ stroke: chartTheme.cursor }} />
             <Line
               type="stepAfter"
-              dataKey="taux"
+              dataKey="rate"
               name="Taux"
               stroke={SERIE}
               strokeWidth={2}

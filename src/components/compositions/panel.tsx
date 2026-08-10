@@ -3,31 +3,31 @@ import { csl } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**
- * Panel — composition canonique d'une box Hearst.
+ * Panel — the canonical composition of a Hearst box.
  *
- * ── Matière ───────────────────────────────────────────────────────────────
- * Toujours `surfaceBox` (`src/components/admin/surface.tsx`). Plus de
- * `csl.panel` comme second verre CSS-module. Une box = une matière.
+ * ── Material ──────────────────────────────────────────────────────────────
+ * Always `surfaceBox` (`src/components/admin/surface.tsx`). No more
+ * `csl.panel` as a second CSS-module glass layer. One box = one material.
  *
  * ── Tones ─────────────────────────────────────────────────────────────────
- * Les `tone` ne changent PAS le verre : ils ajoutent une géométrie / densité
- * (flex, overflow, padding intrinsèque KPI). Ce ne sont pas des palettes.
+ * The `tone` values do NOT change the glass: they add geometry / density
+ * (flex, overflow, intrinsic KPI padding). They are not palettes.
  *
- * | tone    | Rôle sémantique Rule 60      | Géométrie csl        |
- * |---------|------------------------------|----------------------|
- * | wave    | PANEL / CARD défaut          | wavePanel            |
- * | chart   | DATA PANEL (chart chrome)    | heroChart            |
- * | metric  | COMPACT CARD (KPI)           | metricCard           |
- * | signal  | UTILITY / signal compact     | signalCard           |
- * | plain   | matière seule, géométrie caller | —                 |
+ * | tone    | Rule 60 semantic role         | csl geometry         |
+ * |---------|-------------------------------|----------------------|
+ * | wave    | PANEL / CARD default          | wavePanel            |
+ * | chart   | DATA PANEL (chart chrome)     | heroChart            |
+ * | metric  | COMPACT CARD (KPI)            | metricCard           |
+ * | signal  | UTILITY / compact signal      | signalCard           |
+ * | plain   | material only, caller geometry | —                  |
  *
- * ── Contrat ───────────────────────────────────────────────────────────────
- * - une surface, une seule bordure : pas de panneau-dans-panneau pour se cadrer ;
- * - height = content (pas d'étirement décoratif) ;
- * - l'élément HTML est choisi par l'appelant (`as`).
+ * ── Contract ──────────────────────────────────────────────────────────────
+ * - one surface, a single border: no panel-in-panel to frame itself ;
+ * - height = content (no decorative stretching) ;
+ * - the HTML element is chosen by the caller (`as`).
  */
 
-/** Géométrie du panneau — pas une matière alternative. */
+/** Panel geometry — not an alternative material. */
 export type PanelTone = 'wave' | 'chart' | 'metric' | 'signal' | 'plain'
 
 const TONE_GEOMETRY: Record<PanelTone, string | undefined> = {
@@ -63,9 +63,9 @@ export function Panel({
 }
 
 /**
- * PanelHeader — le bloc titre d'un panneau.
+ * PanelHeader — the title block of a panel.
  *
- * `hint` est facultatif : plusieurs panneaux n'ont qu'un titre.
+ * `hint` is optional: several panels have only a title.
  */
 export function PanelHeader({
   title,
@@ -87,7 +87,7 @@ export function PanelHeader({
   )
 }
 
-/** Le corps d'un panneau — l'espacement interne, déclaré une fois. */
+/** The body of a panel — the internal spacing, declared once. */
 export function PanelBody({
   children,
   className,

@@ -18,16 +18,16 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Garde-fou de démarrage. Toute page passe par ce layout : c'est le premier
-  // point de rendu serveur commun à l'application. La fonction ne lève pas et
-  // ne journalise qu'une fois par worker (verrou en portée module) — le rendu
-  // n'est ni bloqué ni ralenti par une configuration incomplète.
+  // Startup guardrail. Every page goes through this layout: it is the first
+  // server-render point common to the whole application. The function never
+  // throws and logs only once per worker (module-scope lock) — rendering is
+  // neither blocked nor slowed down by an incomplete configuration.
   announceConfigurationOnce()
 
   return (
     <html
       lang="en"
-      // Dark forcé côté serveur + script d’init (purge d’un éventuel .light résiduel).
+      // Dark forced on the server side + init script (purges any residual .light).
       suppressHydrationWarning
       className={`dark ${fontSatoshi.variable} ${fontSatoshi.className} font-sans bg-console-app text-white antialiased`}
     >

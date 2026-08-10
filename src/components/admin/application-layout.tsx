@@ -29,9 +29,9 @@ import { logout } from '@/lib/actions'
 import {
   ADMIN_NAV,
   ADMIN_SECTION_HUBS,
-  estRouteCompte,
-  groupeSecondaireActif,
-  hrefActif,
+  isAccountRoute,
+  activeSecondaryGroup,
+  activeHref,
 } from '@/lib/admin-nav'
 import type { SessionUser } from '@/lib/session'
 import {
@@ -43,14 +43,14 @@ import { usePathname } from 'next/navigation'
 
 function AccountMenu({
   anchor,
-  compteActif,
-}: Readonly<{ anchor: 'top start' | 'bottom end'; compteActif: boolean }>) {
+  activeAccount,
+}: Readonly<{ anchor: 'top start' | 'bottom end'; activeAccount: boolean }>) {
   return (
     <DropdownMenu className="min-w-64" anchor={anchor}>
       <DropdownItem
         href="/admin/profile"
-        aria-current={compteActif ? 'page' : undefined}
-        className={compteActif ? 'font-semibold' : undefined}
+        aria-current={activeAccount ? 'page' : undefined}
+        className={activeAccount ? 'font-semibold' : undefined}
       >
         <UserCircleIcon />
         <DropdownLabel>Your account</DropdownLabel>
@@ -69,17 +69,17 @@ function AccountMenu({
 }
 
 /**
- * Shell console — menu principal vertical à gauche, sous-menus horizontaux
- * dans le corps via `AdminBodyNav` quand la section active en porte.
+ * Console shell — primary vertical menu on the left, horizontal submenus
+ * in the body via `AdminBodyNav` when the active section provides them.
  */
 export function AdminApplicationLayout({
   user,
   children,
 }: Readonly<{ user: SessionUser; children: React.ReactNode }>) {
   const pathname = usePathname()
-  const groupeActif = groupeSecondaireActif(pathname)
-  const primaireActif = hrefActif(pathname)
-  const compteActif = estRouteCompte(pathname)
+  const activeGroup = activeSecondaryGroup(pathname)
+  const activePrimary = activeHref(pathname)
+  const activeAccount = isAccountRoute(pathname)
   const initials = userInitials(user.name)
 
   return (
@@ -92,7 +92,7 @@ export function AdminApplicationLayout({
               <DropdownButton as={NavbarItem}>
                 <NavbarAvatar initials={initials} />
               </DropdownButton>
-              <AccountMenu anchor="bottom end" compteActif={compteActif} />
+              <AccountMenu anchor="bottom end" activeAccount={activeAccount} />
             </Dropdown>
           </NavbarSection>
         </Navbar>
@@ -111,16 +111,16 @@ export function AdminApplicationLayout({
               <HeaderClientSearch />
             </div>
             <SidebarSection>
-              {ADMIN_NAV.map((entree) => {
-                const Icone = entree.icone
+              {ADMIN_NAV.map((entry) => {
+                const Icon = entry.icon
                 return (
                   <SidebarItem
-                    key={entree.href}
-                    href={entree.href}
-                    current={groupeActif === undefined && primaireActif === entree.href}
+                    key={entry.href}
+                    href={entry.href}
+                    current={activeGroup === undefined && activePrimary === entry.href}
                   >
-                    <Icone />
-                    <SidebarLabel>{entree.label}</SidebarLabel>
+                    <Icon />
+                    <SidebarLabel>{entry.label}</SidebarLabel>
                   </SidebarItem>
                 )
               })}
@@ -129,14 +129,14 @@ export function AdminApplicationLayout({
             <SidebarSection>
               <SidebarHeading>Sections</SidebarHeading>
               {ADMIN_SECTION_HUBS.map((hub) => {
-                const Icone = hub.icone
+                const Icon = hub.icon
                 return (
                   <SidebarItem
                     key={hub.href}
                     href={hub.href}
-                    current={groupeActif?.titre === hub.titre}
+                    current={activeGroup?.title === hub.title}
                   >
-                    <Icone />
+                    <Icon />
                     <SidebarLabel>{hub.label}</SidebarLabel>
                   </SidebarItem>
                 )
@@ -152,7 +152,7 @@ export function AdminApplicationLayout({
                 <SidebarFooterIdentity initials={initials} name={user.name} email={user.email} />
                 <ChevronUpIcon />
               </DropdownButton>
-              <AccountMenu anchor="top start" compteActif={compteActif} />
+              <AccountMenu anchor="top start" activeAccount={activeAccount} />
             </Dropdown>
           </SidebarFooter>
         </Sidebar>

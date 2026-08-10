@@ -1,4 +1,4 @@
-import { etatSourceLisible } from '@/lib/mouvements'
+import { readableSourceState } from '@/lib/movements'
 import { describe, expect, it } from 'vitest'
 
 /**
@@ -19,14 +19,14 @@ import { describe, expect, it } from 'vitest'
  * renommer une valeur de contrat.
  */
 
-describe('etatSourceLisible', () => {
+describe('readableSourceState', () => {
   it('traduit les états que le service émet réellement', () => {
-    expect(etatSourceLisible('LIVE')).toBe('live')
-    expect(etatSourceLisible('UNAVAILABLE')).toBe('unavailable')
-    expect(etatSourceLisible('NOT_EXPOSED')).toBe('not exposed')
-    expect(etatSourceLisible('NOT_CONFIGURED')).toBe('not configured')
-    expect(etatSourceLisible('PARTIAL')).toBe('partial')
-    expect(etatSourceLisible('EMPTY')).toBe('no data')
+    expect(readableSourceState('LIVE')).toBe('live')
+    expect(readableSourceState('UNAVAILABLE')).toBe('unavailable')
+    expect(readableSourceState('NOT_EXPOSED')).toBe('not exposed')
+    expect(readableSourceState('NOT_CONFIGURED')).toBe('not configured')
+    expect(readableSourceState('PARTIAL')).toBe('partial')
+    expect(readableSourceState('EMPTY')).toBe('no data')
   })
 
   it('renders known states without leaking raw uppercase codes', () => {
@@ -44,7 +44,7 @@ describe('etatSourceLisible', () => {
       'UNAVAILABLE',
     ]
     for (const etat of connus) {
-      const rendu = etatSourceLisible(etat)
+      const rendu = readableSourceState(etat)
       expect(rendu).not.toMatch(/[A-Z_]{4,}/)
     }
   })
@@ -57,12 +57,12 @@ describe('etatSourceLisible', () => {
      * service n'a pas dit. Un code brut visible est un défaut d'affichage ;
      * un état inventé est un mensonge.
      */
-    expect(etatSourceLisible('QUELQUE_CHOSE_DE_NOUVEAU')).toBe('quelque_chose_de_nouveau')
+    expect(readableSourceState('QUELQUE_CHOSE_DE_NOUVEAU')).toBe('quelque_chose_de_nouveau')
   })
 
   it('une absence d’état rend un tiret, jamais une phrase inventée', () => {
-    expect(etatSourceLisible(null)).toBe('—')
-    expect(etatSourceLisible(undefined)).toBe('—')
-    expect(etatSourceLisible('')).toBe('—')
+    expect(readableSourceState(null)).toBe('—')
+    expect(readableSourceState(undefined)).toBe('—')
+    expect(readableSourceState('')).toBe('—')
   })
 })

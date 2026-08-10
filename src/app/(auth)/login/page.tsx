@@ -11,16 +11,16 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 /**
- * Écran de connexion.
+ * Sign-in screen.
  *
- * `reason=expired` est posé par la garde serveur de `/admin` quand une session
- * absente ou périmée a provoqué une redirection : l'utilisateur mérite de
- * savoir pourquoi il est revenu ici, sans qu'on lui expose de détail technique.
+ * `reason=expired` is set by the `/admin` server guard when a missing or
+ * expired session triggered a redirect: the user deserves to know why they
+ * were sent back here, without exposing any technical detail.
  */
 export default async function LoginPage({
   searchParams,
 }: Readonly<{ searchParams: Promise<Record<string, string | string[] | undefined>> }>) {
-  // Une session valide n'a rien à faire sur l'écran de connexion.
+  // A valid session has no business on the sign-in screen.
   if (await getSession()) redirect('/admin')
 
   const { reason } = await searchParams
@@ -29,9 +29,9 @@ export default async function LoginPage({
 
   const { loginReady } = checkConfiguration()
 
-  // Bouton de connexion rapide owner : dev local uniquement, et seulement si
-  // les identifiants existent réellement dans l'environnement serveur — on
-  // n'affiche jamais le bouton pour ensuite échouer faute de config.
+  // Owner quick-login button: local dev only, and only if the credentials
+  // actually exist in the server environment — we never show the button just
+  // to have it fail afterwards for lack of config.
   return (
     <LoginForm notice={notice} loginReady={loginReady} devQuickLoginAvailable={devQuickLoginAvailable()} />
   )

@@ -7,16 +7,16 @@ import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
- * richart — activité par période (barres verticales).
+ * richart — activity per period (vertical bars).
  *
- * Reconstruit avec Recharts en dimensions PX mesurées (ResizeObserver) —
- * jamais `ResponsiveContainer` % dans un flex (wrapper 0×0).
+ * Rebuilt with Recharts using measured PX dimensions (ResizeObserver) —
+ * never `ResponsiveContainer` % inside a flex (0×0 wrapper).
  *
- * Barres, jamais une ligne : chaque point est un compte / montant fermé pour
- * un bucket. Une ligne inventerait une pente entre deux buckets non mesurés.
+ * Bars, never a line: each point is a closed count / amount for a given
+ * bucket. A line would invent a slope between two unmeasured buckets.
  */
 
-export type PointActivite = {
+export type ActivityPoint = {
   readonly label: string
   readonly value: number
   readonly detail: string
@@ -38,10 +38,10 @@ function maxBarSizeForCount(count: number): number {
 
 export function HearstActivityChart({
   points,
-  unite,
+  unit,
   color = SERIE,
   height,
-}: Readonly<{ points: readonly PointActivite[]; unite: string; color?: string; height?: number }>) {
+}: Readonly<{ points: readonly ActivityPoint[]; unit: string; color?: string; height?: number }>) {
   const count = points.length
   const viewportHeight = height ?? chartHeight('columns', Math.max(count, 1))
   const { ref, width } = useChartWidth()
@@ -61,11 +61,11 @@ export function HearstActivityChart({
     <div className="min-w-0">
       <div className="sr-only">
         <table>
-          <caption>Activité par période, en {unite}</caption>
+          <caption>Activity by period, in {unit}</caption>
           <thead>
             <tr>
-              <th scope="col">Période</th>
-              <th scope="col">Valeur ({unite})</th>
+              <th scope="col">Period</th>
+              <th scope="col">Value ({unit})</th>
             </tr>
           </thead>
           <tbody>
@@ -110,14 +110,14 @@ export function HearstActivityChart({
               tickFormatter={(v: number) => formatNumber(v, { maximumFractionDigits: 0 })}
             />
             <Tooltip
-              content={<RichTooltip unit={unite} />}
+              content={<RichTooltip unit={unit} />}
               cursor={{ fill: chartTheme.cursor }}
-              // Recharts lit `label` / `detail` via le payload — on expose la
-              // période lisible via le label X (dataKey label).
+              // Recharts reads `label` / `detail` from the payload — we expose the
+              // human-readable period via the X label (dataKey label).
             />
             <Bar
               dataKey="value"
-              name={unite}
+              name={unit}
               fill={color}
               radius={[4, 4, 0, 0]}
               maxBarSize={maxBarSize}

@@ -34,7 +34,7 @@ export function AdminLabel({
   return <Tag className={clsx(adminTypography.label, className)}>{children}</Tag>
 }
 
-/** Titre H1 du bandeau hero (`AdminPageHeader`) — seul h1 autorisé hors routes. */
+/** Hero banner H1 title (`AdminPageHeader`) — the only h1 allowed outside routes. */
 export function AdminHeroTitle({
   children,
   className,

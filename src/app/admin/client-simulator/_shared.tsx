@@ -1,8 +1,8 @@
 import { AdminToneBadge } from '@/components/admin/status-tone'
 
 /**
- * Marqueur « client simulé » — chaque surface du simulateur l’affiche pour
- * distinguer un compte créé via POST /api/v1/admin/users d’un client réel.
+ * "Simulated client" marker — every simulator surface displays it to
+ * distinguish an account created via POST /api/v1/admin/users from a real client.
  */
 export function SimulatedBadge() {
   return <AdminToneBadge tone="warn" showDot>Simulated</AdminToneBadge>

@@ -1,32 +1,32 @@
 /**
- * Frontière canonique de la dataviz (doctrine §7.2).
+ * Canonical dataviz boundary (doctrine §7.2).
  *
- * ── Ce que cette frontière garantit ───────────────────────────────────────
- * Le moteur de rendu ne franchit pas cette limite. Aucune route, aucun module
- * métier n'importe `recharts` — ils importent un chart d'ici, qui décide seul
- * de comment il est dessiné. C'est ce qui rend un changement de moteur
- * possible sans toucher aux pages.
+ * ── What this boundary guarantees ─────────────────────────────────────────
+ * The rendering engine does not cross this limit. No route and no business
+ * module imports `recharts` — they import a chart from here, which alone
+ * decides how it is drawn. That is what makes swapping the engine possible
+ * without touching the pages.
  *
- * La règle est vérifiée par `scripts/check-ui-boundaries.mjs`.
+ * The rule is enforced by `scripts/check-ui-boundaries.mjs`.
  *
- * ── Organisation ──────────────────────────────────────────────────────────
- *   core/       le cadre, les états, le thème — ce que tout chart partage
- *   cartesian/  séries sur des axes x/y (production BTC, réserve…)
- *   richart/    bibliothèque visuelle Hearst (activité, allocation, courbes,
- *               distribution, sparklines) — remplace MUI X Charts
+ * ── Organization ──────────────────────────────────────────────────────────
+ *   core/       the frame, the states, the theme — what every chart shares
+ *   cartesian/  series on x/y axes (BTC production, reserve…)
+ *   richart/    Hearst visual library (activity, allocation, curves,
+ *               distribution, sparklines) — replaces MUI X Charts
  */
 
-/* ── Noyau ────────────────────────────────────────────────────────────────── */
+/* ── Core ─────────────────────────────────────────────────────────────────── */
 export { ChartFrame, type SeriesState } from '@/components/charts/core/chart-frame'
 export { plottableAsChart } from '@/components/charts/core/chart-theme'
 
-/* ── Cartésiens ───────────────────────────────────────────────────────────── */
-export { ReserveExpositionChart, type PosteBitcoin } from '@/components/charts/cartesian/product-charts'
+/* ── Cartesian ────────────────────────────────────────────────────────────── */
+export { ReserveExposureChart, type BitcoinItem } from '@/components/charts/cartesian/product-charts'
 
 /* ── richart ──────────────────────────────────────────────────────────────── */
-export { HearstActivityChart, type PointActivite } from '@/components/charts/richart/activity-chart'
-export { HearstAllocationChart, type PosteAllocation } from '@/components/charts/richart/allocation-chart'
-export { HearstCourbeChart, type PointCourbe } from '@/components/charts/richart/courbe-chart'
+export { HearstActivityChart, type ActivityPoint } from '@/components/charts/richart/activity-chart'
+export { HearstAllocationChart, type AllocationItem } from '@/components/charts/richart/allocation-chart'
+export { HearstCurveChart, type CurvePoint } from '@/components/charts/richart/curve-chart'
 export {
   RichDistributionChart,
   type DistributionItem,

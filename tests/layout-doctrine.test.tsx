@@ -4,10 +4,10 @@ import {
   ADMIN_SECONDARY,
   ADMIN_SECONDARY_FLAT,
   ADMIN_SECTION_HUBS,
-  groupeSecondaireActif,
-  hrefActif,
-  hrefCorpsActif,
-  sousMenusCorps,
+  activeSecondaryGroup,
+  activeHref,
+  activeBodyHref,
+  bodySubmenus,
 } from '@/lib/admin-nav'
 import { chartHeight, plottableAsChart } from '@/components/charts/core/chart-theme'
 import { render } from '@testing-library/react'
@@ -49,40 +49,40 @@ describe('primary navigation', () => {
   })
 
   it('highlights the longest matching body sub-nav entry', () => {
-    expect(hrefCorpsActif('/admin/vaults/abc')).toBeUndefined()
+    expect(activeBodyHref('/admin/vaults/abc')).toBeUndefined()
     // Service est multi-entrée (runtime + api-explorer + keeper) : l'entrée active est mise en avant.
-    expect(hrefCorpsActif('/admin/runtime')).toBe('/admin/runtime')
-    expect(hrefCorpsActif('/admin/api-explorer')).toBe('/admin/api-explorer')
+    expect(activeBodyHref('/admin/runtime')).toBe('/admin/runtime')
+    expect(activeBodyHref('/admin/api-explorer')).toBe('/admin/api-explorer')
     // Portfolio (Série 1) reste mono-entrée : pas de sous-nav.
-    expect(hrefCorpsActif('/admin/series-1')).toBeUndefined()
-    expect(hrefCorpsActif('/admin')).toBeUndefined()
+    expect(activeBodyHref('/admin/series-1')).toBeUndefined()
+    expect(activeBodyHref('/admin')).toBeUndefined()
   })
 
   it('exposes horizontal sub-menus only for multi-entry sections', () => {
     // Service est désormais multi-entrée (runtime + api-explorer + keeper).
-    expect(sousMenusCorps('/admin/runtime')?.length).toBe(3)
-    expect(groupeSecondaireActif('/admin/runtime')?.titre).toBe('Service')
+    expect(bodySubmenus('/admin/runtime')?.length).toBe(3)
+    expect(activeSecondaryGroup('/admin/runtime')?.title).toBe('Service')
     // Production et Portfolio restent mono-entrée : pas de sous-nav horizontale.
-    expect(sousMenusCorps('/admin/product')).toBeUndefined()
-    expect(sousMenusCorps('/admin/series-1')).toBeUndefined()
-    expect(sousMenusCorps('/admin')).toBeUndefined()
-    expect(groupeSecondaireActif('/admin/product')?.titre).toBe('Production')
-    expect(groupeSecondaireActif('/admin/series-1')?.titre).toBe('Portfolio')
+    expect(bodySubmenus('/admin/product')).toBeUndefined()
+    expect(bodySubmenus('/admin/series-1')).toBeUndefined()
+    expect(bodySubmenus('/admin')).toBeUndefined()
+    expect(activeSecondaryGroup('/admin/product')?.title).toBe('Production')
+    expect(activeSecondaryGroup('/admin/series-1')?.title).toBe('Portfolio')
   })
 
   it('does not force a primary highlight on secondary screens', () => {
-    for (const entree of ADMIN_SECONDARY_FLAT) {
-      expect(hrefActif(entree.href)).toBeUndefined()
+    for (const entry of ADMIN_SECONDARY_FLAT) {
+      expect(activeHref(entry.href)).toBeUndefined()
     }
-    expect(hrefActif('/admin')).toBe('/admin')
-    expect(hrefActif('/admin/clients')).toBe('/admin/clients')
-    expect(hrefActif('/admin/operations')).toBe('/admin/operations')
+    expect(activeHref('/admin')).toBe('/admin')
+    expect(activeHref('/admin/clients')).toBe('/admin/clients')
+    expect(activeHref('/admin/operations')).toBe('/admin/operations')
   })
 
   it('never lists the same destination twice', () => {
     const hrefs = [...ADMIN_NAV.map((e) => e.href), ...ADMIN_SECONDARY_FLAT.map((e) => e.href)]
     expect(new Set(hrefs).size).toBe(hrefs.length)
-    expect(ADMIN_SECONDARY.every((g) => g.entrees.length > 0)).toBe(true)
+    expect(ADMIN_SECONDARY.every((g) => g.entries.length > 0)).toBe(true)
   })
 })
 

@@ -1,6 +1,6 @@
 /**
- * Compat dashboard — les KPI hero vivent dans `admin/hero-kpi`.
- * Ce module conserve le nom historique importé par le barrel et les tests.
+ * Dashboard compat shim — the hero KPIs live in `admin/hero-kpi`.
+ * This module keeps the legacy name imported by the barrel and the tests.
  */
 export {
   AdminHeroKpiMetrics as DashboardKpiMetrics,

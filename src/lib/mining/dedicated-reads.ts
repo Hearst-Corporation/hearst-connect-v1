@@ -1,60 +1,60 @@
-import { etatSourceLisible } from '@/lib/mouvements'
-import { statutAffichage } from '@/lib/statut-affichage'
+import { readableSourceState } from '@/lib/movements'
+import { displayStatus } from '@/lib/display-status'
 
-type Bloc<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type Block<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
-function valeurAtomique(v: string | null | undefined): string | null {
+function atomicValue(v: string | null | undefined): string | null {
   if (v === null || v === undefined || v === '') return null
   return v
 }
 
-/** Libellé d’état pour un champ résolu backend. */
-export function etiquetteChampResolu(bloc: Bloc<unknown> | null | undefined): string {
-  if (bloc === null || bloc === undefined) return '—'
-  return etatSourceLisible(statutAffichage(bloc.status))
+/** Status label for a resolved backend field. */
+export function resolvedFieldLabel(block: Block<unknown> | null | undefined): string {
+  if (block === null || block === undefined) return '—'
+  return readableSourceState(displayStatus(block.status))
 }
 
-/** Compare la facture mensuelle entre `mining` et `mining/electricity`. */
-export function reconcilierFactureMensuelle(
-  agregat: Bloc<{ readonly monthlyCost?: string | null }> | undefined,
-  dedie: Bloc<{ readonly monthlyCost?: string | null }> | undefined,
+/** Compares the monthly bill between `mining` and `mining/electricity`. */
+export function reconcileMonthlyBill(
+  aggregate: Block<{ readonly monthlyCost?: string | null }> | undefined,
+  dedicated: Block<{ readonly monthlyCost?: string | null }> | undefined,
 ): string {
-  const coutAgregat = agregat?.value ? valeurAtomique(agregat.value.monthlyCost) : null
-  const coutDedie = dedie?.value ? valeurAtomique(dedie.value.monthlyCost) : null
+  const aggregateCost = aggregate?.value ? atomicValue(aggregate.value.monthlyCost) : null
+  const dedicatedCost = dedicated?.value ? atomicValue(dedicated.value.monthlyCost) : null
 
-  if (coutAgregat === null && coutDedie === null) {
+  if (aggregateCost === null && dedicatedCost === null) {
     return 'No readable monthly bill on either route.'
   }
-  if (coutAgregat === null) {
+  if (aggregateCost === null) {
     return 'Only the dedicated route exposes a monthly bill.'
   }
-  if (coutDedie === null) {
+  if (dedicatedCost === null) {
     return 'Only the aggregate exposes a monthly bill.'
   }
-  if (coutAgregat === coutDedie) {
+  if (aggregateCost === dedicatedCost) {
     return 'Monthly bill matches.'
   }
   return 'Mismatch between aggregate and dedicated route.'
 }
 
-/** Compare le hashrate entre `mining` et `mining/metrics/onchain`. */
-export function reconcilierHashrate(
-  agregat: Bloc<{ readonly reportedHashrateTh?: string | null }> | undefined,
-  dedie: Bloc<{ readonly reportedHashrateTh?: string | null }> | undefined,
+/** Compares the hashrate between `mining` and `mining/metrics/onchain`. */
+export function reconcileHashrate(
+  aggregate: Block<{ readonly reportedHashrateTh?: string | null }> | undefined,
+  dedicated: Block<{ readonly reportedHashrateTh?: string | null }> | undefined,
 ): string {
-  const hAgregat = agregat?.value ? valeurAtomique(agregat.value.reportedHashrateTh) : null
-  const hDedie = dedie?.value ? valeurAtomique(dedie.value.reportedHashrateTh) : null
+  const aggregateHashrate = aggregate?.value ? atomicValue(aggregate.value.reportedHashrateTh) : null
+  const dedicatedHashrate = dedicated?.value ? atomicValue(dedicated.value.reportedHashrateTh) : null
 
-  if (hAgregat === null && hDedie === null) {
+  if (aggregateHashrate === null && dedicatedHashrate === null) {
     return 'No readable hashrate on either route.'
   }
-  if (hAgregat === null) {
+  if (aggregateHashrate === null) {
     return 'Only the on-chain route exposes hashrate.'
   }
-  if (hDedie === null) {
+  if (dedicatedHashrate === null) {
     return 'Only the aggregate exposes hashrate.'
   }
-  if (hAgregat === hDedie) {
+  if (aggregateHashrate === dedicatedHashrate) {
     return 'Reported hashrate matches.'
   }
   return 'Mismatch between aggregate and on-chain read.'

@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * Mesure la largeur réelle du slot chart. Recharts `ResponsiveContainer`
- * produit sinon un wrapper 0×0 dans les flex (`min-h-0` / colonnes).
- * On passe des px explicites à BarChart / LineChart.
+ * Measures the actual width of the chart slot. Otherwise Recharts'
+ * `ResponsiveContainer` produces a 0×0 wrapper inside flex layouts
+ * (`min-h-0` / columns). We pass explicit px to BarChart / LineChart.
  */
 export function useChartWidth(): {
   readonly ref: React.RefObject<HTMLDivElement | null>
