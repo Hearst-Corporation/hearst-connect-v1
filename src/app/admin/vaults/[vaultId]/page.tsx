@@ -3,7 +3,7 @@ import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { ChartFrame, HearstAllocationChart, HearstDonutChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
+import { ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
@@ -249,8 +249,8 @@ function VaultAllocationSection({
       <div className="mt-6">
         <ChartFrame
           question="What is the target allocation mix?"
-          unite="in percent — one color per strategy"
-          etat={{ type: 'plotted' }}
+          unit="in percent — one color per strategy"
+          state={{ type: 'plotted' }}
         >
           <HearstDonutChart slices={allocationSlices} unit="% target" />
         </ChartFrame>
@@ -372,6 +372,7 @@ type VaultHistorySnapshot = {
   readonly id: string
   readonly takenAt: string
   readonly aumUsdc: string
+  readonly btcPriceUsdc: string
   readonly currentApyLow: string
   readonly currentApyHigh: string
   readonly stressedApy: string
@@ -398,13 +399,13 @@ function VaultHistorySection({
   const etat: SeriesState = !isAvailable(history)
     ? {
         type: 'unavailable',
-        explication:
+        explanation:
           history.kind === 'unavailable' && history.reason
             ? `Vault history unavailable — ${history.reason}.`
             : 'Vault history could not be read.',
       }
     : history.value.length === 0
-      ? { type: 'empty', explication: 'No historical snapshots for this vault yet.' }
+      ? { type: 'empty', explanation: 'No historical snapshots for this vault yet.' }
       : { type: 'plotted' }
 
   const combinedPoints =
@@ -424,16 +425,39 @@ function VaultHistorySection({
           .filter((p) => p.aum > 0)
       : []
 
+  const btcPricePoints =
+    isAvailable(history) && history.value.length > 0
+      ? history.value
+          .map((h) => ({
+            label: h.takenAt.slice(0, 10),
+            value: Number(h.btcPriceUsdc),
+            detail: h.takenAt,
+          }))
+          .filter((p) => p.value > 0)
+      : []
+
   return (
-    <ChartFrame
-      question="How has vault AUM and allocation evolved?"
-      unite="AUM in USDC — cbBTC and USDC in %"
-      etat={etat}
-    >
-      {combinedPoints.length > 0 ? (
-        <VaultAumCbbtcChart points={combinedPoints} />
+    <div className="space-y-6">
+      <ChartFrame
+        question="How has vault AUM and allocation evolved?"
+        unit="AUM in USDC — cbBTC and USDC in %"
+        state={etat}
+      >
+        {combinedPoints.length > 0 ? (
+          <VaultAumCbbtcChart points={combinedPoints} />
+        ) : null}
+      </ChartFrame>
+
+      {btcPricePoints.length > 0 ? (
+        <ChartFrame
+          question="What was the BTC price at each snapshot?"
+          unit="in USDC — per snapshot"
+          state={{ type: 'plotted' }}
+        >
+          <HearstLineChart points={btcPricePoints} unit="BTC price" />
+        </ChartFrame>
       ) : null}
-    </ChartFrame>
+    </div>
   )
 }
 

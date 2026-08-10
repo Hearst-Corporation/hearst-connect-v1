@@ -255,6 +255,7 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
       snapshots: BackendResolved<
         readonly {
           takenAt: string
+          btcPriceUsdc: string
           allocations?: readonly { bucket: string; pct: string; valueUsdc: string }[]
         }[]
       >
@@ -269,6 +270,7 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
             at: s.takenAt.slice(0, 10),
             cbbtcPct: Number(cbbtc.pct),
             usdcPct: Number(usdc.pct),
+            btcPriceUsdc: Number(s.btcPriceUsdc),
           }
         })
         .filter((p): p is NonNullable<typeof p> => p !== null)
