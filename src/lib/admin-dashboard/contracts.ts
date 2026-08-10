@@ -124,6 +124,7 @@ export type AdminAllocationPoint = Readonly<{
   at: string
   cbbtcPct: number
   usdcPct: number
+  btcPriceUsdc: number
 }>
 
 export type AdminDashboardData = Readonly<{

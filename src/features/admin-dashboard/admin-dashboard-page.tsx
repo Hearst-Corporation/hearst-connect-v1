@@ -117,6 +117,45 @@ function AllocationSlot({
   return <ChartPlaceholder title="cbBTC / USDC allocation" height={176} icon={ChartBarIcon} />
 }
 
+function BtcPriceSlot({
+  cbbtcAllocation,
+}: Readonly<{
+  cbbtcAllocation: AdminDashboardData['cbbtcAllocation']
+}>) {
+  const points: LinePoint[] = isAvailable(cbbtcAllocation)
+    ? cbbtcAllocation.value.map((p) => ({
+        label: p.at,
+        value: p.btcPriceUsdc,
+        detail: p.at,
+      }))
+    : []
+
+  if (points.length >= 2) {
+    return (
+      <HearstLineChart
+        points={points}
+        unit="BTC price (USDC)"
+        height={176}
+      />
+    )
+  }
+
+  if (!isAvailable(cbbtcAllocation)) {
+    const reason =
+      cbbtcAllocation.kind === 'unavailable'
+        ? (cbbtcAllocation.reason ?? 'Source unavailable')
+        : 'Source unavailable'
+    return (
+      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+        <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
+        <p className="text-fg-tertiary text-xs">{reason}</p>
+      </div>
+    )
+  }
+
+  return <ChartPlaceholder title="BTC price" height={176} icon={ChartBarIcon} />
+}
+
 function RebalancingHistorySlot({
   rebalancingHistory,
 }: Readonly<{
@@ -317,6 +356,17 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
             subtitle="Primary vault — last 28 days"
           >
             <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
+          </DashCard>
+        </BentoCard>
+
+        <BentoCard>
+          <DashCard
+            className="min-w-0"
+            contentClassName="flex-1"
+            title="BTC price"
+            subtitle="At primary vault snapshots"
+          >
+            <BtcPriceSlot cbbtcAllocation={data.cbbtcAllocation} />
           </DashCard>
         </BentoCard>
 
