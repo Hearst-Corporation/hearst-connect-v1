@@ -1,21 +1,13 @@
 /**
- * Application layout grid — the single source of truth for page composition.
+ * Shared layout tokens for the admin console.
  *
- * Every admin route composes its content through a real 12-column grid at a
- * readable measure. Nothing "stretches to whatever width is available": a
- * block occupies a declared number of columns, and the leftovers are
- * whitespace, not an accident of auto-placement.
- *
- * Breakpoint ladder — 4 / 8 / 12 columns:
- *   base (< 768px)  4 columns
- *   md   (≥ 768px)  8 columns
- *   lg   (≥ 1024px) 12 columns
- *
- * A span is therefore declared three times (base / md / lg) or inherits the
- * sensible default: full width below `lg`.
+ * The dashboard composes its cards through a container-driven **masonry**
+ * (`src/components/admin/grid.tsx`, `BentoGrid`/`BentoCard`): cards flow down
+ * the shortest column at their natural height, so nothing declares a fixed
+ * column span and nothing stretches to fill a track.
  */
 
-/** The grid gutter, used by every `AdminGrid`. */
+/** The masonry column gutter, consumed by `BentoGrid`. */
 export const gridGap = 'gap-6'
 
 /*
