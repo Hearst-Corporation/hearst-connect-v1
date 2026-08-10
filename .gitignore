@@ -50,3 +50,10 @@ storybook-static
 /e2e-report.json
 .validation-*/
 .worktrees/
+
+# preuves QA / scratch de mission (hors périmètre produit)
+/tmp/
+
+# racine locale Supernova (outil Cursor, poste-dépendant)
+.cursor/SUPERNOVA_CURSOR_ROOT
+.cursor/supernova

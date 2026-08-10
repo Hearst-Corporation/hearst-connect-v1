@@ -13,6 +13,7 @@ import { DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/compon
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatRelativeTime } from '@/lib/format'
+import { useSearchParams } from 'next/navigation'
 import { kycStatusLabel } from '@/lib/labels'
 import { useMemo, useState } from 'react'
 
@@ -66,7 +67,11 @@ export function ClientsDirectory({
   clients,
   assetScale,
 }: Readonly<{ clients: readonly AdminRecentClient[]; assetScale: AdminAssetScale | null }>) {
-  const [query, setQuery] = useState('')
+  // Pré-remplissage depuis la recherche du header (`/admin/clients?q=…`) : le
+  // champ reste pilotable ensuite. Aucune donnée n'est fabriquée — on ne fait
+  // qu'initialiser le filtre local sur la donnée réelle déjà chargée.
+  const initialQuery = useSearchParams().get('q') ?? ''
+  const [query, setQuery] = useState(initialQuery)
   const [filter, setFilter] = useState<FilterId>('all')
 
   const filtered = useMemo(() => {

@@ -96,8 +96,8 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   - `check:ui` (`scripts/check-ui-boundaries.mjs`) — frontières compositions / charts / Catalyst.
   - `check:english-ui` (`scripts/check-english-ui.mjs`) — UI produit English-only (`lang="en"`,
     routes canoniques EN, pas de copy FR runtime hors legacy redirects).
-  - `test` (`vitest run`) — suite dans `tests/` (59 fichiers / 455 tests, mesuré au 2026-08-09),
-    dont `truthful-rendering`, `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`,
+  - `test` (`vitest run`) — suite dans `tests/` (56 fichiers / 424 tests, mesuré au 2026-08-10),
+    dont `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`,
     `veracity-p0`, `language-regression`.
 - En complément de la gate, avant livraison : parcours réel (connexion → dashboard → déconnexion).
 

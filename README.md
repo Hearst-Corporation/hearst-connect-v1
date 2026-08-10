@@ -101,7 +101,7 @@ src/
 ├── features/admin-dashboard/   tableau de bord `/admin`
 └── lib/
     ├── backend/                callBackend, endpoints
-    └── vaults/                 Availability, registry, pilotage, cockpit
+    └── vaults/                 Availability, model, registry, overview
 ```
 
 ## Données
@@ -124,7 +124,7 @@ pnpm exec next build     # build prod (hors gate)
 
 Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
 `surfaceBox` (cards verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint sélection).
-Header console partagé : `AdminPageHeader` — glow + monogramme H + titre + KPI hero. Fond : `public/brand/console-glow.png` (`consoleGlowLayer` — `fixed` + `bg-fixed`, HC-ADMIN-FIXED-BACKGROUND-027). Monogramme : `public/brand/hearst-h.svg`. Lockup officiel (Hearst-Defi) : `public/brand/hearst-connect.svg` (+ `-dark` / `-official`). Favicon onglet : `src/app/icon.svg` (H mint sur fond graphite).
+Header console partagé : `AdminPageHeader` — glow + monogramme H + titre + KPI hero. Fond : `public/brand/console-glow.png` (`consoleGlowLayer` — `fixed` + `bg-top` + masque dégradé vers le bas, HC-ADMIN-FIXED-BACKGROUND-027 ; le glow est confiné au haut de page au lieu d'être étiré sur tout le viewport). Monogramme : `public/brand/hearst-h.svg`. Lockup officiel (Hearst-Defi) : `public/brand/hearst-connect.svg` (+ `-dark` / `-official`). Favicon onglet : `src/app/icon.svg` (H mint sur fond graphite).
 Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
 Gate `check:no-zinc` : palette structurelle interdite — tokens sémantiques `fg` / `ink` / `console-*` uniquement (`.cursor/rules/50-no-zinc.mdc`).
 
