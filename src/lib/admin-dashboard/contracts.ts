@@ -54,6 +54,11 @@ export type AdminRebalancingSummary = Readonly<{
 
 export type AdminTimeseriesPoint = Readonly<{ at: string; value: number }>
 
+export type AdminRebalancingHistoryPoint = Readonly<{
+  observedAt: string
+  driftBps: number
+}>
+
 export type AdminMarketSnapshot = Readonly<{
   btcUsd: string | null
   btcChange24hPct: string | null
@@ -115,18 +120,26 @@ export type AdminDataHealthSource = Readonly<{
   freshnessSeconds: number | null
 }>
 
+export type AdminAllocationPoint = Readonly<{
+  at: string
+  cbbtcPct: number
+  usdcPct: number
+}>
+
 export type AdminDashboardData = Readonly<{
   overview: Availability<AdminPortfolioOverview>
   exposure: Availability<readonly AdminExposureStrategy[]>
   totalAumAtomic: Availability<string>
   rebalancing: Availability<AdminRebalancingSummary>
   activityTimeseries: Availability<readonly AdminTimeseriesPoint[]>
+  rebalancingHistory: Availability<readonly AdminRebalancingHistoryPoint[]>
   market: Availability<AdminMarketSnapshot>
   vaults: Availability<readonly AdminVaultSummary[]>
   vaultsTotalAum: Availability<string>
   recentClients: Availability<readonly AdminRecentClient[]>
   recentActivity: Availability<readonly AdminActivityEvent[]>
   dataHealth: Availability<readonly AdminDataHealthSource[]>
+  cbbtcAllocation: Availability<readonly AdminAllocationPoint[]>
 }>
 
 export type AdminOperationsSurface = Readonly<{

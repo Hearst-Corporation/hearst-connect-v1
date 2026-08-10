@@ -8,6 +8,7 @@ import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminExposureStrategy } from '@/lib/admin-dashboard/contracts'
 import { isAvailable } from '@/lib/vaults/model'
 import type { Availability } from '@/lib/vaults/model'
+import { HearstDonutChart } from '@/components/charts'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
@@ -115,6 +116,11 @@ export function PortfolioExposurePanel({
   const offTargetIndex = rows.findIndex((r) => r.status !== 'on_target')
   const defaultIndex = Math.max(offTargetIndex, 0)
 
+  const allocationSlices = rows.map((row) => ({
+    label: row.strategyLabel,
+    value: row.targetBps / 100,
+  }))
+
   return (
     <TabGroup
       defaultIndex={defaultIndex}
@@ -123,6 +129,9 @@ export function PortfolioExposurePanel({
       data-widget="portfolio-exposure"
     >
       <div className="flex min-w-0 flex-col gap-4">
+        <div className="mx-auto w-full max-w-xs">
+          <HearstDonutChart slices={allocationSlices} unit="% target" />
+        </div>
         <TabList className="grid grid-cols-2 gap-2 @[28rem]:grid-cols-4">
           {rows.map((row) => (
             <Tab
