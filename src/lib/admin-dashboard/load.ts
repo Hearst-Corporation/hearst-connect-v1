@@ -13,6 +13,7 @@ import {
 export {
   isAdminNotConfigured,
   type AdminActivityEvent,
+  type AdminAllocationPoint,
   type AdminDashboardData,
   type AdminDataHealthSource,
   type AdminExposureStrategy,
@@ -21,6 +22,7 @@ export {
   type AdminPortfolioOverview,
   type AdminRecentClient,
   type AdminRebalancingAlert,
+  type AdminRebalancingHistoryPoint,
   type AdminRebalancingSummary,
   type AdminTimeseriesPoint,
   type AdminVaultSummary,
@@ -28,6 +30,7 @@ export {
 
 import type {
   AdminActivityEvent,
+  AdminAllocationPoint,
   AdminDashboardData,
   AdminDataHealthSource,
   AdminExposureStrategy,
@@ -35,6 +38,7 @@ import type {
   AdminOperationsSurface,
   AdminPortfolioOverview,
   AdminRecentClient,
+  AdminRebalancingHistoryPoint,
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
   AdminVaultSummary,
@@ -155,6 +159,7 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     overviewRes,
     exposureRes,
     rebalancingRes,
+    rebalancingHistoryRes,
     timeseriesRes,
     marketRes,
     vaultsRes,
@@ -167,6 +172,9 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
       'admin-portfolio-exposure',
     ),
     callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
+    callBackend<{
+      history: BackendResolved<{ series: readonly AdminRebalancingHistoryPoint[] }>
+    }>('rebalancing-history', { params: { limit: 90 } }),
     callBackend<{ timeseries: BackendResolved<{ series: readonly AdminTimeseriesPoint[] }> }>(
       'admin-activity-timeseries',
       { params: { range: '28d' } },
@@ -204,6 +212,13 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     '/api/v1/admin/rebalancing/summary',
   )
 
+  const rebalancingHistoryBloc = fromBackendOrUnavailable(
+    rebalancingHistoryRes,
+    rebalancingHistoryRes.ok ? rebalancingHistoryRes.data.history : undefined,
+    '/api/v1/rebalancing/history',
+  )
+  const rebalancingHistory = unwrapAvailableField(rebalancingHistoryBloc, 'series')
+
   const timeseriesBloc = fromBackendOrUnavailable(
     timeseriesRes,
     timeseriesRes.ok ? timeseriesRes.data.timeseries : undefined,
@@ -226,6 +241,45 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
   const vaultsTotalAum = isAvailable(vaultsBloc)
     ? withBlocMeta(vaultsBloc, vaultsBloc.value.totalAumAtomic)
     : unavailable({ endpoint: '/api/v1/admin/vaults/summary', reason: 'total_aum_not_reported' })
+
+  // Fetch allocation breakdown (cbBTC + USDC) for the vault with the highest AUM.
+  let cbbtcAllocation: Availability<readonly AdminAllocationPoint[]> = unavailable({
+    endpoint: '/api/v1/vault/history',
+    reason: 'no_vaults_available',
+  })
+  if (isAvailable(vaults) && vaults.value.length > 0) {
+    const topVault = [...vaults.value].sort(
+      (a, b) => Number(b.totalAssetsAtomic) - Number(a.totalAssetsAtomic),
+    )[0]
+    const historyRes = await callBackend<{
+      snapshots: BackendResolved<
+        readonly {
+          takenAt: string
+          allocations?: readonly { bucket: string; pct: string; valueUsdc: string }[]
+        }[]
+      >
+    }>('vault-history', { params: { vaultId: topVault.id, limit: 28 } })
+    if (historyRes.ok && historyRes.data.snapshots?.value) {
+      const points = historyRes.data.snapshots.value
+        .map((s) => {
+          const cbbtc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('cbbtc'))
+          const usdc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('usdc'))
+          if (!cbbtc || !usdc) return null
+          return {
+            at: s.takenAt.slice(0, 10),
+            cbbtcPct: Number(cbbtc.pct),
+            usdcPct: Number(usdc.pct),
+          }
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null)
+      cbbtcAllocation = available(points, { provenance: 'unknown' })
+    } else {
+      cbbtcAllocation = unavailable({
+        endpoint: '/api/v1/vault/history',
+        reason: historyRes.ok ? 'no_allocation_data' : 'service_did_not_respond',
+      })
+    }
+  }
 
   const recentClients = fromBackendOrUnavailable(
     clientsRes,
@@ -253,12 +307,14 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
       : totalAumFromExposure,
     rebalancing,
     activityTimeseries,
+    rebalancingHistory,
     market,
     vaults,
     vaultsTotalAum,
     recentClients,
     recentActivity,
     dataHealth,
+    cbbtcAllocation,
   }
 }
 

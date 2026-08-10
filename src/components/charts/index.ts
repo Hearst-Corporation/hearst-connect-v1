@@ -32,4 +32,13 @@ export {
   type DistributionItem,
 } from '@/components/charts/richart/distribution-chart'
 export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'
+export { HearstLineChart, type LinePoint } from '@/components/charts/richart/line-chart'
 export { RichSparkline } from '@/components/charts/richart/sparkline'
+export {
+  VaultAumCbbtcChart,
+  type AumCbbtcPoint,
+} from '@/components/charts/richart/vault-aum-cbbtc-chart'
+export {
+  AllocationDualLineChart,
+  type AllocationPoint,
+} from '@/components/charts/richart/allocation-dual-line-chart'

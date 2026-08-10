@@ -163,6 +163,15 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'Time-series from scheduler snapshots — one row per tick.',
   }),
   defineEndpoint({
+    id: 'vault-history',
+    path: '/api/v1/vault/history',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin/vaults',
+    summary: 'Historical vault snapshots — total assets over time.',
+    caveat: 'Query `limit` (default 90) — time-series from scheduler snapshots.',
+  }),
+  defineEndpoint({
     id: 'rebalancing-history',
     path: '/api/v1/rebalancing/history',
     category: 'business',

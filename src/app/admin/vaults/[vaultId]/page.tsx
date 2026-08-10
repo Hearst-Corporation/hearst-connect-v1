@@ -3,7 +3,8 @@ import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { ChartFrame, HearstAllocationChart, type AllocationItem } from '@/components/charts'
+import { ChartFrame, HearstAllocationChart, HearstDonutChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
+import { callBackend } from '@/lib/backend/client'
 import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
@@ -20,6 +21,7 @@ import {
 } from '@/lib/format'
 import { movementLabel, movementSentence } from '@/lib/movements'
 import {
+  available,
   combine,
   deployedAtomic,
   editorial,
@@ -223,6 +225,11 @@ function VaultAllocationSection({
     )
   }
 
+  const allocationSlices = rebalancingList.map((row) => ({
+    label: row.strategyLabel,
+    value: row.targetBps / 100,
+  }))
+
   return (
     <>
       <ChartFrame
@@ -238,6 +245,17 @@ function VaultAllocationSection({
           }))}
         />
       </ChartFrame>
+
+      <div className="mt-6">
+        <ChartFrame
+          question="What is the target allocation mix?"
+          unite="in percent — one color per strategy"
+          etat={{ type: 'plotted' }}
+        >
+          <HearstDonutChart slices={allocationSlices} unit="% target" />
+        </ChartFrame>
+      </div>
+
       <DataTableShell
         title="Allocation"
         description="Target, exposure, and drift as reported by the service."
@@ -344,10 +362,99 @@ function VaultRecentActivitySection({
   return <DataTableShell title="Recent activity" calme="No indexed movement for this vault." />
 }
 
+type VaultAllocationItem = {
+  readonly bucket: string
+  readonly pct: string
+  readonly valueUsdc: string
+}
+
+type VaultHistorySnapshot = {
+  readonly id: string
+  readonly takenAt: string
+  readonly aumUsdc: string
+  readonly currentApyLow: string
+  readonly currentApyHigh: string
+  readonly stressedApy: string
+  readonly riskScore: number
+  readonly miningMarginScore: number
+  readonly mode: string
+  readonly source: string
+  readonly allocations?: readonly VaultAllocationItem[]
+}
+
+type BackendResolved<T> = Readonly<{
+  status?: string
+  value: T | null
+  reason?: string | null
+  provenance?: string | null
+  freshness?: { asOf?: string | null; ageSeconds?: number | null; stale?: boolean } | null
+}>
+
+function VaultHistorySection({
+  history,
+}: Readonly<{
+  history: Availability<readonly VaultHistorySnapshot[]>
+}>) {
+  const etat: SeriesState = !isAvailable(history)
+    ? {
+        type: 'unavailable',
+        explication:
+          history.kind === 'unavailable' && history.reason
+            ? `Vault history unavailable — ${history.reason}.`
+            : 'Vault history could not be read.',
+      }
+    : history.value.length === 0
+      ? { type: 'empty', explication: 'No historical snapshots for this vault yet.' }
+      : { type: 'plotted' }
+
+  const combinedPoints =
+    isAvailable(history) && history.value.length > 0
+      ? history.value
+          .map((h) => {
+            const cbbtc = h.allocations?.find((a) => a.bucket.toLowerCase().includes('cbbtc'))
+            const usdc = h.allocations?.find((a) => a.bucket.toLowerCase().includes('usdc'))
+            return {
+              label: h.takenAt.slice(0, 10),
+              aum: Number(h.aumUsdc),
+              cbbtcPct: cbbtc ? Number(cbbtc.pct) : 0,
+              usdcPct: usdc ? Number(usdc.pct) : 0,
+              detail: h.takenAt,
+            }
+          })
+          .filter((p) => p.aum > 0)
+      : []
+
+  return (
+    <ChartFrame
+      question="How has vault AUM and allocation evolved?"
+      unite="AUM in USDC — cbBTC and USDC in %"
+      etat={etat}
+    >
+      {combinedPoints.length > 0 ? (
+        <VaultAumCbbtcChart points={combinedPoints} />
+      ) : null}
+    </ChartFrame>
+  )
+}
+
 export default async function Page({ params }: PageProps) {
   const { vaultId } = await params
   const session = await requireSession()
-  const { registry, vault } = await loadVault(vaultId as VaultId, session.name)
+  const [{ registry, vault }, historyRes] = await Promise.all([
+    loadVault(vaultId as VaultId, session.name),
+    callBackend<{
+      snapshots: BackendResolved<readonly VaultHistorySnapshot[]>
+    }>('vault-history', { params: { vaultId, limit: 90 } }),
+  ])
+
+  const history: Availability<readonly VaultHistorySnapshot[]> = historyRes.ok
+    ? historyRes.data.snapshots?.value !== null && historyRes.data.snapshots?.value !== undefined
+      ? available(historyRes.data.snapshots.value, { provenance: 'unknown' })
+      : unavailable({
+          endpoint: '/api/v1/vault/history',
+          reason: historyRes.data.snapshots?.reason ?? 'no_snapshots',
+        })
+    : unavailable({ endpoint: '/api/v1/vault/history', reason: 'service_did_not_respond' })
 
   if (vault === null) notFound()
 
@@ -390,6 +497,8 @@ export default async function Page({ params }: PageProps) {
       </div>
 
       <VaultAllocationSection scopedRebalancing={scopedRebalancing} rebalancingList={rebalancingList} />
+
+      <VaultHistorySection history={history} />
 
       <VaultRecentActivitySection
         scopedMovements={scopedMovements}

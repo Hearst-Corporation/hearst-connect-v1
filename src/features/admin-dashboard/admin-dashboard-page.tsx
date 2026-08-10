@@ -12,12 +12,12 @@ import {
   VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
-import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
+import { AllocationDualLineChart, HearstActivityChart, HearstLineChart, type ActivityPoint, type AllocationPoint, type LinePoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-import { formatCurrency } from '@/lib/format'
+import { formatCurrency, formatNumber } from '@/lib/format'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, mapAvailability } from '@/lib/vaults/model'
 import {
@@ -76,6 +76,97 @@ function ActivityChartSlot({
   }
 
   return <ChartPlaceholder title="Activity" height={176} icon={ChartBarIcon} />
+}
+
+function AllocationSlot({
+  cbbtcAllocation,
+}: Readonly<{
+  cbbtcAllocation: AdminDashboardData['cbbtcAllocation']
+}>) {
+  const points: AllocationPoint[] = isAvailable(cbbtcAllocation)
+    ? cbbtcAllocation.value.map((p) => ({
+        label: p.at,
+        cbbtcPct: p.cbbtcPct,
+        usdcPct: p.usdcPct,
+        detail: p.at,
+      }))
+    : []
+
+  if (points.length >= 2) {
+    return (
+      <AllocationDualLineChart
+        points={points}
+        height={176}
+      />
+    )
+  }
+
+  if (!isAvailable(cbbtcAllocation)) {
+    const reason =
+      cbbtcAllocation.kind === 'unavailable'
+        ? (cbbtcAllocation.reason ?? 'Source unavailable')
+        : 'Source unavailable'
+    return (
+      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+        <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
+        <p className="text-fg-tertiary text-xs">{reason}</p>
+      </div>
+    )
+  }
+
+  return <ChartPlaceholder title="cbBTC / USDC allocation" height={176} icon={ChartBarIcon} />
+}
+
+function RebalancingHistorySlot({
+  rebalancingHistory,
+}: Readonly<{
+  rebalancingHistory: AdminDashboardData['rebalancingHistory']
+}>) {
+  const points: LinePoint[] = isAvailable(rebalancingHistory)
+    ? rebalancingHistory.value.map((p) => ({
+        label: p.observedAt.slice(0, 10),
+        value: p.driftBps,
+        detail: p.observedAt,
+      }))
+    : []
+
+  if (points.length >= 2) {
+    return (
+      <HearstLineChart
+        points={points}
+        unit="drift (bps)"
+        height={176}
+      />
+    )
+  }
+
+  if (isAdminNotConfigured(rebalancingHistory)) {
+    const reason =
+      rebalancingHistory.kind === 'unavailable'
+        ? (rebalancingHistory.reason ?? 'No rebalancing history indexed yet.')
+        : null
+    return (
+      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+        <p className="text-ink dark:text-fg text-sm font-semibold">Rebalancing history not configured</p>
+        <p className="text-fg-tertiary text-xs">{reason}</p>
+      </div>
+    )
+  }
+
+  if (!isAvailable(rebalancingHistory)) {
+    const reason =
+      rebalancingHistory.kind === 'unavailable'
+        ? (rebalancingHistory.reason ?? 'Source unavailable')
+        : 'Source unavailable'
+    return (
+      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+        <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
+        <p className="text-fg-tertiary text-xs">{reason}</p>
+      </div>
+    )
+  }
+
+  return <ChartPlaceholder title="Rebalancing drift" height={176} icon={ChartBarIcon} />
 }
 
 /**
@@ -190,6 +281,17 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         </BentoCard>
 
         <BentoCard>
+          <DashCard
+            className="min-w-0"
+            contentClassName="flex-1"
+            title="Rebalancing drift"
+            subtitle="Historical allocation drift over time"
+          >
+            <RebalancingHistorySlot rebalancingHistory={data.rebalancingHistory} />
+          </DashCard>
+        </BentoCard>
+
+        <BentoCard>
           <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
             <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
           </DashCard>
@@ -204,6 +306,17 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         <BentoCard>
           <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
             <MarketSnapshotPanel snapshot={data.market} />
+          </DashCard>
+        </BentoCard>
+
+        <BentoCard>
+          <DashCard
+            className="min-w-0"
+            contentClassName="flex-1"
+            title="cbBTC / USDC allocation"
+            subtitle="Primary vault — last 28 days"
+          >
+            <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
           </DashCard>
         </BentoCard>
 
