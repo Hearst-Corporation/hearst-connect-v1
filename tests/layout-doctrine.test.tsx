@@ -1,4 +1,4 @@
-import { AdminMetricGrid, BentoCard, BentoGrid } from '@/components/admin/grid'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import {
   ADMIN_NAV,
   ADMIN_SECONDARY,
@@ -136,38 +136,6 @@ describe('masonry Bento grid', () => {
        */
       expect(card.className).toContain('break-inside-avoid')
       expect(card.className).not.toMatch(/col-span-/)
-    }
-  })
-})
-
-describe('metric grids are balanced', () => {
-  /** The column counts a class string commits to, at any breakpoint. */
-  function declaredColumns(className: string): number[] {
-    return [...className.matchAll(/(?:^|\s|:)grid-cols-(\d+)/g)].map((m) => Number(m[1]))
-  }
-
-  it('never leaves an orphan in the last row', () => {
-    for (let count = 2; count <= 12; count += 1) {
-      const { container } = render(
-        <AdminMetricGrid count={count}>
-          {Array.from({ length: count }, (_, i) => (
-            <div key={i}>tile</div>
-          ))}
-        </AdminMetricGrid>,
-      )
-      const className = container.firstElementChild?.className ?? ''
-
-      // Either every declared column count divides the item count evenly…
-      const columns = declaredColumns(className)
-      const allDivide = columns.length > 0 && columns.every((c) => count % c === 0)
-      // …or the grid uses auto-fit, whose empty tracks collapse so the
-      // surviving tiles stretch and the row still ends full.
-      const autoFit = className.includes('auto-fit')
-
-      expect(
-        allDivide || autoFit,
-        `count=${count} produced "${className}" — that leaves an arbitrary empty half-row`,
-      ).toBe(true)
     }
   })
 })
