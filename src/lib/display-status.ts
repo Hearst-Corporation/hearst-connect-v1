@@ -11,17 +11,17 @@ import type { ResolvedStatus } from '@/lib/resolved'
  * instead of forcing it through a cast.
  */
 
-export type StatutAffichage = ResolvedStatus | 'SNAPSHOT'
+export type DisplayStatus = ResolvedStatus | 'SNAPSHOT'
 
 /**
  * Exhaustive table of displayable statuses.
  *
- * The `Record<StatutAffichage, true>` type forces TypeScript to flag any
+ * The `Record<DisplayStatus, true>` type forces TypeScript to flag any
  * missing member: if `ResolvedStatus` gains a value tomorrow, compilation
  * fails here instead of silently drifting. A plain string array wouldn't
  * offer that guarantee.
  */
-const STATUTS_AFFICHABLES: Record<StatutAffichage, true> = {
+const DISPLAYABLE_STATUSES: Record<DisplayStatus, true> = {
   LIVE: true,
   SNAPSHOT: true,
   STALE: true,
@@ -43,11 +43,11 @@ const STATUTS_AFFICHABLES: Record<StatutAffichage, true> = {
  * `statusFromMeta` (`src/lib/backend/client.ts`), whose `default` already
  * falls back to `UNAVAILABLE` — same house, same fallback.
  */
-const STATUT_INCONNU: StatutAffichage = 'UNAVAILABLE'
+const UNKNOWN_STATUS: DisplayStatus = 'UNAVAILABLE'
 
 /** True if the string is exactly one of the displayable statuses. */
-function estStatutAffichage(valeur: string): valeur is StatutAffichage {
-  return Object.hasOwn(STATUTS_AFFICHABLES, valeur)
+function isDisplayStatus(value: string): value is DisplayStatus {
+  return Object.hasOwn(DISPLAYABLE_STATUSES, value)
 }
 
 /**
@@ -56,7 +56,7 @@ function estStatutAffichage(valeur: string): valeur is StatutAffichage {
  * An absence (`null`/`undefined`) and an unknown value are treated
  * identically: in both cases, we have no readable state to announce.
  */
-export function statutAffichage(valeur: string | null | undefined): StatutAffichage {
-  if (valeur === null || valeur === undefined) return STATUT_INCONNU
-  return estStatutAffichage(valeur) ? valeur : STATUT_INCONNU
+export function displayStatus(value: string | null | undefined): DisplayStatus {
+  if (value === null || value === undefined) return UNKNOWN_STATUS
+  return isDisplayStatus(value) ? value : UNKNOWN_STATUS
 }

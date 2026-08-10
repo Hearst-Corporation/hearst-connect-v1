@@ -253,7 +253,7 @@ export async function callBackend<T = unknown>(
 ): Promise<BackendResult<T>> {
   const endpoint = BACKEND_ENDPOINTS.find((e) => e.id === endpointId)
   if (!endpoint) {
-    throw new Error(`Endpoint hors registre : "${endpointId}".`)
+    throw new Error(`Endpoint out of registry: "${endpointId}".`)
   }
 
   const startedAt = performance.now()
@@ -354,11 +354,11 @@ function buildResult<T>(
 
 /** Backend envelope status → display status, without requalification. */
 export function statusFromMeta(meta: EnvelopeMeta | null): Resolved<never>['status'] {
-  // Pas de métadonnée = aucun statut de fraîcheur déclaré par la source.
-  // `UNAVAILABLE`, pas `LIVE` : afficher « En direct » sur une réponse qui n'a
-  // jamais annoncé sa fraîcheur certifierait un frais que rien n'établit — même
-  // doctrine que `statutAffichage` (`src/lib/statut-affichage.ts`) et que le
-  // `default` ci-dessous. Voir VER-10 (faux live sur métadonnée absente).
+  // No metadata = no freshness status declared by the source.
+  // `UNAVAILABLE`, not `LIVE`: showing "Live" on a response that never announced
+  // its freshness would certify a freshness that nothing establishes — same
+  // doctrine as `displayStatus` (`src/lib/display-status.ts`) and as the
+  // `default` below. See VER-10 (false live on absent metadata).
   if (!meta) return 'UNAVAILABLE'
   switch (meta.status) {
     case 'LIVE':

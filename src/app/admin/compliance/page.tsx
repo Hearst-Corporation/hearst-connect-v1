@@ -7,7 +7,7 @@ import { Callout, DataTableShell, fitTableColCompact, fitTableColPrimary } from 
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { kycStatusLabel, kycStepLabel } from '@/lib/labels'
-import { dateLisible } from '@/lib/mouvements'
+import { dateLisible } from '@/lib/movements'
 import { isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'

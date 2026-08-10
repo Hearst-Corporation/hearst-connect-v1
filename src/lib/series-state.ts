@@ -5,7 +5,7 @@ import type { SeriesState } from '@/components/charts/core/chart-frame'
  * backend — shared by the product pages (BTC, factsheet…).
  */
 
-export type ChampResolu<T = unknown> = {
+export type ResolvedField<T = unknown> = {
   readonly status: string
   readonly value: T | null
   readonly reason?: string | null
@@ -16,7 +16,7 @@ export type ChampResolu<T = unknown> = {
  *
  * Keys are raw backend codes and do not change; only the phrases are translated.
  */
-export const MOTIF_SERIE: Record<string, string> = {
+export const SERIES_REASON: Record<string, string> = {
   dynavault_not_deployed: 'this measure is not yet exposed on the deployed contract',
   not_exposed_by_contract: 'the contract exposes no reading for this data point',
   no_custody_provider_integrated: 'no custody provider is integrated',
@@ -26,28 +26,27 @@ export const MOTIF_SERIE: Record<string, string> = {
   rpc_error: 'the chain did not respond',
 }
 
-export function explicationSerie(
-  bloc: ChampResolu | undefined,
-  defaut: string,
-  motifs: Record<string, string> = MOTIF_SERIE,
+export function seriesExplanation(
+  block: ResolvedField | undefined,
+  fallback: string,
+  reasons: Record<string, string> = SERIES_REASON,
 ): string {
-  const brut = bloc?.reason
-  if (typeof brut !== 'string' || brut === '') return defaut
-  return motifs[brut] ?? defaut
+  const raw = block?.reason
+  if (typeof raw !== 'string' || raw === '') return fallback
+  return reasons[raw] ?? fallback
 }
 
 export function seriesStateFrom(
-  bloc: ChampResolu | undefined,
-  defaut: string,
-  motifs: Record<string, string> = MOTIF_SERIE,
+  block: ResolvedField | undefined,
+  fallback: string,
+  reasons: Record<string, string> = SERIES_REASON,
 ): SeriesState {
-  if (bloc === undefined) return { type: 'pending', explication: defaut }
-  if (bloc.status === 'UNAVAILABLE' || bloc.status === 'ERROR') {
-    return { type: 'unavailable', explication: explicationSerie(bloc, defaut, motifs) }
+  if (block === undefined) return { type: 'pending', explanation: fallback }
+  if (block.status === 'UNAVAILABLE' || block.status === 'ERROR') {
+    return { type: 'unavailable', explanation: seriesExplanation(block, fallback, reasons) }
   }
-  if (bloc.status !== 'LIVE' || bloc.value === null) {
-    return { type: 'pending', explication: explicationSerie(bloc, defaut, motifs) }
+  if (block.status !== 'LIVE' || block.value === null) {
+    return { type: 'pending', explanation: seriesExplanation(block, fallback, reasons) }
   }
   return { type: 'plotted' }
 }
-

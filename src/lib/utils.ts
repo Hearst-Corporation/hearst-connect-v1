@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { ClassValue } from 'clsx'
 
-/** Utilitaire shadcn / Aceternity — concatène des classes. */
+/** shadcn / Aceternity utility — concatenates class names. */
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs)
 }

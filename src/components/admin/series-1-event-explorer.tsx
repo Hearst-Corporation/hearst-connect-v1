@@ -6,7 +6,7 @@ import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { formatNumber, pluralSuffix } from '@/lib/format'
-import { dateLisible, ilYA, libelleMouvement } from '@/lib/mouvements'
+import { dateLisible, ilYA, movementLabel } from '@/lib/movements'
 import { useMemo, useState } from 'react'
 
 export type Series1EventRow = Readonly<{
@@ -99,7 +99,7 @@ export function Series1EventExplorer({
 
   const eventOptions = useMemo(() => {
     const names = new Set(rows.map((row) => row.eventName))
-    return [...names].sort((a, b) => libelleMouvement(a).localeCompare(libelleMouvement(b)))
+    return [...names].sort((a, b) => movementLabel(a).localeCompare(movementLabel(b)))
   }, [rows])
 
   const filtered = useMemo(() => rows.filter((row) => rowMatches(row, filters)), [rows, filters])
@@ -118,7 +118,7 @@ export function Series1EventExplorer({
             <option value="">All events</option>
             {eventOptions.map((name) => (
               <option key={name} value={name}>
-                {libelleMouvement(name)}
+                {movementLabel(name)}
               </option>
             ))}
           </Select>
@@ -206,7 +206,7 @@ export function Series1EventExplorer({
                 ].filter(Boolean)
                 return (
                   <TableRow key={row.id} title={detailBits.join(' · ') || undefined}>
-                    <TableCell className="truncate font-medium">{libelleMouvement(row.eventName)}</TableCell>
+                    <TableCell className="truncate font-medium">{movementLabel(row.eventName)}</TableCell>
                     <TableCell className="tabular-nums">
                       {row.amount !== null ? (
                         <>

@@ -1,9 +1,9 @@
 import { Text } from '@/components/catalyst/text'
 
 /**
- * Status de chargement admin — slot contenu du SidebarLayout Catalyst.
- * Status nommé « loading », distinct de vide / indisponible / erreur :
- * aucune figure placeholder.
+ * Admin loading status — content slot of the Catalyst SidebarLayout.
+ * Named "loading" status, distinct from empty / unavailable / error:
+ * no placeholder figure.
  */
 export default function AdminLoading() {
   return (

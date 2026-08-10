@@ -1,37 +1,37 @@
 /**
- * Design system surfaces — matière canonique Hearst Connect.
+ * Design system surfaces — canonical Hearst Connect material.
  *
- * ── Architecture PASS 2 ───────────────────────────────────────────────────
- * UNE matière de box : `surfaceBox` (verre `console-card`).
- * Les composants (`Panel`, `DashCard`, tooltips…) COMPOSENT cette matière.
- * Ils ne redéclarent pas un second verre via CSS module (`.panel` / csl).
+ * ── PASS 2 architecture ───────────────────────────────────────────────────
+ * ONE box material: `surfaceBox` (`console-card` glass).
+ * Components (`Panel`, `DashCard`, tooltips…) COMPOSE this material.
+ * They do not redeclare a second glass via a CSS module (`.panel` / csl).
  *
- * Autres matières = rôles DISTINCTS, pas des doublons de box :
- * | Token class     | Matière                              | Usage                       |
+ * Other materials = DISTINCT roles, not duplicate boxes:
+ * | Token class     | Material                             | Usage                       |
  * |-----------------|--------------------------------------|-----------------------------|
- * | `surfaceBox`    | verre `console-card` + blur          | Panel, DashCard, tooltips   |
- * | `surfaceNav`    | verre `console-glass` + blur         | Menu / rail                 |
- * | `surfaceInset`  | `console-inset` (puits plus dense)   | pre, wells, sous-blocs      |
- * | `surfaceSelect` | voile mint `data-selected:`          | sélection parcours          |
+ * | `surfaceBox`    | `console-card` glass + blur          | Panel, DashCard, tooltips   |
+ * | `surfaceNav`    | `console-glass` glass + blur         | Menu / rail                 |
+ * | `surfaceInset`  | `console-inset` (denser well)        | pre, wells, sub-blocks      |
+ * | `surfaceSelect` | mint veil `data-selected:`           | journey selection           |
  *
- * Dimensions : largeur et hauteur suivent le container et le layout de la page.
+ * Dimensions: width and height follow the container and the page layout.
  */
 
-/** Box — face vitrée (transparence + profondeur). Matière unique des boxes. */
+/** Box — glass face (transparency + depth). The single box material. */
 export const surfaceBox =
   'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line backdrop-blur-xl backdrop-saturate-150'
 
 /**
- * Menu / rail — même famille verre, token `console-glass` (un peu plus dense).
+ * Menu / rail — same glass family, `console-glass` token (slightly denser).
  */
 export const surfaceNav =
   'bg-console-glass backdrop-blur-xl backdrop-saturate-150 ring-1 ring-console-line-soft'
 
-/** Sous-surface en creux (code, formulaires, métadonnées) — un cran plus dense. */
+/** Recessed sub-surface (code, forms, metadata) — one notch denser. */
 export const surfaceInset =
   'rounded-lg bg-console-inset ring-1 ring-console-line-soft backdrop-blur-md'
 
-/** Sélection — voile mint (état `data-selected` Headless UI / parcours). */
+/** Selection — mint veil (`data-selected` Headless UI state / journey). */
 export const surfaceSelect =
   'data-selected:bg-accent-soft data-selected:ring-1 data-selected:ring-accent-400/25'
 

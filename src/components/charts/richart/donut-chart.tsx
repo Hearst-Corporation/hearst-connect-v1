@@ -6,8 +6,8 @@ import { formatNumber } from '@/lib/format'
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 /**
- * richart — donut de répartition catégorielle (KYC, etc.).
- * Moteur Recharts derrière la frontière charts — jamais importé depuis une route.
+ * richart — categorical breakdown donut (KYC, etc.).
+ * Recharts engine behind the charts boundary — never imported from a route.
  */
 
 export type DonutSlice = {
@@ -28,11 +28,11 @@ export function HearstDonutChart({
     <div className="px-5 pb-5 sm:px-6">
       <div className="sr-only">
         <table>
-          <caption>Répartition ({unit})</caption>
+          <caption>Breakdown ({unit})</caption>
           <thead>
             <tr>
-              <th scope="col">Catégorie</th>
-              <th scope="col">Valeur</th>
+              <th scope="col">Category</th>
+              <th scope="col">Value</th>
             </tr>
           </thead>
           <tbody>

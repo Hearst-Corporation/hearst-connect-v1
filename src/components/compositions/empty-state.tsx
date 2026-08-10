@@ -2,24 +2,24 @@ import { csl } from '@/components/layout/console'
 import { Panel, PanelBody, PanelHeader } from '@/components/compositions/panel'
 
 /**
- * SourceAttendue — l'état le plus important du produit.
+ * SourceAttendue — the most important state in the product.
  *
- * Une partie des surfaces décrit une activité dont le backend n'expose pas
- * encore les données. La console le DIT, et nomme ce qui manque, au lieu
- * d'afficher une liste vide qui se lirait comme une panne — ou pire, un jeu
- * d'exemple qui se lirait comme la réalité.
+ * Some surfaces describe an activity whose data the backend does not yet
+ * expose. The console SAYS SO, and names what is missing, instead of
+ * showing an empty list that would read like a failure — or worse, a set
+ * of sample data that would read like reality.
  *
- * ── Ce qu'elle remplace ───────────────────────────────────────────────────
- * Six routes déclaraient leur propre copie. Les cinq variantes ne différaient
- * que par la présence d'un `action` facultatif et par la mise en forme du
- * `.map()` — même structure, même matière, même contrat. Le `action` est
- * conservé ici : c'est la seule différence qui portait un besoin réel.
+ * ── What it replaces ──────────────────────────────────────────────────────
+ * Six routes declared their own copy. The five variants differed only in the
+ * presence of an optional `action` and in the formatting of the `.map()` —
+ * same structure, same substance, same contract. The `action` is kept here:
+ * it is the only difference that carried a real need.
  *
- * ── Ce qu'elle n'est pas ──────────────────────────────────────────────────
- * Ce n'est PAS un état d'erreur, et ce n'est pas un état vide au sens
- * « la liste est vide » : c'est « la source n'existe pas encore ». Les trois
- * disent des choses différentes et ne doivent pas être confondus dans un
- * composant unique piloté par un booléen.
+ * ── What it is not ────────────────────────────────────────────────────────
+ * This is NOT an error state, and it is not an empty state in the sense of
+ * "the list is empty": it is "the source does not exist yet". The three say
+ * different things and must not be conflated into a single component driven
+ * by a boolean.
  */
 export function SourceAttendue({
   quoi,
@@ -27,11 +27,11 @@ export function SourceAttendue({
   requis,
   action,
 }: Readonly<{
-  /** Ce que cette surface montrerait si la source existait. */
+  /** What this surface would show if the source existed. */
   quoi: string
-  /** Pourquoi elle ne le montre pas — en une phrase, sans jargon. */
+  /** Why it does not show it — in one sentence, without jargon. */
   detail: string
-  /** Ce que le backend doit exposer. Une ligne par élément attendu. */
+  /** What the backend must expose. One line per expected element. */
   requis: readonly string[]
   action?: React.ReactNode
 }>) {
@@ -52,11 +52,11 @@ export function SourceAttendue({
 }
 
 /**
- * CalmState — « rien ne demande votre attention ».
+ * CalmState — "nothing needs your attention".
  *
- * À distinguer d'une absence : ici la source a répondu, et sa réponse est que
- * tout va bien. Un état vide muet laisserait le lecteur se demander si la page
- * a échoué.
+ * To be distinguished from an absence: here the source has responded, and its
+ * response is that all is well. A silent empty state would leave the reader
+ * wondering whether the page has failed.
  */
 export function CalmState({ message }: Readonly<{ message: string }>) {
   return (

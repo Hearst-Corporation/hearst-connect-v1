@@ -11,12 +11,12 @@
 export const gridGap = 'gap-6'
 
 /*
- * Retirés le 2026-08-04 (LOT B) : `pageInlinePadding`, `pageBlockPadding`,
- * `surfacePadding`, `surfaceCompactPadding`, `tableCellPadding` et
- * `toolbarPadding`. Créés par HC-UI-NORMALIZATION-001, ils n'ont jamais trouvé
- * de consommateur — les surfaces déclarent leur propre inset.
+ * Removed on 2026-08-04 (LOT B): `pageInlinePadding`, `pageBlockPadding`,
+ * `surfacePadding`, `surfaceCompactPadding`, `tableCellPadding` and
+ * `toolbarPadding`. Introduced by HC-UI-NORMALIZATION-001, they never found a
+ * consumer — surfaces declare their own inset.
  *
- * Retiré PASS 1 (2026-08-09) : `pageMaxWidth` (`max-w-[1280px]`) — plus aucun
- * import runtime ; le shell admin reste fluide à côté du rail. Les deux tokens
- * ci-dessus sont réellement utilisés (`surfaces.tsx`, `grid.tsx`).
+ * Removed in PASS 1 (2026-08-09): `pageMaxWidth` (`max-w-[1280px]`) — no more
+ * runtime imports; the admin shell stays fluid next to the rail. The two tokens
+ * above are genuinely used (`surfaces.tsx`, `grid.tsx`).
  */

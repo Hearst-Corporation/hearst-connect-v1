@@ -14,10 +14,10 @@ export function formatAdminAtomic(
   return formatCurrency(atomic, {
     fromAtomic: atomicDivisor(scale.decimals),
     unit: scale.asset === 'USDC' ? '$' : undefined,
-    // `scale.decimals` (6 pour USDC, 8…) pilote la CONVERSION atomique, pas
-    // l'affichage : un montant monétaire à l'écran se lit à 2 décimales, jamais
-    // « $259,281.36291 ». `maximumFractionDigits` n'ajoute pas de zéro superflu,
-    // donc les valeurs rondes restent courtes ($1.5, $100,000).
+    // `scale.decimals` (6 for USDC, 8…) drives the atomic CONVERSION, not the
+    // display: an on-screen monetary amount reads with 2 decimals, never
+    // "$259,281.36291". `maximumFractionDigits` does not add a superfluous zero,
+    // so round values stay short ($1.5, $100,000).
     decimals: 2,
   })
 }

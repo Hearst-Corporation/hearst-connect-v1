@@ -31,8 +31,8 @@ const EMPTY_OUTCOME = (): CreateAdminUserOutcome => ({
 })
 
 /**
- * POST /api/v1/admin/users — création d’un compte (admin only).
- * Exige confirm=CONFIRM et un rôle explicite — aucun envoi accidentel.
+ * POST /api/v1/admin/users — create an account (admin only).
+ * Requires confirm=CONFIRM and an explicit role — no accidental submission.
  */
 export async function createAdminUser(
   _prev: CreateAdminUserOutcome | null,

@@ -5,86 +5,86 @@ import { RichSparkline } from '@/components/charts'
 import clsx from 'clsx'
 
 /**
- * Les figures : la valeur mise en avant, le fait secondaire, et la carte de KPI.
+ * The figures: the headline value, the side fact, and the KPI card.
  *
- * ── Ce que ces trois composants remplacent ────────────────────────────────
- * `HeroFigure` était redéclaré dans 6 routes et `SideFact` dans 4, avec le même
- * corps à la mise en forme près. `ClientsMetric` (clients) et
- * `ComplianceMetric` (conformité) étaient identiques au nom près.
+ * ── What these three components replace ────────────────────────────────────
+ * `HeroFigure` was redeclared across 6 routes and `SideFact` across 4, with the
+ * same body up to formatting. `ClientsMetric` (clients) and `ComplianceMetric`
+ * (compliance) were identical except for their names.
  *
- * ── Pourquoi deux entrées et pas une ──────────────────────────────────────
- * `MetricValue` prend une chaîne DÉJÀ formatée : plusieurs routes calculent une
- * valeur qui n'est pas une `Availability` (un libellé éditorial, un compte
- * dérivé). `MetricCard` prend une `Availability` et délègue à `Reading`, qui
- * est le seul chemin par lequel une absence devient un état nommé plutôt qu'un
- * zéro. Fusionner les deux obligerait à accepter une chaîne « — » comme si
- * c'était une mesure, ce que la doctrine de véracité interdit.
+ * ── Why two entries and not one ────────────────────────────────────────────
+ * `MetricValue` takes an ALREADY-formatted string: several routes compute a
+ * value that is not an `Availability` (an editorial label, a derived count).
+ * `MetricCard` takes an `Availability` and delegates to `Reading`, which is the
+ * only path by which an absence becomes a named state rather than a zero.
+ * Merging the two would force accepting a "—" string as if it were a
+ * measurement, which the veracity doctrine forbids.
  */
 
 /**
- * Une figure mise en avant : la valeur, puis ce qu'elle mesure.
+ * A headline figure: the value, then what it measures.
  *
- * `unite` est facultative — `series-1` déclarait sa propre copie sans elle,
- * ce qui était la seule différence entre les six variantes locales.
+ * `unit` is optional — `series-1` declared its own copy without it, which was
+ * the only difference between the six local variants.
  */
 export function MetricValue({
-  valeur,
-  libelle,
-  unite,
-}: Readonly<{ valeur: string; libelle: string; unite?: string }>) {
+  value,
+  label,
+  unit,
+}: Readonly<{ value: string; label: string; unit?: string }>) {
   return (
     <div>
-      <p className={csl.metricValue}>{valeur}</p>
+      <p className={csl.metricValue}>{value}</p>
       <p className={csl.cellText}>
-        {libelle}
-        {unite === undefined || unite === '' ? '' : ` · ${unite}`}
+        {label}
+        {unit === undefined || unit === '' ? '' : ` · ${unit}`}
       </p>
     </div>
   )
 }
 
-/** Un fait secondaire : le libellé au-dessus, la valeur en dessous. */
-export function SideFact({ libelle, valeur }: Readonly<{ libelle: string; valeur: string }>) {
+/** A side fact: the label on top, the value below. */
+export function SideFact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div>
-      <p className={csl.cellText}>{libelle}</p>
-      <p className={csl.cellStrong}>{valeur}</p>
+      <p className={csl.cellText}>{label}</p>
+      <p className={csl.cellStrong}>{value}</p>
     </div>
   )
 }
 
 /**
- * Une carte de KPI adossée à une `Availability`.
+ * A KPI card backed by an `Availability`.
  *
- * Le titre est un `h2` par défaut : ces cartes sont les premiers repères d'une
- * page sous le `h1` du shell. L'appelant peut descendre le niveau quand la
- * carte vit à l'intérieur d'une section qui porte déjà son titre — le plan du
- * document reste lisible au lecteur d'écran.
+ * The title is an `h2` by default: these cards are the first landmarks of a
+ * page under the shell's `h1`. The caller can lower the level when the card
+ * lives inside a section that already carries its title — the document outline
+ * stays readable to a screen reader.
  *
- * La valeur passe par `Reading` : si l'`Availability` est indisponible, c'est
- * un état nommé qui s'affiche, jamais un zéro ni un tiret muet.
+ * The value passes through `Reading`: if the `Availability` is unavailable, a
+ * named state is displayed, never a zero nor a mute dash.
  */
 export function MetricCard({
-  titre,
-  valeur,
+  title,
+  value,
   trend,
   as: Tag = 'h2',
   showRoute = false,
   className,
 }: Readonly<{
-  titre: string
-  valeur: Availability<string>
+  title: string
+  value: Availability<string>
   trend?: number[]
   as?: 'h2' | 'h3'
-  /** Affiche la route backend qui répondrait, quand la valeur est absente. */
+  /** Displays the backend route that would answer, when the value is absent. */
   showRoute?: boolean
   className?: string
 }>) {
   return (
     <Panel tone="metric" className={clsx('flex flex-col gap-3', className)}>
-      <Tag>{titre}</Tag>
+      <Tag>{title}</Tag>
       <div className={csl.metricText}>
-        <Reading value={valeur} className={csl.metricValue} showRoute={showRoute} />
+        <Reading value={value} className={csl.metricValue} showRoute={showRoute} />
       </div>
       {trend && trend.length >= 2 && (
         <div className="mt-auto pt-2">
@@ -96,11 +96,11 @@ export function MetricCard({
 }
 
 /**
- * La rangée de KPI — le conteneur des `MetricCard`.
+ * The KPI row — the container for `MetricCard`s.
  *
- * `aria-label` est OBLIGATOIRE : une rangée de chiffres sans nom ne dit rien à
- * qui navigue par régions. Les routes qui composaient cette rangée à la main
- * l'oubliaient une fois sur deux.
+ * `aria-label` is MANDATORY: a row of numbers without a name says nothing to
+ * someone navigating by regions. The routes that composed this row by hand
+ * forgot it every other time.
  */
 export function KpiRow({
   children,

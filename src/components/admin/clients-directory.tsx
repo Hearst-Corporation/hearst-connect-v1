@@ -67,9 +67,9 @@ export function ClientsDirectory({
   clients,
   assetScale,
 }: Readonly<{ clients: readonly AdminRecentClient[]; assetScale: AdminAssetScale | null }>) {
-  // Pré-remplissage depuis la recherche du header (`/admin/clients?q=…`) : le
-  // champ reste pilotable ensuite. Aucune donnée n'est fabriquée — on ne fait
-  // qu'initialiser le filtre local sur la donnée réelle déjà chargée.
+  // Pre-fill from the header search (`/admin/clients?q=…`): the field stays
+  // controllable afterwards. No data is fabricated — we only initialize the
+  // local filter from the real data already loaded.
   const initialQuery = useSearchParams().get('q') ?? ''
   const [query, setQuery] = useState(initialQuery)
   const [filter, setFilter] = useState<FilterId>('all')

@@ -30,20 +30,20 @@ export const metadata: Metadata = { title: 'Actions Keeper' }
 export const dynamic = 'force-dynamic'
 
 function Prerequisite({
-  libelle,
-  valeur,
+  label,
+  value,
   satisfait,
-}: Readonly<{ libelle: string; valeur: string; satisfait: boolean }>) {
+}: Readonly<{ label: string; value: string; satisfait: boolean }>) {
   return (
     <>
-      <DescriptionTerm>{libelle}</DescriptionTerm>
+      <DescriptionTerm>{label}</DescriptionTerm>
       <DescriptionDetails>
         <span
           className={clsx(
             satisfait ? 'text-ink dark:text-fg' : 'text-warning-400',
           )}
         >
-          {valeur}
+          {value}
         </span>
       </DescriptionDetails>
     </>
@@ -51,8 +51,8 @@ function Prerequisite({
 }
 
 /**
- * Actions Keeper — blocs de composition autour des formulaires clients.
- * Les formulaires appellent les routes keeper du backend ; rien n’est signé on-chain.
+ * Keeper actions — composition blocks around the client forms.
+ * The forms call the backend keeper routes; nothing is signed on-chain.
  */
 export default async function KeeperPage() {
   const session = await requireSession()
@@ -107,10 +107,10 @@ export default async function KeeperPage() {
 
       <ChartFrame
         question="How many Keeper actions were triggered over time?"
-        unite="Keeper requests per day"
-        etat={{
+        unit="Keeper requests per day"
+        state={{
           type: 'empty',
-          explication:
+          explanation:
             'No series to plot — these routes log a request without history usable by this console. Nothing is fabricated to fill the axis.',
         }}
       />
@@ -137,10 +137,10 @@ export default async function KeeperPage() {
 
       <SectionCard title="Can they run now?">
         <DescriptionList>
-          <Prerequisite libelle="Your role" valeur={roleLabel(session.role)} satisfait={isAdmin} />
+          <Prerequisite label="Your role" value={roleLabel(session.role)} satisfait={isAdmin} />
           <Prerequisite
-            libelle="Adresse du service"
-            valeur={backendConfigured ? 'Configured' : 'Not set'}
+            label="Adresse du service"
+            value={backendConfigured ? 'Configured' : 'Not set'}
             satisfait={backendConfigured}
           />
         </DescriptionList>

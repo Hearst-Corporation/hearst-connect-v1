@@ -1,6 +1,6 @@
 /**
- * Charge utile de `GET /api/v1/runtime` — type partagé (F-03).
- * Une seule définition pour `/admin/runtime` et `/admin/operations`.
+ * Payload of `GET /api/v1/runtime` — shared type (F-03).
+ * A single definition for `/admin/runtime` and `/admin/operations`.
  */
 
 export type RuntimeContract = {
@@ -34,7 +34,7 @@ export type RuntimePayload = {
   readonly indexerScheduler?: RuntimeIndexerScheduler | null
 }
 
-/** Mappe un statut brut d'indexeur / ordonnanceur vers la matrice d'état admin. */
+/** Maps a raw indexer / scheduler status to the admin state matrix. */
 export function runtimeMatrixStatus(raw: string | undefined): 'LIVE' | 'PARTIAL' | 'UNAVAILABLE' {
   if (raw === 'ready' || raw === 'CONFIGURED' || raw === 'RUNNING' || raw === 'running') return 'LIVE'
   if (raw === 'STALLED' || raw === 'stalled') return 'UNAVAILABLE'

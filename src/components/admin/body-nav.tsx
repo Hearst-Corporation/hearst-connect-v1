@@ -1,40 +1,40 @@
 'use client'
 
 import { Navbar, NavbarItem, NavbarLabel, NavbarSection } from '@/components/catalyst/navbar'
-import { hrefCorpsActif, sousMenusCorps } from '@/lib/admin-nav'
+import { activeBodyHref, bodySubmenus } from '@/lib/admin-nav'
 import { usePathname } from 'next/navigation'
 
 /**
- * Sous-menus horizontaux — rendus uniquement quand la section active porte au
- * moins deux destinations (`sousMenusCorps` renvoie `undefined` sinon, d'où un
- * `null`). Les destinations principales restent dans la sidebar ; le compte vit
- * dans le menu utilisateur.
+ * Horizontal submenus — rendered only when the active section carries at least
+ * two destinations (`bodySubmenus` returns `undefined` otherwise, hence a
+ * `null`). The primary destinations stay in the sidebar; the account lives in
+ * the user menu.
  *
- * Aujourd'hui seule la section « Service » est multi-entrée : sur `/admin/runtime`,
- * `/admin/api-explorer` et `/admin/keeper`, la bascule rend Service status ↔
- * API explorer ↔ Keeper actions. Les sections mono-entrée (Portfolio,
- * Production) n'affichent rien.
+ * Today only the "Service" section is multi-entry: on `/admin/runtime`,
+ * `/admin/api-explorer` and `/admin/keeper`, the toggle renders Service status ↔
+ * API explorer ↔ Keeper actions. Single-entry sections (Portfolio,
+ * Production) render nothing.
  */
 export function AdminBodyNav() {
   const pathname = usePathname()
-  const sousMenus = sousMenusCorps(pathname)
-  if (sousMenus === undefined) return null
+  const submenus = bodySubmenus(pathname)
+  if (submenus === undefined) return null
 
-  const actif = hrefCorpsActif(pathname)
+  const active = activeBodyHref(pathname)
 
   return (
     <nav aria-label="Sub-navigation" className="mb-8 border-b border-ink/10 dark:border-white/10">
       <Navbar className="gap-0! flex-wrap pb-0">
         <NavbarSection className="shrink-0">
-          {sousMenus.map((entree) => (
+          {submenus.map((entry) => (
             <NavbarItem
-              key={entree.href}
-              href={entree.href}
-              current={actif === entree.href}
-              title={entree.detail}
+              key={entry.href}
+              href={entry.href}
+              current={active === entry.href}
+              title={entry.detail}
               className="shrink-0 rounded-none px-3 py-2.5 sm:px-4"
             >
-              <NavbarLabel>{entree.label}</NavbarLabel>
+              <NavbarLabel>{entry.label}</NavbarLabel>
             </NavbarItem>
           ))}
         </NavbarSection>

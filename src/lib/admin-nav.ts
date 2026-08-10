@@ -20,52 +20,52 @@ import {
  * Single dashboard: `/admin`. Legacy `/admin/dashboard` redirects.
  */
 
-type IconeNav = typeof HomeIcon
+type NavIcon = typeof HomeIcon
 
-export type EntreeNav = Readonly<{
+export type NavEntry = Readonly<{
   label: string
   href: string
-  icone: IconeNav
+  icon: NavIcon
 }>
 
-const CLIENTS_ENTRY: EntreeNav = {
+const CLIENTS_ENTRY: NavEntry = {
   label: 'Clients',
   href: '/admin/clients',
-  icone: BuildingOffice2Icon,
+  icon: BuildingOffice2Icon,
 }
 
-const VAULTS_ENTRY: EntreeNav = {
+const VAULTS_ENTRY: NavEntry = {
   label: 'Vaults',
   href: '/admin/vaults',
-  icone: CircleStackIcon,
+  icon: CircleStackIcon,
 }
 
-export const ADMIN_NAV: readonly EntreeNav[] = [
-  { label: 'Dashboard', href: '/admin', icone: HomeIcon },
+export const ADMIN_NAV: readonly NavEntry[] = [
+  { label: 'Dashboard', href: '/admin', icon: HomeIcon },
   VAULTS_ENTRY,
   CLIENTS_ENTRY,
-  { label: 'Compliance', href: '/admin/compliance', icone: ShieldCheckIcon },
-  { label: 'Operations', href: '/admin/operations', icone: ArrowsRightLeftIcon },
+  { label: 'Compliance', href: '/admin/compliance', icon: ShieldCheckIcon },
+  { label: 'Operations', href: '/admin/operations', icon: ArrowsRightLeftIcon },
 ]
 
 /* ── Secondary destinations ───────────────────────────────────────────────── */
 
-export type EntreeSecondaire = Readonly<{
+export type SecondaryEntry = Readonly<{
   label: string
   href: string
-  icone: IconeNav
+  icon: NavIcon
   detail: string
 }>
 
-export type GroupeSecondaire = Readonly<{
-  titre: string
-  entrees: readonly EntreeSecondaire[]
+export type SecondaryGroup = Readonly<{
+  title: string
+  entries: readonly SecondaryEntry[]
 }>
 
-const PRODUIT_ENTRY: EntreeSecondaire = {
+const PRODUCT_ENTRY: SecondaryEntry = {
   label: 'Product',
   href: '/admin/product',
-  icone: DocumentTextIcon,
+  icon: DocumentTextIcon,
   detail: 'Business production, reserve, yield, and backtests — backend-owned facts only',
 }
 
@@ -74,145 +74,145 @@ const PRODUIT_ENTRY: EntreeSecondaire = {
  * Legacy routes (`/admin/mining`, `/admin/product`, `/admin/dashboard`, etc.)
  * redirect — they no longer appear here.
  */
-export const ADMIN_SECONDARY: readonly GroupeSecondaire[] = [
+export const ADMIN_SECONDARY: readonly SecondaryGroup[] = [
   {
-    titre: 'Portfolio',
-    entrees: [
+    title: 'Portfolio',
+    entries: [
       {
         label: 'Series 1 journal',
         href: '/admin/series-1',
-        icone: Squares2X2Icon,
+        icon: Squares2X2Icon,
         detail: 'Operational event explorer with filters on indexed Series 1',
       },
     ],
   },
   {
-    titre: 'Production',
-    entrees: [PRODUIT_ENTRY],
+    title: 'Production',
+    entries: [PRODUCT_ENTRY],
   },
   {
-    titre: 'Service',
-    entrees: [
+    title: 'Service',
+    entries: [
       {
         label: 'Service',
         href: '/admin/runtime',
-        icone: SignalIcon,
+        icon: SignalIcon,
         detail: 'Single observability surface — probes, runtime, coverage, raw responses',
       },
       {
         label: 'API explorer',
         href: '/admin/api-explorer',
-        icone: CommandLineIcon,
+        icon: CommandLineIcon,
         detail: 'Backend endpoints, their method, access level, and a curl ready to copy',
       },
       {
         label: 'Keeper actions',
         href: '/admin/keeper',
-        icone: WrenchScrewdriverIcon,
+        icon: WrenchScrewdriverIcon,
         detail: 'Side-effect Keeper requests, each under explicit confirmation',
       },
     ],
   },
   {
-    titre: 'Account',
-    entrees: [
+    title: 'Account',
+    entries: [
       {
         label: 'Your account',
         href: '/admin/profile',
-        icone: IdentificationIcon,
+        icon: IdentificationIcon,
         detail: 'Administrator session identity',
       },
     ],
   },
 ]
 
-export const ADMIN_SECONDARY_FLAT: readonly EntreeSecondaire[] = ADMIN_SECONDARY.flatMap(
-  (g) => g.entrees,
+export const ADMIN_SECONDARY_FLAT: readonly SecondaryEntry[] = ADMIN_SECONDARY.flatMap(
+  (g) => g.entries,
 )
 
 export type HubSection = Readonly<{
-  titre: string
+  title: string
   label: string
   href: string
-  icone: IconeNav
+  icon: NavIcon
 }>
 
 export const ADMIN_SECTION_HUBS: readonly HubSection[] = [
   {
-    titre: 'Portfolio',
+    title: 'Portfolio',
     label: 'Series 1 journal',
     href: '/admin/series-1',
-    icone: Squares2X2Icon,
+    icon: Squares2X2Icon,
   },
   {
-    titre: 'Production',
+    title: 'Production',
     label: 'Product',
     href: '/admin/product',
-    icone: DocumentTextIcon,
+    icon: DocumentTextIcon,
   },
   {
-    titre: 'Service',
+    title: 'Service',
     label: 'Service',
     href: '/admin/runtime',
-    icone: SignalIcon,
+    icon: SignalIcon,
   },
 ]
 
-export function groupeSecondaireActif(pathname: string): GroupeSecondaire | undefined {
+export function activeSecondaryGroup(pathname: string): SecondaryGroup | undefined {
   return ADMIN_SECONDARY.find(
-    (groupe) =>
-      groupe.titre !== 'Account' &&
-      groupe.entrees.some(
-        (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
+    (group) =>
+      group.title !== 'Account' &&
+      group.entries.some(
+        (entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`),
       ),
   )
 }
 
 /**
- * The "Account" group is excluded from `groupeSecondaireActif`: it does not
+ * The "Account" group is excluded from `activeSecondaryGroup`: it does not
  * drive a lateral hub or horizontal sub-nav. This dedicated guard lets the
  * user menu mark "Your account" active on `/admin/profile` without reintroducing
  * "Account" into hub logic.
  */
-export function estRouteCompte(pathname: string): boolean {
-  const groupe = ADMIN_SECONDARY.find((g) => g.titre === 'Account')
-  if (groupe === undefined) return false
-  return groupe.entrees.some(
-    (entree) => pathname === entree.href || pathname.startsWith(`${entree.href}/`),
+export function isAccountRoute(pathname: string): boolean {
+  const group = ADMIN_SECONDARY.find((g) => g.title === 'Account')
+  if (group === undefined) return false
+  return group.entries.some(
+    (entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`),
   )
 }
 
-export function sousMenusCorps(pathname: string): readonly EntreeSecondaire[] | undefined {
-  const groupe = groupeSecondaireActif(pathname)
-  if (groupe === undefined || groupe.entrees.length <= 1) return undefined
-  return groupe.entrees
+export function bodySubmenus(pathname: string): readonly SecondaryEntry[] | undefined {
+  const group = activeSecondaryGroup(pathname)
+  if (group === undefined || group.entries.length <= 1) return undefined
+  return group.entries
 }
 
-export function hrefCorpsActif(pathname: string): string | undefined {
-  const sousMenus = sousMenusCorps(pathname)
-  if (sousMenus === undefined) return undefined
+export function activeBodyHref(pathname: string): string | undefined {
+  const submenus = bodySubmenus(pathname)
+  if (submenus === undefined) return undefined
 
-  let meilleur: string | undefined
-  for (const entree of sousMenus) {
-    const correspond = pathname === entree.href || pathname.startsWith(`${entree.href}/`)
-    if (!correspond) continue
-    if (meilleur === undefined || entree.href.length > meilleur.length) meilleur = entree.href
+  let best: string | undefined
+  for (const entry of submenus) {
+    const matches = pathname === entry.href || pathname.startsWith(`${entry.href}/`)
+    if (!matches) continue
+    if (best === undefined || entry.href.length > best.length) best = entry.href
   }
-  return meilleur
+  return best
 }
 
-export function hrefActif(pathname: string): string | undefined {
-  let meilleur: string | undefined
-  for (const entree of ADMIN_NAV) {
-    const correspond = pathname === entree.href || pathname.startsWith(`${entree.href}/`)
-    if (!correspond) continue
-    if (meilleur === undefined || entree.href.length > meilleur.length) meilleur = entree.href
+export function activeHref(pathname: string): string | undefined {
+  let best: string | undefined
+  for (const entry of ADMIN_NAV) {
+    const matches = pathname === entry.href || pathname.startsWith(`${entry.href}/`)
+    if (!matches) continue
+    if (best === undefined || entry.href.length > best.length) best = entry.href
   }
 
-  const estSecondaire = ADMIN_SECONDARY_FLAT.some(
+  const isSecondary = ADMIN_SECONDARY_FLAT.some(
     (e) => pathname === e.href || pathname.startsWith(`${e.href}/`),
   )
-  if (estSecondaire) return undefined
+  if (isSecondary) return undefined
 
-  return meilleur
+  return best
 }

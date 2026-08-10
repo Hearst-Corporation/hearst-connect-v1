@@ -3,7 +3,7 @@ import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { ChartFrame, HearstAllocationChart, type PosteAllocation } from '@/components/charts'
+import { ChartFrame, HearstAllocationChart, type AllocationItem } from '@/components/charts'
 import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
@@ -18,7 +18,7 @@ import {
   formatPercent,
   formatRelativeTime,
 } from '@/lib/format'
-import { libelleMouvement, phraseMouvement } from '@/lib/mouvements'
+import { movementLabel, movementSentence } from '@/lib/movements'
 import {
   combine,
   deployedAtomic,
@@ -189,10 +189,10 @@ function VaultAllocationSection({
       <>
         <ChartFrame
           question="How is exposure distributed by pocket?"
-          unite="in percent — target vs exposure"
-          etat={{
+          unit="in percent — target vs exposure"
+          state={{
             type: 'unavailable',
-            explication: 'Allocation read did not succeed for this vault.',
+            explanation: 'Allocation read did not succeed for this vault.',
           }}
         />
         <SectionCard title="Allocation" hint="Target, exposure, and drift as reported by the service." className="mt-6">
@@ -210,8 +210,8 @@ function VaultAllocationSection({
       <>
         <ChartFrame
           question="How is exposure distributed by pocket?"
-          unite="in percent — target vs exposure"
-          etat={{ type: 'empty', explication: 'No measured pocket for this vault.' }}
+          unit="in percent — target vs exposure"
+          state={{ type: 'empty', explanation: 'No measured pocket for this vault.' }}
         />
         <DataTableShell
           title="Allocation"
@@ -227,14 +227,14 @@ function VaultAllocationSection({
     <>
       <ChartFrame
         question="How is exposure distributed by pocket?"
-        unite="in percent — target vs exposure"
-        etat={{ type: 'plotted' }}
+        unit="in percent — target vs exposure"
+        state={{ type: 'plotted' }}
       >
         <HearstAllocationChart
-          postes={rebalancingList.map<PosteAllocation>((row) => ({
+          items={rebalancingList.map<AllocationItem>((row) => ({
             label: row.strategyLabel,
-            ciblePct: row.targetBps / 100,
-            constatePct: row.actualBps === null ? null : row.actualBps / 100,
+            targetPct: row.targetBps / 100,
+            actualPct: row.actualBps === null ? null : row.actualBps / 100,
           }))}
         />
       </ChartFrame>
@@ -279,8 +279,8 @@ function MovementTableRow({
       >
         {movementOccurredLabel(movement.occurredAt)}
       </TableCell>
-      <TableCell className="truncate" title={phraseMouvement(movement.eventName)}>
-        {libelleMouvement(movement.eventName)}
+      <TableCell className="truncate" title={movementSentence(movement.eventName)}>
+        {movementLabel(movement.eventName)}
       </TableCell>
       <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
       <TableCell className="truncate font-mono text-sm" title={movement.txHash ?? undefined}>

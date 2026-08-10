@@ -75,22 +75,22 @@ describe('PanelHeader', () => {
 
 describe('MetricValue', () => {
   it('rend la valeur et son libellé', () => {
-    render(<MetricValue valeur="12,5" libelle="Coffres actifs" />)
+    render(<MetricValue value="12,5" label="Coffres actifs" />)
     expect(screen.getByText('12,5')).toBeDefined()
     expect(screen.getByText('Coffres actifs')).toBeDefined()
   })
 
   it('n’ajoute le séparateur d’unité que s’il y a une unité', () => {
-    const { container: sans } = render(<MetricValue valeur="3" libelle="Coffres" />)
+    const { container: sans } = render(<MetricValue value="3" label="Coffres" />)
     expect(sans.textContent).toBe('3Coffres')
-    const { container: avec } = render(<MetricValue valeur="3" libelle="Produit" unite="BTC" />)
+    const { container: avec } = render(<MetricValue value="3" label="Produit" unit="BTC" />)
     expect(avec.textContent).toContain('Produit · BTC')
   })
 })
 
 describe('SideFact', () => {
   it('rend le libellé et la valeur', () => {
-    render(<SideFact libelle="Dernier rapport" valeur="4 août" />)
+    render(<SideFact label="Dernier rapport" value="4 août" />)
     expect(screen.getByText('Dernier rapport')).toBeDefined()
     expect(screen.getByText('4 août')).toBeDefined()
   })
@@ -98,19 +98,19 @@ describe('SideFact', () => {
 
 describe('MetricCard — véracité', () => {
   it('affiche une valeur réellement mesurée', () => {
-    render(<MetricCard titre="Coffres" valeur={available('7', { provenance: 'live' })} />)
+    render(<MetricCard title="Coffres" value={available('7', { provenance: 'live' })} />)
     expect(screen.getByText('7')).toBeDefined()
   })
 
   it('affiche 0 quand le backend a MESURÉ zéro', () => {
     // Un zéro mesuré est une information ; il doit s'afficher.
-    render(<MetricCard titre="Mouvements" valeur={available('0', { provenance: 'live' })} />)
+    render(<MetricCard title="Mouvements" value={available('0', { provenance: 'live' })} />)
     expect(screen.getByText('0')).toBeDefined()
   })
 
   it('NOMME l’absence au lieu de la rendre comme un zéro', () => {
     const { container } = render(
-      <MetricCard titre="Clients" valeur={unavailable({ reason: 'not_exposed', status: 'NOT_EXPOSED' })} />,
+      <MetricCard title="Clients" value={unavailable({ reason: 'not_exposed', status: 'NOT_EXPOSED' })} />,
     )
     // La garantie centrale : pas de zéro fabriqué.
     expect(container.textContent).not.toContain('0')
@@ -119,12 +119,12 @@ describe('MetricCard — véracité', () => {
   })
 
   it('distingue une valeur éditoriale d’une mesure', () => {
-    render(<MetricCard titre="Série" valeur={editorial('Série 1')} />)
+    render(<MetricCard title="Série" value={editorial('Série 1')} />)
     expect(screen.getByText('Série 1')).toBeDefined()
   })
 
   it('rend son titre au niveau demandé', () => {
-    render(<MetricCard titre="Sous-carte" valeur={editorial('x')} as="h3" />)
+    render(<MetricCard title="Sous-carte" value={editorial('x')} as="h3" />)
     expect(screen.getByRole('heading', { level: 3, name: 'Sous-carte' })).toBeDefined()
   })
 })
@@ -133,7 +133,7 @@ describe('KpiRow', () => {
   it('expose une région NOMMÉE — une rangée de chiffres sans nom ne dit rien', () => {
     render(
       <KpiRow label="État des clients">
-        <MetricCard titre="Clients" valeur={editorial('3')} />
+        <MetricCard title="Clients" value={editorial('3')} />
       </KpiRow>,
     )
     const region = screen.getByRole('region', { name: 'État des clients' })

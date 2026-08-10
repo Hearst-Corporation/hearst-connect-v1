@@ -1,5 +1,5 @@
 import { backendStateFrom, backendStateLabel } from '@/lib/backend/reading-state'
-import { motifLisible } from '@/lib/mouvements'
+import { readableReason } from '@/lib/movements'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 import { AdminToneBadge, toneForBackendState } from '@/components/admin/status-tone'
 import { Badge } from '@/components/catalyst/badge'
@@ -13,10 +13,10 @@ import clsx from 'clsx'
  */
 
 /*
- * `Panel` vit dans `@/components/compositions/panel` (PASS 2) : matière =
- * `surfaceBox` (tokens Tailwind), tones csl = géométrie seulement.
- * Ici : grammaire d'absence (`Absent`, `Reading`) + classes `csl` (géométrie /
- * typo métriques / états). `.panel` CSS-module n'est plus la matière des boxes.
+ * `Panel` lives in `@/components/compositions/panel` (PASS 2): its material is
+ * `surfaceBox` (Tailwind tokens), and the csl tones carry geometry only.
+ * Here: the absence grammar (`Absent`, `Reading`) plus the `csl` classes (geometry /
+ * metric typography / states). `.panel` CSS-module is no longer the material of the boxes.
  */
 
 /**
@@ -29,7 +29,7 @@ import clsx from 'clsx'
  * background from the theme, and it is a component the whole product already
  * shares — one less pill to maintain.
  *
- * Under the badge: a French motif when we have one, else the endpoint that
+ * Under the badge: a readable reason when we have one, else the endpoint that
  * would answer. Never a raw snake_case reason code in the UI.
  *
  * `onAccent` still exists: on the light accent card a `neutral` badge would sit
@@ -42,9 +42,9 @@ function Absent({
 }: Readonly<{ availability: Availability<unknown>; onAccent?: boolean; showRoute?: boolean }>) {
   if (isAvailable(availability)) return null
   const { reason, endpoint, status } = availability
-  const motif = motifLisible(reason)
-  // Doctrine: unknown motif → say nothing rather than leak a technical code.
-  const detail = [motif, endpoint].filter((part): part is string => part !== null && part !== undefined && part !== '')
+  const readableMotif = readableReason(reason)
+  // Doctrine: an unknown reason → say nothing rather than leak a technical code.
+  const detail = [readableMotif, endpoint].filter((part): part is string => part !== null && part !== undefined && part !== '')
   const detailLine = detail.join(' · ')
   return (
     <span className={styles.absentBlock}>
@@ -80,17 +80,17 @@ export function Reading({
   if (signal === 'editorial') {
     return <span className={clsx(styles.metricValue, className)}>{value.value}</span>
   }
-  const etat = backendStateFrom(value)
+  const state = backendStateFrom(value)
   return (
     <span className="inline-flex items-center gap-2">
       <span className={clsx(styles.metricValue, className)}>{value.value}</span>
       <AdminToneBadge
-        tone={toneForBackendState(etat)}
-        showDot={etat === 'LIVE'}
-        data-live-badge={etat === 'LIVE' ? '' : undefined}
-        data-state-badge={etat === 'LIVE' ? undefined : ''}
+        tone={toneForBackendState(state)}
+        showDot={state === 'LIVE'}
+        data-live-badge={state === 'LIVE' ? '' : undefined}
+        data-state-badge={state === 'LIVE' ? undefined : ''}
       >
-        {backendStateLabel(etat)}
+        {backendStateLabel(state)}
       </AdminToneBadge>
     </span>
   )

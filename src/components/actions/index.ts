@@ -1,7 +1,7 @@
 /**
- * Frontière d'actions Hearst — surcouche Motion + machine à états au-dessus de
- * Catalyst `<Button>` (jamais un bouton maison, jamais un exemple Aceternity
- * importé dans une route). Détail et doctrine : `hearst-actions.tsx`.
+ * Hearst actions boundary — Motion overlay + state machine on top of
+ * Catalyst `<Button>` (never a homemade button, never an Aceternity example
+ * imported into a route). Details and doctrine: `hearst-actions.tsx`.
  */
 export {
   HearstPrimaryAction,

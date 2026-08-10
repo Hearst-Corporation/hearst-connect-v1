@@ -9,48 +9,48 @@ import { Table } from '@/components/catalyst/table'
 import clsx from 'clsx'
 
 /**
- * Blocs de composition « haut de gamme » — niveau 2bis de la doctrine.
+ * "Premium" composition blocks — tier 2bis of the doctrine.
  *
- * ── Ce que ces blocs sont, et ce qu'ils ne sont pas ───────────────────────
- * `panel.tsx`, `metric.tsx` et `empty-state.tsx` portent les contrats QUE les
- * routes recopiaient déjà. Ces blocs-ci vont un cran plus loin : ils composent
- * ces primitives en surfaces prêtes à l'emploi (une carte de KPI complète, une
- * section titrée avec ses actions, un tableau enveloppé de son état d'absence),
- * pour que les 18 pages admin de la vague suivante ne réassemblent pas dix fois
- * le même échafaudage. C'est une bibliothèque d'API, pas un thème : la matière
- * reste celle de la console (`csl`, tokens), et rien ici n'invente de couleur.
+ * ── What these blocks are, and what they are not ──────────────────────────
+ * `panel.tsx`, `metric.tsx` and `empty-state.tsx` carry the contracts that the
+ * routes were already copy-pasting. These blocks go one step further: they
+ * compose those primitives into ready-to-use surfaces (a complete KPI card, a
+ * titled section with its actions, a table wrapped in its absence state), so
+ * that the 18 admin pages of the next wave don't reassemble the same scaffolding
+ * ten times over. This is an API library, not a theme: the substance stays that
+ * of the console (`csl`, tokens), and nothing here invents a color.
  *
- * ── La règle de véracité, ici comme partout ───────────────────────────────
- * Un bloc affiche ce qu'on lui DONNE. Il ne calcule aucune valeur, n'en dérive
- * aucune, ne replie jamais une absence sur un zéro. Les figures arrivent soit
- * déjà formatées (`string`), soit en `Availability<string>` — et dans ce
- * dernier cas elles passent par `Reading`, seul chemin par lequel une absence
- * devient un état nommé. Le `delta` d'un `StatCard` est fourni par l'appelant
- * (libellé + direction) : le bloc ne compare pas deux nombres, il met en forme
- * une comparaison déjà faite.
+ * ── The truthfulness rule, here as everywhere ─────────────────────────────
+ * A block displays what it is GIVEN. It computes no value, derives none, and
+ * never folds an absence onto a zero. Figures arrive either already formatted
+ * (`string`), or as `Availability<string>` — and in the latter case they pass
+ * through `Reading`, the only path by which an absence becomes a named state.
+ * A `StatCard`'s `delta` is supplied by the caller (label + direction): the
+ * block does not compare two numbers, it renders an already-made comparison.
  *
- * ── Le mouvement ──────────────────────────────────────────────────────────
- * L'animation d'entrée vit dans `motion.tsx` (`FadeIn`), un client léger qui
- * respecte `prefers-reduced-motion`. Les blocs restent importables depuis un
- * composant serveur : seul `FadeIn` est `'use client'`, et il court-circuite
- * vers un rendu sans transition quand le mouvement est réduit.
+ * ── Motion ────────────────────────────────────────────────────────────────
+ * The entrance animation lives in `motion.tsx` (`FadeIn`), a lightweight client
+ * that respects `prefers-reduced-motion`. The blocks remain importable from a
+ * server component: only `FadeIn` is `'use client'`, and it short-circuits to a
+ * transition-free render when motion is reduced.
  */
 
 /* ── StatCard / StatGrid ──────────────────────────────────────────────────── */
 
 /**
- * La DIRECTION d'un delta, décidée par l'appelant.
+ * The DIRECTION of a delta, decided by the caller.
  *
- * Le bloc ne sait pas si « +12 % » est une bonne nouvelle : sur une marge oui,
- * sur un taux d'erreur non. C'est donc `tone` qui porte le sens (positif =
- * accent mint, négatif = danger, neutre = gris), et `label` qui porte le texte
- * déjà formaté (« +12 % sur 30 j », « −3 incidents »). Le bloc ne compare rien.
+ * The block does not know whether "+12%" is good news: on a margin yes, on an
+ * error rate no. So it is `tone` that carries the meaning (positive = mint
+ * accent, negative = danger, neutral = gray), and `label` that carries the
+ * already-formatted text ("+12% over 30d", "−3 incidents"). The block compares
+ * nothing.
  */
 export type DeltaTone = 'positive' | 'negative' | 'neutral'
 
 const DELTA_TONE_CLASS: Record<DeltaTone, string> = {
-  // L'accent mint de marque et le danger passent par leurs tokens de rampe ;
-  // le neutre par le gris de texte secondaire du kit. Aucun hex.
+  // The brand mint accent and danger go through their ramp tokens; the neutral
+  // through the kit's secondary text gray. No hex.
   positive: 'text-accent-400',
   negative: 'text-danger-400',
   neutral: 'text-fg-secondary',
@@ -63,21 +63,21 @@ const DELTA_GLYPH: Record<DeltaTone, string> = {
 }
 
 /**
- * Une carte de KPI « haut de gamme » : le titre, la valeur (déjà formatée ou en
- * `Availability`), un delta optionnel et un emplacement de sparkline.
+ * A "premium" KPI card: the title, the value (already formatted or as an
+ * `Availability`), an optional delta and a sparkline slot.
  *
- * `valeur` accepte les deux formes que les pages produisent réellement :
- * - une `string` DÉJÀ formatée, pour un libellé éditorial ou un compte dérivé
- *   hors `Availability` ;
- * - une `Availability<string>`, qui passe alors par `Reading` — une absence s'y
- *   affiche comme un état nommé, jamais comme un zéro.
+ * `value` accepts the two shapes the pages actually produce:
+ * - an ALREADY-formatted `string`, for an editorial label or a count derived
+ *   outside `Availability`;
+ * - an `Availability<string>`, which then passes through `Reading` — an absence
+ *   is displayed there as a named state, never as a zero.
  *
- * Le titre est un `h2` par défaut (premier repère sous le `h1` du shell) ;
- * l'appelant le descend quand la carte vit sous une section déjà titrée.
+ * The title is an `h2` by default (first landmark under the shell's `h1`); the
+ * caller demotes it when the card lives under an already-titled section.
  */
 export function StatCard({
-  titre,
-  valeur,
+  title,
+  value,
   delta,
   deltaTone = 'neutral',
   trend,
@@ -86,30 +86,30 @@ export function StatCard({
   showRoute = false,
   className,
 }: Readonly<{
-  titre: string
-  /** Déjà formatée, ou une `Availability` qui passe par `Reading`. */
-  valeur: string | Availability<string>
-  /** Le libellé du delta, DÉJÀ formaté par l'appelant (« +12 % sur 30 j »). */
+  title: string
+  /** Already formatted, or an `Availability` that passes through `Reading`. */
+  value: string | Availability<string>
+  /** The delta label, ALREADY formatted by the caller ("+12% over 30d"). */
   delta?: string
   deltaTone?: DeltaTone
-  /** Une série pour la sparkline. Rendue seulement si elle porte ≥ 2 points. */
+  /** A series for the sparkline. Rendered only if it holds ≥ 2 points. */
   trend?: number[]
-  /** Une phrase qui dit ce que la carte mesure, sous le titre. */
+  /** A sentence saying what the card measures, under the title. */
   hint?: string
   as?: 'h2' | 'h3'
-  /** Affiche la route backend quand la valeur est une absence. */
+  /** Shows the backend route when the value is an absence. */
   showRoute?: boolean
   className?: string
 }>) {
   return (
     <Panel tone="metric" className={clsx('flex flex-col gap-2', className)}>
-      <Tag className={csl.cardTitle}>{titre}</Tag>
+      <Tag className={csl.cardTitle}>{title}</Tag>
       {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
       <div className={csl.metricText}>
-        {typeof valeur === 'string' ? (
-          <span className={csl.metricValue}>{valeur}</span>
+        {typeof value === 'string' ? (
+          <span className={csl.metricValue}>{value}</span>
         ) : (
-          <Reading value={valeur} className={csl.metricValue} showRoute={showRoute} />
+          <Reading value={value} className={csl.metricValue} showRoute={showRoute} />
         )}
       </div>
       {delta !== undefined && delta !== '' && (
@@ -128,11 +128,11 @@ export function StatCard({
 }
 
 /**
- * La grille des `StatCard`.
+ * The grid of `StatCard`s.
  *
- * `label` est OBLIGATOIRE : une rangée de chiffres sans nom ne dit rien à qui
- * navigue par régions (même contrat que `KpiRow`). `columns` borne le nombre de
- * colonnes ; en dessous du seuil la grille se replie d'elle-même.
+ * `label` is MANDATORY: a row of figures with no name says nothing to whoever
+ * navigates by regions (same contract as `KpiRow`). `columns` bounds the number
+ * of columns; below the threshold the grid collapses on its own.
  */
 export function StatGrid({
   children,
@@ -145,8 +145,8 @@ export function StatGrid({
   columns?: 2 | 3 | 4
   className?: string
 }>) {
-  // Container queries (pas breakpoints viewport) : la colonne admin est déjà
-  // réduite par le rail — forcer 4 colonnes sur largeur fenêtre écrasait les cartes.
+  // Container queries (not viewport breakpoints): the admin column is already
+  // narrowed by the rail — forcing 4 columns on window width was crushing the cards.
   const COLS: Record<2 | 3 | 4, string> = {
     2: '@[24rem]:grid-cols-2',
     3: '@[24rem]:grid-cols-2 @[40rem]:grid-cols-3',
@@ -162,17 +162,17 @@ export function StatGrid({
 /* ── SectionCard ──────────────────────────────────────────────────────────── */
 
 /**
- * Une surface titrée « haut de gamme » : un sur-titre optionnel, le titre, une
- * phrase de contexte, un emplacement d'actions, et le corps.
+ * A "premium" titled surface: an optional eyebrow, the title, a context
+ * sentence, an actions slot, and the body.
  *
- * Elle s'appuie sur `Panel` + `PanelHeader` + `PanelBody` pour la matière, et
- * ajoute le seul élément que ces primitives n'ont pas : une apparition douce à
- * l'entrée (`FadeIn`), qui respecte `prefers-reduced-motion`. C'est le bloc que
- * les pages admin poseront autour de chaque section — tableau, liste, détail.
+ * It builds on `Panel` + `PanelHeader` + `PanelBody` for the substance, and
+ * adds the one element those primitives lack: a soft entrance appearance
+ * (`FadeIn`), which respects `prefers-reduced-motion`. This is the block that
+ * the admin pages will place around each section — table, list, detail.
  *
- * `actions` vit dans l'en-tête, à droite du titre : c'est là que se rangent un
- * bouton d'export, un filtre, un lien « tout voir ». Le bloc ne porte AUCUNE
- * logique — il expose un emplacement, l'appelant y met ce qu'il veut.
+ * `actions` lives in the header, to the right of the title: that is where an
+ * export button, a filter, a "see all" link go. The block carries NO logic — it
+ * exposes a slot, and the caller puts whatever it wants there.
  */
 export function SectionCard({
   title,
@@ -185,11 +185,11 @@ export function SectionCard({
   className,
 }: Readonly<{
   title: string
-  /** Le sur-titre, au-dessus du titre — une catégorie, un contexte court. */
+  /** The eyebrow, above the title — a category, a short context. */
   eyebrow?: string
-  /** La phrase qui dit ce que la section montre. */
+  /** The sentence saying what the section shows. */
   hint?: string
-  /** Emplacement d'actions à droite du titre (bouton, filtre, lien). */
+  /** Actions slot to the right of the title (button, filter, link). */
   actions?: React.ReactNode
   children?: React.ReactNode
   tone?: 'wave' | 'chart' | 'plain'
@@ -218,20 +218,20 @@ export function SectionCard({
 /* ── DataTableShell ───────────────────────────────────────────────────────── */
 
 /**
- * L'enveloppe « haut de gamme » d'un tableau Catalyst.
+ * The "premium" wrapper around a Catalyst table.
  *
- * Elle porte le titre, une description, un badge de compte optionnel, et — c'est
- * son intérêt — l'aiguillage vers un état nommé quand il n'y a rien à montrer.
- * Deux absences distinctes, jamais confondues :
- * - `source` : la source n'existe pas encore → `SourceAttendue` (ce qui
- *   manque, pourquoi, et la route attendue) ;
- * - `calme` : la source a répondu, et sa réponse est « rien à signaler » →
+ * It carries the title, a description, an optional count badge, and — this is
+ * its point — the routing to a named state when there is nothing to show. Two
+ * distinct absences, never conflated:
+ * - `source`: the source does not exist yet → `SourceAttendue` (what is
+ *   missing, why, and the expected route);
+ * - `calme`: the source has responded, and its response is "nothing to report" →
  *   `CalmState`.
- * Quand aucune des deux n'est fournie, le bloc rend le `Table` et ses lignes.
+ * When neither is supplied, the block renders the `Table` and its rows.
  *
- * Le bloc NE VA CHERCHER AUCUNE DONNÉE : l'appelant décide de l'état à partir
- * de son `Availability`, et passe les lignes en `children`. Le `count` est un
- * libellé DÉJÀ formaté (« 12 mouvements ») — le bloc ne compte pas.
+ * The block FETCHES NO DATA: the caller decides the state from its
+ * `Availability`, and passes the rows as `children`. The `count` is an
+ * ALREADY-formatted label ("12 movements") — the block does not count.
  */
 /**
  * Column hints for wide tables inside scrollable `Table` shells.
@@ -251,11 +251,11 @@ export function DataTableShell({
 }: Readonly<{
   title: string
   description?: string
-  /** Un libellé de compte DÉJÀ formaté, rendu en badge. Jamais calculé ici. */
+  /** An ALREADY-formatted count label, rendered as a badge. Never computed here. */
   count?: string
-  /** L'état « source attendue » à rendre au lieu du tableau, s'il est fourni. */
+  /** The "expected source" state to render instead of the table, if supplied. */
   source?: React.ComponentProps<typeof SourceAttendue>
-  /** L'état « rien à signaler » (message), s'il est fourni. */
+  /** The "nothing to report" state (message), if supplied. */
   calme?: string
   children?: React.ReactNode
   className?: string
@@ -284,22 +284,22 @@ export function DataTableShell({
 /* ── Callout ──────────────────────────────────────────────────────────────── */
 
 /**
- * Une note en ligne « haut de gamme » — info, avertissement, danger, succès.
+ * A "premium" inline note — info, warning, danger, success.
  *
- * Le `Alert` de Catalyst est une boîte de dialogue MODALE : elle interrompt.
- * Un callout, lui, vit DANS le flux de la page, à côté de ce qu'il commente. Il
- * est donc bâti sur un `div` tokenisé — chaque ton passe par sa rampe (success,
- * warning, danger) ou par le graphite neutre pour l'info, jamais par un hex. Le
- * fond est un aplat à faible opacité (`/10`) et le filet gauche porte la teinte
- * pleine, la signature visuelle d'une note.
+ * Catalyst's `Alert` is a MODAL dialog: it interrupts. A callout, by contrast,
+ * lives WITHIN the page flow, next to what it comments on. It is therefore built
+ * on a tokenized `div` — each tone goes through its ramp (success, warning,
+ * danger) or through the neutral graphite for info, never through a hex. The
+ * background is a low-opacity fill (`/10`) and the left rule carries the full
+ * hue, the visual signature of a note.
  *
- * Ce n'est PAS un état d'absence (voir `SourceAttendue`) ni un état d'erreur de
- * chargement : c'est une remarque éditoriale posée à côté d'un contenu présent.
+ * This is NOT an absence state (see `SourceAttendue`) nor a load-error state:
+ * it is an editorial remark placed alongside content that is present.
  */
 export type CalloutTone = 'info' | 'success' | 'warning' | 'danger'
 
 const CALLOUT_TONE_CLASS: Record<CalloutTone, string> = {
-  // Aplat /10, filet gauche plein, texte au palier lisible de chaque rampe.
+  // /10 fill, full left rule, text at the legible step of each ramp.
   info: 'bg-white/5 border-l-fg-tertiary text-fg',
   success: 'bg-success-400/10 border-l-success-400 text-success-300',
   warning: 'bg-warning-400/10 border-l-warning-400 text-warning-300',
@@ -320,7 +320,7 @@ export function Callout({
   className,
 }: Readonly<{
   tone?: CalloutTone
-  /** Un titre court optionnel, en gras au-dessus du corps. */
+  /** An optional short title, in bold above the body. */
   title?: string
   children?: React.ReactNode
   className?: string

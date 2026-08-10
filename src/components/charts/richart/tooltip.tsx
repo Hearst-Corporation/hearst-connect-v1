@@ -5,8 +5,8 @@ import { formatNumber } from '@/lib/format'
 import clsx from 'clsx'
 
 /**
- * Tooltip partagé richart — même surface box que le dashboard.
- * Aucune valeur inventée : affiche uniquement ce que Recharts a dans le payload.
+ * Shared richart tooltip — same surface box as the dashboard.
+ * No invented values: renders only what Recharts has in the payload.
  */
 
 export function RichTooltip({

@@ -60,8 +60,8 @@ export function entityHref(kind: EntityKind, id: string): string {
     case 'keeper':
       return '/admin/keeper'
     case 'source':
-      // Data coverage : section dans `/admin/runtime` (pas le
-      // pilotage souscriptions sur `/admin`).
+      // Data coverage: a section inside `/admin/runtime` (not the
+      // subscription management on `/admin`).
       return '/admin/runtime'
   }
 }

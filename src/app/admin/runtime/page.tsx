@@ -24,7 +24,7 @@ import {
   type RuntimePayload,
 } from '@/lib/backend/runtime'
 import { formatDateTime, formatNumber } from '@/lib/format'
-import { etatSourceLisible, etatSourceLisibleCap } from '@/lib/mouvements'
+import { readableSourceState, readableSourceStateCap } from '@/lib/movements'
 import { editorial } from '@/lib/vaults/model'
 import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-section'
 import {
@@ -72,8 +72,8 @@ function blockDetail(block: number | string | null | undefined): string {
 }
 
 function errorsDetail(n: number | null | undefined): string {
-  // Une absence de mesure n'est PAS « aucune erreur » : ce libellé est réservé
-  // à un zéro réellement mesuré (n === 0). Sans mesure, l'écart reste nommé.
+  // A missing measurement is NOT "no errors": this label is reserved
+  // for a genuinely measured zero (n === 0). Without a measurement, the gap stays named.
   if (n === null || n === undefined || !Number.isFinite(n)) return '—'
   if (n > 0) return `${formatNumber(n)} error(s)`
   return 'no errors'
@@ -168,13 +168,13 @@ export default async function RuntimePage() {
     {
       id: 'health',
       title: 'Health',
-      value: editorial(etatSourceLisibleCap(health.ok ? 'LIVE' : 'UNAVAILABLE')),
+      value: editorial(readableSourceStateCap(health.ok ? 'LIVE' : 'UNAVAILABLE')),
       icon: HeartIcon,
     },
     {
       id: 'ready',
       title: 'Ready',
-      value: editorial(etatSourceLisibleCap(readyOk ? 'LIVE' : 'UNAVAILABLE')),
+      value: editorial(readableSourceStateCap(readyOk ? 'LIVE' : 'UNAVAILABLE')),
       icon: CheckCircleIcon,
     },
     {
@@ -214,7 +214,7 @@ export default async function RuntimePage() {
           {matrix.map((row) => (
             <TableRow key={row.id}>
               <TableCell className="font-medium">{row.label}</TableCell>
-              <TableCell>{etatSourceLisible(row.status)}</TableCell>
+              <TableCell>{readableSourceState(row.status)}</TableCell>
               <TableCell>{row.detail}</TableCell>
             </TableRow>
           ))}
@@ -281,7 +281,7 @@ export default async function RuntimePage() {
           Data coverage and source activity below are the canonical technical diagnostics for
           the console. Business pages no longer repeat these blocks.
         </p>
-        <DataCoverageSection compteLabel={session.name} />
+        <DataCoverageSection accountLabel={session.name} />
       </div>
 
       <SectionCard

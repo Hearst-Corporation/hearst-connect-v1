@@ -3,13 +3,13 @@ import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
 
 /**
- * KPI texte pour le bandeau hero admin — aucune box, aucun fond, aucun ring.
+ * Text KPI for the admin hero banner — no box, no background, no ring.
  */
 export type AdminHeroKpi = Readonly<{
   id: string
   title: string
   value: Availability<string>
-  /** Unité / précision courte à droite de la valeur (optionnel). */
+  /** Short unit / precision to the right of the value (optional). */
   unit?: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
 }>

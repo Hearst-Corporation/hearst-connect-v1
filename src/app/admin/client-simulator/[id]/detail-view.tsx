@@ -27,21 +27,21 @@ import {
 } from '@heroicons/react/16/solid'
 import { SimulatedBadge } from '../_shared'
 
-type Resolu<T> = Readonly<{ status?: string; value: T | null; reason?: string | null }>
+type Resolved<T> = Readonly<{ status?: string; value: T | null; reason?: string | null }>
 
 type ClientWire = Readonly<{ id?: string | null; label?: string | null }>
 
-type ClientsReponse = Readonly<{ clients?: Resolu<readonly ClientWire[]> }>
+type ClientsResponse = Readonly<{ clients?: Resolved<readonly ClientWire[]> }>
 
 type ClientRow = Readonly<{ id: string; label: string }>
 
-function libelleClient(label: string | null | undefined, id: string): string {
+function clientLabel(label: string | null | undefined, id: string): string {
   if (label !== null && label !== undefined && label !== '') return label
   return id
 }
 
 function clientsFromResponse(
-  clientsRes: Awaited<ReturnType<typeof callBackend<ClientsReponse>>>,
+  clientsRes: Awaited<ReturnType<typeof callBackend<ClientsResponse>>>,
 ): readonly ClientRow[] | null {
   if (!clientsRes.ok) return null
   const bloc = clientsRes.data.clients
@@ -54,7 +54,7 @@ function clientsFromResponse(
   return rows
 }
 
-type ClientsBackendResult = Awaited<ReturnType<typeof callBackend<ClientsReponse>>>
+type ClientsBackendResult = Awaited<ReturnType<typeof callBackend<ClientsResponse>>>
 
 function directoryLabelAvailability(
   rows: readonly ClientRow[] | null,
@@ -108,13 +108,13 @@ function directoryRowsAvailability(
 }
 
 /**
- * Détail d’un client simulé — lecture honnête via GET /api/v1/clients.
- * Aucune ligne inventée : si l’identifiant n’est pas encore dans l’annuaire,
- * l’absence est nommée. La présentation suit la grammaire admin premium
- * (en-tête → KPI → sections → table nommée) ; la lecture reste inchangée.
+ * Simulated client detail — honest read via GET /api/v1/clients.
+ * No invented row: if the identifier is not yet in the directory,
+ * the absence is named. The layout follows the premium admin grammar
+ * (header → KPI → sections → named table); the read stays unchanged.
  */
 export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>) {
-  const clientsRes = await callBackend<ClientsReponse>('clients')
+  const clientsRes = await callBackend<ClientsResponse>('clients')
   const rows = clientsFromResponse(clientsRes)
   const match = rows?.find((c) => c.id === id) ?? null
   const directoryRows = directoryRowsAvailability(rows)
@@ -124,31 +124,31 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
   const directorySize = measuredCount(directoryRows)
   const sourceState = mapAvailability(directoryRows, () => 'GET /api/v1/clients')
 
-  const displayName = match !== null ? libelleClient(match.label, id) : id
+  const displayName = match !== null ? clientLabel(match.label, id) : id
 
   const kpis: readonly AdminHeroKpi[] = [
     { id: 'indexation', title: 'Indexation', value: indexationStatus, icon: CheckBadgeIcon },
-    { id: 'libelle', title: 'Label', value: directoryLabel, icon: TagIcon },
+    { id: 'label', title: 'Label', value: directoryLabel, icon: TagIcon },
     { id: 'annuaire', title: 'Directory', value: directorySize, icon: UsersIcon },
     { id: 'source', title: 'Source', value: sourceState, icon: LinkIcon },
   ]
 
   return (
     <div className="space-y-8">
-      {/* ── EN-TÊTE ──────────────────────────────────────────────── */}
+      {/* ── HEADER ───────────────────────────────────────────────── */}
       <AdminPageHeader
         title={displayName}
         description="Join on GET /api/v1/clients — named absence if not indexed."
         kpis={kpis}
       />
 
-      {/* ── GRAPHIQUE (état honnête : cette fiche n'expose aucune série) ─ */}
+      {/* ── CHART (honest state: this record exposes no series) ────── */}
       <ChartFrame
         question="Simulated client activity"
-        unite="events per day"
-        etat={{
+        unit="events per day"
+        state={{
           type: 'empty',
-          explication:
+          explanation:
             'GET /api/v1/clients returns only this client identity — no time series to plot today.',
         }}
       />
@@ -210,7 +210,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         </Callout>
       ) : null}
 
-      {/* ── SECTION éditoriale : identité du compte (pas des compteurs) ─ */}
+      {/* ── EDITORIAL SECTION: account identity (not counters) ─────── */}
       <SectionCard title="Account identity" hint="Stable markers for the simulated client — UI definition." tone="plain">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -224,7 +224,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         </div>
       </SectionCard>
 
-      {/* ── LIENS de navigation ──────────────────────────────────── */}
+      {/* ── NAVIGATION LINKS ─────────────────────────────────────── */}
       <SectionCard title="Continue" tone="plain">
         <div className="flex flex-wrap items-center gap-2">
           <Badge color="neutral">Simulator</Badge>

@@ -1,13 +1,13 @@
 import { Reading } from '@/components/layout/console'
-import { motifLisible } from '@/lib/mouvements'
+import { readableReason } from '@/lib/movements'
 import { unavailable } from '@/lib/vaults/model'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-describe('motifLisible — pocket shares', () => {
+describe('readableReason — pocket shares', () => {
   it('renders deployed-capital pocket reasons in English', () => {
-    expect(motifLisible('some_pocket_shares_unreadable')).toMatch(/vault pockets/)
-    expect(motifLisible('no_pocket_share_readable')).toMatch(/vault pocket/)
+    expect(readableReason('some_pocket_shares_unreadable')).toMatch(/vault pockets/)
+    expect(readableReason('no_pocket_share_readable')).toMatch(/vault pocket/)
   })
 })
 

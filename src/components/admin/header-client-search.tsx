@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 /**
- * Recherche clients du header — champ discret à gauche de l'avatar.
+ * Header client search — an unobtrusive field to the left of the avatar.
  *
- * Honnête par construction : elle ne « cherche » rien elle-même. Elle route
- * vers `/admin/clients?q=<texte>`, et l'annuaire (`ClientsDirectory`) filtre
- * côté client la donnée réelle qu'il a déjà chargée depuis le backend. Aucun
- * résultat n'est fabriqué ici, aucune requête n'est simulée.
+ * Honest by construction: it never "searches" anything itself. It routes to
+ * `/admin/clients?q=<text>`, and the directory (`ClientsDirectory`) filters,
+ * client-side, the real data it has already loaded from the backend. No result
+ * is fabricated here, no request is simulated.
  */
 export function HeaderClientSearch() {
   const router = useRouter()

@@ -203,18 +203,17 @@ export function combine<A extends Availability<unknown>, B extends Availability<
  * segment of `/admin/vaults/[vaultId]`.
  */
 /*
- * Famille d'identifiants marqués (branded types) — CONSERVÉE EN ENTIER.
+ * Family of branded identifier types — KEPT IN FULL.
  *
- * `knip` signale `ClientId`, `DeploymentId`, `KeeperActionId`,
- * `ComplianceReviewId` et `ClientRef` comme inutilisés ; c'est exact
- * aujourd'hui, et ce n'est pas une raison de les retirer (décision du
- * 2026-08-04, LOT B3). Ces sept identifiants forment une grammaire : chaque
- * entité du domaine a le sien, et c'est ce qui empêche de passer un
- * identifiant de coffre là où un identifiant de client est attendu. Retirer
- * ceux dont l'entité n'a pas encore de surface UI laisserait une famille à
- * trous, dans laquelle la prochaine entité branchée serait typée `string`
- * faute de modèle à suivre. Le coût de conservation est nul (types effacés à
- * la compilation).
+ * `knip` reports `ClientId`, `DeploymentId`, `KeeperActionId`,
+ * `ComplianceReviewId` and `ClientRef` as unused; that is accurate today, and
+ * it is not a reason to remove them (decision of 2026-08-04, LOT B3). These
+ * seven identifiers form a grammar: each domain entity has its own, and that
+ * is what prevents passing a vault identifier where a client identifier is
+ * expected. Removing the ones whose entity has no UI surface yet would leave a
+ * family full of holes, in which the next entity to be wired up would be typed
+ * `string` for lack of a model to follow. The cost of keeping them is nil
+ * (types are erased at compile time).
  */
 declare const vaultIdBrand: unique symbol
 export type VaultId = string & { readonly [vaultIdBrand]: true }

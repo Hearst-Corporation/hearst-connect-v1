@@ -5,21 +5,21 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 
 /**
- * FadeIn — l'apparition douce, et son court-circuit.
+ * FadeIn — the gentle entrance, and its short-circuit.
  *
- * ── Pourquoi ce wrapper existe ─────────────────────────────────────────────
- * Les blocs de composition (`blocks.tsx`) sont importables depuis un composant
- * SERVEUR : ils n'ont pas le droit d'être `'use client'`, sinon toute page qui
- * en pose un devient cliente. Le mouvement, lui, exige `motion/react`, qui est
- * client. On isole donc l'unique fragment client ici : `SectionCard` compose ce
- * `FadeIn` autour de son panneau, et reste elle-même rendue côté serveur.
+ * ── Why this wrapper exists ────────────────────────────────────────────────
+ * The composition blocks (`blocks.tsx`) must be importable from a SERVER
+ * component: they cannot be `'use client'`, otherwise any page that drops one
+ * in becomes a client page. Motion, however, requires `motion/react`, which is
+ * client-only. So we isolate the single client fragment here: `SectionCard`
+ * composes this `FadeIn` around its panel and itself stays server-rendered.
  *
- * ── Le respect de `prefers-reduced-motion` est STRUCTUREL ──────────────────
- * `useReducedMotion()` court-circuite l'animation : quand l'utilisateur a
- * demandé moins de mouvement, on rend un simple `div`, sans transition ni
- * transform — pas une animation « plus discrète », AUCUNE. L'animation par
- * défaut reste sobre : opacité + 8px de translation, 240ms, une seule fois à
- * l'entrée dans le viewport (`whileInView`, `once`).
+ * ── Honoring `prefers-reduced-motion` is STRUCTURAL ────────────────────────
+ * `useReducedMotion()` short-circuits the animation: when the user has asked
+ * for less motion, we render a plain `div`, with no transition and no
+ * transform — not a "more subtle" animation, NONE at all. The default
+ * animation stays understated: opacity + 8px translation, 240ms, once on
+ * entering the viewport (`whileInView`, `once`).
  *
  * First client render matches SSR (static div) to avoid hydration mismatch when
  * `prefers-reduced-motion` differs between server and browser.

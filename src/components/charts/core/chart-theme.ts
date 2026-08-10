@@ -24,11 +24,11 @@
 import { formatNumber } from '@/lib/format'
 
 export const chartTheme = {
-  /* Legacy `height.small|medium|large` retiré PASS 1 (2026-08-09) — zéro
-   * consommateur ; la hauteur live passe par `chartHeight(kind, points)`. */
+  /* Legacy `height.small|medium|large` removed in PASS 1 (2026-08-09) — zero
+   * consumers; live height now flows through `chartHeight(kind, points)`. */
   margin: { top: 8, right: 16, bottom: 8, left: 8 },
   axisFontSize: 11,
-  // Doctrine §7.5 : la grille et les axes parlent les tokens `--chart-*`.
+  // Doctrine §7.5: the grid and axes speak the `--chart-*` tokens.
   grid: 'var(--chart-grid, var(--color-fg-tertiary))',
   /** Restrained: grid lines situate a value, they are not part of the data. */
   gridOpacity: 0.06,
@@ -98,9 +98,9 @@ export const chartTheme = {
  * neutral graphite. A six-category chart therefore has one green bar, not six
  * shades of green pretending to be six different meanings.
  */
-// Doctrine §7.5 : rampe de SÉRIES via les tokens `--chart-1..5` (grammaire
-// distincte des couleurs de statut). Les fallbacks conservent les couleurs
-// canoniques si les tokens ne sont pas résolus.
+// Doctrine §7.5: a SERIES ramp via the `--chart-1..5` tokens (a grammar
+// distinct from the status colors). The fallbacks preserve the canonical
+// colors when the tokens do not resolve.
 const CATEGORICAL_RAMP = [
   'var(--chart-1, var(--color-accent-400))',
   'var(--chart-2, var(--color-fg))',

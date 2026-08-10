@@ -12,7 +12,7 @@ import {
   VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
-import { HearstActivityChart, type PointActivite } from '@/components/charts'
+import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
@@ -49,14 +49,14 @@ function ActivityChartSlot({
 }: Readonly<{
   showActivityCurve: boolean
   activityNotConfigured: boolean
-  activityPoints: PointActivite[]
+  activityPoints: ActivityPoint[]
   activityTimeseries: AdminDashboardData['activityTimeseries']
 }>) {
   if (showActivityCurve) {
     return (
       <HearstActivityChart
         points={activityPoints}
-        unite="events"
+        unit="events"
         height={176}
       />
     )
@@ -122,7 +122,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
     },
   ]
 
-  const activityPoints: PointActivite[] = isAvailable(data.activityTimeseries)
+  const activityPoints: ActivityPoint[] = isAvailable(data.activityTimeseries)
     ? data.activityTimeseries.value.map((point) => ({
         label: point.at.slice(5),
         value: point.value,

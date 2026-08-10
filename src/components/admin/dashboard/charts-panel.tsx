@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
 
 /**
- * Placeholder court — aucune route, aucune documentation.
+ * Short placeholder — no route, no documentation.
  */
 export function ChartPlaceholder({
   title,

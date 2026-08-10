@@ -6,7 +6,7 @@ import { PlusIcon } from '@heroicons/react/16/solid'
 export type DashboardKpi = AdminHeroKpi
 
 /**
- * Header pilotage `/admin` — même pattern que les autres pages admin.
+ * `/admin` control header — same pattern as the other admin pages.
  */
 export function DashboardHeader({
   userName,

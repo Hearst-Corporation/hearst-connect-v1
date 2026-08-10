@@ -22,17 +22,17 @@ import {
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
-import { availabilityFromResolu } from '@/lib/backend/availability'
-import { motifLisible, etatSourceLisible } from '@/lib/mouvements'
+import { availabilityFromResolved } from '@/lib/backend/availability'
+import { readableReason, readableSourceState } from '@/lib/movements'
 import { mapAvailability, unavailable, type Availability } from '@/lib/vaults/model'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 
 /**
- * Data coverage — section de `/admin/runtime`.
+ * Data coverage — section of `/admin/runtime`.
  *
- * Ancienne route dédiée supprimée : cette section reste sous le hub Service
- * avec les sondes runtime — ce que le backend sert réellement.
+ * The former dedicated route was removed: this section lives under the Service
+ * hub alongside the runtime probes — what the backend actually serves.
  */
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
@@ -103,24 +103,24 @@ function coverageChartState(
   filledTiers: number,
 ): SeriesState {
   if (aggregate === null) {
-    return { type: 'unavailable', explication: 'The dashboard endpoint did not respond.' }
+    return { type: 'unavailable', explanation: 'The dashboard endpoint did not respond.' }
   }
   if (surfaces.length === 0) {
-    return { type: 'empty', explication: 'The dashboard exposed no surface.' }
+    return { type: 'empty', explanation: 'The dashboard exposed no surface.' }
   }
   if (filledTiers < 2) {
     return {
       type: 'empty',
-      explication:
+      explanation:
         'Only one tier is filled — the per-surface list remains more readable than a single-slice ring.',
     }
   }
   return { type: 'plotted' }
 }
 
-export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabel: string }>) {
+export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLabel: string }>) {
   const response = await callBackend<Record<string, unknown>>('dashboard')
-  const registry = await loadAdminRegistry(compteLabel, { movementLimit: MOVEMENT_WINDOW })
+  const registry = await loadAdminRegistry(accountLabel, { movementLimit: MOVEMENT_WINDOW })
   const aggregate = response.ok ? response.data : null
 
   const surfaces =
@@ -132,7 +132,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
             key,
             name: surfaceName(key),
             tier: tierFromStatus(resolved.status),
-            reason: motifLisible(resolved.reason),
+            reason: readableReason(resolved.reason),
           }))
   const ordered = TIER_ORDER.flatMap((tier) => surfaces.filter((surface) => surface.tier === tier))
 
@@ -142,14 +142,14 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
     reason: 'dashboard_source_unreachable',
   })
   const dashboardEndpoint = '/api/v1/dashboard'
-  const dashboardBloc =
+  const dashboardBlock =
     response.ok && aggregate !== null
-      ? // Pas de `?? 'LIVE'` : une réponse sans `meta.status` n'a pas déclaré sa
-        // fraîcheur — on ne la certifie pas « live ». `UNAVAILABLE` → absence
-        // nommée via `availabilityFromResolu` (même doctrine que statusFromMeta).
+      ? // No `?? 'LIVE'`: a response without `meta.status` has not declared its
+        // freshness — we do not certify it as "live". `UNAVAILABLE` → named
+        // absence via `availabilityFromResolved` (same doctrine as statusFromMeta).
         { status: response.meta?.status ?? 'UNAVAILABLE', value: aggregate, reason: null }
       : null
-  const dashboardSource = availabilityFromResolu(dashboardBloc, dashboardEndpoint)
+  const dashboardSource = availabilityFromResolved(dashboardBlock, dashboardEndpoint)
 
   const asCount = (n: number): Availability<string> =>
     aggregate === null ? coverageUnreadable : mapAvailability(dashboardSource, () => String(n))
@@ -161,12 +161,12 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
   const notOpenedCell = asCount(notOpened)
   const totalCell = asCount(surfaces.length)
 
-  // Répartition RÉELLE de la couverture par palier : chaque part est le décompte
-  // effectif des surfaces du tableau de bord dans ce palier (regroupement d'une
-  // donnée réelle, pas un compteur inventé), et le total est le nombre réel de
-  // surfaces énumérées. Le donut ne filtre que les parts > 0 ; on ne le trace
-  // qu'à partir de deux paliers renseignés, sinon la table seule reste plus
-  // honnête qu'un anneau à une part.
+  // REAL coverage distribution by tier: each slice is the actual count of the
+  // dashboard surfaces in that tier (a grouping of real data, not an invented
+  // counter), and the total is the real number of enumerated surfaces. The
+  // donut filters out only the slices > 0; we plot it only once at least two
+  // tiers are filled, otherwise the table alone stays more honest than a
+  // single-slice ring.
   const coverageSlices: readonly DonutSlice[] = [
     { label: TIER_TITLE.served, value: served },
     { label: TIER_TITLE.partial, value: partial },
@@ -179,7 +179,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
       : mapAvailability(dashboardSource, () => `${Math.round((served / surfaces.length) * 100)}%`)
 
   const sourceState: Availability<string> = response.ok
-    ? mapAvailability(dashboardSource, () => etatSourceLisible(statusFromMeta(response.meta)))
+    ? mapAvailability(dashboardSource, () => readableSourceState(statusFromMeta(response.meta)))
     : unavailable({
         endpoint: dashboardEndpoint,
         status: 'UNAVAILABLE',
@@ -194,19 +194,19 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
         tone="plain"
       >
         <StatGrid label="Surface coverage" columns={3}>
-          <StatCard titre="Served" valeur={servedCell} showRoute />
-          <StatCard titre="Partial" valeur={partialCell} showRoute />
-          <StatCard titre="Not opened" valeur={notOpenedCell} showRoute />
-          <StatCard titre="Total surfaces" valeur={totalCell} showRoute />
-          <StatCard titre="Coverage rate" valeur={coverageCell} showRoute />
-          <StatCard titre="Source status" valeur={sourceState} showRoute />
+          <StatCard title="Served" value={servedCell} showRoute />
+          <StatCard title="Partial" value={partialCell} showRoute />
+          <StatCard title="Not opened" value={notOpenedCell} showRoute />
+          <StatCard title="Total surfaces" value={totalCell} showRoute />
+          <StatCard title="Coverage rate" value={coverageCell} showRoute />
+          <StatCard title="Source status" value={sourceState} showRoute />
         </StatGrid>
       </SectionCard>
 
       <ChartFrame
         question="How is coverage distributed by tier?"
-        unite="number of surfaces, by tier"
-        etat={coverageChartState(aggregate, surfaces, filledTiers)}
+        unit="number of surfaces, by tier"
+        state={coverageChartState(aggregate, surfaces, filledTiers)}
         expectedSource={['GET /api/v1/dashboard']}
       >
         {aggregate !== null && filledTiers >= 2 ? (
@@ -275,7 +275,7 @@ export async function DataCoverageSection({ compteLabel }: Readonly<{ compteLabe
           {registry.sources.map((source: SourceActivityRow) => (
             <TableRow key={source.endpointId}>
               <TableCell className="font-medium">{source.label}</TableCell>
-              <TableCell>{etatSourceLisible(source.status)}</TableCell>
+              <TableCell>{readableSourceState(source.status)}</TableCell>
               <TableCell className="text-fg-tertiary">{source.detail ?? '—'}</TableCell>
             </TableRow>
           ))}

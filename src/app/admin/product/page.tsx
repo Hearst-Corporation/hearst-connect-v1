@@ -4,17 +4,17 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Text } from '@/components/catalyst/text'
 import {
   ChartFrame,
-  HearstCourbeChart,
-  ReserveExpositionChart,
-  type PosteBitcoin,
+  HearstCurveChart,
+  ReserveExposureChart,
+  type BitcoinItem,
 } from '@/components/charts'
 import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
-import { figureDepuisResolu } from '@/lib/backend/availability'
+import { figureFromResolved } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatNumber } from '@/lib/format'
-import { etatSourceLisible } from '@/lib/mouvements'
-import { seriesStateFrom } from '@/lib/serie-etat'
+import { readableSourceState } from '@/lib/movements'
+import { seriesStateFrom } from '@/lib/series-state'
 import { editorial } from '@/lib/vaults/model'
 import {
   CircleStackIcon,
@@ -36,29 +36,29 @@ export const dynamic = 'force-dynamic'
  * Sources: mining, btc, product-factsheet, backtest-historical.
  */
 
-type Resolu<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
+type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
 
 type Mining = {
-  readonly hashrate?: Resolu<{ reportedHashrateTh: string; totalBtcEarnedSats: string }>
-  readonly electricity?: Resolu<{ monthlyCost: string }>
-  readonly operationalTelemetry?: Resolu<unknown>
+  readonly hashrate?: Resolved<{ reportedHashrateTh: string; totalBtcEarnedSats: string }>
+  readonly electricity?: Resolved<{ monthlyCost: string }>
+  readonly operationalTelemetry?: Resolved<unknown>
 }
 
 type Btc = {
-  readonly reserve?: Resolu<{ balanceUsdc: string | null }>
-  readonly exposure?: Resolu<{ valueUsdc: string | null; pouch: string | null }>
-  readonly btcProduced?: Resolu<{ totalSats: string }>
-  readonly attribution?: Resolu<unknown>
+  readonly reserve?: Resolved<{ balanceUsdc: string | null }>
+  readonly exposure?: Resolved<{ valueUsdc: string | null; pouch: string | null }>
+  readonly btcProduced?: Resolved<{ totalSats: string }>
+  readonly attribution?: Resolved<unknown>
 }
 
 type Factsheet = {
-  readonly tvlCap?: Resolu<string | number>
-  readonly vendingCurve?: Resolu<readonly { month: number; bps: number }[]>
+  readonly tvlCap?: Resolved<string | number>
+  readonly vendingCurve?: Resolved<readonly { month: number; bps: number }[]>
 }
 
-type Backtest = { readonly runs?: Resolu<unknown> }
+type Backtest = { readonly runs?: Resolved<unknown> }
 
-const etatDe = seriesStateFrom
+const stateFrom = seriesStateFrom
 
 function ouRien(texte: string): string | null {
   return texte === '—' ? null : texte
@@ -71,94 +71,94 @@ function bitcoinProduitDe(totalSats: string | null | undefined): string | null {
   return formatNumber(nombre / 100_000_000, { maximumFractionDigits: 4 })
 }
 
-type PosteReserve = { readonly poste: string; readonly montant: number }
+type ReserveItem = { readonly item: string; readonly amount: number }
 
-function postesReserveExposition(
+function reserveExposureItems(
   reserveUsdc: string | null | undefined,
-  expositionUsdc: string | null | undefined,
-): readonly PosteReserve[] {
-  const postes: PosteReserve[] = []
+  exposureUsdc: string | null | undefined,
+): readonly ReserveItem[] {
+  const items: ReserveItem[] = []
   if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
-    postes.push({ poste: 'Reserve', montant: Number(reserveUsdc) / 1_000_000 })
+    items.push({ item: 'Reserve', amount: Number(reserveUsdc) / 1_000_000 })
   }
-  if (expositionUsdc !== null && expositionUsdc !== undefined && Number.isFinite(Number(expositionUsdc))) {
-    postes.push({ poste: 'Exposure', montant: Number(expositionUsdc) / 1_000_000 })
+  if (exposureUsdc !== null && exposureUsdc !== undefined && Number.isFinite(Number(exposureUsdc))) {
+    items.push({ item: 'Exposure', amount: Number(exposureUsdc) / 1_000_000 })
   }
-  return postes
+  return items
 }
 
-function pointsCourbeDe(
-  courbeBrute: readonly { month: number; bps: number }[] | null | undefined,
-): readonly { mois: number; taux: number }[] {
-  if (courbeBrute === null || courbeBrute === undefined) return []
-  return courbeBrute.map((p) => ({ mois: p.month, taux: p.bps / 100 }))
+function curvePointsFrom(
+  rawCurve: readonly { month: number; bps: number }[] | null | undefined,
+): readonly { month: number; rate: number }[] {
+  if (rawCurve === null || rawCurve === undefined) return []
+  return rawCurve.map((p) => ({ month: p.month, rate: p.bps / 100 }))
 }
 
-function courbeParametreeDe(points: readonly { mois: number; taux: number }[]): boolean {
-  return points.some((p) => p.taux !== 0)
+function curveConfiguredFrom(points: readonly { month: number; rate: number }[]): boolean {
+  return points.some((p) => p.rate !== 0)
 }
 
-function explicationCourbe(
-  points: readonly { mois: number; taux: number }[],
-  courbeParametree: boolean,
-  vendingCurve: Resolu<unknown> | undefined,
+function curveExplanation(
+  points: readonly { month: number; rate: number }[],
+  curveConfigured: boolean,
+  vendingCurve: Resolved<unknown> | undefined,
 ): string {
   if (points.length === 0) {
-    const etat = etatDe(vendingCurve, 'Product terms have not been submitted yet.')
-    if (etat.type === 'pending' || etat.type === 'unavailable') return etat.explication
+    const state = stateFrom(vendingCurve, 'Product terms have not been submitted yet.')
+    if (state.type === 'pending' || state.type === 'unavailable') return state.explanation
     return 'Product terms have not been submitted yet.'
   }
-  if (courbeParametree) return 'Curve configured — milestones with non-zero rates.'
+  if (curveConfigured) return 'Curve configured — milestones with non-zero rates.'
   return 'All five product milestones are defined, but no rate has been recorded yet. The curve will appear once they are.'
 }
 
-function explicationSerie(champ: Resolu<unknown> | undefined, defaut: string): string {
-  const etat = etatDe(champ, defaut)
-  if (etat.type === 'pending' || etat.type === 'unavailable') return etat.explication
-  return defaut
+function seriesExplanation(champ: Resolved<unknown> | undefined, fallback: string): string {
+  const state = stateFrom(champ, fallback)
+  if (state.type === 'pending' || state.type === 'unavailable') return state.explanation
+  return fallback
 }
 
-type EtatChartCourbe =
-  | { readonly type: 'unavailable'; readonly explication: string }
-  | { readonly type: 'pending'; readonly explication: string }
+type CurveChartState =
+  | { readonly type: 'unavailable'; readonly explanation: string }
+  | { readonly type: 'pending'; readonly explanation: string }
   | { readonly type: 'plotted' }
 
-function etatChartCourbe(factsheetOk: boolean, courbeParametree: boolean): EtatChartCourbe {
+function curveChartState(factsheetOk: boolean, curveConfigured: boolean): CurveChartState {
   if (!factsheetOk) {
     return {
       type: 'unavailable',
-      explication: 'The product factsheet did not respond — the yield curve cannot be read.',
+      explanation: 'The product factsheet did not respond — the yield curve cannot be read.',
     }
   }
-  if (!courbeParametree) {
+  if (!curveConfigured) {
     return {
       type: 'pending',
-      explication: 'The yield curve is not configured yet.',
+      explanation: 'The yield curve is not configured yet.',
     }
   }
   return { type: 'plotted' }
 }
 
 function CapitalReserveSection({
-  postes,
-  seulPoste,
-  postesGraphique,
+  items,
+  soleItem,
+  chartItems,
 }: Readonly<{
-  postes: readonly PosteReserve[]
-  seulPoste: PosteReserve | undefined
-  postesGraphique: readonly PosteBitcoin[]
+  items: readonly ReserveItem[]
+  soleItem: ReserveItem | undefined
+  chartItems: readonly BitcoinItem[]
 }>) {
-  if (postes.length === 0) {
+  if (items.length === 0) {
     return <Callout tone="warning">Neither reserve nor exposure could be read on-chain.</Callout>
   }
 
-  if (seulPoste !== undefined) {
+  if (soleItem !== undefined) {
     return (
       <>
         <DescriptionList>
-          <DescriptionTerm>{seulPoste.poste}</DescriptionTerm>
+          <DescriptionTerm>{soleItem.item}</DescriptionTerm>
           <DescriptionDetails>
-            {formatCurrency(seulPoste.montant, { fromAtomic: 1, decimals: 0 })}
+            {formatCurrency(soleItem.amount, { fromAtomic: 1, decimals: 0 })}
           </DescriptionDetails>
         </DescriptionList>
         <Callout tone="info" className="mt-4">
@@ -173,15 +173,15 @@ function CapitalReserveSection({
     <>
       <ChartFrame
         question="Where is the fund's capital?"
-        unite="in dollars — idle reserve vs exposed value"
-        etat={{ type: 'plotted' }}
+        unit="in dollars — idle reserve vs exposed value"
+        state={{ type: 'plotted' }}
       >
-        <ReserveExpositionChart postes={postesGraphique} />
+        <ReserveExposureChart items={chartItems} />
       </ChartFrame>
       <DataTableShell
         title="Capital allocation"
         description="Reserve and exposure read on-chain — the exact figures the chart positions."
-        count={`${postes.length} positions`}
+        count={`${items.length} positions`}
         className="mt-6"
       >
         <TableHead>
@@ -191,10 +191,10 @@ function CapitalReserveSection({
           </TableRow>
         </TableHead>
         <TableBody>
-          {postes.map((p) => (
-            <TableRow key={p.poste}>
-              <TableCell className="font-medium">{p.poste}</TableCell>
-              <TableCell>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</TableCell>
+          {items.map((p) => (
+            <TableRow key={p.item}>
+              <TableCell className="font-medium">{p.item}</TableCell>
+              <TableCell>{formatCurrency(p.amount, { fromAtomic: 1, decimals: 0 })}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -205,7 +205,7 @@ function CapitalReserveSection({
 
 type LectureEnAttente = {
   readonly cle: string
-  readonly libelle: string
+  readonly label: string
   readonly explication: string
   readonly statut: string | undefined
 }
@@ -218,8 +218,8 @@ function lecturesEnAttenteDe(
   return [
     {
       cle: 'backtest',
-      libelle: 'Performance vs history',
-      explication: explicationSerie(
+      label: 'Performance vs history',
+      explication: seriesExplanation(
         backtest.ok ? backtest.data.runs : undefined,
         'No backtest has been run on this deployment yet.',
       ),
@@ -227,14 +227,14 @@ function lecturesEnAttenteDe(
     },
     {
       cle: 'attribution',
-      libelle: 'Yield breakdown',
-      explication: explicationSerie(b?.attribution, 'The yield breakdown has not been calculated yet.'),
+      label: 'Yield breakdown',
+      explication: seriesExplanation(b?.attribution, 'The yield breakdown has not been calculated yet.'),
       statut: b?.attribution?.status,
     },
     {
       cle: 'telemetrie',
-      libelle: 'Operational telemetry',
-      explication: explicationSerie(
+      label: 'Operational telemetry',
+      explication: seriesExplanation(
         m?.operationalTelemetry,
         'Operational telemetry has not been submitted yet.',
       ),
@@ -251,15 +251,15 @@ function kpisProduitDe(
   b: Btc | null,
   f: Factsheet | null,
 ): readonly AdminHeroKpi[] {
-  const hashrateCell = figureDepuisResolu(mining.ok ? m?.hashrate : undefined, MINING_ENDPOINT, (h) =>
+  const hashrateCell = figureFromResolved(mining.ok ? m?.hashrate : undefined, MINING_ENDPOINT, (h) =>
     formatNumber(Number(h.reportedHashrateTh)),
   )
-  const btcProduitCell = figureDepuisResolu(
+  const btcProduitCell = figureFromResolved(
     btc.ok ? b?.btcProduced : undefined,
     BTC_ENDPOINT,
     (p) => bitcoinProduitDe(p.totalSats) ?? '—',
   )
-  const plafondCell = figureDepuisResolu(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
+  const plafondCell = figureFromResolved(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
     formatCurrency(c, { decimals: 0 }),
   )
 
@@ -292,16 +292,16 @@ export default async function Page() {
   const hashrate = m?.hashrate?.value
   const bitcoinProduit = bitcoinProduitDe(b?.btcProduced?.value?.totalSats)
 
-  const postes = postesReserveExposition(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
-  const seulPoste = postes.length === 1 ? postes[0] : undefined
-  const postesGraphique: readonly PosteBitcoin[] = postes.map((p) => ({
-    poste: p.poste,
-    montant: p.montant,
-    accent: p.poste === 'Exposure',
+  const items = reserveExposureItems(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
+  const soleItem = items.length === 1 ? items[0] : undefined
+  const chartItems: readonly BitcoinItem[] = items.map((p) => ({
+    item: p.item,
+    amount: p.amount,
+    accent: p.item === 'Exposure',
   }))
 
-  const points = pointsCourbeDe(f?.vendingCurve?.value)
-  const courbeParametree = courbeParametreeDe(points)
+  const points = curvePointsFrom(f?.vendingCurve?.value)
+  const curveConfigured = curveConfiguredFrom(points)
   const plafond = f?.tvlCap?.value
 
   const lecturesEnAttente = lecturesEnAttenteDe(backtest, b, m)
@@ -339,20 +339,20 @@ export default async function Page() {
         eyebrow="Reserve and yield"
         hint="The two readings the product is actually measured on today."
       >
-        <CapitalReserveSection postes={postes} seulPoste={seulPoste} postesGraphique={postesGraphique} />
+        <CapitalReserveSection items={items} soleItem={soleItem} chartItems={chartItems} />
       </SectionCard>
 
       <SectionCard
         title="How does yield evolve over time?"
         eyebrow="Reserve and yield"
-        hint={explicationCourbe(points, courbeParametree, f?.vendingCurve)}
+        hint={curveExplanation(points, curveConfigured, f?.vendingCurve)}
       >
         <ChartFrame
           question="How does yield evolve over time?"
-          unite="as a percentage, per product milestone"
-          etat={etatChartCourbe(factsheet.ok, courbeParametree)}
+          unit="as a percentage, per product milestone"
+          state={curveChartState(factsheet.ok, curveConfigured)}
         >
-          <HearstCourbeChart points={points} />
+          <HearstCurveChart points={points} />
         </ChartFrame>
         {points.length > 0 ? (
           <DataTableShell
@@ -369,9 +369,9 @@ export default async function Page() {
             </TableHead>
             <TableBody>
               {points.map((p) => (
-                <TableRow key={p.mois}>
-                  <TableCell>{formatNumber(p.mois)}</TableCell>
-                  <TableCell>{formatNumber(p.taux, { maximumFractionDigits: 2 })}</TableCell>
+                <TableRow key={p.month}>
+                  <TableCell>{formatNumber(p.month)}</TableCell>
+                  <TableCell>{formatNumber(p.rate, { maximumFractionDigits: 2 })}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -394,12 +394,12 @@ export default async function Page() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {lecturesEnAttente.map((lecture) => (
-            <TableRow key={lecture.cle}>
-              <TableCell className="font-medium">{lecture.libelle}</TableCell>
-              <TableCell className="text-fg-tertiary">{lecture.explication}</TableCell>
+          {lecturesEnAttente.map((reading) => (
+            <TableRow key={reading.cle}>
+              <TableCell className="font-medium">{reading.label}</TableCell>
+              <TableCell className="text-fg-tertiary">{reading.explication}</TableCell>
               <TableCell>
-                {lecture.statut ? etatSourceLisible(lecture.statut) : 'Not reported'}
+                {reading.statut ? readableSourceState(reading.statut) : 'Not reported'}
               </TableCell>
             </TableRow>
           ))}

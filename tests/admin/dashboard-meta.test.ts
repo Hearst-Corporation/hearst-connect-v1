@@ -1,5 +1,5 @@
 import { statusFromMeta, type EnvelopeMeta } from '@/lib/backend/client'
-import { etatSourceLisible } from '@/lib/mouvements'
+import { readableSourceState } from '@/lib/movements'
 import { describe, expect, it } from 'vitest'
 
 function meta(status: EnvelopeMeta['status']): EnvelopeMeta {
@@ -15,15 +15,15 @@ function meta(status: EnvelopeMeta['status']): EnvelopeMeta {
 
 describe('dashboard — aggregate status (F-02)', () => {
   it('reads meta.status instead of a reachable boolean', () => {
-    expect(etatSourceLisible(statusFromMeta(meta('UNAVAILABLE')))).toBe('unavailable')
-    expect(etatSourceLisible(statusFromMeta(meta('STALE')))).toBe('stale')
-    expect(etatSourceLisible(statusFromMeta(meta('LIVE')))).toBe('live')
+    expect(readableSourceState(statusFromMeta(meta('UNAVAILABLE')))).toBe('unavailable')
+    expect(readableSourceState(statusFromMeta(meta('STALE')))).toBe('stale')
+    expect(readableSourceState(statusFromMeta(meta('LIVE')))).toBe('live')
   })
 
   it('missing meta is UNAVAILABLE, never LIVE (VER-10 — no freshness declared)', () => {
-    // Une réponse sans métadonnée n'a pas déclaré son statut de fraîcheur :
-    // l'afficher « live » certifierait un frais que rien n'établit. Même
-    // doctrine que src/lib/statut-affichage.ts (STATUT_INCONNU = UNAVAILABLE).
-    expect(etatSourceLisible(statusFromMeta(null))).toBe('unavailable')
+    // A response with no metadata has not declared its freshness status:
+    // showing it as "live" would certify a freshness that nothing establishes.
+    // Same doctrine as src/lib/display-status.ts (UNKNOWN_STATUS = UNAVAILABLE).
+    expect(readableSourceState(statusFromMeta(null))).toBe('unavailable')
   })
 })

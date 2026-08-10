@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { HEARST_CONNECT_LOCKUP_SRC } from '@/lib/brand'
 
-/** Glyphe H Hearst (monogramme officiel) — hérite de `currentColor`. */
+/** Hearst H glyph (official monogram) — inherits `currentColor`. */
 export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
   return (
     <svg
@@ -19,8 +19,8 @@ export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsW
 }
 
 /**
- * Lockup React thématisable — H mint + texte « Hearst Connect ».
- * Sur fond sombre admin, préférer `HearstConnectLockupImage` (asset Illustrator).
+ * Themeable React lockup — mint H + "Hearst Connect" text.
+ * On the dark admin background, prefer `HearstConnectLockupImage` (Illustrator asset).
  */
 export function Logo({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'span'>>) {
   return (
@@ -31,7 +31,7 @@ export function Logo({ className, ...props }: Readonly<React.ComponentPropsWitho
   )
 }
 
-/** Lockup officiel Illustrator (Hearst-Defi) — fond sombre. */
+/** Official Illustrator lockup (Hearst-Defi) — dark background. */
 export function HearstConnectLockupImage({
   className,
   alt = 'Hearst Connect',

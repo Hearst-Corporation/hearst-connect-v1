@@ -15,7 +15,7 @@ export { formatAddress as adresseCourte, formatDateTime as dateLisible, formatRe
  */
 
 /** Short name: for a column, a distribution bar, a chip. */
-export const LIBELLE_MOUVEMENT: Record<string, string> = {
+export const MOVEMENT_LABEL: Record<string, string> = {
   Deposit: 'Deposit',
   Redeem: 'Redemption',
   StrategyAdded: 'Strategy added',
@@ -33,7 +33,7 @@ export const LIBELLE_MOUVEMENT: Record<string, string> = {
 }
 
 /** Full sentence: for an event feed that reads like a narrative. */
-const PHRASE_MOUVEMENT: Record<string, string> = {
+const MOVEMENT_SENTENCE: Record<string, string> = {
   Deposit: 'A deposit was recorded',
   Redeem: 'A redemption was recorded',
   StrategyAdded: 'A strategy was added to the vault',
@@ -50,8 +50,8 @@ const PHRASE_MOUVEMENT: Record<string, string> = {
   MonthlyEngineRun: 'The monthly cycle was executed',
 }
 
-export const libelleMouvement = (nom: string): string => LIBELLE_MOUVEMENT[nom] ?? nom
-export const phraseMouvement = (nom: string): string => PHRASE_MOUVEMENT[nom] ?? libelleMouvement(nom)
+export const movementLabel = (name: string): string => MOVEMENT_LABEL[name] ?? name
+export const movementSentence = (name: string): string => MOVEMENT_SENTENCE[name] ?? movementLabel(name)
 
 /**
  * Service reason codes, rendered as readable phrases.
@@ -62,7 +62,7 @@ export const phraseMouvement = (nom: string): string => PHRASE_MOUVEMENT[nom] ??
  * An unknown reason returns `undefined`: better to say nothing than leak a
  * technical code into a business console.
  */
-const MOTIF_LISIBLE: Record<string, string> = {
+const READABLE_REASON: Record<string, string> = {
   no_investor_record: 'no investor record is linked to this account',
   engine_not_initialised: 'the mining engine has not been initialized yet',
   dynavault_not_deployed: 'this feature is not open yet',
@@ -84,21 +84,21 @@ const MOTIF_LISIBLE: Record<string, string> = {
   no_deployed_capital: 'no deployed capital is measurable',
 }
 
-export function motifLisible(motif: string | null | undefined): string | undefined {
-  if (typeof motif !== 'string' || motif === '') return undefined
-  return MOTIF_LISIBLE[motif]
+export function readableReason(reason: string | null | undefined): string | undefined {
+  if (typeof reason !== 'string' || reason === '') return undefined
+  return READABLE_REASON[reason]
 }
 
 /**
- * English presentation of a source state, for the « Source activity » panel
+ * English presentation of a source state, for the "Source activity" panel
  * shown on five pages.
  *
  * The TECHNICAL code is unchanged — it comes from the backend. Only presentation
  * is translated. An UNKNOWN code (present but off-table) renders as-is,
- * lowercased — never requalified or masked as « — ». Only a real absence
- * (null / empty) renders « — ».
+ * lowercased — never requalified or masked as "—". Only a real absence
+ * (null / empty) renders "—".
  */
-const ETAT_SOURCE_LISIBLE: Record<string, string> = {
+const READABLE_SOURCE_STATE: Record<string, string> = {
   LIVE: 'live',
   EMPTY: 'no data',
   PARTIAL: 'partial',
@@ -114,23 +114,23 @@ const ETAT_SOURCE_LISIBLE: Record<string, string> = {
   UNAVAILABLE: 'unavailable',
 }
 
-export function etatSourceLisible(etat: string | null | undefined): string {
-  if (typeof etat !== 'string' || etat === '') return '—'
-  return ETAT_SOURCE_LISIBLE[etat.toUpperCase()] ?? etat.toLowerCase()
+export function readableSourceState(state: string | null | undefined): string {
+  if (typeof state !== 'string' || state === '') return '—'
+  return READABLE_SOURCE_STATE[state.toUpperCase()] ?? state.toLowerCase()
 }
 
 /**
  * Capitalized variant: same translation, first letter uppercased, for sentence
- * starts or standalone badges. `etatSourceLisible` remains the source of truth.
- * The absence « — » is not capitalized.
+ * starts or standalone badges. `readableSourceState` remains the source of truth.
+ * The absence "—" is not capitalized.
  */
-export function etatSourceLisibleCap(etat: string | null | undefined): string {
-  const libelle = etatSourceLisible(etat)
-  if (libelle === '—') return libelle
-  return libelle.charAt(0).toUpperCase() + libelle.slice(1)
+export function readableSourceStateCap(state: string | null | undefined): string {
+  const label = readableSourceState(state)
+  if (label === '—') return label
+  return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
 /** USDC at six decimals — a thin wrapper over the shared formatter. */
-export function montantUsdc(atomique: string | null | undefined, decimales = 2): string {
-  return formatCurrency(atomique, { decimals: decimales })
+export function usdcAmount(atomic: string | null | undefined, decimals = 2): string {
+  return formatCurrency(atomic, { decimals: decimals })
 }

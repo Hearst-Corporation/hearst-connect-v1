@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-/** Ancienne URL — un seul tableau de bord sur `/admin`. */
+/** Legacy URL — a single dashboard lives at `/admin`. */
 export default function Page() {
   redirect('/admin')
 }

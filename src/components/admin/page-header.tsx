@@ -7,8 +7,8 @@ import type { ReactNode } from 'react'
 export type { AdminHeroKpi }
 
 /**
- * Header console partagé — glow + monogramme H + titre + CTA optionnel + KPI horizontaux.
- * Seuls le titre, la description, l’action et les KPI changent d’une page à l’autre.
+ * Shared console header — glow + H monogram + title + optional CTA + horizontal KPIs.
+ * Only the title, description, action and KPIs change from one page to another.
  */
 export function AdminPageHeader({
   title,
@@ -21,7 +21,7 @@ export function AdminPageHeader({
   description?: string
   action?: ReactNode
   kpis: readonly AdminHeroKpi[]
-  /** Marqueurs de contrat du tableau de bord `/admin`. */
+  /** Contract markers for the `/admin` dashboard. */
   dashboard?: boolean
 }>) {
   return (
@@ -35,7 +35,7 @@ export function AdminPageHeader({
       <img alt="" src={CONSOLE_GLOW_SRC} className="h-20 w-full object-cover lg:h-28" />
 
       <div className="bg-black px-6 lg:px-10">
-        {/* Rangée identité — avatar chevauche le glow, titre + CTA alignés en bas */}
+        {/* Identity row — avatar overlaps the glow, title + CTA bottom-aligned */}
         <div className="-mt-8 flex items-end gap-x-4 sm:-mt-10 sm:gap-x-5">
           <span className="relative inline-flex size-16 shrink-0 items-center justify-center rounded-full bg-black ring-4 ring-black outline -outline-offset-1 outline-white/15 sm:size-[4.5rem]">
             <LogoMark className="size-8 text-accent-300 sm:size-9" />

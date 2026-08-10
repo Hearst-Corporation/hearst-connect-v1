@@ -24,9 +24,9 @@ import type { ComponentType, SVGProps } from 'react'
 
 export type SeriesState =
   | { readonly type: 'plotted' }
-  | { readonly type: 'empty'; readonly explication: string }
-  | { readonly type: 'pending'; readonly explication: string }
-  | { readonly type: 'unavailable'; readonly explication: string }
+  | { readonly type: 'empty'; readonly explanation: string }
+  | { readonly type: 'pending'; readonly explanation: string }
+  | { readonly type: 'unavailable'; readonly explanation: string }
 
 const STATE_TONE: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
   empty: 'text-fg-tertiary dark:text-fg-secondary',
@@ -47,20 +47,20 @@ const STATE_ICON: Record<Exclude<SeriesState['type'], 'plotted'>, ComponentType<
 }
 
 function StateVisual({
-  etat,
+  state,
   expectedSource,
   onRetry,
   retryLabel,
   hauteur,
 }: Readonly<{
-  etat: Exclude<SeriesState, { type: 'plotted' }>
+  state: Exclude<SeriesState, { type: 'plotted' }>
   expectedSource?: readonly string[]
   onRetry?: () => void
   retryLabel: string
   hauteur?: number
 }>) {
-  const Icon = STATE_ICON[etat.type]
-  const danger = etat.type === 'unavailable'
+  const Icon = STATE_ICON[state.type]
+  const danger = state.type === 'unavailable'
   return (
     <div
       className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-8 text-center"
@@ -76,8 +76,8 @@ function StateVisual({
       >
         <Icon className="size-7" aria-hidden="true" />
       </span>
-      <AdminToneBadge tone={danger ? 'bad' : 'neutral'}>{STATE_LABEL[etat.type]}</AdminToneBadge>
-      <Text className="max-w-sm text-sm leading-relaxed text-fg-tertiary dark:text-fg-secondary">{etat.explication}</Text>
+      <AdminToneBadge tone={danger ? 'bad' : 'neutral'}>{STATE_LABEL[state.type]}</AdminToneBadge>
+      <Text className="max-w-sm text-sm leading-relaxed text-fg-tertiary dark:text-fg-secondary">{state.explanation}</Text>
       {expectedSource?.length ? (
         <div className="w-full max-w-xs text-left">
           <AdminLabel>Expected source</AdminLabel>
@@ -98,21 +98,21 @@ function StateVisual({
 }
 
 function ChartFrameContent({
-  etat,
+  state,
   children,
   expectedSource,
   onRetry,
   retryLabel,
   hauteur,
 }: Readonly<{
-  etat: SeriesState
+  state: SeriesState
   children?: React.ReactNode
   expectedSource?: readonly string[]
   onRetry?: () => void
   retryLabel: string
   hauteur?: number
 }>) {
-  if (etat.type === 'plotted') {
+  if (state.type === 'plotted') {
     return children
   }
   if (children != null) {
@@ -120,11 +120,11 @@ function ChartFrameContent({
       <>
         {children}
         <div className="flex items-start gap-2 px-5 pb-5 sm:px-6">
-          <AdminToneBadge tone={etat.type === 'unavailable' ? 'bad' : 'neutral'}>
-            {STATE_LABEL[etat.type]}
+          <AdminToneBadge tone={state.type === 'unavailable' ? 'bad' : 'neutral'}>
+            {STATE_LABEL[state.type]}
           </AdminToneBadge>
           <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
-            {etat.explication}
+            {state.explanation}
           </Text>
         </div>
       </>
@@ -132,7 +132,7 @@ function ChartFrameContent({
   }
   return (
     <StateVisual
-      etat={etat}
+      state={state}
       expectedSource={expectedSource}
       onRetry={onRetry}
       retryLabel={retryLabel}
@@ -143,8 +143,8 @@ function ChartFrameContent({
 
 export function ChartFrame({
   question,
-  unite,
-  etat,
+  unit,
+  state,
   hauteur,
   expectedSource,
   onRetry,
@@ -152,8 +152,8 @@ export function ChartFrame({
   children,
 }: Readonly<{
   question: string
-  unite: string
-  etat: SeriesState
+  unit: string
+  state: SeriesState
   /**
    * Minimum height of the EMPTY state, in px. A plotted chart sizes itself
    * from its own data (see `chartHeight`), so this never applies to it.
@@ -167,10 +167,10 @@ export function ChartFrame({
 }>) {
   return (
     <Panel tone="chart" className="flex h-full flex-col">
-      <PanelHeader title={question} hint={unite} />
+      <PanelHeader title={question} hint={unit} />
 
       <ChartFrameContent
-        etat={etat}
+        state={state}
         expectedSource={expectedSource}
         onRetry={onRetry}
         retryLabel={retryLabel}

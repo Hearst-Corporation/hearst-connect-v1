@@ -43,7 +43,7 @@ const STATUS: Record<VaultStatus, { label: string; title: string; tone: string; 
   },
 }
 
-/** Le libellé FR d'un état de coffre, seul (sans le badge) — pour un KPI, une cellule. */
+/** The label for a vault state, on its own (without the badge) — for a KPI or a cell. */
 export function libelleStatutVault(status: VaultStatus): string {
   return STATUS[status].label
 }

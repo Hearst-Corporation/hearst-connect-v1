@@ -4,8 +4,8 @@ import { chartTheme } from '@/components/charts/core/chart-theme'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
 /**
- * richart — sparkline dense pour tuiles KPI.
- * Ne rend rien en dessous de 2 points (pas de pente inventée).
+ * richart — dense sparkline for KPI tiles.
+ * Renders nothing below 2 points (no invented slope).
  */
 
 export function RichSparkline({

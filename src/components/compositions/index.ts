@@ -1,13 +1,13 @@
 /**
- * Compositions Hearst Connect — niveau 2 de la doctrine.
+ * Hearst Connect compositions — level 2 of the doctrine.
  *
- * Elles assemblent les primitives (Catalyst, et la matière de la console) en
- * contrats de mise en page réutilisables. Elles ne réimplémentent aucun
- * comportement accessible de Catalyst, et ne contiennent aucune logique métier.
+ * They assemble the primitives (Catalyst, and the console's own material) into
+ * reusable layout contracts. They do not reimplement any of Catalyst's
+ * accessible behavior, and contain no business logic.
  *
- * Une composition n'entre ici que si elle porte un contrat réel — structure,
- * accessibilité, ou état de données. Un wrapper qui ne fait que passer ses
- * props n'a pas sa place : il ajouterait un nom sans ajouter de garantie.
+ * A composition only belongs here if it carries a real contract — structure,
+ * accessibility, or data state. A wrapper that merely forwards its props has no
+ * place here: it would add a name without adding a guarantee.
  */
 
 export { Panel, PanelBody, PanelHeader, type PanelTone } from '@/components/compositions/panel'
@@ -15,9 +15,9 @@ export { KpiRow, MetricCard, MetricValue, SideFact } from '@/components/composit
 export { CalmState, SourceAttendue } from '@/components/compositions/empty-state'
 
 /*
- * Blocs « haut de gamme » (niveau 2bis) — surfaces prêtes à l'emploi composées
- * des primitives ci-dessus. Le mouvement d'entrée vit dans `motion.tsx`
- * (`FadeIn`), le seul fragment client ; les blocs restent rendus côté serveur.
+ * "Premium" blocks (level 2bis) — ready-to-use surfaces composed from the
+ * primitives above. The entrance motion lives in `motion.tsx` (`FadeIn`), the
+ * only client fragment; the blocks remain server-rendered.
  */
 export {
   StatCard,

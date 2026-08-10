@@ -68,7 +68,7 @@ function ChartTooltip({
 
 /* ── Reserve and exposure ────────────────────────────────────────────────── */
 
-export type PosteBitcoin = { readonly poste: string; readonly montant: number; readonly accent: boolean }
+export type BitcoinItem = { readonly item: string; readonly amount: number; readonly accent: boolean }
 
 /**
  * `accent` selects between two ORDINARY colors — the mint that carries the
@@ -76,13 +76,13 @@ export type PosteBitcoin = { readonly poste: string; readonly montant: number; r
  * it never reaches for a semantic color: an allocation split is not an alarm.
  */
 function PostBar(props: BarShapeProps) {
-  const payload = props.payload as PosteBitcoin | undefined
+  const payload = props.payload as BitcoinItem | undefined
   return <Rectangle {...props} fill={payload?.accent === true ? SERIE : REFERENCE} />
 }
 
 /** "How much sits in reserve, how much is deployed as exposure?" */
-export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly PosteBitcoin[] }>) {
-  if (postes.length === 0) {
+export function ReserveExposureChart({ items }: Readonly<{ items: readonly BitcoinItem[] }>) {
+  if (items.length === 0) {
     return (
       <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
         No allocation readable on-chain. Nothing is plotted, rather than a split at zero.
@@ -102,19 +102,19 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
             </tr>
           </thead>
           <tbody>
-            {postes.map((p) => (
-              <tr key={p.poste}>
-                <th scope="row">{p.poste}</th>
-                <td>{formatCurrency(p.montant, { fromAtomic: 1, decimals: 0 })}</td>
+            {items.map((p) => (
+              <tr key={p.item}>
+                <th scope="row">{p.item}</th>
+                <td>{formatCurrency(p.amount, { fromAtomic: 1, decimals: 0 })}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', postes.length) }}>
+      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', items.length) }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={[...postes]} layout="vertical" margin={chartTheme.margin}>
+          <BarChart data={[...items]} layout="vertical" margin={chartTheme.margin}>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
@@ -130,7 +130,7 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
             />
             <YAxis
               type="category"
-              dataKey="poste"
+              dataKey="item"
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
@@ -138,7 +138,7 @@ export function ReserveExpositionChart({ postes }: Readonly<{ postes: readonly P
             />
             <Tooltip content={<ChartTooltip unit="$" />} cursor={{ fill: chartTheme.cursor }} />
             <Bar
-              dataKey="montant"
+              dataKey="amount"
               name="Amount"
               shape={PostBar}
               radius={[0, 3, 3, 0]}

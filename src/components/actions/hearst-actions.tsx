@@ -1,40 +1,40 @@
 'use client'
 
 /**
- * Frontière d'actions Hearst — HC-ADMIN-DASHBOARD-UI-ASSETS-005 /
+ * Hearst actions boundary — HC-ADMIN-DASHBOARD-UI-ASSETS-005 /
  * HC-ADMIN-DESIGN-SYSTEM-FORENSIC-033.
  *
- * ── Ce que cette frontière est, et n'est pas ──────────────────────────────
- * Le brief demande une frontière `src/components/actions/` inspirée des boutons
- * Aceternity. La doctrine locale (§2, §8, §15) prime : la SEULE primitive de
- * bouton est Catalyst `<Button>` ; un bouton Aceternity est « interdit sans
- * audit » et ne doit jamais doublonner Catalyst. Ces composants NE
- * réimplémentent donc PAS un bouton — ils COMPOSENT Catalyst `<Button>` et lui
- * ajoutent, en surcouche, deux choses qu'Aceternity nous a seulement inspirées :
+ * ── What this boundary is, and is not ─────────────────────────────────────
+ * The brief calls for a `src/components/actions/` boundary inspired by Aceternity
+ * buttons. Local doctrine (§2, §8, §15) takes precedence: the ONLY button
+ * primitive is Catalyst `<Button>`; an Aceternity button is "forbidden without
+ * audit" and must never duplicate Catalyst. So these components do NOT
+ * reimplement a button — they COMPOSE Catalyst `<Button>` and add, as an overlay,
+ * two things that Aceternity merely inspired:
  *
- *   1. une micro-interaction Motion (lift au survol, scale au clic) ;
- *   2. une machine à états (`idle → loading → success | error`) pour une action
- *      asynchrone réelle.
+ *   1. a Motion micro-interaction (lift on hover, scale on click);
+ *   2. a state machine (`idle → loading → success | error`) for a real
+ *      asynchronous action.
  *
- * ── Contrat couleur (033) ─────────────────────────────────────────────────
- * UNE source de vérité : variables CSS Hearst (`--btn-bg` / `--btn-border` /
- * `--btn-icon` / `--btn-hover-overlay`) via `style`. Catalyst fournit
- * structure + comportement (`solid` / `plain`) — JAMAIS `color="lime"|amber|red`
- * (palettes raw qui collisionnent avec les variables accent).
+ * ── Color contract (033) ──────────────────────────────────────────────────
+ * ONE source of truth: Hearst CSS variables (`--btn-bg` / `--btn-border` /
+ * `--btn-icon` / `--btn-hover-overlay`) via `style`. Catalyst provides
+ * structure + behavior (`solid` / `plain`) — NEVER `color="lime"|amber|red`
+ * (raw palettes that collide with the accent variables).
  *
- * Le focus clavier est recalé produit-wide dans `src/styles/tailwind.css`
- * (remap `outline-color` → `--color-accent-500`) ; on n'utilise pas
+ * Keyboard focus is realigned product-wide in `src/styles/tailwind.css`
+ * (remaps `outline-color` → `--color-accent-500`); we do not use
  * `outline-none`.
  *
- * ── Reduced motion est STRUCTUREL ─────────────────────────────────────────
- * En miroir de `compositions/motion.tsx` : `useReducedMotion()` → on rend une
- * `<span>` inerte, aucune transition. Le spinner de chargement s'arrête aussi,
- * via `motion-reduce:animate-none`.
+ * ── Reduced motion is STRUCTURAL ──────────────────────────────────────────
+ * Mirroring `compositions/motion.tsx`: `useReducedMotion()` → we render an
+ * inert `<span>`, no transition. The loading spinner also stops, via
+ * `motion-reduce:animate-none`.
  *
- * ── Véracité ───────────────────────────────────────────────────────────────
- * Une action sans endpoint réel n'est pas câblée sur un faux handler : elle se
- * rend `disabled` avec un `disabledReason` en tooltip (brief §8). `loading` et
- * `success` ne s'exécutent que pour une `onAction` qui fait un vrai travail.
+ * ── Truthfulness ───────────────────────────────────────────────────────────
+ * An action with no real endpoint is not wired to a fake handler: it renders
+ * `disabled` with a `disabledReason` as a tooltip (brief §8). `loading` and
+ * `success` only run for an `onAction` that does real work.
  */
 
 import { Button } from '@/components/catalyst/button'
@@ -48,11 +48,11 @@ type Tone = 'primary' | 'critical' | 'danger' | 'secondary' | 'icon'
 type Phase = 'idle' | 'loading' | 'success' | 'error'
 
 /**
- * Ajoute `data-slot=icon` (dimensionnement Catalyst) + `aria-hidden` à l'élément
- * icône. L'icône est un ÉLÉMENT (`<PlusIcon />`), jamais un composant : un
- * composant (forwardRef) n'est pas sérialisable d'un composant serveur vers un
- * composant client — c'était la cause de l'erreur RSC « Only plain objects can
- * be passed to Client Components ».
+ * Adds `data-slot=icon` (Catalyst sizing) + `aria-hidden` to the icon element.
+ * The icon is an ELEMENT (`<PlusIcon />`), never a component: a component
+ * (forwardRef) is not serializable from a server component to a client
+ * component — that was the cause of the RSC error "Only plain objects can be
+ * passed to Client Components".
  */
 function iconSlot(node: ReactNode): ReactNode {
   if (!isValidElement(node)) return node
@@ -60,7 +60,7 @@ function iconSlot(node: ReactNode): ReactNode {
   return cloneElement(el, { 'data-slot': 'icon', 'aria-hidden': true })
 }
 
-/** Variables sémantiques Hearst — seule source de couleur pour les tons solid. */
+/** Hearst semantic variables — the only color source for solid tones. */
 const TONE_STYLE: Record<Exclude<Tone, 'icon' | 'secondary'>, CSSProperties> = {
   primary: {
     '--btn-bg': 'var(--color-accent-400)',
@@ -83,10 +83,10 @@ const TONE_STYLE: Record<Exclude<Tone, 'icon' | 'secondary'>, CSSProperties> = {
 }
 
 /**
- * Classes d'encre / overlay — battent le texte du défaut Catalyst
- * `dark/neutral` (`text-white`) via le modificateur important Tailwind.
- * Focus : `!data-focus:outline-accent-500` bat le `outline-blue-500` vendor.
- * Overlay /25 pour primary+critical (fond clair) ; /10 pour danger (fond sombre).
+ * Ink / overlay classes — override the Catalyst `dark/neutral` default text
+ * (`text-white`) via the Tailwind important modifier.
+ * Focus: `!data-focus:outline-accent-500` overrides the vendor `outline-blue-500`.
+ * Overlay /25 for primary+critical (light background); /10 for danger (dark background).
  */
 const FOCUS_ACCENT = '!data-focus:outline-accent-500'
 
@@ -97,7 +97,7 @@ const TONE_CLASS: Record<Exclude<Tone, 'icon'>, string> = {
   secondary: FOCUS_ACCENT,
 }
 
-/** Tons qui portent une micro-interaction. Le secondaire reste inerte (doctrine : hover Catalyst suffit). */
+/** Tones that carry a micro-interaction. The secondary stays inert (doctrine: Catalyst hover is enough). */
 const TONE_MOTION: Record<Tone, boolean> = {
   primary: true,
   critical: true,
@@ -108,14 +108,14 @@ const TONE_MOTION: Record<Tone, boolean> = {
 
 type BaseProps = Readonly<{
   children?: ReactNode
-  /** Élément icône menant (ex. `<PlusIcon />`) — jamais un composant, pour rester sérialisable serveur→client. */
+  /** Leading icon element (e.g. `<PlusIcon />`) — never a component, to stay serializable server→client. */
   icon?: ReactNode
   className?: string
   'aria-label'?: string
-  /** Rendu `disabled` avec ce texte en tooltip — l'état honnête d'une action sans endpoint. */
+  /** Rendered `disabled` with this text as a tooltip — the honest state of an action with no endpoint. */
   disabledReason?: string
   disabled?: boolean
-  /** Libellé transitoire affiché ~1,5 s après une `onAction` résolue. */
+  /** Transient label shown ~1.5 s after an `onAction` resolves. */
   successLabel?: string
 }>
 
@@ -125,7 +125,7 @@ type HearstActionProps = BaseProps &
     | Readonly<{ href?: never; onAction?: () => void | Promise<void> }>
   )
 
-/** Wrapper Motion — inerte si reduced-motion ou si le ton ne bouge pas. */
+/** Motion wrapper — inert if reduced-motion or if the tone does not move. */
 function Interactive({
   children,
   active,
@@ -305,9 +305,9 @@ function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
   const mergedClass = resolveMergedClass(tone, className)
   const content = renderActionContent(onAction, phase, icon, children, successLabel)
 
-  // Bouton Catalyst résolu par ton — jamais un <button> maison.
-  // Structure = défaut `dark/neutral` (tokens console) ou `white` / `plain`.
-  // Couleur sémantique = variables Hearst uniquement (pas de color="lime").
+  // Catalyst button resolved by tone — never a hand-rolled <button>.
+  // Structure = `dark/neutral` default (console tokens) or `white` / `plain`.
+  // Semantic color = Hearst variables only (no color="lime").
   const button = renderCatalystButton({
     tone,
     href,
@@ -324,22 +324,22 @@ function HearstAction({ tone, ...props }: HearstActionProps & { tone: Tone }) {
   return <Interactive active={TONE_MOTION[tone] && !isDisabled && !busy} tapScale={tapScale}>{button}</Interactive>
 }
 
-/** Action principale — accent mint Hearst, lift + tap. Le CTA le plus proéminent d'un contexte. */
+/** Primary action — Hearst mint accent, lift + tap. The most prominent CTA in a context. */
 export function HearstPrimaryAction(props: HearstActionProps) {
   return <HearstAction tone="primary" {...props} />
 }
 
-/** Action critique — travail en attente (souscription à reprendre, KYC à valider). États loading + success bornés. */
+/** Critical action — pending work (subscription to resume, KYC to validate). Bounded loading + success states. */
 export function HearstCriticalAction(props: HearstActionProps) {
   return <HearstAction tone="critical" {...props} />
 }
 
-/** Action à risque — incident, échec. Tokens danger Hearst. */
+/** Risk action — incident, failure. Hearst danger tokens. */
 export function HearstDangerAction(props: HearstActionProps) {
   return <HearstAction tone="danger" {...props} />
 }
 
-/** Action secondaire — fond blanc, bordure grise, hover léger, AUCUNE animation (doctrine). */
+/** Secondary action — white background, gray border, light hover, NO animation (doctrine). */
 export function HearstSecondaryAction(props: HearstActionProps) {
   return <HearstAction tone="secondary" {...props} />
 }

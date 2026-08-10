@@ -58,9 +58,9 @@ const AUTH_LEVELS: readonly { auth: EndpointAuth; label: string; detail: string 
   { auth: 'admin', label: 'Administrator', detail: 'A session whose backend role is admin.' },
 ]
 
-// Répartition du registre par catégorie : chaque point d'accès porte réellement
-// ce champ (regroupement d'une donnée par ligne, pas un compteur inventé), et le
-// total est réel (= nombre de points d'accès du registre).
+// Registry breakdown by category: every endpoint genuinely carries this field
+// (grouping a per-row datum, not an invented counter), and the total is real
+// (= number of endpoints in the registry).
 const CATEGORY_LABELS: Record<BackendEndpoint['category'], string> = {
   probe: 'Probes',
   business: 'Business',
@@ -88,8 +88,8 @@ function countBy(filter: (e: BackendEndpoint) => boolean): number {
 }
 
 /**
- * API explorer — blocs de composition autour des lignes clientes.
- * Registre BACKEND_ENDPOINTS, sondes en direct via ExplorerRow.
+ * API explorer — composition blocks around the client rows.
+ * BACKEND_ENDPOINTS registry, live probes via ExplorerRow.
  */
 export default async function ApiExplorerPage() {
   await requireSession()
@@ -98,13 +98,13 @@ export default async function ApiExplorerPage() {
   const aiContextCount = countBy((e) => e.category === 'ai-context')
   const actionsCount = countBy((e) => e.category === 'keeper')
 
-  // Parts d'un tout : les points d'accès regroupés par catégorie réelle.
-  const parCategorie = new Map<BackendEndpoint['category'], number>()
+  // Parts of a whole: endpoints grouped by their real category.
+  const byCategory = new Map<BackendEndpoint['category'], number>()
   for (const endpoint of BACKEND_ENDPOINTS) {
-    const vu = parCategorie.get(endpoint.category)
-    parCategorie.set(endpoint.category, vu === undefined ? 1 : vu + 1)
+    const seen = byCategory.get(endpoint.category)
+    byCategory.set(endpoint.category, seen === undefined ? 1 : seen + 1)
   }
-  const categorySlices: readonly DonutSlice[] = [...parCategorie.entries()]
+  const categorySlices: readonly DonutSlice[] = [...byCategory.entries()]
     .map(([category, value]) => ({ label: CATEGORY_LABELS[category], value }))
     .sort((a, b) => b.value - a.value)
 
@@ -145,8 +145,8 @@ export default async function ApiExplorerPage() {
 
       <ChartFrame
         question="How is the registry split by action type?"
-        unite="number of endpoints, by category"
-        etat={{ type: 'plotted' }}
+        unit="number of endpoints, by category"
+        state={{ type: 'plotted' }}
       >
         <HearstDonutChart slices={categorySlices} unit="endpoints" />
       </ChartFrame>
