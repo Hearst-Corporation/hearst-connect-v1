@@ -22,6 +22,7 @@ import {
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
 import { AdminBodyNav } from '@/components/admin/body-nav'
+import { HeaderClientSearch } from '@/components/admin/header-client-search'
 import { NavbarAvatar, SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
 import { HearstConnectLockupImage } from '@/components/logo'
 import { logout } from '@/lib/actions'
@@ -106,6 +107,9 @@ export function AdminApplicationLayout({
           </SidebarHeader>
 
           <SidebarBody>
+            <div className="mb-3 px-2">
+              <HeaderClientSearch />
+            </div>
             <SidebarSection>
               {ADMIN_NAV.map((entree) => {
                 const Icone = entree.icone
