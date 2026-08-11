@@ -3,7 +3,7 @@ import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
+import { BucketSparklines, ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
@@ -393,8 +393,10 @@ type BackendResolved<T> = Readonly<{
 
 function VaultHistorySection({
   history,
+  rebalancing,
 }: Readonly<{
   history: Availability<readonly VaultHistorySnapshot[]>
+  rebalancing: Availability<readonly RebalancingRow[]>
 }>) {
   const etat: SeriesState = !isAvailable(history)
     ? {
@@ -407,6 +409,14 @@ function VaultHistorySection({
     : history.value.length === 0
       ? { type: 'empty', explanation: 'No historical snapshots for this vault yet.' }
       : { type: 'plotted' }
+
+  const rebalanceDates = isAvailable(rebalancing)
+    ? [...new Set(
+        rebalancing.value
+          .map((r) => (isAvailable(r.lastRebalanceAt) ? r.lastRebalanceAt.value.slice(0, 10) : null))
+          .filter((d): d is string => d !== null),
+      )]
+    : []
 
   const combinedPoints =
     isAvailable(history) && history.value.length > 0
@@ -436,6 +446,24 @@ function VaultHistorySection({
           .filter((p) => p.value > 0)
       : []
 
+  const bucketSparklines = (() => {
+    if (!isAvailable(history) || history.value.length === 0) return []
+    const buckets = new Map<string, { bucket: string; points: Array<{ label: string; pct: number; detail: string }> }>()
+    for (const snapshot of history.value) {
+      const date = snapshot.takenAt.slice(0, 10)
+      for (const allocation of snapshot.allocations ?? []) {
+        const existing = buckets.get(allocation.bucket)
+        const point = { label: date, pct: Number(allocation.pct), detail: snapshot.takenAt }
+        if (existing) {
+          existing.points.push(point)
+        } else {
+          buckets.set(allocation.bucket, { bucket: allocation.bucket, points: [point] })
+        }
+      }
+    }
+    return Array.from(buckets.values())
+  })()
+
   return (
     <div className="space-y-6">
       <ChartFrame
@@ -444,9 +472,19 @@ function VaultHistorySection({
         state={etat}
       >
         {combinedPoints.length > 0 ? (
-          <VaultAumCbbtcChart points={combinedPoints} />
+          <VaultAumCbbtcChart points={combinedPoints} rebalanceDates={rebalanceDates} />
         ) : null}
       </ChartFrame>
+
+      {bucketSparklines.length > 0 ? (
+        <ChartFrame
+          question="How has each bucket drifted over time?"
+          unit="in percent — rebalance dates marked"
+          state={{ type: 'plotted' }}
+        >
+          <BucketSparklines buckets={bucketSparklines} />
+        </ChartFrame>
+      ) : null}
 
       {btcPricePoints.length > 0 ? (
         <ChartFrame
@@ -522,7 +560,7 @@ export default async function Page({ params }: PageProps) {
 
       <VaultAllocationSection scopedRebalancing={scopedRebalancing} rebalancingList={rebalancingList} />
 
-      <VaultHistorySection history={history} />
+      <VaultHistorySection history={history} rebalancing={scopedRebalancing} />
 
       <VaultRecentActivitySection
         scopedMovements={scopedMovements}
