@@ -1,0 +1,338 @@
+import 'server-only'
+
+import { callBackend, statusFromMeta } from '@/lib/backend/client'
+import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/availability'
+import { measuredCount, type Availability } from '@/lib/vaults/model'
+
+/**
+ * User dashboard loader — investor-scoped, backend-first.
+ *
+ * Reads session read-models (auth: 'session', already scoped to the connected
+ * investor): the `/api/v1/dashboard` aggregate, `vault/history` (value +
+ * allocation + BTC price series), `series1/events` (activity), `btc` (market)
+ * and `backtest/historical` (product performance). NOTHING is admin-wide.
+ *
+ * Every field is an `Availability<T>` produced by the canonical adapter — an
+ * absent surface is a NAMED absence, never a zero, never a fabricated value
+ * (doctrine `check:mocks` / `check:truthful-data`). Numeric strings from the
+ * backend are parsed defensively; a non-finite parse drops the point.
+ */
+
+const DASHBOARD_ENDPOINT = '/api/v1/dashboard'
+const HISTORY_ENDPOINT = '/api/v1/vault/history'
+const SERIES1_ENDPOINT = '/api/v1/series1/events'
+const BACKTEST_ENDPOINT = '/api/v1/backtest/historical'
+
+type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
+
+const isResolvedField = (v: unknown): v is ResolvedField =>
+  typeof v === 'object' && v !== null && 'status' in v && 'value' in v
+
+/** Reads `{ status, value }` out of an enveloped `{ key: { status, value } }` shape. */
+function envelopeField(raw: unknown, key: string): ResolvedBlock<unknown> {
+  if (typeof raw === 'object' && raw !== null) {
+    const field = (raw as Record<string, unknown>)[key]
+    if (isResolvedField(field)) {
+      return { status: field.status, value: field.value, reason: field.reason ?? null }
+    }
+  }
+  return { status: 'UNAVAILABLE', value: null, reason: `${key}_absent` }
+}
+
+/** Parses a backend numeric (number or numeric string); null when not finite. */
+function num(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+/** Short day label `MM-DD` from an ISO timestamp, for chart axes. */
+function dayLabel(iso: unknown): string {
+  if (typeof iso !== 'string' || iso.length < 10) return '—'
+  return iso.slice(5, 10)
+}
+
+// ── Public point/row shapes consumed by the client charts ────────────────────
+
+export type ValuePoint = { readonly label: string; readonly value: number; readonly detail: string }
+export type AllocationBar = { readonly label: string; readonly value: number }
+export type AllocationTimePoint = {
+  readonly label: string
+  readonly cbbtcPct: number
+  readonly usdcPct: number
+  readonly detail: string
+}
+export type BtcPoint = { readonly label: string; readonly value: number; readonly detail: string }
+export type ActivityBar = { readonly label: string; readonly value: number; readonly detail: string }
+export type BacktestRun = { readonly label: string; readonly value: number; readonly detail: string }
+export type UserMovement = {
+  readonly id: string
+  readonly title: string
+  readonly detail: string | null
+  readonly occurredAt: string | null
+}
+
+export type UserDashboard = {
+  readonly sourceStatus: string
+  readonly position: Availability<ResolvedField>
+  readonly performance: Availability<ResolvedField>
+  readonly subscription: Availability<ResolvedField>
+  /** Latest-snapshot allocation buckets (donut). */
+  readonly allocationBars: Availability<readonly AllocationBar[]>
+  /** Allocation over time — cbBTC vs USDC percentages (dual line). */
+  readonly allocationSeries: Availability<readonly AllocationTimePoint[]>
+  /** Vault total value over time (line). */
+  readonly valueSeries: Availability<readonly ValuePoint[]>
+  /** BTC price at each vault snapshot (line). */
+  readonly btcSeries: Availability<readonly BtcPoint[]>
+  /** Indexed activity aggregated per day (bars). */
+  readonly activityBars: Availability<readonly ActivityBar[]>
+  /** Product backtest runs — total return per scenario (bars). */
+  readonly backtestRuns: Availability<readonly BacktestRun[]>
+  /** Investor movements grouped by category (donut). */
+  readonly activityByType: Availability<readonly AllocationBar[]>
+  /** The investor's own movements (list). */
+  readonly activity: Availability<readonly UserMovement[]>
+  readonly activityCount: Availability<string>
+}
+
+// ── History snapshot parsing ─────────────────────────────────────────────────
+
+type Allocation = { readonly bucket?: string; readonly pct?: unknown; readonly valueUsdc?: unknown }
+type Snapshot = {
+  readonly takenAt?: string
+  readonly aumUsdc?: unknown
+  readonly btcPriceUsdc?: unknown
+  readonly allocations?: readonly Allocation[]
+}
+
+/** Normalizes the history response `{ snapshots: { value: [...] } }` to snapshots. */
+function historySnapshots(raw: unknown): readonly Snapshot[] {
+  const field = envelopeField(raw, 'snapshots')
+  return Array.isArray(field.value) ? (field.value as readonly Snapshot[]) : []
+}
+
+const bucketPct = (snap: Snapshot, matcher: (bucket: string) => boolean): number | null => {
+  const found = (snap.allocations ?? []).find((a) => typeof a.bucket === 'string' && matcher(a.bucket))
+  return found ? num(found.pct) : null
+}
+
+function valueSeriesFrom(snaps: readonly Snapshot[]): readonly ValuePoint[] | null {
+  const points = snaps
+    .map((s) => ({ v: num(s.aumUsdc), at: s.takenAt }))
+    .filter((p): p is { v: number; at: string | undefined } => p.v !== null)
+    .map((p) => ({ label: dayLabel(p.at), value: p.v, detail: dayLabel(p.at) }))
+  return points.length > 0 ? points : null
+}
+
+function btcSeriesFrom(snaps: readonly Snapshot[]): readonly BtcPoint[] | null {
+  const points = snaps
+    .map((s) => ({ v: num(s.btcPriceUsdc), at: s.takenAt }))
+    .filter((p): p is { v: number; at: string | undefined } => p.v !== null)
+    .map((p) => ({ label: dayLabel(p.at), value: p.v, detail: dayLabel(p.at) }))
+  return points.length > 0 ? points : null
+}
+
+function allocationSeriesFrom(snaps: readonly Snapshot[]): readonly AllocationTimePoint[] | null {
+  const points = snaps
+    .map((s) => {
+      const cbbtc = bucketPct(s, (b) => b.includes('cbbtc') || b.includes('btc'))
+      const usdc = bucketPct(s, (b) => b.includes('usdc'))
+      return cbbtc !== null && usdc !== null
+        ? { label: dayLabel(s.takenAt), cbbtcPct: cbbtc, usdcPct: usdc, detail: dayLabel(s.takenAt) }
+        : null
+    })
+    .filter((p): p is AllocationTimePoint => p !== null)
+  return points.length > 0 ? points : null
+}
+
+function allocationBarsFrom(snaps: readonly Snapshot[]): readonly AllocationBar[] | null {
+  const last = snaps.length > 0 ? snaps[snaps.length - 1] : undefined
+  if (last?.allocations === undefined) return null
+  const bars = last.allocations
+    .map((a) => {
+      const value = num(a.pct)
+      return typeof a.bucket === 'string' && value !== null
+        ? { label: a.bucket.replace(/_/g, ' '), value }
+        : null
+    })
+    .filter((b): b is AllocationBar => b !== null)
+  return bars.length > 0 ? bars : null
+}
+
+/** Aggregates indexed events per day into ascending bars. */
+function activityBarsFrom(raw: unknown): readonly ActivityBar[] | null {
+  const field = envelopeField(raw, 'events')
+  if (!Array.isArray(field.value)) return null
+  const perDay = new Map<string, number>()
+  for (const event of field.value) {
+    if (typeof event === 'object' && event !== null) {
+      const at = (event as Record<string, unknown>).occurredAt
+      if (typeof at === 'string' && at.length >= 10) {
+        const key = at.slice(0, 10)
+        const previous = perDay.get(key)
+        perDay.set(key, (previous === undefined ? 0 : previous) + 1)
+      }
+    }
+  }
+  if (perDay.size === 0) return null
+  return [...perDay.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, count]) => ({ label: day.slice(5), value: count, detail: day }))
+}
+
+function backtestRunsFrom(raw: unknown): readonly BacktestRun[] | null {
+  const field = envelopeField(raw, 'runs')
+  if (!Array.isArray(field.value)) return null
+  const runs = field.value
+    .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
+    .map((r) => {
+      const value = num(r.totalReturnPct)
+      const key = typeof r.backtestKey === 'string' ? r.backtestKey.replace(/_/g, ' ') : 'run'
+      return value !== null ? { label: key, value, detail: `${key} · total return` } : null
+    })
+    .filter((r): r is BacktestRun => r !== null)
+  return runs.length > 0 ? runs : null
+}
+
+function movementsFrom(field: ResolvedField | null): readonly UserMovement[] | null {
+  const value = field?.value
+  if (!Array.isArray(value)) return null
+  const rows = value
+    .filter((row): row is Record<string, unknown> => typeof row === 'object' && row !== null)
+    .map((row, index) => {
+      const name =
+        typeof row.name === 'string'
+          ? row.name
+          : typeof row.eventName === 'string'
+            ? row.eventName
+            : typeof row.title === 'string'
+              ? row.title
+              : 'Movement'
+      const category = typeof row.category === 'string' ? row.category : null
+      const id =
+        typeof row.id === 'string'
+          ? row.id
+          : typeof row.txHash === 'string'
+            ? row.txHash
+            : String(index)
+      return {
+        id,
+        title: name,
+        detail: category,
+        occurredAt: typeof row.timestamp === 'string'
+          ? row.timestamp
+          : typeof row.occurredAt === 'string'
+            ? row.occurredAt
+            : null,
+      }
+    })
+  return rows.length > 0 ? rows : null
+}
+
+/** Groups movements by category into donut slices — a real breakdown, not invented. */
+function activityByTypeFrom(movements: readonly UserMovement[] | null): readonly AllocationBar[] | null {
+  if (movements === null || movements.length === 0) return null
+  const perType = new Map<string, number>()
+  for (const movement of movements) {
+    const key = movement.detail ?? 'other'
+    const previous = perType.get(key)
+    perType.set(key, (previous === undefined ? 0 : previous) + 1)
+  }
+  return [...perType.entries()]
+    .sort(([, a], [, b]) => b - a)
+    .map(([label, value]) => ({ label, value }))
+}
+
+function surface(aggregate: Record<string, unknown> | null, key: string): ResolvedBlock<ResolvedField> {
+  const field = aggregate?.[key]
+  if (!isResolvedField(field)) {
+    return { status: 'UNAVAILABLE', value: null, reason: `surface_${key}_absent` }
+  }
+  return { status: field.status, value: field, reason: field.reason ?? null }
+}
+
+export async function loadUserDashboard(): Promise<UserDashboard> {
+  const [aggregateResponse, historyResponse, series1Response, backtestResponse] = await Promise.all([
+    callBackend<Record<string, unknown>>('dashboard'),
+    callBackend<unknown>('vault-history'),
+    callBackend<unknown>('series1-events'),
+    callBackend<unknown>('backtest-historical'),
+  ])
+
+  const aggregate = aggregateResponse.ok ? aggregateResponse.data : null
+  const sourceStatus = aggregateResponse.ok ? statusFromMeta(aggregateResponse.meta) : 'UNAVAILABLE'
+
+  const position = availabilityFromResolved(surface(aggregate, 'position'), DASHBOARD_ENDPOINT)
+  const performance = availabilityFromResolved(surface(aggregate, 'performance'), DASHBOARD_ENDPOINT)
+  const subscription = availabilityFromResolved(surface(aggregate, 'subscription'), DASHBOARD_ENDPOINT)
+
+  // Activity list: prefer `activity`, fall back to `recentEvents`; freshness read
+  // from the surface status via the adapter (never forced).
+  const activityField = surface(aggregate, 'activity')
+  const eventsField = surface(aggregate, 'recentEvents')
+  const activitySourceStatus =
+    movementsFrom(activityField.value) !== null ? activityField.status : eventsField.status
+  const activityValue = movementsFrom(activityField.value) ?? movementsFrom(eventsField.value)
+  const activity = availabilityFromResolved<readonly UserMovement[]>(
+    { status: activitySourceStatus, value: activityValue, reason: 'no_investor_movement' },
+    DASHBOARD_ENDPOINT,
+  )
+  const activityCount = measuredCount(activity)
+  const activityByType = availabilityFromResolved<readonly AllocationBar[]>(
+    { status: activitySourceStatus, value: activityByTypeFrom(activityValue), reason: 'no_investor_movement' },
+    DASHBOARD_ENDPOINT,
+  )
+
+  // Series from `vault/history` — freshness is the history envelope status.
+  const snaps = historyResponse.ok ? historySnapshots(historyResponse.data) : []
+  const historyStatus = historyResponse.ok ? statusFromMeta(historyResponse.meta) : 'UNAVAILABLE'
+  const historyBlock = <T,>(value: T | null): ResolvedBlock<T> => ({
+    status: historyStatus,
+    value,
+    reason: 'no_history_snapshot',
+  })
+  const valueSeries = availabilityFromResolved(historyBlock(valueSeriesFrom(snaps)), HISTORY_ENDPOINT)
+  const btcSeries = availabilityFromResolved(historyBlock(btcSeriesFrom(snaps)), HISTORY_ENDPOINT)
+  const allocationSeries = availabilityFromResolved(
+    historyBlock(allocationSeriesFrom(snaps)),
+    HISTORY_ENDPOINT,
+  )
+  const allocationBars = availabilityFromResolved(
+    historyBlock(allocationBarsFrom(snaps)),
+    HISTORY_ENDPOINT,
+  )
+
+  // Activity bars from `series1/events` — freshness is that envelope's status.
+  const series1Status = series1Response.ok ? statusFromMeta(series1Response.meta) : 'UNAVAILABLE'
+  const activityBars = availabilityFromResolved(
+    { status: series1Status, value: series1Response.ok ? activityBarsFrom(series1Response.data) : null, reason: 'no_indexed_event' },
+    SERIES1_ENDPOINT,
+  )
+
+  // Backtest runs from `backtest/historical`.
+  const backtestStatus = backtestResponse.ok ? statusFromMeta(backtestResponse.meta) : 'UNAVAILABLE'
+  const backtestRuns = availabilityFromResolved(
+    { status: backtestStatus, value: backtestResponse.ok ? backtestRunsFrom(backtestResponse.data) : null, reason: 'no_backtest_run' },
+    BACKTEST_ENDPOINT,
+  )
+
+  return {
+    sourceStatus,
+    position,
+    performance,
+    subscription,
+    allocationBars,
+    allocationSeries,
+    valueSeries,
+    btcSeries,
+    activityBars,
+    backtestRuns,
+    activityByType,
+    activity,
+    activityCount,
+  }
+}

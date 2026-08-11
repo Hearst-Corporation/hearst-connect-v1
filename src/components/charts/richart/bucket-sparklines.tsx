@@ -81,9 +81,14 @@ export function BucketSparklines({
             {buckets[0]?.points.map((_, i) => (
               <tr key={i}>
                 <th scope="row">{buckets[0].points[i]?.detail}</th>
-                {buckets.map((b) => (
-                  <td key={b.bucket}>{formatNumber(b.points[i]?.pct ?? 0, { maximumFractionDigits: 2 })}%</td>
-                ))}
+                {buckets.map((b) => {
+                  const pct = b.points[i]?.pct
+                  return (
+                    <td key={b.bucket}>
+                      {typeof pct === 'number' ? `${formatNumber(pct, { maximumFractionDigits: 2 })}%` : '—'}
+                    </td>
+                  )
+                })}
               </tr>
             ))}
           </tbody>
@@ -116,7 +121,9 @@ export function BucketSparklines({
                     </LineChart>
                   </div>
                   <span className="w-12 shrink-0 text-right text-xs tabular-nums text-fg">
-                    {formatNumber(data[data.length - 1]?.pct ?? 0, { maximumFractionDigits: 1 })}%
+                    {typeof data[data.length - 1]?.pct === 'number'
+                      ? `${formatNumber(data[data.length - 1].pct, { maximumFractionDigits: 1 })}%`
+                      : '—'}
                   </span>
                 </div>
               )
