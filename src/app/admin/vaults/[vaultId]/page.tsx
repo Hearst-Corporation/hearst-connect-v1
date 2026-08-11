@@ -6,6 +6,7 @@ import { Text } from '@/components/catalyst/text'
 import { BucketSparklines, ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import clsx from 'clsx'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
 import { requireSession } from '@/lib/auth'
@@ -499,14 +500,140 @@ function VaultHistorySection({
   )
 }
 
+type RebalanceEvent = {
+  readonly id: string
+  readonly eventName: string
+  readonly occurredAt: string | null
+  readonly txHash: string | null
+  readonly blockNumber: string | null
+  readonly chainId: number | null
+  readonly assetAmountAtomic: string | null
+  readonly fromStrategy?: string | null
+  readonly toStrategy?: string | null
+  readonly priceUsdc?: string | null
+}
+
+function RebalancingEventsSection({
+  events,
+}: Readonly<{
+  events: Availability<readonly RebalanceEvent[]>
+}>) {
+  if (!isAvailable(events)) {
+    return (
+      <SectionCard title="Rebalancing events">
+        <Text>Rebalancing event source unavailable.</Text>
+      </SectionCard>
+    )
+  }
+
+  if (events.value.length === 0) {
+    return (
+      <DataTableShell
+        title="Rebalancing events"
+        calme="No rebalancing events recorded for this vault."
+      />
+    )
+  }
+
+  return (
+    <DataTableShell
+      title="Rebalancing events"
+      count={`${formatNumber(events.value.length)} shown`}
+    >
+      <TableHead>
+        <TableRow>
+          <TableHeader className={fitTableColCompact}>Time</TableHeader>
+          <TableHeader className={fitTableColPrimary}>Type</TableHeader>
+          <TableHeader className={fitTableColPrimary}>Move</TableHeader>
+          <TableHeader className={fitTableColCompact}>Amount</TableHeader>
+          <TableHeader className={fitTableColCompact}>Price</TableHeader>
+          <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {events.value.map((event) => {
+          const txShort = event.txHash === null ? null : formatHash(event.txHash)
+          const txUrl = explorerTxUrl(event.chainId ?? undefined, event.txHash ?? undefined)
+          const move =
+            event.fromStrategy && event.toStrategy
+              ? `${event.fromStrategy} → ${event.toStrategy}`
+              : event.fromStrategy ?? event.toStrategy ?? '—'
+          return (
+            <TableRow key={event.id}>
+              <TableCell className="tabular-nums text-xs">
+                {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
+              </TableCell>
+              <TableCell className="text-sm">
+                <span
+                  className={clsx(
+                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                    event.eventName === 'Rebalance'
+                      ? 'bg-accent-400/10 text-accent-600 dark:text-accent-400'
+                      : event.eventName === 'VaultSwapped'
+                        ? 'bg-warning-400/10 text-warning-600 dark:text-warning-400'
+                        : 'bg-console-inset text-fg-tertiary',
+                  )}
+                >
+                  {event.eventName}
+                </span>
+              </TableCell>
+              <TableCell className="truncate text-xs text-fg-tertiary" title={move}>
+                {move}
+              </TableCell>
+              <TableCell className="tabular-nums text-xs">
+                {event.assetAmountAtomic ? formatCurrency(event.assetAmountAtomic, { decimals: 0 }) : '—'}
+              </TableCell>
+              <TableCell className="tabular-nums text-xs">
+                {event.priceUsdc ? `$${formatNumber(Number(event.priceUsdc), { maximumFractionDigits: 0 })}` : '—'}
+              </TableCell>
+              <TableCell className="truncate font-mono text-xs">
+                {txShort ? (
+                  <a
+                    href={txUrl ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-600 dark:text-accent-400"
+                  >
+                    {txShort}
+                  </a>
+                ) : (
+                  '—'
+                )}
+              </TableCell>
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </DataTableShell>
+  )
+}
+
 export default async function Page({ params }: PageProps) {
   const { vaultId } = await params
   const session = await requireSession()
-  const [{ registry, vault }, historyRes] = await Promise.all([
+  const [{ registry, vault }, historyRes, rebalanceEventsRes] = await Promise.all([
     loadVault(vaultId as VaultId, session.name),
     callBackend<{
       snapshots: BackendResolved<readonly VaultHistorySnapshot[]>
     }>('vault-history', { params: { vaultId, limit: 90 } }),
+    callBackend<{
+      events: BackendResolved<
+        readonly {
+          id: string
+          eventName: string
+          occurredAt: string | null
+          txHash: string | null
+          blockNumber: string | null
+          chainId: number | null
+          assetAmountAtomic: string | null
+          shareAmountAtomic: string | null
+          investorAddress: string | null
+          fromStrategy?: string | null
+          toStrategy?: string | null
+          priceUsdc?: string | null
+        }[]
+      >
+    }>('events-rebalancing', { params: { vaultId, limit: 50 } }),
   ])
 
   const history: Availability<readonly VaultHistorySnapshot[]> = historyRes.ok
@@ -517,6 +644,34 @@ export default async function Page({ params }: PageProps) {
           reason: historyRes.data.snapshots?.reason ?? 'no_snapshots',
         })
     : unavailable({ endpoint: '/api/v1/vault/history', reason: 'service_did_not_respond' })
+
+  // TODO: remove after verifying response shape
+  if (rebalanceEventsRes.ok) {
+    // eslint-disable-next-line no-console
+    console.log('[events-rebalancing] response:', JSON.stringify(rebalanceEventsRes.data, null, 2))
+  }
+
+  const rebalanceEvents: Availability<
+    readonly {
+      id: string
+      eventName: string
+      occurredAt: string | null
+      txHash: string | null
+      blockNumber: string | null
+      chainId: number | null
+      assetAmountAtomic: string | null
+      fromStrategy?: string | null
+      toStrategy?: string | null
+      priceUsdc?: string | null
+    }[]
+  > = rebalanceEventsRes.ok
+    ? rebalanceEventsRes.data.events?.value !== null && rebalanceEventsRes.data.events?.value !== undefined
+      ? available(rebalanceEventsRes.data.events.value, { provenance: 'unknown' })
+      : unavailable({
+          endpoint: '/api/v1/events/rebalancing',
+          reason: rebalanceEventsRes.data.events?.reason ?? 'no_events',
+        })
+    : unavailable({ endpoint: '/api/v1/events/rebalancing', reason: 'service_did_not_respond' })
 
   if (vault === null) notFound()
 
@@ -561,6 +716,8 @@ export default async function Page({ params }: PageProps) {
       <VaultAllocationSection scopedRebalancing={scopedRebalancing} rebalancingList={rebalancingList} />
 
       <VaultHistorySection history={history} rebalancing={scopedRebalancing} />
+
+      <RebalancingEventsSection events={rebalanceEvents} />
 
       <VaultRecentActivitySection
         scopedMovements={scopedMovements}
