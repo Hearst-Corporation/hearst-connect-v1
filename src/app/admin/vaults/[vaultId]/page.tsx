@@ -551,7 +551,7 @@ function RebalancingEventsSection({
         </TableRow>
       </TableHead>
       <TableBody>
-        {events.value.map((event) => {
+        {events.value.map((event, index) => {
           const txShort = event.txHash === null ? null : formatHash(event.txHash)
           const txUrl = explorerTxUrl(event.chainId ?? undefined, event.txHash ?? undefined)
           const move =
@@ -559,7 +559,7 @@ function RebalancingEventsSection({
               ? `${event.fromStrategy} → ${event.toStrategy}`
               : event.fromStrategy ?? event.toStrategy ?? '—'
           return (
-            <TableRow key={event.id}>
+            <TableRow key={`${event.id ?? 'event'}-${index}`}>
               <TableCell className="tabular-nums text-xs">
                 {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
               </TableCell>
