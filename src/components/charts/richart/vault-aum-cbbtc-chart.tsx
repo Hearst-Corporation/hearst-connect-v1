@@ -3,7 +3,7 @@
 import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { formatNumber } from '@/lib/format'
-import { Area, CartesianGrid, ComposedChart, Line, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
  * richart — dual-axis chart for vault AUM + cbBTC allocation %.
@@ -56,9 +56,11 @@ function DualTooltip({
 export function VaultAumCbbtcChart({
   points,
   height,
+  rebalanceDates,
 }: Readonly<{
   points: readonly AumCbbtcPoint[]
   height?: number
+  rebalanceDates?: readonly string[]
 }>) {
   if (points.length === 0) {
     return (
@@ -113,6 +115,16 @@ export function VaultAumCbbtcChart({
               strokeDasharray="2 4"
               vertical={false}
             />
+            {rebalanceDates?.map((date) => (
+              <ReferenceLine
+                key={date}
+                x={date}
+                stroke={chartTheme.semantic.warning}
+                strokeDasharray="3 3"
+                strokeWidth={1}
+                yAxisId="left"
+              />
+            ))}
             <XAxis
               dataKey="label"
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}

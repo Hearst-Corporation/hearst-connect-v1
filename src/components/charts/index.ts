@@ -42,3 +42,7 @@ export {
   AllocationDualLineChart,
   type AllocationPoint,
 } from '@/components/charts/richart/allocation-dual-line-chart'
+export {
+  BucketSparklines,
+  type BucketHistoryPoint,
+} from '@/components/charts/richart/bucket-sparklines'
