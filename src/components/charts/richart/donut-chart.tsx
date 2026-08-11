@@ -24,6 +24,15 @@ export function HearstDonutChart({
     .map((s, index) => ({ ...s, fill: categoricalColor(index) }))
   const total = data.reduce((sum, s) => sum + s.value, 0)
 
+  // All-zero breakdown: a named absence, never a fabricated "0" over an empty ring.
+  if (data.length === 0) {
+    return (
+      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+        Nothing to break down yet.
+      </p>
+    )
+  }
+
   return (
     <div className="px-5 pb-5 sm:px-6">
       <div className="sr-only">
@@ -88,9 +97,6 @@ export function HearstDonutChart({
           </li>
         ))}
       </ul>
-      <span className="sr-only text-fg-tertiary">
-        donut
-      </span>
     </div>
   )
 }

@@ -31,9 +31,10 @@ function barCategoryGapForCount(count: number): string {
 }
 
 function maxBarSizeForCount(count: number): number {
-  if (count <= 4) return 80
-  if (count <= 8) return 56
-  return 40
+  // ≤24px mark spec — thin columns with air, consistent with signed-bar-chart.
+  if (count <= 4) return 24
+  if (count <= 8) return 22
+  return 20
 }
 
 export function HearstActivityChart({
@@ -47,10 +48,6 @@ export function HearstActivityChart({
   const { ref, width } = useChartWidth()
   const barCategoryGap = barCategoryGapForCount(count)
   const maxBarSize = maxBarSizeForCount(count)
-  // Under ~28px per bucket, force Recharts to skip ticks instead of overlapping.
-  const minPxPerBucket = 28
-  const xInterval =
-    width > 0 && count * minPxPerBucket > width ? ('preserveStartEnd' as const) : (0 as const)
   const data = points.map((p) => ({
     label: p.label,
     value: p.value,
@@ -91,7 +88,6 @@ export function HearstActivityChart({
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
-              strokeDasharray="2 4"
               vertical={false}
             />
             <XAxis
@@ -99,7 +95,9 @@ export function HearstActivityChart({
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
-              interval={xInterval}
+              interval="preserveStartEnd"
+              minTickGap={24}
+              tickMargin={8}
             />
             <YAxis
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}

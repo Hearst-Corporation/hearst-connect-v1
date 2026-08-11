@@ -3,6 +3,7 @@
 import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { formatNumber } from '@/lib/format'
+import { useId } from 'react'
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
@@ -13,6 +14,13 @@ import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
  *
  * Construit avec Recharts en dimensions PX mesurées (ResizeObserver) —
  * jamais `ResponsiveContainer` % dans un flex (wrapper 0×0).
+ *
+ * ── dataviz craft ─────────────────────────────────────────────────────────
+ * Wash gradient (série ~14 % → 0), grille pleine en hairline (jamais tiretée),
+ * AUCUN point sur chaque observation (crosshair + point actif au survol,
+ * cerclé de la surface), et l'axe X saute des graduations plutôt que de les
+ * chevaucher (`minTickGap`). La valeur courante se lit dans le KPI hero ou le
+ * tooltip — pas en étiquetant chaque point.
  */
 
 export type LinePoint = {
@@ -22,6 +30,8 @@ export type LinePoint = {
 }
 
 const SERIE = chartTheme.dataSeries.brandPrimary
+/** Surface color for the active-dot ring — keeps the marker legible on the line. */
+const SURFACE_RING = 'var(--color-console-surface)'
 
 function LineTooltip({
   active,
@@ -58,6 +68,10 @@ export function HearstLineChart({
   height?: number
   yTickFormatter?: (v: number) => string
 }>) {
+  // Hooks must run unconditionally — call before any early return (rules-of-hooks).
+  const { ref, width } = useChartWidth()
+  const gradientId = useId()
+
   if (points.length === 0) {
     return (
       <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
@@ -69,7 +83,6 @@ export function HearstLineChart({
   const sorted = [...points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
   const data = sorted.map((p) => ({ ...p }))
   const viewportHeight = height ?? chartHeight('line', Math.max(data.length, 1))
-  const { ref, width } = useChartWidth()
 
   return (
     <div className="min-w-0">
@@ -103,10 +116,16 @@ export function HearstLineChart({
             data={data}
             margin={{ ...chartTheme.margin, right: 16, left: 0 }}
           >
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.22} />
+                <stop offset="70%" stopColor={color} stopOpacity={0.04} />
+                <stop offset="100%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
-              strokeDasharray="2 4"
               vertical={false}
             />
             <XAxis
@@ -114,24 +133,30 @@ export function HearstLineChart({
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
+              interval="preserveStartEnd"
+              minTickGap={44}
+              tickMargin={8}
             />
             <YAxis
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
               width={64}
+              tickCount={5}
               tickFormatter={yTickFormatter ?? ((v: number) => formatNumber(v, { maximumFractionDigits: 0 }))}
             />
-            <Tooltip content={<LineTooltip unit={unit} />} cursor={{ stroke: chartTheme.cursor }} />
+            <Tooltip content={<LineTooltip unit={unit} />} cursor={{ stroke: chartTheme.cursor, strokeWidth: 1.5 }} />
             <Area
               type="monotone"
               dataKey="value"
               name={unit}
               stroke={color}
-              fill={color}
-              fillOpacity={0.1}
               strokeWidth={2}
-              dot={{ r: 3, fill: color, strokeWidth: 0 }}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              fill={`url(#${gradientId})`}
+              dot={false}
+              activeDot={{ r: 4, fill: color, stroke: SURFACE_RING, strokeWidth: 2 }}
               isAnimationActive={false}
             />
           </AreaChart>

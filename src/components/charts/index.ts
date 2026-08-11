@@ -33,6 +33,7 @@ export {
 } from '@/components/charts/richart/distribution-chart'
 export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'
 export { HearstLineChart, type LinePoint } from '@/components/charts/richart/line-chart'
+export { SignedBarChart, type SignedBarItem } from '@/components/charts/richart/signed-bar-chart'
 export { RichSparkline } from '@/components/charts/richart/sparkline'
 export {
   VaultAumCbbtcChart,

@@ -62,6 +62,9 @@ export function VaultAumCbbtcChart({
   height?: number
   rebalanceDates?: readonly string[]
 }>) {
+  // Hooks must run unconditionally — call before any early return (rules-of-hooks).
+  const { ref, width } = useChartWidth()
+
   if (points.length === 0) {
     return (
       <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
@@ -73,7 +76,6 @@ export function VaultAumCbbtcChart({
   const sorted = [...points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
   const data = sorted.map((p) => ({ ...p }))
   const viewportHeight = height ?? chartHeight('line', Math.max(data.length, 1))
-  const { ref, width } = useChartWidth()
 
   return (
     <div className="min-w-0">
