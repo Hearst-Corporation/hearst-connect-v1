@@ -33,6 +33,12 @@ describe('French legacy routes redirect to English canonical routes', () => {
     expect(source).not.toMatch(/<[A-Z]/)
   })
 
+  it('/espace-utilisateur redirects to /account', () => {
+    const source = pageSource('src/app/espace-utilisateur/page.tsx')
+    expect(source).toMatch(/redirect\(['"]\/account['"]\)/)
+    expect(source).not.toMatch(/<[A-Z]/)
+  })
+
   it.each([
     ['/espace/dashboard', 'src/app/espace/dashboard/page.tsx'],
     ['/espace/activite', 'src/app/espace/activite/page.tsx'],

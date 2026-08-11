@@ -35,8 +35,9 @@ Le shell d’administration (`/admin`) est composé avec :
 - Pages portées Catalyst : `heading`, `text`, `description-list`, `table`,
   `badge`, `link`
 
-**Hors scope du rebuild** : `/espace` conserve `ConsoleShell`
-(`src/components/layout/console-shell.tsx`) — shell legacy, pas Catalyst.
+**Hors scope du rebuild** : `/espace` et `/espace-utilisateur` ne sont plus
+des shells — redirects permanents vers le hub canonique `/account`
+(`src/features/user-dashboard/`).
 
 Les dépendances runtime du kit : `@headlessui/react`, `motion`, `clsx`,
 `@heroicons/react` (déjà dans `package.json`).

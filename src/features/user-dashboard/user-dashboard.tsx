@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import './dashboard-utilisateur.css'
+import './user-dashboard.css'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import {
   BanknotesIcon,
@@ -15,6 +15,7 @@ import {
   SignalIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline'
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
 import {
   AllocationDualLineChart,
   HearstActivityChart,
@@ -23,7 +24,11 @@ import {
   SignedBarChart,
 } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
+import { logout } from '@/lib/actions'
+import { HEARST_H_SRC } from '@/lib/brand'
 import { formatNumber, formatPercent } from '@/lib/format'
+import { userInitials } from '@/components/layout/user-avatar-trigger'
+import type { SessionUser } from '@/lib/session'
 import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { StatTile, deltaOf } from './stat-tile'
 import { CompositionRail } from './composition-rail'
@@ -32,13 +37,15 @@ import { CapacityMeter } from './capacity-meter'
 import type { ExposurePocket, UserDashboard } from './load'
 
 /**
- * Investor dashboard — premium composition over the investor's own data.
+ * Account command center — session-scoped premium composition.
  * Widgets: animated stat-tile strip, a central chart switched by an iconified
  * segmented control with a sliding pill + crossfade, side donuts, a strategy
  * exposure (target vs actual) + capacity meter section, and a movement timeline
  * with a subscription-terms rail. All motion honors prefers-reduced-motion via
  * MotionConfig + the shared motion-ready guard. Backend-first: every absence is
  * a named state, never a fabricated zero. Charts only via the charts boundary.
+ *
+ * Reachable only with a valid console session (login remains admin-gated today).
  */
 
 type CentralView = 'value' | 'allocation' | 'btc' | 'activity' | 'backtest'
@@ -113,9 +120,13 @@ function TermRow({
   )
 }
 
-export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>) {
+export function UserDashboardView({
+  data,
+  user,
+}: Readonly<{ data: UserDashboard; user: SessionUser }>) {
   const [route, setRoute] = useState<Route>('dashboard')
   const [central, setCentral] = useState<CentralView>('value')
+  const initials = userInitials(user.name)
 
   const isDashboard = route === 'dashboard'
 
@@ -236,12 +247,12 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="eu-root">
+      <div className="ud-root">
         <main className="page">
           <div className="shell">
             <header className="nav">
               <div className="brand">
-                <span className="brand-mark">H</span>
+                <img className="brand-mark" src={HEARST_H_SRC} alt="" width={28} height={28} />
                 <span className="brand-name">Hearst</span>
               </div>
               <nav className="nav-links" aria-label="Main navigation">
@@ -252,15 +263,29 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
                     onClick={() => setRoute(r)}
                     type="button"
                   >
-                    {route === r ? <motion.span layoutId="eu-nav-pill" className="nav-pill" aria-hidden="true" /> : null}
+                    {route === r ? <motion.span layoutId="ud-nav-pill" className="nav-pill" aria-hidden="true" /> : null}
                     <span className="nav-inner">{r === 'dashboard' ? 'Dashboard' : 'Trade'}</span>
                   </button>
                 ))}
               </nav>
               <div className="account-state">
                 <i data-signal={signalOf(data.valueSeries)} />
-                <span>{isAvailable(data.valueSeries) ? 'Account synced' : 'Account offline'}</span>
-                <span className="avatar">A</span>
+                <span className="sync-label">
+                  {isAvailable(data.valueSeries) ? 'Account synced' : 'Account offline'}
+                </span>
+                <span className="avatar" title={user.email} aria-label={user.name}>
+                  {initials || 'HC'}
+                </span>
+                <button
+                  type="button"
+                  className="sign-out"
+                  onClick={() => {
+                    void logout()
+                  }}
+                >
+                  <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
+                  <span>Sign out</span>
+                </button>
               </div>
             </header>
 
@@ -331,7 +356,7 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
                             onClick={() => setCentral(view.key)}
                           >
                             {selected ? (
-                              <motion.span layoutId="eu-central-pill" className="switch-pill" aria-hidden="true" />
+                              <motion.span layoutId="ud-central-pill" className="switch-pill" aria-hidden="true" />
                             ) : null}
                             <span className="switch-inner">
                               <Icon className="size-4" aria-hidden="true" />
