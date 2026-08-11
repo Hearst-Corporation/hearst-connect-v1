@@ -58,6 +58,7 @@ const nextConfig = {
       { source: '/espace/bitcoin', destination: '/account', permanent: true },
       { source: '/espace/activite', destination: '/account', permanent: true },
       { source: '/espace/profil', destination: '/account', permanent: true },
+      { source: '/espace-utilisateur', destination: '/account', permanent: true },
       { source: '/account/dashboard', destination: '/account', permanent: true },
       { source: '/account/bitcoin', destination: '/account', permanent: true },
       { source: '/account/activity', destination: '/account', permanent: true },

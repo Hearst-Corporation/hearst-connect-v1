@@ -15,7 +15,7 @@ export { formatAddress as adresseCourte, formatDateTime as dateLisible, formatRe
  */
 
 /** Short name: for a column, a distribution bar, a chip. */
-export const MOVEMENT_LABEL: Record<string, string> = {
+const MOVEMENT_LABEL: Record<string, string> = {
   Deposit: 'Deposit',
   Redeem: 'Redemption',
   StrategyAdded: 'Strategy added',

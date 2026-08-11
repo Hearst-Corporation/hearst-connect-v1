@@ -51,7 +51,7 @@ Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Ja
 
 ## Language (2026-08-08)
 
-Product UI is **English-only** (`lang="en"`). Canonical routes use English paths (`/admin/compliance`, `/admin/product`, `/account/*`). Legacy French URLs redirect permanently via `next.config.mjs`. Gate: `pnpm run check:english-ui`.
+Product UI is **English-only** (`lang="en"`). Canonical routes use English paths (`/admin/compliance`, `/admin/product`, `/account`). User hub is a single `/account` command center (`src/features/user-dashboard/`). Legacy French URLs (`/espace/*`, `/espace-utilisateur`, legacy `/account/*` subpaths) redirect permanently via `next.config.mjs`. Gate: `pnpm run check:english-ui`.
 
 ## Console admin — reference (2026-08-08)
 
@@ -90,6 +90,9 @@ E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
 src/
 ├── app/
 │   ├── (marketing)/            landing `/` + layout header/footer
+│   ├── (auth)/                 login / register
+│   ├── account/                hub user `/account` (+ legacy subpath redirects)
+│   ├── espace*/                legacy FR → `/account`
 │   └── admin/                  routes console
 ├── components/
 │   ├── catalyst/               kit officiel (non modifié sauf link Next)
@@ -98,7 +101,9 @@ src/
 │   ├── actions/                boutons d'action partagés
 │   ├── charts/                 richart + cartesian
 │   └── compositions/           panels, SectionCard… (StatGrid hors hero)
-├── features/admin-dashboard/   tableau de bord `/admin`
+├── features/
+│   ├── admin-dashboard/        tableau de bord `/admin`
+│   └── user-dashboard/         command center `/account`
 └── lib/
     ├── backend/                callBackend, endpoints
     └── vaults/                 Availability, model, registry, overview

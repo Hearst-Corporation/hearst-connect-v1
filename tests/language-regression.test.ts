@@ -68,14 +68,16 @@ describe('the console is in English', () => {
     expect(truthful).toMatch(/UNAVAILABLE:/)
   })
 
-  it('account shell uses English chrome without invented destinations', () => {
-    const shell = readFileSync(join(ROOT, 'src/components/account/application-layout.tsx'), 'utf8')
-    expect(shell).toMatch(/href="\/account"/)
-    expect(shell).toMatch(/Sign out/)
-    expect(shell).not.toMatch(/\/espace/)
-    expect(shell).not.toMatch(/Se déconnecter/)
-    expect(shell).not.toMatch(/ADMIN_NAV/)
-    expect(shell).not.toMatch(/Bitcoin production/)
+  it('account hub uses English chrome without invented destinations', () => {
+    const dashboard = readFileSync(join(ROOT, 'src/features/user-dashboard/user-dashboard.tsx'), 'utf8')
+    const page = readFileSync(join(ROOT, 'src/app/account/page.tsx'), 'utf8')
+    expect(page).toMatch(/UserDashboardView/)
+    expect(dashboard).toMatch(/Sign out/)
+    expect(dashboard).toMatch(/Command center/)
+    expect(dashboard).not.toMatch(/\/espace/)
+    expect(dashboard).not.toMatch(/Se déconnecter/)
+    expect(dashboard).not.toMatch(/ADMIN_NAV/)
+    expect(dashboard).not.toMatch(/Bitcoin production/)
   })
 })
 
@@ -132,10 +134,7 @@ describe('no locale-aware fr-FR formatters', () => {
 
 describe('one canonical H1 per page', () => {
   it('no admin file renders a raw <h1> outside the typography module', () => {
-    const H1_EXEMPTIONS = new Set([
-      'src/components/admin/typography.tsx',
-      'src/app/account/page.tsx',
-    ])
+    const H1_EXEMPTIONS = new Set(['src/components/admin/typography.tsx'])
     const offenders = ADMIN_SOURCES.filter(
       ({ path, code }) => !H1_EXEMPTIONS.has(path) && /<h1[\s>]/.test(code),
     ).map((f) => f.path)

@@ -1,4 +1,3 @@
-import { requireSession } from '@/lib/auth'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -6,13 +5,11 @@ export const metadata: Metadata = {
 }
 
 /**
- * Autonomous user shell — session guard only, no admin/account chrome.
- * The dashboard owns the full viewport with its own nav, exactly like the
- * standalone prototype it is ported from.
+ * Legacy `/espace-utilisateur` tree — pages only redirect to `/account`.
+ * Session chrome lives on the canonical `/account` layout.
  */
-export default async function EspaceUtilisateurLayout({
+export default function EspaceUtilisateurLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  await requireSession()
   return <>{children}</>
 }

@@ -5,12 +5,14 @@ import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/avai
 import { measuredCount, type Availability } from '@/lib/vaults/model'
 
 /**
- * User dashboard loader — investor-scoped, backend-first.
+ * Account dashboard loader — session-scoped, backend-first.
  *
- * Reads session read-models (auth: 'session', already scoped to the connected
- * investor): the `/api/v1/dashboard` aggregate, `vault/history` (value +
- * allocation + BTC price series), `series1/events` (activity), `btc` (market)
- * and `backtest/historical` (product performance). NOTHING is admin-wide.
+ * Reads session read-models (auth: 'session', scoped to the connected account):
+ * the `/api/v1/dashboard` aggregate, `vault/history` (value + allocation + BTC
+ * price series), `series1/events` (activity), and `backtest/historical`
+ * (product performance). NOTHING is admin-wide.
+ *
+ * Login remains admin-gated today; this loader never invents an investor role.
  *
  * Every field is an `Availability<T>` produced by the canonical adapter — an
  * absent surface is a NAMED absence, never a zero, never a fabricated value
@@ -59,17 +61,17 @@ function dayLabel(iso: unknown): string {
 
 // ── Public point/row shapes consumed by the client charts ────────────────────
 
-export type ValuePoint = { readonly label: string; readonly value: number; readonly detail: string }
+type ValuePoint = { readonly label: string; readonly value: number; readonly detail: string }
 export type AllocationBar = { readonly label: string; readonly value: number }
-export type AllocationTimePoint = {
+type AllocationTimePoint = {
   readonly label: string
   readonly cbbtcPct: number
   readonly usdcPct: number
   readonly detail: string
 }
-export type BtcPoint = { readonly label: string; readonly value: number; readonly detail: string }
-export type ActivityBar = { readonly label: string; readonly value: number; readonly detail: string }
-export type BacktestRun = { readonly label: string; readonly value: number; readonly detail: string }
+type BtcPoint = { readonly label: string; readonly value: number; readonly detail: string }
+type ActivityBar = { readonly label: string; readonly value: number; readonly detail: string }
+type BacktestRun = { readonly label: string; readonly value: number; readonly detail: string }
 export type ExposurePocket = {
   readonly label: string
   readonly targetPct: number
