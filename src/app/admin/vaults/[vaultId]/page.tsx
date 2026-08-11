@@ -501,16 +501,16 @@ function VaultHistorySection({
 }
 
 type RebalanceEvent = {
-  readonly id: string
-  readonly eventName: string
-  readonly occurredAt: string | null
+  readonly name: string
+  readonly category: string
+  readonly severity: string
+  readonly actor: string | null
+  readonly amount: string | null
   readonly txHash: string | null
-  readonly blockNumber: string | null
-  readonly chainId: number | null
-  readonly assetAmountAtomic: string | null
-  readonly fromStrategy?: string | null
-  readonly toStrategy?: string | null
-  readonly priceUsdc?: string | null
+  readonly blockNumber: number | null
+  readonly timestamp: string | null
+  readonly explorerUrl: string | null
+  readonly visibility: string
 }
 
 function RebalancingEventsSection({
@@ -544,52 +544,48 @@ function RebalancingEventsSection({
         <TableRow>
           <TableHeader className={fitTableColCompact}>Time</TableHeader>
           <TableHeader className={fitTableColPrimary}>Type</TableHeader>
-          <TableHeader className={fitTableColPrimary}>Move</TableHeader>
+          <TableHeader className={fitTableColPrimary}>Category</TableHeader>
           <TableHeader className={fitTableColCompact}>Amount</TableHeader>
-          <TableHeader className={fitTableColCompact}>Price</TableHeader>
+          <TableHeader className={fitTableColCompact}>Block</TableHeader>
           <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
         {events.value.map((event, index) => {
           const txShort = event.txHash === null ? null : formatHash(event.txHash)
-          const txUrl = explorerTxUrl(event.chainId ?? undefined, event.txHash ?? undefined)
-          const move =
-            event.fromStrategy && event.toStrategy
-              ? `${event.fromStrategy} → ${event.toStrategy}`
-              : event.fromStrategy ?? event.toStrategy ?? '—'
+          const txUrl = event.explorerUrl ?? undefined
           return (
-            <TableRow key={`${event.id ?? 'event'}-${index}`}>
+            <TableRow key={`${event.txHash ?? 'event'}-${index}`}>
               <TableCell className="tabular-nums text-xs">
-                {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
+                {event.timestamp ? formatRelativeTime(event.timestamp) : '—'}
               </TableCell>
               <TableCell className="text-sm">
                 <span
                   className={clsx(
                     'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                    event.eventName === 'Rebalance'
+                    event.name === 'Rebalance'
                       ? 'bg-accent-400/10 text-accent-600 dark:text-accent-400'
-                      : event.eventName === 'VaultSwapped'
+                      : event.name === 'VaultSwapped'
                         ? 'bg-warning-400/10 text-warning-600 dark:text-warning-400'
                         : 'bg-console-inset text-fg-tertiary',
                   )}
                 >
-                  {event.eventName}
+                  {event.name}
                 </span>
               </TableCell>
-              <TableCell className="truncate text-xs text-fg-tertiary" title={move}>
-                {move}
+              <TableCell className="truncate text-xs text-fg-tertiary">
+                {event.category}
               </TableCell>
               <TableCell className="tabular-nums text-xs">
-                {event.assetAmountAtomic ? formatCurrency(event.assetAmountAtomic, { decimals: 0 }) : '—'}
+                {event.amount ? formatCurrency(event.amount, { decimals: 0 }) : '—'}
               </TableCell>
               <TableCell className="tabular-nums text-xs">
-                {event.priceUsdc ? `$${formatNumber(Number(event.priceUsdc), { maximumFractionDigits: 0 })}` : '—'}
+                {event.blockNumber ? formatNumber(event.blockNumber) : '—'}
               </TableCell>
               <TableCell className="truncate font-mono text-xs">
                 {txShort ? (
                   <a
-                    href={txUrl ?? undefined}
+                    href={txUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-accent-600 dark:text-accent-400"
@@ -619,18 +615,16 @@ export default async function Page({ params }: PageProps) {
     callBackend<{
       events: BackendResolved<
         readonly {
-          id: string
-          eventName: string
-          occurredAt: string | null
+          name: string
+          category: string
+          severity: string
+          actor: string | null
+          amount: string | null
           txHash: string | null
-          blockNumber: string | null
-          chainId: number | null
-          assetAmountAtomic: string | null
-          shareAmountAtomic: string | null
-          investorAddress: string | null
-          fromStrategy?: string | null
-          toStrategy?: string | null
-          priceUsdc?: string | null
+          blockNumber: number | null
+          timestamp: string | null
+          explorerUrl: string | null
+          visibility: string
         }[]
       >
     }>('events-rebalancing', { params: { vaultId, limit: 50 } }),
@@ -645,24 +639,18 @@ export default async function Page({ params }: PageProps) {
         })
     : unavailable({ endpoint: '/api/v1/vault/history', reason: 'service_did_not_respond' })
 
-  // TODO: remove after verifying response shape
-  if (rebalanceEventsRes.ok) {
-    // eslint-disable-next-line no-console
-    console.log('[events-rebalancing] response:', JSON.stringify(rebalanceEventsRes.data, null, 2))
-  }
-
   const rebalanceEvents: Availability<
     readonly {
-      id: string
-      eventName: string
-      occurredAt: string | null
+      name: string
+      category: string
+      severity: string
+      actor: string | null
+      amount: string | null
       txHash: string | null
-      blockNumber: string | null
-      chainId: number | null
-      assetAmountAtomic: string | null
-      fromStrategy?: string | null
-      toStrategy?: string | null
-      priceUsdc?: string | null
+      blockNumber: number | null
+      timestamp: string | null
+      explorerUrl: string | null
+      visibility: string
     }[]
   > = rebalanceEventsRes.ok
     ? rebalanceEventsRes.data.events?.value !== null && rebalanceEventsRes.data.events?.value !== undefined
