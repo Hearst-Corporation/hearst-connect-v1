@@ -35,6 +35,22 @@ describe('polices — Satoshi Variable uniquement', () => {
     expect(css).toMatch(/--font-display:\s*var\(--font-satoshi\)/)
     expect(css).toMatch(/--font-mono:\s*var\(--font-satoshi\)/)
   })
+
+  it('account command center inherits Satoshi — never alien UI font stacks', () => {
+    const css = readFileSync(
+      join(process.cwd(), 'src/features/user-dashboard/user-dashboard.css'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, ' ')
+    const tsx = readFileSync(
+      join(process.cwd(), 'src/features/user-dashboard/user-dashboard.tsx'),
+      'utf8',
+    )
+    expect(css).toMatch(/font-family:\s*var\(--font-satoshi\)/)
+    expect(css).not.toMatch(/\bInter\b/)
+    expect(css).not.toMatch(/JetBrains Mono|SF Mono|Menlo|Consolas/)
+    expect(tsx).toMatch(/AdminHeroTitle/)
+    expect(tsx).toMatch(/Command center/)
+  })
 })
 
 describe('Hearst semantic text tokens', () => {

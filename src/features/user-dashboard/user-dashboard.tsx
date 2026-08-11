@@ -24,6 +24,7 @@ import {
   SignedBarChart,
 } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
+import { AdminHeroTitle } from '@/components/admin/typography'
 import { logout } from '@/lib/actions'
 import { HEARST_H_SRC } from '@/lib/brand'
 import { formatNumber, formatPercent } from '@/lib/format'
@@ -293,7 +294,7 @@ export function UserDashboardView({
               <section className="kpis" aria-label="Account indicators">
                 <div className="intro">
                   <p className="eyebrow">Account</p>
-                  <h1>Command center</h1>
+                  <AdminHeroTitle>Command center</AdminHeroTitle>
                 </div>
                 <StatTile
                   icon={BanknotesIcon}
@@ -490,7 +491,7 @@ export function UserDashboardView({
             <section className={`trade-view${isDashboard ? '' : ' active'}`}>
               <div>
                 <p className="eyebrow">Execution only</p>
-                <h1>Trade terminal</h1>
+                <AdminHeroTitle>Trade terminal</AdminHeroTitle>
                 <p>
                   This space is strictly reserved for execution. No catalog, quote or account
                   management element is presented here.
