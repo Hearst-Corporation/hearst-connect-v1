@@ -22,6 +22,8 @@ const DASHBOARD_ENDPOINT = '/api/v1/dashboard'
 const HISTORY_ENDPOINT = '/api/v1/vault/history'
 const SERIES1_ENDPOINT = '/api/v1/series1/events'
 const BACKTEST_ENDPOINT = '/api/v1/backtest/historical'
+const VAULT_ENDPOINT = '/api/v1/vault'
+const FACTSHEET_ENDPOINT = '/api/v1/product/factsheet'
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
 
@@ -68,6 +70,11 @@ export type AllocationTimePoint = {
 export type BtcPoint = { readonly label: string; readonly value: number; readonly detail: string }
 export type ActivityBar = { readonly label: string; readonly value: number; readonly detail: string }
 export type BacktestRun = { readonly label: string; readonly value: number; readonly detail: string }
+export type ExposurePocket = {
+  readonly label: string
+  readonly targetPct: number
+  readonly actualPct: number | null
+}
 export type UserMovement = {
   readonly id: string
   readonly title: string
@@ -92,6 +99,16 @@ export type UserDashboard = {
   readonly activityBars: Availability<readonly ActivityBar[]>
   /** Product backtest runs — total return per scenario (bars). */
   readonly backtestRuns: Availability<readonly BacktestRun[]>
+  /** Target vs actual allocation per pocket (paired bars). */
+  readonly exposure: Availability<readonly ExposurePocket[]>
+  /** NAV per share (whole USDC). */
+  readonly navPerShare: Availability<number>
+  /** Vault utilization toward the TVL cap (%). */
+  readonly utilizationPct: Availability<number>
+  /** Room remaining until the TVL cap (USDC). */
+  readonly availableCapacity: Availability<number>
+  /** Minimum subscription deposit (USDC). */
+  readonly minimumDeposit: Availability<number>
   /** Investor movements grouped by category (donut). */
   readonly activityByType: Availability<readonly AllocationBar[]>
   /** The investor's own movements (list). */
@@ -198,6 +215,54 @@ function backtestRunsFrom(raw: unknown): readonly BacktestRun[] | null {
   return runs.length > 0 ? runs : null
 }
 
+const USDC_ATOMIC = 1_000_000
+
+/** Target vs actual allocation pockets from product-factsheet terms. */
+function exposureFrom(factsheetData: unknown): readonly ExposurePocket[] | null {
+  const terms = envelopeField(factsheetData, 'terms').value as Record<string, unknown> | null
+  const allocation = terms?.allocation as Record<string, unknown> | null
+  const list = allocation?.pockets
+  if (!Array.isArray(list)) return null
+  const rows = list
+    .filter((p): p is Record<string, unknown> => typeof p === 'object' && p !== null)
+    .map((p) => {
+      const target = num(p.targetBps)
+      const actual = num(p.actualBps)
+      const label =
+        typeof p.label === 'string' ? p.label : typeof p.pocket === 'string' ? p.pocket : 'Pocket'
+      return target === null
+        ? null
+        : { label, targetPct: target / 100, actualPct: actual === null ? null : actual / 100 }
+    })
+    .filter((r): r is ExposurePocket => r !== null)
+  return rows.length > 0 ? rows : null
+}
+
+function navPerShareFrom(vaultData: unknown): number | null {
+  const snap = envelopeField(vaultData, 'snapshot').value as Record<string, unknown> | null
+  return num(snap?.navPerShare)
+}
+
+/** Utilization (%) and room-to-cap (USDC) from vault capacity. */
+function capacityFrom(vaultData: unknown): {
+  utilizationPct: number | null
+  availableCapacity: number | null
+} {
+  const cap = envelopeField(vaultData, 'capacity').value as Record<string, unknown> | null
+  const util = num(cap?.utilizationBps)
+  const avail = num(cap?.availableCapacity)
+  return {
+    utilizationPct: util === null ? null : util / 100,
+    availableCapacity: avail === null ? null : avail / USDC_ATOMIC,
+  }
+}
+
+function minDepositFrom(factsheetData: unknown): number | null {
+  const terms = envelopeField(factsheetData, 'terms').value as Record<string, unknown> | null
+  const min = num(terms?.minimumDepositUsdc)
+  return min === null ? null : min / USDC_ATOMIC
+}
+
 function movementsFrom(field: ResolvedField | null): readonly UserMovement[] | null {
   const value = field?.value
   if (!Array.isArray(value)) return null
@@ -256,11 +321,20 @@ function surface(aggregate: Record<string, unknown> | null, key: string): Resolv
 }
 
 export async function loadUserDashboard(): Promise<UserDashboard> {
-  const [aggregateResponse, historyResponse, series1Response, backtestResponse] = await Promise.all([
+  const [
+    aggregateResponse,
+    historyResponse,
+    series1Response,
+    backtestResponse,
+    vaultResponse,
+    factsheetResponse,
+  ] = await Promise.all([
     callBackend<Record<string, unknown>>('dashboard'),
     callBackend<unknown>('vault-history'),
     callBackend<unknown>('series1-events'),
     callBackend<unknown>('backtest-historical'),
+    callBackend<unknown>('vault'),
+    callBackend<unknown>('product-factsheet'),
   ])
 
   const aggregate = aggregateResponse.ok ? aggregateResponse.data : null
@@ -288,7 +362,12 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
   )
 
   // Series from `vault/history` — freshness is the history envelope status.
-  const snaps = historyResponse.ok ? historySnapshots(historyResponse.data) : []
+  // Backend serves snapshots newest-first — sort ascending so derived series
+  // (value/BTC/allocation), the "latest" figure and the trend deltas are all
+  // chronological, not reversed.
+  const snaps = (historyResponse.ok ? historySnapshots(historyResponse.data) : [])
+    .slice()
+    .sort((a, b) => String(a.takenAt ?? '').localeCompare(String(b.takenAt ?? '')))
   const historyStatus = historyResponse.ok ? statusFromMeta(historyResponse.meta) : 'UNAVAILABLE'
   const historyBlock = <T,>(value: T | null): ResolvedBlock<T> => ({
     status: historyStatus,
@@ -320,6 +399,33 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     BACKTEST_ENDPOINT,
   )
 
+  // Vault + factsheet stats — real target/actual, NAV, capacity, terms.
+  const vaultStatus = vaultResponse.ok ? statusFromMeta(vaultResponse.meta) : 'UNAVAILABLE'
+  const factsheetStatus = factsheetResponse.ok ? statusFromMeta(factsheetResponse.meta) : 'UNAVAILABLE'
+  const capVals = vaultResponse.ok
+    ? capacityFrom(vaultResponse.data)
+    : { utilizationPct: null, availableCapacity: null }
+  const navPerShare = availabilityFromResolved<number>(
+    { status: vaultStatus, value: vaultResponse.ok ? navPerShareFrom(vaultResponse.data) : null, reason: 'no_nav' },
+    VAULT_ENDPOINT,
+  )
+  const utilizationPct = availabilityFromResolved<number>(
+    { status: vaultStatus, value: capVals.utilizationPct, reason: 'no_capacity' },
+    VAULT_ENDPOINT,
+  )
+  const availableCapacity = availabilityFromResolved<number>(
+    { status: vaultStatus, value: capVals.availableCapacity, reason: 'no_capacity' },
+    VAULT_ENDPOINT,
+  )
+  const exposure = availabilityFromResolved<readonly ExposurePocket[]>(
+    { status: factsheetStatus, value: factsheetResponse.ok ? exposureFrom(factsheetResponse.data) : null, reason: 'no_exposure' },
+    FACTSHEET_ENDPOINT,
+  )
+  const minimumDeposit = availabilityFromResolved<number>(
+    { status: factsheetStatus, value: factsheetResponse.ok ? minDepositFrom(factsheetResponse.data) : null, reason: 'no_min_deposit' },
+    FACTSHEET_ENDPOINT,
+  )
+
   return {
     sourceStatus,
     position,
@@ -331,6 +437,11 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     btcSeries,
     activityBars,
     backtestRuns,
+    exposure,
+    navPerShare,
+    utilizationPct,
+    availableCapacity,
+    minimumDeposit,
     activityByType,
     activity,
     activityCount,

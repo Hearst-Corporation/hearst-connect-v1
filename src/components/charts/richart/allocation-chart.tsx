@@ -60,7 +60,6 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
-              strokeDasharray="2 4"
               horizontal={false}
             />
             <XAxis

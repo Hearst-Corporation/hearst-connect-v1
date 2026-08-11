@@ -118,7 +118,6 @@ export function ReserveExposureChart({ items }: Readonly<{ items: readonly Bitco
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
-              strokeDasharray="2 4"
               horizontal={false}
             />
             <XAxis

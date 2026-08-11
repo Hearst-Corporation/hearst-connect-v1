@@ -114,7 +114,6 @@ export function VaultAumCbbtcChart({
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
-              strokeDasharray="2 4"
               vertical={false}
             />
             {rebalanceDates?.map((date) => (

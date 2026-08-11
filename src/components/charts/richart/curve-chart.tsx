@@ -67,7 +67,6 @@ export function HearstCurveChart({
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
-              strokeDasharray="2 4"
               vertical={false}
             />
             <XAxis

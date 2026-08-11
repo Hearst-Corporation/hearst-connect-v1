@@ -2,40 +2,60 @@
 
 import { useState, type ReactNode } from 'react'
 import './dashboard-utilisateur.css'
+import { AnimatePresence, motion, MotionConfig } from 'motion/react'
+import {
+  BanknotesIcon,
+  BeakerIcon,
+  ChartPieIcon,
+  CircleStackIcon,
+  CurrencyDollarIcon,
+  LockClosedIcon,
+  PresentationChartLineIcon,
+  ScaleIcon,
+  SignalIcon,
+  Squares2X2Icon,
+} from '@heroicons/react/24/outline'
 import {
   AllocationDualLineChart,
   HearstActivityChart,
-  HearstDonutChart,
+  HearstAllocationChart,
   HearstLineChart,
   SignedBarChart,
 } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
-import { formatNumber, formatRelativeTime } from '@/lib/format'
-import { isAvailable, signalOf, valueOf } from '@/lib/vaults/model'
-import type { UserDashboard, UserMovement } from './load'
+import { formatNumber, formatPercent } from '@/lib/format'
+import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
+import { StatTile, deltaOf } from './stat-tile'
+import { CompositionRail } from './composition-rail'
+import { MovementTimeline } from './movement-timeline'
+import { CapacityMeter } from './capacity-meter'
+import type { ExposurePocket, UserDashboard } from './load'
 
 /**
- * Investor dashboard — one central chart switched by a button row, flanked by a
- * donut on each side, over the investor's own data. Shape ported from the
- * prototype (nav, gutters, KPI hero), colors/surfaces on DS tokens.
- *
- * Every series is backend-first (`loadUserDashboard`) and rendered through the
- * charts boundary (Recharts). Absence is a named `SeriesState` — never a zero.
- * The page scrolls as one document; no nested scroll trap.
+ * Investor dashboard — premium composition over the investor's own data.
+ * Widgets: animated stat-tile strip, a central chart switched by an iconified
+ * segmented control with a sliding pill + crossfade, side donuts, a strategy
+ * exposure (target vs actual) + capacity meter section, and a movement timeline
+ * with a subscription-terms rail. All motion honors prefers-reduced-motion via
+ * MotionConfig + the shared motion-ready guard. Backend-first: every absence is
+ * a named state, never a fabricated zero. Charts only via the charts boundary.
  */
 
 type CentralView = 'value' | 'allocation' | 'btc' | 'activity' | 'backtest'
 type Route = 'dashboard' | 'trade'
 
-const CENTRAL_VIEWS: readonly { readonly key: CentralView; readonly label: string }[] = [
-  { key: 'value', label: 'Value' },
-  { key: 'allocation', label: 'Allocation' },
-  { key: 'btc', label: 'BTC price' },
-  { key: 'activity', label: 'Activity' },
-  { key: 'backtest', label: 'Backtest' },
+const CENTRAL_VIEWS: readonly {
+  readonly key: CentralView
+  readonly label: string
+  readonly icon: typeof PresentationChartLineIcon
+}[] = [
+  { key: 'value', label: 'Value', icon: PresentationChartLineIcon },
+  { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
+  { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
+  { key: 'activity', label: 'Activity', icon: Squares2X2Icon },
+  { key: 'backtest', label: 'Backtest', icon: BeakerIcon },
 ]
 
-/** Availability → chart SeriesState with a named explanation. */
 function seriesState(
   availability: { kind: 'available' | 'unavailable' },
   hasPoints: boolean,
@@ -47,65 +67,48 @@ function seriesState(
   return { type: 'plotted' }
 }
 
-function DonutPanel({
-  title,
-  hint,
-  availability,
-  unit,
-}: Readonly<{
-  title: string
-  hint: string
-  availability: UserDashboard['allocationBars']
-  unit: string
-}>) {
-  const slices = valueOf(availability)
+function freshnessLabel(signal: Signal): string | null {
+  if (signal === 'live') return 'Live'
+  if (signal === 'stale') return 'Stale'
+  return null
+}
+
+/** Per-pocket target/actual/drift as signed mono values — sign-only color, no thresholds. */
+function DriftLedger({ pockets }: Readonly<{ pockets: readonly ExposurePocket[] }>) {
   return (
-    <section className="flank-panel">
-      <div className="flank-heading">
-        <h2>{title}</h2>
-        <span>{hint}</span>
-      </div>
-      {slices !== null && slices.length > 0 ? (
-        <HearstDonutChart slices={slices.map((s) => ({ label: s.label, value: s.value }))} unit={unit} />
-      ) : (
-        <div className="flank-empty">
-          <span className="empty-mark" />
-          <p>{isAvailable(availability) ? 'Nothing to break down yet.' : 'Awaiting a verified source.'}</p>
-        </div>
-      )}
-    </section>
+    <div className="drift-ledger">
+      {pockets.map((p) => {
+        const drift = p.actualPct !== null ? p.actualPct - p.targetPct : null
+        const up = drift !== null && drift >= 0
+        return (
+          <div className="drift-row" key={p.label}>
+            <span className="drift-label">{p.label}</span>
+            <span className="drift-cell mono">T {formatNumber(p.targetPct, { maximumFractionDigits: 1 })}%</span>
+            <span className="drift-cell mono">
+              A {p.actualPct !== null ? `${formatNumber(p.actualPct, { maximumFractionDigits: 1 })}%` : '—'}
+            </span>
+            <span className={`drift-val mono${drift === null ? '' : up ? ' is-up' : ' is-down'}`}>
+              {drift === null ? '—' : `${up ? '+' : ''}${formatNumber(drift, { maximumFractionDigits: 1 })} pt`}
+            </span>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
-function ActivityList({ availability }: Readonly<{ availability: UserDashboard['activity'] }>) {
-  const rows = valueOf(availability)
-  if (rows === null || rows.length === 0) {
-    return (
-      <div className="empty">
-        <span className="empty-mark" />
-        <div>
-          <p className="eyebrow">Account history</p>
-          <h3>No verified activity yet</h3>
-          <span>
-            Your deposits, distributions and account events will appear here from the verified
-            source, most recent first.
-          </span>
-        </div>
-      </div>
-    )
-  }
+function TermRow({
+  icon: Icon,
+  label,
+  value,
+}: Readonly<{ icon: typeof ScaleIcon; label: string; value: string }>) {
   return (
-    <div className="movements-list" aria-label="Account movements">
-      {rows.map((movement: UserMovement) => (
-        <div className="movement-row" key={movement.id}>
-          <span className="movement-title">{movement.title}</span>
-          <small>
-            {[movement.detail, movement.occurredAt !== null ? formatRelativeTime(movement.occurredAt) : null]
-              .filter((part): part is string => part !== null && part !== '')
-              .join(' · ') || '—'}
-          </small>
-        </div>
-      ))}
+    <div className="term-row">
+      <span className="term-icon">
+        <Icon className="size-4" aria-hidden="true" />
+      </span>
+      <span className="term-label">{label}</span>
+      <span className="term-value mono">{value}</span>
     </div>
   )
 }
@@ -123,7 +126,6 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
     'Not enough history to trace a value curve yet.',
     'Awaiting a verified value source.',
   )
-
   const allocationTime = valueOf(data.allocationSeries)
   const allocationState = seriesState(
     data.allocationSeries,
@@ -131,7 +133,6 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
     'Allocation history is not deep enough to plot yet.',
     'Awaiting a verified allocation source.',
   )
-
   const btcPoints = valueOf(data.btcSeries)
   const btcState = seriesState(
     data.btcSeries,
@@ -139,7 +140,6 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
     'Not enough BTC snapshots to plot yet.',
     'Awaiting a verified market source.',
   )
-
   const activityBars = valueOf(data.activityBars)
   const activityBarsState = seriesState(
     data.activityBars,
@@ -147,7 +147,6 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
     'No indexed activity for this period.',
     'Awaiting a verified activity source.',
   )
-
   const backtestRuns = valueOf(data.backtestRuns)
   const backtestState = seriesState(
     data.backtestRuns,
@@ -156,163 +155,326 @@ export function DashboardUtilisateur({ data }: Readonly<{ data: UserDashboard }>
     'Awaiting a verified backtest source.',
   )
 
+  const exposurePockets = valueOf(data.exposure)
+  const exposureState = seriesState(
+    data.exposure,
+    exposurePockets !== null && exposurePockets.length > 0,
+    'No pockets defined for this vault.',
+    'Allocation terms did not resolve.',
+  )
+
   const latestValue = valuePoints !== null && valuePoints.length > 0 ? valuePoints[valuePoints.length - 1].value : null
   const latestBtc = btcPoints !== null && btcPoints.length > 0 ? btcPoints[btcPoints.length - 1].value : null
-  const activityLabel = isAvailable(data.activityCount) ? data.activityCount.value : '—'
+  const navPerShare = valueOf(data.navPerShare)
+  const utilization = valueOf(data.utilizationPct)
+  const availableCapacity = valueOf(data.availableCapacity)
+  const minimumDeposit = valueOf(data.minimumDeposit)
 
-  const centralChart: Record<CentralView, { question: string; unit: string; state: SeriesState; node: ReactNode }> = {
+  // Worst drift across pockets — real signed subtraction, no threshold.
+  const worstDrift = (exposurePockets ?? []).reduce<{ label: string; d: number } | null>((worst, p) => {
+    if (p.actualPct === null) return worst
+    const d = p.actualPct - p.targetPct
+    const currentBest = worst === null ? -1 : Math.abs(worst.d)
+    return Math.abs(d) > currentBest ? { label: p.label, d } : worst
+  }, null)
+
+  const valueTrend = valuePoints !== null ? valuePoints.map((p) => p.value) : undefined
+  const btcTrend = btcPoints !== null ? btcPoints.map((p) => p.value) : undefined
+
+  const centralChart: Record<
+    CentralView,
+    { question: string; unit: string; state: SeriesState; node: ReactNode; source: Availability<unknown> }
+  > = {
     value: {
       question: 'Vault value',
       unit: 'total assets · USDC',
       state: valueState,
       node: valuePoints !== null ? <HearstLineChart points={[...valuePoints]} unit="USDC" height={340} /> : null,
+      source: data.valueSeries,
     },
     allocation: {
       question: 'Allocation over time',
       unit: 'cbBTC vs USDC · %',
       state: allocationState,
       node: allocationTime !== null ? <AllocationDualLineChart points={[...allocationTime]} height={320} /> : null,
+      source: data.allocationSeries,
     },
     btc: {
       question: 'BTC price',
       unit: 'USDC · at vault snapshots',
       state: btcState,
       node: btcPoints !== null ? <HearstLineChart points={[...btcPoints]} unit="USDC" height={340} /> : null,
+      source: data.btcSeries,
     },
     activity: {
       question: 'Account activity',
       unit: 'indexed events · per day',
       state: activityBarsState,
       node: activityBars !== null ? <HearstActivityChart points={[...activityBars]} unit="events" height={340} /> : null,
+      source: data.activityBars,
     },
     backtest: {
       question: 'Backtest performance',
       unit: 'total return · % per scenario',
       state: backtestState,
       node: backtestRuns !== null ? <SignedBarChart items={[...backtestRuns]} height={340} /> : null,
+      source: data.backtestRuns,
     },
   }
   const active = centralChart[central]
+  const fresh = freshnessLabel(signalOf(active.source))
+
+  const centralBody =
+    active.state.type === 'plotted' ? (
+      active.node
+    ) : (
+      <div className={`center-state${active.state.type === 'unavailable' ? ' is-bad' : ''}`}>
+        <span className="empty-mark" />
+        <p>{active.state.explanation}</p>
+      </div>
+    )
 
   return (
-    <div className="eu-root">
-      <main className="page">
-        <div className="shell">
-          <header className="nav">
-            <div className="brand">
-              <span className="brand-mark">H</span>
-              <span className="brand-name">Hearst</span>
-            </div>
-            <nav className="nav-links" aria-label="Main navigation">
-              <button className={isDashboard ? 'active' : undefined} onClick={() => setRoute('dashboard')} type="button">
-                Dashboard
-              </button>
-              <button className={!isDashboard ? 'active' : undefined} onClick={() => setRoute('trade')} type="button">
-                Trade
-              </button>
-            </nav>
-            <div className="account-state">
-              <i data-signal={signalOf(data.valueSeries)} />
-              <span>{isAvailable(data.valueSeries) ? 'Account synced' : 'Account offline'}</span>
-              <span className="avatar">A</span>
-            </div>
-          </header>
+    <MotionConfig reducedMotion="user">
+      <div className="eu-root">
+        <main className="page">
+          <div className="shell">
+            <header className="nav">
+              <div className="brand">
+                <span className="brand-mark">H</span>
+                <span className="brand-name">Hearst</span>
+              </div>
+              <nav className="nav-links" aria-label="Main navigation">
+                {(['dashboard', 'trade'] as Route[]).map((r) => (
+                  <button
+                    key={r}
+                    className={route === r ? 'active' : undefined}
+                    onClick={() => setRoute(r)}
+                    type="button"
+                  >
+                    {route === r ? <motion.span layoutId="eu-nav-pill" className="nav-pill" aria-hidden="true" /> : null}
+                    <span className="nav-inner">{r === 'dashboard' ? 'Dashboard' : 'Trade'}</span>
+                  </button>
+                ))}
+              </nav>
+              <div className="account-state">
+                <i data-signal={signalOf(data.valueSeries)} />
+                <span>{isAvailable(data.valueSeries) ? 'Account synced' : 'Account offline'}</span>
+                <span className="avatar">A</span>
+              </div>
+            </header>
 
-          <div className={`dashboard-view${isDashboard ? '' : ' hidden'}`}>
-            <section className="kpis" aria-label="Account indicators">
-              <div className="intro">
-                <p className="eyebrow">Account</p>
-                <h1>Command center</h1>
-              </div>
-              <div className="kpi">
-                <span>Vault value</span>
-                <strong>{latestValue !== null ? formatNumber(latestValue, { maximumFractionDigits: 0 }) : '—'}</strong>
-                <small>{latestValue !== null ? 'USDC · latest snapshot' : 'Awaiting verified source'}</small>
-              </div>
-              <div className="kpi">
-                <span>BTC price</span>
-                <strong>{latestBtc !== null ? formatNumber(latestBtc, { maximumFractionDigits: 0 }) : '—'}</strong>
-                <small>{latestBtc !== null ? 'USDC · at snapshot' : 'No market snapshot'}</small>
-              </div>
-              <div className="kpi">
-                <span>Movements</span>
-                <strong>{activityLabel}</strong>
-                <small>{isAvailable(data.activity) ? 'On your account' : 'Account offline'}</small>
-              </div>
-            </section>
+            <div className={`dashboard-view${isDashboard ? '' : ' hidden'}`}>
+              <section className="kpis" aria-label="Account indicators">
+                <div className="intro">
+                  <p className="eyebrow">Account</p>
+                  <h1>Command center</h1>
+                </div>
+                <StatTile
+                  icon={BanknotesIcon}
+                  label="Vault value"
+                  value={latestValue !== null ? formatNumber(latestValue, { maximumFractionDigits: 0 }) : '—'}
+                  signal={signalOf(data.valueSeries)}
+                  trend={valueTrend}
+                  delta={deltaOf(valuePoints)}
+                />
+                <StatTile
+                  icon={ScaleIcon}
+                  label="NAV / share"
+                  value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
+                  signal={signalOf(data.navPerShare)}
+                />
+                <StatTile
+                  icon={SignalIcon}
+                  label="Utilization"
+                  value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
+                  signal={signalOf(data.utilizationPct)}
+                />
+                <StatTile
+                  icon={CircleStackIcon}
+                  label="Available capacity"
+                  value={availableCapacity !== null ? `${formatNumber(availableCapacity, { maximumFractionDigits: 0 })} USDC` : '—'}
+                  signal={signalOf(data.availableCapacity)}
+                />
+                <StatTile
+                  icon={CurrencyDollarIcon}
+                  label="BTC price"
+                  value={latestBtc !== null ? formatNumber(latestBtc, { maximumFractionDigits: 0 }) : '—'}
+                  signal={signalOf(data.btcSeries)}
+                  trend={btcTrend}
+                  delta={deltaOf(btcPoints)}
+                />
+              </section>
 
-            <section className="analysis" aria-label="Analysis">
-              <DonutPanel
-                title="Allocation"
-                hint="Capital by bucket"
-                availability={data.allocationBars}
-                unit="% of vault"
-              />
+              <section className="analysis" aria-label="Analysis">
+                <CompositionRail
+                  title="Allocation"
+                  hint="Capital by bucket"
+                  icon={ChartPieIcon}
+                  availability={data.allocationBars}
+                  kind="percent"
+                  unit="%"
+                />
 
-              <div className="center">
-                <div className="center-panel">
-                  <div className="chart-switch" role="group" aria-label="Central chart">
-                    {CENTRAL_VIEWS.map((view) => (
-                      <button
-                        key={view.key}
-                        type="button"
-                        aria-pressed={central === view.key}
-                        className={central === view.key ? 'active' : undefined}
-                        onClick={() => setCentral(view.key)}
-                      >
-                        {view.label}
-                      </button>
-                    ))}
+                <div className="center">
+                  <div className="center-panel">
+                    <div className="chart-switch" role="group" aria-label="Central chart">
+                      {CENTRAL_VIEWS.map((view) => {
+                        const Icon = view.icon
+                        const selected = central === view.key
+                        return (
+                          <button
+                            key={view.key}
+                            type="button"
+                            aria-pressed={selected}
+                            className={selected ? 'active' : undefined}
+                            onClick={() => setCentral(view.key)}
+                          >
+                            {selected ? (
+                              <motion.span layoutId="eu-central-pill" className="switch-pill" aria-hidden="true" />
+                            ) : null}
+                            <span className="switch-inner">
+                              <Icon className="size-4" aria-hidden="true" />
+                              {view.label}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="center-head">
+                      <h2>{active.question}</h2>
+                      <span>{active.unit}</span>
+                      {fresh !== null ? <span className="fresh-badge" data-signal={signalOf(active.source)}>{fresh}</span> : null}
+                    </div>
+                    <div className="center-plot">
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.div
+                          key={central}
+                          className="center-plot-inner"
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                        >
+                          {centralBody}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
                   </div>
-                  <div className="center-head">
-                    <h2>{active.question}</h2>
-                    <span>{active.unit}</span>
+                </div>
+
+                <CompositionRail
+                  title="Activity mix"
+                  hint="Events by type"
+                  icon={Squares2X2Icon}
+                  availability={data.activityByType}
+                  kind="count"
+                  unit="events"
+                />
+              </section>
+
+              <section className="exposure-cap" aria-label="Strategy exposure and capacity">
+                <div className="ec-panel">
+                  <div className="ec-heading">
+                    <h2>
+                      <PresentationChartLineIcon className="size-4" aria-hidden="true" />
+                      Strategy exposure
+                    </h2>
+                    <span>Target vs actual · % of vault</span>
                   </div>
-                  <div className="center-plot">
-                    {active.state.type === 'plotted' ? (
-                      active.node
+                  <div className="ec-body">
+                    {exposureState.type === 'plotted' && exposurePockets !== null ? (
+                      <>
+                        <HearstAllocationChart items={[...exposurePockets]} />
+                        <DriftLedger pockets={exposurePockets} />
+                      </>
                     ) : (
-                      <div className={`center-state${active.state.type === 'unavailable' ? ' is-bad' : ''}`}>
+                      <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
                         <span className="empty-mark" />
-                        <p>{active.state.explanation}</p>
+                        <p>{exposureState.type !== 'plotted' ? exposureState.explanation : ''}</p>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-
-              <DonutPanel
-                title="Activity mix"
-                hint="Events by type"
-                availability={data.activityByType}
-                unit="events"
-              />
-            </section>
-
-            <section className="movements" aria-label="Account movements">
-              <div className="movements-heading">
-                <div>
-                  <p className="eyebrow">Capital</p>
-                  <h2>Account movements</h2>
+                <div className="ec-panel">
+                  <div className="ec-heading">
+                    <h2>
+                      <SignalIcon className="size-4" aria-hidden="true" />
+                      Fund capacity
+                    </h2>
+                    <span>Utilization toward the vault cap</span>
+                  </div>
+                  <div className="ec-body ec-body--meter">
+                    <CapacityMeter utilization={data.utilizationPct} capacity={data.availableCapacity} />
+                  </div>
                 </div>
-                <span>Verified data only · {activityLabel} total</span>
+              </section>
+
+              <section className="movements" aria-label="Account movements">
+                <div className="movements-main">
+                  <div className="movements-heading">
+                    <div>
+                      <p className="eyebrow">Capital</p>
+                      <h2>Account movements</h2>
+                    </div>
+                    <span>
+                      Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
+                    </span>
+                  </div>
+                  <MovementTimeline availability={data.activity} />
+                </div>
+                <aside className="terms-rail" aria-label="Subscription terms">
+                  <div className="flank-heading">
+                    <h2>
+                      <LockClosedIcon className="size-4" aria-hidden="true" />
+                      Subscription
+                    </h2>
+                    <span>Product terms</span>
+                  </div>
+                  <div className="terms-list">
+                    <TermRow
+                      icon={LockClosedIcon}
+                      label="Minimum deposit"
+                      value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
+                    />
+                    <TermRow
+                      icon={ScaleIcon}
+                      label="NAV / share"
+                      value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
+                    />
+                    <TermRow
+                      icon={SignalIcon}
+                      label="Utilization"
+                      value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
+                    />
+                    <TermRow
+                      icon={CircleStackIcon}
+                      label="Room to cap"
+                      value={availableCapacity !== null ? `${formatNumber(availableCapacity, { maximumFractionDigits: 0 })} USDC` : '—'}
+                    />
+                    <TermRow
+                      icon={PresentationChartLineIcon}
+                      label="Worst drift"
+                      value={worstDrift !== null ? `${worstDrift.d >= 0 ? '+' : ''}${formatNumber(worstDrift.d, { maximumFractionDigits: 1 })} pt · ${worstDrift.label}` : '—'}
+                    />
+                  </div>
+                </aside>
+              </section>
+            </div>
+
+            <section className={`trade-view${isDashboard ? '' : ' active'}`}>
+              <div>
+                <p className="eyebrow">Execution only</p>
+                <h1>Trade terminal</h1>
+                <p>
+                  This space is strictly reserved for execution. No catalog, quote or account
+                  management element is presented here.
+                </p>
               </div>
-              <ActivityList availability={data.activity} />
             </section>
           </div>
-
-          <section className={`trade-view${isDashboard ? '' : ' active'}`}>
-            <div>
-              <p className="eyebrow">Execution only</p>
-              <h1>Trade terminal</h1>
-              <p>
-                This space is strictly reserved for execution. No catalog, quote or account
-                management element is presented here.
-              </p>
-            </div>
-          </section>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </MotionConfig>
   )
 }
