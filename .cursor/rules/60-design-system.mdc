@@ -71,6 +71,33 @@ contenu et ne volent jamais la place du primary.
 
 Règle architecturale permanente, pas une migration ponctuelle.
 
+## Panel / grid track contract (asymmetric compositions)
+
+Même principe que la table column contract, étendu aux grilles CSS de panneaux (pas les
+tables) : `ASYMMETRIC SECONDARY REGION MUST NOT OWN AN UNBOUNDED FLEXIBLE TRACK`.
+
+Trois familles, à ne pas confondre :
+
+- **HOMOGENEOUS COLLECTION** (KPI cards, stat tiles, cards répétées de même rôle) —
+  `repeat(auto-fit, minmax(…, 1fr))` ou pistes `fr` égales restent corrects : chaque case a le
+  même rôle métier, elle a le droit de grossir avec ses sœurs.
+- **ASYMMETRIC COMPOSITION** (chart + contextual rail, table/list + form, main + metadata,
+  primary visualization + capacity/fact panel) — le **primary** absorbe l'espace libre
+  (`minmax(0, 1fr)`) ; le **secondary** est intrinsèque ou borné (`minmax(220px, 320px)`,
+  jamais une piste `fr` qui continue de grossir avec le viewport). Référence dans ce repo :
+  `/admin/operations` (indexeur `minmax(0,1fr)` + carte « Last rebalance »
+  `minmax(14rem, 20rem)`), `.ud-root .analysis` et `.ud-root .exposure-cap`
+  (`src/features/user-dashboard/user-dashboard.css`).
+- **READING / FORM MEASURE** (formulaire, timeline, prose, liste de métadonnées compacte) —
+  une largeur de lecture/saisie raisonnable (`max-w-*`) même à l'intérieur d'une page fluide ;
+  ne pas laisser un champ de saisie s'étirer sur toute la largeur d'un grand écran uniquement
+  parce que l'espace existe.
+
+Ne pas généraliser en « toute card a un max-width fixe » : le contrat est sémantique (rôle
+primary/secondary/reading), pas une valeur universelle imposée à toutes les surfaces.
+`repeat(auto-fit, …)` sur une collection homogène, le contenu principal d'un masonry Bento, et
+un chart principal qui absorbe la largeur restante restent tous corrects tels quels.
+
 ## Architecture graphs
 
 Les graphes d'architecture (`docs/architecture/ui-graph.json`) sont des aides de

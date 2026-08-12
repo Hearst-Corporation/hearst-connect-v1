@@ -216,6 +216,80 @@ describe('one brand palette', () => {
   })
 })
 
+describe('asymmetric secondary region — no unbounded fr track', () => {
+  /*
+   * Rule 60 "Panel / grid track contract": in a PRIMARY + SECONDARY or
+   * PRIMARY + BOUNDED FLANKS composition, the secondary/flank region must be
+   * intrinsic or bounded (a px/rem ceiling), never a proportional `fr` share
+   * that keeps growing with the viewport. This does NOT apply to homogeneous
+   * collections (KPI grids, masonry) — those keep equal `fr` tracks on
+   * purpose; asserted separately below by absence, not by a blanket ban on
+   * `fr`.
+   */
+  const css = readFileSync(join(process.cwd(), 'src/features/user-dashboard/user-dashboard.css'), 'utf8')
+
+  it('.analysis flanks (donut legends) are bounded, not proportional — center absorbs the row', () => {
+    const rule = /\.ud-root \.analysis \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css)
+    expect(rule, '.ud-root .analysis grid-template-columns not found').toBeTruthy()
+    const template = rule![1]
+    // Flanks: a bounded track (two length values in minmax, e.g. 220px..320px),
+    // never a `fr` unit — a flank must stop growing once it reaches its cap.
+    const flankTracks = template.match(/minmax\([^)]*\)/g) ?? []
+    expect(flankTracks).toHaveLength(3)
+    expect(flankTracks[0]).not.toMatch(/fr/)
+    expect(flankTracks[2]).not.toMatch(/fr/)
+    // Center: the only track allowed to claim the row's free space.
+    expect(flankTracks[1]).toMatch(/minmax\(0,\s*1fr\)/)
+  })
+
+  it('.exposure-cap: Fund capacity is bounded, Strategy exposure absorbs the row', () => {
+    const rule = /\.ud-root \.exposure-cap \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css)
+    expect(rule, '.ud-root .exposure-cap grid-template-columns not found').toBeTruthy()
+    const template = rule![1]
+    const tracks = template.match(/minmax\([^)]*\)/g) ?? []
+    expect(tracks).toHaveLength(2)
+    // Primary (Strategy exposure, first column) absorbs free space.
+    expect(tracks[0]).toMatch(/minmax\(0,\s*1fr\)/)
+    // Secondary (Fund capacity, second column) is bounded — no `fr`, both a
+    // floor and a ceiling in px so it stops growing past a comfortable width.
+    expect(tracks[1]).not.toMatch(/fr/)
+    expect(tracks[1]).toMatch(/^minmax\(\d+px,\s*\d+px\)$/)
+  })
+
+  it('/admin/operations keeps its already-correct primary/bounded-secondary split', () => {
+    const page = readFileSync(join(process.cwd(), 'src/app/admin/operations/page.tsx'), 'utf8')
+    expect(page).toMatch(/lg:grid-cols-\[minmax\(0,1fr\)_minmax\(14rem,20rem\)\]/)
+  })
+
+  it('/admin/client-simulator/new form keeps a reading/form measure cap', () => {
+    const form = readFileSync(
+      join(process.cwd(), 'src/app/admin/client-simulator/new/create-client-form.tsx'),
+      'utf8',
+    )
+    expect(form).toMatch(/<form[^>]*\bmax-w-\w+\b/)
+  })
+
+  it('the dead .bottomRow 3-fr split does not reactivate without a bound', () => {
+    // console.module.css keeps a currently-unconsumed 3-way `@container` split
+    // (wave panel / info grid / vault card) shaped exactly like the audited
+    // bug (`1.2fr 1fr 0.85fr`, all zero-floor). It has no `.tsx` consumer
+    // today (legacy /espace shell) — this guard fails loudly if it is ever
+    // reactivated without first bounding its secondary tracks.
+    const shell = readFileSync(join(process.cwd(), 'src/components/layout/console.module.css'), 'utf8')
+    function walk(dir: string): string[] {
+      return readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap((entry) => {
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) return walk(full)
+        if (!/\.tsx?$/.test(entry.name)) return []
+        return readFileSync(join(process.cwd(), full), 'utf8').includes('bottomRow') ? [full] : []
+      })
+    }
+    const consumers = walk('src')
+    expect(shell).toContain('.bottomRow')
+    expect(consumers, `.bottomRow gained a consumer — fix its fr split before wiring it up: ${consumers.join(', ')}`).toEqual([])
+  })
+})
+
 describe('chart sizing', () => {
   it('always keeps the chart slot open, even for a short or empty series', () => {
     expect(plottableAsChart(0)).toBe(true)
