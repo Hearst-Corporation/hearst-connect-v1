@@ -16,8 +16,7 @@ import {
   StatGrid,
   SectionCard,
   DataTableShell,
-  fitTableColCompact,
-  fitTableColPrimary,
+  tableCol,
 } from '@/components/compositions'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
@@ -230,17 +229,19 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
         >
           <TableHead>
             <TableRow>
-              <TableHeader className={fitTableColPrimary}>Surface</TableHeader>
-              <TableHeader className={fitTableColCompact}>Status</TableHeader>
-              <TableHeader className={fitTableColPrimary}>Reason</TableHeader>
+              <TableHeader className={tableCol.primary}>Surface</TableHeader>
+              <TableHeader className={tableCol.status}>Status</TableHeader>
+              <TableHeader className={tableCol.primary}>Reason</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {ordered.map((surface) => (
               <TableRow key={surface.key}>
-                <TableCell className="font-medium">{surface.name}</TableCell>
-                <TableCell>{TIER_TITLE[surface.tier]}</TableCell>
-                <TableCell className="text-fg-tertiary">{surface.reason ?? '—'}</TableCell>
+                <TableCell className={tableCol.primary}>
+                  <div className="truncate font-medium">{surface.name}</div>
+                </TableCell>
+                <TableCell className={tableCol.status}>{TIER_TITLE[surface.tier]}</TableCell>
+                <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{surface.reason ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -266,17 +267,19 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Source</TableHeader>
-            <TableHeader className={fitTableColCompact}>Status</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Detail</TableHeader>
+            <TableHeader className={tableCol.primary}>Source</TableHeader>
+            <TableHeader className={tableCol.status}>Status</TableHeader>
+            <TableHeader className={tableCol.primary}>Detail</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {registry.sources.map((source: SourceActivityRow) => (
             <TableRow key={source.endpointId}>
-              <TableCell className="font-medium">{source.label}</TableCell>
-              <TableCell>{readableSourceState(source.status)}</TableCell>
-              <TableCell className="text-fg-tertiary">{source.detail ?? '—'}</TableCell>
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium">{source.label}</div>
+              </TableCell>
+              <TableCell className={tableCol.status}>{readableSourceState(source.status)}</TableCell>
+              <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{source.detail ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

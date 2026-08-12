@@ -4,7 +4,7 @@ import { Field, FieldGroup, Label } from '@/components/catalyst/fieldset'
 import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { DataTableShell, tableCol } from '@/components/compositions'
 import { formatNumber, pluralSuffix } from '@/lib/format'
 import { dateLisible, ilYA, movementLabel } from '@/lib/movements'
 import { useMemo, useState } from 'react'
@@ -188,10 +188,10 @@ export function Series1EventExplorer({
           <>
             <TableHead>
               <TableRow>
-                <TableHeader className={fitTableColPrimary}>Event</TableHeader>
-                <TableHeader className={fitTableColCompact}>Amount</TableHeader>
-                <TableHeader className={fitTableColPrimary}>Transaction</TableHeader>
-                <TableHeader className={fitTableColCompact}>When</TableHeader>
+                <TableHeader className={tableCol.primary}>Event</TableHeader>
+                <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+                <TableHeader className={tableCol.hash}>Transaction</TableHeader>
+                <TableHeader className={tableCol.date}>When</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -206,8 +206,10 @@ export function Series1EventExplorer({
                 ].filter(Boolean)
                 return (
                   <TableRow key={row.id} title={detailBits.join(' · ') || undefined}>
-                    <TableCell className="truncate font-medium">{movementLabel(row.eventName)}</TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell className={tableCol.primary}>
+                      <div className="truncate font-medium">{movementLabel(row.eventName)}</div>
+                    </TableCell>
+                    <TableCell className={tableCol.numeric}>
                       {row.amount !== null ? (
                         <>
                           {row.amount}
@@ -219,11 +221,11 @@ export function Series1EventExplorer({
                         '—'
                       )}
                     </TableCell>
-                    <TableCell className="truncate font-mono text-sm" title={row.txHash ?? undefined}>
+                    <TableCell className={`${tableCol.hash} text-sm`} title={row.txHash ?? undefined}>
                       {tx ?? '—'}
                     </TableCell>
-                    <TableCell title={dateLisible(row.occurredAt)}>
-                      <span className="block tabular-nums">{ilYA(row.occurredAt)}</span>
+                    <TableCell className={tableCol.date} title={dateLisible(row.occurredAt)}>
+                      <span className="block">{ilYA(row.occurredAt)}</span>
                       <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
                     </TableCell>
                   </TableRow>

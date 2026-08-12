@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -205,17 +205,19 @@ export default async function RuntimePage() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Component</TableHeader>
-            <TableHeader className={fitTableColCompact}>Status</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Detail</TableHeader>
+            <TableHeader className={tableCol.primary}>Component</TableHeader>
+            <TableHeader className={tableCol.status}>Status</TableHeader>
+            <TableHeader className={tableCol.primary}>Detail</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {matrix.map((row) => (
             <TableRow key={row.id}>
-              <TableCell className="font-medium">{row.label}</TableCell>
-              <TableCell>{readableSourceState(row.status)}</TableCell>
-              <TableCell>{row.detail}</TableCell>
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium">{row.label}</div>
+              </TableCell>
+              <TableCell className={tableCol.status}>{readableSourceState(row.status)}</TableCell>
+              <TableCell className={tableCol.primary}>{row.detail}</TableCell>
             </TableRow>
           ))}
         </TableBody>

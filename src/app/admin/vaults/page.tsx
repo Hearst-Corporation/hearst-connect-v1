@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
@@ -71,11 +71,13 @@ function VaultPrimaryRow({ vault }: Readonly<{ vault: Vault }>) {
 
   return (
     <TableRow href={href} title={`Open ${vault.label}`}>
-      <TableCell className="truncate font-medium">{vault.label}</TableCell>
-      <TableCell className="tabular-nums">
+      <TableCell className={tableCol.primary}>
+        <div className="truncate font-medium">{vault.label}</div>
+      </TableCell>
+      <TableCell className={tableCol.numeric}>
         <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} />
       </TableCell>
-      <TableCell className="tabular-nums">
+      <TableCell className={tableCol.numeric}>
         <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
         {deployedBps === null ? null : (
           <div className="mt-0.5 text-xs text-fg-tertiary">
@@ -83,17 +85,17 @@ function VaultPrimaryRow({ vault }: Readonly<{ vault: Vault }>) {
           </div>
         )}
       </TableCell>
-      <TableCell className="tabular-nums">
+      <TableCell className={tableCol.numeric}>
         <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />
       </TableCell>
-      <TableCell className="tabular-nums">
+      <TableCell className={tableCol.numeric}>
         {!isAvailable(vault.worstDriftBps) ? (
           <AdminReading compact value={absentReading(vault.worstDriftBps)} />
         ) : (
           driftPoints(driftBps!)
         )}
       </TableCell>
-      <TableCell className="tabular-nums">
+      <TableCell className={tableCol.date}>
         <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />
       </TableCell>
     </TableRow>
@@ -161,12 +163,12 @@ function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[]
         >
           <TableHead>
             <TableRow>
-              <TableHeader className={fitTableColPrimary}>Vault</TableHeader>
-              <TableHeader className={fitTableColCompact}>AUM</TableHeader>
-              <TableHeader className={fitTableColCompact}>Deployed</TableHeader>
-              <TableHeader className={fitTableColCompact}>Available</TableHeader>
-              <TableHeader className={fitTableColCompact}>Drift</TableHeader>
-              <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
+              <TableHeader className={tableCol.primary}>Vault</TableHeader>
+              <TableHeader className={tableCol.numeric}>AUM</TableHeader>
+              <TableHeader className={tableCol.numeric}>Deployed</TableHeader>
+              <TableHeader className={tableCol.numeric}>Available</TableHeader>
+              <TableHeader className={tableCol.numeric}>Drift</TableHeader>
+              <TableHeader className={tableCol.date}>Rebalance</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>

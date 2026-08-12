@@ -8,7 +8,7 @@ import {
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -163,19 +163,21 @@ export default async function KeeperPage() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Action</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Call</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Contract reserve</TableHeader>
+            <TableHeader className={tableCol.primary}>Action</TableHeader>
+            <TableHeader className={tableCol.hash}>Call</TableHeader>
+            <TableHeader className={tableCol.primary}>Contract reserve</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {keeperEndpoints.map((endpoint) => (
             <TableRow key={endpoint.id}>
-              <TableCell className="font-medium">{endpoint.summary}</TableCell>
-              <TableCell className="font-mono text-xs text-fg-tertiary dark:text-fg-secondary">
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium">{endpoint.summary}</div>
+              </TableCell>
+              <TableCell className={`${tableCol.hash} text-xs text-fg-tertiary dark:text-fg-secondary`}>
                 {endpoint.method} {endpoint.path}
               </TableCell>
-              <TableCell className="text-fg-tertiary dark:text-fg-secondary">{endpoint.caveat ?? '—'}</TableCell>
+              <TableCell className={`${tableCol.primary} text-fg-tertiary dark:text-fg-secondary`}>{endpoint.caveat ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -8,7 +8,7 @@ import {
   ReserveExposureChart,
   type BitcoinItem,
 } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { figureFromResolved } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
@@ -186,15 +186,17 @@ function CapitalReserveSection({
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Position</TableHeader>
-            <TableHeader className={fitTableColCompact}>Amount (USD)</TableHeader>
+            <TableHeader className={tableCol.primary}>Position</TableHeader>
+            <TableHeader className={tableCol.numeric}>Amount (USD)</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {items.map((p) => (
             <TableRow key={p.item}>
-              <TableCell className="font-medium">{p.item}</TableCell>
-              <TableCell>{formatCurrency(p.amount, { fromAtomic: 1, decimals: 0 })}</TableCell>
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium">{p.item}</div>
+              </TableCell>
+              <TableCell className={tableCol.numeric}>{formatCurrency(p.amount, { fromAtomic: 1, decimals: 0 })}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -363,15 +365,15 @@ export default async function Page() {
           >
             <TableHead>
               <TableRow>
-                <TableHeader className={fitTableColPrimary}>Month</TableHeader>
-                <TableHeader className={fitTableColCompact}>Rate %</TableHeader>
+                <TableHeader className={tableCol.primary}>Month</TableHeader>
+                <TableHeader className={tableCol.numeric}>Rate %</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
               {points.map((p) => (
                 <TableRow key={p.month}>
-                  <TableCell>{formatNumber(p.month)}</TableCell>
-                  <TableCell>{formatNumber(p.rate, { maximumFractionDigits: 2 })}</TableCell>
+                  <TableCell className={tableCol.primary}>{formatNumber(p.month)}</TableCell>
+                  <TableCell className={tableCol.numeric}>{formatNumber(p.rate, { maximumFractionDigits: 2 })}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -388,17 +390,19 @@ export default async function Page() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Reading</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Why it does not appear yet</TableHeader>
-            <TableHeader className={fitTableColCompact}>Source state</TableHeader>
+            <TableHeader className={tableCol.primary}>Reading</TableHeader>
+            <TableHeader className={tableCol.primary}>Why it does not appear yet</TableHeader>
+            <TableHeader className={tableCol.status}>Source state</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {lecturesEnAttente.map((reading) => (
             <TableRow key={reading.cle}>
-              <TableCell className="font-medium">{reading.label}</TableCell>
-              <TableCell className="text-fg-tertiary">{reading.explication}</TableCell>
-              <TableCell>
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium">{reading.label}</div>
+              </TableCell>
+              <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{reading.explication}</TableCell>
+              <TableCell className={tableCol.status}>
                 {reading.statut ? readableSourceState(reading.statut) : 'Not reported'}
               </TableCell>
             </TableRow>

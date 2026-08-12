@@ -1,0 +1,77 @@
+---
+description: "Hearst Connect V1 — Design System local (autorité tokens + contrat cross-surface admin × account)"
+alwaysApply: true
+---
+
+# DESIGN SYSTEM — Hearst Connect V1 (autorité locale)
+
+One Hearst design language. Multiple business semantics.
+
+## Autorité
+
+- **Source de vérité DS** = ce dépôt : `src/styles/tailwind.css` (`@theme` → `:root`) +
+  primitives de surface (`surface.tsx`, `Panel`, `DashCard`, `adminTypography`, `chart-theme`).
+- Gouvernance externe / DS `Hearst-Defi` (`--ct-*`, Storybook, runner `gpu1`) =
+  **référence organisationnelle uniquement** — jamais autorité tokens/layout/infra/gates.
+- Interdit d'introduire un second namespace de tokens (`--ct-*`, rampes structurelles
+  Tailwind, surfaces ad hoc).
+
+## Extends (ne pas recopier)
+
+- `50-no-zinc.mdc` — neutrals = `fg` / `ink` / `console-*` uniquement.
+- Gates : `check:ds` · `check:no-zinc` · `check:admin-ds` · `check:ui`.
+
+Cette règle **étend** ces owners ; elle ne les redéfinit pas.
+
+## Cross-surface design system (admin × account)
+
+- Les **foundations Hearst sont partagées** : color / surface / line / radius / elevation /
+  typography / numeric typography / motion / state semantics / chart language.
+- **Foundations partagées n'impliquent pas un arbre de composants React partagé.**
+- Admin et account **peuvent exposer des primitives sémantiques différentes**
+  (`surfaceBox` / `Panel` / `DashCard` / `Bento` côté admin ; `.shell`/UserShell, `StatTile`,
+  `CompositionRail`, `MovementTimeline`, `CapacityMeter`, `DriftLedger` côté account).
+- Une primitive de zone produit **consomme** les foundations canoniques, elle ne les
+  **redéfinit** pas.
+- Ne pas imposer une primitive admin à l'account sans raison sémantique.
+- Ne pas créer d'abstraction universelle juste pour supprimer des chaînes de classes dupliquées.
+- `BUSINESS SEMANTICS OWN DOM`
+- `LAYOUT OWNS PLACEMENT`
+- `DATASET SIZE DOES NOT OWN PAGE GEOMETRY`
+
+## Token authority — no local fallbacks
+
+Les tokens `@theme` résolvent au `:root` sous le layout `.dark` sur chaque route produit.
+Un `var(--color-…, #fallback)` dans un module CSS métier n'affiche donc jamais son fallback —
+il n'encode qu'une copie divergente du token. Référencer les tokens **nus** : `var(--color-…)`.
+(La chaîne `--font-satoshi` garde sa cascade : c'est un fallback de police, pas une couleur.)
+Hex brut hors `var(--token, #fallback)` = interdit produit (`check:ds`).
+
+Pas d'usine à tokens : trim / merge avant d'ajouter ; n'ajouter un token foundation que s'il a
+plus d'un vrai consommateur (un token à usage unique n'est pas une abstraction utile).
+
+## Table column contract
+
+Une colonne de table admin exprime son **rôle sémantique**, pas une largeur. Géométrie
+intrinsèque / dérivée du rôle — jamais un pourcentage de capture (`w-[34%]`), ni son
+équivalent moderne (`flex-[1.7]`, `--name-column`). Le **même rôle** produit les **mêmes
+classes** sur `TableHeader` et sur `TableCell` (via `tableCol` dans `compositions/blocks.tsx`).
+
+| rôle    | intention                              |
+|---------|----------------------------------------|
+| primary | reste flexible — absorbe l'espace      |
+| numeric | chiffre compact, aligné à droite       |
+| status  | badge / état court, largeur intrinsèque |
+| hash    | identifiant borné, monospace, tronqué  |
+| date    | valeur temporelle compacte             |
+| action  | contrôle interactif de fin de ligne    |
+
+`PRIMARY = FLEXIBLE REMAINDER`, pas un pourcentage. Les colonnes atomiques dimensionnent au
+contenu et ne volent jamais la place du primary.
+
+Règle architecturale permanente, pas une migration ponctuelle.
+
+## Architecture graphs
+
+Les graphes d'architecture (`docs/architecture/ui-graph.json`) sont des aides de
+navigation dérivées ; le code source reste l'autorité.

@@ -24,9 +24,9 @@ export {
   StatGrid,
   SectionCard,
   DataTableShell,
-  fitTableColPrimary,
-  fitTableColCompact,
+  tableCol,
   Callout,
+  type TableColRole,
   type DeltaTone,
   type CalloutTone,
 } from '@/components/compositions/blocks'

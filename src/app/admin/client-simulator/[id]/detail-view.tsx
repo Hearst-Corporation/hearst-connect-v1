@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { ChartFrame } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -177,22 +177,24 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
           <>
             <TableHead>
               <TableRow>
-                <TableHeader className={fitTableColPrimary}>Field</TableHeader>
-                <TableHeader className={fitTableColPrimary}>Value</TableHeader>
+                <TableHeader className={tableCol.status}>Field</TableHeader>
+                <TableHeader className={tableCol.primary}>Value</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell className="font-medium">Identifier</TableCell>
-                <TableCell className="font-mono text-sm">{match.id}</TableCell>
+                <TableCell className={`${tableCol.status} font-medium`}>Identifier</TableCell>
+                <TableCell className={`${tableCol.hash} text-sm`}>{match.id}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">Label</TableCell>
-                <TableCell>{match.label}</TableCell>
+                <TableCell className={`${tableCol.status} font-medium`}>Label</TableCell>
+                <TableCell className={tableCol.primary}>
+                  <div className="truncate">{match.label}</div>
+                </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">Marker</TableCell>
-                <TableCell>
+                <TableCell className={`${tableCol.status} font-medium`}>Marker</TableCell>
+                <TableCell className={tableCol.status}>
                   <SimulatedBadge />
                 </TableCell>
               </TableRow>

@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
+import { tableCol } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
@@ -59,24 +60,24 @@ export function RecentClientsPanel({
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>Client</TableHeader>
-            <TableHeader>Exposure</TableHeader>
-            <TableHeader>KYC</TableHeader>
+            <TableHeader className={tableCol.primary}>Client</TableHeader>
+            <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
+            <TableHeader className={tableCol.status}>KYC</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {clients.value.map((client) => (
             <TableRow key={client.id}>
-              <TableCell>
+              <TableCell className={tableCol.primary}>
                 <div className="truncate font-medium">{client.label}</div>
                 <div className="mt-0.5 text-[11px] text-fg-tertiary">
                   {client.createdAt ? formatRelativeTime(client.createdAt) : '—'}
                 </div>
               </TableCell>
-              <TableCell className="tabular-nums">
+              <TableCell className={tableCol.numeric}>
                 {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
               </TableCell>
-              <TableCell>
+              <TableCell className={tableCol.status}>
                 <Badge color="neutral">{client.kycStatus}</Badge>
               </TableCell>
             </TableRow>
