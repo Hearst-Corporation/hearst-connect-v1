@@ -87,6 +87,12 @@ export type UserMovement = {
 export type UserDashboard = {
   readonly sourceStatus: string
   readonly position: Availability<ResolvedField>
+  /** The CLIENT's own book position value (principal + accrued), whole USDC. */
+  readonly positionValue: Availability<number>
+  /** The CLIENT's on-book principal (deposits), whole USDC. */
+  readonly positionPrincipal: Availability<number>
+  /** The CLIENT's accrued yield (book), whole USDC. */
+  readonly positionAccrued: Availability<number>
   readonly performance: Availability<ResolvedField>
   readonly subscription: Availability<ResolvedField>
   /** Latest-snapshot allocation buckets (donut). */
@@ -314,6 +320,18 @@ function activityByTypeFrom(movements: readonly UserMovement[] | null): readonly
     .map(([label, value]) => ({ label, value }))
 }
 
+/**
+ * The CLIENT's own position book values from `dashboard.position` (InvestorPosition).
+ * These are backend book figures in whole USDC — `value` = principal + accrued —
+ * NOT a mark-to-market. `shares` is null (the DB holds no share balance), so a
+ * client value is never computed as shares × NAV. Absent → null (never 0).
+ */
+function positionBookFrom(field: ResolvedField | null, key: 'value' | 'principal' | 'accrued'): number | null {
+  const pos = field?.value
+  if (typeof pos !== 'object' || pos === null) return null
+  return num((pos as Record<string, unknown>)[key])
+}
+
 function surface(aggregate: Record<string, unknown> | null, key: string): ResolvedBlock<ResolvedField> {
   const field = aggregate?.[key]
   if (!isResolvedField(field)) {
@@ -342,17 +360,34 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
   const aggregate = aggregateResponse.ok ? aggregateResponse.data : null
   const sourceStatus = aggregateResponse.ok ? statusFromMeta(aggregateResponse.meta) : 'UNAVAILABLE'
 
-  const position = availabilityFromResolved(surface(aggregate, 'position'), DASHBOARD_ENDPOINT)
+  const positionRF = surface(aggregate, 'position')
+  const position = availabilityFromResolved(positionRF, DASHBOARD_ENDPOINT)
+  // Client book values — the account's OWN money, per-client at the query layer.
+  // Loaded here so the view no longer drops them (P0: dashboard.position was
+  // fetched then ignored). value = principal + accrued (book), shares stay null.
+  const positionValue = availabilityFromResolved<number>(
+    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'value'), reason: 'no_investor_position' },
+    DASHBOARD_ENDPOINT,
+  )
+  const positionPrincipal = availabilityFromResolved<number>(
+    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'principal'), reason: 'no_investor_position' },
+    DASHBOARD_ENDPOINT,
+  )
+  const positionAccrued = availabilityFromResolved<number>(
+    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'accrued'), reason: 'no_investor_position' },
+    DASHBOARD_ENDPOINT,
+  )
   const performance = availabilityFromResolved(surface(aggregate, 'performance'), DASHBOARD_ENDPOINT)
   const subscription = availabilityFromResolved(surface(aggregate, 'subscription'), DASHBOARD_ENDPOINT)
 
-  // Activity list: prefer `activity`, fall back to `recentEvents`; freshness read
-  // from the surface status via the adapter (never forced).
+  // Account movements are the CALLER's own investor activity, and only that.
+  // The global `recentEvents` vault feed must NEVER stand in for it: a fallback
+  // there would present fund-wide events under a personal label (the P0 tenant-
+  // truth defect). Client activity absent → the section reports UNAVAILABLE;
+  // present-but-empty → EMPTY. Global data never silently becomes client data.
   const activityField = surface(aggregate, 'activity')
-  const eventsField = surface(aggregate, 'recentEvents')
-  const activitySourceStatus =
-    movementsFrom(activityField.value) !== null ? activityField.status : eventsField.status
-  const activityValue = movementsFrom(activityField.value) ?? movementsFrom(eventsField.value)
+  const activitySourceStatus = activityField.status
+  const activityValue = movementsFrom(activityField.value)
   const activity = availabilityFromResolved<readonly UserMovement[]>(
     { status: activitySourceStatus, value: activityValue, reason: 'no_investor_movement' },
     DASHBOARD_ENDPOINT,
@@ -431,6 +466,9 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
   return {
     sourceStatus,
     position,
+    positionValue,
+    positionPrincipal,
+    positionAccrued,
     performance,
     subscription,
     allocationBars,
