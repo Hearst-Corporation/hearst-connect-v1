@@ -785,6 +785,13 @@
   box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
 }
 
+.ud-root .timeline-amount {
+  color: var(--color-fg);
+  font-size: var(--small);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+}
+
 .ud-root .timeline-time {
   display: inline-flex;
   align-items: center;
