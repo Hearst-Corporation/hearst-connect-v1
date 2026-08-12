@@ -4,7 +4,7 @@ import type { ComponentType, SVGProps } from 'react'
 import { BoltIcon, CpuChipIcon, CircleStackIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
 import { RichSparkline } from '@/components/charts'
 import { formatNumber } from '@/lib/format'
-import { signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
+import { valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import type { MarketSnapshot } from './load'
 
 /**
@@ -59,16 +59,21 @@ function MetricRow({
 export function BtcContextFlank({
   marketSnapshot,
   btcPoints,
+  btcPriceSignal,
   btcProducedTotal,
   onViewBtc,
 }: Readonly<{
   marketSnapshot: Availability<MarketSnapshot>
   btcPoints: readonly { readonly value: number }[] | null
+  /** Freshness of `btcPoints` itself (`data.btcSeries`) — the badge next to the
+   *  displayed price must reflect ITS source, never the unrelated market
+   *  snapshot's freshness (the two are independent backend calls). */
+  btcPriceSignal: Signal
   btcProducedTotal: Availability<number>
   onViewBtc: () => void
 }>) {
   const snapshot = valueOf(marketSnapshot)
-  const fresh = freshnessLabel(signalOf(marketSnapshot))
+  const fresh = freshnessLabel(btcPriceSignal)
   const trend = btcPoints !== null && btcPoints.length >= 2 ? btcPoints.map((p) => p.value) : undefined
   const latestBtc = btcPoints !== null && btcPoints.length > 0 ? btcPoints[btcPoints.length - 1].value : null
   const produced = valueOf(btcProducedTotal)
@@ -87,7 +92,7 @@ export function BtcContextFlank({
         <div className="btc-flank-price-head">
           <span>BTC price</span>
           {fresh !== null ? (
-            <span className="fresh-badge" data-signal={signalOf(marketSnapshot)}>
+            <span className="fresh-badge" data-signal={btcPriceSignal}>
               {fresh}
             </span>
           ) : null}

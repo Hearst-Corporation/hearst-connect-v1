@@ -486,6 +486,7 @@ export function UserDashboardView({
                   <BtcContextFlank
                     marketSnapshot={data.marketSnapshot}
                     btcPoints={btcPoints}
+                    btcPriceSignal={signalOf(data.btcSeries)}
                     btcProducedTotal={data.btcProducedTotal}
                     onViewBtc={() => setCentral('btc')}
                   />
