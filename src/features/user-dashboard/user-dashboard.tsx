@@ -19,7 +19,7 @@ import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
 import {
   AllocationDualLineChart,
   HearstActivityChart,
-  HearstExposureDonut,
+  HearstExposureRadial,
   HearstLineChart,
   SignedBarChart,
 } from '@/components/charts'
@@ -323,6 +323,7 @@ export function UserDashboardView({
                   availability={data.allocationBars}
                   kind="percent"
                   unit="%"
+                  centerCaption="allocated"
                 />
 
                 <div className="center">
@@ -393,7 +394,7 @@ export function UserDashboardView({
                   </div>
                   <div className="ec-body">
                     {exposureState.type === 'plotted' && exposurePockets !== null ? (
-                      <HearstExposureDonut items={[...exposurePockets]} />
+                      <HearstExposureRadial items={[...exposurePockets]} />
                     ) : (
                       <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
                         <span className="empty-mark" />

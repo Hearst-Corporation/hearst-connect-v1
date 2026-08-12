@@ -36,13 +36,20 @@ export { ReserveExposureChart, type BitcoinItem } from '@/components/charts/cart
 /* ── richart ──────────────────────────────────────────────────────────────── */
 export { HearstActivityChart, type ActivityPoint } from '@/components/charts/richart/activity-chart'
 export { HearstAllocationChart, type AllocationItem } from '@/components/charts/richart/allocation-chart'
+export {
+  HearstBreakdownDonut,
+  type BreakdownSlice,
+} from '@/components/charts/richart/breakdown-donut'
 export { HearstCurveChart, type CurvePoint } from '@/components/charts/richart/curve-chart'
+export {
+  HearstExposureRadial,
+  type ExposureItem,
+} from '@/components/charts/richart/exposure-radial'
 export {
   RichDistributionChart,
   type DistributionItem,
 } from '@/components/charts/richart/distribution-chart'
 export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'
-export { HearstExposureDonut, type ExposureItem } from '@/components/charts/richart/exposure-donut'
 export { HearstLineChart, type LinePoint } from '@/components/charts/richart/line-chart'
 export { SignedBarChart, type SignedBarItem } from '@/components/charts/richart/signed-bar-chart'
 export { RichSparkline } from '@/components/charts/richart/sparkline'

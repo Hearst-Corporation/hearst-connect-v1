@@ -88,17 +88,17 @@ flowchart TB
     surface_admin_select["surfaceSelect"]
   end
   chart_allocation_dual_line -->|uses_foundation| foundation_chart_viewport
+  chart_breakdown_donut -->|uses_foundation| foundation_chart_viewport
   chart_chart_frame -->|uses_foundation| foundation_chart_viewport
   chart_chart_frame -->|uses_surface| surface_admin_panel
+  chart_exposure_radial -->|uses_foundation| foundation_chart_viewport
   chart_hearst_activity -->|uses_foundation| foundation_chart_viewport
   chart_hearst_allocation -->|uses_foundation| foundation_chart_viewport
   chart_hearst_donut -->|uses_foundation| foundation_chart_viewport
-  chart_hearst_exposure_donut -->|uses_foundation| foundation_chart_viewport
   chart_hearst_line -->|uses_foundation| foundation_chart_viewport
   chart_rich_sparkline -->|uses_foundation| foundation_chart_viewport
   chart_signed_bar -->|uses_foundation| foundation_chart_viewport
-  component_breakdown_flank -->|uses_chart| chart_hearst_donut
-  component_breakdown_flank -->|uses_foundation| foundation_charts
+  component_breakdown_flank -->|uses_chart| chart_breakdown_donut
   component_data_coverage -->|uses_chart| chart_chart_frame
   component_data_coverage -->|uses_chart| chart_hearst_donut
   component_stat_tile -->|uses_chart| chart_rich_sparkline
@@ -147,7 +147,7 @@ flowchart TB
   region_account_central_chart -->|uses_chart| chart_hearst_line
   region_account_central_chart -->|uses_chart| chart_signed_bar
   region_account_exposure -->|renders| component_capacity_meter
-  region_account_exposure -->|uses_chart| chart_hearst_exposure_donut
+  region_account_exposure -->|uses_chart| chart_exposure_radial
   region_account_kpis -->|renders| component_stat_tile
   region_account_movements -->|renders| component_movement_timeline
   region_account_movements -->|renders| component_subscription_terms_rail

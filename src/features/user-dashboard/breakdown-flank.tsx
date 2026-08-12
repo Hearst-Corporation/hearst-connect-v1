@@ -1,27 +1,22 @@
 'use client'
 
 import type { ComponentType, SVGProps } from 'react'
-import { HearstDonutChart } from '@/components/charts'
+import { HearstBreakdownDonut } from '@/components/charts'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import type { AllocationBar } from './load'
 
 /**
  * BreakdownFlank — an analysis-band side flank: a heading over a real Recharts
- * part-to-whole donut (`HearstDonutChart`, behind the charts boundary — no direct
- * recharts import here).
+ * part-to-whole donut (`HearstBreakdownDonut`, behind the charts boundary — no
+ * direct recharts import here).
  *
- * This replaces the former `CompositionRail`, a hand-built flex bar + a ledger
+ * Replaces the former `CompositionRail`, a hand-built flex bar over a ledger
  * whose rows were stretched to fill the panel (`flex:1`) and which printed the
  * same percentage twice (`37.6 / 37.6`). A breakdown is a donut, not a stretched
- * list: the ring carries the proportions, a compact intrinsic legend carries the
- * exact numbers. The donut is honest by construction — a zero bucket draws no
- * slice, and the two named absences (unreadable source vs empty) are preserved.
+ * list: the ring carries the proportions, an intrinsic legend the exact numbers.
  *
- * `kind`:
- *   'percent' → values are already percentages → legend shows `value%`, center is
- *               the measured sum (never a hardcoded 100%), no duplicate share.
- *   'count'   → values are counts → legend shows `count` + a `share%` (both mean
- *               different things), center is the total.
+ * Absence stays a NAMED absence — the two branches (unreadable source vs empty)
+ * are preserved, never collapsed into a fabricated zero.
  */
 export function BreakdownFlank({
   title,
@@ -30,6 +25,7 @@ export function BreakdownFlank({
   availability,
   kind,
   unit,
+  centerCaption,
 }: Readonly<{
   title: string
   hint: string
@@ -37,11 +33,9 @@ export function BreakdownFlank({
   availability: Availability<readonly AllocationBar[]>
   kind: 'percent' | 'count'
   unit: string
+  centerCaption?: string
 }>) {
-  const raw = valueOf(availability)
-  // Rank descending so the leading category takes the mint accent (categoricalColor
-  // index 0) and the ring reads largest-first, like the old ranked ledger did.
-  const slices = raw !== null ? [...raw].sort((a, b) => b.value - a.value) : null
+  const slices = valueOf(availability)
   const total = slices !== null ? slices.reduce((sum, s) => sum + s.value, 0) : 0
 
   const heading = (
@@ -69,18 +63,7 @@ export function BreakdownFlank({
   return (
     <section className="flank-panel">
       {heading}
-      {/* The donut is intrinsic (fixed viewport) — it does NOT fill the panel.
-          It is centered in the space under the heading so a flank shorter than
-          the central chart reads as balanced, not as a bottom hole. */}
-      <div className="flank-viz">
-        <HearstDonutChart
-          slices={slices}
-          unit={unit}
-          format={kind === 'percent' ? 'percent' : 'count'}
-          showShare={kind === 'count'}
-          bare
-        />
-      </div>
+      <HearstBreakdownDonut slices={slices} kind={kind} unit={unit} centerCaption={centerCaption} />
     </section>
   )
 }
