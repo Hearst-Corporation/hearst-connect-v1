@@ -27,7 +27,9 @@
     "check:admin-ds": "node scripts/check-admin-ds-contract.mjs",
     "check:ui": "node scripts/check-ui-boundaries.mjs",
     "check:english-ui": "node scripts/check-english-ui.mjs",
-    "check:guardrails": "pnpm run check:no-gpu1 && pnpm run check:no-zinc && pnpm run check:english-ui && pnpm run check:mocks && pnpm run check:truthful-data && pnpm run check:ds && pnpm run check:admin-ds && pnpm run check:ui"
+    "check:guardrails": "pnpm run check:no-gpu1 && pnpm run check:no-zinc && pnpm run check:english-ui && pnpm run check:mocks && pnpm run check:truthful-data && pnpm run check:ds && pnpm run check:admin-ds && pnpm run check:ui",
+    "graph:ui": "node scripts/build-ui-graph.mjs",
+    "graph:check": "node scripts/build-ui-graph.mjs --check"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

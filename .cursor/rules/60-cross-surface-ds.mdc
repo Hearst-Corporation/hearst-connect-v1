@@ -40,3 +40,5 @@ that is a font fallback, not a color.)
 - A component does not own page placement; a dataset does not own page geometry.
 
 This is a permanent architectural rule, not a one-time migration.
+
+Architecture graphs (`docs/architecture/ui-graph.json`) are derived navigation aids; source code remains authoritative.
