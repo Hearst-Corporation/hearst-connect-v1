@@ -26,7 +26,7 @@ import {
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
 import { logout } from '@/lib/actions'
-import { HEARST_H_SRC } from '@/lib/brand'
+import { CONSOLE_GLOW_SRC, HEARST_H_SRC, consoleGlowLayer } from '@/lib/brand'
 import { formatNumber, formatPercent } from '@/lib/format'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
 import type { SessionUser } from '@/lib/session'
@@ -249,8 +249,15 @@ export function UserDashboardView({
   return (
     <MotionConfig reducedMotion="user">
       <div className="ud-root">
+        {/* Shared Hearst glow behind the glass — same material as /admin. z-0,
+            never above the shell. The shell's translucent glass lets it show. */}
+        <div
+          aria-hidden="true"
+          className={consoleGlowLayer}
+          style={{ backgroundImage: `url('${CONSOLE_GLOW_SRC}')` }}
+        />
         <main className="page">
-          <div className="shell">
+          <div className="shell backdrop-blur-xl backdrop-saturate-150">
             <header className="nav">
               <div className="brand">
                 <img className="brand-mark" src={HEARST_H_SRC} alt="" width={28} height={28} />
@@ -343,7 +350,7 @@ export function UserDashboardView({
                 />
 
                 <div className="center">
-                  <div className="center-panel">
+                  <div className="center-panel backdrop-blur-xl backdrop-saturate-150">
                     <div className="chart-switch" role="group" aria-label="Central chart">
                       {CENTRAL_VIEWS.map((view) => {
                         const Icon = view.icon

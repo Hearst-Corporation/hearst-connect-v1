@@ -19,12 +19,17 @@
   --small: clamp(11px, 0.8vw, 13px);
   --body-copy: clamp(12px, 0.9vw, 14px);
 
+  /* Shared Hearst material: the app background + mint glow come from the
+   * `consoleGlowLayer` (same asset as /admin), mounted as a fixed z-0 layer.
+   * The root only establishes the stacking context; the glow shows through the
+   * shell's translucent glass. No local radial-gradient competing with it. */
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
   width: 100%;
   min-height: 100dvh;
   color: var(--color-fg);
-  background:
-    radial-gradient(circle at 78% 3%, var(--color-accent-soft), transparent 24%),
-    var(--color-console-app);
+  background: var(--color-console-app);
   /* Product typeface only — Satoshi Variable from root layout. */
   font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
@@ -38,12 +43,21 @@
 }
 
 .ud-root .page {
+  /* Above the fixed glow layer (z-0). */
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-height: 100dvh;
   margin: 0;
   padding: var(--edge);
 }
 
+/*
+ * The application shell is the same Hearst GLASS material as the admin boxes
+ * (`surfaceBox`): a translucent `console-card` face + backdrop blur/saturate, so
+ * the shared glow shows through. It is not opaque graphite any more. Elevation
+ * is the subtle DS box shadow, not a decorative 90px drop.
+ */
 .ud-root .shell {
   width: 100%;
   min-height: calc(100dvh - (var(--edge) * 2));
@@ -52,8 +66,12 @@
   flex-direction: column;
   border: 1px solid var(--color-console-line);
   border-radius: 16px;
-  background: var(--color-console-surface);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+  background: var(--color-console-card);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  /* NB: the glass blur is applied via Tailwind utilities on the element
+   * (`backdrop-blur-xl backdrop-saturate-150`) — the raw `backdrop-filter`
+   * property is dropped by the CSS pipeline (Lightning CSS) in this stylesheet,
+   * so the utility path (same as admin `surfaceBox`) is the reliable one. */
 }
 
 /* ── Nav ─────────────────────────────────────────────────────────────────── */
@@ -479,7 +497,8 @@
   padding: clamp(14px, 1.4vw, 22px) clamp(12px, 1vw, 18px);
 }
 
-/* The central chart lives on one black surface: buttons, title and plot. */
+/* The central chart lives on one Hearst glass surface (same as admin boxes):
+   translucent `console-card` + backdrop blur, so the glow shows through. */
 .ud-root .center-panel {
   flex: 1 1 auto;
   min-width: 0;
@@ -489,6 +508,7 @@
   border: 1px solid var(--color-console-line);
   border-radius: 14px;
   background: var(--color-console-card);
+  /* Glass blur via Tailwind utility on the element (see .shell note). */
 }
 
 .ud-root .chart-switch {
