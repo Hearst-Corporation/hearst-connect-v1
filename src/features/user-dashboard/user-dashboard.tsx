@@ -19,7 +19,7 @@ import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
 import {
   AllocationDualLineChart,
   HearstActivityChart,
-  HearstAllocationChart,
+  HearstExposureDonut,
   HearstLineChart,
   SignedBarChart,
 } from '@/components/charts'
@@ -32,10 +32,10 @@ import { userInitials } from '@/components/layout/user-avatar-trigger'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { StatTile, deltaOf } from './stat-tile'
-import { CompositionRail } from './composition-rail'
+import { BreakdownFlank } from './breakdown-flank'
 import { MovementTimeline } from './movement-timeline'
 import { CapacityMeter } from './capacity-meter'
-import type { ExposurePocket, UserDashboard } from './load'
+import type { UserDashboard } from './load'
 
 /**
  * Account command center — session-scoped premium composition.
@@ -79,30 +79,6 @@ function freshnessLabel(signal: Signal): string | null {
   if (signal === 'live') return 'Live'
   if (signal === 'stale') return 'Stale'
   return null
-}
-
-/** Per-pocket target/actual/drift as signed mono values — sign-only color, no thresholds. */
-function DriftLedger({ pockets }: Readonly<{ pockets: readonly ExposurePocket[] }>) {
-  return (
-    <div className="drift-ledger">
-      {pockets.map((p) => {
-        const drift = p.actualPct !== null ? p.actualPct - p.targetPct : null
-        const up = drift !== null && drift >= 0
-        return (
-          <div className="drift-row" key={p.label}>
-            <span className="drift-label">{p.label}</span>
-            <span className="drift-cell mono">T {formatNumber(p.targetPct, { maximumFractionDigits: 1 })}%</span>
-            <span className="drift-cell mono">
-              A {p.actualPct !== null ? `${formatNumber(p.actualPct, { maximumFractionDigits: 1 })}%` : '—'}
-            </span>
-            <span className={`drift-val mono${drift === null ? '' : up ? ' is-up' : ' is-down'}`}>
-              {drift === null ? '—' : `${up ? '+' : ''}${formatNumber(drift, { maximumFractionDigits: 1 })} pt`}
-            </span>
-          </div>
-        )
-      })}
-    </div>
-  )
 }
 
 function TermRow({
@@ -340,7 +316,7 @@ export function UserDashboardView({
               </section>
 
               <section className="analysis" aria-label="Analysis">
-                <CompositionRail
+                <BreakdownFlank
                   title="Allocation"
                   hint="Capital by bucket"
                   icon={ChartPieIcon}
@@ -396,7 +372,7 @@ export function UserDashboardView({
                   </div>
                 </div>
 
-                <CompositionRail
+                <BreakdownFlank
                   title="Activity mix"
                   hint="Events by type"
                   icon={Squares2X2Icon}
@@ -417,10 +393,7 @@ export function UserDashboardView({
                   </div>
                   <div className="ec-body">
                     {exposureState.type === 'plotted' && exposurePockets !== null ? (
-                      <>
-                        <HearstAllocationChart items={[...exposurePockets]} />
-                        <DriftLedger pockets={exposurePockets} />
-                      </>
+                      <HearstExposureDonut items={[...exposurePockets]} />
                     ) : (
                       <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
                         <span className="empty-mark" />
