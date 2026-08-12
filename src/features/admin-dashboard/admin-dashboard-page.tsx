@@ -57,7 +57,7 @@ function ActivityChartSlot({
       <HearstActivityChart
         points={activityPoints}
         unit="events"
-        height={176}
+        viewport="compact"
       />
     )
   }
@@ -68,14 +68,17 @@ function ActivityChartSlot({
         ? (activityTimeseries.reason ?? 'No events indexed yet.')
         : null
     return (
-      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+      <div
+        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        style={{ minHeight: 'var(--chart-viewport-compact)' }}
+      >
         <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
         <p className="text-fg-tertiary text-xs">{reason}</p>
       </div>
     )
   }
 
-  return <ChartPlaceholder title="Activity" height={176} icon={ChartBarIcon} />
+  return <ChartPlaceholder title="Activity" viewport="compact" icon={ChartBarIcon} />
 }
 
 function AllocationSlot({
@@ -96,7 +99,7 @@ function AllocationSlot({
     return (
       <AllocationDualLineChart
         points={points}
-        height={176}
+        viewport="compact"
       />
     )
   }
@@ -107,14 +110,17 @@ function AllocationSlot({
         ? (cbbtcAllocation.reason ?? 'Source unavailable')
         : 'Source unavailable'
     return (
-      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+      <div
+        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        style={{ minHeight: 'var(--chart-viewport-compact)' }}
+      >
         <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
         <p className="text-fg-tertiary text-xs">{reason}</p>
       </div>
     )
   }
 
-  return <ChartPlaceholder title="cbBTC / USDC allocation" height={176} icon={ChartBarIcon} />
+  return <ChartPlaceholder title="cbBTC / USDC allocation" viewport="compact" icon={ChartBarIcon} />
 }
 
 function BtcPriceSlot({
@@ -135,7 +141,7 @@ function BtcPriceSlot({
       <HearstLineChart
         points={points}
         unit="BTC price (USDC)"
-        height={176}
+        viewport="compact"
       />
     )
   }
@@ -146,14 +152,17 @@ function BtcPriceSlot({
         ? (cbbtcAllocation.reason ?? 'Source unavailable')
         : 'Source unavailable'
     return (
-      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+      <div
+        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        style={{ minHeight: 'var(--chart-viewport-compact)' }}
+      >
         <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
         <p className="text-fg-tertiary text-xs">{reason}</p>
       </div>
     )
   }
 
-  return <ChartPlaceholder title="BTC price" height={176} icon={ChartBarIcon} />
+  return <ChartPlaceholder title="BTC price" viewport="compact" icon={ChartBarIcon} />
 }
 
 function RebalancingHistorySlot({
@@ -174,7 +183,7 @@ function RebalancingHistorySlot({
       <HearstLineChart
         points={points}
         unit="drift (bps)"
-        height={176}
+        viewport="compact"
       />
     )
   }
@@ -185,7 +194,10 @@ function RebalancingHistorySlot({
         ? (rebalancingHistory.reason ?? 'No rebalancing history indexed yet.')
         : null
     return (
-      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+      <div
+        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        style={{ minHeight: 'var(--chart-viewport-compact)' }}
+      >
         <p className="text-ink dark:text-fg text-sm font-semibold">Rebalancing history not configured</p>
         <p className="text-fg-tertiary text-xs">{reason}</p>
       </div>
@@ -198,14 +210,17 @@ function RebalancingHistorySlot({
         ? (rebalancingHistory.reason ?? 'Source unavailable')
         : 'Source unavailable'
     return (
-      <div className="flex h-full min-h-[11rem] flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft">
+      <div
+        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        style={{ minHeight: 'var(--chart-viewport-compact)' }}
+      >
         <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
         <p className="text-fg-tertiary text-xs">{reason}</p>
       </div>
     )
   }
 
-  return <ChartPlaceholder title="Rebalancing drift" height={176} icon={ChartBarIcon} />
+  return <ChartPlaceholder title="Rebalancing drift" viewport="compact" icon={ChartBarIcon} />
 }
 
 /**

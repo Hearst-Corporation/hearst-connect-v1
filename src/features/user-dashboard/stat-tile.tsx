@@ -61,7 +61,7 @@ export function StatTile({
       </div>
       {trend !== undefined && trend.length >= 2 ? (
         <div className="stat-spark">
-          <RichSparkline data={[...trend]} height={28} />
+          <RichSparkline data={[...trend]} />
         </div>
       ) : null}
     </div>

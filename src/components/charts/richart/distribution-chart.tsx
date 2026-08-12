@@ -1,6 +1,6 @@
 'use client'
 
-import { categoricalColor, chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import { categoricalColor, resolveChartViewport, chartTheme } from '@/components/charts/core/chart-theme'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -22,7 +22,7 @@ export function RichDistributionChart({
   const sortedItems = [...items]
     .sort((a, b) => b.value - a.value)
     .map((item, index) => ({ ...item, fill: categoricalColor(index) }))
-  const height = chartHeight('rows', Math.max(sortedItems.length, 1))
+  const height = resolveChartViewport({ kind: 'rows' })
 
   return (
     <div className="px-5 pb-5 sm:px-6">

@@ -1,6 +1,10 @@
 'use client'
 
-import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import {
+  resolveChartViewport,
+  chartTheme,
+  type ChartViewportRole,
+} from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { formatNumber } from '@/lib/format'
 import { useId } from 'react'
@@ -60,29 +64,35 @@ export function HearstLineChart({
   unit,
   color = SERIE,
   height,
+  viewport,
   yTickFormatter,
 }: Readonly<{
   points: readonly LinePoint[]
   unit: string
   color?: string
   height?: number
+  viewport?: ChartViewportRole
   yTickFormatter?: (v: number) => string
 }>) {
   // Hooks must run unconditionally — call before any early return (rules-of-hooks).
   const { ref, width } = useChartWidth()
   const gradientId = useId()
+  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'line' })
 
   if (points.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+      <div
+        className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
         No data points for this period.
-      </p>
+      </div>
     )
   }
 
   const sorted = [...points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
   const data = sorted.map((p) => ({ ...p }))
-  const viewportHeight = height ?? chartHeight('line', Math.max(data.length, 1))
 
   return (
     <div className="min-w-0">
@@ -108,7 +118,13 @@ export function HearstLineChart({
         </table>
       </div>
 
-      <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height: viewportHeight }}>
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className="w-full min-w-0"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
         {width > 0 ? (
           <AreaChart
             width={width}

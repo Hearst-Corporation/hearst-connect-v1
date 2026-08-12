@@ -18,7 +18,17 @@
 
 /* ── Core ─────────────────────────────────────────────────────────────────── */
 export { ChartFrame, type SeriesState } from '@/components/charts/core/chart-frame'
-export { plottableAsChart } from '@/components/charts/core/chart-theme'
+export {
+  CHART_SPARK_VIEWPORT_PX,
+  CHART_VIEWPORT_PX,
+  chartHeight,
+  chartViewport,
+  defaultViewportForKind,
+  plottableAsChart,
+  resolveChartViewport,
+  type ChartKind,
+  type ChartViewportRole,
+} from '@/components/charts/core/chart-theme'
 
 /* ── Cartesian ────────────────────────────────────────────────────────────── */
 export { ReserveExposureChart, type BitcoinItem } from '@/components/charts/cartesian/product-charts'

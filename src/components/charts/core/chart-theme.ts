@@ -15,17 +15,23 @@
  *   `semantic`     — reserved for meaning: positive / warning / critical.
  *                    A chart may use these, but only to say what they mean.
  *
- * ── Height ────────────────────────────────────────────────────────────────
- * One global fixed height is what produced a single bar floating in a 320px
- * plot. `chartHeight` derives a height from the chart type and the number of
- * observations instead; a chart is never taller than its information value.
+ * ── Viewport ──────────────────────────────────────────────────────────────
+ * The chart viewport owns chart geometry. Data draws inside it.
+ * Dataset size does NOT choose the external height.
+ *
+ * Roles (from real consumers — not page names, not pixel names):
+ *   compact  — admin bento / dense panels
+ *   standard — default ChartFrame + vault/product charts
+ *   hero     — account central analysis region
+ *   donut    — categorical donut (aligned with CSS tokens)
+ *
+ * Sparklines are a separate component-level constant (`CHART_SPARK_VIEWPORT_PX`).
  */
 
 import { formatNumber } from '@/lib/format'
 
 export const chartTheme = {
-  /* Legacy `height.small|medium|large` removed in PASS 1 (2026-08-09) — zero
-   * consumers; live height now flows through `chartHeight(kind, points)`. */
+  /* Live height flows through `chartViewport(role)` — not dataset length. */
   margin: { top: 8, right: 16, bottom: 8, left: 8 },
   axisFontSize: 11,
   // Doctrine §7.5: the grid and axes speak the `--chart-*` tokens.
@@ -113,51 +119,71 @@ export function categoricalColor(index: number): string {
   return CATEGORICAL_RAMP[index % CATEGORICAL_RAMP.length] ?? CATEGORICAL_RAMP[0]
 }
 
-/* ── Height ───────────────────────────────────────────────────────────────── */
+/* ── Viewport ─────────────────────────────────────────────────────────────── */
 
 export type ChartKind =
-  /** Horizontal bars — one row per category; height grows with the row count. */
+  /** Horizontal bars — categories draw inside a fixed viewport. */
   | 'rows'
   /** Vertical bars over an ordered axis. */
   | 'columns'
   /** Continuous series. */
   | 'line'
-  /** Categorical donut — square viewport, slice count does not resize the slot. */
+  /** Categorical donut — fixed square-ish viewport; slice count does not resize. */
   | 'donut'
 
-/** Row height and chrome for a horizontal bar chart, in px. */
-const ROW_HEIGHT = 44
-const ROW_CHROME = 48
+/**
+ * Semantic viewport roles. Values match CSS tokens in `src/styles/tailwind.css`
+ * (`--chart-viewport-*` / `--chart-donut-viewport-block-size`) at 16px root.
+ */
+export type ChartViewportRole = 'compact' | 'standard' | 'hero' | 'donut'
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value))
+export const CHART_VIEWPORT_PX = {
+  compact: 176,
+  standard: 240,
+  hero: 340,
+  donut: 220,
+} as const satisfies Record<ChartViewportRole, number>
+
+/** Account KPI sparkline default — component-level, not a page role. */
+export const CHART_SPARK_VIEWPORT_PX = 28 as const
+
+export function chartViewport(role: ChartViewportRole): number {
+  return CHART_VIEWPORT_PX[role]
+}
+
+export function defaultViewportForKind(kind: ChartKind): ChartViewportRole {
+  switch (kind) {
+    case 'donut':
+      return 'donut'
+    case 'rows':
+    case 'columns':
+    case 'line':
+      return 'standard'
+  }
 }
 
 /**
- * The height a chart is entitled to, in pixels.
- *
- * Derived from what is actually plotted: three rows do not need the same
- * canvas as twelve, and one observation needs no canvas at all — the caller
- * should render `SingleObservation` instead of a chart in that case.
+ * Resolve the owned viewport for a chart instance.
+ * Explicit `height` wins (escape hatch); else `viewport` role; else kind default.
+ * Dataset length is never an input.
  */
-export function chartHeight(kind: ChartKind, points: number): number {
-  if (points <= 0) return 140
+export function resolveChartViewport(opts: {
+  readonly height?: number
+  readonly viewport?: ChartViewportRole
+  readonly kind?: ChartKind
+}): number {
+  if (opts.height != null) return opts.height
+  if (opts.viewport != null) return chartViewport(opts.viewport)
+  if (opts.kind != null) return chartViewport(defaultViewportForKind(opts.kind))
+  return chartViewport('standard')
+}
 
-  switch (kind) {
-    case 'rows':
-      return clamp(points * ROW_HEIGHT + ROW_CHROME, 132, 420)
-    case 'columns':
-      if (points <= 3) return 180
-      if (points <= 6) return 210
-      if (points <= 12) return 240
-      return 280
-    case 'line':
-      if (points <= 6) return 200
-      if (points <= 24) return 240
-      return 280
-    case 'donut':
-      return 220
-  }
+/**
+ * @deprecated Prefer `chartViewport(role)` or `resolveChartViewport`.
+ * Kept as a thin adapter: `points` is ignored — dataset size must not own geometry.
+ */
+export function chartHeight(kind: ChartKind, _points?: number): number {
+  return chartViewport(defaultViewportForKind(kind))
 }
 
 /**

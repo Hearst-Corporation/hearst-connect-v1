@@ -559,12 +559,21 @@
 }
 
 .ud-root .center-plot-inner {
-  min-height: 340px;
+  min-height: var(--chart-viewport-hero);
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
+/*
+ * The chart-switch header must NOT change height between modes. A longer
+ * subtitle ("Allocation over time · cbBTC vs USDC · %") used to wrap to a second
+ * line where a short one ("BTC price") stayed on one, moving everything below on
+ * mode switch (visible at zoom 200%). The title owns the slot; the subtitle is
+ * secondary metadata and stays on a single line — it ellipsizes rather than wrap,
+ * so the header height is identical across modes at any zoom. The title itself is
+ * short by construction and never wraps.
+ */
 .ud-root .center-head {
   display: flex;
   align-items: baseline;
@@ -577,9 +586,16 @@
   color: var(--color-fg);
   font-size: clamp(14px, 0.95vw, 17px);
   font-weight: 560;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
-.ud-root .center-head span {
+.ud-root .center-head span:not(.fresh-badge) {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: var(--color-fg-tertiary);
   font-size: var(--micro);
 }
@@ -587,7 +603,7 @@
 .ud-root .center-plot {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 340px;
+  min-height: var(--chart-viewport-hero);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -604,7 +620,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  min-height: 300px;
+  min-height: var(--chart-viewport-hero);
   text-align: center;
 }
 

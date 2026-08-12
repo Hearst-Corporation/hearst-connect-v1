@@ -1,6 +1,6 @@
 'use client'
 
-import { chartHeight, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
+import { resolveChartViewport, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import {
   CartesianGrid,
@@ -30,7 +30,7 @@ export function HearstCurveChart({
   domainLabel = 'Mois',
 }: Readonly<{ points: readonly CurvePoint[]; domainLabel?: string }>) {
   const sorted = [...points].sort((a, b) => a.month - b.month)
-  const height = chartHeight('line', Math.max(sorted.length, 1))
+  const height = resolveChartViewport({ kind: 'line' })
   const data = sorted.map((p) => ({
     month: p.month,
     rate: p.rate,

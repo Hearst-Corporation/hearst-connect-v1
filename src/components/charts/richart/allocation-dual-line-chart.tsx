@@ -1,7 +1,11 @@
 'use client'
 
-import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
-import { useChartWidth } from '@/components/charts/core/use-chart-width'
+import {
+  resolveChartViewport,
+  chartTheme,
+  type ChartViewportRole,
+} from '@/components/charts/core/chart-theme'
+import { useChartSize } from '@/components/charts/core/use-chart-width'
 import { formatNumber } from '@/lib/format'
 import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -69,27 +73,40 @@ function AllocationLegend() {
 export function AllocationDualLineChart({
   points,
   height,
+  viewport,
 }: Readonly<{
   points: readonly AllocationPoint[]
   height?: number
+  viewport?: ChartViewportRole
 }>) {
   // Hooks must run unconditionally — call before any early return (rules-of-hooks).
-  const { ref, width } = useChartWidth()
+  // Measure the plot slot (width + height): the legend takes its intrinsic
+  // height and the plot fills the flex remainder, so legend + plot together
+  // equal `viewportHeight` exactly — a second series never adds height to the slot.
+  const { ref, width, height: plotHeight } = useChartSize()
+  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'line' })
 
   if (points.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+      <div
+        className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
         No data points for this period.
-      </p>
+      </div>
     )
   }
 
   const sorted = [...points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
   const data = sorted.map((p) => ({ ...p }))
-  const viewportHeight = height ?? chartHeight('line', Math.max(data.length, 1))
 
   return (
-    <div className="min-w-0">
+    <div
+      className="flex min-w-0 flex-col"
+      style={{ height: viewportHeight }}
+      data-chart-viewport={viewportHeight}
+    >
       <div className="sr-only">
         <table>
           <caption>Allocation percentages over time</caption>
@@ -114,11 +131,11 @@ export function AllocationDualLineChart({
 
       <AllocationLegend />
 
-      <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height: viewportHeight }}>
-        {width > 0 ? (
+      <div ref={ref} aria-hidden="true" className="w-full min-w-0 flex-1">
+        {width > 0 && plotHeight > 0 ? (
           <LineChart
             width={width}
-            height={viewportHeight}
+            height={plotHeight}
             data={data}
             margin={{ ...chartTheme.margin, right: 16, left: 0 }}
           >
