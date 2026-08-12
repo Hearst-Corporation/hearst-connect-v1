@@ -138,7 +138,8 @@ function catalog() {
     ['chart:hearst-activity', 'HearstActivityChart'],
     ['chart:signed-bar', 'SignedBarChart'],
     ['chart:hearst-allocation', 'HearstAllocationChart'],
-    ['chart:hearst-exposure-donut', 'HearstExposureDonut'],
+    ['chart:breakdown-donut', 'HearstBreakdownDonut'],
+    ['chart:exposure-radial', 'HearstExposureRadial'],
     ['chart:rich-sparkline', 'RichSparkline'],
     ['chart:hearst-donut', 'HearstDonutChart'],
     ['chart:chart-frame', 'ChartFrame'],
@@ -475,7 +476,7 @@ function catalog() {
     geometryOwner: 'component',
     dataSlotOwner: 'component',
     datasetControlsGeometry: false,
-    note: 'renders a real Recharts donut (HearstDonutChart); intrinsic, does not fill the panel',
+    note: 'heading over an intrinsic Recharts breakdown donut; ring in the donut viewport, legend intrinsic — slice count never resizes the band',
   })
   n({
     id: 'component:movement-timeline',
@@ -519,16 +520,15 @@ function catalog() {
   e('region:account-kpis', 'renders', 'component:stat-tile')
   e('component:stat-tile', 'uses_chart', 'chart:rich-sparkline')
   e('region:account-analysis', 'renders', 'component:breakdown-flank')
-  e('component:breakdown-flank', 'uses_chart', 'chart:hearst-donut')
+  e('component:breakdown-flank', 'uses_chart', 'chart:breakdown-donut')
   e('region:account-central-chart', 'uses_chart', 'chart:hearst-line')
   e('region:account-central-chart', 'uses_chart', 'chart:allocation-dual-line')
   e('region:account-central-chart', 'uses_chart', 'chart:hearst-activity')
   e('region:account-central-chart', 'uses_chart', 'chart:signed-bar')
-  e('region:account-exposure', 'uses_chart', 'chart:hearst-exposure-donut')
+  e('region:account-exposure', 'uses_chart', 'chart:exposure-radial')
   e('region:account-exposure', 'renders', 'component:capacity-meter')
   e('region:account-movements', 'renders', 'component:movement-timeline')
   e('region:account-movements', 'renders', 'component:subscription-terms-rail')
-  e('component:breakdown-flank', 'uses_foundation', 'foundation:charts')
   e('component:capacity-meter', 'owns_data_slot', 'data:user-dashboard')
 
   // Account redirects (navigation only)

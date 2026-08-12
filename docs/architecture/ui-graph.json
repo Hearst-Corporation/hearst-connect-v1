@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
   "sourceSha": "8877b54adaaaf9a858419200bac7021466678d84",
-  "generatedAt": "2026-08-12T13:20:10.837Z",
+  "generatedAt": "2026-08-12T13:50:16.075Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {
@@ -15,12 +15,30 @@
       "surface": null
     },
     {
+      "id": "chart:breakdown-donut",
+      "type": "CHART",
+      "name": "HearstBreakdownDonut",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstBreakdownDonut",
+      "surface": null
+    },
+    {
       "id": "chart:chart-frame",
       "type": "CHART",
       "name": "ChartFrame",
       "domain": "shared",
       "source": "src/components/charts/index.ts",
       "evidence": "export ChartFrame",
+      "surface": null
+    },
+    {
+      "id": "chart:exposure-radial",
+      "type": "CHART",
+      "name": "HearstExposureRadial",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstExposureRadial",
       "surface": null
     },
     {
@@ -48,15 +66,6 @@
       "domain": "shared",
       "source": "src/components/charts/index.ts",
       "evidence": "export HearstDonutChart",
-      "surface": null
-    },
-    {
-      "id": "chart:hearst-exposure-donut",
-      "type": "CHART",
-      "name": "HearstExposureDonut",
-      "domain": "shared",
-      "source": "src/components/charts/index.ts",
-      "evidence": "export HearstExposureDonut",
       "surface": null
     },
     {
@@ -97,7 +106,7 @@
       "geometryOwner": "component",
       "dataSlotOwner": "component",
       "datasetControlsGeometry": false,
-      "note": "renders a real Recharts donut (HearstDonutChart); intrinsic, does not fill the panel"
+      "note": "heading over an intrinsic Recharts breakdown donut; ring in the donut viewport, legend intrinsic — slice count never resizes the band"
     },
     {
       "id": "component:capacity-meter",
@@ -943,6 +952,16 @@
       "type": "uses_foundation"
     },
     {
+      "from": "chart:breakdown-donut",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:breakdown-donut",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
       "from": "chart:chart-frame",
       "to": "foundation:chart-viewport",
       "type": "uses_foundation"
@@ -958,6 +977,16 @@
       "type": "uses_surface"
     },
     {
+      "from": "chart:exposure-radial",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:exposure-radial",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
       "from": "chart:hearst-activity",
       "to": "foundation:chart-viewport",
       "type": "uses_foundation"
@@ -984,16 +1013,6 @@
     },
     {
       "from": "chart:hearst-donut",
-      "to": "foundation:charts",
-      "type": "uses_foundation"
-    },
-    {
-      "from": "chart:hearst-exposure-donut",
-      "to": "foundation:chart-viewport",
-      "type": "uses_foundation"
-    },
-    {
-      "from": "chart:hearst-exposure-donut",
       "to": "foundation:charts",
       "type": "uses_foundation"
     },
@@ -1029,13 +1048,8 @@
     },
     {
       "from": "component:breakdown-flank",
-      "to": "chart:hearst-donut",
+      "to": "chart:breakdown-donut",
       "type": "uses_chart"
-    },
-    {
-      "from": "component:breakdown-flank",
-      "to": "foundation:charts",
-      "type": "uses_foundation"
     },
     {
       "from": "component:capacity-meter",
@@ -1299,7 +1313,7 @@
     },
     {
       "from": "region:account-exposure",
-      "to": "chart:hearst-exposure-donut",
+      "to": "chart:exposure-radial",
       "type": "uses_chart"
     },
     {

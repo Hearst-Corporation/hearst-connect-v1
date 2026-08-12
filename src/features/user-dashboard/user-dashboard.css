@@ -368,19 +368,15 @@
   letter-spacing: -0.01em;
 }
 
-/* ── Breakdown flank (Allocation / Activity donuts) ──────────────────────────
- * The former CompositionRail (a stacked HTML bar + a ledger stretched with
- * flex:1 to fill the panel) is gone; the flanks now render a real Recharts donut
- * (HearstDonutChart) via BreakdownFlank. The donut is INTRINSIC — it must not
- * fill the panel. `.flank-viz` centers it under the heading so a flank shorter
- * than the central chart reads as balanced, never as a bottom hole. */
-.ud-root .flank-viz {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+/* ── Breakdown flanks (donut + intrinsic legend) ─────────────────────────── */
+/*
+ * The former CompositionRail (a flex bar over a `flex:1` ledger) stretched three
+ * rows to fill the panel and printed each percentage twice. It is gone: the
+ * flank now holds a real Recharts donut (`HearstBreakdownDonut`) whose ring is
+ * INTRINSIC (the shared donut viewport) and whose legend sizes to its rows —
+ * never to the panel. No `.rail-*` / `.ledger-*` classes remain; the donut and
+ * its legend are self-contained (Tailwind, behind the charts boundary).
+ */
 
 .ud-root .flank-empty {
   flex: 1 1 auto;
@@ -615,8 +611,12 @@
   min-height: 132px;
 }
 
-/* (The standalone DriftLedger is gone — exposure drift now lives in the
-   HearstExposureDonut legend, one table instead of chart + text-table.) */
+/*
+ * Strategy exposure no longer carries a `.drift-ledger` table below the chart —
+ * that repeated, in text, exactly what the chart already showed. `HearstExposureRadial`
+ * owns its own compact exact-number legend (Tailwind, behind the charts boundary):
+ * the rings are the visual comparison, its legend the precise target/actual/drift.
+ */
 
 /* ── Meter ───────────────────────────────────────────────────────────────── */
 
