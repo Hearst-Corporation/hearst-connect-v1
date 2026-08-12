@@ -665,16 +665,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Movements + subscription rail ───────────────────────────────────────── */
-
+/* ── Account movements (full-width verified journal) ─────────────────────────
+ * The journal owns a full-width region. It used to share a 2fr/1fr grid row with
+ * a short Subscription rail, so the tall timeline forced a matching empty column
+ * beside it — the cause of the big right-hand hole. No sibling now: the timeline
+ * grows the document on its own, nothing empty grows with it. */
 .ud-root .movements {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
-}
-
-.ud-root .movements-main {
   min-width: 0;
-  border-right: 1px solid var(--color-console-line);
 }
 
 .ud-root .movements-heading {
@@ -702,6 +699,10 @@
 .ud-root .timeline {
   list-style: none;
   margin: 0;
+  /* A journal is a reading column, not a table: bound it to a legible measure so
+     rows don't trail title-far-from-time across a full-width region. Left-aligned
+     like any feed; the region heading spans the full width above it. */
+  max-width: 40rem;
   padding: 4px 0 clamp(20px, 2vw, 32px);
 }
 
@@ -742,10 +743,22 @@
 
 .ud-root .timeline-body {
   min-width: 0;
+  flex: 1 1 auto;
+  /* Ledger row: title on the left, category + time pushed to the right, so a
+     full-width journal uses its row instead of trailing off as a narrow column. */
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
   padding-top: 3px;
+}
+
+.ud-root .timeline-title {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ud-root .timeline-title {
@@ -780,18 +793,9 @@
   font-size: var(--micro);
 }
 
-.ud-root .terms-rail {
-  min-width: 0;
-  padding: clamp(14px, 1.4vw, 22px) var(--space);
-  position: sticky;
-  top: 0;
-  align-self: start;
-}
-
-.ud-root .terms-list {
-  margin-top: clamp(10px, 1vw, 16px);
-  display: grid;
-  gap: 8px;
+/* Minimum deposit (the one kept subscription term) sits under the capacity meter. */
+.ud-root .ec-terms {
+  margin-top: clamp(12px, 1.4vw, 20px);
 }
 
 .ud-root .term-row {
@@ -940,15 +944,6 @@
   }
 
   .ud-root .exposure-cap > .ec-panel:first-child {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-console-line);
-  }
-
-  .ud-root .movements {
-    grid-template-columns: 1fr;
-  }
-
-  .ud-root .movements-main {
     border-right: 0;
     border-bottom: 1px solid var(--color-console-line);
   }

@@ -504,19 +504,6 @@ function catalog() {
     datasetControlsGeometry: false,
     note: 'FILL width = data pct; shell track geometry = component',
   })
-  n({
-    id: 'component:subscription-terms-rail',
-    type: 'COMPONENT',
-    name: 'Subscription terms rail',
-    domain: 'account',
-    source: 'src/features/user-dashboard/user-dashboard.tsx',
-    evidence: 'aside.terms-rail aria-label="Subscription terms"',
-    surface: null,
-    geometryOwner: 'layout',
-    dataSlotOwner: 'component',
-    datasetControlsGeometry: false,
-  })
-
   e('region:account-kpis', 'renders', 'component:stat-tile')
   e('component:stat-tile', 'uses_chart', 'chart:rich-sparkline')
   e('region:account-analysis', 'renders', 'component:breakdown-flank')
@@ -528,7 +515,7 @@ function catalog() {
   e('region:account-exposure', 'uses_chart', 'chart:exposure-radial')
   e('region:account-exposure', 'renders', 'component:capacity-meter')
   e('region:account-movements', 'renders', 'component:movement-timeline')
-  e('region:account-movements', 'renders', 'component:subscription-terms-rail')
+  e('component:breakdown-flank', 'uses_foundation', 'foundation:charts')
   e('component:capacity-meter', 'owns_data_slot', 'data:user-dashboard')
 
   // Account redirects (navigation only)
