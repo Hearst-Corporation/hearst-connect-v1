@@ -44,7 +44,10 @@ export function CreateClientForm({
   }
 
   return (
-    <form action={action} className="space-y-4">
+    // Reading/form measure (D): email, password, role, and the CONFIRM literal
+    // are short single-line fields — they have no business reason to stretch to
+    // the full admin content-column width on large screens.
+    <form action={action} className="max-w-md space-y-4">
       <label className="block">
         <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Email</span>
         <input name="email" type="email" required autoComplete="off" className={FIELD_CLASS} />

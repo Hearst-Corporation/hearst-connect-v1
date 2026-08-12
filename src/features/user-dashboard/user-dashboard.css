@@ -316,9 +316,17 @@
 
 /* ── Analysis band: donut · center chart · donut ─────────────────────────── */
 
+/*
+ * Flank/center/flank (C = PRIMARY + BOUNDED FLANKS). The two donut flanks are
+ * intrinsically compact — a ring plus a short legend — and have no business
+ * reason to keep growing on large screens: `minmax(220px, 0.82fr)` still let
+ * each flank claim a proportional share of surplus width past its content's
+ * needs. Flanks are now a fixed comfortable measure (bounded, not `fr`); the
+ * center chart is the only region with a genuine claim on leftover space.
+ */
 .ud-root .analysis {
   display: grid;
-  grid-template-columns: minmax(220px, 0.82fr) minmax(0, 1.75fr) minmax(220px, 0.82fr);
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr) minmax(220px, 320px);
   border-bottom: 1px solid var(--color-console-line);
 }
 
@@ -565,9 +573,18 @@
 
 /* ── Exposure & capacity ─────────────────────────────────────────────────── */
 
+/*
+ * Primary + secondary (B). Strategy exposure (the radial chart) is the
+ * primary region and absorbs the row's free space. Fund capacity is a
+ * compact widget — one meter bar plus a single term row — with no intrinsic
+ * need to keep growing on large screens; it now stops at a comfortable
+ * bounded width instead of claiming a proportional 1fr share (see
+ * `/admin/operations` indexer + "Last rebalance" card for the same
+ * primary/bounded-secondary shape).
+ */
 .ud-root .exposure-cap {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
   border-bottom: 1px solid var(--color-console-line);
 }
 
