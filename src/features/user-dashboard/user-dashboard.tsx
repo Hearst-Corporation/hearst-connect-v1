@@ -35,6 +35,7 @@ import type { SessionUser } from '@/lib/session'
 import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { StatTile, deltaOf } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
+import { BtcContextFlank } from './btc-context-flank'
 import { MovementTimeline } from './movement-timeline'
 import { CapacityMeter } from './capacity-meter'
 import type { UserDashboard } from './load'
@@ -481,6 +482,13 @@ export function UserDashboardView({
                       </div>
                     </div>
                   </div>
+
+                  <BtcContextFlank
+                    marketSnapshot={data.marketSnapshot}
+                    btcPoints={btcPoints}
+                    btcProducedTotal={data.btcProducedTotal}
+                    onViewBtc={() => setCentral('btc')}
+                  />
                 </section>
 
                 <section className="exposure-cap" aria-label="Strategy exposure and capacity">
