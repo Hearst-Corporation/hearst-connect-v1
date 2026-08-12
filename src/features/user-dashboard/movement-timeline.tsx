@@ -2,15 +2,19 @@
 
 import { motion, type Variants } from 'motion/react'
 import {
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  BanknotesIcon,
   BoltIcon,
   CpuChipIcon,
   ArrowsRightLeftIcon,
+  GiftIcon,
   Squares2X2Icon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import { ClockIcon } from '@heroicons/react/16/solid'
 import type { ComponentType, SVGProps } from 'react'
-import { formatRelativeTime } from '@/lib/format'
+import { formatCurrency, formatRelativeTime } from '@/lib/format'
 import { valueOf } from '@/lib/vaults/model'
 import { useMotionReady } from './motion-guard'
 import type { UserDashboard, UserMovement } from './load'
@@ -19,22 +23,29 @@ import type { UserDashboard, UserMovement } from './load'
  * Premium investor movement timeline — a left-rail stepper with a per-category
  * Heroicon medallion, a category chip and relative time, staggered on entrance.
  *
- * Honest by construction: `UserMovement` carries only {id, title, detail
- * (category), occurredAt} — no status, no txHash — so no status badge, tx line
- * or explorer link is shown (those would fabricate data). The two named-absence
- * branches are preserved: an unreadable source and an empty window are distinct
- * facts, never collapsed into an empty timeline.
+ * Honest by construction: `UserMovement` carries {id, title, detail (kind),
+ * amountUsdc, occurredAt}. The amount renders as USD, or "—" when the source
+ * carries none — never as 0. txHash is used only as a row key: no explorer link
+ * is shown (that URL is not wired). The two named-absence branches are preserved:
+ * an unreadable source and an empty window are distinct facts, never collapsed
+ * into an empty timeline.
  */
 
-const CATEGORY_ICON: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+const MOVEMENT_ICON: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+  // Client ledger kinds (InvestorTransaction.type).
+  deposit: ArrowDownTrayIcon,
+  withdraw: ArrowUpTrayIcon,
+  claim: BanknotesIcon,
+  distribution: GiftIcon,
+  // Legacy category fallbacks (defensive — other feeds).
   mining: CpuChipIcon,
   strategy: ArrowsRightLeftIcon,
   user: UserCircleIcon,
   electricity: BoltIcon,
 }
 
-function movementIcon(category: string | null) {
-  const Cmp = (category !== null && CATEGORY_ICON[category]) || Squares2X2Icon
+function movementIcon(kind: string | null) {
+  const Cmp = (kind !== null && MOVEMENT_ICON[kind]) || Squares2X2Icon
   return <Cmp className="size-4" aria-hidden="true" />
 }
 
@@ -52,6 +63,9 @@ function Row({ movement }: Readonly<{ movement: UserMovement }>) {
       <div className="timeline-body">
         <p className="timeline-title">{movement.title}</p>
         <div className="timeline-meta">
+          <span className="timeline-amount">
+            {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
+          </span>
           <span className="timeline-chip">{chipLabel(movement.detail)}</span>
           {movement.occurredAt !== null ? (
             <span className="timeline-time">

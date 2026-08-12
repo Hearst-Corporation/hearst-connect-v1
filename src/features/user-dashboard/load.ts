@@ -81,6 +81,9 @@ export type UserMovement = {
   readonly id: string
   readonly title: string
   readonly detail: string | null
+  /** Whole-USDC amount of this ledger movement. Null when the source carries no
+   *  amount — an absent amount is never rendered as 0. */
+  readonly amountUsdc: number | null
   readonly occurredAt: string | null
 }
 
@@ -271,37 +274,65 @@ function minDepositFrom(factsheetData: unknown): number | null {
   return min === null ? null : min / USDC_ATOMIC
 }
 
+/** Friendly labels for the backend ledger kinds (InvestorTransaction.type). */
+const MOVEMENT_TYPE_LABELS: Record<string, string> = {
+  deposit: 'Deposit',
+  withdraw: 'Withdrawal',
+  claim: 'Claim',
+  distribution: 'Distribution',
+}
+
 function movementsFrom(field: ResolvedField | null): readonly UserMovement[] | null {
   const value = field?.value
   if (!Array.isArray(value)) return null
   const rows = value
     .filter((row): row is Record<string, unknown> => typeof row === 'object' && row !== null)
     .map((row, index) => {
-      const name =
-        typeof row.name === 'string'
-          ? row.name
-          : typeof row.eventName === 'string'
-            ? row.eventName
-            : typeof row.title === 'string'
-              ? row.title
-              : 'Movement'
-      const category = typeof row.category === 'string' ? row.category : null
+      // The activity feed is the CLIENT's ledger — backend ActivityItem:
+      // { type, amountUsdc, occurredAt, txHash }. `type` is the movement kind.
+      // The legacy name/eventName/title/category fields are a defensive fallback
+      // for any other array that might reach this parser.
+      const kind =
+        typeof row.type === 'string' && row.type !== ''
+          ? row.type
+          : typeof row.name === 'string'
+            ? row.name
+            : typeof row.eventName === 'string'
+              ? row.eventName
+              : typeof row.title === 'string'
+                ? row.title
+                : null
+      const title =
+        kind === null
+          ? 'Movement'
+          : (MOVEMENT_TYPE_LABELS[kind] ?? kind.charAt(0).toUpperCase() + kind.slice(1))
+      // detail carries the raw kind — it drives the category chip, the icon, and
+      // the by-type breakdown. Falls back to an explicit `category` if present.
+      const detail = kind ?? (typeof row.category === 'string' ? row.category : null)
+      // amountUsdc is a whole-USDC decimal string on the wire. Absent or
+      // unparseable → null (never 0: an absent amount is not a zero movement).
+      const rawAmount = row.amountUsdc
+      const parsedAmount =
+        typeof rawAmount === 'string'
+          ? Number(rawAmount)
+          : typeof rawAmount === 'number'
+            ? rawAmount
+            : null
+      const amountUsdc =
+        parsedAmount !== null && Number.isFinite(parsedAmount) ? parsedAmount : null
       const id =
         typeof row.id === 'string'
           ? row.id
           : typeof row.txHash === 'string'
             ? row.txHash
             : String(index)
-      return {
-        id,
-        title: name,
-        detail: category,
-        occurredAt: typeof row.timestamp === 'string'
-          ? row.timestamp
-          : typeof row.occurredAt === 'string'
-            ? row.occurredAt
-            : null,
-      }
+      const occurredAt =
+        typeof row.occurredAt === 'string'
+          ? row.occurredAt
+          : typeof row.timestamp === 'string'
+            ? row.timestamp
+            : null
+      return { id, title, detail, amountUsdc, occurredAt }
     })
   return rows.length > 0 ? rows : null
 }
