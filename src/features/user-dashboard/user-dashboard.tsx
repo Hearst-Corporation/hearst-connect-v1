@@ -158,14 +158,6 @@ export function UserDashboardView({
   const availableCapacity = valueOf(data.availableCapacity)
   const minimumDeposit = valueOf(data.minimumDeposit)
 
-  // Worst drift across pockets — real signed subtraction, no threshold.
-  const worstDrift = (exposurePockets ?? []).reduce<{ label: string; d: number } | null>((worst, p) => {
-    if (p.actualPct === null) return worst
-    const d = p.actualPct - p.targetPct
-    const currentBest = worst === null ? -1 : Math.abs(worst.d)
-    return Math.abs(d) > currentBest ? { label: p.label, d } : worst
-  }, null)
-
   const valueTrend = valuePoints !== null ? valuePoints.map((p) => p.value) : undefined
   const btcTrend = btcPoints !== null ? btcPoints.map((p) => p.value) : undefined
 
@@ -414,58 +406,36 @@ export function UserDashboardView({
                   <div className="ec-body ec-body--meter">
                     <CapacityMeter utilization={data.utilizationPct} capacity={data.availableCapacity} />
                   </div>
-                </div>
-              </section>
-
-              <section className="movements" aria-label="Account movements">
-                <div className="movements-main">
-                  <div className="movements-heading">
-                    <div>
-                      <p className="eyebrow">Capital</p>
-                      <h2>Account movements</h2>
-                    </div>
-                    <span>
-                      Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
-                    </span>
-                  </div>
-                  <MovementTimeline availability={data.activity} />
-                </div>
-                <aside className="terms-rail" aria-label="Subscription terms">
-                  <div className="flank-heading">
-                    <h2>
-                      <LockClosedIcon className="size-4" aria-hidden="true" />
-                      Subscription
-                    </h2>
-                    <span>Product terms</span>
-                  </div>
-                  <div className="terms-list">
+                  {/* Minimum deposit is the one genuine SUBSCRIPTION/contract term — a
+                      vault entry parameter, so it lives with fund capacity. The other
+                      former "Subscription" rows (NAV/share, utilization, room to cap,
+                      worst drift) were live metrics already shown in the KPI band,
+                      the capacity meter and the exposure legend — removed, not moved. */}
+                  <div className="ec-terms">
                     <TermRow
                       icon={LockClosedIcon}
                       label="Minimum deposit"
                       value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
                     />
-                    <TermRow
-                      icon={ScaleIcon}
-                      label="NAV / share"
-                      value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
-                    />
-                    <TermRow
-                      icon={SignalIcon}
-                      label="Utilization"
-                      value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
-                    />
-                    <TermRow
-                      icon={CircleStackIcon}
-                      label="Room to cap"
-                      value={availableCapacity !== null ? `${formatNumber(availableCapacity, { maximumFractionDigits: 0 })} USDC` : '—'}
-                    />
-                    <TermRow
-                      icon={PresentationChartLineIcon}
-                      label="Worst drift"
-                      value={worstDrift !== null ? `${worstDrift.d >= 0 ? '+' : ''}${formatNumber(worstDrift.d, { maximumFractionDigits: 1 })} pt · ${worstDrift.label}` : '—'}
-                    />
                   </div>
-                </aside>
+                </div>
+              </section>
+
+              {/* Account movements is a full VERIFIED JOURNAL — it owns a full-width
+                  region and may grow the document. It no longer shares a grid row with
+                  a short unrelated sibling (the old Subscription rail), which is what
+                  left a tall empty column beside it. */}
+              <section className="movements" aria-label="Account movements">
+                <div className="movements-heading">
+                  <div>
+                    <p className="eyebrow">Capital</p>
+                    <h2>Account movements</h2>
+                  </div>
+                  <span>
+                    Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
+                  </span>
+                </div>
+                <MovementTimeline availability={data.activity} />
               </section>
             </div>
 
