@@ -368,107 +368,18 @@
   letter-spacing: -0.01em;
 }
 
-/* ── CompositionRail (donut replacement) — fills the flank top-to-bottom ──── */
-
-.ud-root .rail-body {
+/* ── Breakdown flank (Allocation / Activity donuts) ──────────────────────────
+ * The former CompositionRail (a stacked HTML bar + a ledger stretched with
+ * flex:1 to fill the panel) is gone; the flanks now render a real Recharts donut
+ * (HearstDonutChart) via BreakdownFlank. The donut is INTRINSIC — it must not
+ * fill the panel. `.flank-viz` centers it under the heading so a flank shorter
+ * than the central chart reads as balanced, never as a bottom hole. */
+.ud-root .flank-viz {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 clamp(4px, 0.6vw, 10px);
-}
-
-.ud-root .rail-total {
-  margin: 0 0 12px;
-  color: var(--color-fg-tertiary);
-  font-size: var(--micro);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.ud-root .rail-bar {
-  display: flex;
-  gap: 2px;
-  width: 100%;
-  height: 12px;
-  margin-bottom: clamp(12px, 1.4vw, 20px);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.ud-root .rail-seg {
-  flex-basis: 0;
-  min-width: 3px;
-  border-radius: 3px;
-}
-
-.ud-root .ledger {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.ud-root .ledger-row {
-  flex: 1 1 0;
-  min-height: 46px;
-  display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto auto;
-  align-items: center;
-  column-gap: 10px;
-  padding: 8px 2px;
-  border-top: 1px solid var(--color-console-line-soft);
-  transition: background-color 0.15s;
-}
-
-.ud-root .ledger-row:hover {
-  background: var(--color-accent-soft);
-}
-
-.ud-root .ledger-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-}
-
-.ud-root .ledger-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--color-fg-secondary);
-  font-size: var(--small);
-}
-
-.ud-root .ledger-val {
-  color: var(--color-fg);
-  font-size: var(--small);
-}
-
-.ud-root .ledger-share {
-  min-width: 46px;
-  text-align: right;
-  color: var(--color-fg-tertiary);
-  font-size: var(--micro);
-}
-
-.ud-root .rail-empty {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 12px;
-  min-height: 180px;
-  padding: 20px;
-  text-align: center;
-}
-
-.ud-root .rail-empty p {
-  margin: 0;
-  color: var(--color-fg-tertiary);
-  font-size: var(--small);
-  line-height: 1.6;
 }
 
 .ud-root .flank-empty {
@@ -704,49 +615,8 @@
   min-height: 132px;
 }
 
-.ud-root .drift-ledger {
-  margin-top: clamp(10px, 1.2vw, 18px);
-  display: grid;
-  gap: 2px;
-}
-
-.ud-root .drift-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
-  align-items: center;
-  column-gap: clamp(10px, 1.2vw, 20px);
-  padding: 9px 2px;
-  border-top: 1px solid var(--color-console-line-soft);
-}
-
-.ud-root .drift-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--color-fg-secondary);
-  font-size: var(--small);
-}
-
-.ud-root .drift-cell {
-  color: var(--color-fg-tertiary);
-  font-size: var(--micro);
-}
-
-.ud-root .drift-val {
-  min-width: 64px;
-  text-align: right;
-  font-size: var(--small);
-  color: var(--color-fg-tertiary);
-}
-
-.ud-root .drift-val.is-up {
-  color: var(--color-accent-400);
-}
-
-.ud-root .drift-val.is-down {
-  color: var(--color-fg-secondary);
-}
+/* (The standalone DriftLedger is gone — exposure drift now lives in the
+   HearstExposureDonut legend, one table instead of chart + text-table.) */
 
 /* ── Meter ───────────────────────────────────────────────────────────────── */
 

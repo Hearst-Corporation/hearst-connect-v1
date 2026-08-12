@@ -138,6 +138,7 @@ function catalog() {
     ['chart:hearst-activity', 'HearstActivityChart'],
     ['chart:signed-bar', 'SignedBarChart'],
     ['chart:hearst-allocation', 'HearstAllocationChart'],
+    ['chart:hearst-exposure-donut', 'HearstExposureDonut'],
     ['chart:rich-sparkline', 'RichSparkline'],
     ['chart:hearst-donut', 'HearstDonutChart'],
     ['chart:chart-frame', 'ChartFrame'],
@@ -464,17 +465,17 @@ function catalog() {
     datasetControlsGeometry: false,
   })
   n({
-    id: 'component:composition-rail',
+    id: 'component:breakdown-flank',
     type: 'COMPONENT',
-    name: 'CompositionRail',
+    name: 'BreakdownFlank',
     domain: 'account',
-    source: 'src/features/user-dashboard/composition-rail.tsx',
-    evidence: 'export function CompositionRail',
+    source: 'src/features/user-dashboard/breakdown-flank.tsx',
+    evidence: 'export function BreakdownFlank',
     surface: null,
     geometryOwner: 'component',
     dataSlotOwner: 'component',
     datasetControlsGeometry: false,
-    note: 'flexGrow segments fill rail width; page grid unchanged',
+    note: 'renders a real Recharts donut (HearstDonutChart); intrinsic, does not fill the panel',
   })
   n({
     id: 'component:movement-timeline',
@@ -503,18 +504,6 @@ function catalog() {
     note: 'FILL width = data pct; shell track geometry = component',
   })
   n({
-    id: 'component:drift-ledger',
-    type: 'COMPONENT',
-    name: 'DriftLedger',
-    domain: 'account',
-    source: 'src/features/user-dashboard/user-dashboard.tsx',
-    evidence: 'function DriftLedger',
-    surface: null,
-    geometryOwner: 'component',
-    dataSlotOwner: 'component',
-    datasetControlsGeometry: false,
-  })
-  n({
     id: 'component:subscription-terms-rail',
     type: 'COMPONENT',
     name: 'Subscription terms rail',
@@ -529,17 +518,17 @@ function catalog() {
 
   e('region:account-kpis', 'renders', 'component:stat-tile')
   e('component:stat-tile', 'uses_chart', 'chart:rich-sparkline')
-  e('region:account-analysis', 'renders', 'component:composition-rail')
+  e('region:account-analysis', 'renders', 'component:breakdown-flank')
+  e('component:breakdown-flank', 'uses_chart', 'chart:hearst-donut')
   e('region:account-central-chart', 'uses_chart', 'chart:hearst-line')
   e('region:account-central-chart', 'uses_chart', 'chart:allocation-dual-line')
   e('region:account-central-chart', 'uses_chart', 'chart:hearst-activity')
   e('region:account-central-chart', 'uses_chart', 'chart:signed-bar')
-  e('region:account-exposure', 'uses_chart', 'chart:hearst-allocation')
-  e('region:account-exposure', 'renders', 'component:drift-ledger')
+  e('region:account-exposure', 'uses_chart', 'chart:hearst-exposure-donut')
   e('region:account-exposure', 'renders', 'component:capacity-meter')
   e('region:account-movements', 'renders', 'component:movement-timeline')
   e('region:account-movements', 'renders', 'component:subscription-terms-rail')
-  e('component:composition-rail', 'uses_foundation', 'foundation:charts')
+  e('component:breakdown-flank', 'uses_foundation', 'foundation:charts')
   e('component:capacity-meter', 'owns_data_slot', 'data:user-dashboard')
 
   // Account redirects (navigation only)

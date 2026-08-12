@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
-  "sourceSha": "943470228a54de379de03b14e1b037c2393ef03d",
-  "generatedAt": "2026-08-12T11:09:52.851Z",
+  "sourceSha": "8877b54adaaaf9a858419200bac7021466678d84",
+  "generatedAt": "2026-08-12T13:20:10.837Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {
@@ -51,6 +51,15 @@
       "surface": null
     },
     {
+      "id": "chart:hearst-exposure-donut",
+      "type": "CHART",
+      "name": "HearstExposureDonut",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstExposureDonut",
+      "surface": null
+    },
+    {
       "id": "chart:hearst-line",
       "type": "CHART",
       "name": "HearstLineChart",
@@ -78,6 +87,19 @@
       "surface": null
     },
     {
+      "id": "component:breakdown-flank",
+      "type": "COMPONENT",
+      "name": "BreakdownFlank",
+      "domain": "account",
+      "source": "src/features/user-dashboard/breakdown-flank.tsx",
+      "evidence": "export function BreakdownFlank",
+      "surface": null,
+      "geometryOwner": "component",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "note": "renders a real Recharts donut (HearstDonutChart); intrinsic, does not fill the panel"
+    },
+    {
       "id": "component:capacity-meter",
       "type": "COMPONENT",
       "name": "CapacityMeter",
@@ -91,19 +113,6 @@
       "note": "FILL width = data pct; shell track geometry = component"
     },
     {
-      "id": "component:composition-rail",
-      "type": "COMPONENT",
-      "name": "CompositionRail",
-      "domain": "account",
-      "source": "src/features/user-dashboard/composition-rail.tsx",
-      "evidence": "export function CompositionRail",
-      "surface": null,
-      "geometryOwner": "component",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false,
-      "note": "flexGrow segments fill rail width; page grid unchanged"
-    },
-    {
       "id": "component:data-coverage",
       "type": "COMPONENT",
       "name": "DataCoverageSection",
@@ -113,18 +122,6 @@
       "surface": {
         "kind": "admin:Panel"
       }
-    },
-    {
-      "id": "component:drift-ledger",
-      "type": "COMPONENT",
-      "name": "DriftLedger",
-      "domain": "account",
-      "source": "src/features/user-dashboard/user-dashboard.tsx",
-      "evidence": "function DriftLedger",
-      "surface": null,
-      "geometryOwner": "component",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false
     },
     {
       "id": "component:movement-timeline",
@@ -991,6 +988,16 @@
       "type": "uses_foundation"
     },
     {
+      "from": "chart:hearst-exposure-donut",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-exposure-donut",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
       "from": "chart:hearst-line",
       "to": "foundation:chart-viewport",
       "type": "uses_foundation"
@@ -1017,6 +1024,16 @@
     },
     {
       "from": "chart:signed-bar",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:breakdown-flank",
+      "to": "chart:hearst-donut",
+      "type": "uses_chart"
+    },
+    {
+      "from": "component:breakdown-flank",
       "to": "foundation:charts",
       "type": "uses_foundation"
     },
@@ -1024,11 +1041,6 @@
       "from": "component:capacity-meter",
       "to": "data:user-dashboard",
       "type": "owns_data_slot"
-    },
-    {
-      "from": "component:composition-rail",
-      "to": "foundation:charts",
-      "type": "uses_foundation"
     },
     {
       "from": "component:data-coverage",
@@ -1252,7 +1264,7 @@
     },
     {
       "from": "region:account-analysis",
-      "to": "component:composition-rail",
+      "to": "component:breakdown-flank",
       "type": "renders"
     },
     {
@@ -1287,12 +1299,7 @@
     },
     {
       "from": "region:account-exposure",
-      "to": "component:drift-ledger",
-      "type": "renders"
-    },
-    {
-      "from": "region:account-exposure",
-      "to": "chart:hearst-allocation",
+      "to": "chart:hearst-exposure-donut",
       "type": "uses_chart"
     },
     {
