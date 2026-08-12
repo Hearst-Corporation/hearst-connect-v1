@@ -39,6 +39,7 @@ import {
   ChevronUpIcon,
   UserCircleIcon,
 } from '@heroicons/react/16/solid'
+import { WalletIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 function AccountMenu({
@@ -144,6 +145,16 @@ export function AdminApplicationLayout({
             </SidebarSection>
 
             <SidebarSpacer />
+
+            {/* Jump to the client-facing account view (/account uses its own
+                shell, so this link leaves the admin console). Sits at the bottom
+                of the left menu, above the identity card. */}
+            <SidebarSection>
+              <SidebarItem href="/account">
+                <WalletIcon />
+                <SidebarLabel>Account</SidebarLabel>
+              </SidebarItem>
+            </SidebarSection>
           </SidebarBody>
 
           <SidebarFooter className="max-lg:hidden">
