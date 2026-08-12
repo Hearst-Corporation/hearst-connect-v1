@@ -125,6 +125,40 @@ describe('design system surfaces — canon dashboard', () => {
     expect(existsSync(join(process.cwd(), 'public/brand/hearst-connect-official.svg'))).toBe(true)
   })
 
+  it('cross-surface : account CSS référence les tokens NUS (pas de fallback couleur qui dérive)', () => {
+    // Doctrine 60-cross-surface-ds : les tokens @theme résolvent au :root sous le
+    // layout .dark, donc un `var(--color-…, #fallback)` local n'affiche jamais son
+    // fallback — il n'encode qu'une copie divergente du token. On interdit ce drift.
+    const css = readFileSync(
+      join(process.cwd(), 'src/features/user-dashboard/user-dashboard.css'),
+      'utf8',
+    )
+    // Aucun fallback hex / rgba à l'intérieur d'un var(--color-…).
+    expect(css).not.toMatch(/var\(\s*--color-[a-z0-9-]+\s*,\s*(?:#[0-9a-fA-F]{3,8}|rgba?\()/i)
+    // Les tokens sont bien consommés nus (surface + accent + ligne).
+    expect(css).toContain('var(--color-console-surface)')
+    expect(css).toContain('var(--color-fg)')
+    expect(css).toContain('var(--color-console-line)')
+    // La chaîne de police reste une chaîne de fallback légitime (pas une couleur).
+    expect(css).toContain('var(--font-satoshi), ui-sans-serif')
+  })
+
+  it('cross-surface : account n’importe PAS les primitives admin (Panel / DashCard / Bento)', () => {
+    const dash = readFileSync(
+      join(process.cwd(), 'src/features/user-dashboard/user-dashboard.tsx'),
+      'utf8',
+    )
+    // Foundations partagées ≠ arbre de composants partagé : l'account garde ses
+    // primitives sémantiques et n'est pas migré vers la matière admin.
+    expect(dash).not.toMatch(/from '@\/components\/compositions\/panel'/)
+    expect(dash).not.toMatch(/from '@\/components\/admin\/grid'/)
+    expect(dash).not.toMatch(/\b(Panel|DashCard|BentoGrid|BentoCard)\b/)
+    // Mais la frontière charts partagée EST réutilisée (pas de dataviz account-only).
+    expect(dash).toContain("from '@/components/charts'")
+    // Et la typographie foundation partagée (Satoshi + échelle admin) l'est aussi.
+    expect(dash).toContain('AdminHeroTitle')
+  })
+
   it('favicon onglet = monogramme H mint', () => {
     const icon = readFileSync(join(process.cwd(), 'src/app/icon.svg'), 'utf8')
     const layout = readFileSync(join(process.cwd(), 'src/app/layout.tsx'), 'utf8')
