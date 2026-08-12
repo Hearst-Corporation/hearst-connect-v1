@@ -1,0 +1,1639 @@
+{
+  "schemaVersion": 1,
+  "repo": "Hearst-Corporation/hearst-connect-v1",
+  "sourceSha": "777af3734058b430acdd059b5abab0c690290e0e",
+  "generatedAt": "2026-08-12T09:55:30.399Z",
+  "doctrine": "CODE = truth. GRAPH = derived observation map.",
+  "nodes": [
+    {
+      "id": "chart:allocation-dual-line",
+      "type": "CHART",
+      "name": "AllocationDualLineChart",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export AllocationDualLineChart",
+      "surface": null
+    },
+    {
+      "id": "chart:chart-frame",
+      "type": "CHART",
+      "name": "ChartFrame",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export ChartFrame",
+      "surface": null
+    },
+    {
+      "id": "chart:hearst-activity",
+      "type": "CHART",
+      "name": "HearstActivityChart",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstActivityChart",
+      "surface": null
+    },
+    {
+      "id": "chart:hearst-allocation",
+      "type": "CHART",
+      "name": "HearstAllocationChart",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstAllocationChart",
+      "surface": null
+    },
+    {
+      "id": "chart:hearst-donut",
+      "type": "CHART",
+      "name": "HearstDonutChart",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstDonutChart",
+      "surface": null
+    },
+    {
+      "id": "chart:hearst-line",
+      "type": "CHART",
+      "name": "HearstLineChart",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export HearstLineChart",
+      "surface": null
+    },
+    {
+      "id": "chart:rich-sparkline",
+      "type": "CHART",
+      "name": "RichSparkline",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export RichSparkline",
+      "surface": null
+    },
+    {
+      "id": "chart:signed-bar",
+      "type": "CHART",
+      "name": "SignedBarChart",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "export SignedBarChart",
+      "surface": null
+    },
+    {
+      "id": "component:capacity-meter",
+      "type": "COMPONENT",
+      "name": "CapacityMeter",
+      "domain": "account",
+      "source": "src/features/user-dashboard/capacity-meter.tsx",
+      "evidence": "export function CapacityMeter",
+      "surface": null,
+      "geometryOwner": "component",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "note": "FILL width = data pct; shell track geometry = component"
+    },
+    {
+      "id": "component:composition-rail",
+      "type": "COMPONENT",
+      "name": "CompositionRail",
+      "domain": "account",
+      "source": "src/features/user-dashboard/composition-rail.tsx",
+      "evidence": "export function CompositionRail",
+      "surface": null,
+      "geometryOwner": "component",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "note": "flexGrow segments fill rail width; page grid unchanged"
+    },
+    {
+      "id": "component:data-coverage",
+      "type": "COMPONENT",
+      "name": "DataCoverageSection",
+      "domain": "admin",
+      "source": "src/features/admin-runtime/data-coverage-section.tsx",
+      "evidence": "export function DataCoverageSection",
+      "surface": {
+        "kind": "admin:Panel"
+      }
+    },
+    {
+      "id": "component:drift-ledger",
+      "type": "COMPONENT",
+      "name": "DriftLedger",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "function DriftLedger",
+      "surface": null,
+      "geometryOwner": "component",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "component:movement-timeline",
+      "type": "COMPONENT",
+      "name": "MovementTimeline",
+      "domain": "account",
+      "source": "src/features/user-dashboard/movement-timeline.tsx",
+      "evidence": "export function MovementTimeline",
+      "surface": null,
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "note": "list length grows document height; band grid stays layout-owned"
+    },
+    {
+      "id": "component:stat-tile",
+      "type": "COMPONENT",
+      "name": "StatTile",
+      "domain": "account",
+      "source": "src/features/user-dashboard/stat-tile.tsx",
+      "evidence": "export function StatTile",
+      "surface": null,
+      "geometryOwner": "component",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "component:subscription-terms-rail",
+      "type": "COMPONENT",
+      "name": "Subscription terms rail",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "aside.terms-rail aria-label=\"Subscription terms\"",
+      "surface": null,
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "component:user-dashboard",
+      "type": "COMPONENT",
+      "name": "UserDashboardView",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "export function UserDashboardView",
+      "surface": {
+        "kind": "account:user-shell"
+      },
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "data:admin-dashboard",
+      "type": "DATA_SOURCE",
+      "name": "loadAdminDashboard",
+      "domain": "admin",
+      "source": "src/lib/admin-dashboard/load.ts",
+      "evidence": "export async function loadAdminDashboard"
+    },
+    {
+      "id": "data:user-dashboard",
+      "type": "DATA_SOURCE",
+      "name": "loadUserDashboard",
+      "domain": "account",
+      "source": "src/features/user-dashboard/load.ts",
+      "evidence": "export async function loadUserDashboard"
+    },
+    {
+      "id": "foundation:charts",
+      "type": "FOUNDATION",
+      "name": "Chart language boundary",
+      "domain": "shared",
+      "source": "src/components/charts/index.ts",
+      "evidence": "public chart exports — recharts never imported by routes"
+    },
+    {
+      "id": "foundation:color",
+      "type": "FOUNDATION",
+      "name": "Color tokens (fg / ink / accent / status)",
+      "domain": "shared",
+      "source": "src/styles/tailwind.css",
+      "evidence": "@theme color tokens — shared by admin and account"
+    },
+    {
+      "id": "foundation:console-card",
+      "type": "FOUNDATION",
+      "name": "Console card token",
+      "domain": "shared",
+      "source": "src/styles/tailwind.css",
+      "evidence": "--color-console-card consumed by admin surfaceBox and account CSS"
+    },
+    {
+      "id": "foundation:console-surface",
+      "type": "FOUNDATION",
+      "name": "Console surface tokens",
+      "domain": "shared",
+      "source": "src/styles/tailwind.css",
+      "evidence": "--color-console-surface / console-card / console-shell"
+    },
+    {
+      "id": "foundation:motion",
+      "type": "FOUNDATION",
+      "name": "Motion readiness",
+      "domain": "shared",
+      "source": "src/features/user-dashboard/motion-guard.ts",
+      "evidence": "motion readiness guard used by account dashboard"
+    },
+    {
+      "id": "foundation:typography",
+      "type": "FOUNDATION",
+      "name": "Typography (Satoshi)",
+      "domain": "shared",
+      "source": "src/styles/tailwind.css",
+      "evidence": "--font-satoshi / font-sans / font-display"
+    },
+    {
+      "id": "layout:account-session-guard",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "Account layout (session guard only)",
+      "domain": "account",
+      "source": "src/app/account/layout.tsx",
+      "evidence": "requireSession — no chrome; dashboard owns viewport",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "layout:account-shell",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "Account dashboard shell geometry",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.css",
+      "evidence": "CSS grid bands: .kpis / .analysis / .exposure-cap / .movements",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "layout:admin-application",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "AdminApplicationLayout",
+      "domain": "admin",
+      "source": "src/components/admin/application-layout.tsx",
+      "evidence": "export function AdminApplicationLayout",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "layout:admin-bento-card",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "BentoCard",
+      "domain": "admin",
+      "source": "src/components/admin/grid.tsx",
+      "evidence": "export function BentoCard",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "layout:admin-bento-grid",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "BentoGrid",
+      "domain": "admin",
+      "source": "src/components/admin/grid.tsx",
+      "evidence": "export function BentoGrid",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "layout:admin-dashboard-shell",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "DashboardShell",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/shell.tsx",
+      "evidence": "export function DashboardShell",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "layout:admin-session",
+      "type": "LAYOUT_PRIMITIVE",
+      "name": "Admin layout (session + application shell)",
+      "domain": "admin",
+      "source": "src/app/admin/layout.tsx",
+      "evidence": "requireSession + AdminApplicationLayout",
+      "geometryOwner": "layout",
+      "datasetControlsGeometry": false
+    },
+    {
+      "id": "page:account-dashboard",
+      "type": "PAGE",
+      "name": "Account dashboard page",
+      "domain": "account",
+      "source": "src/app/account/page.tsx",
+      "evidence": "UserDashboardView data={data}"
+    },
+    {
+      "id": "page:admin-api-explorer",
+      "type": "PAGE",
+      "name": "API explorer page",
+      "domain": "admin",
+      "source": "src/app/admin/api-explorer/page.tsx",
+      "evidence": "BACKEND_ENDPOINTS + ChartFrame/HearstDonutChart"
+    },
+    {
+      "id": "page:admin-dashboard",
+      "type": "PAGE",
+      "name": "Admin dashboard page",
+      "domain": "admin",
+      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
+      "evidence": "export function AdminDashboardPage"
+    },
+    {
+      "id": "page:admin-product",
+      "type": "PAGE",
+      "name": "Product page",
+      "domain": "admin",
+      "source": "src/app/admin/product/page.tsx",
+      "evidence": "mining/btc/factsheet/backtest charts"
+    },
+    {
+      "id": "page:admin-runtime",
+      "type": "PAGE",
+      "name": "Admin runtime page",
+      "domain": "admin",
+      "source": "src/app/admin/runtime/page.tsx",
+      "evidence": "runtime/health/ready + DataCoverageSection"
+    },
+    {
+      "id": "page:admin-series-1",
+      "type": "PAGE",
+      "name": "Series 1 page",
+      "domain": "admin",
+      "source": "src/app/admin/series-1/page.tsx",
+      "evidence": "series1-events + HearstActivityChart"
+    },
+    {
+      "id": "page:admin-vault-detail",
+      "type": "PAGE",
+      "name": "Vault detail page",
+      "domain": "admin",
+      "source": "src/app/admin/vaults/[vaultId]/page.tsx",
+      "evidence": "loadVault + HearstAllocationChart / HearstDonutChart / HearstLineChart"
+    },
+    {
+      "id": "region:account-analysis",
+      "type": "BUSINESS_REGION",
+      "name": "Analysis",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "section.analysis aria-label=\"Analysis\"",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "region:account-central-chart",
+      "type": "BUSINESS_REGION",
+      "name": "Central chart",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "aria-label=\"Central chart\" + .center-plot",
+      "geometryOwner": "component",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "region:account-exposure",
+      "type": "BUSINESS_REGION",
+      "name": "Strategy exposure and capacity",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "section.exposure-cap aria-label=\"Strategy exposure and capacity\"",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "region:account-kpis",
+      "type": "BUSINESS_REGION",
+      "name": "Account indicators",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "section.kpis aria-label=\"Account indicators\"",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "region:account-movements",
+      "type": "BUSINESS_REGION",
+      "name": "Account movements",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "section.movements aria-label=\"Account movements\"",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "region:account-nav",
+      "type": "BUSINESS_REGION",
+      "name": "Nav",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "header.nav + aria-label=\"Main navigation\"",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "region:admin-activity-curve",
+      "type": "BUSINESS_REGION",
+      "name": "Activity curve",
+      "domain": "admin",
+      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
+      "evidence": "ActivityChartSlot / HearstActivityChart",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-bento-body",
+      "type": "BUSINESS_REGION",
+      "name": "Bento masonry body",
+      "domain": "admin",
+      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
+      "evidence": "BentoGrid → BentoCard → DashCard panels",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-btc-price",
+      "type": "BUSINESS_REGION",
+      "name": "BTC price",
+      "domain": "admin",
+      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
+      "evidence": "BtcPriceSlot / HearstLineChart",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-cbbtc-allocation",
+      "type": "BUSINESS_REGION",
+      "name": "cbBTC/USDC allocation",
+      "domain": "admin",
+      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
+      "evidence": "AllocationSlot / AllocationDualLineChart",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-data-health",
+      "type": "BUSINESS_REGION",
+      "name": "Data health",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/data-health-grid.tsx",
+      "evidence": "DataHealthGrid",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-kpi-header",
+      "type": "BUSINESS_REGION",
+      "name": "Dashboard KPI header",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/header.tsx",
+      "evidence": "DashboardHeader → AdminPageHeader KPIs",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-market",
+      "type": "BUSINESS_REGION",
+      "name": "Market snapshot",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/market-panel.tsx",
+      "evidence": "MarketSnapshotPanel",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-portfolio-exposure",
+      "type": "BUSINESS_REGION",
+      "name": "Portfolio exposure",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/portfolio-exposure.tsx",
+      "evidence": "PortfolioExposurePanel",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-rebalancing",
+      "type": "BUSINESS_REGION",
+      "name": "Rebalancing & alerts",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/rebalancing-panel.tsx",
+      "evidence": "RebalancingAlertsPanel",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-rebalancing-history",
+      "type": "BUSINESS_REGION",
+      "name": "Rebalancing drift history",
+      "domain": "admin",
+      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
+      "evidence": "RebalancingHistorySlot / HearstLineChart",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-recent-activity",
+      "type": "BUSINESS_REGION",
+      "name": "Recent activity timeline",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/activity-timeline.tsx",
+      "evidence": "ActivityTimelinePanel",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-recent-clients",
+      "type": "BUSINESS_REGION",
+      "name": "Recent clients",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/recent-clients-panel.tsx",
+      "evidence": "RecentClientsPanel",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "region:admin-vaults-capital",
+      "type": "BUSINESS_REGION",
+      "name": "Vaults capital",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/vaults-panel.tsx",
+      "evidence": "VaultsPanel",
+      "geometryOwner": "layout",
+      "dataSlotOwner": "component",
+      "datasetControlsGeometry": false,
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "route:account",
+      "type": "ROUTE",
+      "name": "/account",
+      "domain": "account",
+      "role": "USER_HUB",
+      "source": "src/app/account/page.tsx",
+      "evidence": "Canonical user hub — session-scoped command center"
+    },
+    {
+      "id": "route:account-activity-redirect",
+      "type": "ROUTE",
+      "name": "/account/activity",
+      "domain": "account",
+      "role": "REDIRECT",
+      "source": "src/app/account/activity/page.tsx",
+      "evidence": "redirect('/account')"
+    },
+    {
+      "id": "route:account-bitcoin-redirect",
+      "type": "ROUTE",
+      "name": "/account/bitcoin",
+      "domain": "account",
+      "role": "REDIRECT",
+      "source": "src/app/account/bitcoin/page.tsx",
+      "evidence": "redirect('/account')"
+    },
+    {
+      "id": "route:account-dashboard-redirect",
+      "type": "ROUTE",
+      "name": "/account/dashboard",
+      "domain": "account",
+      "role": "REDIRECT",
+      "source": "src/app/account/dashboard/page.tsx",
+      "evidence": "redirect('/account')"
+    },
+    {
+      "id": "route:account-profile-redirect",
+      "type": "ROUTE",
+      "name": "/account/profile",
+      "domain": "account",
+      "role": "REDIRECT",
+      "source": "src/app/account/profile/page.tsx",
+      "evidence": "redirect('/account')"
+    },
+    {
+      "id": "route:admin",
+      "type": "ROUTE",
+      "name": "/admin",
+      "domain": "admin",
+      "role": "ADMIN_HUB",
+      "source": "src/app/admin/page.tsx",
+      "evidence": "loadAdminDashboard → AdminDashboardPage"
+    },
+    {
+      "id": "route:admin-api-explorer",
+      "type": "ROUTE",
+      "name": "/admin/api-explorer",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/api-explorer/page.tsx",
+      "evidence": "BACKEND_ENDPOINTS registry"
+    },
+    {
+      "id": "route:admin-clients",
+      "type": "ROUTE",
+      "name": "/admin/clients",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/clients/page.tsx",
+      "evidence": "loadAdminClientsDirectory"
+    },
+    {
+      "id": "route:admin-compliance",
+      "type": "ROUTE",
+      "name": "/admin/compliance",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/compliance/page.tsx",
+      "evidence": "loadAdminRegistry Som KYC"
+    },
+    {
+      "id": "route:admin-conformite-redirect",
+      "type": "ROUTE",
+      "name": "/admin/conformite",
+      "domain": "admin",
+      "role": "REDIRECT",
+      "source": "src/app/admin/conformite/page.tsx",
+      "evidence": "redirect('/admin/compliance')"
+    },
+    {
+      "id": "route:admin-dashboard-redirect",
+      "type": "ROUTE",
+      "name": "/admin/dashboard",
+      "domain": "admin",
+      "role": "REDIRECT",
+      "source": "src/app/admin/dashboard/page.tsx",
+      "evidence": "redirect('/admin')"
+    },
+    {
+      "id": "route:admin-keeper",
+      "type": "ROUTE",
+      "name": "/admin/keeper",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/keeper/page.tsx",
+      "evidence": "KeeperForm"
+    },
+    {
+      "id": "route:admin-operations",
+      "type": "ROUTE",
+      "name": "/admin/operations",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/operations/page.tsx",
+      "evidence": "loadAdminOperationsSurface"
+    },
+    {
+      "id": "route:admin-product",
+      "type": "ROUTE",
+      "name": "/admin/product",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/product/page.tsx",
+      "evidence": "mining/btc/factsheet/backtest"
+    },
+    {
+      "id": "route:admin-produit-redirect",
+      "type": "ROUTE",
+      "name": "/admin/produit",
+      "domain": "admin",
+      "role": "REDIRECT",
+      "source": "src/app/admin/produit/page.tsx",
+      "evidence": "redirect('/admin/product')"
+    },
+    {
+      "id": "route:admin-profile",
+      "type": "ROUTE",
+      "name": "/admin/profile",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/profile/page.tsx",
+      "evidence": "getSession identity"
+    },
+    {
+      "id": "route:admin-runtime",
+      "type": "ROUTE",
+      "name": "/admin/runtime",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/runtime/page.tsx",
+      "evidence": "runtime/health/ready + DataCoverageSection"
+    },
+    {
+      "id": "route:admin-series-1",
+      "type": "ROUTE",
+      "name": "/admin/series-1",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/series-1/page.tsx",
+      "evidence": "series1-events"
+    },
+    {
+      "id": "route:admin-vault-detail",
+      "type": "ROUTE",
+      "name": "/admin/vaults/[vaultId]",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/vaults/[vaultId]/page.tsx",
+      "evidence": "loadVault + charts"
+    },
+    {
+      "id": "route:admin-vault-redirect",
+      "type": "ROUTE",
+      "name": "/admin/vault",
+      "domain": "admin",
+      "role": "REDIRECT",
+      "source": "src/app/admin/vault/page.tsx",
+      "evidence": "redirect('/admin/vaults')"
+    },
+    {
+      "id": "route:admin-vaults",
+      "type": "ROUTE",
+      "name": "/admin/vaults",
+      "domain": "admin",
+      "role": "ADMIN_PAGE",
+      "source": "src/app/admin/vaults/page.tsx",
+      "evidence": "loadAdminRegistry"
+    },
+    {
+      "id": "state:account-availability",
+      "type": "STATE_BOUNDARY",
+      "name": "Account Availability fields",
+      "domain": "account",
+      "source": "src/features/user-dashboard/load.ts",
+      "evidence": "Availability<T> via availabilityFromResolved — named absences"
+    },
+    {
+      "id": "state:account-client-toggles",
+      "type": "STATE_BOUNDARY",
+      "name": "Account client UI toggles",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.tsx",
+      "evidence": "route: 'dashboard' | 'trade'; central chart key"
+    },
+    {
+      "id": "state:admin-availability",
+      "type": "STATE_BOUNDARY",
+      "name": "Admin dashboard Availability pack",
+      "domain": "admin",
+      "source": "src/lib/admin-dashboard/load.ts",
+      "evidence": "parallel callBackend → Availability fields"
+    },
+    {
+      "id": "surface:account-shell",
+      "type": "SURFACE_PRIMITIVE",
+      "name": ".shell (account user shell)",
+      "domain": "account",
+      "source": "src/features/user-dashboard/user-dashboard.css",
+      "evidence": ".ud-root .shell",
+      "surface": {
+        "kind": "account:user-shell"
+      }
+    },
+    {
+      "id": "surface:admin-box",
+      "type": "SURFACE_PRIMITIVE",
+      "name": "surfaceBox",
+      "domain": "admin",
+      "source": "src/components/admin/surface.tsx",
+      "evidence": "export const surfaceBox",
+      "surface": {
+        "kind": "admin:surfaceBox"
+      }
+    },
+    {
+      "id": "surface:admin-dash-card",
+      "type": "SURFACE_PRIMITIVE",
+      "name": "DashCard",
+      "domain": "admin",
+      "source": "src/components/admin/dashboard/shell.tsx",
+      "evidence": "export function DashCard",
+      "surface": {
+        "kind": "admin:DashCard"
+      }
+    },
+    {
+      "id": "surface:admin-inset",
+      "type": "SURFACE_PRIMITIVE",
+      "name": "surfaceInset",
+      "domain": "admin",
+      "source": "src/components/admin/surface.tsx",
+      "evidence": "export const surfaceInset",
+      "surface": {
+        "kind": "admin:surfaceInset"
+      }
+    },
+    {
+      "id": "surface:admin-nav",
+      "type": "SURFACE_PRIMITIVE",
+      "name": "surfaceNav",
+      "domain": "admin",
+      "source": "src/components/admin/surface.tsx",
+      "evidence": "export const surfaceNav",
+      "surface": {
+        "kind": "admin:surfaceNav"
+      }
+    },
+    {
+      "id": "surface:admin-panel",
+      "type": "SURFACE_PRIMITIVE",
+      "name": "Panel",
+      "domain": "admin",
+      "source": "src/components/compositions/panel.tsx",
+      "evidence": "export function Panel",
+      "surface": {
+        "kind": "admin:Panel"
+      }
+    },
+    {
+      "id": "surface:admin-select",
+      "type": "SURFACE_PRIMITIVE",
+      "name": "surfaceSelect",
+      "domain": "admin",
+      "source": "src/components/admin/surface.tsx",
+      "evidence": "export const surfaceSelect",
+      "surface": {
+        "kind": "admin:surfaceSelect"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "chart:allocation-dual-line",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:chart-frame",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:chart-frame",
+      "to": "surface:admin-panel",
+      "type": "uses_surface"
+    },
+    {
+      "from": "chart:hearst-activity",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-allocation",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-donut",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-line",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:rich-sparkline",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:signed-bar",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:capacity-meter",
+      "to": "data:user-dashboard",
+      "type": "owns_data_slot"
+    },
+    {
+      "from": "component:composition-rail",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:data-coverage",
+      "to": "chart:chart-frame",
+      "type": "uses_chart"
+    },
+    {
+      "from": "component:data-coverage",
+      "to": "chart:hearst-donut",
+      "type": "uses_chart"
+    },
+    {
+      "from": "component:stat-tile",
+      "to": "chart:rich-sparkline",
+      "type": "uses_chart"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "region:account-analysis",
+      "type": "contains"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "region:account-exposure",
+      "type": "contains"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "region:account-kpis",
+      "type": "contains"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "region:account-movements",
+      "type": "contains"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "region:account-nav",
+      "type": "contains"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "state:account-client-toggles",
+      "type": "contains"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "data:user-dashboard",
+      "type": "owns_data_slot"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "foundation:color",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "foundation:motion",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "foundation:typography",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "layout:account-shell",
+      "type": "uses_layout"
+    },
+    {
+      "from": "component:user-dashboard",
+      "to": "surface:account-shell",
+      "type": "uses_surface"
+    },
+    {
+      "from": "data:admin-dashboard",
+      "to": "state:admin-availability",
+      "type": "contains"
+    },
+    {
+      "from": "data:user-dashboard",
+      "to": "state:account-availability",
+      "type": "contains"
+    },
+    {
+      "from": "layout:account-shell",
+      "to": "surface:account-shell",
+      "type": "uses_surface"
+    },
+    {
+      "from": "layout:admin-application",
+      "to": "foundation:typography",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "layout:admin-application",
+      "to": "surface:admin-nav",
+      "type": "uses_surface"
+    },
+    {
+      "from": "layout:admin-session",
+      "to": "layout:admin-application",
+      "type": "contains"
+    },
+    {
+      "from": "page:account-dashboard",
+      "to": "data:user-dashboard",
+      "type": "loads"
+    },
+    {
+      "from": "page:account-dashboard",
+      "to": "component:user-dashboard",
+      "type": "renders"
+    },
+    {
+      "from": "page:admin-api-explorer",
+      "to": "chart:chart-frame",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-api-explorer",
+      "to": "chart:hearst-donut",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "region:admin-bento-body",
+      "type": "contains"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "region:admin-kpi-header",
+      "type": "contains"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "data:admin-dashboard",
+      "type": "loads"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "foundation:color",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "layout:admin-bento-grid",
+      "type": "uses_layout"
+    },
+    {
+      "from": "page:admin-dashboard",
+      "to": "layout:admin-dashboard-shell",
+      "type": "uses_layout"
+    },
+    {
+      "from": "page:admin-product",
+      "to": "chart:chart-frame",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-runtime",
+      "to": "component:data-coverage",
+      "type": "renders"
+    },
+    {
+      "from": "page:admin-series-1",
+      "to": "chart:chart-frame",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-series-1",
+      "to": "chart:hearst-activity",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-vault-detail",
+      "to": "chart:chart-frame",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-vault-detail",
+      "to": "chart:hearst-allocation",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-vault-detail",
+      "to": "chart:hearst-donut",
+      "type": "uses_chart"
+    },
+    {
+      "from": "page:admin-vault-detail",
+      "to": "chart:hearst-line",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:account-analysis",
+      "to": "region:account-central-chart",
+      "type": "contains"
+    },
+    {
+      "from": "region:account-analysis",
+      "to": "layout:account-shell",
+      "type": "owns_geometry"
+    },
+    {
+      "from": "region:account-analysis",
+      "to": "component:composition-rail",
+      "type": "renders"
+    },
+    {
+      "from": "region:account-central-chart",
+      "to": "chart:allocation-dual-line",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:account-central-chart",
+      "to": "chart:hearst-activity",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:account-central-chart",
+      "to": "chart:hearst-line",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:account-central-chart",
+      "to": "chart:signed-bar",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:account-exposure",
+      "to": "layout:account-shell",
+      "type": "owns_geometry"
+    },
+    {
+      "from": "region:account-exposure",
+      "to": "component:capacity-meter",
+      "type": "renders"
+    },
+    {
+      "from": "region:account-exposure",
+      "to": "component:drift-ledger",
+      "type": "renders"
+    },
+    {
+      "from": "region:account-exposure",
+      "to": "chart:hearst-allocation",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:account-kpis",
+      "to": "layout:account-shell",
+      "type": "owns_geometry"
+    },
+    {
+      "from": "region:account-kpis",
+      "to": "component:stat-tile",
+      "type": "renders"
+    },
+    {
+      "from": "region:account-movements",
+      "to": "layout:account-shell",
+      "type": "owns_geometry"
+    },
+    {
+      "from": "region:account-movements",
+      "to": "component:movement-timeline",
+      "type": "renders"
+    },
+    {
+      "from": "region:account-movements",
+      "to": "component:subscription-terms-rail",
+      "type": "renders"
+    },
+    {
+      "from": "region:admin-activity-curve",
+      "to": "chart:hearst-activity",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:admin-activity-curve",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-activity-curve",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-btc-price",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-cbbtc-allocation",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-data-health",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-market",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-portfolio-exposure",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-rebalancing",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-rebalancing-history",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-recent-activity",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-recent-clients",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "region:admin-vaults-capital",
+      "type": "contains"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "layout:admin-bento-grid",
+      "type": "owns_geometry"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "layout:admin-bento-card",
+      "type": "uses_layout"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "layout:admin-bento-grid",
+      "type": "uses_layout"
+    },
+    {
+      "from": "region:admin-bento-body",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-btc-price",
+      "to": "chart:hearst-line",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:admin-btc-price",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-cbbtc-allocation",
+      "to": "chart:allocation-dual-line",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:admin-cbbtc-allocation",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-data-health",
+      "to": "surface:admin-box",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-data-health",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-market",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-market",
+      "to": "surface:admin-inset",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-portfolio-exposure",
+      "to": "chart:hearst-donut",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:admin-portfolio-exposure",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-portfolio-exposure",
+      "to": "surface:admin-select",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-rebalancing",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-rebalancing-history",
+      "to": "chart:hearst-line",
+      "type": "uses_chart"
+    },
+    {
+      "from": "region:admin-rebalancing-history",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-recent-activity",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-recent-clients",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "region:admin-vaults-capital",
+      "to": "surface:admin-dash-card",
+      "type": "uses_surface"
+    },
+    {
+      "from": "route:account",
+      "to": "page:account-dashboard",
+      "type": "renders"
+    },
+    {
+      "from": "route:account",
+      "to": "layout:account-session-guard",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:account-activity-redirect",
+      "to": "route:account",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:account-bitcoin-redirect",
+      "to": "route:account",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:account-dashboard-redirect",
+      "to": "route:account",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:account-profile-redirect",
+      "to": "route:account",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:admin",
+      "to": "page:admin-dashboard",
+      "type": "renders"
+    },
+    {
+      "from": "route:admin",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin",
+      "to": "layout:admin-session",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-api-explorer",
+      "to": "page:admin-api-explorer",
+      "type": "renders"
+    },
+    {
+      "from": "route:admin-api-explorer",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-clients",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-compliance",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-conformite-redirect",
+      "to": "route:admin-compliance",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:admin-dashboard-redirect",
+      "to": "route:admin",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:admin-keeper",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-operations",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-product",
+      "to": "page:admin-product",
+      "type": "renders"
+    },
+    {
+      "from": "route:admin-product",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-produit-redirect",
+      "to": "route:admin-product",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:admin-profile",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-runtime",
+      "to": "page:admin-runtime",
+      "type": "renders"
+    },
+    {
+      "from": "route:admin-runtime",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-series-1",
+      "to": "page:admin-series-1",
+      "type": "renders"
+    },
+    {
+      "from": "route:admin-series-1",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-vault-detail",
+      "to": "page:admin-vault-detail",
+      "type": "renders"
+    },
+    {
+      "from": "route:admin-vault-detail",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "route:admin-vault-redirect",
+      "to": "route:admin-vaults",
+      "type": "navigates_to"
+    },
+    {
+      "from": "route:admin-vaults",
+      "to": "layout:admin-application",
+      "type": "uses_layout"
+    },
+    {
+      "from": "surface:account-shell",
+      "to": "foundation:color",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:account-shell",
+      "to": "foundation:console-card",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:account-shell",
+      "to": "foundation:console-surface",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-box",
+      "to": "foundation:color",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-box",
+      "to": "foundation:console-card",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-box",
+      "to": "foundation:console-surface",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-dash-card",
+      "to": "foundation:console-card",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-dash-card",
+      "to": "surface:admin-box",
+      "type": "uses_surface"
+    },
+    {
+      "from": "surface:admin-inset",
+      "to": "foundation:console-surface",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-nav",
+      "to": "foundation:console-surface",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "surface:admin-panel",
+      "to": "surface:admin-box",
+      "type": "uses_surface"
+    }
+  ]
+}
