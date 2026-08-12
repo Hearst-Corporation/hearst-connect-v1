@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import {
   loadAdminOperationsSurface,
   type AdminActivityEvent,
@@ -134,19 +134,21 @@ function RebalancingSection({
           <DataTableShell title="Needs attention" count={`${data.alerts.length}`}>
             <TableHead>
               <TableRow>
-                <TableHeader className={fitTableColPrimary}>Strategy</TableHeader>
-                <TableHeader className={fitTableColCompact}>Drift</TableHeader>
-                <TableHeader className={fitTableColPrimary}>Vault</TableHeader>
-                <TableHeader className={`${fitTableColCompact} text-right`}>Action</TableHeader>
+                <TableHeader className={tableCol.primary}>Strategy</TableHeader>
+                <TableHeader className={tableCol.numeric}>Drift</TableHeader>
+                <TableHeader className={tableCol.hash}>Vault</TableHeader>
+                <TableHeader className={tableCol.action}>Action</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
               {data.alerts.map((alert) => (
                 <TableRow key={`${alert.vaultId}-${alert.strategyId}`}>
-                  <TableCell className="font-medium">{alert.strategyLabel}</TableCell>
-                  <TableCell className="tabular-nums text-warning-400">{driftPts(alert.driftBps)}</TableCell>
-                  <TableCell className="font-mono text-xs text-fg-tertiary">{alert.vaultId}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className={tableCol.primary}>
+                    <div className="truncate font-medium">{alert.strategyLabel}</div>
+                  </TableCell>
+                  <TableCell className={`${tableCol.numeric} text-warning-400`}>{driftPts(alert.driftBps)}</TableCell>
+                  <TableCell className={`${tableCol.hash} text-xs text-fg-tertiary`}>{alert.vaultId}</TableCell>
+                  <TableCell className={tableCol.action}>
                     <Link
                       href={entityHref('vault', alert.vaultId)}
                       className="text-sm font-medium text-accent-400 underline"
@@ -313,34 +315,34 @@ export default async function Page() {
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader className={fitTableColPrimary}>Operation</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Status</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Amount</TableHeader>
-                  <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
-                  <TableHeader className={fitTableColCompact}>When</TableHeader>
+                  <TableHeader className={tableCol.primary}>Operation</TableHeader>
+                  <TableHeader className={tableCol.status}>Status</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+                  <TableHeader className={tableCol.hash}>Tx</TableHeader>
+                  <TableHeader className={tableCol.date}>When</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {opsEvents.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell>
+                    <TableCell className={tableCol.primary}>
                       <div className="truncate font-medium" title={event.vaultId ?? undefined}>
                         {event.title}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={tableCol.status}>
                       <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
                     </TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell className={tableCol.numeric}>
                       {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}
                     </TableCell>
                     <TableCell
-                      className="truncate font-mono text-xs text-fg-tertiary"
+                      className={`${tableCol.hash} text-xs text-fg-tertiary`}
                       title={event.txHash ?? undefined}
                     >
                       {event.txHash ? formatHash(event.txHash) : '—'}
                     </TableCell>
-                    <TableCell className="tabular-nums text-fg-tertiary">
+                    <TableCell className={`${tableCol.date} text-fg-tertiary`}>
                       {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
                     </TableCell>
                   </TableRow>

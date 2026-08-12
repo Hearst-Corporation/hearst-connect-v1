@@ -234,11 +234,42 @@ export function SectionCard({
  * ALREADY-formatted label ("12 movements") — the block does not count.
  */
 /**
- * Column hints for wide tables inside scrollable `Table` shells.
- * Primary columns may truncate; compact columns keep nowrap without zero width.
+ * Table COLUMN CONTRACT — a column expresses its semantic ROLE, not a width.
+ *
+ * The admin tables render an auto-layout HTML `<table>` (Catalyst) inside a
+ * horizontally-scrollable shell. Columns therefore size to their content; the
+ * contract's job is to make that content behave per role, and to make the same
+ * role produce the SAME classes on the `TableHeader` and its `TableCell` (the
+ * two used to drift — a header marked compact whose cell forgot `tabular-nums`,
+ * a primary header whose cell dropped `min-w-0`).
+ *
+ * The geometry is intrinsic / role-derived — never a screenshot number. There is
+ * no `w-[34%]`, no `flex-[1.7]`, no `--name-column`: a role never encodes a
+ * percentage of a capture.
+ *
+ * | role      | intent                                   | classes                                     |
+ * |-----------|------------------------------------------|---------------------------------------------|
+ * | primary   | descriptive remainder — absorbs slack    | `min-w-0` (+ `truncate` on inner content)   |
+ * | numeric   | compact figure, aligned on its units     | `whitespace-nowrap tabular-nums text-right` |
+ * | status    | intrinsic badge / short state            | `whitespace-nowrap`                         |
+ * | hash      | identifier — bounded, monospace, cut     | `min-w-0 truncate font-mono`                |
+ * | date      | compact temporal value                   | `whitespace-nowrap tabular-nums`            |
+ * | action    | trailing interactive control             | `whitespace-nowrap text-right`              |
+ *
+ * PRIMARY = FLEXIBLE REMAINDER, not a percentage. Atomic columns (numeric /
+ * status / date / hash / action) size to their content and never steal the
+ * primary's room.
  */
-export const fitTableColPrimary = 'min-w-0'
-export const fitTableColCompact = 'whitespace-nowrap'
+export type TableColRole = 'primary' | 'numeric' | 'status' | 'hash' | 'date' | 'action'
+
+export const tableCol: Record<TableColRole, string> = {
+  primary: 'min-w-0',
+  numeric: 'whitespace-nowrap tabular-nums text-right',
+  status: 'whitespace-nowrap',
+  hash: 'min-w-0 truncate font-mono',
+  date: 'whitespace-nowrap tabular-nums',
+  action: 'whitespace-nowrap text-right',
+}
 
 export function DataTableShell({
   title,

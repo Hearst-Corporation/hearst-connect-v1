@@ -5,7 +5,7 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Text } from '@/components/catalyst/text'
 import { BucketSparklines, ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
-import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import clsx from 'clsx'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
@@ -162,7 +162,7 @@ function RebalancingTableRow({ row }: Readonly<{ row: RebalancingRow }>) {
   const drift = driftPointsNullable(row.varianceBps)
   return (
     <TableRow>
-      <TableCell>
+      <TableCell className={tableCol.primary}>
         <VaultEntityLink
           kind="strategy"
           id={row.strategyId}
@@ -170,12 +170,12 @@ function RebalancingTableRow({ row }: Readonly<{ row: RebalancingRow }>) {
           sub={pocket !== null && pocket !== row.strategyLabel ? pocket : undefined}
         />
       </TableCell>
-      <TableCell>
+      <TableCell className={tableCol.numeric}>
         {formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })}
       </TableCell>
-      <TableCell>{formatExposureBps(row.actualBps)}</TableCell>
-      <TableCell className="tabular-nums">{drift ?? 'Unavailable'}</TableCell>
-      <TableCell>{formatRebalanceAt(row.lastRebalanceAt)}</TableCell>
+      <TableCell className={tableCol.numeric}>{formatExposureBps(row.actualBps)}</TableCell>
+      <TableCell className={tableCol.numeric}>{drift ?? 'Unavailable'}</TableCell>
+      <TableCell className={tableCol.date}>{formatRebalanceAt(row.lastRebalanceAt)}</TableCell>
     </TableRow>
   )
 }
@@ -264,11 +264,11 @@ function VaultAllocationSection({
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Strategy</TableHeader>
-            <TableHeader className={fitTableColCompact}>Target</TableHeader>
-            <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
-            <TableHeader className={fitTableColCompact}>Drift</TableHeader>
-            <TableHeader className={fitTableColCompact}>Rebalance</TableHeader>
+            <TableHeader className={tableCol.primary}>Strategy</TableHeader>
+            <TableHeader className={tableCol.numeric}>Target</TableHeader>
+            <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
+            <TableHeader className={tableCol.numeric}>Drift</TableHeader>
+            <TableHeader className={tableCol.date}>Rebalance</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -293,16 +293,16 @@ function MovementTableRow({
       title={clientLabel !== null ? `Client ${clientLabel}` : undefined}
     >
       <TableCell
-        className="tabular-nums"
+        className={tableCol.date}
         title={movement.occurredAt === null ? undefined : formatDateTime(movement.occurredAt)}
       >
         {movementOccurredLabel(movement.occurredAt)}
       </TableCell>
-      <TableCell className="truncate" title={movementSentence(movement.eventName)}>
-        {movementLabel(movement.eventName)}
+      <TableCell className={tableCol.primary} title={movementSentence(movement.eventName)}>
+        <div className="truncate">{movementLabel(movement.eventName)}</div>
       </TableCell>
-      <TableCell className="tabular-nums">{movementAmount(movement, vault)}</TableCell>
-      <TableCell className="truncate font-mono text-sm" title={movement.txHash ?? undefined}>
+      <TableCell className={tableCol.numeric}>{movementAmount(movement, vault)}</TableCell>
+      <TableCell className={`${tableCol.hash} text-sm`} title={movement.txHash ?? undefined}>
         <TxExplorerLink txShort={txShort} txUrl={txUrl} />
       </TableCell>
     </TableRow>
@@ -345,10 +345,10 @@ function VaultRecentActivitySection({
       <DataTableShell title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColCompact}>Time</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Type</TableHeader>
-            <TableHeader className={fitTableColCompact}>Amount</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
+            <TableHeader className={tableCol.date}>Time</TableHeader>
+            <TableHeader className={tableCol.primary}>Type</TableHeader>
+            <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+            <TableHeader className={tableCol.hash}>Tx</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -542,12 +542,12 @@ function RebalancingEventsSection({
     >
       <TableHead>
         <TableRow>
-          <TableHeader className={fitTableColCompact}>Time</TableHeader>
-          <TableHeader className={fitTableColPrimary}>Type</TableHeader>
-          <TableHeader className={fitTableColPrimary}>Category</TableHeader>
-          <TableHeader className={fitTableColCompact}>Amount</TableHeader>
-          <TableHeader className={fitTableColCompact}>Block</TableHeader>
-          <TableHeader className={fitTableColPrimary}>Tx</TableHeader>
+          <TableHeader className={tableCol.date}>Time</TableHeader>
+          <TableHeader className={tableCol.status}>Type</TableHeader>
+          <TableHeader className={tableCol.primary}>Category</TableHeader>
+          <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+          <TableHeader className={tableCol.numeric}>Block</TableHeader>
+          <TableHeader className={tableCol.hash}>Tx</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -556,10 +556,10 @@ function RebalancingEventsSection({
           const txUrl = event.explorerUrl ?? undefined
           return (
             <TableRow key={`${event.txHash ?? 'event'}-${index}`}>
-              <TableCell className="tabular-nums text-xs">
+              <TableCell className={`${tableCol.date} text-xs`}>
                 {event.timestamp ? formatRelativeTime(event.timestamp) : '—'}
               </TableCell>
-              <TableCell className="text-sm">
+              <TableCell className={`${tableCol.status} text-sm`}>
                 <span
                   className={clsx(
                     'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
@@ -573,16 +573,16 @@ function RebalancingEventsSection({
                   {event.name}
                 </span>
               </TableCell>
-              <TableCell className="truncate text-xs text-fg-tertiary">
-                {event.category}
+              <TableCell className={`${tableCol.primary} text-xs text-fg-tertiary`}>
+                <div className="truncate">{event.category}</div>
               </TableCell>
-              <TableCell className="tabular-nums text-xs">
+              <TableCell className={`${tableCol.numeric} text-xs`}>
                 {event.amount ? formatCurrency(event.amount, { decimals: 0 }) : '—'}
               </TableCell>
-              <TableCell className="tabular-nums text-xs">
+              <TableCell className={`${tableCol.numeric} text-xs`}>
                 {event.blockNumber ? formatNumber(event.blockNumber) : '—'}
               </TableCell>
-              <TableCell className="truncate font-mono text-xs">
+              <TableCell className={`${tableCol.hash} text-xs`}>
                 {txShort ? (
                   <a
                     href={txUrl}

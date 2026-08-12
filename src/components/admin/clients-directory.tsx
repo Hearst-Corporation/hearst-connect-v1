@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { DataTableShell, tableCol } from '@/components/compositions'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatRelativeTime } from '@/lib/format'
@@ -134,33 +134,33 @@ export function ClientsDirectory({
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader className={fitTableColPrimary}>Client</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Exposure</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Vaults</TableHeader>
-                  <TableHeader className={fitTableColCompact}>KYC</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Activity</TableHeader>
+                  <TableHeader className={tableCol.primary}>Client</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Vaults</TableHeader>
+                  <TableHeader className={tableCol.status}>KYC</TableHeader>
+                  <TableHeader className={tableCol.date}>Activity</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filtered.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className={fitTableColPrimary}>
+                    <TableCell className={tableCol.primary}>
                       <div className="truncate font-medium text-fg">{client.label}</div>
                     </TableCell>
-                    <TableCell className={`${fitTableColCompact} tabular-nums`}>
+                    <TableCell className={tableCol.numeric}>
                       {assetScale
                         ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
                         : '—'}
                     </TableCell>
-                    <TableCell className={`${fitTableColCompact} tabular-nums text-fg-tertiary`}>
+                    <TableCell className={`${tableCol.numeric} text-fg-tertiary`}>
                       {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
                     </TableCell>
-                    <TableCell className={fitTableColCompact}>
+                    <TableCell className={tableCol.status}>
                       <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>
                         {kycStatusLabel(client.kycStatus)}
                       </AdminToneBadge>
                     </TableCell>
-                    <TableCell className={`${fitTableColCompact} text-fg-tertiary`}>
+                    <TableCell className={`${tableCol.date} text-fg-tertiary`}>
                       {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
                     </TableCell>
                   </TableRow>

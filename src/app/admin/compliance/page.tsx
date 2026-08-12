@@ -3,7 +3,7 @@ import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Callout, DataTableShell, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { kycStatusLabel, kycStepLabel } from '@/lib/labels'
@@ -64,23 +64,27 @@ export default async function Page() {
             <>
               <TableHead>
                 <TableRow>
-                  <TableHeader className={fitTableColPrimary}>Client</TableHeader>
-                  <TableHeader className={fitTableColPrimary}>Stage</TableHeader>
-                  <TableHeader className={fitTableColCompact}>KYC</TableHeader>
-                  <TableHeader className={fitTableColCompact}>Updated</TableHeader>
+                  <TableHeader className={tableCol.primary}>Client</TableHeader>
+                  <TableHeader className={tableCol.primary}>Stage</TableHeader>
+                  <TableHeader className={tableCol.status}>KYC</TableHeader>
+                  <TableHeader className={tableCol.date}>Updated</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {reviews.map((review) => (
                   <TableRow key={review.id} title={review.openedAt ? `Opened ${dateLisible(review.openedAt)}` : undefined}>
-                    <TableCell className="truncate font-medium">{review.clientLabel}</TableCell>
-                    <TableCell className="truncate">{kycStepLabel(review.stage)}</TableCell>
-                    <TableCell>
+                    <TableCell className={tableCol.primary}>
+                      <div className="truncate font-medium">{review.clientLabel}</div>
+                    </TableCell>
+                    <TableCell className={tableCol.primary}>
+                      <div className="truncate">{kycStepLabel(review.stage)}</div>
+                    </TableCell>
+                    <TableCell className={tableCol.status}>
                       <AdminToneBadge tone={toneForKycStatus(review.kycStatus)}>
                         {kycStatusLabel(review.kycStatus)}
                       </AdminToneBadge>
                     </TableCell>
-                    <TableCell className="tabular-nums">{dateLisible(review.lastEventAt)}</TableCell>
+                    <TableCell className={tableCol.date}>{dateLisible(review.lastEventAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

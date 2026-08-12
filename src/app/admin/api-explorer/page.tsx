@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
-import { DataTableShell, SectionCard, fitTableColCompact, fitTableColPrimary } from '@/components/compositions'
+import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
@@ -171,19 +171,19 @@ export default async function ApiExplorerPage() {
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColCompact}>Level</TableHeader>
-            <TableHeader className={fitTableColCompact}>Endpoints</TableHeader>
-            <TableHeader className={fitTableColPrimary}>What it requires</TableHeader>
+            <TableHeader className={tableCol.status}>Level</TableHeader>
+            <TableHeader className={tableCol.numeric}>Endpoints</TableHeader>
+            <TableHeader className={tableCol.primary}>What it requires</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {AUTH_LEVELS.map((level) => (
             <TableRow key={level.auth}>
-              <TableCell className="font-medium">{level.label}</TableCell>
-              <TableCell className="tabular-nums">
+              <TableCell className={`${tableCol.status} font-medium`}>{level.label}</TableCell>
+              <TableCell className={tableCol.numeric}>
                 {formatNumber(countBy((e) => e.auth === level.auth))}
               </TableCell>
-              <TableCell>{level.detail}</TableCell>
+              <TableCell className={tableCol.primary}>{level.detail}</TableCell>
             </TableRow>
           ))}
         </TableBody>

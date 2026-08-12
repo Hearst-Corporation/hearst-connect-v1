@@ -126,7 +126,7 @@ describe('design system surfaces — canon dashboard', () => {
   })
 
   it('cross-surface : account CSS référence les tokens NUS (pas de fallback couleur qui dérive)', () => {
-    // Doctrine 60-cross-surface-ds : les tokens @theme résolvent au :root sous le
+    // Doctrine 60-design-system (cross-surface) : les tokens @theme résolvent au :root sous le
     // layout .dark, donc un `var(--color-…, #fallback)` local n'affiche jamais son
     // fallback — il n'encode qu'une copie divergente du token. On interdit ce drift.
     const css = readFileSync(

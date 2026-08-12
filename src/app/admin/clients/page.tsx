@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, fitTableColPrimary } from '@/components/compositions'
+import { Callout, DataTableShell, tableCol } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { loadAdminAssetScale, loadAdminClientsDirectory } from '@/lib/admin-dashboard/load'
@@ -90,15 +90,17 @@ function ClientsMainContent({
       >
         <TableHead>
           <TableRow>
-            <TableHeader className={fitTableColPrimary}>Client</TableHeader>
-            <TableHeader className={fitTableColPrimary}>Identifier</TableHeader>
+            <TableHeader className={tableCol.primary}>Client</TableHeader>
+            <TableHeader className={tableCol.hash}>Identifier</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {view.clients.map((client) => (
             <TableRow key={client.id}>
-              <TableCell className="font-medium">{client.label}</TableCell>
-              <TableCell className="font-mono text-sm text-fg-tertiary">{client.id}</TableCell>
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium">{client.label}</div>
+              </TableCell>
+              <TableCell className={`${tableCol.hash} text-sm text-fg-tertiary`}>{client.id}</TableCell>
             </TableRow>
           ))}
         </TableBody>
