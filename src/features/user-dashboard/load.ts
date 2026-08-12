@@ -29,6 +29,8 @@ const SERIES1_ENDPOINT = '/api/v1/series1/events'
 const BACKTEST_ENDPOINT = '/api/v1/backtest/historical'
 const VAULT_ENDPOINT = '/api/v1/vault'
 const FACTSHEET_ENDPOINT = '/api/v1/product/factsheet'
+const BTC_ENDPOINT = '/api/v1/btc'
+const MARKET_SNAPSHOT_ENDPOINT = '/api/v1/admin/market/snapshot'
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
 
@@ -79,6 +81,19 @@ export type ExposurePocket = {
   readonly label: string
   readonly targetPct: number
   readonly actualPct: number | null
+}
+/**
+ * A single, honest point-in-time reading — NOT a time series. The backend
+ * exposes no history for network difficulty or hashprice (only a snapshot),
+ * so the BTC context flank never builds a sparkline for these two fields —
+ * a mini-chart drawn from a single point would be a fabricated trend.
+ */
+export type MarketSnapshot = {
+  readonly btcUsd: number | null
+  readonly btcChange24hPct: number | null
+  readonly hashprice: number | null
+  readonly difficulty: number | null
+  readonly asOf: string | null
 }
 export type UserMovement = {
   readonly id: string
@@ -132,6 +147,12 @@ export type UserDashboard = {
   /** The investor's own movements (list). */
   readonly activity: Availability<readonly UserMovement[]>
   readonly activityCount: Availability<string>
+  /** BTC/hashprice/difficulty point-in-time reading — global market context,
+   *  never the vault's own data. See `MarketSnapshot` for why it carries no
+   *  history. */
+  readonly marketSnapshot: Availability<MarketSnapshot>
+  /** Cumulative BTC produced by the product, in whole BTC (from `btc.btcProduced`). */
+  readonly btcProducedTotal: Availability<number>
 }
 
 // ── History snapshot parsing ─────────────────────────────────────────────────
@@ -275,6 +296,28 @@ function capacityFrom(vaultData: unknown): {
   }
 }
 
+/** Point-in-time market reading from `admin/market/snapshot`'s nested `snapshot` field. */
+function marketSnapshotFrom(field: ResolvedField | null): MarketSnapshot | null {
+  const raw = field?.value
+  if (typeof raw !== 'object' || raw === null) return null
+  const r = raw as Record<string, unknown>
+  return {
+    btcUsd: num(r.btcUsd),
+    btcChange24hPct: num(r.btcChange24hPct),
+    hashprice: num(r.hashprice),
+    difficulty: num(r.difficulty),
+    asOf: typeof r.asOf === 'string' ? r.asOf : null,
+  }
+}
+
+/** Cumulative BTC produced (whole BTC) from `btc.btcProduced.totalSats`. */
+function btcProducedTotalFrom(field: ResolvedField | null): number | null {
+  const raw = field?.value
+  if (typeof raw !== 'object' || raw === null) return null
+  const sats = num((raw as Record<string, unknown>).totalSats)
+  return sats === null ? null : sats / 100_000_000
+}
+
 function minDepositFrom(factsheetData: unknown): number | null {
   const terms = envelopeField(factsheetData, 'terms').value as Record<string, unknown> | null
   const min = num(terms?.minimumDepositUsdc)
@@ -395,6 +438,8 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     factsheetResponse,
     portfolioResponse,
     movementsResponse,
+    btcResponse,
+    marketSnapshotResponse,
   ] = await Promise.all([
     callBackend<Record<string, unknown>>('dashboard'),
     callBackend<unknown>('vault-history'),
@@ -404,6 +449,8 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     callBackend<unknown>('product-factsheet'),
     callBackend<Record<string, unknown>>('me-portfolio'),
     callBackend<Record<string, unknown>>('me-movements'),
+    callBackend<Record<string, unknown>>('btc'),
+    callBackend<Record<string, unknown>>('admin-market-snapshot'),
   ])
 
   const aggregate = aggregateResponse.ok ? aggregateResponse.data : null
@@ -522,6 +569,28 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     FACTSHEET_ENDPOINT,
   )
 
+  // Global BTC/network context — never the vault's own data. `admin-market-
+  // snapshot` requires the backend `admin` role; today's single login path is
+  // admin-gated so the call succeeds, but a future investor-only role would
+  // make it a named PERMISSION_DENIED absence, never a fabricated reading.
+  const btcAggregate = btcResponse.ok ? btcResponse.data : null
+  const btcProducedField = surface(btcAggregate, 'btcProduced')
+  const btcProducedTotal = availabilityFromResolved<number>(
+    { status: btcProducedField.status, value: btcProducedTotalFrom(btcProducedField.value), reason: 'no_btc_produced' },
+    BTC_ENDPOINT,
+  )
+
+  const marketAggregate = marketSnapshotResponse.ok ? marketSnapshotResponse.data : null
+  const marketSnapshotField = surface(marketAggregate, 'snapshot')
+  const marketSnapshot = availabilityFromResolved<MarketSnapshot>(
+    {
+      status: marketSnapshotField.status,
+      value: marketSnapshotFrom(marketSnapshotField.value),
+      reason: 'no_market_snapshot',
+    },
+    MARKET_SNAPSHOT_ENDPOINT,
+  )
+
   return {
     sourceStatus,
     position,
@@ -546,5 +615,7 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     activityByType,
     activity,
     activityCount,
+    marketSnapshot,
+    btcProducedTotal,
   }
 }
