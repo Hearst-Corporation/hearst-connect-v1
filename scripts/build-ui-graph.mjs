@@ -921,8 +921,9 @@ function stableStringify(graph) {
   return `${JSON.stringify(graph, null, 2)}\n`
 }
 
-function stripGeneratedAt(graph) {
-  const { generatedAt: _ignored, ...rest } = graph
+function stripVolatile(graph) {
+  // sourceSha / generatedAt are rebuild stamps. Catalog currency is nodes+edges.
+  const { generatedAt: _a, sourceSha: _s, ...rest } = graph
   return rest
 }
 
@@ -976,13 +977,13 @@ function checkStatus() {
     return
   }
 
-  const nextStable = JSON.stringify(stripGeneratedAt(graph))
-  const committedStable = JSON.stringify(stripGeneratedAt(committed))
-  const shaMatch = committed.sourceSha === graph.sourceSha
+  const nextStable = JSON.stringify(stripVolatile(graph))
+  const committedStable = JSON.stringify(stripVolatile(committed))
 
-  if (nextStable === committedStable && shaMatch) {
+  if (nextStable === committedStable) {
     console.log('GRAPH_CURRENT')
-    console.log(`sourceSha=${graph.sourceSha}`)
+    console.log(`sourceSha=${committed.sourceSha ?? 'none'} (stamp)`)
+    console.log(`workingSha=${graph.sourceSha}`)
     console.log(`nodes=${graph.nodes.length} edges=${graph.edges.length}`)
     process.exitCode = 0
     return
