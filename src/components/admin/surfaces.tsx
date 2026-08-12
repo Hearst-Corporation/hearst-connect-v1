@@ -106,7 +106,7 @@ export function AdminProbeResult({
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-white">JSON brut</summary>
+          <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-white">Raw JSON</summary>
           <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-ink dark:text-fg/80">{rawJson}</pre>
         </details>
       ) : null}

@@ -1,14 +1,13 @@
 import { test, expect, type Page } from '@playwright/test'
 
 /**
- * Fermeture audit ENDPOINTS-DATA-DISPLAY-001 — LOT 3/6.
- * Parcours réel : routes clés, libellés honnêtes, focus clavier minimal.
+ * Audit closure — key routes, honest labels, minimal keyboard focus.
  */
 
 const ROUTES_AUDIT = [
   '/admin',
   '/admin/runtime',
-  '/admin/produit',
+  '/admin/product',
   '/admin/vaults',
 ] as const
 
@@ -18,45 +17,45 @@ async function quickLogin(page: Page) {
   await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 45_000 })
 }
 
-test.describe('audit closure — vérité affichée', () => {
+test.describe('audit closure — displayed truth', () => {
   test.beforeEach(async ({ page }) => {
     await quickLogin(page)
   })
 
-  test('dashboard lit meta.status (plus « joignable » générique)', async ({ page }) => {
+  test('dashboard surfaces resolved status labels (not a generic reachability phrase)', async ({ page }) => {
     await page.goto('/admin')
     const body = await page.locator('body').innerText()
-    expect(body).not.toContain('Source du tableau de bord joignable')
-    expect(body).toMatch(/en direct|indisponible|obsolète|partiel/i)
+    expect(body).not.toMatch(/Source du tableau de bord joignable/i)
+    expect(body).toMatch(/Live|Stale|Partial|Unavailable/i)
   })
 
-  test('runtime expose la matrice d’état et l’indexeur', async ({ page }) => {
+  test('runtime exposes the system overview matrix and indexer row', async ({ page }) => {
     await page.goto('/admin/runtime')
-    await expect(page.getByRole('heading', { name: 'État du service' })).toBeVisible()
-    await expect(page.getByText('Matrice d’état')).toBeVisible()
-    await expect(page.getByRole('cell', { name: 'Indexeur', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Service' })).toBeVisible()
+    await expect(page.getByText('System overview')).toBeVisible()
+    await expect(page.getByRole('cell', { name: 'Indexer', exact: true })).toBeVisible()
   })
 
-  test('produit affiche la vue consolidée', async ({ page }) => {
-    await page.goto('/admin/produit')
-    await expect(page.getByRole('heading', { name: 'Vue produit consolidée' })).toBeVisible()
-    await expect(page.getByText('Lectures consolidées du produit')).toBeVisible()
+  test('product shows the consolidated view', async ({ page }) => {
+    await page.goto('/admin/product')
+    await expect(page.getByRole('heading', { name: 'Consolidated product view' })).toBeVisible()
+    await expect(page.getByText('Mining, BTC, and product factsheet readings')).toBeVisible()
   })
 })
 
-test.describe('audit closure — layout et focus', () => {
-  test('chaque route audit a un h1 et pas de scroll horizontal document', async ({ page }) => {
+test.describe('audit closure — layout and focus', () => {
+  test('each audit route has an h1 and no document horizontal scroll', async ({ page }) => {
     await quickLogin(page)
     for (const route of ROUTES_AUDIT) {
       await page.setViewportSize({ width: 375, height: 812 })
       await page.goto(route)
       await expect(page.locator('h1').first()).toBeVisible()
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)
-      expect(overflow, `scroll horizontal sur ${route}`).toBeFalsy()
+      expect(overflow, `horizontal scroll on ${route}`).toBeFalsy()
     }
   })
 
-  test('tab atteint un lien ou bouton focusable sur le dashboard', async ({ page }) => {
+  test('tab reaches a focusable link or button on the dashboard', async ({ page }) => {
     await quickLogin(page)
     await page.goto('/admin')
     await page.keyboard.press('Tab')

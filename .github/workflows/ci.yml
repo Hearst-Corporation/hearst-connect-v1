@@ -34,6 +34,8 @@ jobs:
         run: pnpm run check:truthful-data
       - name: Convergence Design System (check:ds)
         run: pnpm run check:ds
+      - name: Contrat DS admin (check:admin-ds)
+        run: pnpm run check:admin-ds
       - name: Frontières UI (check:ui)
         run: pnpm run check:ui
 

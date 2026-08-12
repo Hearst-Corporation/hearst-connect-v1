@@ -2,6 +2,7 @@
 
 import type { ResolvedStatus } from '@/lib/resolved'
 import { getSession } from '@/lib/session'
+import { toBackendRole } from './auth'
 import { callBackend, statusFromMeta, type CallTrace } from './client'
 import { BACKEND_ENDPOINTS, type BackendEndpoint } from './endpoints'
 
@@ -75,11 +76,11 @@ export async function probeEndpoint(_prev: ProbeOutcome | null, form: FormData):
   // and independent, like `runKeeperAction` in keeper.ts — a Server Action must
   // never rely on a layout for its authorization. Fail-closed, non-throwing.
   const session = await getSession()
-  if (!session) {
+  if (!session || toBackendRole(session.role) !== 'admin') {
     return refusal(
       '',
       'PERMISSION_DENIED',
-      'No session: the API Explorer only runs for an authenticated administrator.',
+      'Administrator role required: the API Explorer only runs for an authenticated administrator.',
       traceWithoutCall('—', '—'),
     )
   }

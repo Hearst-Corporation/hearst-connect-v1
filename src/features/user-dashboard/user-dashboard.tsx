@@ -151,7 +151,6 @@ export function UserDashboardView({
     'Allocation terms did not resolve.',
   )
 
-  const latestValue = valuePoints !== null && valuePoints.length > 0 ? valuePoints[valuePoints.length - 1].value : null
   const latestBtc = btcPoints !== null && btcPoints.length > 0 ? btcPoints[btcPoints.length - 1].value : null
   // The CLIENT's own book position value (principal + accrued). Absent/dormant
   // investor plane → null → an honest "—", never the vault's AUM in disguise.
@@ -161,7 +160,6 @@ export function UserDashboardView({
   const availableCapacity = valueOf(data.availableCapacity)
   const minimumDeposit = valueOf(data.minimumDeposit)
 
-  const valueTrend = valuePoints !== null ? valuePoints.map((p) => p.value) : undefined
   const btcTrend = btcPoints !== null ? btcPoints.map((p) => p.value) : undefined
 
   const centralChart: Record<
