@@ -204,24 +204,127 @@
   border-color: var(--color-console-line-strong);
 }
 
-/* ── KPI hero ────────────────────────────────────────────────────────────── */
+/* ── Page intro ──────────────────────────────────────────────────────────── */
 
-.ud-root .kpis {
-  display: grid;
-  grid-template-columns: minmax(200px, 1.15fr) repeat(5, minmax(128px, 1fr));
+.ud-root .page-intro {
+  padding: clamp(16px, 1.5vw, 26px) var(--space);
   border-bottom: 1px solid var(--color-console-line);
 }
 
-.ud-root .intro,
-.ud-root .stat-tile {
-  padding: clamp(16px, 1.5vw, 26px) var(--space);
+.ud-root .section-heading {
+  padding: clamp(14px, 1.4vw, 22px) var(--space) clamp(10px, 1vw, 14px);
+  border-bottom: 1px solid var(--color-console-line-soft);
 }
 
-.ud-root .intro,
-.ud-root .stat-tile:not(:last-child) {
+.ud-root .section-heading h2 {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: clamp(16px, 1.05vw, 22px);
+  font-weight: 520;
+}
+
+.ud-root .section-heading span {
+  display: block;
+  margin-top: 4px;
+  max-width: 42rem;
+  color: var(--color-fg-tertiary);
+  font-size: var(--small);
+  line-height: 1.5;
+}
+
+/* ── Your position ───────────────────────────────────────────────────────── */
+
+.ud-root .your-position {
+  border-bottom: 1px solid var(--color-console-line);
+}
+
+.ud-root .position-absent {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0 var(--space) clamp(12px, 1.2vw, 18px);
+  padding: clamp(14px, 1.2vw, 20px);
+  border: 1px solid var(--color-console-line-soft);
+  border-radius: 12px;
+  background: var(--color-console-inset);
+}
+
+.ud-root .position-absent h3 {
+  margin: 0 0 6px;
+  color: var(--color-fg-secondary);
+  font-size: clamp(14px, 0.9vw, 18px);
+  font-weight: 500;
+}
+
+.ud-root .position-absent span {
+  display: block;
+  max-width: 36rem;
+  color: var(--color-fg-tertiary);
+  font-size: var(--small);
+  line-height: 1.6;
+}
+
+.ud-root .position-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
+}
+
+.ud-root .position-grid .stat-tile:not(:last-child) {
   border-right: 1px solid var(--color-console-line);
 }
 
+/* ── Your account ────────────────────────────────────────────────────────── */
+
+.ud-root .your-account {
+  border-bottom: 1px solid var(--color-console-line);
+}
+
+.ud-root .your-account-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+}
+
+.ud-root .your-account-body>.movements {
+  min-width: 0;
+  border-right: 1px solid var(--color-console-line);
+}
+
+.ud-root .your-account-body>.flank-panel {
+  min-width: 0;
+}
+
+.ud-root .your-account .movements-heading h3 {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: clamp(15px, 1vw, 19px);
+  font-weight: 520;
+}
+
+/* ── Fund / Vault ────────────────────────────────────────────────────────── */
+
+.ud-root .fund-vault .fund-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
+  border-bottom: 1px solid var(--color-console-line);
+}
+
+.ud-root .fund-kpis .stat-tile {
+  padding: clamp(16px, 1.5vw, 26px) var(--space);
+}
+
+.ud-root .fund-kpis .stat-tile:not(:last-child) {
+  border-right: 1px solid var(--color-console-line);
+}
+
+.ud-root .analysis--fund {
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+}
+
+.ud-root .analysis--fund>.flank-panel:last-child {
+  border-left: 0;
+}
+
+/* ── KPI hero (legacy class retained for stat tiles) ─────────────────────── */
 .ud-root .eyebrow {
   margin: 0 0 7px;
   color: var(--color-fg-tertiary);
@@ -242,6 +345,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 6px;
+  padding: clamp(16px, 1.5vw, 26px) var(--space);
 }
 
 .ud-root .stat-eyebrow {
@@ -917,28 +1021,35 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 1200px) {
-  .ud-root .kpis {
+  .ud-root .position-grid,
+    .ud-root .fund-kpis {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .ud-root .intro {
-    grid-column: 1 / -1;
-    border-right: 0;
-    border-bottom: 1px solid var(--color-console-line);
-  }
-
-  .ud-root .stat-tile {
+    .ud-root .position-grid .stat-tile,
+    .ud-root .fund-kpis .stat-tile {
     border-right: 1px solid var(--color-console-line);
     border-bottom: 1px solid var(--color-console-line);
   }
 
-  .ud-root .stat-tile:nth-child(3n + 1) {
+    .ud-root .position-grid .stat-tile:nth-child(3n),
+    .ud-root .fund-kpis .stat-tile:nth-child(3n) {
     border-right: 0;
   }
 }
 
 @media (max-width: 1100px) {
-  .ud-root .analysis {
+  .ud-root .your-account-body {
+      grid-template-columns: 1fr;
+    }
+  
+    .ud-root .your-account-body>.movements {
+      border-right: 0;
+      border-bottom: 1px solid var(--color-console-line);
+    }
+  
+    .ud-root .analysis,
+    .ud-root .analysis--fund {
     grid-template-columns: 1fr;
   }
 
@@ -980,15 +1091,18 @@
     grid-template-columns: auto auto auto;
   }
 
-  .ud-root .kpis {
+    .ud-root .position-grid,
+    .ud-root .fund-kpis {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .ud-root .stat-tile:nth-child(3n + 1) {
+    .ud-root .position-grid .stat-tile:nth-child(3n),
+    .ud-root .fund-kpis .stat-tile:nth-child(3n) {
     border-right: 1px solid var(--color-console-line);
   }
 
-  .ud-root .stat-tile:nth-child(2n) {
+    .ud-root .position-grid .stat-tile:nth-child(2n),
+    .ud-root .fund-kpis .stat-tile:nth-child(2n) {
     border-right: 0;
   }
 

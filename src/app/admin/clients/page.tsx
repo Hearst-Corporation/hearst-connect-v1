@@ -96,7 +96,11 @@ function ClientsMainContent({
         </TableHead>
         <TableBody>
           {view.clients.map((client) => (
-            <TableRow key={client.id}>
+            <TableRow
+              key={client.id}
+              href={`/admin/client-simulator/${client.id}`}
+              title={`Open ${client.label}`}
+            >
               <TableCell className={tableCol.primary}>
                 <div className="truncate font-medium">{client.label}</div>
               </TableCell>

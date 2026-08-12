@@ -2,6 +2,7 @@
 
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { Input } from '@/components/catalyst/input'
+import { Link } from '@/components/catalyst/link'
 import {
   TableBody,
   TableCell,
@@ -143,7 +144,11 @@ export function ClientsDirectory({
               </TableHead>
               <TableBody>
                 {filtered.map((client) => (
-                  <TableRow key={client.id}>
+                  <TableRow
+                    key={client.id}
+                    href={`/admin/client-simulator/${client.id}`}
+                    title={`Open ${client.label}`}
+                  >
                     <TableCell className={tableCol.primary}>
                       <div className="truncate font-medium text-fg">{client.label}</div>
                     </TableCell>
@@ -178,10 +183,11 @@ export function ClientsDirectory({
           </li>
         ) : (
           filtered.map((client) => (
-            <li
-              key={client.id}
-              className="rounded-lg bg-console-card p-4 ring-1 ring-console-line-soft"
-            >
+            <li key={client.id}>
+              <Link
+                href={`/admin/client-simulator/${client.id}`}
+                className="block rounded-lg bg-console-card p-4 ring-1 ring-console-line-soft"
+              >
               <div className="flex items-start justify-between gap-3">
                 <p className="truncate text-sm font-semibold text-ink dark:text-fg">{client.label}</p>
                 <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
@@ -203,6 +209,7 @@ export function ClientsDirectory({
               <p className="mt-3 text-xs text-fg-tertiary">
                 Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
               </p>
+              </Link>
             </li>
           ))
         )}

@@ -129,6 +129,24 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: '`meta.status` is computed worst-field-first: a single degraded field lowers the whole aggregate.',
   }),
   defineEndpoint({
+    id: 'me-portfolio',
+    path: '/api/v1/me/portfolio',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Session-scoped investor position — book principal, accrued, status.',
+    caveat: 'Scoped to the connected session — not the fund-wide dashboard aggregate.',
+  }),
+  defineEndpoint({
+    id: 'me-movements',
+    path: '/api/v1/me/movements',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Session-scoped investor movements — the caller\'s own ledger.',
+    caveat: 'Scoped to the connected session — never the global recentEvents feed.',
+  }),
+  defineEndpoint({
     id: 'profile',
     path: '/api/v1/profile',
     category: 'business',
@@ -410,6 +428,16 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/admin',
     summary: 'Recent clients with exposure and Som KYC status.',
     caveat: 'KYC is read-only partner status — no Hearst review actions.',
+  }),
+  defineEndpoint({
+    id: 'admin-client-detail',
+    path: '/api/v1/admin/clients/:id',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/clients',
+    summary: 'Admin 360 read-model for one client — identity, positions, movements, exposure.',
+    caveat:
+      'Admin role required. Path `:id` is the investor id. 404 Problem `INVESTOR_NOT_FOUND` when absent — no row is invented on the frontend.',
   }),
   defineEndpoint({
     id: 'admin-activity-recent',

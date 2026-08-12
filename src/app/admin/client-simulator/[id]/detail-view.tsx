@@ -1,6 +1,11 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { Badge } from '@/components/catalyst/badge'
+import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { Link } from '@/components/catalyst/link'
+import {
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from '@/components/catalyst/description-list'
 import {
   TableBody,
   TableCell,
@@ -9,238 +14,301 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
-import { ChartFrame } from '@/components/charts'
+import { Callout, DataTableShell, SectionCard, SourceAttendue, tableCol } from '@/components/compositions'
 import { callBackend } from '@/lib/backend/client'
+import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/availability'
+import { formatAddress, formatCurrency, formatDateTime, formatHash } from '@/lib/format'
+import { kycStatusLabel } from '@/lib/labels'
+import { readableReason } from '@/lib/movements'
 import {
-  available,
+  isAvailable,
   mapAvailability,
   measuredCount,
   unavailable,
   type Availability,
 } from '@/lib/vaults/model'
 import {
-  CheckBadgeIcon,
-  LinkIcon,
+  ArrowsRightLeftIcon,
+  BanknotesIcon,
+  RectangleStackIcon,
   TagIcon,
-  UsersIcon,
 } from '@heroicons/react/16/solid'
-import { SimulatedBadge } from '../_shared'
 
-type Resolved<T> = Readonly<{ status?: string; value: T | null; reason?: string | null }>
+const DETAIL_ENDPOINT = '/api/v1/admin/clients/:id'
 
-type ClientWire = Readonly<{ id?: string | null; label?: string | null }>
+type Identity = Readonly<{
+  label: string
+  walletAddress: string | null
+  kycStatus: string
+}>
 
-type ClientsResponse = Readonly<{ clients?: Resolved<readonly ClientWire[]> }>
+type Position = Readonly<{
+  id: string
+  principalUsdc: string | null
+  status: string
+  subscribedAt: string
+}>
 
-type ClientRow = Readonly<{ id: string; label: string }>
+type Movement = Readonly<{
+  type: string
+  amountUsdc: string
+  occurredAt: string
+  txHash: string | null
+}>
 
-function clientLabel(label: string | null | undefined, id: string): string {
-  if (label !== null && label !== undefined && label !== '') return label
-  return id
+type ClientDetailData = Readonly<{
+  id?: string
+  identity?: ResolvedBlock<Identity>
+  positions?: ResolvedBlock<readonly Position[]>
+  movements?: ResolvedBlock<readonly Movement[]>
+  exposure?: ResolvedBlock<string>
+}>
+
+const LOCAL_REASON: Readonly<Record<string, string>> = {
+  no_positions: 'no positions are on the book for this client',
+  no_measurable_principal: 'no measurable principal is on the book',
+  field_absent_from_response: 'this block was absent from the response',
+  INVESTOR_NOT_FOUND: 'no investor record matches this identifier',
 }
 
-function clientsFromResponse(
-  clientsRes: Awaited<ReturnType<typeof callBackend<ClientsResponse>>>,
-): readonly ClientRow[] | null {
-  if (!clientsRes.ok) return null
-  const bloc = clientsRes.data.clients
-  if (bloc?.status !== 'LIVE' || !Array.isArray(bloc.value)) return null
-  const rows: ClientRow[] = []
-  for (const c of bloc.value) {
-    if (typeof c.id !== 'string' || c.id === '') continue
-    rows.push({ id: c.id, label: c.label ?? c.id })
-  }
-  return rows
+function formatWholeUsdc(value: string | null | undefined): string {
+  return formatCurrency(value, { fromAtomic: 1, unit: '$' })
 }
 
-type ClientsBackendResult = Awaited<ReturnType<typeof callBackend<ClientsResponse>>>
-
-function directoryLabelAvailability(
-  rows: readonly ClientRow[] | null,
-  match: ClientRow | null,
-  clientsRes: ClientsBackendResult,
-): Availability<string> {
-  if (rows === null) {
-    const reason = clientsRes.ok
-      ? (clientsRes.data.clients?.reason ?? 'Directory unreadable')
-      : 'No response'
-    return unavailable({
-      status: 'UNAVAILABLE',
-      reason,
-      endpoint: '/api/v1/clients',
-    })
+function absenceDetail(reading: Availability<unknown>): string {
+  if (reading.kind !== 'unavailable') {
+    return 'This block was not returned as a readable value.'
   }
-  if (match !== null) {
-    return available(match.label, { provenance: 'db' })
+  const code = reading.reason
+  if (code === null || code === '') {
+    return 'This block was not returned as a readable value.'
   }
-  return unavailable({
-    status: 'EMPTY',
-    reason: 'Identifier absent from directory — the account may exist without being listed yet.',
-    endpoint: '/api/v1/clients',
-  })
+  return readableReason(code) ?? LOCAL_REASON[code] ?? code
 }
 
-function indexationStatusAvailability(
-  rows: readonly ClientRow[] | null,
-  match: ClientRow | null,
-): Availability<string> {
-  if (rows === null) {
-    return unavailable({
-      status: 'UNAVAILABLE',
-      reason: 'Directory unreadable',
-      endpoint: '/api/v1/clients',
-    })
+function namedSource(quoi: string, reading: Availability<unknown>) {
+  return {
+    quoi,
+    detail: absenceDetail(reading),
+    requis: [`GET ${DETAIL_ENDPOINT}`],
   }
-  if (match !== null) {
-    return available('Indexed', { provenance: 'db' })
-  }
-  return available('Not indexed', { provenance: 'db' })
 }
 
-function directoryRowsAvailability(
-  rows: readonly ClientRow[] | null,
-): Availability<readonly ClientRow[]> {
-  if (rows === null) {
-    return unavailable({ endpoint: '/api/v1/clients' })
-  }
-  return available(rows)
+function isNotFound(
+  result: Awaited<ReturnType<typeof callBackend<ClientDetailData>>>,
+): boolean {
+  if (result.ok) return false
+  return result.trace.httpStatus === 404 || result.problem?.code === 'INVESTOR_NOT_FOUND'
 }
 
 /**
- * Simulated client detail — honest read via GET /api/v1/clients.
- * No invented row: if the identifier is not yet in the directory,
- * the absence is named. The layout follows the premium admin grammar
- * (header → KPI → sections → named table); the read stays unchanged.
+ * Admin client 360 — GET /api/v1/admin/clients/:id.
+ * Each Resolved block is shown or named; a 404 does not invent a client.
  */
 export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>) {
-  const clientsRes = await callBackend<ClientsResponse>('clients')
-  const rows = clientsFromResponse(clientsRes)
-  const match = rows?.find((c) => c.id === id) ?? null
-  const directoryRows = directoryRowsAvailability(rows)
+  const result = await callBackend<ClientDetailData>('admin-client-detail', { params: { id } })
 
-  const directoryLabel = directoryLabelAvailability(rows, match, clientsRes)
-  const indexationStatus = indexationStatusAvailability(rows, match)
-  const directorySize = measuredCount(directoryRows)
-  const sourceState = mapAvailability(directoryRows, () => 'GET /api/v1/clients')
+  if (isNotFound(result)) {
+    const missing = unavailable({
+      endpoint: DETAIL_ENDPOINT,
+      status: 'UNAVAILABLE',
+      reason: 'INVESTOR_NOT_FOUND',
+    })
+    const kpis: readonly AdminHeroKpi[] = [
+      { id: 'identity', title: 'Identity', value: missing, icon: TagIcon },
+      { id: 'exposure', title: 'Exposure', value: missing, icon: BanknotesIcon },
+      { id: 'positions', title: 'Positions', value: missing, icon: RectangleStackIcon },
+      { id: 'movements', title: 'Movements', value: missing, icon: ArrowsRightLeftIcon },
+    ]
+    return (
+      <div className="space-y-8">
+        <AdminPageHeader
+          title={id}
+          description="GET /api/v1/admin/clients/:id — named absence when the investor is not on the book."
+          kpis={kpis}
+        />
+        <Callout tone="warning" title="Client introuvable">
+          GET /api/v1/admin/clients/{id} returned 404 (INVESTOR_NOT_FOUND). No client record is shown.
+        </Callout>
+        <Text>
+          <Link href="/admin/clients" className="underline">
+            Client directory
+          </Link>
+        </Text>
+      </div>
+    )
+  }
 
-  const displayName = match !== null ? clientLabel(match.label, id) : id
+  if (!result.ok) {
+    const failed = unavailable({
+      endpoint: DETAIL_ENDPOINT,
+      status: result.state.status,
+      reason: result.state.reason,
+    })
+    const kpis: readonly AdminHeroKpi[] = [
+      { id: 'identity', title: 'Identity', value: failed, icon: TagIcon },
+      { id: 'exposure', title: 'Exposure', value: failed, icon: BanknotesIcon },
+      { id: 'positions', title: 'Positions', value: failed, icon: RectangleStackIcon },
+      { id: 'movements', title: 'Movements', value: failed, icon: ArrowsRightLeftIcon },
+    ]
+    return (
+      <div className="space-y-8">
+        <AdminPageHeader
+          title={id}
+          description="GET /api/v1/admin/clients/:id — named absence when the 360 cannot be read."
+          kpis={kpis}
+        />
+        <Callout tone="warning" title="Client detail unavailable">
+          {absenceDetail(failed)}
+        </Callout>
+        <Text>
+          <Link href="/admin/clients" className="underline">
+            Client directory
+          </Link>
+        </Text>
+      </div>
+    )
+  }
+
+  const identity = availabilityFromResolved(result.data.identity, DETAIL_ENDPOINT)
+  const positions = availabilityFromResolved(result.data.positions, DETAIL_ENDPOINT)
+  const movements = availabilityFromResolved(result.data.movements, DETAIL_ENDPOINT)
+  const exposure = availabilityFromResolved(result.data.exposure, DETAIL_ENDPOINT)
+
+  const title = isAvailable(identity) ? identity.value.label : id
+  const exposureKpi = mapAvailability(exposure, (value) => formatWholeUsdc(value))
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'indexation', title: 'Indexation', value: indexationStatus, icon: CheckBadgeIcon },
-    { id: 'label', title: 'Label', value: directoryLabel, icon: TagIcon },
-    { id: 'annuaire', title: 'Directory', value: directorySize, icon: UsersIcon },
-    { id: 'source', title: 'Source', value: sourceState, icon: LinkIcon },
+    { id: 'identity', title: 'Identity', value: mapAvailability(identity, (row) => row.label), icon: TagIcon },
+    { id: 'exposure', title: 'Exposure', value: exposureKpi, icon: BanknotesIcon },
+    { id: 'positions', title: 'Positions', value: measuredCount(positions), icon: RectangleStackIcon },
+    { id: 'movements', title: 'Movements', value: measuredCount(movements), icon: ArrowsRightLeftIcon },
   ]
 
   return (
     <div className="space-y-8">
-      {/* ── HEADER ───────────────────────────────────────────────── */}
       <AdminPageHeader
-        title={displayName}
-        description="Join on GET /api/v1/clients — named absence if not indexed."
+        title={title}
+        description="GET /api/v1/admin/clients/:id — identity, positions, movements, and exposure."
         kpis={kpis}
       />
 
-      {/* ── CHART (honest state: this record exposes no series) ────── */}
-      <ChartFrame
-        question="Simulated client activity"
-        unit="events per day"
-        state={{
-          type: 'empty',
-          explanation:
-            'GET /api/v1/clients returns only this client identity — no time series to plot today.',
-        }}
-      />
+      {isAvailable(identity) ? (
+        <SectionCard title="Identity" hint="Label, wallet, and partner KYC from the 360 read-model.">
+          <DescriptionList>
+            <DescriptionTerm>Label</DescriptionTerm>
+            <DescriptionDetails>{identity.value.label}</DescriptionDetails>
+            <DescriptionTerm>Wallet</DescriptionTerm>
+            <DescriptionDetails className="font-mono text-sm">
+              {formatAddress(identity.value.walletAddress) ?? '—'}
+            </DescriptionDetails>
+            <DescriptionTerm>KYC</DescriptionTerm>
+            <DescriptionDetails>
+              <AdminToneBadge tone={toneForKycStatus(identity.value.kycStatus)}>
+                {kycStatusLabel(identity.value.kycStatus)}
+              </AdminToneBadge>
+            </DescriptionDetails>
+          </DescriptionList>
+        </SectionCard>
+      ) : (
+        <SourceAttendue {...namedSource('Identity', identity)} />
+      )}
 
-      {/* ── DIRECTORY RECORD (named table: match / absence / unreadable) ─ */}
       <DataTableShell
-        title="Directory record"
-        description="Joined by identifier on GET /api/v1/clients — the only source of this record."
-        count={match !== null ? '1 match' : undefined}
-        source={
-          rows === null
-            ? {
-                quoi: 'Directory record',
-                detail: 'The directory could not be read — cannot join this identifier.',
-                requis: ['GET /api/v1/clients (admin role)'],
-              }
+        title="Positions"
+        description="On-book positions for this investor. An absent block is named; an empty list is empty."
+        count={
+          isAvailable(positions) && positions.value.length > 0
+            ? `${positions.value.length} position(s)`
             : undefined
         }
+        source={!isAvailable(positions) ? namedSource('Positions', positions) : undefined}
         calme={
-          rows !== null && match === null
-            ? 'Identifier not in the directory yet.'
+          isAvailable(positions) && positions.value.length === 0
+            ? 'No positions on the book for this client.'
             : undefined
         }
       >
-        {match !== null ? (
+        {isAvailable(positions) && positions.value.length > 0 ? (
           <>
             <TableHead>
               <TableRow>
-                <TableHeader className={tableCol.status}>Field</TableHeader>
-                <TableHeader className={tableCol.primary}>Value</TableHeader>
+                <TableHeader className={tableCol.hash}>Identifier</TableHeader>
+                <TableHeader className={tableCol.numeric}>Principal</TableHeader>
+                <TableHeader className={tableCol.status}>Status</TableHeader>
+                <TableHeader className={tableCol.date}>Subscribed</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
-              <TableRow>
-                <TableCell className={`${tableCol.status} font-medium`}>Identifier</TableCell>
-                <TableCell className={`${tableCol.hash} text-sm`}>{match.id}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className={`${tableCol.status} font-medium`}>Label</TableCell>
-                <TableCell className={tableCol.primary}>
-                  <div className="truncate">{match.label}</div>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className={`${tableCol.status} font-medium`}>Marker</TableCell>
-                <TableCell className={tableCol.status}>
-                  <SimulatedBadge />
-                </TableCell>
-              </TableRow>
+              {positions.value.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell className={`${tableCol.hash} text-sm`}>{row.id}</TableCell>
+                  <TableCell className={tableCol.numeric}>{formatWholeUsdc(row.principalUsdc)}</TableCell>
+                  <TableCell className={tableCol.status}>{row.status}</TableCell>
+                  <TableCell className={tableCol.date}>{formatDateTime(row.subscribedAt)}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </>
         ) : null}
       </DataTableShell>
 
-      {/* Named absence when directory is readable but identifier is missing */}
-      {rows !== null && match === null ? (
-        <Callout tone="warning" title="Absent from directory">
-          The identifier <span className="font-mono">{id}</span> does not appear in the current response
-          from GET /api/v1/clients. The account may exist without being indexed yet — no row is invented
-          here.
-        </Callout>
-      ) : null}
+      <DataTableShell
+        title="Movements"
+        description="Ledger movements for this investor. An absent block is named; an empty list is empty."
+        count={
+          isAvailable(movements) && movements.value.length > 0
+            ? `${movements.value.length} movement(s)`
+            : undefined
+        }
+        source={!isAvailable(movements) ? namedSource('Movements', movements) : undefined}
+        calme={
+          isAvailable(movements) && movements.value.length === 0
+            ? 'No movements on the book for this client.'
+            : undefined
+        }
+      >
+        {isAvailable(movements) && movements.value.length > 0 ? (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableHeader className={tableCol.status}>Type</TableHeader>
+                <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+                <TableHeader className={tableCol.date}>When</TableHeader>
+                <TableHeader className={tableCol.hash}>Transaction</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {movements.value.map((row, index) => (
+                <TableRow key={row.txHash ?? `${row.type}-${row.occurredAt}-${String(index)}`}>
+                  <TableCell className={tableCol.status}>{row.type}</TableCell>
+                  <TableCell className={tableCol.numeric}>{formatWholeUsdc(row.amountUsdc)}</TableCell>
+                  <TableCell className={tableCol.date}>{formatDateTime(row.occurredAt)}</TableCell>
+                  <TableCell className={`${tableCol.hash} text-sm`}>
+                    {formatHash(row.txHash) ?? '—'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </>
+        ) : null}
+      </DataTableShell>
 
-      {/* ── EDITORIAL SECTION: account identity (not counters) ─────── */}
-      <SectionCard title="Account identity" hint="Stable markers for the simulated client — UI definition." tone="plain">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <SimulatedBadge />
-            <span className="font-mono text-sm text-fg-tertiary dark:text-fg-secondary">{id}</span>
-          </div>
-          <Text>
-            This account was created via POST /api/v1/admin/users. The service never returns its password;
-            only the identifier and directory label published by the registry are shown here.
-          </Text>
-        </div>
-      </SectionCard>
+      {isAvailable(exposure) ? (
+        <SectionCard title="Exposure" hint="Sum of on-book principal. Absent principal is never shown as zero.">
+          <p className="text-2xl font-semibold tabular-nums tracking-tight text-fg">
+            {formatWholeUsdc(exposure.value)}
+          </p>
+        </SectionCard>
+      ) : (
+        <SourceAttendue {...namedSource('Exposure', exposure)} />
+      )}
 
-      {/* ── NAVIGATION LINKS ─────────────────────────────────────── */}
-      <SectionCard title="Continue" tone="plain">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge color="neutral">Simulator</Badge>
-          <Text>
-            <Link href="/admin/client-simulator/new" className="underline">
-              Create another simulated client
-            </Link>
-            {' · '}
-            <Link href="/admin/clients" className="underline">
-              Client directory
-            </Link>
-          </Text>
-        </div>
-      </SectionCard>
+      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+        <Link href="/admin/clients" className="underline">
+          Client directory
+        </Link>
+      </Text>
     </div>
   )
 }
