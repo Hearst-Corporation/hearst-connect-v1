@@ -135,8 +135,10 @@ describe('design system surfaces — canon dashboard', () => {
     )
     // Aucun fallback hex / rgba à l'intérieur d'un var(--color-…).
     expect(css).not.toMatch(/var\(\s*--color-[a-z0-9-]+\s*,\s*(?:#[0-9a-fA-F]{3,8}|rgba?\()/i)
-    // Les tokens sont bien consommés nus (surface + accent + ligne).
-    expect(css).toContain('var(--color-console-surface)')
+    // Les tokens sont bien consommés nus (glass card + accent + ligne).
+    // (Le shell est passé de `console-surface` opaque à `console-card` verre —
+    // material role alignment ; le contrat "token nu" reste inchangé.)
+    expect(css).toContain('var(--color-console-card)')
     expect(css).toContain('var(--color-fg)')
     expect(css).toContain('var(--color-console-line)')
     // La chaîne de police reste une chaîne de fallback légitime (pas une couleur).
