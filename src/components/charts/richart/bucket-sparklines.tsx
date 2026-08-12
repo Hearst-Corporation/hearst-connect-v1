@@ -39,8 +39,8 @@ const BUCKET_COLORS = [
   chartTheme.dataSeries.brandPrimary,
   chartTheme.dataSeries.brandSecondary,
   chartTheme.dataSeries.dataReference,
-  '#94a3b8',
-  '#64748b',
+  chartTheme.dataSeries.neutralSurface,
+  chartTheme.dataSeries.neutralRaised,
 ]
 
 function bucketColor(index: number): string {

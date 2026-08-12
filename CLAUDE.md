@@ -10,8 +10,8 @@ PROD_AUTODEPLOY: false
 ## Ce que c'est
 
 Front Next.js de Hearst Connect : vitrine marketing publique, écran de connexion, console
-d'administration protégée (journal d'accès, membres, connexions, paramètres). Utilisateurs :
-les propriétaires et administrateurs d'espaces Hearst.
+d'administration protégée (dashboard, vaults, clients, compliance, operations, product,
+runtime, keeper, API explorer). Utilisateurs : propriétaires et administrateurs d'espaces Hearst.
 
 **Voisinage à ne pas confondre** (état au 2026-07-27) :
 - `Hearst-Corporation/hearst-connect-backend` — service back-end séparé, existant.
@@ -100,19 +100,17 @@ GitHub uniquement. Détail : `.cursor/rules/30-no-gpu1.mdc`.
   - `check:ui` (`scripts/check-ui-boundaries.mjs`) — frontières compositions / charts / Catalyst.
   - `check:english-ui` (`scripts/check-english-ui.mjs`) — UI produit English-only (`lang="en"`,
     routes canoniques EN, pas de copy FR runtime hors legacy redirects).
-  - `test` (`vitest run`) — suite dans `tests/` (56 fichiers / 424 tests, mesuré au 2026-08-10),
+  - `test` (`vitest run`) — suite dans `tests/` (63 fichiers / 483 tests, mesuré au 2026-08-13),
     dont `auth-doctrine`, `session`, `login-flow`, `admin-surfaces`,
     `veracity-p0`, `language-regression`.
 - En complément de la gate, avant livraison : parcours réel (connexion → dashboard → déconnexion).
 
 ## Secrets
 
-- `AUTH_SECRET`, `HEARST_API_URL`, `ADRIEN_OWNER_EMAIL`, `ADRIEN_OWNER_PASSWORD`,
-  `DEV_QUICK_LOGIN_EMAIL`/`_PASSWORD` (dev local uniquement) — six clés, celles de
-  `.env.example` et pas une de plus — jamais en dur, jamais dans un prompt. Noms seuls dans ce fichier, jamais de
-  valeur. En local : `.env.local` (gitignoré, `chmod 600`) ; `.env.example` liste les clés sans
-  secret. En production : variables du projet Vercel `hearst-connect-v1` (production + preview +
-  development).
+- `AUTH_SECRET`, `HEARST_API_URL`, `DEV_QUICK_LOGIN_EMAIL`/`_PASSWORD` (dev local uniquement) —
+  quatre clés lues à l'exécution via `src/lib/env.ts`. `ADRIEN_OWNER_EMAIL` / `ADRIEN_OWNER_PASSWORD`
+  dans `.env.example` servent au provisionnement et aux parcours pilotés — jamais lus par `env.ts`
+  (auth déléguée au backend ; `tests/auth-doctrine.test.ts` interdit le mot de passe owner dans le code).
 - Aucune de ces clés n'est préfixée `NEXT_PUBLIC_` : elles ne sortent pas du serveur.
   `src/lib/env.ts` ne journalise JAMAIS une valeur — uniquement le NOM d'une variable et son
   état (présente / absente / invalide).

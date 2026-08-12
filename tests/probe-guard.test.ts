@@ -69,6 +69,19 @@ describe('probeEndpoint — session guard (ARCH-01)', () => {
     expect(fetchSpy).not.toHaveBeenCalled() // proven: no backend request
   })
 
+  it('refuses a MEMBER session and sends NOTHING to the backend', async () => {
+    seedSession({ role: 'MEMBER' })
+    const fetchSpy = vi.fn(() => Promise.reject(new Error('network must not be reached')))
+    globalThis.fetch = fetchSpy as unknown as typeof fetch
+    const { probeEndpoint } = await import('@/lib/backend/probe')
+
+    const outcome = await probeEndpoint(null, form('health'))
+
+    expect(outcome.status).toBe('PERMISSION_DENIED')
+    expect(outcome.trace.httpStatus).toBeNull()
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('with a valid session, the guard lets a public read through', async () => {
     seedSession()
     globalThis.fetch = vi.fn(() =>

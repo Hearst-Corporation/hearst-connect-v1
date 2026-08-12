@@ -28,7 +28,7 @@ Références : `.cursor/rules/30-no-gpu1.mdc`, `docs/ENDPOINT-MAPPING.md`, `READ
 
 - Gate : `pnpm check` (voir `package.json` — source de vérité)
 - e2e utiles : `access-control`, `audit-closure`, `veracity` (plus de specs capture PNG)
-- `docs/` allégé : `ENDPOINT-MAPPING.md` + ce fichier seulement (hors `.keep`)
+- `docs/` : `ENDPOINT-MAPPING.md`, `PASSATION-AGENT.md`, `architecture/UI-GRAPH.md` + `ui-graph.{json,mmd}`
 
 ## Déploiement
 

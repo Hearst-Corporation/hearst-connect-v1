@@ -533,7 +533,7 @@ function buildVaultRecord(
     id: vaultId,
     // The contract publishes no name. Deriving one from the chain and the
     // address is a description of the object, not an invented label.
-    label: `Série 1 · ${contractAddress.slice(0, 6)}…${contractAddress.slice(-4)}`,
+    label: `Series 1 · ${contractAddress.slice(0, 6)}…${contractAddress.slice(-4)}`,
     chainId: typeof runtime?.chainId === 'number' ? runtime.chainId : null,
     contractAddress,
     status: vaultStatus(runtime, isAvailable(snapshot)),

@@ -54,6 +54,9 @@ storybook-static
 # preuves QA / scratch de mission (hors périmètre produit)
 /tmp/
 
+# QA capture screenshots at repo root (never commit)
+admin-sidebar-account.png
+
 # racine locale Supernova (outil Cursor, poste-dépendant)
 .cursor/SUPERNOVA_CURSOR_ROOT
 .cursor/supernova

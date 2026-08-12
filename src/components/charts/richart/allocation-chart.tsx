@@ -47,7 +47,7 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
               <tr key={p.label}>
                 <th scope="row">{p.label}</th>
                 <td>{formatChartPercent(p.targetPct)}</td>
-                <td>{p.actualPct === null ? 'non lu' : formatChartPercent(p.actualPct)}</td>
+                <td>{p.actualPct === null ? 'Not read' : formatChartPercent(p.actualPct)}</td>
               </tr>
             ))}
           </tbody>
