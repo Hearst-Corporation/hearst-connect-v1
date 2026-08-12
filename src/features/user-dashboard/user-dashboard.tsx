@@ -6,6 +6,7 @@ import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import {
   BanknotesIcon,
   BeakerIcon,
+  CalendarDaysIcon,
   ChartPieIcon,
   CircleStackIcon,
   CurrencyDollarIcon,
@@ -27,7 +28,8 @@ import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
 import { logout } from '@/lib/actions'
 import { CONSOLE_GLOW_SRC, HEARST_H_SRC, consoleGlowLayer } from '@/lib/brand'
-import { formatNumber, formatPercent } from '@/lib/format'
+import { formatDateTime, formatNumber, formatPercent } from '@/lib/format'
+import { readableSourceStateCap } from '@/lib/movements'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
@@ -57,8 +59,8 @@ const CENTRAL_VIEWS: readonly {
   readonly label: string
   readonly icon: typeof PresentationChartLineIcon
 }[] = [
-  { key: 'value', label: 'Value', icon: PresentationChartLineIcon },
-  { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
+  { key: 'value', label: 'Vault AUM', icon: PresentationChartLineIcon },
+  { key: 'allocation', label: 'Fund allocation', icon: ChartPieIcon },
   { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
   { key: 'activity', label: 'Activity', icon: Squares2X2Icon },
   { key: 'backtest', label: 'Backtest', icon: BeakerIcon },
@@ -73,6 +75,22 @@ function seriesState(
   if (availability.kind === 'unavailable') return { type: 'unavailable', explanation: unavailableMsg }
   if (!hasPoints) return { type: 'empty', explanation: emptyMsg }
   return { type: 'plotted' }
+}
+
+function investorPositionAbsent(data: UserDashboard): boolean {
+  if (isAvailable(data.positionValue)) return false
+  const reasons = new Set(['no_investor_position', 'no_investor_record'])
+  if (data.positionValue.kind === 'unavailable' && data.positionValue.reason !== null && reasons.has(data.positionValue.reason)) {
+    return true
+  }
+  if (data.position.kind === 'unavailable' && data.position.reason !== null && reasons.has(data.position.reason)) {
+    return true
+  }
+  return data.positionValue.kind === 'unavailable'
+}
+
+function formatUsdc(amount: number | null): string {
+  return amount !== null ? `${formatNumber(amount, { maximumFractionDigits: 0 })} USDC` : '—'
 }
 
 function freshnessLabel(signal: Signal): string | null {
@@ -152,9 +170,13 @@ export function UserDashboardView({
   )
 
   const latestBtc = btcPoints !== null && btcPoints.length > 0 ? btcPoints[btcPoints.length - 1].value : null
-  // The CLIENT's own book position value (principal + accrued). Absent/dormant
-  // investor plane → null → an honest "—", never the vault's AUM in disguise.
+  const vaultAum = valuePoints !== null && valuePoints.length > 0 ? valuePoints[valuePoints.length - 1].value : null
+  const positionAbsent = investorPositionAbsent(data)
   const positionValue = valueOf(data.positionValue)
+  const positionPrincipal = valueOf(data.positionPrincipal)
+  const positionAccrued = valueOf(data.positionAccrued)
+  const positionStatus = valueOf(data.positionStatus)
+  const positionSubscribedAt = valueOf(data.positionSubscribedAt)
   const navPerShare = valueOf(data.navPerShare)
   const utilization = valueOf(data.utilizationPct)
   const availableCapacity = valueOf(data.availableCapacity)
@@ -167,15 +189,15 @@ export function UserDashboardView({
     { question: string; unit: string; state: SeriesState; node: ReactNode; source: Availability<unknown> }
   > = {
     value: {
-      question: 'Vault value',
-      unit: 'total assets · USDC',
+      question: 'Vault AUM',
+      unit: 'fund total assets · USDC',
       state: valueState,
       node: valuePoints !== null ? <HearstLineChart points={[...valuePoints]} unit="USDC" viewport="hero" /> : null,
       source: data.valueSeries,
     },
     allocation: {
-      question: 'Allocation over time',
-      unit: 'cbBTC vs USDC · %',
+      question: 'Fund allocation over time',
+      unit: 'cbBTC vs USDC · % of vault',
       state: allocationState,
       node: allocationTime !== null ? <AllocationDualLineChart points={[...allocationTime]} viewport="hero" /> : null,
       source: data.allocationSeries,
@@ -248,9 +270,9 @@ export function UserDashboardView({
                 ))}
               </nav>
               <div className="account-state">
-                <i data-signal={signalOf(data.valueSeries)} />
+                <i data-signal={signalOf(data.positionValue)} />
                 <span className="sync-label">
-                  {isAvailable(data.valueSeries) ? 'Account synced' : 'Account offline'}
+                  {isAvailable(data.positionValue) ? 'Position live' : positionAbsent ? 'No investor position' : 'Position offline'}
                 </span>
                 <span className="avatar" title={user.email} aria-label={user.name}>
                   {initials || 'HC'}
@@ -269,174 +291,238 @@ export function UserDashboardView({
             </header>
 
             <div className={`dashboard-view${isDashboard ? '' : ' hidden'}`}>
-              <section className="kpis" aria-label="Account indicators">
-                <div className="intro">
-                  <p className="eyebrow">Account</p>
-                  <AdminHeroTitle>Command center</AdminHeroTitle>
+              <header className="page-intro">
+                <p className="eyebrow">Account</p>
+                <AdminHeroTitle>Command center</AdminHeroTitle>
+              </header>
+
+              <section className="your-position" aria-label="Your position">
+                <div className="section-heading">
+                  <p className="eyebrow">Your position</p>
+                  <h2>Book position</h2>
+                  <span>Your on-book principal, accrued yield and subscription record — not vault AUM</span>
                 </div>
-                <StatTile
-                  icon={BanknotesIcon}
-                  label="Position value"
-                  value={positionValue !== null ? `${formatNumber(positionValue, { maximumFractionDigits: 0 })} USDC` : '—'}
-                  signal={signalOf(data.positionValue)}
-                />
-                <StatTile
-                  icon={ScaleIcon}
-                  label="NAV / share"
-                  value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
-                  signal={signalOf(data.navPerShare)}
-                />
-                <StatTile
-                  icon={SignalIcon}
-                  label="Fund utilization"
-                  value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
-                  signal={signalOf(data.utilizationPct)}
-                />
-                <StatTile
-                  icon={CircleStackIcon}
-                  label="Fund capacity left"
-                  value={availableCapacity !== null ? `${formatNumber(availableCapacity, { maximumFractionDigits: 0 })} USDC` : '—'}
-                  signal={signalOf(data.availableCapacity)}
-                />
-                <StatTile
-                  icon={CurrencyDollarIcon}
-                  label="BTC price"
-                  value={latestBtc !== null ? formatNumber(latestBtc, { maximumFractionDigits: 0 }) : '—'}
-                  signal={signalOf(data.btcSeries)}
-                  trend={btcTrend}
-                  delta={deltaOf(btcPoints)}
-                />
-              </section>
-
-              <section className="analysis" aria-label="Analysis">
-                <BreakdownFlank
-                  title="Vault allocation"
-                  hint="Vault capital by bucket"
-                  icon={ChartPieIcon}
-                  availability={data.allocationBars}
-                  kind="percent"
-                  unit="%"
-                  centerCaption="allocated"
-                />
-
-                <div className="center">
-                  <div className="center-panel backdrop-blur-xl backdrop-saturate-150">
-                    <div className="chart-switch" role="group" aria-label="Central chart">
-                      {CENTRAL_VIEWS.map((view) => {
-                        const Icon = view.icon
-                        const selected = central === view.key
-                        return (
-                          <button
-                            key={view.key}
-                            type="button"
-                            aria-pressed={selected}
-                            className={selected ? 'active' : undefined}
-                            onClick={() => setCentral(view.key)}
-                          >
-                            {selected ? (
-                              <motion.span layoutId="ud-central-pill" className="switch-pill" aria-hidden="true" />
-                            ) : null}
-                            <span className="switch-inner">
-                              <Icon className="size-4" aria-hidden="true" />
-                              {view.label}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <div className="center-head">
-                      <h2>{active.question}</h2>
-                      <span>{active.unit}</span>
-                      {fresh !== null ? <span className="fresh-badge" data-signal={signalOf(active.source)}>{fresh}</span> : null}
-                    </div>
-                    <div className="center-plot">
-                      <AnimatePresence mode="wait" initial={false}>
-                        <motion.div
-                          key={central}
-                          className="center-plot-inner"
-                          initial={{ opacity: 0, y: 4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.18, ease: 'easeOut' }}
-                        >
-                          {centralBody}
-                        </motion.div>
-                      </AnimatePresence>
+                {positionAbsent ? (
+                  <div className="position-absent">
+                    <span className="empty-mark" />
+                    <div>
+                      <h3>No investor position</h3>
+                      <span>
+                        No book position is linked to this account — figures stay absent rather than zero.
+                      </span>
                     </div>
                   </div>
+                ) : null}
+                <div className="position-grid">
+                  <StatTile
+                    icon={ScaleIcon}
+                    label="Principal"
+                    value={formatUsdc(positionPrincipal)}
+                    signal={signalOf(data.positionPrincipal)}
+                  />
+                  <StatTile
+                    icon={ChartPieIcon}
+                    label="Accrued"
+                    value={formatUsdc(positionAccrued)}
+                    signal={signalOf(data.positionAccrued)}
+                  />
+                  <StatTile
+                    icon={BanknotesIcon}
+                    label="Position value"
+                    value={formatUsdc(positionValue)}
+                    signal={signalOf(data.positionValue)}
+                  />
+                  <StatTile
+                    icon={SignalIcon}
+                    label="Status"
+                    value={positionStatus !== null ? readableSourceStateCap(positionStatus) : '—'}
+                    signal={signalOf(data.positionStatus)}
+                  />
+                  <StatTile
+                    icon={CalendarDaysIcon}
+                    label="Subscribed at"
+                    value={positionSubscribedAt !== null ? formatDateTime(positionSubscribedAt) : '—'}
+                    signal={signalOf(data.positionSubscribedAt)}
+                  />
                 </div>
-
-                <BreakdownFlank
-                  title="Activity mix"
-                  hint="Events by type"
-                  icon={Squares2X2Icon}
-                  availability={data.activityByType}
-                  kind="count"
-                  unit="events"
-                />
               </section>
 
-              <section className="exposure-cap" aria-label="Strategy exposure and capacity">
-                <div className="ec-panel">
-                  <div className="ec-heading">
-                    <h2>
-                      <PresentationChartLineIcon className="size-4" aria-hidden="true" />
-                      Strategy exposure
-                    </h2>
-                    <span>Target vs actual · % of vault</span>
-                  </div>
-                  <div className="ec-body">
-                    {exposureState.type === 'plotted' && exposurePockets !== null ? (
-                      <HearstExposureRadial items={[...exposurePockets]} />
-                    ) : (
-                      <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
-                        <span className="empty-mark" />
-                        <p>{exposureState.type !== 'plotted' ? exposureState.explanation : ''}</p>
+              <section className="your-account" aria-label="Your account">
+                <div className="section-heading">
+                  <p className="eyebrow">Your account</p>
+                  <h2>Capital activity</h2>
+                  <span>Your verified deposits, distributions and movements only</span>
+                </div>
+                <div className="your-account-body">
+                  <section className="movements" aria-label="Your movements">
+                    <div className="movements-heading">
+                      <div>
+                        <h3>Your movements</h3>
                       </div>
-                    )}
-                  </div>
-                </div>
-                <div className="ec-panel">
-                  <div className="ec-heading">
-                    <h2>
-                      <SignalIcon className="size-4" aria-hidden="true" />
-                      Fund capacity
-                    </h2>
-                    <span>Utilization toward the vault cap</span>
-                  </div>
-                  <div className="ec-body ec-body--meter">
-                    <CapacityMeter utilization={data.utilizationPct} capacity={data.availableCapacity} />
-                  </div>
-                  {/* Minimum deposit is the one genuine SUBSCRIPTION/contract term — a
-                      vault entry parameter, so it lives with fund capacity. The other
-                      former "Subscription" rows (NAV/share, utilization, room to cap,
-                      worst drift) were live metrics already shown in the KPI band,
-                      the capacity meter and the exposure legend — removed, not moved. */}
-                  <div className="ec-terms">
-                    <TermRow
-                      icon={LockClosedIcon}
-                      label="Minimum deposit"
-                      value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
-                    />
-                  </div>
+                      <span>
+                        Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
+                      </span>
+                    </div>
+                    <MovementTimeline availability={data.activity} />
+                  </section>
+                  <BreakdownFlank
+                    title="Your activity mix"
+                    hint="Your movements by type"
+                    icon={Squares2X2Icon}
+                    availability={data.activityByType}
+                    kind="count"
+                    unit="events"
+                  />
                 </div>
               </section>
 
-              {/* Account movements is a full VERIFIED JOURNAL — it owns a full-width
-                  region and may grow the document. It no longer shares a grid row with
-                  a short unrelated sibling (the old Subscription rail), which is what
-                  left a tall empty column beside it. */}
-              <section className="movements" aria-label="Account movements">
-                <div className="movements-heading">
-                  <div>
-                    <p className="eyebrow">Capital</p>
-                    <h2>Account movements</h2>
-                  </div>
-                  <span>
-                    Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
-                  </span>
+              <section className="fund-vault" aria-label="Fund and vault">
+                <div className="section-heading">
+                  <p className="eyebrow">Fund / Vault</p>
+                  <h2>Vault context</h2>
+                  <span>Fund-wide metrics and vault history — not your personal book position</span>
                 </div>
-                <MovementTimeline availability={data.activity} />
+
+                <section className="fund-kpis" aria-label="Fund indicators">
+                  <StatTile
+                    icon={PresentationChartLineIcon}
+                    label="Vault AUM"
+                    value={formatUsdc(vaultAum)}
+                    signal={signalOf(data.valueSeries)}
+                    trend={valuePoints !== null ? valuePoints.map((p) => p.value) : undefined}
+                    delta={deltaOf(valuePoints)}
+                  />
+                  <StatTile
+                    icon={SignalIcon}
+                    label="Fund utilization"
+                    value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
+                    signal={signalOf(data.utilizationPct)}
+                  />
+                  <StatTile
+                    icon={CircleStackIcon}
+                    label="Fund capacity left"
+                    value={formatUsdc(availableCapacity)}
+                    signal={signalOf(data.availableCapacity)}
+                  />
+                  <StatTile
+                    icon={ScaleIcon}
+                    label="NAV / share"
+                    value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
+                    signal={signalOf(data.navPerShare)}
+                  />
+                  <StatTile
+                    icon={CurrencyDollarIcon}
+                    label="BTC price"
+                    value={latestBtc !== null ? formatNumber(latestBtc, { maximumFractionDigits: 0 }) : '—'}
+                    signal={signalOf(data.btcSeries)}
+                    trend={btcTrend}
+                    delta={deltaOf(btcPoints)}
+                  />
+                </section>
+
+                <section className="analysis analysis--fund" aria-label="Fund analysis">
+                  <BreakdownFlank
+                    title="Vault allocation"
+                    hint="Vault capital by bucket"
+                    icon={ChartPieIcon}
+                    availability={data.allocationBars}
+                    kind="percent"
+                    unit="%"
+                    centerCaption="allocated"
+                  />
+
+                  <div className="center">
+                    <div className="center-panel backdrop-blur-xl backdrop-saturate-150">
+                      <div className="chart-switch" role="group" aria-label="Fund chart">
+                        {CENTRAL_VIEWS.map((view) => {
+                          const Icon = view.icon
+                          const selected = central === view.key
+                          return (
+                            <button
+                              key={view.key}
+                              type="button"
+                              aria-pressed={selected}
+                              className={selected ? 'active' : undefined}
+                              onClick={() => setCentral(view.key)}
+                            >
+                              {selected ? (
+                                <motion.span layoutId="ud-central-pill" className="switch-pill" aria-hidden="true" />
+                              ) : null}
+                              <span className="switch-inner">
+                                <Icon className="size-4" aria-hidden="true" />
+                                {view.label}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <div className="center-head">
+                        <h2>{active.question}</h2>
+                        <span>{active.unit}</span>
+                        {fresh !== null ? (
+                          <span className="fresh-badge" data-signal={signalOf(active.source)}>
+                            {fresh}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="center-plot">
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.div
+                            key={central}
+                            className="center-plot-inner"
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
+                          >
+                            {centralBody}
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="exposure-cap" aria-label="Strategy exposure and capacity">
+                  <div className="ec-panel">
+                    <div className="ec-heading">
+                      <h2>
+                        <PresentationChartLineIcon className="size-4" aria-hidden="true" />
+                        Strategy exposure
+                      </h2>
+                      <span>Target vs actual · % of vault</span>
+                    </div>
+                    <div className="ec-body">
+                      {exposureState.type === 'plotted' && exposurePockets !== null ? (
+                        <HearstExposureRadial items={[...exposurePockets]} />
+                      ) : (
+                        <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
+                          <span className="empty-mark" />
+                          <p>{exposureState.type !== 'plotted' ? exposureState.explanation : ''}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="ec-panel">
+                    <div className="ec-heading">
+                      <h2>
+                        <SignalIcon className="size-4" aria-hidden="true" />
+                        Fund capacity
+                      </h2>
+                      <span>Utilization toward the vault cap</span>
+                    </div>
+                    <div className="ec-body ec-body--meter">
+                      <CapacityMeter utilization={data.utilizationPct} capacity={data.availableCapacity} />
+                    </div>
+                    <div className="ec-terms">
+                      <TermRow
+                        icon={LockClosedIcon}
+                        label="Minimum deposit"
+                        value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
+                      />
+                    </div>
+                  </div>
+                </section>
               </section>
             </div>
 

@@ -7,6 +7,8 @@ const CONTRACT_PATHS = [
   'GET /ready',
   'GET /api/v1/runtime',
   'GET /api/v1/dashboard',
+  'GET /api/v1/me/portfolio',
+  'GET /api/v1/me/movements',
   'GET /api/v1/profile',
   'GET /api/v1/series1/events',
   'GET /api/v1/events/rebalancing',
@@ -34,6 +36,7 @@ const CONTRACT_PATHS = [
   'GET /api/v1/admin/market/snapshot',
   'GET /api/v1/admin/vaults/summary',
   'GET /api/v1/admin/clients/recent',
+  'GET /api/v1/admin/clients/:id',
   'GET /api/v1/admin/activity/recent',
   'GET /api/v1/admin/data-health',
   'GET /api/v1/ai/context/dashboard',
@@ -51,10 +54,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 45 routes du contrat', () => {
+  it('couvre exactement les 48 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(45)
+    expect(BACKEND_ENDPOINTS).toHaveLength(48)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -66,13 +69,13 @@ describe('registre des endpoints', () => {
 
   it('assigne chaque endpoint à une surface produit', () => {
     for (const endpoint of BACKEND_ENDPOINTS) {
-      expect(endpoint.surface).toMatch(/^\/(admin|login)/)
+      expect(endpoint.surface).toMatch(/^\/(admin|login|account)/)
     }
   })
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(30)
+    expect(endpointsByCategory('business')).toHaveLength(33)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(6)
   })

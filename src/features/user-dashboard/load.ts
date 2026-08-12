@@ -8,9 +8,10 @@ import { measuredCount, type Availability } from '@/lib/vaults/model'
  * Account dashboard loader — session-scoped, backend-first.
  *
  * Reads session read-models (auth: 'session', scoped to the connected account):
- * the `/api/v1/dashboard` aggregate, `vault/history` (value + allocation + BTC
- * price series), `series1/events` (activity), and `backtest/historical`
- * (product performance). NOTHING is admin-wide.
+ * `me/portfolio` (Your position), `me/movements` (Your movements), the
+ * `/api/v1/dashboard` aggregate (performance / subscription), `vault/history`
+ * (value + allocation + BTC price series), `series1/events` (vault activity),
+ * and `backtest/historical` (product performance). NOTHING is admin-wide.
  *
  * Login remains admin-gated today; this loader never invents an investor role.
  *
@@ -21,6 +22,8 @@ import { measuredCount, type Availability } from '@/lib/vaults/model'
  */
 
 const DASHBOARD_ENDPOINT = '/api/v1/dashboard'
+const PORTFOLIO_ENDPOINT = '/api/v1/me/portfolio'
+const MOVEMENTS_ENDPOINT = '/api/v1/me/movements'
 const HISTORY_ENDPOINT = '/api/v1/vault/history'
 const SERIES1_ENDPOINT = '/api/v1/series1/events'
 const BACKTEST_ENDPOINT = '/api/v1/backtest/historical'
@@ -96,6 +99,10 @@ export type UserDashboard = {
   readonly positionPrincipal: Availability<number>
   /** The CLIENT's accrued yield (book), whole USDC. */
   readonly positionAccrued: Availability<number>
+  /** Investor position lifecycle status from the book record. */
+  readonly positionStatus: Availability<string>
+  /** ISO timestamp when the investor subscribed (book record). */
+  readonly positionSubscribedAt: Availability<string>
   readonly performance: Availability<ResolvedField>
   readonly subscription: Availability<ResolvedField>
   /** Latest-snapshot allocation buckets (donut). */
@@ -352,7 +359,7 @@ function activityByTypeFrom(movements: readonly UserMovement[] | null): readonly
 }
 
 /**
- * The CLIENT's own position book values from `dashboard.position` (InvestorPosition).
+ * The CLIENT's own position book values from `me/portfolio` (InvestorPosition).
  * These are backend book figures in whole USDC — `value` = principal + accrued —
  * NOT a mark-to-market. `shares` is null (the DB holds no share balance), so a
  * client value is never computed as shares × NAV. Absent → null (never 0).
@@ -361,6 +368,13 @@ function positionBookFrom(field: ResolvedField | null, key: 'value' | 'principal
   const pos = field?.value
   if (typeof pos !== 'object' || pos === null) return null
   return num((pos as Record<string, unknown>)[key])
+}
+
+function positionTextFrom(field: ResolvedField | null, key: string): string | null {
+  const pos = field?.value
+  if (typeof pos !== 'object' || pos === null) return null
+  const raw = (pos as Record<string, unknown>)[key]
+  return typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : null
 }
 
 function surface(aggregate: Record<string, unknown> | null, key: string): ResolvedBlock<ResolvedField> {
@@ -379,6 +393,8 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     backtestResponse,
     vaultResponse,
     factsheetResponse,
+    portfolioResponse,
+    movementsResponse,
   ] = await Promise.all([
     callBackend<Record<string, unknown>>('dashboard'),
     callBackend<unknown>('vault-history'),
@@ -386,47 +402,59 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     callBackend<unknown>('backtest-historical'),
     callBackend<unknown>('vault'),
     callBackend<unknown>('product-factsheet'),
+    callBackend<Record<string, unknown>>('me-portfolio'),
+    callBackend<Record<string, unknown>>('me-movements'),
   ])
 
   const aggregate = aggregateResponse.ok ? aggregateResponse.data : null
   const sourceStatus = aggregateResponse.ok ? statusFromMeta(aggregateResponse.meta) : 'UNAVAILABLE'
 
-  const positionRF = surface(aggregate, 'position')
-  const position = availabilityFromResolved(positionRF, DASHBOARD_ENDPOINT)
+  const portfolio = portfolioResponse.ok ? portfolioResponse.data : null
+  const positionRF = surface(portfolio, 'position')
+  const position = availabilityFromResolved(positionRF, PORTFOLIO_ENDPOINT)
   // Client book values — the account's OWN money, per-client at the query layer.
-  // Loaded here so the view no longer drops them (P0: dashboard.position was
-  // fetched then ignored). value = principal + accrued (book), shares stay null.
+  // Sourced from `me/portfolio`, never derived from the fund-wide dashboard.
+  // value = principal + accrued (book), shares stay null.
   const positionValue = availabilityFromResolved<number>(
     { status: positionRF.status, value: positionBookFrom(positionRF.value, 'value'), reason: 'no_investor_position' },
-    DASHBOARD_ENDPOINT,
+    PORTFOLIO_ENDPOINT,
   )
   const positionPrincipal = availabilityFromResolved<number>(
     { status: positionRF.status, value: positionBookFrom(positionRF.value, 'principal'), reason: 'no_investor_position' },
-    DASHBOARD_ENDPOINT,
+    PORTFOLIO_ENDPOINT,
   )
   const positionAccrued = availabilityFromResolved<number>(
     { status: positionRF.status, value: positionBookFrom(positionRF.value, 'accrued'), reason: 'no_investor_position' },
-    DASHBOARD_ENDPOINT,
+    PORTFOLIO_ENDPOINT,
+  )
+  const positionStatus = availabilityFromResolved<string>(
+    { status: positionRF.status, value: positionTextFrom(positionRF.value, 'status'), reason: 'no_investor_position' },
+    PORTFOLIO_ENDPOINT,
+  )
+  const positionSubscribedAt = availabilityFromResolved<string>(
+    { status: positionRF.status, value: positionTextFrom(positionRF.value, 'subscribedAt'), reason: 'no_investor_position' },
+    PORTFOLIO_ENDPOINT,
   )
   const performance = availabilityFromResolved(surface(aggregate, 'performance'), DASHBOARD_ENDPOINT)
   const subscription = availabilityFromResolved(surface(aggregate, 'subscription'), DASHBOARD_ENDPOINT)
 
-  // Account movements are the CALLER's own investor activity, and only that.
+  // Account movements are the CALLER's own investor activity from `me/movements`.
   // The global `recentEvents` vault feed must NEVER stand in for it: a fallback
   // there would present fund-wide events under a personal label (the P0 tenant-
   // truth defect). Client activity absent → the section reports UNAVAILABLE;
   // present-but-empty → EMPTY. Global data never silently becomes client data.
-  const activityField = surface(aggregate, 'activity')
+  const movements = movementsResponse.ok ? movementsResponse.data : null
+  const activityField = surface(movements, 'movements')
   const activitySourceStatus = activityField.status
   const activityValue = movementsFrom(activityField.value)
   const activity = availabilityFromResolved<readonly UserMovement[]>(
     { status: activitySourceStatus, value: activityValue, reason: 'no_investor_movement' },
-    DASHBOARD_ENDPOINT,
+    MOVEMENTS_ENDPOINT,
   )
   const activityCount = measuredCount(activity)
   const activityByType = availabilityFromResolved<readonly AllocationBar[]>(
     { status: activitySourceStatus, value: activityByTypeFrom(activityValue), reason: 'no_investor_movement' },
-    DASHBOARD_ENDPOINT,
+    MOVEMENTS_ENDPOINT,
   )
 
   // Series from `vault/history` — freshness is the history envelope status.
@@ -500,6 +528,8 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     positionValue,
     positionPrincipal,
     positionAccrued,
+    positionStatus,
+    positionSubscribedAt,
     performance,
     subscription,
     allocationBars,
