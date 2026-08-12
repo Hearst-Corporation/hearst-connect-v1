@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
-  "sourceSha": "8877b54adaaaf9a858419200bac7021466678d84",
-  "generatedAt": "2026-08-12T13:50:16.075Z",
+  "sourceSha": "8e261d73abae58c0df56c6467265460c86fff69a",
+  "generatedAt": "2026-08-12T14:04:45.629Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {
@@ -154,18 +154,6 @@
       "evidence": "export function StatTile",
       "surface": null,
       "geometryOwner": "component",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false
-    },
-    {
-      "id": "component:subscription-terms-rail",
-      "type": "COMPONENT",
-      "name": "Subscription terms rail",
-      "domain": "account",
-      "source": "src/features/user-dashboard/user-dashboard.tsx",
-      "evidence": "aside.terms-rail aria-label=\"Subscription terms\"",
-      "surface": null,
-      "geometryOwner": "layout",
       "dataSlotOwner": "component",
       "datasetControlsGeometry": false
     },
@@ -1052,6 +1040,11 @@
       "type": "uses_chart"
     },
     {
+      "from": "component:breakdown-flank",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
       "from": "component:capacity-meter",
       "to": "data:user-dashboard",
       "type": "owns_data_slot"
@@ -1334,11 +1327,6 @@
     {
       "from": "region:account-movements",
       "to": "component:movement-timeline",
-      "type": "renders"
-    },
-    {
-      "from": "region:account-movements",
-      "to": "component:subscription-terms-rail",
       "type": "renders"
     },
     {
