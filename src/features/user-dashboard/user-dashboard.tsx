@@ -153,6 +153,9 @@ export function UserDashboardView({
 
   const latestValue = valuePoints !== null && valuePoints.length > 0 ? valuePoints[valuePoints.length - 1].value : null
   const latestBtc = btcPoints !== null && btcPoints.length > 0 ? btcPoints[btcPoints.length - 1].value : null
+  // The CLIENT's own book position value (principal + accrued). Absent/dormant
+  // investor plane → null → an honest "—", never the vault's AUM in disguise.
+  const positionValue = valueOf(data.positionValue)
   const navPerShare = valueOf(data.navPerShare)
   const utilization = valueOf(data.utilizationPct)
   const availableCapacity = valueOf(data.availableCapacity)
@@ -187,8 +190,10 @@ export function UserDashboardView({
       source: data.btcSeries,
     },
     activity: {
-      question: 'Account activity',
-      unit: 'indexed events · per day',
+      // Vault-GLOBAL indexed on-chain events (series1), not this client's — kept
+      // as explicit fund context, never presented as personal account activity.
+      question: 'Vault activity',
+      unit: 'indexed vault events · per day',
       state: activityBarsState,
       node: activityBars !== null ? <HearstActivityChart points={[...activityBars]} unit="events" viewport="hero" /> : null,
       source: data.activityBars,
@@ -273,11 +278,9 @@ export function UserDashboardView({
                 </div>
                 <StatTile
                   icon={BanknotesIcon}
-                  label="Vault value"
-                  value={latestValue !== null ? formatNumber(latestValue, { maximumFractionDigits: 0 }) : '—'}
-                  signal={signalOf(data.valueSeries)}
-                  trend={valueTrend}
-                  delta={deltaOf(valuePoints)}
+                  label="Position value"
+                  value={positionValue !== null ? `${formatNumber(positionValue, { maximumFractionDigits: 0 })} USDC` : '—'}
+                  signal={signalOf(data.positionValue)}
                 />
                 <StatTile
                   icon={ScaleIcon}
@@ -287,13 +290,13 @@ export function UserDashboardView({
                 />
                 <StatTile
                   icon={SignalIcon}
-                  label="Utilization"
+                  label="Fund utilization"
                   value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
                   signal={signalOf(data.utilizationPct)}
                 />
                 <StatTile
                   icon={CircleStackIcon}
-                  label="Available capacity"
+                  label="Fund capacity left"
                   value={availableCapacity !== null ? `${formatNumber(availableCapacity, { maximumFractionDigits: 0 })} USDC` : '—'}
                   signal={signalOf(data.availableCapacity)}
                 />
@@ -309,8 +312,8 @@ export function UserDashboardView({
 
               <section className="analysis" aria-label="Analysis">
                 <BreakdownFlank
-                  title="Allocation"
-                  hint="Capital by bucket"
+                  title="Vault allocation"
+                  hint="Vault capital by bucket"
                   icon={ChartPieIcon}
                   availability={data.allocationBars}
                   kind="percent"
