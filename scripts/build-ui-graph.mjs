@@ -113,6 +113,16 @@ function catalog() {
     evidence: 'public chart exports — recharts never imported by routes',
   })
   n({
+    id: 'foundation:chart-viewport',
+    type: 'FOUNDATION',
+    name: 'Chart viewport roles (compact/standard/hero/donut)',
+    domain: 'shared',
+    source: 'src/components/charts/core/chart-theme.ts',
+    evidence: 'CHART_VIEWPORT_PX / chartViewport(role) — dataset length ignored',
+    geometryOwner: 'component',
+    datasetControlsGeometry: false,
+  })
+  n({
     id: 'foundation:motion',
     type: 'FOUNDATION',
     name: 'Motion readiness',
@@ -143,7 +153,9 @@ function catalog() {
       surface: null,
     })
     e(id, 'uses_foundation', 'foundation:charts')
+    e(id, 'uses_foundation', 'foundation:chart-viewport')
   }
+  e('foundation:chart-viewport', 'uses_foundation', 'foundation:charts')
 
   // ── Admin surface / layout primitives ─────────────────────────────────────
   n({

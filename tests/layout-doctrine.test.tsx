@@ -9,7 +9,12 @@ import {
   activeBodyHref,
   bodySubmenus,
 } from '@/lib/admin-nav'
-import { chartHeight, plottableAsChart } from '@/components/charts/core/chart-theme'
+import {
+  CHART_VIEWPORT_PX,
+  chartHeight,
+  chartViewport,
+  plottableAsChart,
+} from '@/components/charts/core/chart-theme'
 import { render } from '@testing-library/react'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -218,12 +223,12 @@ describe('chart sizing', () => {
     expect(plottableAsChart(2)).toBe(true)
   })
 
-  it('derives height from data volume rather than one global constant', () => {
-    expect(chartHeight('rows', 3)).toBeLessThan(chartHeight('rows', 8))
-    expect(chartHeight('columns', 2)).toBeLessThan(chartHeight('columns', 20))
-    expect(chartHeight('donut', 4)).toBe(220)
-    // …and never grows without bound: a long series is scrolled, not stretched.
-    expect(chartHeight('rows', 50)).toBeLessThanOrEqual(420)
-    expect(chartHeight('columns', 400)).toBeLessThanOrEqual(320)
+  it('owns viewport by role — dataset length does not change height', () => {
+    expect(chartHeight('rows', 3)).toBe(chartHeight('rows', 8))
+    expect(chartHeight('columns', 2)).toBe(chartHeight('columns', 200))
+    expect(chartHeight('line', 2)).toBe(chartHeight('line', 90))
+    expect(chartHeight('donut', 4)).toBe(CHART_VIEWPORT_PX.donut)
+    expect(chartViewport('hero')).toBe(CHART_VIEWPORT_PX.hero)
+    expect(chartViewport('compact')).toBe(CHART_VIEWPORT_PX.compact)
   })
 })

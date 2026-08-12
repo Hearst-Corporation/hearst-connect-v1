@@ -173,8 +173,16 @@
   --chart-axis: var(--color-fg-tertiary);
   --chart-tooltip-surface: var(--color-console-raised);
 
+  /*
+   * Chart viewport roles — owned by the chart DS, not by dataset length.
+   * Keep in sync with CHART_VIEWPORT_PX in chart-theme.ts (16px root).
+   */
+  --chart-viewport-compact: 11rem; /* 176px — admin bento */
+  --chart-viewport-standard: 15rem; /* 240px — default ChartFrame */
+  --chart-viewport-hero: 21.25rem; /* 340px — account central */
+
   /* Donut chart — categorical viewport (not panel-driven). */
-  --chart-donut-viewport-block-size: 13.75rem;
+  --chart-donut-viewport-block-size: 13.75rem; /* 220px — matches CHART_VIEWPORT_PX.donut */
   --chart-donut-viewport-max-inline-size: 16.25rem;
   /*
    * Alias `--color-hearst-*` / `--color-cockpit-*` retirés (2026-08-04 LOT E +

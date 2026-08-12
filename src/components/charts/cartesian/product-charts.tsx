@@ -12,7 +12,7 @@ import {
   YAxis,
   type BarShapeProps,
 } from 'recharts'
-import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import { resolveChartViewport, chartTheme } from '@/components/charts/core/chart-theme'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import clsx from 'clsx'
 
@@ -25,7 +25,7 @@ import clsx from 'clsx'
  * as a real zero measurement.
  *
  * ── Sizing ────────────────────────────────────────────────────────────────
- * The canvas derives from what is actually plotted (`chartHeight`, in pixels):
+ * The canvas derives from a fixed role viewport (`chartViewport`, in pixels):
  * two allocation rows get a two-row canvas, not a fixed block that would leave
  * empty plot beneath the bars.
  *
@@ -112,7 +112,7 @@ export function ReserveExposureChart({ items }: Readonly<{ items: readonly Bitco
         </table>
       </div>
 
-      <div aria-hidden="true" className="w-full" style={{ height: chartHeight('rows', items.length) }}>
+      <div aria-hidden="true" className="w-full" style={{ height: resolveChartViewport({ kind: 'rows' }) }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={[...items]} layout="vertical" margin={chartTheme.margin}>
             <CartesianGrid

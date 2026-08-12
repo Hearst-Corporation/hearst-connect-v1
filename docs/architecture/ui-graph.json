@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
-  "sourceSha": "1ee6c84cd013d85d23dbae4983bc71c7600ccdaf",
-  "generatedAt": "2026-08-12T09:56:11.598Z",
+  "sourceSha": "943470228a54de379de03b14e1b037c2393ef03d",
+  "generatedAt": "2026-08-12T11:09:52.851Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {
@@ -192,6 +192,16 @@
       "domain": "account",
       "source": "src/features/user-dashboard/load.ts",
       "evidence": "export async function loadUserDashboard"
+    },
+    {
+      "id": "foundation:chart-viewport",
+      "type": "FOUNDATION",
+      "name": "Chart viewport roles (compact/standard/hero/donut)",
+      "domain": "shared",
+      "source": "src/components/charts/core/chart-theme.ts",
+      "evidence": "CHART_VIEWPORT_PX / chartViewport(role) — dataset length ignored",
+      "geometryOwner": "component",
+      "datasetControlsGeometry": false
     },
     {
       "id": "foundation:charts",
@@ -927,7 +937,17 @@
   "edges": [
     {
       "from": "chart:allocation-dual-line",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:allocation-dual-line",
       "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:chart-frame",
+      "to": "foundation:chart-viewport",
       "type": "uses_foundation"
     },
     {
@@ -942,7 +962,17 @@
     },
     {
       "from": "chart:hearst-activity",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-activity",
       "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-allocation",
+      "to": "foundation:chart-viewport",
       "type": "uses_foundation"
     },
     {
@@ -952,7 +982,17 @@
     },
     {
       "from": "chart:hearst-donut",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-donut",
       "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:hearst-line",
+      "to": "foundation:chart-viewport",
       "type": "uses_foundation"
     },
     {
@@ -962,7 +1002,17 @@
     },
     {
       "from": "chart:rich-sparkline",
+      "to": "foundation:chart-viewport",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:rich-sparkline",
       "to": "foundation:charts",
+      "type": "uses_foundation"
+    },
+    {
+      "from": "chart:signed-bar",
+      "to": "foundation:chart-viewport",
       "type": "uses_foundation"
     },
     {
@@ -1069,6 +1119,11 @@
       "from": "data:user-dashboard",
       "to": "state:account-availability",
       "type": "contains"
+    },
+    {
+      "from": "foundation:chart-viewport",
+      "to": "foundation:charts",
+      "type": "uses_foundation"
     },
     {
       "from": "layout:account-shell",

@@ -1,6 +1,10 @@
 'use client'
 
-import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import {
+  resolveChartViewport,
+  chartTheme,
+  type ChartViewportRole,
+} from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
@@ -42,9 +46,16 @@ export function HearstActivityChart({
   unit,
   color = SERIE,
   height,
-}: Readonly<{ points: readonly ActivityPoint[]; unit: string; color?: string; height?: number }>) {
+  viewport,
+}: Readonly<{
+  points: readonly ActivityPoint[]
+  unit: string
+  color?: string
+  height?: number
+  viewport?: ChartViewportRole
+}>) {
   const count = points.length
-  const viewportHeight = height ?? chartHeight('columns', Math.max(count, 1))
+  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'columns' })
   const { ref, width } = useChartWidth()
   const barCategoryGap = barCategoryGapForCount(count)
   const maxBarSize = maxBarSizeForCount(count)
@@ -76,7 +87,13 @@ export function HearstActivityChart({
         </table>
       </div>
 
-      <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height: viewportHeight }}>
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className="w-full min-w-0"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
         {width > 0 ? (
           <BarChart
             width={width}

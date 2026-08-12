@@ -1,17 +1,17 @@
 'use client'
 
-import { chartTheme } from '@/components/charts/core/chart-theme'
+import { CHART_SPARK_VIEWPORT_PX, chartTheme } from '@/components/charts/core/chart-theme'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
 /**
  * richart — dense sparkline for KPI tiles.
- * Renders nothing below 2 points (no invented slope).
+ * Component-level viewport (not a page role). Renders nothing below 2 points.
  */
 
 export function RichSparkline({
   data,
   color = chartTheme.dataSeries.brandPrimary,
-  height = 32,
+  height = CHART_SPARK_VIEWPORT_PX,
 }: Readonly<{
   data: number[]
   color?: string

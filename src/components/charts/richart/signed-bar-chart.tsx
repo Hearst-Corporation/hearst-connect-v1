@@ -1,6 +1,10 @@
 'use client'
 
-import { chartHeight, chartTheme } from '@/components/charts/core/chart-theme'
+import {
+  resolveChartViewport,
+  chartTheme,
+  type ChartViewportRole,
+} from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, Cell, LabelList, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts'
@@ -101,19 +105,24 @@ function SignedTooltip({
 export function SignedBarChart({
   items,
   height,
-}: Readonly<{ items: readonly SignedBarItem[]; height?: number }>) {
+  viewport,
+}: Readonly<{ items: readonly SignedBarItem[]; height?: number; viewport?: ChartViewportRole }>) {
   const { ref, width } = useChartWidth()
+  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'rows' })
 
   if (items.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+      <div
+        className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
         No runs for this period.
-      </p>
+      </div>
     )
   }
 
   const sorted = [...items].sort((a, b) => b.value - a.value)
-  const viewportHeight = height ?? chartHeight('rows', Math.max(sorted.length, 1))
   // Symmetric-ish domain so the zero line sits where the data places it.
   const maxAbs = Math.max(...sorted.map((d) => Math.abs(d.value)), 1)
 

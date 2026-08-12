@@ -1,6 +1,6 @@
 'use client'
 
-import { chartHeight, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
+import { resolveChartViewport, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -22,7 +22,7 @@ const CONSTATE = chartTheme.dataSeries.dataReference
 type Row = { label: string; targetPct: number; actualPct: number | null }
 
 export function HearstAllocationChart({ items }: Readonly<{ items: readonly AllocationItem[] }>) {
-  const height = chartHeight('rows', Math.max(items.length, 1))
+  const height = resolveChartViewport({ kind: 'rows' })
   const anyActual = items.some((p) => p.actualPct !== null)
   const data: Row[] = items.map((p) => ({
     label: p.label,

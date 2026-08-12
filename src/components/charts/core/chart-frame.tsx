@@ -2,6 +2,11 @@ import { AdminLabel } from '@/components/admin/typography'
 import { RequirementList, surfaceInset } from '@/components/admin/surface'
 import { AdminToneBadge } from '@/components/admin/status-tone'
 import { Text } from '@/components/catalyst/text'
+import {
+  chartViewport,
+  type ChartViewportRole,
+  resolveChartViewport,
+} from '@/components/charts/core/chart-theme'
 import { Panel, PanelHeader } from '@/components/compositions/panel'
 import { ChartBarIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
@@ -15,11 +20,9 @@ import type { ComponentType, SVGProps } from 'react'
  * the title, the unit, the provenance, and the state of the data at render
  * time.
  *
- * When the source is unreachable (`unavailable`), only the title and a
- * concise message are shown. Otherwise the chart slot always renders — the
- * adapter draws axes and data when present, or an empty canvas when not.
- * Context for a short or pending series lives in a caption below the slot,
- * not in place of it.
+ * Viewport ownership: empty / pending / unavailable use the same role-based
+ * viewport as the plotted chart would (`viewport` prop → `chartViewport`).
+ * Dataset length never chooses the slot height.
  */
 
 export type SeriesState =
@@ -27,12 +30,6 @@ export type SeriesState =
   | { readonly type: 'empty'; readonly explanation: string }
   | { readonly type: 'pending'; readonly explanation: string }
   | { readonly type: 'unavailable'; readonly explanation: string }
-
-const STATE_TONE: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
-  empty: 'text-fg-tertiary dark:text-fg-secondary',
-  pending: 'text-fg-tertiary dark:text-fg-secondary',
-  unavailable: 'text-danger-400',
-}
 
 const STATE_LABEL: Record<Exclude<SeriesState['type'], 'plotted'>, string> = {
   empty: 'No data for this period',
@@ -51,20 +48,21 @@ function StateVisual({
   expectedSource,
   onRetry,
   retryLabel,
-  hauteur,
+  viewportPx,
 }: Readonly<{
   state: Exclude<SeriesState, { type: 'plotted' }>
   expectedSource?: readonly string[]
   onRetry?: () => void
   retryLabel: string
-  hauteur?: number
+  viewportPx: number
 }>) {
   const Icon = STATE_ICON[state.type]
   const danger = state.type === 'unavailable'
   return (
     <div
-      className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-8 text-center"
-      style={{ minHeight: hauteur ?? 200 }}
+      className="flex flex-col items-center justify-center gap-3 px-5 py-8 text-center"
+      style={{ height: viewportPx, minHeight: viewportPx }}
+      data-chart-viewport={viewportPx}
     >
       <span
         className={clsx(
@@ -103,14 +101,14 @@ function ChartFrameContent({
   expectedSource,
   onRetry,
   retryLabel,
-  hauteur,
+  viewportPx,
 }: Readonly<{
   state: SeriesState
   children?: React.ReactNode
   expectedSource?: readonly string[]
   onRetry?: () => void
   retryLabel: string
-  hauteur?: number
+  viewportPx: number
 }>) {
   if (state.type === 'plotted') {
     return children
@@ -136,7 +134,7 @@ function ChartFrameContent({
       expectedSource={expectedSource}
       onRetry={onRetry}
       retryLabel={retryLabel}
-      hauteur={hauteur}
+      viewportPx={viewportPx}
     />
   )
 }
@@ -145,6 +143,8 @@ export function ChartFrame({
   question,
   unit,
   state,
+  viewport = 'standard',
+  /** @deprecated Prefer `viewport` role. Escape hatch for an explicit px height. */
   hauteur,
   expectedSource,
   onRetry,
@@ -154,10 +154,11 @@ export function ChartFrame({
   question: string
   unit: string
   state: SeriesState
+  /** Role-based viewport shared by empty / pending / unavailable (and callers for plotted). */
+  viewport?: ChartViewportRole
   /**
-   * Minimum height of the EMPTY state, in px. A plotted chart sizes itself
-   * from its own data (see `chartHeight`), so this never applies to it.
-   * Default: enough for the sentence, and not one pixel more.
+   * @deprecated Prefer `viewport`. Explicit px for the empty-state slot when
+   * a role is not enough. Defaults to the resolved role viewport.
    */
   hauteur?: number
   expectedSource?: readonly string[]
@@ -165,6 +166,11 @@ export function ChartFrame({
   retryLabel?: string
   children?: React.ReactNode
 }>) {
+  const viewportPx = resolveChartViewport({
+    height: hauteur,
+    viewport,
+  })
+
   return (
     <Panel tone="chart" className="flex h-full flex-col">
       <PanelHeader title={question} hint={unit} />
@@ -174,10 +180,15 @@ export function ChartFrame({
         expectedSource={expectedSource}
         onRetry={onRetry}
         retryLabel={retryLabel}
-        hauteur={hauteur}
+        viewportPx={viewportPx}
       >
         {children}
       </ChartFrameContent>
     </Panel>
   )
+}
+
+/** Convenience for tests / callers that need the default empty-slot px. */
+export function chartFrameDefaultViewportPx(): number {
+  return chartViewport('standard')
 }
