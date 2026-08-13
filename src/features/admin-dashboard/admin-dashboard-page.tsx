@@ -69,7 +69,7 @@ function ActivityChartSlot({
         : null
     return (
       <div
-        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        className="flex h-full flex-col justify-center gap-1 py-5"
         style={{ minHeight: 'var(--chart-viewport-compact)' }}
       >
         <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
@@ -111,7 +111,7 @@ function AllocationSlot({
         : 'Source unavailable'
     return (
       <div
-        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        className="flex h-full flex-col justify-center gap-1 py-5"
         style={{ minHeight: 'var(--chart-viewport-compact)' }}
       >
         <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
@@ -153,7 +153,7 @@ function BtcPriceSlot({
         : 'Source unavailable'
     return (
       <div
-        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        className="flex h-full flex-col justify-center gap-1 py-5"
         style={{ minHeight: 'var(--chart-viewport-compact)' }}
       >
         <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
@@ -195,7 +195,7 @@ function RebalancingHistorySlot({
         : null
     return (
       <div
-        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        className="flex h-full flex-col justify-center gap-1 py-5"
         style={{ minHeight: 'var(--chart-viewport-compact)' }}
       >
         <p className="text-ink dark:text-fg text-sm font-semibold">Rebalancing history not configured</p>
@@ -211,7 +211,7 @@ function RebalancingHistorySlot({
         : 'Source unavailable'
     return (
       <div
-        className="flex h-full flex-col justify-center gap-1 rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
+        className="flex h-full flex-col justify-center gap-1 py-5"
         style={{ minHeight: 'var(--chart-viewport-compact)' }}
       >
         <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>

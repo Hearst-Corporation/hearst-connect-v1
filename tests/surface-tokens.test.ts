@@ -58,13 +58,15 @@ describe('design system surfaces — canon dashboard', () => {
     expect(logo).toContain('HEARST_CONNECT_LOCKUP_SRC')
   })
 
-  it('portfolio exposure : sélection via surfaceSelect', () => {
+  it('portfolio exposure : sélection à plat (pas de sur-surface encadrée)', () => {
     const src = readFileSync(
       join(process.cwd(), 'src/components/admin/dashboard/portfolio-exposure.tsx'),
       'utf8',
     )
-    expect(src).toContain('surfaceSelect')
-    expect(src).not.toContain('data-selected:bg-console-raised')
+    // Sélection = teinte, jamais une seconde boîte (ring/surfaceInset) dans la carte.
+    expect(src).toContain('data-selected:bg-accent-soft')
+    expect(src).not.toContain('surfaceInset')
+    expect(src).not.toContain('surfaceSelect')
   })
 
   it('menu : effet verre via surfaceNav', () => {

@@ -1,7 +1,5 @@
 'use client'
 
-import { HearstSecondaryAction } from '@/components/actions'
-import { surfaceInset, surfaceSelect } from '@/components/admin/surface'
 import { formatPercent } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
@@ -25,41 +23,34 @@ function StrategyDetail({
   assetScale,
 }: Readonly<{ row: AdminExposureStrategy; assetScale: AdminAssetScale }>) {
   return (
-    <div className={clsx(surfaceInset, 'p-4 @container')}>
+    <div className="border-t border-console-line-soft pt-4">
       <p className="truncate text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
-      <div className="mt-3 flex flex-col gap-3 @[28rem]:flex-row @[28rem]:items-end @[28rem]:justify-between">
-        <dl className="flex min-w-0 flex-1 flex-wrap gap-x-6 gap-y-2 text-xs">
-          <div>
-            <dt className="text-fg-tertiary">Actual</dt>
-            <dd className="font-semibold tabular-nums text-fg">
-              {formatPercent(row.actualBps, { fromBps: true })}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-fg-tertiary">Target</dt>
-            <dd className="font-semibold tabular-nums text-fg">
-              {formatPercent(row.targetBps, { fromBps: true })}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-fg-tertiary">Drift</dt>
-            <dd className="font-semibold tabular-nums text-warning-700 dark:text-warning-400">
-              {driftLabel(row.driftBps)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-fg-tertiary">Exposure</dt>
-            <dd className="font-semibold tabular-nums text-fg">
-              {formatAdminAtomic(row.exposureAtomic, assetScale)}
-            </dd>
-          </div>
-        </dl>
-        <div className="shrink-0">
-          <HearstSecondaryAction href={`/admin/vaults/${encodeURIComponent(row.vaultId)}`}>
-            View vault
-          </HearstSecondaryAction>
+      <dl className="mt-3 flex min-w-0 flex-wrap gap-x-6 gap-y-2 text-xs">
+        <div>
+          <dt className="text-fg-tertiary">Actual</dt>
+          <dd className="font-semibold tabular-nums text-fg">
+            {formatPercent(row.actualBps, { fromBps: true })}
+          </dd>
         </div>
-      </div>
+        <div>
+          <dt className="text-fg-tertiary">Target</dt>
+          <dd className="font-semibold tabular-nums text-fg">
+            {formatPercent(row.targetBps, { fromBps: true })}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-fg-tertiary">Drift</dt>
+          <dd className="font-semibold tabular-nums text-warning-700 dark:text-warning-400">
+            {driftLabel(row.driftBps)}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-fg-tertiary">Exposure</dt>
+          <dd className="font-semibold tabular-nums text-fg">
+            {formatAdminAtomic(row.exposureAtomic, assetScale)}
+          </dd>
+        </div>
+      </dl>
     </div>
   )
 }
@@ -69,14 +60,9 @@ function ExposureEmptyState({
   detail,
 }: Readonly<{ title: string; detail: string }>) {
   return (
-    <div className="space-y-4">
-      <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
-        <p className="text-sm font-semibold text-ink dark:text-fg">{title}</p>
-        <p className="text-xs text-fg-tertiary">{detail}</p>
-      </div>
-      <div className="flex justify-end border-t border-console-line-soft pt-3">
-        <HearstSecondaryAction href="/admin/vaults">Open vault registry</HearstSecondaryAction>
-      </div>
+    <div className="flex flex-col justify-center gap-2 py-5">
+      <p className="text-sm font-semibold text-ink dark:text-fg">{title}</p>
+      <p className="text-xs text-fg-tertiary">{detail}</p>
     </div>
   )
 }
@@ -139,7 +125,7 @@ export function PortfolioExposurePanel({
               className={clsx(
                 'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-accent-500',
-                surfaceSelect,
+                'data-selected:bg-accent-soft',
               )}
             >
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
@@ -164,9 +150,6 @@ export function PortfolioExposurePanel({
             </TabPanel>
           ))}
         </TabPanels>
-      </div>
-      <div className="flex justify-end border-t border-console-line-soft pt-3">
-        <HearstSecondaryAction href="/admin/vaults">Open vault registry</HearstSecondaryAction>
       </div>
     </TabGroup>
   )

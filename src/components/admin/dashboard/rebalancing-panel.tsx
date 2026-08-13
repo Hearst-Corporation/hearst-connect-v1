@@ -1,12 +1,10 @@
 'use client'
 
 import { HearstSecondaryAction } from '@/components/actions'
-import { surfaceInset } from '@/components/admin/surface'
 import { formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import clsx from 'clsx'
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -17,7 +15,7 @@ function driftPts(driftBps: number): string {
 function RebalancingUnavailable() {
   return (
     <div className="space-y-4">
-      <div className={clsx(surfaceInset, 'flex flex-col items-center justify-center px-4 py-8 text-center')}>
+      <div className="flex flex-col items-center justify-center py-8 text-center">
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
       </div>
@@ -58,7 +56,7 @@ export function RebalancingAlertsPanel({
   return (
     <div className="space-y-4" data-widget="rebalancing-alerts">
       <div className="flex min-w-0 flex-col gap-3">
-        <div className={clsx(surfaceInset, 'flex items-start gap-3 p-4')}>
+        <div className="flex items-start gap-3">
           {stable ? (
             <CheckCircleIcon className="size-6 shrink-0 text-accent-500" aria-hidden="true" />
           ) : (
@@ -75,7 +73,7 @@ export function RebalancingAlertsPanel({
             {data.alerts.map((alert) => (
               <li
                 key={alert.strategyId}
-                className={clsx(surfaceInset, 'flex min-w-0 items-center justify-between gap-2 px-3 py-2 text-sm')}
+                className="flex min-w-0 items-center justify-between gap-2 border-t border-console-line-soft py-2 text-sm first:border-t-0"
               >
                 <span className="min-w-0 truncate font-medium text-ink dark:text-fg">{alert.strategyLabel}</span>
                 <span className="shrink-0 tabular-nums text-warning-700 dark:text-warning-400">
