@@ -381,13 +381,15 @@ function DistributionHistory({
   )
 }
 
+function numericValue(v: string | null | undefined): number | null {
+  if (v === undefined || v === null || v === '' || v === 'null' || v === 'undefined') return null
+  const n = Number(v)
+  if (!Number.isFinite(n) || n <= 0) return null
+  return n
+}
+
 function isCalculationComplete(c: CalculationRecord): boolean {
-  return (
-    c.btcAmountSats !== '' &&
-    c.btcAmountSats !== '0' &&
-    c.grossYieldUsdc !== '' &&
-    c.grossYieldUsdc !== '0'
-  )
+  return numericValue(c.btcAmountSats) !== null && numericValue(c.grossYieldUsdc) !== null
 }
 
 function CalculationsSection({
