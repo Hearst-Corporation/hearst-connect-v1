@@ -215,6 +215,45 @@ export function SectionCard({
   )
 }
 
+/**
+ * A FRAMELESS section header — eyebrow, title, context sentence, actions slot.
+ *
+ * `SectionCard` frames its content in a `Panel` (`surfaceBox`). When a section
+ * groups children that are ALREADY framed cards (a `ChartFrame`, a
+ * `DataTableShell`), wrapping them in a second `Panel` stacks a box inside a box.
+ * `SectionHeader` is the answer: it carries the same title/eyebrow/hint grammar
+ * without a surface, so the framed children remain the only boxes. Place it above
+ * the cards inside a plain `<section>`.
+ */
+export function SectionHeader({
+  title,
+  eyebrow,
+  hint,
+  actions,
+  as: Tag = 'h2',
+  className,
+}: Readonly<{
+  title: string
+  eyebrow?: string
+  hint?: string
+  actions?: React.ReactNode
+  as?: 'h2' | 'h3'
+  className?: string
+}>) {
+  return (
+    <div className={clsx(csl.heroHead, className)}>
+      <div className="min-w-0 flex-1">
+        {eyebrow !== undefined && eyebrow !== '' && (
+          <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
+        )}
+        <Tag className={csl.cardTitle}>{title}</Tag>
+        {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
+      </div>
+      {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+    </div>
+  )
+}
+
 /* ── DataTableShell ───────────────────────────────────────────────────────── */
 
 /**

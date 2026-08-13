@@ -236,6 +236,8 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
     formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
   )
 
+  // Order = hierarchy: AUM is the dominant fact (rendered display-large), then
+  // drift leads the supporting band (pilotage angle: how much, and is it drifting).
   const kpis: readonly DashboardKpi[] = [
     {
       id: 'aum',
@@ -243,6 +245,13 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
       value: mapAvailability(data.overview, (o) => formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals })),
       unit: isAvailable(data.overview) ? data.overview.value.asset : undefined,
       icon: BanknotesIcon,
+    },
+    {
+      id: 'drift',
+      title: 'Maximum drift',
+      value: mapAvailability(data.overview, (o) => driftPtsLabel(o.maxDriftBps)),
+      unit: isAvailable(data.overview) ? (data.overview.value.maxDriftStrategyLabel ?? '—') : undefined,
+      icon: ExclamationTriangleIcon,
     },
     {
       id: 'vaults',
@@ -257,13 +266,6 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
       value: mapAvailability(data.overview, (o) => `${o.deployedPct}%`),
       unit: isAvailable(deployedAmount) ? deployedAmount.value : undefined,
       icon: ArrowTrendingUpIcon,
-    },
-    {
-      id: 'drift',
-      title: 'Maximum drift',
-      value: mapAvailability(data.overview, (o) => driftPtsLabel(o.maxDriftBps)),
-      unit: isAvailable(data.overview) ? (data.overview.value.maxDriftStrategyLabel ?? '—') : undefined,
-      icon: ExclamationTriangleIcon,
     },
   ]
 

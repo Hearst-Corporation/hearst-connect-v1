@@ -111,7 +111,7 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
     <li>
       <Link
         href={href}
-        className="block rounded-lg bg-console-card p-4 ring-1 ring-console-line-soft transition-colors hover:bg-console-card-top"
+        className="-mx-2 block rounded-md px-2 py-3 transition-colors hover:bg-console-inset/40"
       >
         <div className="flex items-baseline justify-between gap-3">
           <p className="truncate text-sm font-semibold text-ink dark:text-fg">{vault.label}</p>
@@ -187,7 +187,7 @@ function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[]
           <span className="text-xs text-fg-tertiary">{formatNumber(vaultList.length)} vault(s)</span>
         }
       >
-        <ul className="space-y-3">
+        <ul className="divide-y divide-console-line-soft">
           {vaultList.map((vault) => (
             <VaultMobileCard key={vault.id} vault={vault} />
           ))}

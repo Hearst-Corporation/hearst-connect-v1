@@ -109,7 +109,7 @@ export function KeeperForm({
       ) : null}
 
       {disabled ? (
-        <p className={clsx(surfaceInset, 'mt-4 px-3 py-2 text-xs text-fg-secondary')}>
+        <p className="mt-4 border-t border-console-line-soft pt-3 text-xs text-fg-secondary">
           {disabledReason}
         </p>
       ) : (

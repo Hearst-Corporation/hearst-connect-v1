@@ -127,7 +127,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
           description="GET /api/v1/admin/clients/:id — named absence when the investor is not on the book."
           kpis={kpis}
         />
-        <Callout tone="warning" title="Client introuvable">
+        <Callout tone="warning" title="Client not found">
           GET /api/v1/admin/clients/{id} returned 404 (INVESTOR_NOT_FOUND). No client record is shown.
         </Callout>
         <Text>

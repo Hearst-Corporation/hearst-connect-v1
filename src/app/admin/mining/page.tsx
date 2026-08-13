@@ -204,25 +204,25 @@ function MachineFleetSection({
   return (
     <SectionCard title="Machine fleet" hint="Operational telemetry">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
             {machineCount !== null ? formatNumber(machineCount) : '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Active</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
             {activeMachines !== null ? formatNumber(activeMachines) : '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Inactive</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
             {inactiveMachines !== null ? formatNumber(inactiveMachines) : '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
             {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
@@ -286,8 +286,11 @@ function StrategyAllocationSection({
       }))
 
   return (
-    <SectionCard title="RWA strategy allocation" hint="Mining yield per strategy">
-      <DataTableShell title="Strategy allocation" count={`${rows.length}`}>
+    <DataTableShell
+      title="RWA strategy allocation"
+      description="Mining yield per strategy"
+      count={`${rows.length}`}
+    >
         <TableHead>
           <TableRow>
             <TableHeader className="text-left text-xs">Strategy</TableHeader>
@@ -328,8 +331,7 @@ function StrategyAllocationSection({
             </TableRow>
           ))}
         </TableBody>
-      </DataTableShell>
-    </SectionCard>
+    </DataTableShell>
   )
 }
 
@@ -355,19 +357,19 @@ function OpexSection({
   return (
     <SectionCard title="OPEX" hint="Operational expenses">
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Monthly electricity</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
             {monthlyCost !== null ? formatCurrency(monthlyCost, { decimals: 0 }) : '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">kWh consumed</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
             {kwhConsumed !== null ? formatNumber(Number(kwhConsumed), { maximumFractionDigits: 0 }) : '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Cost per kWh</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
             {costPerKwh !== null ? formatCurrency(costPerKwh, { decimals: 2 }) : '—'}
@@ -404,19 +406,19 @@ function YieldCalculationSection({
   return (
     <SectionCard title="Yield calculation" hint="Gross vs net for RWA distribution">
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Gross yield</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-accent-400">
             {grossYield ?? '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">OPEX deduction</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
             {electricityCost ? `-${formatCurrency(electricityCost, { decimals: 0 })}` : '—'}
           </p>
         </div>
-        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Net yield to RWA</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
             {netYield ?? '—'}
@@ -451,20 +453,20 @@ function NextDistributionCard({
     >
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+          <div className="min-w-0">
             <p className="text-xs font-medium text-fg-tertiary">BTC amount</p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
               {satsToBtc(distribution.btcAmountSats) ?? '—'} BTC
             </p>
           </div>
-          <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+          <div className="min-w-0">
             <p className="text-xs font-medium text-fg-tertiary">Value at price</p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
               {btcValueUsdc(distribution.btcAmountSats, distribution.btcPriceUsdc) ?? '—'}
             </p>
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div className="flex items-center justify-between border-t border-console-line-soft pt-4">
           <div>
             <p className="text-xs font-medium text-fg-tertiary">Target strategy</p>
             <p className="text-sm font-medium text-ink dark:text-fg">{distribution.rwaStrategyId}</p>
@@ -583,7 +585,7 @@ function CalculationsSection({
   const incompleteCount = calculations.filter((c) => !isCalculationComplete(c)).length
 
   return (
-    <SectionCard title="Calculations" hint="Historical yield calculations">
+    <div className="space-y-4">
       <DataTableShell
         title="Calculation history"
         count={`${calculations.length}`}
@@ -640,10 +642,10 @@ function CalculationsSection({
           })}
         </TableBody>
       </DataTableShell>
-      <div className="mt-4 max-w-xs">
+      <div className="max-w-xs">
         <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
       </div>
-    </SectionCard>
+    </div>
   )
 }
 

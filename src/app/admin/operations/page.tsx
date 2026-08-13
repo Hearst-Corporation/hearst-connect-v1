@@ -2,9 +2,11 @@ import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-head
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
 import { surfaceInset } from '@/components/admin/surface'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
+import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import {
+  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -105,7 +107,7 @@ function RebalancingSection({
       hint={rebalancingHint(stable, data.strategiesOutOfTarget)}
     >
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className={clsx(surfaceInset, 'p-3')}>
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Strategies out of target
           </p>
@@ -113,7 +115,7 @@ function RebalancingSection({
             {formatNumber(data.strategiesOutOfTarget)}
           </p>
         </div>
-        <div className={clsx(surfaceInset, 'p-3')}>
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Vaults out of target
           </p>
@@ -121,7 +123,7 @@ function RebalancingSection({
             {formatNumber(data.vaultsOutOfTarget)}
           </p>
         </div>
-        <div className={clsx(surfaceInset, 'p-3')}>
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Maximum drift
           </p>
@@ -132,8 +134,12 @@ function RebalancingSection({
       </div>
 
       {data.alerts.length > 0 ? (
-        <div className="mt-4">
-          <DataTableShell title="Needs attention" count={`${data.alerts.length}`}>
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-ink dark:text-fg">Needs attention</h3>
+            <Badge color="neutral">{data.alerts.length}</Badge>
+          </div>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableHeader className={tableCol.primary}>Strategy</TableHeader>
@@ -161,7 +167,7 @@ function RebalancingSection({
                 </TableRow>
               ))}
             </TableBody>
-          </DataTableShell>
+          </Table>
         </div>
       ) : (
         <p className="mt-4 text-sm text-fg-tertiary dark:text-fg-secondary">

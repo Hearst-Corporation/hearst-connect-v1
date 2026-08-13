@@ -1,4 +1,3 @@
-import { surfaceInset } from '@/components/admin/surface'
 import { StatusBadge } from '@/components/admin/truthful'
 import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
@@ -12,7 +11,7 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className={surfaceInset + ' flex flex-col justify-center gap-2 px-4 py-5'}
+        className="flex flex-col justify-center gap-2 py-5"
       >
         <StatusBadge status="NOT_CONFIGURED" />
         <p className="text-sm font-semibold text-ink dark:text-fg">Market feed not configured</p>
@@ -27,7 +26,7 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className={surfaceInset + ' flex flex-col justify-center gap-1 px-4 py-5'}
+        className="flex flex-col justify-center gap-1 py-5"
       >
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <p className="text-xs text-fg-tertiary">{snapshot.reason ?? 'Source unavailable'}</p>
@@ -60,9 +59,9 @@ export function MarketSnapshotPanel({
   return (
     <dl
       data-widget="market-snapshot"
-      className="@container grid grid-cols-1 gap-4 @[16rem]:grid-cols-2"
+      className="@container grid grid-cols-1 gap-x-6 gap-y-5 @[16rem]:grid-cols-2 @[16rem]:[&>*:nth-child(n+3)]:border-t @[16rem]:[&>*:nth-child(n+3)]:border-console-line-soft @[16rem]:[&>*:nth-child(n+3)]:pt-5"
     >
-      <div className={surfaceInset + ' p-4'}>
+      <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{btc}</dd>
         {btcChange !== null ? (
@@ -71,7 +70,7 @@ export function MarketSnapshotPanel({
           </dd>
         ) : null}
       </div>
-      <div className={surfaceInset + ' p-4'}>
+      <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Hashprice</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{hashprice}</dd>
         {hashpriceChange !== null ? (
@@ -80,11 +79,11 @@ export function MarketSnapshotPanel({
           </dd>
         ) : null}
       </div>
-      <div className={surfaceInset + ' p-4'}>
+      <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Energy</dt>
         <dd className="mt-1 text-lg font-semibold tabular-nums text-ink dark:text-fg">{energy}</dd>
       </div>
-      <div className={surfaceInset + ' p-4'}>
+      <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Margin</dt>
         <dd className="mt-1 text-lg font-semibold tabular-nums text-ink dark:text-fg">{margin}</dd>
       </div>

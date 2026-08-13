@@ -2,13 +2,13 @@
 
 import { HearstSecondaryAction } from '@/components/actions'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
-import { surfaceInset } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { formatAddress, formatHash, formatRelativeTime } from '@/lib/format'
+import { movementLabel } from '@/lib/movements'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
 function eventClientTitle(
@@ -31,7 +31,7 @@ export function ActivityTimelinePanel({
     if (isAdminNotConfigured(events)) {
       return (
         <div className="space-y-4" data-widget="activity-timeline">
-          <div className={surfaceInset + ' flex flex-col justify-center gap-2 px-4 py-5'}>
+          <div className="flex flex-col justify-center gap-2 py-5">
             <p className="text-sm font-semibold text-ink dark:text-fg">Activity index not configured</p>
             <Text>No events indexed yet.</Text>
           </div>
@@ -43,7 +43,7 @@ export function ActivityTimelinePanel({
     }
     return (
       <div className="space-y-4" data-widget="activity-timeline">
-        <div className={surfaceInset + ' flex flex-col justify-center gap-2 px-4 py-5'}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
           <Text>Activity source unavailable.</Text>
         </div>
@@ -57,7 +57,7 @@ export function ActivityTimelinePanel({
   if (events.value.length === 0) {
     return (
       <div className="space-y-4" data-widget="activity-timeline">
-        <div className={surfaceInset + ' flex flex-col justify-center gap-2 px-4 py-5'}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">No recent activity</p>
           <Text>No events in the current window.</Text>
         </div>
@@ -79,7 +79,9 @@ export function ActivityTimelinePanel({
             />
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-ink dark:text-fg">{event.title}</p>
+                {/* English vocabulary from the movement type (backend fact); the
+                    backend `title` is localized copy and is not rendered here. */}
+                <p className="text-sm font-semibold text-ink dark:text-fg">{movementLabel(event.type)}</p>
                 <p
                   className="mt-0.5 truncate text-xs text-fg-tertiary"
                   title={eventClientTitle(event, assetScale)}
