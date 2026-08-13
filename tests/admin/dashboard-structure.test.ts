@@ -13,7 +13,6 @@ const SOURCE = readFileSync(root('src/features/admin-dashboard/admin-dashboard-p
 const HEADER = readFileSync(root('src/components/admin/dashboard/header.tsx'), 'utf8')
 const PAGE_HEADER = readFileSync(root('src/components/admin/page-header.tsx'), 'utf8')
 const HERO_KPI = readFileSync(root('src/components/admin/hero-kpi.tsx'), 'utf8')
-const KPI = readFileSync(root('src/components/admin/dashboard/kpi-grid.tsx'), 'utf8')
 const EXPOSURE = readFileSync(root('src/components/admin/dashboard/portfolio-exposure.tsx'), 'utf8')
 const REBALANCING = readFileSync(root('src/components/admin/dashboard/rebalancing-panel.tsx'), 'utf8')
 const ACTIVITY = readFileSync(root('src/components/admin/dashboard/activity-timeline.tsx'), 'utf8')
@@ -44,7 +43,6 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<DashboardKpiGrid/)
     expect(HEADER).toMatch(/AdminPageHeader/)
     expect(PAGE_HEADER).toMatch(/data-dashboard-kpi-bandeau/)
-    expect(KPI).toMatch(/AdminHeroKpiMetrics as DashboardKpiMetrics/)
     expect(HERO_KPI).toMatch(/accent-/)
   })
 

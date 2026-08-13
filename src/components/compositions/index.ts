@@ -11,7 +11,6 @@
  */
 
 export { Panel, PanelBody, PanelHeader, type PanelTone } from '@/components/compositions/panel'
-export { KpiRow, MetricCard, MetricValue, SideFact } from '@/components/compositions/metric'
 export { CalmState, SourceAttendue } from '@/components/compositions/empty-state'
 
 /*

@@ -56,7 +56,7 @@ export function entityHref(kind: EntityKind, id: string): string {
     case 'client':
       return '/admin/clients'
     case 'compliance':
-      return '/admin/conformite'
+      return '/admin/compliance'
     case 'keeper':
       return '/admin/keeper'
     case 'source':

@@ -143,10 +143,10 @@ describe('registre des endpoints', () => {
     }
   })
 
-  it('réconcilie les lectures mining dédiées sur /admin/produit (F-07)', () => {
+  it('réconcilie les lectures mining dédiées sur /admin/product (F-07)', () => {
     for (const id of ['mining-onchain', 'mining-electricity']) {
       const endpoint = endpointById(id)
-      expect(endpoint.surface).toBe('/admin/produit')
+      expect(endpoint.surface).toBe('/admin/product')
       expect(endpoint.caveat).toMatch(/admin\/product/i)
     }
   })

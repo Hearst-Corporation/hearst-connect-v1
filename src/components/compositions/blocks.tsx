@@ -131,8 +131,8 @@ export function StatCard({
  * The grid of `StatCard`s.
  *
  * `label` is MANDATORY: a row of figures with no name says nothing to whoever
- * navigates by regions (same contract as `KpiRow`). `columns` bounds the number
- * of columns; below the threshold the grid collapses on its own.
+ * navigates by regions. `columns` bounds the number of columns; below the
+ * threshold the grid collapses on its own.
  */
 export function StatGrid({
   children,

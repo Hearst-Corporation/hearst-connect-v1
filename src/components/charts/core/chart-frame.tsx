@@ -3,7 +3,6 @@ import { RequirementList, surfaceInset } from '@/components/admin/surface'
 import { AdminToneBadge } from '@/components/admin/status-tone'
 import { Text } from '@/components/catalyst/text'
 import {
-  chartViewport,
   type ChartViewportRole,
   resolveChartViewport,
 } from '@/components/charts/core/chart-theme'
@@ -186,9 +185,4 @@ export function ChartFrame({
       </ChartFrameContent>
     </Panel>
   )
-}
-
-/** Convenience for tests / callers that need the default empty-slot px. */
-export function chartFrameDefaultViewportPx(): number {
-  return chartViewport('standard')
 }
