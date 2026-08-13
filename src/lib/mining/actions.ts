@@ -38,3 +38,43 @@ export async function approveDistribution(
 
   return { ok: true, error: null }
 }
+
+export type TriggerCalculationOutcome = {
+  ok: boolean
+  error: string | null
+}
+
+/**
+ * Triggers a yield calculation for a period (admin only).
+ *
+ * Calls the `mining-calculation-trigger` keeper route.
+ */
+export async function triggerCalculation(
+  _prev: TriggerCalculationOutcome | null,
+  formData: FormData,
+): Promise<TriggerCalculationOutcome> {
+  const period = formData.get('period')
+  const rwaStrategyId = formData.get('rwaStrategyId')
+
+  if (typeof period !== 'string' || period === '') {
+    return { ok: false, error: 'Period is required (YYYY-MM).' }
+  }
+  if (typeof rwaStrategyId !== 'string' || rwaStrategyId === '') {
+    return { ok: false, error: 'RWA strategy id is required.' }
+  }
+
+  const session = await getSession()
+  if (!session || toBackendRole(session.role) !== 'admin') {
+    return { ok: false, error: 'Administrator role required.' }
+  }
+
+  const response = await callBackend<{ status: string; reason: string }>('mining-calculation-trigger', {
+    body: { period, rwaStrategyId },
+  })
+
+  if (!response.ok) {
+    return { ok: false, error: response.state.reason ?? 'Calculation trigger failed.' }
+  }
+
+  return { ok: true, error: null }
+}
