@@ -1,16 +1,10 @@
 'use client'
 
 import { HearstSecondaryAction } from '@/components/actions'
-import { formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
+import { formatDriftPts, formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-
-function driftPts(driftBps: number): string {
-  const pts = driftBps / 100
-  const sign = pts > 0 ? '+' : ''
-  return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
-}
 
 function RebalancingUnavailable() {
   return (
@@ -77,7 +71,7 @@ export function RebalancingAlertsPanel({
               >
                 <span className="min-w-0 truncate font-medium text-ink dark:text-fg">{alert.strategyLabel}</span>
                 <span className="shrink-0 tabular-nums text-warning-700 dark:text-warning-400">
-                  {driftPts(alert.driftBps)}
+                  {formatDriftPts(alert.driftBps)}
                 </span>
               </li>
             ))}

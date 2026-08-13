@@ -22,7 +22,7 @@ import {
   type AdminRebalancingSummary,
 } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
-import { formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
+import { formatDriftPts, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import { editorial, isAvailable, type Availability } from '@/lib/vaults/model'
 import { entityHref } from '@/components/vaults/vault-entity-link'
@@ -56,12 +56,6 @@ const OPS_ACTIVITY_TYPES = new Set([
   'MiningMetricsReported',
   'deployment',
 ])
-
-function driftPts(driftBps: number): string {
-  const pts = driftBps / 100
-  const sign = pts > 0 ? '+' : ''
-  return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
-}
 
 function attentionCount(summary: AdminRebalancingSummary): number {
   return summary.alerts.length
@@ -128,7 +122,7 @@ function RebalancingSection({
             Maximum drift
           </p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
-            {data.maxDriftBps === null ? '—' : driftPts(data.maxDriftBps)}
+            {data.maxDriftBps === null ? '—' : formatDriftPts(data.maxDriftBps)}
           </p>
         </div>
       </div>
@@ -154,7 +148,7 @@ function RebalancingSection({
                   <TableCell className={tableCol.primary}>
                     <div className="truncate font-medium">{alert.strategyLabel}</div>
                   </TableCell>
-                  <TableCell className={`${tableCol.numeric} text-warning-400`}>{driftPts(alert.driftBps)}</TableCell>
+                  <TableCell className={`${tableCol.numeric} text-warning-400`}>{formatDriftPts(alert.driftBps)}</TableCell>
                   <TableCell className={`${tableCol.hash} text-xs text-fg-tertiary`}>{alert.vaultId}</TableCell>
                   <TableCell className={tableCol.action}>
                     <Link

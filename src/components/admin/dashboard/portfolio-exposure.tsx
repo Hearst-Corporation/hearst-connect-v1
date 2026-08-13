@@ -1,6 +1,6 @@
 'use client'
 
-import { formatPercent } from '@/lib/format'
+import { formatDriftPts, formatPercent } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminExposureStrategy } from '@/lib/admin-dashboard/contracts'
@@ -10,13 +10,6 @@ import { HearstDonutChart } from '@/components/charts'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
-
-function driftLabel(driftBps: number | null): string {
-  if (driftBps === null || !Number.isFinite(driftBps)) return '—'
-  const pts = driftBps / 100
-  const sign = pts > 0 ? '+' : ''
-  return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
-}
 
 function StrategyDetail({
   row,
@@ -41,7 +34,7 @@ function StrategyDetail({
         <div>
           <dt className="text-fg-tertiary">Drift</dt>
           <dd className="font-semibold tabular-nums text-warning-700 dark:text-warning-400">
-            {driftLabel(row.driftBps)}
+            {formatDriftPts(row.driftBps)}
           </dd>
         </div>
         <div>

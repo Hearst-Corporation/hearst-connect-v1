@@ -2,6 +2,7 @@ import {
   formatAddress,
   formatCurrency,
   formatDateTime,
+  formatDriftPts,
   formatHash,
   formatNumber,
   formatPercent,
@@ -59,6 +60,20 @@ describe('formatPercent', () => {
     expect(formatPercent(-3.2, { signed: true })).toBe('-3.2%')
     expect(formatPercent(0, { signed: true })).toBe('0%')
     expect(formatPercent(3.2)).toBe('3.2%')
+  })
+})
+
+describe('formatDriftPts', () => {
+  it('rend « — » pour une valeur absente ou non finie', () => {
+    expect(formatDriftPts(null)).toBe('—')
+    expect(formatDriftPts(undefined)).toBe('—')
+    expect(formatDriftPts(Number.NaN)).toBe('—')
+  })
+
+  it('convertit les bps en points, avec signe sur le positif', () => {
+    expect(formatDriftPts(250)).toBe('+2.5 pt')
+    expect(formatDriftPts(-80)).toBe('-0.8 pt')
+    expect(formatDriftPts(0)).toBe('0 pt')
   })
 })
 

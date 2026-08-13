@@ -31,6 +31,14 @@ export function formatPercent(
   return `${sign}${pct.toLocaleString(LOCALE, { maximumFractionDigits: opts?.maximumFractionDigits ?? 1 })}%`
 }
 
+/** Allocation drift in percentage points (100 bps = 1 pt). */
+export function formatDriftPts(driftBps: number | null | undefined): string {
+  if (driftBps === null || driftBps === undefined || !Number.isFinite(driftBps)) return '—'
+  const pts = driftBps / 100
+  const sign = pts > 0 ? '+' : ''
+  return `${sign}${pts.toLocaleString(LOCALE, { maximumFractionDigits: 2 })} pt`
+}
+
 export function formatCurrency(
   atomic: string | number | null | undefined,
   opts?: { decimals?: number; unit?: string; fromAtomic?: number },

@@ -130,13 +130,11 @@ export type AdminAllocationPoint = Readonly<{
 export type AdminDashboardData = Readonly<{
   overview: Availability<AdminPortfolioOverview>
   exposure: Availability<readonly AdminExposureStrategy[]>
-  totalAumAtomic: Availability<string>
   rebalancing: Availability<AdminRebalancingSummary>
   activityTimeseries: Availability<readonly AdminTimeseriesPoint[]>
   rebalancingHistory: Availability<readonly AdminRebalancingHistoryPoint[]>
   market: Availability<AdminMarketSnapshot>
   vaults: Availability<readonly AdminVaultSummary[]>
-  vaultsTotalAum: Availability<string>
   recentClients: Availability<readonly AdminRecentClient[]>
   recentActivity: Availability<readonly AdminActivityEvent[]>
   dataHealth: Availability<readonly AdminDataHealthSource[]>
