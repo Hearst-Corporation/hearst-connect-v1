@@ -1,6 +1,6 @@
 ---
 description: Interdiction absolue GPU1 — backend Hearst Connect = GitHub + Railway uniquement
-alwaysApply: true
+alwaysApply: false
 ---
 
 # RÈGLE ABSOLUE — NE JAMAIS TOUCHER GPU1

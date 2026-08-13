@@ -1,7 +1,7 @@
 ---
 description: DESIGN SYSTEM — Zinc palette is permanently forbidden
 globs:
-alwaysApply: true
+alwaysApply: false
 ---
 
 # DESIGN SYSTEM RULE — NO ZINC

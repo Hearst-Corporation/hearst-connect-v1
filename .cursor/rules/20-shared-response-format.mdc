@@ -1,6 +1,6 @@
 ---
 description: "Format réponse — une seule box copiable pour les livrables opérationnels"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Format de réponse — RÈGLE ABSOLUE

@@ -1,6 +1,6 @@
 ---
 description: "Hearst Connect V1 — Design System local (autorité tokens + contrat cross-surface admin × account)"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # DESIGN SYSTEM — Hearst Connect V1 (autorité locale)

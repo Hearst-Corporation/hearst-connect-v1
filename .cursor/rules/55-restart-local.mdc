@@ -1,6 +1,6 @@
 ---
 description: Redémarrer le runtime local (pnpm dev :4105) au début de chaque mission
-alwaysApply: true
+alwaysApply: false
 ---
 
 # RÈGLE — Redémarrer le local à chaque mission

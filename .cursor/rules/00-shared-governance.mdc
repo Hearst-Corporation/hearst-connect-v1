@@ -1,6 +1,6 @@
 ---
 description: "Constitution agent — workspace, DoD, vérité opérationnelle"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Gouvernance agent (tous workspaces)
