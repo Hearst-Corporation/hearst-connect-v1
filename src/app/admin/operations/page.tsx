@@ -12,6 +12,8 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { ChartFrame, HearstDonutChart, HearstLineChart } from '@/components/charts'
+import type { LinePoint } from '@/components/charts'
 import {
   loadAdminOperationsSurface,
   type AdminActivityEvent,
@@ -258,9 +260,91 @@ function opsEventsDe(
   return filterOpsActivity(recentActivity.value)
 }
 
+function PortfolioAllocationDonut({
+  exposure,
+}: Readonly<{
+  exposure: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['exposure']
+}>) {
+  if (!isAvailable(exposure) || exposure.value.length === 0) {
+    return (
+      <ChartFrame
+        question="How is capital allocated across strategies?"
+        unit="in percent — target mix"
+        state={{ type: 'empty', explanation: 'No exposure data available.' }}
+      />
+    )
+  }
+
+  const slices = exposure.value.map((row) => ({
+    label: row.strategyLabel,
+    value: row.targetBps / 100,
+  }))
+
+  return (
+    <ChartFrame
+      question="How is capital allocated across strategies?"
+      unit="in percent — target mix"
+      state={{ type: 'plotted' }}
+    >
+      <HearstDonutChart slices={slices} unit="% target" />
+    </ChartFrame>
+  )
+}
+
+function RebalancingDriftHistory({
+  rebalancingHistory,
+}: Readonly<{
+  rebalancingHistory: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['rebalancingHistory']
+}>) {
+  const points: LinePoint[] = isAvailable(rebalancingHistory)
+    ? rebalancingHistory.value.map((p) => ({
+        label: p.observedAt.slice(0, 10),
+        value: p.driftBps,
+        detail: p.observedAt,
+      }))
+    : []
+
+  if (points.length >= 2) {
+    return (
+      <ChartFrame
+        question="How has portfolio drift evolved over time?"
+        unit="in basis points — 90 days"
+        state={{ type: 'plotted' }}
+      >
+        <HearstLineChart points={points} unit="drift (bps)" />
+      </ChartFrame>
+    )
+  }
+
+  if (!isAvailable(rebalancingHistory)) {
+    return (
+      <ChartFrame
+        question="How has portfolio drift evolved over time?"
+        unit="in basis points — 90 days"
+        state={{
+          type: 'unavailable',
+          explanation:
+            rebalancingHistory.kind === 'unavailable'
+              ? (rebalancingHistory.reason ?? 'Source unavailable')
+              : 'Source unavailable',
+        }}
+      />
+    )
+  }
+
+  return (
+    <ChartFrame
+      question="How has portfolio drift evolved over time?"
+      unit="in basis points — 90 days"
+      state={{ type: 'empty', explanation: 'No drift history for this period.' }}
+    />
+  )
+}
+
 export default async function Page() {
   await requireSession()
-  const { rebalancing, recentActivity, assetScale } = await loadAdminOperationsSurface()
+  const { rebalancing, recentActivity, assetScale, exposure, rebalancingHistory } =
+    await loadAdminOperationsSurface()
 
   const snapshot = rebalancingSnapshotDe(rebalancing)
   const opsEvents = opsEventsDe(recentActivity)
@@ -275,6 +359,11 @@ export default async function Page() {
       />
 
       <RebalancingSection summary={rebalancing} />
+
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <PortfolioAllocationDonut exposure={exposure} />
+        <RebalancingDriftHistory rebalancingHistory={rebalancingHistory} />
+      </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
         <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />

@@ -148,4 +148,8 @@ export type AdminOperationsSurface = Readonly<{
   recentActivity: Availability<readonly AdminActivityEvent[]>
   /** Portfolio scale used to render atomic amounts honestly (null when the overview is unavailable). */
   assetScale: AdminAssetScale | null
+  /** Current portfolio exposure — target vs actual per strategy. */
+  exposure: Availability<readonly AdminExposureStrategy[]>
+  /** Historical drift series for the portfolio. */
+  rebalancingHistory: Availability<readonly AdminRebalancingHistoryPoint[]>
 }>

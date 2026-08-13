@@ -354,17 +354,35 @@ export async function loadAdminAssetScale(): Promise<AdminAssetScale | null> {
 
 /** Focused read models for `/admin/operations` — no market/portfolio extras. */
 export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurface> {
-  const [rebalancingRes, activityRes, overviewRes] = await Promise.all([
+  const [rebalancingRes, activityRes, overviewRes, exposureRes, rebalancingHistoryRes] = await Promise.all([
     callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
     callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
       params: { limit: 25 },
     }),
     callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>('admin-portfolio-overview'),
+    callBackend<{ exposure: BackendResolved<{ strategies: readonly AdminExposureStrategy[]; totalAumAtomic: string }> }>(
+      'admin-portfolio-exposure',
+    ),
+    callBackend<{
+      history: BackendResolved<{ series: readonly AdminRebalancingHistoryPoint[] }>
+    }>('rebalancing-history', { params: { limit: 90 } }),
   ])
 
   const overview = overviewRes.ok
     ? fromBackend(overviewRes.data.overview, '/api/v1/admin/portfolio/overview')
     : unavailable({ endpoint: '/api/v1/admin/portfolio/overview', reason: 'service_did_not_respond' })
+
+  const exposureBloc = fromBackendOrUnavailable(
+    exposureRes,
+    exposureRes.ok ? exposureRes.data.exposure : undefined,
+    '/api/v1/admin/portfolio/exposure',
+  )
+
+  const rebalancingHistoryBloc = fromBackendOrUnavailable(
+    rebalancingHistoryRes,
+    rebalancingHistoryRes.ok ? rebalancingHistoryRes.data.history : undefined,
+    '/api/v1/rebalancing/history',
+  )
 
   return {
     rebalancing: rebalancingRes.ok
@@ -377,5 +395,7 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
     assetScale: isAvailable(overview)
       ? { asset: overview.value.asset, decimals: overview.value.decimals }
       : null,
+    exposure: unwrapAvailableField(exposureBloc, 'strategies'),
+    rebalancingHistory: unwrapAvailableField(rebalancingHistoryBloc, 'series'),
   }
 }
