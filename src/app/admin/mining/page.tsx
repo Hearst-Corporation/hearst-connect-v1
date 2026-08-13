@@ -381,6 +381,15 @@ function DistributionHistory({
   )
 }
 
+function isCalculationComplete(c: CalculationRecord): boolean {
+  return (
+    c.btcAmountSats !== '' &&
+    c.btcAmountSats !== '0' &&
+    c.grossYieldUsdc !== '' &&
+    c.grossYieldUsdc !== '0'
+  )
+}
+
 function CalculationsSection({
   calculations,
   nextPeriod,
@@ -401,9 +410,19 @@ function CalculationsSection({
     )
   }
 
+  const incompleteCount = calculations.filter((c) => !isCalculationComplete(c)).length
+
   return (
     <SectionCard title="Calculations" hint="Historical yield calculations">
-      <DataTableShell title="Calculation history" count={`${calculations.length}`}>
+      <DataTableShell
+        title="Calculation history"
+        count={`${calculations.length}`}
+        description={
+          incompleteCount > 0
+            ? `${incompleteCount} calculation(s) incomplete — trigger again or check backend logs.`
+            : undefined
+        }
+      >
         <TableHead>
           <TableRow>
             <TableHeader className="text-left text-xs">Period</TableHeader>
@@ -412,29 +431,43 @@ function CalculationsSection({
             <TableHeader className="text-left text-xs">OPEX</TableHeader>
             <TableHeader className="text-left text-xs">Net yield</TableHeader>
             <TableHeader className="text-left text-xs">Strategy</TableHeader>
-            <TableHeader className="text-left text-xs">Calculated</TableHeader>
+            <TableHeader className="text-left text-xs">Status</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
-          {calculations.map((c) => (
-            <TableRow key={c.id}>
-              <TableCell className="text-xs">{c.period}</TableCell>
-              <TableCell className="text-xs tabular-nums">
-                {satsToBtc(c.btcAmountSats) ?? '—'} BTC
-              </TableCell>
-              <TableCell className="text-xs tabular-nums">
-                {formatCurrency(c.grossYieldUsdc, { decimals: 0 })}
-              </TableCell>
-              <TableCell className="text-xs tabular-nums text-danger-400">
-                -{formatCurrency(c.opexDeductionUsdc, { decimals: 0 })}
-              </TableCell>
-              <TableCell className="text-xs tabular-nums text-success-400">
-                {formatCurrency(c.netYieldUsdc, { decimals: 0 })}
-              </TableCell>
-              <TableCell className="text-xs">{c.rwaStrategyId}</TableCell>
-              <TableCell className="text-xs">{formatDateTime(c.calculatedAt)}</TableCell>
-            </TableRow>
-          ))}
+          {calculations.map((c) => {
+            const complete = isCalculationComplete(c)
+            const opexValue = formatCurrency(c.opexDeductionUsdc, { decimals: 0 })
+            return (
+              <TableRow key={c.id}>
+                <TableCell className="text-xs">{c.period}</TableCell>
+                <TableCell className="text-xs tabular-nums">
+                  {complete ? `${satsToBtc(c.btcAmountSats)} BTC` : '—'}
+                </TableCell>
+                <TableCell className="text-xs tabular-nums">
+                  {complete ? formatCurrency(c.grossYieldUsdc, { decimals: 0 }) : '—'}
+                </TableCell>
+                <TableCell className="text-xs tabular-nums text-danger-400">
+                  {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
+                </TableCell>
+                <TableCell className="text-xs tabular-nums text-success-400">
+                  {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0 }) : '—'}
+                </TableCell>
+                <TableCell className="text-xs">{c.rwaStrategyId}</TableCell>
+                <TableCell className="text-xs">
+                  {complete ? (
+                    <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-600 dark:text-success-400">
+                      complete
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-600 dark:text-warning-400">
+                      incomplete
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            )
+          })}
         </TableBody>
       </DataTableShell>
       <div className="mt-4 max-w-xs">
