@@ -17,28 +17,25 @@ import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-import { formatCurrency } from '@/lib/format'
+import { formatCurrency, formatDriftPts } from '@/lib/format'
 import type { SessionUser } from '@/lib/session'
-import { isAvailable, mapAvailability } from '@/lib/vaults/model'
+import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
-  ChartBarIcon,
   CubeTransparentIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/16/solid'
-
-function driftPtsLabel(driftBps: number): string {
-  const pts = driftBps / 100
-  const sign = pts > 0 ? '+' : ''
-  return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
-}
 
 function vaultsKpiUnit(data: AdminDashboardData): string | undefined {
   if (!isAvailable(data.overview)) return undefined
   const { totalVaults, activeVaults } = data.overview.value
   if (totalVaults > activeVaults) return `/ ${totalVaults} total`
   return 'active'
+}
+
+function unavailableReason(bloc: Availability<unknown>, fallback: string): string {
+  return bloc.kind === 'unavailable' ? (bloc.reason ?? fallback) : fallback
 }
 
 function ActivityChartSlot({
@@ -63,22 +60,15 @@ function ActivityChartSlot({
   }
 
   if (activityNotConfigured) {
-    const reason =
-      activityTimeseries.kind === 'unavailable'
-        ? (activityTimeseries.reason ?? 'No events indexed yet.')
-        : null
     return (
-      <div
-        className="flex h-full flex-col justify-center gap-1 py-5"
-        style={{ minHeight: 'var(--chart-viewport-compact)' }}
-      >
-        <p className="text-ink dark:text-fg text-sm font-semibold">Activity index not configured</p>
-        <p className="text-fg-tertiary text-xs">{reason}</p>
-      </div>
+      <ChartPlaceholder
+        title="Activity index not configured"
+        detail={unavailableReason(activityTimeseries, 'No events indexed yet.')}
+      />
     )
   }
 
-  return <ChartPlaceholder title="Activity" viewport="compact" icon={ChartBarIcon} />
+  return <ChartPlaceholder title="Activity" />
 }
 
 function AllocationSlot({
@@ -105,22 +95,15 @@ function AllocationSlot({
   }
 
   if (!isAvailable(cbbtcAllocation)) {
-    const reason =
-      cbbtcAllocation.kind === 'unavailable'
-        ? (cbbtcAllocation.reason ?? 'Source unavailable')
-        : 'Source unavailable'
     return (
-      <div
-        className="flex h-full flex-col justify-center gap-1 py-5"
-        style={{ minHeight: 'var(--chart-viewport-compact)' }}
-      >
-        <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
-        <p className="text-fg-tertiary text-xs">{reason}</p>
-      </div>
+      <ChartPlaceholder
+        title="Data unavailable"
+        detail={unavailableReason(cbbtcAllocation, 'Source unavailable')}
+      />
     )
   }
 
-  return <ChartPlaceholder title="cbBTC / USDC allocation" viewport="compact" icon={ChartBarIcon} />
+  return <ChartPlaceholder title="cbBTC / USDC allocation" />
 }
 
 function BtcPriceSlot({
@@ -147,22 +130,15 @@ function BtcPriceSlot({
   }
 
   if (!isAvailable(cbbtcAllocation)) {
-    const reason =
-      cbbtcAllocation.kind === 'unavailable'
-        ? (cbbtcAllocation.reason ?? 'Source unavailable')
-        : 'Source unavailable'
     return (
-      <div
-        className="flex h-full flex-col justify-center gap-1 py-5"
-        style={{ minHeight: 'var(--chart-viewport-compact)' }}
-      >
-        <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
-        <p className="text-fg-tertiary text-xs">{reason}</p>
-      </div>
+      <ChartPlaceholder
+        title="Data unavailable"
+        detail={unavailableReason(cbbtcAllocation, 'Source unavailable')}
+      />
     )
   }
 
-  return <ChartPlaceholder title="BTC price" viewport="compact" icon={ChartBarIcon} />
+  return <ChartPlaceholder title="BTC price" />
 }
 
 function RebalancingHistorySlot({
@@ -189,38 +165,24 @@ function RebalancingHistorySlot({
   }
 
   if (isAdminNotConfigured(rebalancingHistory)) {
-    const reason =
-      rebalancingHistory.kind === 'unavailable'
-        ? (rebalancingHistory.reason ?? 'No rebalancing history indexed yet.')
-        : null
     return (
-      <div
-        className="flex h-full flex-col justify-center gap-1 py-5"
-        style={{ minHeight: 'var(--chart-viewport-compact)' }}
-      >
-        <p className="text-ink dark:text-fg text-sm font-semibold">Rebalancing history not configured</p>
-        <p className="text-fg-tertiary text-xs">{reason}</p>
-      </div>
+      <ChartPlaceholder
+        title="Rebalancing history not configured"
+        detail={unavailableReason(rebalancingHistory, 'No rebalancing history indexed yet.')}
+      />
     )
   }
 
   if (!isAvailable(rebalancingHistory)) {
-    const reason =
-      rebalancingHistory.kind === 'unavailable'
-        ? (rebalancingHistory.reason ?? 'Source unavailable')
-        : 'Source unavailable'
     return (
-      <div
-        className="flex h-full flex-col justify-center gap-1 py-5"
-        style={{ minHeight: 'var(--chart-viewport-compact)' }}
-      >
-        <p className="text-ink dark:text-fg text-sm font-semibold">Data unavailable</p>
-        <p className="text-fg-tertiary text-xs">{reason}</p>
-      </div>
+      <ChartPlaceholder
+        title="Data unavailable"
+        detail={unavailableReason(rebalancingHistory, 'Source unavailable')}
+      />
     )
   }
 
-  return <ChartPlaceholder title="Rebalancing drift" viewport="compact" icon={ChartBarIcon} />
+  return <ChartPlaceholder title="Rebalancing drift" />
 }
 
 /**
@@ -249,7 +211,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
     {
       id: 'drift',
       title: 'Maximum drift',
-      value: mapAvailability(data.overview, (o) => driftPtsLabel(o.maxDriftBps)),
+      value: mapAvailability(data.overview, (o) => formatDriftPts(o.maxDriftBps)),
       unit: isAvailable(data.overview) ? (data.overview.value.maxDriftStrategyLabel ?? '—') : undefined,
       icon: ExclamationTriangleIcon,
     },

@@ -140,20 +140,6 @@ function unwrapAvailableField<T, K extends keyof T>(
   return withBlocMeta(bloc, bloc.value[field])
 }
 
-function resolveTotalAumFromExposure(
-  exposureBloc: Availability<{ strategies: readonly AdminExposureStrategy[]; totalAumAtomic: string }>,
-  overview: Availability<AdminPortfolioOverview>,
-  overviewResOk: boolean,
-): Availability<string> {
-  if (isAvailable(exposureBloc)) {
-    return withBlocMeta(exposureBloc, exposureBloc.value.totalAumAtomic)
-  }
-  if (overviewResOk && isAvailable(overview)) {
-    return withBlocMeta(overview, overview.value.totalAumAtomic)
-  }
-  return unavailable({ endpoint: '/api/v1/admin/portfolio/overview', reason: 'total_aum_not_reported' })
-}
-
 export async function loadAdminDashboard(): Promise<AdminDashboardData> {
   const [
     overviewRes,
@@ -204,7 +190,6 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     '/api/v1/admin/portfolio/exposure',
   )
   const exposure = unwrapAvailableField(exposureBloc, 'strategies')
-  const totalAumFromExposure = resolveTotalAumFromExposure(exposureBloc, overview, overviewRes.ok)
 
   const rebalancing = fromBackendOrUnavailable(
     rebalancingRes,
@@ -238,9 +223,6 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     '/api/v1/admin/vaults/summary',
   )
   const vaults = unwrapAvailableField(vaultsBloc, 'vaults')
-  const vaultsTotalAum = isAvailable(vaultsBloc)
-    ? withBlocMeta(vaultsBloc, vaultsBloc.value.totalAumAtomic)
-    : unavailable({ endpoint: '/api/v1/admin/vaults/summary', reason: 'total_aum_not_reported' })
 
   // Fetch allocation breakdown (cbBTC + USDC) for the vault with the highest AUM.
   let cbbtcAllocation: Availability<readonly AdminAllocationPoint[]> = unavailable({
@@ -304,15 +286,11 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
   return {
     overview,
     exposure,
-    totalAumAtomic: isAvailable(overview)
-      ? withBlocMeta(overview, overview.value.totalAumAtomic)
-      : totalAumFromExposure,
     rebalancing,
     activityTimeseries,
     rebalancingHistory,
     market,
     vaults,
-    vaultsTotalAum,
     recentClients,
     recentActivity,
     dataHealth,

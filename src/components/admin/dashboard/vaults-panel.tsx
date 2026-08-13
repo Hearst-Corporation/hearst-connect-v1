@@ -1,15 +1,9 @@
 import { HearstSecondaryAction } from '@/components/actions'
-import { strategySuffix } from '@/lib/format'
+import { formatDriftPts, strategySuffix } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminVaultSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
-
-function driftPts(driftBps: number): string {
-  const pts = driftBps / 100
-  const sign = pts > 0 ? '+' : ''
-  return `${sign}${pts.toLocaleString('en-US', { maximumFractionDigits: 2 })} pt`
-}
 
 function VaultCard({
   vault,
@@ -34,7 +28,7 @@ function VaultCard({
       </p>
       <p className="text-xs text-fg-tertiary">
         {vault.strategiesCount} strateg{strategySuffix(vault.strategiesCount)}
-        {vault.maxDriftBps !== null ? ` · Worst drift ${driftPts(vault.maxDriftBps)}` : null}
+        {vault.maxDriftBps !== null ? ` · Worst drift ${formatDriftPts(vault.maxDriftBps)}` : null}
       </p>
       <HearstSecondaryAction href={`/admin/vaults/${encodeURIComponent(vault.id)}`} className="mt-1 self-start">
         Open
