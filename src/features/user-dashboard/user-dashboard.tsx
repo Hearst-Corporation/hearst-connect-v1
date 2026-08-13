@@ -122,6 +122,7 @@ export function UserDashboardView({
 }: Readonly<{ data: UserDashboard; user: SessionUser }>) {
   const [route, setRoute] = useState<Route>('dashboard')
   const [central, setCentral] = useState<CentralView>('value')
+  const [isDepositOpen, setIsDepositOpen] = useState(false)
   const initials = userInitials(user.name)
 
   const isDashboard = route === 'dashboard'
@@ -298,10 +299,21 @@ export function UserDashboardView({
               </header>
 
               <section className="your-position" aria-label="Your position">
-                <div className="section-heading">
-                  <p className="eyebrow">Your position</p>
-                  <h2>Book position</h2>
-                  <span>Your on-book principal, accrued yield and subscription record — not vault AUM</span>
+                <div className="section-heading position-heading">
+                  <div>
+                    <p className="eyebrow">Your position</p>
+                    <h2>Book position</h2>
+                    <span>Your on-book principal, accrued yield and subscription record — not vault AUM</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="position-deposit-cta"
+                    aria-expanded={isDepositOpen}
+                    aria-controls="account-deposit-panel"
+                    onClick={() => setIsDepositOpen((open) => !open)}
+                  >
+                    Deposit
+                  </button>
                 </div>
                 {positionAbsent ? (
                   <div className="position-absent">
@@ -346,6 +358,23 @@ export function UserDashboardView({
                     signal={signalOf(data.positionSubscribedAt)}
                   />
                 </div>
+                {isDepositOpen ? (
+                  <section
+                    id="account-deposit-panel"
+                    className="deposit-panel"
+                    aria-labelledby="account-deposit-heading"
+                  >
+                    <div className="deposit-copy">
+                      <h3 id="account-deposit-heading">Deposit</h3>
+                      <p>On-chain deposit flow — coming soon.</p>
+                    </div>
+                    <TermRow
+                      icon={LockClosedIcon}
+                      label="Minimum deposit"
+                      value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
+                    />
+                  </section>
+                ) : null}
               </section>
 
               <section className="your-account" aria-label="Your account">
