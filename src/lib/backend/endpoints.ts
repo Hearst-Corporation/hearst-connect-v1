@@ -298,6 +298,14 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
       'Dedicated electricity line read, distinct from `mining.electricity`: `/admin/product` reconciles both.',
   }),
   defineEndpoint({
+    id: 'mining-distributions',
+    path: '/api/v1/mining/distributions',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/mining',
+    summary: 'Mining yield distributions — monthly history and pending.',
+  }),
+  defineEndpoint({
     id: 'btc',
     path: '/api/v1/btc',
     category: 'business',
@@ -482,6 +490,17 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     enveloped: false,
     summary: 'Reports mining metrics.',
     caveat: 'Body `{ hashrateTh, btcEarnedSats }`, non-negative bounded integers, `.strict()` validation.',
+  }),
+  defineEndpoint({
+    id: 'mining-distribution-approve',
+    method: 'POST',
+    path: '/api/v1/mining/distributions/approve',
+    category: 'keeper',
+    auth: 'admin',
+    surface: '/admin/mining',
+    enveloped: false,
+    summary: 'Approves a pending mining yield distribution.',
+    caveat: 'Body `{ id }`. Signs no transaction.',
   }),
   defineEndpoint({
     id: 'keeper-electricity-pay',
