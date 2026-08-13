@@ -1,6 +1,6 @@
 ---
 description: "Règles workspace locales à ce dépôt"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Règles locales du dépôt

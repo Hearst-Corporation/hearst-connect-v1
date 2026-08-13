@@ -1,6 +1,6 @@
 ---
 description: "Qualité — ne jamais ship rouge ; preuves réelles ; cleanup = DoD"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Qualité — ship sûr

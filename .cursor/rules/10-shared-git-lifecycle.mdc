@@ -1,6 +1,6 @@
 ---
 description: "Git lifecycle — ship auto à chaque passe ; STOP explicite seulement pour la passe courante"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Git lifecycle — RÈGLE ABSOLUE
