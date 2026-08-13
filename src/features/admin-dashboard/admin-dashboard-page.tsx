@@ -14,12 +14,14 @@ import {
 } from '@/components/admin/dashboard'
 import { AllocationDualLineChart, HearstActivityChart, HearstLineChart, type ActivityPoint, type AllocationPoint, type LinePoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
+import { SectionHeader } from '@/components/compositions'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatCurrency, formatDriftPts } from '@/lib/format'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
+import type { ReactNode } from 'react'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
@@ -185,9 +187,21 @@ function RebalancingHistorySlot({
   return <ChartPlaceholder title="Rebalancing drift" />
 }
 
+function DashPanel({
+  title,
+  subtitle,
+  children,
+}: Readonly<{ title: string; subtitle: string; children: ReactNode }>) {
+  return (
+    <DashCard className="min-w-0" contentClassName="flex-1" title={title} subtitle={subtitle}>
+      {children}
+    </DashCard>
+  )
+}
+
 /**
- * Admin dashboard — portfolio cockpit (HC-ADMIN-DASHBOARD-BACKEND-FIRST-006).
- * Shell layout unchanged; data from backend read models only.
+ * Admin dashboard — portfolio cockpit.
+ * Hierarchy: hero KPIs → asymmetric primary (exposure + alerts) → grouped masonry.
  */
 export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboardData; user: SessionUser }>) {
   const assetScale: AdminAssetScale | null = isAvailable(data.overview)
@@ -242,119 +256,106 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
   const activityNotConfigured = isAdminNotConfigured(data.activityTimeseries)
 
   return (
-    <DashboardShell>
+    <DashboardShell className="gap-10">
       <DashboardHeader userName={user.name} kpis={kpis} />
 
-      <BentoGrid>
-        {/*
-         * Masonry flow: cards drop into the shortest column, top to bottom. The
-         * order below is chosen so the two tallest panels (Portfolio exposure,
-         * Recent activity) don't both land in the same column — no size prop is
-         * involved, only sequence.
-         */}
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            title="Portfolio exposure"
-            subtitle="Where capital is allocated vs target"
-          >
-            <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
-          </DashCard>
-        </BentoCard>
+      <section className="flex flex-col gap-5">
+        <SectionHeader
+          eyebrow="Portfolio"
+          title="Allocation and drift"
+          hint="Where capital sits versus target, and whether anything is off-band."
+        />
+        <div className="@container min-w-0">
+          <div className="grid items-start gap-6 @[60rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
+            <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
+              <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
+            </DashPanel>
+            <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer">
+              <RebalancingAlertsPanel summary={data.rebalancing} />
+            </DashPanel>
+          </div>
+        </div>
+      </section>
 
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            contentClassName="flex-1"
-            title="Activity"
-            subtitle="Daily volume · 28 days"
-          >
-            <ActivityChartSlot
-              showActivityCurve={showActivityCurve}
-              activityNotConfigured={activityNotConfigured}
-              activityPoints={activityPoints}
-              activityTimeseries={data.activityTimeseries}
-            />
-          </DashCard>
-        </BentoCard>
+      <section className="flex flex-col gap-5">
+        <SectionHeader
+          eyebrow="Activity"
+          title="Flow and history"
+          hint="Daily volume, indexed events, and historical allocation drift."
+        />
+        <BentoGrid>
+          <BentoCard>
+            <DashPanel title="Activity" subtitle="Daily volume · 28 days">
+              <ActivityChartSlot
+                showActivityCurve={showActivityCurve}
+                activityNotConfigured={activityNotConfigured}
+                activityPoints={activityPoints}
+                activityTimeseries={data.activityTimeseries}
+              />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard>
+            <DashPanel title="Recent activity" subtitle="Blockchain and subscription timeline">
+              <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard>
+            <DashPanel title="Rebalancing drift" subtitle="Historical allocation drift over time">
+              <RebalancingHistorySlot rebalancingHistory={data.rebalancingHistory} />
+            </DashPanel>
+          </BentoCard>
+        </BentoGrid>
+      </section>
 
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            title="Recent activity"
-            subtitle="Blockchain and subscription timeline"
-          >
-            <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
-          </DashCard>
-        </BentoCard>
+      <section className="flex flex-col gap-5">
+        <SectionHeader
+          eyebrow="Capital"
+          title="Vaults and clients"
+          hint="Deployed capital per vault and the latest client exposures."
+        />
+        <BentoGrid>
+          <BentoCard>
+            <DashPanel title="Vaults" subtitle="Capital per vault">
+              <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard>
+            <DashPanel title="Recent clients" subtitle="Exposure and Som KYC">
+              <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
+            </DashPanel>
+          </BentoCard>
+        </BentoGrid>
+      </section>
 
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            title="Rebalancing & alerts"
-            subtitle="Drift and indexer"
-          >
-            <RebalancingAlertsPanel summary={data.rebalancing} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            contentClassName="flex-1"
-            title="Rebalancing drift"
-            subtitle="Historical allocation drift over time"
-          >
-            <RebalancingHistorySlot rebalancingHistory={data.rebalancingHistory} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard className="min-w-0" title="Vaults" subtitle="Capital per vault">
-            <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard className="min-w-0" title="Data health" subtitle="Source freshness">
-            <DataHealthGrid sources={data.dataHealth} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard className="min-w-0" title="Market" subtitle="Normalized snapshot">
-            <MarketSnapshotPanel snapshot={data.market} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            contentClassName="flex-1"
-            title="cbBTC / USDC allocation"
-            subtitle="Primary vault — last 28 days"
-          >
-            <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard
-            className="min-w-0"
-            contentClassName="flex-1"
-            title="BTC price"
-            subtitle="At primary vault snapshots"
-          >
-            <BtcPriceSlot cbbtcAllocation={data.cbbtcAllocation} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard>
-          <DashCard className="min-w-0" title="Recent clients" subtitle="Exposure and Som KYC">
-            <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
-          </DashCard>
-        </BentoCard>
-      </BentoGrid>
+      <section className="flex flex-col gap-5">
+        <SectionHeader
+          eyebrow="Market"
+          title="Snapshot and sources"
+          hint="Normalized market read, primary-vault allocation, and source freshness."
+        />
+        <BentoGrid>
+          <BentoCard>
+            <DashPanel title="Market" subtitle="Normalized snapshot">
+              <MarketSnapshotPanel snapshot={data.market} />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard>
+            <DashPanel title="cbBTC / USDC allocation" subtitle="Primary vault — last 28 days">
+              <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard>
+            <DashPanel title="BTC price" subtitle="At primary vault snapshots">
+              <BtcPriceSlot cbbtcAllocation={data.cbbtcAllocation} />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard>
+            <DashPanel title="Data health" subtitle="Source freshness">
+              <DataHealthGrid sources={data.dataHealth} />
+            </DashPanel>
+          </BentoCard>
+        </BentoGrid>
+      </section>
     </DashboardShell>
   )
 }
