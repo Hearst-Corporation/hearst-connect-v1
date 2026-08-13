@@ -26,6 +26,7 @@ const CONTRACT_PATHS = [
   'GET /api/v1/mining',
   'GET /api/v1/mining/metrics/onchain',
   'GET /api/v1/mining/electricity',
+  'GET /api/v1/mining/distributions',
   'GET /api/v1/btc',
   'GET /api/v1/product/factsheet',
   'GET /api/v1/backtest/historical',
@@ -45,6 +46,7 @@ const CONTRACT_PATHS = [
   'POST /api/v1/auth/login',
   'POST /api/v1/mining/metrics/report',
   'POST /api/v1/mining/electricity/pay',
+  'POST /api/v1/mining/distributions/approve',
   'POST /api/v1/admin/indexer/trigger',
   'POST /api/v1/admin/users',
   'POST /api/v1/rebalancing/execute',
@@ -54,10 +56,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 48 routes du contrat', () => {
+  it('couvre exactement les 50 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(48)
+    expect(BACKEND_ENDPOINTS).toHaveLength(50)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -75,9 +77,9 @@ describe('registre des endpoints', () => {
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(33)
+    expect(endpointsByCategory('business')).toHaveLength(34)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
-    expect(endpointsByCategory('keeper')).toHaveLength(6)
+    expect(endpointsByCategory('keeper')).toHaveLength(7)
   })
 
   it('marque non enveloppées exactement les routes que le contrat exclut', () => {
@@ -95,6 +97,7 @@ describe('registre des endpoints', () => {
         'keeper-btc-deposit-initiate',
         'keeper-electricity-pay',
         'keeper-mining-report',
+        'mining-distribution-approve',
         'keeper-rebalancing-execute',
         'keeper-rwa-vault',
         'ready',

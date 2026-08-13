@@ -3,6 +3,7 @@ import {
   BuildingOffice2Icon,
   CircleStackIcon,
   CommandLineIcon,
+  CpuChipIcon,
   DocumentTextIcon,
   HomeIcon,
   IdentificationIcon,
@@ -44,6 +45,7 @@ export const ADMIN_NAV: readonly NavEntry[] = [
   { label: 'Dashboard', href: '/admin', icon: HomeIcon },
   VAULTS_ENTRY,
   CLIENTS_ENTRY,
+  { label: 'Mining', href: '/admin/mining', icon: CpuChipIcon },
   { label: 'Compliance', href: '/admin/compliance', icon: ShieldCheckIcon },
   { label: 'Operations', href: '/admin/operations', icon: ArrowsRightLeftIcon },
 ]

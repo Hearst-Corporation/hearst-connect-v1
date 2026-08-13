@@ -30,12 +30,13 @@ import { describe, expect, it } from 'vitest'
  */
 
 describe('primary navigation', () => {
-  it('offers exactly five primary destinations', () => {
-    expect(ADMIN_NAV).toHaveLength(5)
+  it('offers exactly six primary destinations', () => {
+    expect(ADMIN_NAV).toHaveLength(6)
     expect(ADMIN_NAV.map((e) => e.label)).toEqual([
       'Dashboard',
       'Vaults',
       'Clients',
+      'Mining',
       'Compliance',
       'Operations',
     ])
