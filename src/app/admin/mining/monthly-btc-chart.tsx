@@ -27,7 +27,8 @@ export function MonthlyBtcChart({
   for (const d of distributions) {
     const btc = Number(d.btcAmountSats) / 100_000_000
     if (!Number.isFinite(btc)) continue
-    byMonth.set(d.month, (byMonth.get(d.month) ?? 0) + btc)
+    const existing = byMonth.get(d.month)
+    byMonth.set(d.month, existing === undefined ? btc : existing + btc)
   }
 
   const points: LinePoint[] = Array.from(byMonth.entries())

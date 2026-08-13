@@ -9,7 +9,7 @@ import {
 } from '@/components/catalyst/table'
 import { DataTableShell, SectionCard } from '@/components/compositions'
 import { callBackend } from '@/lib/backend/client'
-import { formatCurrency, formatDateTime, formatNumber } from '@/lib/format'
+import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
 import {
   CpuChipIcon,
@@ -54,6 +54,14 @@ type MiningAggregate = {
 type BtcAggregate = {
   readonly btcProduced?: Resolved<{ totalSats: string; currentPriceUsdc: string }>
   readonly reserve?: Resolved<{ balanceUsdc: string }>
+}
+
+type RwaPocket = {
+  readonly pocket: string
+  readonly label: string | null
+  readonly targetBps: number
+  readonly actualBps: number | null
+  readonly enabled: boolean
 }
 
 /** Placeholder — backend does not yet expose distributions. */
@@ -168,6 +176,160 @@ function MiningKpis({
         </div>
       ))}
     </div>
+  )
+}
+
+function MachineFleetSection({
+  machineCount,
+  activeMachines,
+  averageUptimePct,
+}: Readonly<{
+  machineCount: number | null
+  activeMachines: number | null
+  averageUptimePct: number | null
+}>) {
+  const hasData = machineCount !== null || activeMachines !== null || averageUptimePct !== null
+
+  if (!hasData) {
+    return (
+      <SectionCard title="Machine fleet" hint="Operational telemetry">
+        <Text>Fleet telemetry unavailable.</Text>
+      </SectionCard>
+    )
+  }
+
+  const inactiveMachines =
+    machineCount !== null && activeMachines !== null ? machineCount - activeMachines : null
+
+  return (
+    <SectionCard title="Machine fleet" hint="Operational telemetry">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+          <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+            {machineCount !== null ? formatNumber(machineCount) : '—'}
+          </p>
+        </div>
+        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+          <p className="text-xs font-medium text-fg-tertiary">Active</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
+            {activeMachines !== null ? formatNumber(activeMachines) : '—'}
+          </p>
+        </div>
+        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+          <p className="text-xs font-medium text-fg-tertiary">Inactive</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
+            {inactiveMachines !== null ? formatNumber(inactiveMachines) : '—'}
+          </p>
+        </div>
+        <div className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+          <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+            {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
+          </p>
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-fg-tertiary">
+        Per-machine detail (model, location, serial) will appear once the backend exposes a fleet
+        registry endpoint.
+      </p>
+    </SectionCard>
+  )
+}
+
+function StrategyAllocationSection({
+  distributions,
+  rwaPockets,
+}: Readonly<{
+  distributions: readonly DistributionRecord[]
+  rwaPockets: readonly RwaPocket[]
+}>) {
+  const strategyTotals = new Map<string, number>()
+  for (const d of distributions) {
+    const sats = Number(d.btcAmountSats)
+    if (!Number.isFinite(sats)) continue
+    const existing = strategyTotals.get(d.rwaStrategyId)
+    strategyTotals.set(d.rwaStrategyId, existing === undefined ? sats : existing + sats)
+  }
+
+  const hasPockets = rwaPockets.length > 0
+  const hasDistributions = strategyTotals.size > 0
+
+  if (!hasPockets && !hasDistributions) {
+    return (
+      <SectionCard title="RWA strategy allocation" hint="Mining yield per strategy">
+        <Text>No strategy allocation data available.</Text>
+      </SectionCard>
+    )
+  }
+
+  const rows = hasPockets
+    ? rwaPockets.map((p) => {
+        const key = p.label ?? p.pocket
+        const totalSats = strategyTotals.get(key)
+        return {
+          id: p.pocket,
+          label: key,
+          targetBps: p.targetBps,
+          actualBps: p.actualBps,
+          enabled: p.enabled,
+          totalSats: totalSats === undefined ? 0 : totalSats,
+        }
+      })
+    : Array.from(strategyTotals.entries()).map(([strategyId, totalSats]) => ({
+        id: strategyId,
+        label: strategyId,
+        targetBps: null,
+        actualBps: null,
+        enabled: true,
+        totalSats,
+      }))
+
+  return (
+    <SectionCard title="RWA strategy allocation" hint="Mining yield per strategy">
+      <DataTableShell title="Strategy allocation" count={`${rows.length}`}>
+        <TableHead>
+          <TableRow>
+            <TableHeader className="text-left text-xs">Strategy</TableHeader>
+            <TableHeader className="text-left text-xs">Target</TableHeader>
+            <TableHeader className="text-left text-xs">Actual</TableHeader>
+            <TableHeader className="text-left text-xs">BTC received</TableHeader>
+            <TableHeader className="text-left text-xs">Status</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell className="text-xs">{row.label}</TableCell>
+              <TableCell className="text-xs tabular-nums">
+                {row.targetBps !== null
+                  ? formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })
+                  : '—'}
+              </TableCell>
+              <TableCell className="text-xs tabular-nums">
+                {row.actualBps !== null
+                  ? formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })
+                  : '—'}
+              </TableCell>
+              <TableCell className="text-xs tabular-nums">
+                {row.totalSats > 0 ? `${satsToBtc(String(row.totalSats))} BTC` : '—'}
+              </TableCell>
+              <TableCell className="text-xs">
+                {row.enabled ? (
+                  <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-600 dark:text-success-400">
+                    enabled
+                  </span>
+                ) : (
+                  <span className="inline-flex rounded-full bg-fg-tertiary/10 px-2 py-0.5 text-xs font-medium text-fg-tertiary">
+                    disabled
+                  </span>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
+    </SectionCard>
   )
 }
 
@@ -507,17 +669,21 @@ export default async function Page() {
   const kwhConsumed = mining?.electricity?.value?.kwhConsumed ?? null
   const costPerKwh = mining?.electricity?.value?.costPerKwh ?? null
 
-  const [distRes, calcRes] = await Promise.all([
+  const [distRes, calcRes, rwaRes] = await Promise.all([
     callBackend<{
       readonly distributions: Resolved<readonly DistributionRecord[]>
     }>('mining-distributions'),
     callBackend<{
       readonly calculations: Resolved<readonly CalculationRecord[]>
     }>('mining-calculations'),
+    callBackend<{
+      readonly pockets: Resolved<readonly RwaPocket[]>
+    }>('rwa-vault'),
   ])
 
   const allDistributions = distRes.ok && distRes.data.distributions.value ? distRes.data.distributions.value : []
   const allCalculations = calcRes.ok && calcRes.data.calculations.value ? calcRes.data.calculations.value : []
+  const rwaPockets = rwaRes.ok && rwaRes.data.pockets.value ? rwaRes.data.pockets.value : []
 
   const nextDistribution = allDistributions.find((d) => d.status === 'pending') ?? null
   const history = allDistributions.filter((d) => d.status !== 'pending')
@@ -542,6 +708,12 @@ export default async function Page() {
         electricityCost={electricityCost}
       />
 
+      <MachineFleetSection
+        machineCount={machineCount}
+        activeMachines={activeMachines}
+        averageUptimePct={mining?.operationalTelemetry?.value?.averageUptimePct ?? null}
+      />
+
       <div className="grid gap-4 lg:grid-cols-2">
         <OpexSection
           monthlyCost={electricityCost}
@@ -561,6 +733,11 @@ export default async function Page() {
         calculations={allCalculations}
         nextPeriod={nextPeriod}
         defaultStrategyId={defaultStrategyId}
+      />
+
+      <StrategyAllocationSection
+        distributions={allDistributions}
+        rwaPockets={rwaPockets}
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
