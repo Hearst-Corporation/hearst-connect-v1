@@ -23,13 +23,19 @@ export function MonthlyBtcChart({
 }: Readonly<{
   distributions: readonly DistributionRecord[]
 }>) {
-  const points: LinePoint[] = distributions
-    .slice()
-    .sort((a, b) => a.month.localeCompare(b.month))
-    .map((d) => ({
-      label: d.month,
-      value: Number(d.btcAmountSats) / 100_000_000,
-      detail: d.month,
+  const byMonth = new Map<string, number>()
+  for (const d of distributions) {
+    const btc = Number(d.btcAmountSats) / 100_000_000
+    if (!Number.isFinite(btc)) continue
+    byMonth.set(d.month, (byMonth.get(d.month) ?? 0) + btc)
+  }
+
+  const points: LinePoint[] = Array.from(byMonth.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, value]) => ({
+      label: month,
+      value,
+      detail: month,
     }))
 
   const state =
