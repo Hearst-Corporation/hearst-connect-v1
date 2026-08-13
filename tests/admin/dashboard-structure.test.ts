@@ -86,13 +86,11 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  it('renders every dashboard card, without imposing a fixed grid shape', () => {
-    // Layout is deliberately NOT pinned here: the dashboard composes its cards
-    // through a fluid, container-driven Bento (`src/components/admin/grid.tsx`)
-    // that reflows on the real width of the content column. Asserting literal
-    // spans (`span={7}`…) is what previously froze the grid into crammed tracks
-    // behind the rail — see the git history of this test. What still matters is
-    // that every card is present; their arrangement is free.
+  it('renders every dashboard card, without imposing a bento span', () => {
+    // Primary row is an asymmetric composition (exposure absorbs, alerts bounded).
+    // Remaining cards stay in masonry Bento groups. Do not pin col-span={7}.
+    expect(SOURCE).toMatch(/minmax\(0,1fr\)/)
+    expect(SOURCE).toContain('SectionHeader')
     for (const t of [
       'Portfolio exposure',
       'Activity',
