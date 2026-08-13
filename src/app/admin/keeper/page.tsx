@@ -100,8 +100,8 @@ export default async function KeeperPage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Actions Keeper"
-        description="Routes keeper du registre — journalisation seule, sans signature on-chain."
+        title="Keeper actions"
+        description="Keeper routes from the registry — logging only, no on-chain signature."
         kpis={kpis}
       />
 
@@ -117,16 +117,16 @@ export default async function KeeperPage() {
 
       <SectionCard title="Scope" hint="These routes log a request — they sign nothing.">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <Badge color="neutral">Aucune signature on-chain</Badge>
+          <Badge color="neutral">No on-chain signature</Badge>
           <Text className="!mt-0 font-medium text-ink dark:text-fg">
-            Aucune de ces routes ne signe une transaction
+            None of these routes signs a transaction
           </Text>
         </div>
         <Text className="mt-4">
-          The backend has no on-chain write assistant — these routes log a request, they do not
-          produisent ni signature ni hash de transaction. Trois d’entre elles renvoient actuellement un HTTP 501 avec
-          un <span className="font-mono">KeeperActionResult</span>. Cette console n’affichera jamais un hash
-          fabricated.
+          The backend has no on-chain write assistant — these routes log a request, they produce
+          neither a signature nor a transaction hash. Three of them currently return an HTTP 501 with
+          a <span className="font-mono">KeeperActionResult</span>. This console will never display a
+          fabricated hash.
         </Text>
         <Text className="mt-4">
           Two additional backend safeguards: a quota of 5 requests per minute per user, and the
@@ -139,13 +139,13 @@ export default async function KeeperPage() {
         <DescriptionList>
           <Prerequisite label="Your role" value={roleLabel(session.role)} satisfait={isAdmin} />
           <Prerequisite
-            label="Adresse du service"
+            label="Service address"
             value={backendConfigured ? 'Configured' : 'Not set'}
             satisfait={backendConfigured}
           />
         </DescriptionList>
         {disabledReason ? (
-          <Callout tone="warning" title="Actions inertes" className="mt-4">
+          <Callout tone="warning" title="Inert actions" className="mt-4">
             {disabledReason}
           </Callout>
         ) : (

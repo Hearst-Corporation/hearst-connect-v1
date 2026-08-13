@@ -108,7 +108,7 @@ export function OperationsIndexerCard({
       {state.ok ? (
         <div className="space-y-1">
           <Text className="text-sm text-accent-400">Request accepted — server response below.</Text>
-          <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-fg')}>
+          <pre className="overflow-x-auto border-t border-console-line-soft pt-2 font-mono text-xs/5 text-fg">
             {state.detail ?? 'OK'}
           </pre>
         </div>

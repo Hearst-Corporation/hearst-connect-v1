@@ -1,4 +1,3 @@
-import { surfaceBox } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
 import type { AdminDataHealthSource } from '@/lib/admin-dashboard/contracts'
 import { formatRelativeTime } from '@/lib/format'
@@ -26,9 +25,7 @@ export function DataHealthGrid({
 }: Readonly<{ sources: Availability<readonly AdminDataHealthSource[]> }>) {
   if (!isAvailable(sources)) {
     return (
-      <div
-        className="flex flex-col justify-center rounded-lg bg-console-inset px-4 py-5 ring-1 ring-console-line-soft"
-      >
+      <div className="flex flex-col justify-center py-5">
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <Text className="mt-1">Source freshness unavailable.</Text>
       </div>
@@ -41,7 +38,7 @@ export function DataHealthGrid({
   return (
     <ul
       data-widget="data-health-grid"
-      className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-2"
+      className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-x-6 gap-y-4"
     >
       {slots.map(({ key, source }) => {
         const label = source?.label ?? key
@@ -54,7 +51,7 @@ export function DataHealthGrid({
             ? formatRelativeTime(source.asOf)
             : '—'
         return (
-          <li key={key} className={clsx(surfaceBox, 'p-2.5')}>
+          <li key={key} className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"

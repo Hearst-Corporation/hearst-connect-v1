@@ -22,6 +22,7 @@ export {
   StatCard,
   StatGrid,
   SectionCard,
+  SectionHeader,
   DataTableShell,
   tableCol,
   Callout,

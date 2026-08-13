@@ -290,7 +290,7 @@ export default async function RuntimePage() {
         title="Raw responses"
         hint="Full probe payloads for technical verification — expand a probe only when needed."
       >
-        <div className="space-y-3">
+        <div className="divide-y divide-console-line-soft">
           {(
             [
               ['Runtime', runtime.ok ? jsonLisible(runtime.data) : null, !runtime.ok],
@@ -298,7 +298,7 @@ export default async function RuntimePage() {
               ['Ready', ready.ok ? jsonLisible(ready.data) : null, !ready.ok],
             ] as const
           ).map(([label, payload, failed]) => (
-            <details key={label} className={clsx(surfaceInset, 'group p-3')}>
+            <details key={label} className="group py-3 first:pt-0 last:pb-0">
               <summary className="cursor-pointer text-sm font-semibold text-ink dark:text-fg">
                 {label}
               </summary>

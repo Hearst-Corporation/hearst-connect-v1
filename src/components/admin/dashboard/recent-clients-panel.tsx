@@ -1,5 +1,4 @@
 import { HearstSecondaryAction } from '@/components/actions'
-import { surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
 import {
   Table,
@@ -15,7 +14,6 @@ import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
-import clsx from 'clsx'
 
 function ClientsFooter() {
   return (
@@ -35,7 +33,7 @@ export function RecentClientsPanel({
   if (!isAvailable(clients)) {
     return (
       <div className="space-y-4">
-        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
           <p className="text-xs text-fg-tertiary">Client directory source unavailable.</p>
         </div>
@@ -46,7 +44,7 @@ export function RecentClientsPanel({
   if (clients.value.length === 0) {
     return (
       <div className="space-y-4">
-        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">No recent clients</p>
           <p className="text-xs text-fg-tertiary">No client rows in the recent directory read.</p>
         </div>

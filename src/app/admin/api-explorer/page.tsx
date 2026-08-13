@@ -200,7 +200,7 @@ export default async function ApiExplorerPage() {
             hint={group.description}
             actions={<Badge color="neutral">{formatNumber(endpoints.length)}</Badge>}
           >
-            <div className={clsx(surfaceInset, 'overflow-hidden')}>
+            <div className="overflow-hidden">
               {endpoints.map((endpoint) => (
                 <ExplorerRow
                   key={endpoint.id}

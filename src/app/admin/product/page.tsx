@@ -8,7 +8,7 @@ import {
   ReserveExposureChart,
   type BitcoinItem,
 } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, SectionHeader, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { figureFromResolved } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
@@ -336,19 +336,21 @@ export default async function Page() {
         </DescriptionList>
       </SectionCard>
 
-      <SectionCard
-        title="Where is the fund's capital?"
-        eyebrow="Reserve and yield"
-        hint="The two readings the product is actually measured on today."
-      >
+      <section className="space-y-6">
+        <SectionHeader
+          title="Where is the fund's capital?"
+          eyebrow="Reserve and yield"
+          hint="The two readings the product is actually measured on today."
+        />
         <CapitalReserveSection items={items} soleItem={soleItem} chartItems={chartItems} />
-      </SectionCard>
+      </section>
 
-      <SectionCard
-        title="How does yield evolve over time?"
-        eyebrow="Reserve and yield"
-        hint={curveExplanation(points, curveConfigured, f?.vendingCurve)}
-      >
+      <section className="space-y-6">
+        <SectionHeader
+          title="How does yield evolve over time?"
+          eyebrow="Reserve and yield"
+          hint={curveExplanation(points, curveConfigured, f?.vendingCurve)}
+        />
         <ChartFrame
           question="How does yield evolve over time?"
           unit="as a percentage, per product milestone"
@@ -361,7 +363,6 @@ export default async function Page() {
             title="Yield curve"
             description="Rate recorded per milestone — the exact figures the curve positions."
             count={`${points.length} milestones`}
-            className="mt-6"
           >
             <TableHead>
               <TableRow>
@@ -381,7 +382,7 @@ export default async function Page() {
         ) : (
           <Text>No readable milestones for now.</Text>
         )}
-      </SectionCard>
+      </section>
 
       <DataTableShell
         title="Not measurable yet"
