@@ -78,3 +78,38 @@ export async function triggerCalculation(
 
   return { ok: true, error: null }
 }
+
+export type PayElectricityOutcome = {
+  ok: boolean
+  error: string | null
+}
+
+/**
+ * Records an electricity payment (admin only).
+ *
+ * Calls the `keeper-electricity-pay` keeper route.
+ */
+export async function payElectricity(
+  _prev: PayElectricityOutcome | null,
+  formData: FormData,
+): Promise<PayElectricityOutcome> {
+  const amount = formData.get('amount')
+  if (typeof amount !== 'string' || amount === '') {
+    return { ok: false, error: 'Amount is required.' }
+  }
+
+  const session = await getSession()
+  if (!session || toBackendRole(session.role) !== 'admin') {
+    return { ok: false, error: 'Administrator role required.' }
+  }
+
+  const response = await callBackend<{ status: string; reason: string }>('keeper-electricity-pay', {
+    body: { amount },
+  })
+
+  if (!response.ok) {
+    return { ok: false, error: response.state.reason ?? 'Payment failed.' }
+  }
+
+  return { ok: true, error: null }
+}
