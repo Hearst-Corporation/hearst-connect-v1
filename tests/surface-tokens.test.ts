@@ -25,14 +25,12 @@ describe('design system surfaces — canon dashboard', () => {
 
   it('DashCard = surfaceBox ; KPI header = LogoMark + texte bandeau', () => {
     const shell = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/shell.tsx'), 'utf8')
-    const surfaces = readFileSync(join(process.cwd(), 'src/components/admin/surfaces.tsx'), 'utf8')
     const header = readFileSync(join(process.cwd(), 'src/components/admin/dashboard/header.tsx'), 'utf8')
     const pageHeader = readFileSync(join(process.cwd(), 'src/components/admin/page-header.tsx'), 'utf8')
     expect(shell).toContain('surfaceBox')
     expect(shell).toContain('data-surface="box"')
     expect(shell).toContain('flex min-h-0 flex-col p-5')
     expect(shell).not.toContain('flex h-full flex-col')
-    expect(surfaces).toContain('surfaceBox')
     expect(header).toContain('AdminPageHeader')
     expect(pageHeader).toContain('data-dashboard-kpi-bandeau')
     expect(pageHeader).toContain('LogoMark')

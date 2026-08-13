@@ -1,84 +1,14 @@
-import { surfaceBox, surfaceInset } from '@/components/admin/surface'
-import { AdminCaption, AdminLabel, adminTypography } from '@/components/admin/typography'
+import { surfaceInset } from '@/components/admin/surface'
 import { ProblemState, RequestMetadata, StatusBadge } from '@/components/admin/truthful'
-import { formatNumber } from '@/lib/format'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import type { ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
 /**
  * Hearst Connect admin surface wrappers.
- * Material = `surfaceBox` / `surfaceInset` (PASS 2 canon) — not a second glass layer.
- * Prefer `Panel` / `DashCard` for new work.
+ * Material = `surfaceInset` (PASS 2 canon) — not a second glass layer.
  * Every component here renders what the backend gives it — none of them fabricate data.
  */
-
-export function AdminSurface({
-  children,
-  className,
-  as: Tag = 'section',
-  padding = false,
-}: Readonly<{
-  children: React.ReactNode
-  className?: string
-  as?: 'section' | 'div' | 'article' | 'nav'
-  padding?: boolean
-}>) {
-  return (
-    <Tag
-      className={clsx(
-        className,
-        surfaceBox,
-        'overflow-hidden transition-[box-shadow,background-color,border-color] duration-200',
-        padding && 'p-6',
-      )}
-    >
-      {children}
-    </Tag>
-  )
-}
-
-export function AdminMetric({
-  label,
-  value,
-  unit,
-  hint,
-  status,
-  className,
-}: Readonly<{
-  label: string
-  value: string | number | null | undefined
-  unit?: string
-  hint?: string
-  status?: ResolvedStatus
-  className?: string
-}>) {
-  const displayable =
-    value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
-
-  return (
-    <div
-      className={clsx(
-        className,
-        surfaceBox,
-        'min-w-0 p-4',
-      )}
-    >
-      <AdminLabel>{label}</AdminLabel>
-      <p className="mt-1.5 flex items-baseline gap-2">
-        {displayable ? (
-          <span className={clsx(adminTypography.numericStandard, 'wrap-break-word')}>
-            {typeof value === 'number' ? formatNumber(value) : value}
-            {unit ? <span className="ml-1 text-sm/6 font-medium text-fg-tertiary dark:text-fg-secondary">{unit}</span> : null}
-          </span>
-        ) : (
-          <span className={clsx(adminTypography.numericStandard, 'text-fg-tertiary dark:text-fg-secondary')} title={status ?? 'No value'}>—</span>
-        )}
-      </p>
-      {hint ? <AdminCaption className="mt-1">{hint}</AdminCaption> : null}
-    </div>
-  )
-}
 
 export function AdminProbeResult({
   status,

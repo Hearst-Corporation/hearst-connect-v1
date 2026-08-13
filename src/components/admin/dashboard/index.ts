@@ -2,8 +2,7 @@ export {
   DashboardShell,
   DashCard,
 } from '@/components/admin/dashboard/shell'
-export { DashboardHeader } from '@/components/admin/dashboard/header'
-export { type DashboardKpi } from '@/components/admin/dashboard/kpi-grid'
+export { DashboardHeader, type DashboardKpi } from '@/components/admin/dashboard/header'
 export { ChartPlaceholder } from '@/components/admin/dashboard/charts-panel'
 export { PortfolioExposurePanel } from '@/components/admin/dashboard/portfolio-exposure'
 export { RebalancingAlertsPanel } from '@/components/admin/dashboard/rebalancing-panel'

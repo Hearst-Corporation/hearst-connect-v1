@@ -221,7 +221,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/compliance',
     category: 'business',
     auth: 'admin',
-    surface: '/admin/conformite',
+    surface: '/admin/compliance',
     summary: 'Compliance review queue from KYC state.',
     caveat: 'Admin role required — investors whose KYC is not approved.',
   }),
@@ -274,7 +274,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/mining',
     category: 'business',
     auth: 'session',
-    surface: '/admin/produit',
+    surface: '/admin/product',
     summary: 'Mining aggregate.',
   }),
   defineEndpoint({
@@ -282,7 +282,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/mining/metrics/onchain',
     category: 'business',
     auth: 'session',
-    surface: '/admin/produit',
+    surface: '/admin/product',
     summary: 'Mining metrics read on-chain.',
     caveat:
       'Direct on-chain read, distinct from the `mining` aggregate: `/admin/product` compares both and reports any mismatch.',
@@ -292,7 +292,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/mining/electricity',
     category: 'business',
     auth: 'session',
-    surface: '/admin/produit',
+    surface: '/admin/product',
     summary: 'Mining electricity line item.',
     caveat:
       'Dedicated electricity line read, distinct from `mining.electricity`: `/admin/product` reconciles both.',
@@ -327,7 +327,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/btc',
     category: 'business',
     auth: 'session',
-    surface: '/admin/produit',
+    surface: '/admin/product',
     summary: 'BTC aggregate.',
   }),
   defineEndpoint({
@@ -335,7 +335,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/product/factsheet',
     category: 'business',
     auth: 'session',
-    surface: '/admin/produit',
+    surface: '/admin/product',
     summary: 'Product factsheet and terms.',
     caveat:
       '`minimumDepositUsdc` is in whole USDC here, not to be confused with the dashboard\'s `subscription.minimumDeposit`.',
@@ -345,7 +345,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/backtest/historical',
     category: 'business',
     auth: 'session',
-    surface: '/admin/produit',
+    surface: '/admin/product',
     summary: 'Historical backtest series computed by the backend.',
     caveat: 'Data produced by the backend: the frontend derives no projection from it.',
   }),
