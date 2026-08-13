@@ -108,7 +108,7 @@ export function MovementTimeline({ availability }: Readonly<{ availability: User
 
   if (!animate) {
     return (
-      <ul className="timeline" aria-label="Account movements">
+      <ul className="timeline" aria-label="Your movements">
         {rows.map((movement) => (
           <li key={movement.id}>
             <Row movement={movement} />
@@ -121,7 +121,7 @@ export function MovementTimeline({ availability }: Readonly<{ availability: User
   return (
     <motion.ul
       className="timeline"
-      aria-label="Account movements"
+      aria-label="Your movements"
       initial="hidden"
       animate="show"
       variants={listVariants}
