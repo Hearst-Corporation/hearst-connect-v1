@@ -1,11 +1,9 @@
 import { HearstSecondaryAction } from '@/components/actions'
-import { surfaceInset } from '@/components/admin/surface'
 import { strategySuffix } from '@/lib/format'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminVaultSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
-import clsx from 'clsx'
 
 function driftPts(driftBps: number): string {
   const pts = driftBps / 100
@@ -25,7 +23,7 @@ function VaultCard({
       : null
 
   return (
-    <article className={clsx(surfaceInset, 'flex flex-col gap-2 p-4')}>
+    <article className="flex flex-col gap-2 border-t border-console-line-soft pt-4 first:border-t-0 first:pt-0">
       <h3 className="truncate text-sm font-semibold text-ink dark:text-fg">{vault.label}</h3>
       <p className="text-xl font-semibold tabular-nums text-ink dark:text-fg">
         {formatAdminAtomic(vault.totalAssetsAtomic, assetScale)}
@@ -63,7 +61,7 @@ export function VaultsPanel({
   if (!isAvailable(vaults)) {
     return (
       <div className="space-y-4">
-        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
           <p className="text-xs text-fg-tertiary">Vault source unavailable.</p>
         </div>
@@ -74,7 +72,7 @@ export function VaultsPanel({
   if (vaults.value.length === 0) {
     return (
       <div className="space-y-4">
-        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">No vaults reported</p>
           <p className="text-xs text-fg-tertiary">No vault summary rows in the registry.</p>
         </div>
@@ -85,7 +83,7 @@ export function VaultsPanel({
   if (!assetScale) {
     return (
       <div className="space-y-4">
-        <div className={clsx(surfaceInset, 'flex flex-col justify-center gap-2 px-4 py-5')}>
+        <div className="flex flex-col justify-center gap-2 py-5">
           <p className="text-sm font-semibold text-ink dark:text-fg">Portfolio asset scale unavailable</p>
           <p className="text-xs text-fg-tertiary">Amounts stay hidden until the portfolio scale is readable.</p>
         </div>
