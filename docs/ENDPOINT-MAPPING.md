@@ -89,5 +89,6 @@ La spec backend décrit **le contrat et les surfaces attendues**.
 Les colonnes ⚠️/❌ du document d’origine décrivaient un **état front** à un instant T — pas une erreur de contrat.  
 Depuis, le front a rattrapé la plupart des items ; le trigger indexeur est confirmé branché sur le runtime Railway. `POST /api/v1/admin/users` est **livré** sur Railway (probe 2026-08-06 : 401 sans session, 400 corps invalide).
 
-Registre front : `src/lib/backend/endpoints.ts` (45 routes).  
+Registre front : `src/lib/backend/endpoints.ts` (48 routes).  
+Ajouts 2026-08-13 (plan de données client) : `GET /api/v1/me/portfolio`, `GET /api/v1/me/movements`, `GET /api/v1/admin/clients/:id`. La route `POST /api/v1/me/deposits` est livrée backend mais volontairement hors registre front (aucun consommateur UI : le CTA `/account` n'appelle rien).  
 Auth login/register : hors registre, `src/lib/backend/auth.ts`.
