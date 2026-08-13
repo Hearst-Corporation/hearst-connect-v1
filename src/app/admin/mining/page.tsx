@@ -20,6 +20,7 @@ import {
 import type { Metadata } from 'next'
 import { ApproveButton } from './approve-button'
 import { MonthlyBtcChart } from './monthly-btc-chart'
+import { TriggerCalculationButton } from './trigger-calculation-button'
 
 export const metadata: Metadata = { title: 'Mining' }
 export const dynamic = 'force-dynamic'
@@ -66,6 +67,18 @@ type DistributionRecord = {
   readonly status: 'pending' | 'approved' | 'distributed'
   readonly approvedAt: string | null
   readonly approvedBy: string | null
+}
+
+type CalculationRecord = {
+  readonly id: string
+  readonly period: string
+  readonly btcAmountSats: string
+  readonly btcPriceUsdc: string
+  readonly grossYieldUsdc: string
+  readonly opexDeductionUsdc: string
+  readonly netYieldUsdc: string
+  readonly rwaStrategyId: string
+  readonly calculatedAt: string
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -368,6 +381,69 @@ function DistributionHistory({
   )
 }
 
+function CalculationsSection({
+  calculations,
+  nextPeriod,
+  defaultStrategyId,
+}: Readonly<{
+  calculations: readonly CalculationRecord[]
+  nextPeriod: string
+  defaultStrategyId: string
+}>) {
+  if (calculations.length === 0) {
+    return (
+      <SectionCard title="Calculations" hint="Historical yield calculations">
+        <Text>No calculations recorded yet.</Text>
+        <div className="mt-4 max-w-xs">
+          <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+        </div>
+      </SectionCard>
+    )
+  }
+
+  return (
+    <SectionCard title="Calculations" hint="Historical yield calculations">
+      <DataTableShell title="Calculation history" count={`${calculations.length}`}>
+        <TableHead>
+          <TableRow>
+            <TableHeader className="text-left text-xs">Period</TableHeader>
+            <TableHeader className="text-left text-xs">BTC</TableHeader>
+            <TableHeader className="text-left text-xs">Gross yield</TableHeader>
+            <TableHeader className="text-left text-xs">OPEX</TableHeader>
+            <TableHeader className="text-left text-xs">Net yield</TableHeader>
+            <TableHeader className="text-left text-xs">Strategy</TableHeader>
+            <TableHeader className="text-left text-xs">Calculated</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {calculations.map((c) => (
+            <TableRow key={c.id}>
+              <TableCell className="text-xs">{c.period}</TableCell>
+              <TableCell className="text-xs tabular-nums">
+                {satsToBtc(c.btcAmountSats) ?? '—'} BTC
+              </TableCell>
+              <TableCell className="text-xs tabular-nums">
+                {formatCurrency(c.grossYieldUsdc, { decimals: 0 })}
+              </TableCell>
+              <TableCell className="text-xs tabular-nums text-danger-400">
+                -{formatCurrency(c.opexDeductionUsdc, { decimals: 0 })}
+              </TableCell>
+              <TableCell className="text-xs tabular-nums text-success-400">
+                {formatCurrency(c.netYieldUsdc, { decimals: 0 })}
+              </TableCell>
+              <TableCell className="text-xs">{c.rwaStrategyId}</TableCell>
+              <TableCell className="text-xs">{formatDateTime(c.calculatedAt)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
+      <div className="mt-4 max-w-xs">
+        <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+      </div>
+    </SectionCard>
+  )
+}
+
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default async function Page() {
@@ -390,14 +466,23 @@ export default async function Page() {
   const kwhConsumed = mining?.electricity?.value?.kwhConsumed ?? null
   const costPerKwh = mining?.electricity?.value?.costPerKwh ?? null
 
-  const distRes = await callBackend<{
-    readonly distributions: Resolved<readonly DistributionRecord[]>
-  }>('mining-distributions')
+  const [distRes, calcRes] = await Promise.all([
+    callBackend<{
+      readonly distributions: Resolved<readonly DistributionRecord[]>
+    }>('mining-distributions'),
+    callBackend<{
+      readonly calculations: Resolved<readonly CalculationRecord[]>
+    }>('mining-calculations'),
+  ])
 
   const allDistributions = distRes.ok && distRes.data.distributions.value ? distRes.data.distributions.value : []
+  const allCalculations = calcRes.ok && calcRes.data.calculations.value ? calcRes.data.calculations.value : []
 
   const nextDistribution = allDistributions.find((d) => d.status === 'pending') ?? null
   const history = allDistributions.filter((d) => d.status !== 'pending')
+
+  const nextPeriod = nextDistribution?.month ?? new Date().toISOString().slice(0, 7)
+  const defaultStrategyId = nextDistribution?.rwaStrategyId ?? 'rwa_mining'
 
   return (
     <div className="space-y-8">
@@ -430,6 +515,12 @@ export default async function Page() {
       </div>
 
       <MonthlyBtcChart distributions={allDistributions} />
+
+      <CalculationsSection
+        calculations={allCalculations}
+        nextPeriod={nextPeriod}
+        defaultStrategyId={defaultStrategyId}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <NextDistributionCard distribution={nextDistribution} />

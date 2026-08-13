@@ -27,6 +27,8 @@ const CONTRACT_PATHS = [
   'GET /api/v1/mining/metrics/onchain',
   'GET /api/v1/mining/electricity',
   'GET /api/v1/mining/distributions',
+  'GET /api/v1/mining/calculations',
+  'GET /api/v1/mining/calculations/:period',
   'GET /api/v1/btc',
   'GET /api/v1/product/factsheet',
   'GET /api/v1/backtest/historical',
@@ -47,6 +49,7 @@ const CONTRACT_PATHS = [
   'POST /api/v1/mining/metrics/report',
   'POST /api/v1/mining/electricity/pay',
   'POST /api/v1/mining/distributions/approve',
+  'POST /api/v1/mining/calculations',
   'POST /api/v1/admin/indexer/trigger',
   'POST /api/v1/admin/users',
   'POST /api/v1/rebalancing/execute',
@@ -56,10 +59,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 50 routes du contrat', () => {
+  it('couvre exactement les 53 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(50)
+    expect(BACKEND_ENDPOINTS).toHaveLength(53)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -77,9 +80,9 @@ describe('registre des endpoints', () => {
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(34)
+    expect(endpointsByCategory('business')).toHaveLength(36)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
-    expect(endpointsByCategory('keeper')).toHaveLength(7)
+    expect(endpointsByCategory('keeper')).toHaveLength(8)
   })
 
   it('marque non enveloppées exactement les routes que le contrat exclut', () => {
@@ -98,6 +101,7 @@ describe('registre des endpoints', () => {
         'keeper-electricity-pay',
         'keeper-mining-report',
         'mining-distribution-approve',
+        'mining-calculation-trigger',
         'keeper-rebalancing-execute',
         'keeper-rwa-vault',
         'ready',
