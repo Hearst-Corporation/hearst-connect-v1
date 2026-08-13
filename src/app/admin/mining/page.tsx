@@ -20,6 +20,7 @@ import {
 import type { Metadata } from 'next'
 import { ApproveButton } from './approve-button'
 import { MonthlyBtcChart } from './monthly-btc-chart'
+import { PayElectricityButton } from './pay-electricity-button'
 import { TriggerCalculationButton } from './trigger-calculation-button'
 
 export const metadata: Metadata = { title: 'Mining' }
@@ -211,6 +212,11 @@ function OpexSection({
           </p>
         </div>
       </div>
+      {monthlyCost !== null ? (
+        <div className="mt-4 max-w-xs">
+          <PayElectricityButton amount={monthlyCost} />
+        </div>
+      ) : null}
     </SectionCard>
   )
 }
