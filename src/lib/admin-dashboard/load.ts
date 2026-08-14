@@ -23,6 +23,7 @@ export {
   type AdminRecentClient,
   type AdminRebalancingAlert,
   type AdminRebalancingHistoryPoint,
+  type AdminRebalancingOperation,
   type AdminRebalancingSummary,
   type AdminTimeseriesPoint,
   type AdminVaultSummary,
@@ -39,6 +40,7 @@ import type {
   AdminPortfolioOverview,
   AdminRecentClient,
   AdminRebalancingHistoryPoint,
+  AdminRebalancingOperation,
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
   AdminVaultSummary,
@@ -331,19 +333,23 @@ export async function loadAdminAssetScale(): Promise<AdminAssetScale | null> {
 
 /** Focused read models for `/admin/operations` — no market/portfolio extras. */
 export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurface> {
-  const [rebalancingRes, activityRes, overviewRes, exposureRes, rebalancingHistoryRes] = await Promise.all([
-    callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
-    callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
-      params: { limit: 25 },
-    }),
-    callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>('admin-portfolio-overview'),
-    callBackend<{ exposure: BackendResolved<{ strategies: readonly AdminExposureStrategy[]; totalAumAtomic: string }> }>(
-      'admin-portfolio-exposure',
-    ),
-    callBackend<{
-      history: BackendResolved<readonly AdminRebalancingHistoryPoint[]>
-    }>('rebalancing-history', { params: { limit: 90 } }),
-  ])
+  const [rebalancingRes, activityRes, overviewRes, exposureRes, rebalancingHistoryRes, rebalancingOperationsRes] =
+    await Promise.all([
+      callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
+      callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
+        params: { limit: 25 },
+      }),
+      callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>('admin-portfolio-overview'),
+      callBackend<{
+        exposure: BackendResolved<{ strategies: readonly AdminExposureStrategy[]; totalAumAtomic: string }>
+      }>('admin-portfolio-exposure'),
+      callBackend<{
+        history: BackendResolved<readonly AdminRebalancingHistoryPoint[]>
+      }>('rebalancing-history', { params: { limit: 90 } }),
+      callBackend<{
+        operations: BackendResolved<readonly AdminRebalancingOperation[]>
+      }>('rebalancing-operations', { params: { limit: 50 } }),
+    ])
 
   const overview = overviewRes.ok
     ? fromBackend(overviewRes.data.overview, '/api/v1/admin/portfolio/overview')
@@ -361,6 +367,12 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
     '/api/v1/rebalancing/history',
   )
 
+  const rebalancingOperations = fromBackendOrUnavailable(
+    rebalancingOperationsRes,
+    rebalancingOperationsRes.ok ? rebalancingOperationsRes.data.operations : undefined,
+    '/api/v1/rebalancing/operations',
+  )
+
   return {
     rebalancing: rebalancingRes.ok
       ? fromBackend(rebalancingRes.data.summary, '/api/v1/admin/rebalancing/summary')
@@ -374,5 +386,6 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
       : null,
     exposure: unwrapAvailableField(exposureBloc, 'strategies'),
     rebalancingHistory,
+    rebalancingOperations,
   }
 }

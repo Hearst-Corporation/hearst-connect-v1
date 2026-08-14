@@ -1,7 +1,7 @@
 import { BACKEND_ENDPOINTS, endpointById, endpointsByCategory, resolvePath } from '@/lib/backend/endpoints'
 import { describe, expect, it } from 'vitest'
 
-/** Les 45 routes du contrat backend, listées ici indépendamment du registre. */
+/** Les 46 routes du contrat backend, listées ici indépendamment du registre. */
 const CONTRACT_PATHS = [
   'GET /health',
   'GET /ready',
@@ -23,6 +23,7 @@ const CONTRACT_PATHS = [
   'GET /api/v1/rwa-vault',
   'GET /api/v1/rebalancing/status',
   'GET /api/v1/rebalancing/history',
+  'GET /api/v1/rebalancing/operations',
   'GET /api/v1/mining',
   'GET /api/v1/mining/metrics/onchain',
   'GET /api/v1/mining/electricity',
@@ -59,10 +60,10 @@ const CONTRACT_PATHS = [
 ]
 
 describe('registre des endpoints', () => {
-  it('couvre exactement les 53 routes du contrat', () => {
+  it('couvre exactement les 54 routes du contrat', () => {
     const registered = BACKEND_ENDPOINTS.map((e) => `${e.method} ${e.path}`).sort()
     expect(registered).toEqual([...CONTRACT_PATHS].sort())
-    expect(BACKEND_ENDPOINTS).toHaveLength(53)
+    expect(BACKEND_ENDPOINTS).toHaveLength(54)
   })
 
   it('ne contient aucun doublon d’identifiant ni de route', () => {
@@ -80,7 +81,7 @@ describe('registre des endpoints', () => {
 
   it('répartit les catégories conformément au contrat', () => {
     expect(endpointsByCategory('probe')).toHaveLength(6)
-    expect(endpointsByCategory('business')).toHaveLength(36)
+    expect(endpointsByCategory('business')).toHaveLength(37)
     expect(endpointsByCategory('ai-context')).toHaveLength(3)
     expect(endpointsByCategory('keeper')).toHaveLength(8)
   })

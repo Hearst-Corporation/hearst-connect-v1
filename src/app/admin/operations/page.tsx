@@ -19,10 +19,11 @@ import type { LinePoint } from '@/components/charts'
 import {
   loadAdminOperationsSurface,
   type AdminActivityEvent,
+  type AdminRebalancingOperation,
   type AdminRebalancingSummary,
 } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
-import { formatDriftPts, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
+import { formatDateTime, formatDriftPts, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import { editorial, isAvailable, type Availability } from '@/lib/vaults/model'
 import { entityHref } from '@/components/vaults/vault-entity-link'
@@ -291,6 +292,87 @@ function PortfolioAllocationDonut({
   )
 }
 
+function RebalancingOperationsSection({
+  operations,
+}: Readonly<{
+  operations: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['rebalancingOperations']
+}>) {
+  if (!isAvailable(operations)) {
+    return (
+      <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
+        <Text>
+          Rebalance operations could not be read.{' '}
+          {operations.kind === 'unavailable' ? operations.reason ?? 'Source unavailable' : 'Source unavailable'}
+        </Text>
+      </SectionCard>
+    )
+  }
+
+  const rows = operations.value
+
+  if (rows.length === 0) {
+    return (
+      <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
+        <Text>No rebalance operations indexed yet.</Text>
+      </SectionCard>
+    )
+  }
+
+  return (
+    <DataTableShell
+      title="Rebalance operations"
+      description="On-chain rebalance events with allocation changes and swap details."
+      count={`${rows.length}`}
+    >
+      <TableHead>
+        <TableRow>
+          <TableHeader className={tableCol.date}>Occurred</TableHeader>
+          <TableHeader className={tableCol.hash}>Tx</TableHeader>
+          <TableHeader className={tableCol.numeric}>Block</TableHeader>
+          <TableHeader className={tableCol.primary}>Allocations</TableHeader>
+          <TableHeader className={tableCol.primary}>Swaps</TableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {rows.map((op: AdminRebalancingOperation) => (
+          <TableRow key={op.id}>
+            <TableCell className={`${tableCol.date} text-fg-tertiary`}>
+              {formatDateTime(op.occurredAt)}
+            </TableCell>
+            <TableCell className={`${tableCol.hash} text-xs`} title={op.txHash}>
+              {formatHash(op.txHash)}
+            </TableCell>
+            <TableCell className={tableCol.numeric}>{formatNumber(Number(op.blockNumber))}</TableCell>
+            <TableCell className={tableCol.primary}>
+              <div className="flex flex-wrap gap-1">
+                {op.allocations.map((a, i) => (
+                  <Badge key={i} className="text-xs">
+                    {formatNumber(Number(a))}
+                  </Badge>
+                ))}
+              </div>
+            </TableCell>
+            <TableCell className={tableCol.primary}>
+              {op.swaps.length === 0 ? (
+                <Text className="text-xs text-fg-tertiary">No swaps</Text>
+              ) : (
+                <ul className="space-y-1">
+                  {op.swaps.map((swap, i) => (
+                    <li key={i} className="text-xs text-fg-tertiary" title={`${swap.tokenIn} → ${swap.tokenOut}`}>
+                      {formatHash(swap.tokenIn)} → {formatHash(swap.tokenOut)}:{' '}
+                      {formatNumber(Number(swap.amountIn))} / {formatNumber(Number(swap.amountOut))}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </DataTableShell>
+  )
+}
+
 function RebalancingDriftHistory({
   rebalancingHistory,
 }: Readonly<{
@@ -342,7 +424,7 @@ function RebalancingDriftHistory({
 
 export default async function Page() {
   await requireSession()
-  const { rebalancing, recentActivity, assetScale, exposure, rebalancingHistory } =
+  const { rebalancing, recentActivity, assetScale, exposure, rebalancingHistory, rebalancingOperations } =
     await loadAdminOperationsSurface()
 
   const snapshot = rebalancingSnapshotDe(rebalancing)
@@ -363,6 +445,8 @@ export default async function Page() {
         <PortfolioAllocationDonut exposure={exposure} />
         <RebalancingDriftHistory rebalancingHistory={rebalancingHistory} />
       </div>
+
+      <RebalancingOperationsSection operations={rebalancingOperations} />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
         <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
