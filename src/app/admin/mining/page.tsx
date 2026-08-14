@@ -671,22 +671,11 @@ type PageProps = {
   readonly searchParams: Promise<{ readonly [key: string]: string | string[] | undefined }>
 }
 
-function buildVaultOptions(
-  distributions: readonly DistributionRecord[],
-  calculations: readonly CalculationRecord[],
-  pockets: readonly RwaPocket[],
-): readonly MiningVaultOption[] {
-  const ids = new Set<string>()
-  for (const d of distributions) ids.add(d.rwaStrategyId)
-  for (const c of calculations) ids.add(c.rwaStrategyId)
-  for (const p of pockets) ids.add(p.pocket)
-
-  return Array.from(ids)
-    .sort()
-    .map((id) => {
-      const pocket = pockets.find((p) => p.pocket === id)
-      return { id, label: pocket?.label ?? id }
-    })
+function buildVaultOptions(pockets: readonly RwaPocket[]): readonly MiningVaultOption[] {
+  return pockets
+    .filter((p) => p.enabled)
+    .sort((a, b) => (a.label ?? a.pocket).localeCompare(b.label ?? b.pocket))
+    .map((p) => ({ id: p.pocket, label: p.label ?? p.pocket }))
 }
 
 export default async function Page({ searchParams }: PageProps) {
@@ -727,23 +716,24 @@ export default async function Page({ searchParams }: PageProps) {
   const allCalculations = calcRes.ok && calcRes.data.calculations.value ? calcRes.data.calculations.value : []
   const rwaPockets = rwaRes.ok && rwaRes.data.pockets.value ? rwaRes.data.pockets.value : []
 
-  const vaultOptions = buildVaultOptions(allDistributions, allCalculations, rwaPockets)
+  const vaultOptions = buildVaultOptions(rwaPockets)
+  const validStrategy = selectedStrategy && vaultOptions.some((v) => v.id === selectedStrategy) ? selectedStrategy : null
 
-  const distributions = selectedStrategy
-    ? allDistributions.filter((d) => d.rwaStrategyId === selectedStrategy)
+  const distributions = validStrategy
+    ? allDistributions.filter((d) => d.rwaStrategyId === validStrategy)
     : allDistributions
-  const calculations = selectedStrategy
-    ? allCalculations.filter((c) => c.rwaStrategyId === selectedStrategy)
+  const calculations = validStrategy
+    ? allCalculations.filter((c) => c.rwaStrategyId === validStrategy)
     : allCalculations
-  const filteredPockets = selectedStrategy
-    ? rwaPockets.filter((p) => p.pocket === selectedStrategy)
+  const filteredPockets = validStrategy
+    ? rwaPockets.filter((p) => p.pocket === validStrategy)
     : rwaPockets
 
   const nextDistribution = distributions.find((d) => d.status === 'pending') ?? null
   const history = distributions.filter((d) => d.status !== 'pending')
 
   const nextPeriod = nextDistribution?.month ?? new Date().toISOString().slice(0, 7)
-  const defaultStrategyId = selectedStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? 'rwa_mining'
+  const defaultStrategyId = validStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? 'rwa_mining'
 
   return (
     <div className="space-y-8">
@@ -755,13 +745,13 @@ export default async function Page({ searchParams }: PageProps) {
 
       {vaultOptions.length > 0 ? (
         <div className="flex items-center justify-between gap-4 rounded-lg bg-console-inset p-3 ring-1 ring-console-line-soft">
-          <MiningVaultSwitcher options={vaultOptions} selectedId={selectedStrategy} />
-          {selectedStrategy ? (
+          <MiningVaultSwitcher options={vaultOptions} selectedId={validStrategy} />
+          {validStrategy ? (
             <span className="text-xs text-fg-tertiary">
-              Showing data for <span className="font-medium text-ink dark:text-fg">{selectedStrategy}</span>
+              Showing data for <span className="font-medium text-ink dark:text-fg">{validStrategy}</span>
             </span>
           ) : (
-            <span className="text-xs text-fg-tertiary">Showing all strategies</span>
+            <span className="text-xs text-fg-tertiary">Showing all RWA strategies</span>
           )}
         </div>
       ) : null}
