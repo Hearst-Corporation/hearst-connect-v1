@@ -159,7 +159,7 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     ),
     callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
     callBackend<{
-      history: BackendResolved<{ series: readonly AdminRebalancingHistoryPoint[] }>
+      history: BackendResolved<readonly AdminRebalancingHistoryPoint[]>
     }>('rebalancing-history', { params: { limit: 90 } }),
     callBackend<{ timeseries: BackendResolved<{ series: readonly AdminTimeseriesPoint[] }> }>(
       'admin-activity-timeseries',
@@ -197,12 +197,11 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
     '/api/v1/admin/rebalancing/summary',
   )
 
-  const rebalancingHistoryBloc = fromBackendOrUnavailable(
+  const rebalancingHistory = fromBackendOrUnavailable(
     rebalancingHistoryRes,
     rebalancingHistoryRes.ok ? rebalancingHistoryRes.data.history : undefined,
     '/api/v1/rebalancing/history',
   )
-  const rebalancingHistory = unwrapAvailableField(rebalancingHistoryBloc, 'series')
 
   const timeseriesBloc = fromBackendOrUnavailable(
     timeseriesRes,
@@ -342,7 +341,7 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
       'admin-portfolio-exposure',
     ),
     callBackend<{
-      history: BackendResolved<{ series: readonly AdminRebalancingHistoryPoint[] }>
+      history: BackendResolved<readonly AdminRebalancingHistoryPoint[]>
     }>('rebalancing-history', { params: { limit: 90 } }),
   ])
 
@@ -356,7 +355,7 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
     '/api/v1/admin/portfolio/exposure',
   )
 
-  const rebalancingHistoryBloc = fromBackendOrUnavailable(
+  const rebalancingHistory = fromBackendOrUnavailable(
     rebalancingHistoryRes,
     rebalancingHistoryRes.ok ? rebalancingHistoryRes.data.history : undefined,
     '/api/v1/rebalancing/history',
@@ -374,6 +373,6 @@ export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurfa
       ? { asset: overview.value.asset, decimals: overview.value.decimals }
       : null,
     exposure: unwrapAvailableField(exposureBloc, 'strategies'),
-    rebalancingHistory: unwrapAvailableField(rebalancingHistoryBloc, 'series'),
+    rebalancingHistory,
   }
 }

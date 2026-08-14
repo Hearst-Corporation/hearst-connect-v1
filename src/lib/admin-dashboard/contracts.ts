@@ -55,8 +55,11 @@ export type AdminRebalancingSummary = Readonly<{
 export type AdminTimeseriesPoint = Readonly<{ at: string; value: number }>
 
 export type AdminRebalancingHistoryPoint = Readonly<{
-  observedAt: string
+  id: string
+  takenAt: string
   driftBps: number
+  rebalanced: boolean
+  source: string
 }>
 
 export type AdminMarketSnapshot = Readonly<{
