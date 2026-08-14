@@ -21,6 +21,7 @@ import type { Metadata } from 'next'
 import { ApproveButton } from './approve-button'
 import { MonthlyBtcChart } from './monthly-btc-chart'
 import { PayElectricityButton } from './pay-electricity-button'
+import { ReportMetricsButton } from './report-metrics-button'
 import { TriggerCalculationButton } from './trigger-calculation-button'
 
 export const metadata: Metadata = { title: 'Mining' }
@@ -332,6 +333,20 @@ function StrategyAllocationSection({
           ))}
         </TableBody>
     </DataTableShell>
+  )
+}
+
+function ReportMetricsSection() {
+  return (
+    <SectionCard title="Report metrics" hint="Keeper action">
+      <Text className="text-sm text-fg-tertiary">
+        Submit hashrate and cumulative BTC earned to the backend. This is a Keeper log request — no
+        transaction is signed.
+      </Text>
+      <div className="mt-4">
+        <ReportMetricsButton />
+      </div>
+    </SectionCard>
   )
 }
 
@@ -709,6 +724,8 @@ export default async function Page() {
         activeMachines={activeMachines}
         electricityCost={electricityCost}
       />
+
+      <ReportMetricsSection />
 
       <MachineFleetSection
         machineCount={machineCount}
