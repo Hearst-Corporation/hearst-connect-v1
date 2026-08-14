@@ -14,8 +14,8 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
-import { ChartFrame, HearstDonutChart, HearstLineChart } from '@/components/charts'
-import type { LinePoint } from '@/components/charts'
+import { ChartFrame, HearstActivityChart, HearstDonutChart, HearstLineChart } from '@/components/charts'
+import type { ActivityPoint, LinePoint } from '@/components/charts'
 import {
   loadAdminOperationsSurface,
   type AdminActivityEvent,
@@ -292,6 +292,22 @@ function PortfolioAllocationDonut({
   )
 }
 
+function bucketOperationsByDay(rows: readonly AdminRebalancingOperation[]): readonly ActivityPoint[] {
+  const counts = new Map<string, number>()
+  for (const op of rows) {
+    const day = op.occurredAt.slice(0, 10)
+    const existing = counts.get(day)
+    counts.set(day, existing === undefined ? 1 : existing + 1)
+  }
+  return Array.from(counts.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, count]) => ({
+      label: day,
+      value: count,
+      detail: day,
+    }))
+}
+
 function RebalancingOperationsSection({
   operations,
 }: Readonly<{
@@ -318,58 +334,70 @@ function RebalancingOperationsSection({
     )
   }
 
+  const chartPoints = bucketOperationsByDay(rows)
+
   return (
-    <DataTableShell
-      title="Rebalance operations"
-      description="On-chain rebalance events with allocation changes and swap details."
-      count={`${rows.length}`}
-    >
-      <TableHead>
-        <TableRow>
-          <TableHeader className={tableCol.date}>Occurred</TableHeader>
-          <TableHeader className={tableCol.hash}>Tx</TableHeader>
-          <TableHeader className={tableCol.numeric}>Block</TableHeader>
-          <TableHeader className={tableCol.primary}>Allocations</TableHeader>
-          <TableHeader className={tableCol.primary}>Swaps</TableHeader>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {rows.map((op: AdminRebalancingOperation) => (
-          <TableRow key={op.id}>
-            <TableCell className={`${tableCol.date} text-fg-tertiary`}>
-              {formatDateTime(op.occurredAt)}
-            </TableCell>
-            <TableCell className={`${tableCol.hash} text-xs`} title={op.txHash}>
-              {formatHash(op.txHash)}
-            </TableCell>
-            <TableCell className={tableCol.numeric}>{formatNumber(Number(op.blockNumber))}</TableCell>
-            <TableCell className={tableCol.primary}>
-              <div className="flex flex-wrap gap-1">
-                {op.allocations.map((a, i) => (
-                  <Badge key={i} className="text-xs">
-                    {formatNumber(Number(a))}
-                  </Badge>
-                ))}
-              </div>
-            </TableCell>
-            <TableCell className={tableCol.primary}>
-              {op.swaps.length === 0 ? (
-                <Text className="text-xs text-fg-tertiary">No swaps</Text>
-              ) : (
-                <ul className="space-y-1">
-                  {op.swaps.map((swap, i) => (
-                    <li key={i} className="text-xs text-fg-tertiary" title={`${swap.tokenIn} → ${swap.tokenOut}`}>
-                      {formatHash(swap.tokenIn)} → {formatHash(swap.tokenOut)}:{' '}
-                      {formatNumber(Number(swap.amountIn))} / {formatNumber(Number(swap.amountOut))}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </TableCell>
+    <div className="space-y-4">
+      <ChartFrame
+        question="When did rebalances occur?"
+        unit="operations per day"
+        state={{ type: 'plotted' }}
+      >
+        <HearstActivityChart points={chartPoints} unit="ops" viewport="compact" />
+      </ChartFrame>
+
+      <DataTableShell
+        title="Rebalance operations"
+        description="On-chain rebalance events with allocation changes and swap details."
+        count={`${rows.length}`}
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader className={tableCol.date}>Occurred</TableHeader>
+            <TableHeader className={tableCol.hash}>Tx</TableHeader>
+            <TableHeader className={tableCol.numeric}>Block</TableHeader>
+            <TableHeader className={tableCol.primary}>Allocations</TableHeader>
+            <TableHeader className={tableCol.primary}>Swaps</TableHeader>
           </TableRow>
-        ))}
-      </TableBody>
-    </DataTableShell>
+        </TableHead>
+        <TableBody>
+          {rows.map((op: AdminRebalancingOperation) => (
+            <TableRow key={op.id}>
+              <TableCell className={`${tableCol.date} text-fg-tertiary`}>
+                {formatDateTime(op.occurredAt)}
+              </TableCell>
+              <TableCell className={`${tableCol.hash} text-xs`} title={op.txHash}>
+                {formatHash(op.txHash)}
+              </TableCell>
+              <TableCell className={tableCol.numeric}>{formatNumber(Number(op.blockNumber))}</TableCell>
+              <TableCell className={tableCol.primary}>
+                <div className="flex flex-wrap gap-1">
+                  {op.allocations.map((a, i) => (
+                    <Badge key={i} className="text-xs">
+                      {formatNumber(Number(a))}
+                    </Badge>
+                  ))}
+                </div>
+              </TableCell>
+              <TableCell className={tableCol.primary}>
+                {op.swaps.length === 0 ? (
+                  <Text className="text-xs text-fg-tertiary">No swaps</Text>
+                ) : (
+                  <ul className="space-y-1">
+                    {op.swaps.map((swap, i) => (
+                      <li key={i} className="text-xs text-fg-tertiary" title={`${swap.tokenIn} → ${swap.tokenOut}`}>
+                        {formatHash(swap.tokenIn)} → {formatHash(swap.tokenOut)}:{' '}
+                        {formatNumber(Number(swap.amountIn))} / {formatNumber(Number(swap.amountOut))}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTableShell>
+    </div>
   )
 }
 
