@@ -298,9 +298,9 @@ function RebalancingDriftHistory({
 }>) {
   const points: LinePoint[] = isAvailable(rebalancingHistory)
     ? rebalancingHistory.value.map((p) => ({
-        label: p.observedAt.slice(0, 10),
+        label: p.takenAt.slice(0, 10),
         value: p.driftBps,
-        detail: p.observedAt,
+        detail: p.takenAt,
       }))
     : []
 
