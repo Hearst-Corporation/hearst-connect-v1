@@ -5,7 +5,10 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Text } from '@/components/catalyst/text'
 import { BucketSparklines, ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
+import { endpointById } from '@/lib/backend/endpoints'
+import { toBackendRole } from '@/lib/backend/auth'
 import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { KeeperForm } from '@/app/admin/keeper/keeper-form'
 import clsx from 'clsx'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
@@ -21,6 +24,7 @@ import {
   formatRelativeTime,
 } from '@/lib/format'
 import { movementLabel, movementSentence } from '@/lib/movements'
+import { roleLabel } from '@/lib/session'
 import {
   available,
   combine,
@@ -306,6 +310,34 @@ function MovementTableRow({
         <TxExplorerLink txShort={txShort} txUrl={txUrl} />
       </TableCell>
     </TableRow>
+  )
+}
+
+function VaultKeeperActionsSection({
+  isAdmin,
+  disabledReason,
+}: Readonly<{ isAdmin: boolean; disabledReason: string | null }>) {
+  const rebalancingEndpoint = endpointById('keeper-rebalancing-execute')
+  const rwaEndpoint = endpointById('keeper-rwa-vault')
+
+  return (
+    <SectionCard
+      title="Keeper actions"
+      hint="Vault-specific operational requests — no transaction is signed."
+    >
+      <div className="grid gap-6 md:grid-cols-2">
+        <KeeperForm
+          endpoint={rebalancingEndpoint}
+          disabled={!isAdmin}
+          disabledReason={disabledReason}
+        />
+        <KeeperForm
+          endpoint={rwaEndpoint}
+          disabled={!isAdmin}
+          disabledReason={disabledReason}
+        />
+      </div>
+    </SectionCard>
   )
 }
 
@@ -692,6 +724,11 @@ export default async function Page({ params }: PageProps) {
     { id: 'available', title: 'Available', value: availableValue, icon: ArchiveBoxIcon },
   ]
 
+  const isAdmin = toBackendRole(session.role) === 'admin'
+  const disabledReason = isAdmin
+    ? null
+    : `Role ${roleLabel(session.role)} does not grant access to Keeper actions.`
+
   return (
     <div className="space-y-8">
       <AdminPageHeader title={vault.label} description="Capital, allocation, and recent activity." kpis={kpis} />
@@ -713,6 +750,8 @@ export default async function Page({ params }: PageProps) {
         movementList={movementList}
         vault={vault}
       />
+
+      <VaultKeeperActionsSection isAdmin={isAdmin} disabledReason={disabledReason} />
 
       <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
         Source health and endpoint coverage:{' '}
