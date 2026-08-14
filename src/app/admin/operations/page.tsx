@@ -317,16 +317,15 @@ function RebalancingDriftHistory({
   }
 
   if (!isAvailable(rebalancingHistory)) {
+    const reason =
+      rebalancingHistory.kind === 'unavailable' ? (rebalancingHistory.reason ?? 'Source unavailable') : 'Source unavailable'
     return (
       <ChartFrame
         question="How has portfolio drift evolved over time?"
         unit="in basis points — 90 days"
         state={{
           type: 'unavailable',
-          explanation:
-            rebalancingHistory.kind === 'unavailable'
-              ? (rebalancingHistory.reason ?? 'Source unavailable')
-              : 'Source unavailable',
+          explanation: `${reason}. Drift history is read from the backend rebalancing read model — it cannot be reconstructed on the frontend.`,
         }}
       />
     )
