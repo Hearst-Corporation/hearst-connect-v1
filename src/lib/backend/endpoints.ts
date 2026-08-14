@@ -199,6 +199,15 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'Time-series read model — one row per observation period.',
   }),
   defineEndpoint({
+    id: 'rebalancing-operations',
+    path: '/api/v1/rebalancing/operations',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin/operations',
+    summary: 'On-chain rebalancing operations — swap events and allocation changes.',
+    caveat: 'Query `limit` (default 50) — indexed from on-chain rebalance events.',
+  }),
+  defineEndpoint({
     id: 'clients',
     path: '/api/v1/clients',
     category: 'business',

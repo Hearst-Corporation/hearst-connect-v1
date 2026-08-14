@@ -62,6 +62,24 @@ export type AdminRebalancingHistoryPoint = Readonly<{
   source: string
 }>
 
+export type AdminRebalancingOperationSwap = Readonly<{
+  tokenIn: string
+  tokenOut: string
+  amountIn: string
+  amountOut: string
+}>
+
+export type AdminRebalancingOperation = Readonly<{
+  id: string
+  blockNumber: string
+  txHash: string
+  logIndex: number
+  occurredAt: string
+  indexedAt: string
+  allocations: readonly string[]
+  swaps: readonly AdminRebalancingOperationSwap[]
+}>
+
 export type AdminMarketSnapshot = Readonly<{
   btcUsd: string | null
   btcChange24hPct: string | null
@@ -153,4 +171,6 @@ export type AdminOperationsSurface = Readonly<{
   exposure: Availability<readonly AdminExposureStrategy[]>
   /** Historical drift series for the portfolio. */
   rebalancingHistory: Availability<readonly AdminRebalancingHistoryPoint[]>
+  /** On-chain rebalancing operations with swap details. */
+  rebalancingOperations: Availability<readonly AdminRebalancingOperation[]>
 }>
