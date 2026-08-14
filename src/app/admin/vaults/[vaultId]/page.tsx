@@ -9,6 +9,7 @@ import { endpointById } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { KeeperForm } from '@/app/admin/keeper/keeper-form'
+import { RebalanceNowButton } from './rebalance-now-button'
 import clsx from 'clsx'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
 import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
@@ -317,7 +318,6 @@ function VaultKeeperActionsSection({
   isAdmin,
   disabledReason,
 }: Readonly<{ isAdmin: boolean; disabledReason: string | null }>) {
-  const rebalancingEndpoint = endpointById('keeper-rebalancing-execute')
   const rwaEndpoint = endpointById('keeper-rwa-vault')
 
   return (
@@ -326,11 +326,15 @@ function VaultKeeperActionsSection({
       hint="Vault-specific operational requests — no transaction is signed."
     >
       <div className="grid gap-6 md:grid-cols-2">
-        <KeeperForm
-          endpoint={rebalancingEndpoint}
-          disabled={!isAdmin}
-          disabledReason={disabledReason}
-        />
+        <div>
+          <Text className="text-sm font-medium">Rebalance</Text>
+          <Text className="text-xs text-fg-tertiary">
+            Trigger an on-chain rebalance of the vault allocation.
+          </Text>
+          <div className="mt-3">
+            <RebalanceNowButton disabled={!isAdmin} disabledReason={disabledReason} />
+          </div>
+        </div>
         <KeeperForm
           endpoint={rwaEndpoint}
           disabled={!isAdmin}
