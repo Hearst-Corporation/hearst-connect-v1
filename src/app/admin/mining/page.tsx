@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { ApproveButton } from './approve-button'
+import { MiningVaultSwitcher, type MiningVaultOption } from './mining-vault-switcher'
 import { MonthlyBtcChart } from './monthly-btc-chart'
 import { PayElectricityButton } from './pay-electricity-button'
 import { ReportMetricsButton } from './report-metrics-button'
@@ -666,8 +667,32 @@ function CalculationsSection({
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
-export default async function Page() {
+type PageProps = {
+  readonly searchParams: Promise<{ readonly [key: string]: string | string[] | undefined }>
+}
+
+function buildVaultOptions(
+  distributions: readonly DistributionRecord[],
+  calculations: readonly CalculationRecord[],
+  pockets: readonly RwaPocket[],
+): readonly MiningVaultOption[] {
+  const ids = new Set<string>()
+  for (const d of distributions) ids.add(d.rwaStrategyId)
+  for (const c of calculations) ids.add(c.rwaStrategyId)
+  for (const p of pockets) ids.add(p.pocket)
+
+  return Array.from(ids)
+    .sort()
+    .map((id) => {
+      const pocket = pockets.find((p) => p.pocket === id)
+      return { id, label: pocket?.label ?? id }
+    })
+}
+
+export default async function Page({ searchParams }: PageProps) {
   await requireSession()
+  const params = await searchParams
+  const selectedStrategy = typeof params.strategy === 'string' && params.strategy !== '' ? params.strategy : null
 
   const [miningRes, btcRes] = await Promise.all([
     callBackend<MiningAggregate>('mining'),
@@ -702,11 +727,23 @@ export default async function Page() {
   const allCalculations = calcRes.ok && calcRes.data.calculations.value ? calcRes.data.calculations.value : []
   const rwaPockets = rwaRes.ok && rwaRes.data.pockets.value ? rwaRes.data.pockets.value : []
 
-  const nextDistribution = allDistributions.find((d) => d.status === 'pending') ?? null
-  const history = allDistributions.filter((d) => d.status !== 'pending')
+  const vaultOptions = buildVaultOptions(allDistributions, allCalculations, rwaPockets)
+
+  const distributions = selectedStrategy
+    ? allDistributions.filter((d) => d.rwaStrategyId === selectedStrategy)
+    : allDistributions
+  const calculations = selectedStrategy
+    ? allCalculations.filter((c) => c.rwaStrategyId === selectedStrategy)
+    : allCalculations
+  const filteredPockets = selectedStrategy
+    ? rwaPockets.filter((p) => p.pocket === selectedStrategy)
+    : rwaPockets
+
+  const nextDistribution = distributions.find((d) => d.status === 'pending') ?? null
+  const history = distributions.filter((d) => d.status !== 'pending')
 
   const nextPeriod = nextDistribution?.month ?? new Date().toISOString().slice(0, 7)
-  const defaultStrategyId = nextDistribution?.rwaStrategyId ?? 'rwa_mining'
+  const defaultStrategyId = selectedStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? 'rwa_mining'
 
   return (
     <div className="space-y-8">
@@ -715,6 +752,19 @@ export default async function Page() {
         description="Manage hashrate, OPEX, and yield distribution to RWA strategy."
         kpis={[]}
       />
+
+      {vaultOptions.length > 0 ? (
+        <div className="flex items-center justify-between gap-4 rounded-lg bg-console-inset p-3 ring-1 ring-console-line-soft">
+          <MiningVaultSwitcher options={vaultOptions} selectedId={selectedStrategy} />
+          {selectedStrategy ? (
+            <span className="text-xs text-fg-tertiary">
+              Showing data for <span className="font-medium text-ink dark:text-fg">{selectedStrategy}</span>
+            </span>
+          ) : (
+            <span className="text-xs text-fg-tertiary">Showing all strategies</span>
+          )}
+        </div>
+      ) : null}
 
       <MiningKpis
         hashrate={hashrate}
@@ -746,17 +796,17 @@ export default async function Page() {
         />
       </div>
 
-      <MonthlyBtcChart distributions={allDistributions} />
+      <MonthlyBtcChart distributions={distributions} />
 
       <CalculationsSection
-        calculations={allCalculations}
+        calculations={calculations}
         nextPeriod={nextPeriod}
         defaultStrategyId={defaultStrategyId}
       />
 
       <StrategyAllocationSection
-        distributions={allDistributions}
-        rwaPockets={rwaPockets}
+        distributions={distributions}
+        rwaPockets={filteredPockets}
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
