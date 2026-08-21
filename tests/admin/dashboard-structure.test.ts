@@ -92,28 +92,21 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).not.toMatch(/<HearstDonutChart/)
   })
 
-  it('renders every dashboard card, without imposing a bento span', () => {
-    // Primary row is an asymmetric composition (exposure absorbs, alerts bounded).
-    // Remaining cards stay in masonry Bento groups. Do not pin col-span={7}.
-    expect(SOURCE).toMatch(/minmax\(0,1fr\)/)
-    expect(SOURCE).toContain('SectionHeader')
-
-    // The primary is an ASYMMETRIC container-query grid — NOT masonry. Its
-    // threshold is a CONTAINER width sized to the real column (rail + card
-    // chrome already shrank it): 52rem keeps the split closed while exposure
-    // would be under ~470px (the VP ~1024–1200 crush zone) and opens it on a
-    // normal screen — regression-lock the cockpit threshold.
-    expect(SOURCE).toMatch(/@\[52rem\]:grid-cols-\[minmax\(0,1fr\)_minmax\(16rem,22rem\)\]/)
-    // Exposure + alerts must NOT be nested in a <BentoGrid> (masonry columns
-    // would flatten the hierarchy back to equal cards — the rejected build).
-    const primaryBlock = SOURCE.slice(
-      SOURCE.indexOf('Allocation and drift'),
-      SOURCE.indexOf('Flow and history'),
-    )
-    // Streaming architecture: the async data wrapper mounts the panel.
-    expect(primaryBlock).toMatch(/<PortfolioExposureData/)
+  it('renders every dashboard card in one cockpit bento — no editorial sections', () => {
+    // Cockpit, not editorial: a single 12-track bento straight under the hero.
+    // No SectionHeader chrome — the card titles carry the meaning.
+    expect(SOURCE).not.toMatch(/SectionHeader/)
+    expect(SOURCE).not.toMatch(/Allocation and drift|Flow and history|Vaults and clients|Snapshot and sources/)
+    // Role spans: dominant 8 (exposure, vaults), flank 4 (alerts, clients,
+    // market third), symmetric pair 6 (activity), band 12 (drift, health).
+    expect(SOURCE).toMatch(/<BentoGrid/)
+    expect(SOURCE).toMatch(/span=\{8\}/)
+    expect(SOURCE).toMatch(/span=\{4\}/)
+    expect(SOURCE).toMatch(/span=\{6\}/)
+    expect(SOURCE).toMatch(/span=\{12\}/)
+    // Streaming architecture: async data wrappers mount the panels.
+    expect(SOURCE).toMatch(/<PortfolioExposureData/)
     expect(SOURCE).toMatch(/<PortfolioExposurePanel/)
-    expect(primaryBlock).not.toMatch(/<BentoGrid/)
     for (const t of [
       'Portfolio exposure',
       'Activity',
