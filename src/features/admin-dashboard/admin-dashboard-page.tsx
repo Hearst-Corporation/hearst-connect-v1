@@ -6,6 +6,7 @@ import {
   DashboardShell,
   MarketSnapshotPanel,
   PanelFallback,
+  PanelHeaderLink,
   PortfolioExposurePanel,
   RebalancingAlertsPanel,
   RebalancingDriftChart,
@@ -121,17 +122,16 @@ function ActivityChartSlot({
 }
 
 /**
- * Fixed panel slots (content area height, px) — the box is FROZEN whether the
- * data is loading, absent, or plotted. Dataset never owns geometry: content
- * taller than the slot scrolls inside the box, never the page. Heights are the
- * settled content measures (ring + tabs, 3 alert rows, 2×2 metrics, capped
- * timeline + footer).
+ * Fixed panel slots (content area, px) — the box is FROZEN whether data is
+ * loading, absent, or plotted; taller content scrolls inside the box. The
+ * values are row-matched: [exposure + alerts] + gap == timeline card, so
+ * row A's two columns end on the same line at any data state.
+ *   exposure 304 + alerts 188 + gap 24 + 3×header 76 == timeline 592 + 76.
  */
 const PANEL_SLOT_CLASS = {
   exposure: 'h-[304px] overflow-y-auto',
   signal: 'h-[188px] overflow-y-auto',
-  metrics: 'h-[196px] overflow-y-auto',
-  timeline: 'h-[553px] overflow-y-auto',
+  timeline: 'h-[592px] overflow-hidden',
 } as const
 
 type PanelSlot = keyof typeof PANEL_SLOT_CLASS
@@ -139,15 +139,23 @@ type PanelSlot = keyof typeof PANEL_SLOT_CLASS
 function DashPanel({
   title,
   subtitle,
+  action,
   slot,
   children,
-}: Readonly<{ title: string; subtitle: string; slot?: PanelSlot; children: ReactNode }>) {
+}: Readonly<{
+  title: string
+  subtitle: string
+  action?: ReactNode
+  slot?: PanelSlot
+  children: ReactNode
+}>) {
   return (
     <DashCard
       className="min-w-0"
       contentClassName={slot === undefined ? undefined : PANEL_SLOT_CLASS[slot]}
       title={title}
       subtitle={subtitle}
+      action={action}
     >
       {children}
     </DashCard>
@@ -213,44 +221,56 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         <HeaderData userName={user.name} />
       </Suspense>
 
-      {/* Row A — pilotage: exposure dominant, signal rail beside it. */}
+      {/*
+        Rows whose heights MATCH by construction — measured settled heights:
+        [exposure + alerts] ≈ the capped timeline; two compact charts are equal;
+        the market strip is one thin band. No frozen slots, no voids, nothing
+        stretches. Links live on the card title row, not in a footer strip.
+      */}
+      {/* Row A — pilotage + latest events rail. */}
       <BentoGrid>
         <BentoCard span={8}>
-          <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target" slot="exposure">
-            <Suspense fallback={<PanelFallback />}>
-              <PortfolioExposureData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-        <BentoCard span={4}>
           <div className="flex min-w-0 flex-col gap-6">
-            <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer" slot="signal">
+            <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target" slot="exposure">
+              <Suspense fallback={<PanelFallback />}>
+                <PortfolioExposureData />
+              </Suspense>
+            </DashPanel>
+            <DashPanel
+              title="Rebalancing & alerts"
+              subtitle="Drift and indexer"
+              slot="signal"
+              action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
+            >
               <Suspense fallback={<PanelFallback />}>
                 <RebalancingAlertsData />
               </Suspense>
             </DashPanel>
-            <DashPanel title="Market" subtitle="Normalized snapshot" slot="metrics">
-              <Suspense fallback={<PanelFallback />}>
-                <MarketData />
-              </Suspense>
-            </DashPanel>
           </div>
+        </BentoCard>
+        <BentoCard span={4}>
+          <DashPanel
+            title="Recent activity"
+            subtitle="Blockchain and subscription timeline"
+            slot="timeline"
+            action={<PanelHeaderLink href="/admin/operations">View all activity</PanelHeaderLink>}
+          >
+            <Suspense fallback={<PanelFallback />}>
+              <ActivityTimelineData />
+            </Suspense>
+          </DashPanel>
         </BentoCard>
       </BentoGrid>
 
-      {/* Row B — drift band, full width: the time dimension of pilotage. */}
+      {/* Row B — the chart pair: equal viewports, equal heights. */}
       <BentoGrid>
-        <BentoCard span={12}>
+        <BentoCard span={6}>
           <DashPanel title="Rebalancing drift" subtitle="Historical allocation drift over time">
             <Suspense fallback={<ChartPlaceholder title="Rebalancing drift" />}>
               <RebalancingHistoryData />
             </Suspense>
           </DashPanel>
         </BentoCard>
-      </BentoGrid>
-
-      {/* Row C — flow: daily volume beside the event timeline. */}
-      <BentoGrid>
         <BentoCard span={6}>
           <DashPanel title="Activity" subtitle="Daily volume · 28 days">
             <Suspense fallback={<ChartPlaceholder title="Activity" />}>
@@ -258,10 +278,14 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
             </Suspense>
           </DashPanel>
         </BentoCard>
-        <BentoCard span={6}>
-          <DashPanel title="Recent activity" subtitle="Blockchain and subscription timeline" slot="timeline">
+      </BentoGrid>
+
+      {/* Row C — market strip: one thin band of readings. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashPanel title="Market" subtitle="Normalized snapshot">
             <Suspense fallback={<PanelFallback />}>
-              <ActivityTimelineData />
+              <MarketData />
             </Suspense>
           </DashPanel>
         </BentoCard>

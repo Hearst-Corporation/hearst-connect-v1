@@ -52,7 +52,7 @@ export function MarketSnapshotPanel({
   return (
     <dl
       data-widget="market-snapshot"
-      className="@container grid grid-cols-1 gap-x-6 gap-y-5 @[16rem]:grid-cols-2 @[16rem]:[&>*:nth-child(n+3)]:border-t @[16rem]:[&>*:nth-child(n+3)]:border-console-line-soft @[16rem]:[&>*:nth-child(n+3)]:pt-5"
+      className="@container grid grid-cols-1 gap-x-6 gap-y-5 @[16rem]:grid-cols-2 @[40rem]:grid-cols-4 @[40rem]:gap-y-0"
     >
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>

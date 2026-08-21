@@ -34,6 +34,7 @@ export function DashCard({
   title,
   titleLevel = 3,
   subtitle,
+  action,
 }: Readonly<{
   children?: ReactNode
   className?: string
@@ -44,16 +45,21 @@ export function DashCard({
   // a flat wall of sibling `h2`s.
   titleLevel?: 2 | 3
   subtitle?: string
+  /** Quiet link/action on the title row — replaces the bordered footer strip. */
+  action?: ReactNode
 }>) {
   return (
     <section data-surface="box" className={clsx(surfaceBox, 'flex min-w-0 flex-col', className)}>
       {title !== undefined ? (
-        <header className="px-5 pt-5 pb-1">
-          <Subheading level={titleLevel}>{title}</Subheading>
-          {subtitle !== undefined ? <Text className="mt-1">{subtitle}</Text> : null}
+        <header className="flex items-start justify-between gap-3 px-4 pt-4 pb-1">
+          <div className="min-w-0">
+            <Subheading level={titleLevel}>{title}</Subheading>
+            {subtitle !== undefined ? <Text className="mt-0.5">{subtitle}</Text> : null}
+          </div>
+          {action}
         </header>
       ) : null}
-      <div className={clsx('flex min-h-0 min-w-0 flex-col p-5', contentClassName)}>{children}</div>
+      <div className={clsx('flex min-h-0 min-w-0 flex-col p-4', contentClassName)}>{children}</div>
     </section>
   )
 }
