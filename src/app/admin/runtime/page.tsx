@@ -1,13 +1,7 @@
 import { AdminProbeResult } from '@/components/admin/admin-probe-result'
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashCard, PanelFallback, PanelHeaderLink } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { StatusBadge } from '@/components/admin/truthful'
-import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
-import {
-  DescriptionDetails,
-  DescriptionList,
-  DescriptionTerm,
-} from '@/components/catalyst/description-list'
 import {
   TableBody,
   TableCell,
@@ -15,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { AdminTable, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -27,6 +21,9 @@ import { formatDateTime, formatNumber } from '@/lib/format'
 import { readableSourceStateCap } from '@/lib/movements'
 import { editorial } from '@/lib/vaults/model'
 import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-section'
+import { FieldList, FieldRow } from '@/features/admin-runtime/field-list'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import {
   CheckCircleIcon,
   CpuChipIcon,
@@ -34,6 +31,7 @@ import {
   TagIcon,
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
+import { Suspense, type ReactNode } from 'react'
 import { IndexerTriggerForm } from './indexer-trigger-form'
 
 export const metadata: Metadata = { title: 'Service' }
@@ -42,6 +40,10 @@ export const dynamic = 'force-dynamic'
 /**
  * Service — single technical observability surface (runtime, coverage, probes).
  * Business pages must not duplicate these diagnostics.
+ *
+ * Cockpit shape (same doctrine as /admin): explicit Bento rows whose column
+ * heights match by construction, frozen content slots that scroll inside
+ * (`scrollbar-none`), links on the card title row — never a footer strip.
  */
 
 type MatrixRow = {
@@ -146,6 +148,46 @@ function jsonLisible(data: unknown): string {
   }
 }
 
+/**
+ * Fixed content slots (px) — the box is FROZEN whether the probe is live,
+ * degraded, or absent; taller content scrolls inside the box. Row-matched:
+ *   row A: matrix 292 + header 76 == runtime 292 + header 76.
+ *   row B: three span-4 cards share one 192 slot (4 field rows ≈ the form).
+ */
+const PANEL_SLOT_CLASS = {
+  matrix: 'h-[292px] overflow-y-auto scrollbar-none',
+  runtime: 'h-[292px] overflow-y-auto scrollbar-none',
+  detail: 'h-[192px] overflow-y-auto scrollbar-none',
+} as const
+
+type PanelSlot = keyof typeof PANEL_SLOT_CLASS
+
+function ServicePanel({
+  title,
+  subtitle,
+  action,
+  slot,
+  children,
+}: Readonly<{
+  title: string
+  subtitle?: string
+  action?: ReactNode
+  slot: PanelSlot
+  children: ReactNode
+}>) {
+  return (
+    <DashCard
+      className="min-w-0"
+      contentClassName={PANEL_SLOT_CLASS[slot]}
+      title={title}
+      subtitle={subtitle}
+      action={action}
+    >
+      {children}
+    </DashCard>
+  )
+}
+
 export default async function RuntimePage() {
   const session = await requireSession()
   const [runtime, health, ready] = await Promise.all([
@@ -192,143 +234,147 @@ export default async function RuntimePage() {
   ]
 
   return (
-    <div className="space-y-8">
-      <AdminPageHeader
+    <div className="flex w-full min-w-0 flex-col gap-6">
+      <DashboardHeader
         title="Service"
         description="Technical observability — dependency health, runtime, data coverage, and endpoint status."
         kpis={kpis}
       />
 
-      <DataTableShell
-        title="System overview"
-        description="Dependencies and operational probes."
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.primary}>Component</TableHeader>
-            <TableHeader className={tableCol.status}>Status</TableHeader>
-            <TableHeader className={tableCol.primary}>Detail</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {matrix.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className={tableCol.primary}>
-                <div className="truncate font-medium">{row.label}</div>
-              </TableCell>
-              <TableCell className={tableCol.status}>
-                <StatusBadge status={row.status} />
-              </TableCell>
-              <TableCell className={tableCol.primary}>{row.detail}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
+      {/* Row A — the dependency matrix beside the runtime identity card. */}
+      <BentoGrid>
+        <BentoCard span={8}>
+          <ServicePanel
+            title="System overview"
+            subtitle="Dependencies and operational probes."
+            slot="matrix"
+          >
+            <AdminTable>
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Component</TableHeader>
+                  <TableHeader className={tableCol.status}>Status</TableHeader>
+                  <TableHeader className={tableCol.primary}>Detail</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {matrix.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className={tableCol.primary}>
+                      <div className="truncate font-medium">{row.label}</div>
+                    </TableCell>
+                    <TableCell className={tableCol.status}>
+                      <StatusBadge status={row.status} />
+                    </TableCell>
+                    <TableCell className={tableCol.primary}>{row.detail}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </AdminTable>
+          </ServicePanel>
+        </BentoCard>
+        <BentoCard span={4}>
+          <ServicePanel
+            title="Runtime"
+            subtitle="Environment, version, chain, and scheduler as reported by the runtime probe."
+            slot="runtime"
+          >
+            <FieldList>
+              <FieldRow term="Environment">{r?.environment ?? '—'}</FieldRow>
+              <FieldRow term="Version">{r?.serviceVersion ?? '—'}</FieldRow>
+              <FieldRow term="Commit" mono>{r?.commitSha ?? '—'}</FieldRow>
+              <FieldRow term="Uptime">{formatUptime(r?.uptimeSeconds)}</FieldRow>
+              <FieldRow term="Chain ID">
+                {r?.contract?.chainId === undefined || r.contract.chainId === null ? '—' : String(r.contract.chainId)}
+              </FieldRow>
+              <FieldRow term="Indexer interval">{intervalDetail(scheduler?.intervalMs)}</FieldRow>
+            </FieldList>
+          </ServicePanel>
+        </BentoCard>
+      </BentoGrid>
 
-      <SectionCard
-        title="Runtime"
-        hint="Environment, version, chain, and scheduler as reported by the runtime probe."
-      >
-        <DescriptionList>
-          <DescriptionTerm>Environment</DescriptionTerm>
-          <DescriptionDetails>{r?.environment ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Version</DescriptionTerm>
-          <DescriptionDetails>{r?.serviceVersion ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Commit</DescriptionTerm>
-          <DescriptionDetails className="font-mono text-sm">{r?.commitSha ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Uptime</DescriptionTerm>
-          <DescriptionDetails>{formatUptime(r?.uptimeSeconds)}</DescriptionDetails>
-          <DescriptionTerm>Chain ID</DescriptionTerm>
-          <DescriptionDetails>
-            {r?.contract?.chainId === undefined || r.contract.chainId === null ? '—' : String(r.contract.chainId)}
-          </DescriptionDetails>
-          <DescriptionTerm>Indexer interval</DescriptionTerm>
-          <DescriptionDetails>{intervalDetail(scheduler?.intervalMs)}</DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
+      {/* Row B — three equal flank cards: contract, scheduler, and the one write. */}
+      <BentoGrid>
+        <BentoCard span={4}>
+          <ServicePanel title="Vault contract" slot="detail">
+            <FieldList>
+              <FieldRow term="Mode">{r?.contract?.mode ?? '—'}</FieldRow>
+              <FieldRow term="Address" mono>{r?.contract?.contractAddress ?? '—'}</FieldRow>
+              <FieldRow term="Code present">{formatCodePresent(r?.contract?.codePresent)}</FieldRow>
+              <FieldRow term="Contract status">{runtimeStatusLabel(r?.contractStatus)}</FieldRow>
+            </FieldList>
+          </ServicePanel>
+        </BentoCard>
+        <BentoCard span={4}>
+          <ServicePanel title="Scheduler" slot="detail">
+            <FieldList>
+              <FieldRow term="Status">{runtimeStatusLabel(scheduler?.status)}</FieldRow>
+              <FieldRow term="Last success">{formatDateTime(scheduler?.lastSuccessAt)}</FieldRow>
+              <FieldRow term="Last indexed block">{blockDetail(scheduler?.lastIndexedBlock)}</FieldRow>
+              <FieldRow term="Consecutive errors">{errorsDetail(scheduler?.consecutiveErrors)}</FieldRow>
+            </FieldList>
+          </ServicePanel>
+        </BentoCard>
+        <BentoCard span={4}>
+          <ServicePanel
+            title="Indexer trigger"
+            subtitle="Admin-only write. Ineffective while chain RPC is down."
+            slot="detail"
+            action={<PanelHeaderLink href="/admin/keeper">Keeper</PanelHeaderLink>}
+          >
+            <IndexerTriggerForm />
+          </ServicePanel>
+        </BentoCard>
+      </BentoGrid>
 
-      <SectionCard title="Vault contract">
-        <DescriptionList>
-          <DescriptionTerm>Mode</DescriptionTerm>
-          <DescriptionDetails>{r?.contract?.mode ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Address</DescriptionTerm>
-          <DescriptionDetails className="font-mono text-sm">{r?.contract?.contractAddress ?? '—'}</DescriptionDetails>
-          <DescriptionTerm>Code present</DescriptionTerm>
-          <DescriptionDetails>{formatCodePresent(r?.contract?.codePresent)}</DescriptionDetails>
-          <DescriptionTerm>Contract status</DescriptionTerm>
-          <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
-
-      <SectionCard title="Scheduler">
-        <DescriptionList>
-          <DescriptionTerm>Status</DescriptionTerm>
-          <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
-          <DescriptionTerm>Last success</DescriptionTerm>
-          <DescriptionDetails>{formatDateTime(scheduler?.lastSuccessAt)}</DescriptionDetails>
-          <DescriptionTerm>Last indexed block</DescriptionTerm>
-          <DescriptionDetails>{blockDetail(scheduler?.lastIndexedBlock)}</DescriptionDetails>
-          <DescriptionTerm>Consecutive errors</DescriptionTerm>
-          <DescriptionDetails>{errorsDetail(scheduler?.consecutiveErrors)}</DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
-
-      <SectionCard
-        title="Indexer trigger"
-        hint="Admin-only write. Ineffective while chain RPC is down."
-      >
-        <IndexerTriggerForm />
-      </SectionCard>
-
-      <div className="space-y-4">
+      {/* Row C — coverage: the canonical technical diagnostics, streamed. */}
+      <div className="flex min-w-0 flex-col gap-4">
         <p className="text-sm text-fg-secondary">
           Data coverage and source activity below are the canonical technical diagnostics for
           the console. Business pages no longer repeat these blocks.
         </p>
-        <DataCoverageSection accountLabel={session.name} />
+        <Suspense fallback={<PanelFallback label="Loading coverage…" />}>
+          <DataCoverageSection accountLabel={session.name} />
+        </Suspense>
       </div>
 
-      <SectionCard
-        title="Raw responses"
-        hint="Full probe payloads for technical verification — expand a probe only when needed."
-      >
-        <div className="divide-y divide-console-line-soft">
-          {(
-            [
-              ['Runtime', runtime],
-              ['Health', health],
-              ['Ready', ready],
-            ] as const
-          ).map(([label, result]) => (
-            <details key={label} className="group py-3 first:pt-0 last:pb-0">
-              <summary className="cursor-pointer text-sm font-semibold text-fg">
-                {label}
-              </summary>
-              <div className="mt-3">
-                <AdminProbeResult
-                  status={result.ok ? 'LIVE' : result.state.status}
-                  reason={result.ok ? null : result.state.reason}
-                  trace={result.trace}
-                  rawJson={result.ok ? jsonLisible(result.data) : undefined}
-                  problem={result.ok ? null : result.problem}
-                  keeper={result.ok ? null : result.keeper}
-                />
-              </div>
-            </details>
-          ))}
-        </div>
-      </SectionCard>
-
-      <Text>
-        Side-effect keeper actions:{' '}
-        <Link href="/admin/keeper" className="underline">
-          Keeper
-        </Link>
-        {' · '}
-        <Link href="/admin/api-explorer" className="underline">
-          API explorer
-        </Link>
-      </Text>
+      {/* Row D — probe payloads: one thin band, expanded only on demand. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            className="min-w-0"
+            title="Raw responses"
+            subtitle="Full probe payloads for technical verification — expand a probe only when needed."
+            action={<PanelHeaderLink href="/admin/api-explorer">API explorer</PanelHeaderLink>}
+          >
+            <div className="divide-y divide-console-line-soft">
+              {(
+                [
+                  ['Runtime', runtime],
+                  ['Health', health],
+                  ['Ready', ready],
+                ] as const
+              ).map(([label, result]) => (
+                <details key={label} className="group py-3 first:pt-0 last:pb-0">
+                  <summary className="cursor-pointer text-sm font-semibold text-fg">
+                    {label}
+                  </summary>
+                  <div className="mt-3">
+                    <AdminProbeResult
+                      status={result.ok ? 'LIVE' : result.state.status}
+                      reason={result.ok ? null : result.state.reason}
+                      trace={result.trace}
+                      rawJson={result.ok ? jsonLisible(result.data) : undefined}
+                      problem={result.ok ? null : result.problem}
+                      keeper={result.ok ? null : result.keeper}
+                    />
+                  </div>
+                </details>
+              ))}
+            </div>
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
     </div>
   )
 }

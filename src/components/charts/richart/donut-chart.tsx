@@ -40,7 +40,7 @@ export function HearstDonutChart({
   // All-zero breakdown: a named absence, never a fabricated "0" over an empty ring.
   if (data.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+      <p className="px-5 pb-5 text-sm text-fg-secondary">
         Nothing to break down yet.
       </p>
     )

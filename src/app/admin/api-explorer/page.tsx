@@ -1,14 +1,16 @@
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashCard, DashboardShell } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { Badge } from '@/components/catalyst/badge'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
-import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { AdminTable, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
-import { editorial } from '@/lib/vaults/model'
+import { editorial, isAvailable } from '@/lib/vaults/model'
 import {
   BoltIcon,
   BookOpenIcon,
@@ -86,7 +88,51 @@ function countBy(filter: (e: BackendEndpoint) => boolean): number {
 }
 
 /**
- * API explorer — composition blocks around the client rows.
+ * Compact command bar — same reading as the dashboard header (one title line,
+ * KPIs as a compact strip beside it), without the dashboard-only hero ceremony.
+ */
+function ExplorerHeader({ kpis }: Readonly<{ kpis: readonly AdminHeroKpi[] }>) {
+  return (
+    <header
+      data-admin="hero-header"
+      className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
+    >
+      <div className="min-w-0">
+        <h1 className="truncate text-xl font-semibold tracking-tight text-fg">API explorer</h1>
+        <p className="mt-0.5 text-xs text-fg-tertiary">
+          BACKEND_ENDPOINTS registry — safe reads, actions, and AI context.
+        </p>
+      </div>
+
+      <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
+        {kpis.map((kpi) => {
+          const available = isAvailable(kpi.value)
+          return (
+            <div key={kpi.id} className="min-w-0">
+              <dt className="flex items-center gap-1.5 text-[11px] font-medium text-fg-secondary">
+                <kpi.icon className="size-3.5 shrink-0 text-accent-300" aria-hidden="true" />
+                <span className="truncate">{kpi.title}</span>
+              </dt>
+              <dd className="mt-0.5 flex items-baseline gap-1.5">
+                <span
+                  className={`text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
+                >
+                  {available ? kpi.value.value : '—'}
+                </span>
+                {kpi.unit !== undefined && kpi.unit !== '' ? (
+                  <span className="truncate text-[11px] text-fg-tertiary">{kpi.unit}</span>
+                ) : null}
+              </dd>
+            </div>
+          )
+        })}
+      </dl>
+    </header>
+  )
+}
+
+/**
+ * API explorer — cockpit shape: compact command bar, then explicit bento rows.
  * BACKEND_ENDPOINTS registry, live probes via ExplorerRow.
  */
 export default async function ApiExplorerPage() {
@@ -134,90 +180,106 @@ export default async function ApiExplorerPage() {
   ]
 
   return (
-    <div className="space-y-8">
-      <AdminPageHeader
-        title="API explorer"
-        description="BACKEND_ENDPOINTS registry — safe reads, actions, and AI context."
-        kpis={kpis}
-      />
+    <DashboardShell>
+      <ExplorerHeader kpis={kpis} />
 
-      <ChartFrame
-        question="How is the registry split by action type?"
-        unit="number of endpoints, by category"
-        state={{ type: 'plotted' }}
-      >
-        <HearstDonutChart slices={categorySlices} unit="endpoints" />
-      </ChartFrame>
+      {/* Row A — the registry split beside the two reading notes, stacked so
+          the right column ends on the chart's line. */}
+      <BentoGrid>
+        <BentoCard span={6}>
+          <ChartFrame
+            question="How is the registry split by action type?"
+            unit="number of endpoints, by category"
+            state={{ type: 'plotted' }}
+          >
+            <HearstDonutChart slices={categorySlices} unit="endpoints" />
+          </ChartFrame>
+        </BentoCard>
+        <BentoCard span={6}>
+          <div className="flex min-w-0 flex-col gap-6">
+            <DashCard title="What a row lets you do" titleLevel={2}>
+              <Text>
+                A safe read can be called directly from its row. The response arrives with its HTTP status,
+                its duration and request id, and it is shown exactly as the backend returned it — nothing is
+                cached, rounded, or rewritten on return.
+              </Text>
+              <Text className="mt-4">
+                Two row types carry no button, and say so rather than offering one that could never
+                succeed: a POST, which belongs to Keeper Actions and its confirmation step, and a path containing a{' '}
+                <span className="font-mono">:parameter</span>, whose legitimate value comes from an earlier response
+                rather than a text field.
+              </Text>
+            </DashCard>
+            <DashCard title="Path parameters" titleLevel={2}>
+              <Text>
+                Rows with <span className="font-mono">:param</span> are documented but not directly callable —
+                the legitimate value comes from an earlier backend response.
+              </Text>
+            </DashCard>
+          </div>
+        </BentoCard>
+      </BentoGrid>
 
-      <SectionCard title="What a row lets you do" tone="plain">
-        <Text>
-          A safe read can be called directly from its row. The response arrives with its HTTP status,
-          its duration and request id, and it is shown exactly as the backend returned it — nothing is
-          cached, rounded, or rewritten on return.
-        </Text>
-        <Text className="mt-4">
-          Two row types carry no button, and say so rather than offering one that could never
-          succeed: a POST, which belongs to Keeper Actions and its confirmation step, and a path containing a{' '}
-          <span className="font-mono">:parameter</span>, whose legitimate value comes from an earlier response
-          rather than a text field.
-        </Text>
-      </SectionCard>
+      {/* Row B — access levels: one thin table band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            title="Authorization"
+            subtitle="Registry access levels, with the endpoint count at each."
+            titleLevel={2}
+          >
+            <AdminTable className="[&_table]:min-w-[40rem]">
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.status}>Level</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Endpoints</TableHeader>
+                  <TableHeader className={tableCol.primary}>What it requires</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {AUTH_LEVELS.map((level) => (
+                  <TableRow key={level.auth}>
+                    <TableCell className={`${tableCol.status} font-medium`}>{level.label}</TableCell>
+                    <TableCell className={tableCol.numeric}>
+                      {formatNumber(countBy((e) => e.auth === level.auth))}
+                    </TableCell>
+                    <TableCell className={tableCol.primary}>{level.detail}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </AdminTable>
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
 
-      <DataTableShell
-        title="Authorization"
-        description="Registry access levels, with the endpoint count at each."
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.status}>Level</TableHeader>
-            <TableHeader className={tableCol.numeric}>Endpoints</TableHeader>
-            <TableHeader className={tableCol.primary}>What it requires</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {AUTH_LEVELS.map((level) => (
-            <TableRow key={level.auth}>
-              <TableCell className={`${tableCol.status} font-medium`}>{level.label}</TableCell>
-              <TableCell className={tableCol.numeric}>
-                {formatNumber(countBy((e) => e.auth === level.auth))}
-              </TableCell>
-              <TableCell className={tableCol.primary}>{level.detail}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
-
+      {/* Rows C — registry groups: one full-width card per group, the count
+          badge on the title row. */}
       {GROUPS.map((group) => {
         const endpoints = BACKEND_ENDPOINTS.filter(group.filter)
         if (endpoints.length === 0) return null
 
         return (
-          <SectionCard
-            key={group.id}
-            title={group.title}
-            hint={group.description}
-            actions={<Badge color="neutral">{formatNumber(endpoints.length)}</Badge>}
-          >
-            <div className="overflow-hidden">
-              {endpoints.map((endpoint) => (
-                <ExplorerRow
-                  key={endpoint.id}
-                  endpoint={endpoint}
-                  curl={curlFor(endpoint.method, endpoint.path, endpoint.auth)}
-                  pathParams={pathParamsOf(endpoint.path)}
-                />
-              ))}
-            </div>
-          </SectionCard>
+          <BentoGrid key={group.id}>
+            <BentoCard span={12}>
+              <DashCard
+                title={group.title}
+                subtitle={group.description}
+                titleLevel={2}
+                action={<Badge color="neutral">{formatNumber(endpoints.length)}</Badge>}
+              >
+                {endpoints.map((endpoint) => (
+                  <ExplorerRow
+                    key={endpoint.id}
+                    endpoint={endpoint}
+                    curl={curlFor(endpoint.method, endpoint.path, endpoint.auth)}
+                    pathParams={pathParamsOf(endpoint.path)}
+                  />
+                ))}
+              </DashCard>
+            </BentoCard>
+          </BentoGrid>
         )
       })}
-
-      <SectionCard title="Path parameters" tone="plain">
-        <Text>
-          Rows with <span className="font-mono">:param</span> are documented but not directly callable —
-          the legitimate value comes from an earlier backend response.
-        </Text>
-      </SectionCard>
-    </div>
+    </DashboardShell>
   )
 }

@@ -1,3 +1,5 @@
+import { DashCard, DashboardShell } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
 import { Link } from '@/components/catalyst/link'
@@ -192,94 +194,97 @@ function VaultAllocationSection({
   scopedRebalancing: Availability<readonly RebalancingRow[]>
   rebalancingList: readonly RebalancingRow[] | null
 }>) {
-  if (!isAvailable(scopedRebalancing)) {
-    return (
-      <>
-        <ChartFrame
-          question="How is exposure distributed by pocket?"
-          unit="in percent — target vs exposure"
-          state={{
-            type: 'unavailable',
-            explanation: 'Allocation read did not succeed for this vault.',
-          }}
-        />
-        <SectionCard title="Allocation" hint="Target, exposure, and drift as reported by the service." className="mt-6">
-          <Text>
-            <AdminReading value={absentReading(scopedRebalancing)} />{' '}
-            <Link href={entityHref('source', 'rebalancing-status')}>Data coverage</Link>
-          </Text>
-        </SectionCard>
-      </>
-    )
-  }
+  // ONE state feeds the whole section: both chart frames share it, so the
+  // pair stays the same two boxes whether the read is plotted, empty, or
+  // unavailable (ChartFrame holds the role viewport in every state).
+  const allocationState: SeriesState = !isAvailable(scopedRebalancing)
+    ? {
+        type: 'unavailable',
+        explanation: 'Allocation read did not succeed for this vault.',
+      }
+    : rebalancingList === null || rebalancingList.length === 0
+      ? { type: 'empty', explanation: 'No measured pocket for this vault.' }
+      : { type: 'plotted' }
 
-  if (rebalancingList === null || rebalancingList.length === 0) {
-    return (
-      <>
-        <ChartFrame
-          question="How is exposure distributed by pocket?"
-          unit="in percent — target vs exposure"
-          state={{ type: 'empty', explanation: 'No measured pocket for this vault.' }}
-        />
-        <DataTableShell
-          title="Allocation"
-          description="Target, exposure, and drift as reported by the service."
-          calme="No measured pocket for this vault."
-          className="mt-6"
-        />
-      </>
-    )
-  }
+  const plottedList =
+    allocationState.type === 'plotted' && rebalancingList !== null ? rebalancingList : null
 
-  const allocationSlices = rebalancingList.map((row) => ({
+  const allocationSlices = (plottedList ?? []).map((row) => ({
     label: row.strategyLabel,
     value: row.targetBps / 100,
   }))
 
   return (
     <>
-      <ChartFrame
-        question="How is exposure distributed by pocket?"
-        unit="in percent — target vs exposure"
-        state={{ type: 'plotted' }}
-      >
-        <HearstAllocationChart
-          items={rebalancingList.map<AllocationItem>((row) => ({
-            label: row.strategyLabel,
-            targetPct: row.targetBps / 100,
-            actualPct: row.actualBps === null ? null : row.actualBps / 100,
-          }))}
-        />
-      </ChartFrame>
+      {/* Row A — the chart pair: equal viewports, equal heights. */}
+      <BentoGrid>
+        <BentoCard span={6}>
+          <ChartFrame
+            question="How is exposure distributed by pocket?"
+            unit="in percent — target vs exposure"
+            state={allocationState}
+          >
+            {plottedList !== null ? (
+              <HearstAllocationChart
+                items={plottedList.map<AllocationItem>((row) => ({
+                  label: row.strategyLabel,
+                  targetPct: row.targetBps / 100,
+                  actualPct: row.actualBps === null ? null : row.actualBps / 100,
+                }))}
+              />
+            ) : null}
+          </ChartFrame>
+        </BentoCard>
+        <BentoCard span={6}>
+          <ChartFrame
+            question="What is the target allocation mix?"
+            unit="in percent — one color per strategy"
+            state={allocationState}
+          >
+            {plottedList !== null ? (
+              <HearstDonutChart slices={allocationSlices} unit="% target" />
+            ) : null}
+          </ChartFrame>
+        </BentoCard>
+      </BentoGrid>
 
-      <div className="mt-6">
-        <ChartFrame
-          question="What is the target allocation mix?"
-          unit="in percent — one color per strategy"
-          state={{ type: 'plotted' }}
-        >
-          <HearstDonutChart slices={allocationSlices} unit="% target" />
-        </ChartFrame>
-      </div>
-
-      <DataTableShell
-        title="Allocation"
-        description="Target, exposure, and drift as reported by the service."
-        className="mt-6"
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.primary}>Strategy</TableHeader>
-            <TableHeader className={tableCol.numeric}>Target</TableHeader>
-            <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
-            <TableHeader className={tableCol.numeric}>Drift</TableHeader>
-            <TableHeader className={tableCol.date}>Rebalance</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rebalancingList.map((row) => <RebalancingTableRow key={row.strategyId} row={row} />)}
-        </TableBody>
-      </DataTableShell>
+      {/* Row B — the allocation table band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          {!isAvailable(scopedRebalancing) ? (
+            <SectionCard title="Allocation" hint="Target, exposure, and drift as reported by the service.">
+              <Text>
+                <AdminReading value={absentReading(scopedRebalancing)} />{' '}
+                <Link href={entityHref('source', 'rebalancing-status')}>Data coverage</Link>
+              </Text>
+            </SectionCard>
+          ) : plottedList === null ? (
+            <DataTableShell
+              title="Allocation"
+              description="Target, exposure, and drift as reported by the service."
+              calme="No measured pocket for this vault."
+            />
+          ) : (
+            <DataTableShell
+              title="Allocation"
+              description="Target, exposure, and drift as reported by the service."
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Strategy</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Target</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Drift</TableHeader>
+                  <TableHeader className={tableCol.date}>Rebalance</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {plottedList.map((row) => <RebalancingTableRow key={row.strategyId} row={row} />)}
+              </TableBody>
+            </DataTableShell>
+          )}
+        </BentoCard>
+      </BentoGrid>
     </>
   )
 }
@@ -321,27 +326,31 @@ function VaultKeeperActionsSection({
   const rwaEndpoint = endpointById('keeper-rwa-vault')
 
   return (
-    <SectionCard
-      title="Keeper actions"
-      hint="Vault-specific operational requests — no transaction is signed."
-    >
-      <div className="grid gap-6 md:grid-cols-2">
-        <div>
-          <Text className="text-sm font-medium">Rebalance</Text>
-          <Text className="text-xs text-fg-tertiary">
-            Trigger an on-chain rebalance of the vault allocation.
-          </Text>
-          <div className="mt-3">
-            <RebalanceNowButton disabled={!isAdmin} disabledReason={disabledReason} />
+    <BentoGrid>
+      <BentoCard span={12}>
+        <DashCard
+          title="Keeper actions"
+          subtitle="Vault-specific operational requests — no transaction is signed."
+        >
+          <div className="grid items-start gap-6 md:grid-cols-2">
+            <div>
+              <Text className="text-sm font-medium">Rebalance</Text>
+              <Text className="text-xs text-fg-tertiary">
+                Trigger an on-chain rebalance of the vault allocation.
+              </Text>
+              <div className="mt-3">
+                <RebalanceNowButton disabled={!isAdmin} disabledReason={disabledReason} />
+              </div>
+            </div>
+            <KeeperForm
+              endpoint={rwaEndpoint}
+              disabled={!isAdmin}
+              disabledReason={disabledReason}
+            />
           </div>
-        </div>
-        <KeeperForm
-          endpoint={rwaEndpoint}
-          disabled={!isAdmin}
-          disabledReason={disabledReason}
-        />
-      </div>
-    </SectionCard>
+        </DashCard>
+      </BentoCard>
+    </BentoGrid>
   )
 }
 
@@ -358,45 +367,63 @@ function VaultRecentActivitySection({
 }>) {
   if (!isAvailable(scopedMovements)) {
     return (
-      <SectionCard title="Recent activity">
-        <Text>
-          Recent activity could not be read.{' '}
-          <Link href={entityHref('source', 'data-coverage')}>Data coverage</Link>
-        </Text>
-      </SectionCard>
+      <BentoGrid>
+        <BentoCard span={12}>
+          <SectionCard title="Recent activity">
+            <Text>
+              Recent activity could not be read.{' '}
+              <Link href={entityHref('source', 'data-coverage')}>Data coverage</Link>
+            </Text>
+          </SectionCard>
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
   if (ledgerIsEmptyForThisVault) {
     return (
-      <DataTableShell
-        title="Recent activity"
-        calme="The ledger responded but no movement is attributed to this vault."
-      />
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DataTableShell
+            title="Recent activity"
+            calme="The ledger responded but no movement is attributed to this vault."
+          />
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
   if (movementList !== null && movementList.length > 0) {
     return (
-      <DataTableShell title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.date}>Time</TableHeader>
-            <TableHeader className={tableCol.primary}>Type</TableHeader>
-            <TableHeader className={tableCol.numeric}>Amount</TableHeader>
-            <TableHeader className={tableCol.hash}>Tx</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {movementList.map((movement) => (
-            <MovementTableRow key={movement.id} movement={movement} vault={vault} />
-          ))}
-        </TableBody>
-      </DataTableShell>
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DataTableShell title="Recent activity" count={`${formatNumber(movementList.length)} shown`}>
+            <TableHead>
+              <TableRow>
+                <TableHeader className={tableCol.date}>Time</TableHeader>
+                <TableHeader className={tableCol.primary}>Type</TableHeader>
+                <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+                <TableHeader className={tableCol.hash}>Tx</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {movementList.map((movement) => (
+                <MovementTableRow key={movement.id} movement={movement} vault={vault} />
+              ))}
+            </TableBody>
+          </DataTableShell>
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
-  return <DataTableShell title="Recent activity" calme="No indexed movement for this vault." />
+  return (
+    <BentoGrid>
+      <BentoCard span={12}>
+        <DataTableShell title="Recent activity" calme="No indexed movement for this vault." />
+      </BentoCard>
+    </BentoGrid>
+  )
 }
 
 type VaultAllocationItem = {
@@ -502,37 +529,63 @@ function VaultHistorySection({
   })()
 
   return (
-    <div className="space-y-6">
-      <ChartFrame
-        question="How has vault AUM and allocation evolved?"
-        unit="AUM in USDC — cbBTC and USDC in %"
-        state={etat}
-      >
-        {combinedPoints.length > 0 ? (
-          <VaultAumCbbtcChart points={combinedPoints} rebalanceDates={rebalanceDates} />
-        ) : null}
-      </ChartFrame>
+    <>
+      {/* Row C — the dominant history band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <ChartFrame
+            question="How has vault AUM and allocation evolved?"
+            unit="AUM in USDC — cbBTC and USDC in %"
+            state={etat}
+          >
+            {combinedPoints.length > 0 ? (
+              <VaultAumCbbtcChart points={combinedPoints} rebalanceDates={rebalanceDates} />
+            ) : null}
+          </ChartFrame>
+        </BentoCard>
+      </BentoGrid>
 
-      {bucketSparklines.length > 0 ? (
-        <ChartFrame
-          question="How has each bucket drifted over time?"
-          unit="in percent — rebalance dates marked"
-          state={{ type: 'plotted' }}
-        >
-          <BucketSparklines buckets={bucketSparklines} />
-        </ChartFrame>
+      {/*
+        Row D — the secondary pair, rendered only when the history read
+        succeeded (an unavailable read already speaks through Row C). Each
+        frame keeps its box in every data state: no points → the frame's
+        empty state, never a missing column.
+      */}
+      {isAvailable(history) ? (
+        <BentoGrid>
+          <BentoCard span={6}>
+            <ChartFrame
+              question="How has each bucket drifted over time?"
+              unit="in percent — rebalance dates marked"
+              state={
+                bucketSparklines.length > 0
+                  ? { type: 'plotted' }
+                  : { type: 'empty', explanation: 'No bucket allocation in the snapshots for this vault.' }
+              }
+            >
+              {bucketSparklines.length > 0 ? (
+                <BucketSparklines buckets={bucketSparklines} />
+              ) : null}
+            </ChartFrame>
+          </BentoCard>
+          <BentoCard span={6}>
+            <ChartFrame
+              question="What was the BTC price at each snapshot?"
+              unit="in USDC — per snapshot"
+              state={
+                btcPricePoints.length > 0
+                  ? { type: 'plotted' }
+                  : { type: 'empty', explanation: 'No BTC price in the snapshots for this vault.' }
+              }
+            >
+              {btcPricePoints.length > 0 ? (
+                <HearstLineChart points={btcPricePoints} unit="BTC price" />
+              ) : null}
+            </ChartFrame>
+          </BentoCard>
+        </BentoGrid>
       ) : null}
-
-      {btcPricePoints.length > 0 ? (
-        <ChartFrame
-          question="What was the BTC price at each snapshot?"
-          unit="in USDC — per snapshot"
-          state={{ type: 'plotted' }}
-        >
-          <HearstLineChart points={btcPricePoints} unit="BTC price" />
-        </ChartFrame>
-      ) : null}
-    </div>
+    </>
   )
 }
 
@@ -556,87 +609,99 @@ function RebalancingEventsSection({
 }>) {
   if (!isAvailable(events)) {
     return (
-      <SectionCard title="Rebalancing events">
-        <Text>Rebalancing event source unavailable.</Text>
-      </SectionCard>
+      <BentoGrid>
+        <BentoCard span={12}>
+          <SectionCard title="Rebalancing events">
+            <Text>Rebalancing event source unavailable.</Text>
+          </SectionCard>
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
   if (events.value.length === 0) {
     return (
-      <DataTableShell
-        title="Rebalancing events"
-        calme="No rebalancing events recorded for this vault."
-      />
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DataTableShell
+            title="Rebalancing events"
+            calme="No rebalancing events recorded for this vault."
+          />
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
   return (
-    <DataTableShell
-      title="Rebalancing events"
-      count={`${formatNumber(events.value.length)} shown`}
-    >
-      <TableHead>
-        <TableRow>
-          <TableHeader className={tableCol.date}>Time</TableHeader>
-          <TableHeader className={tableCol.status}>Type</TableHeader>
-          <TableHeader className={tableCol.primary}>Category</TableHeader>
-          <TableHeader className={tableCol.numeric}>Amount</TableHeader>
-          <TableHeader className={tableCol.numeric}>Block</TableHeader>
-          <TableHeader className={tableCol.hash}>Tx</TableHeader>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {events.value.map((event, index) => {
-          const txShort = event.txHash === null ? null : formatHash(event.txHash)
-          const txUrl = event.explorerUrl ?? undefined
-          return (
-            <TableRow key={`${event.txHash ?? 'event'}-${index}`}>
-              <TableCell className={`${tableCol.date} text-xs`}>
-                {event.timestamp ? formatRelativeTime(event.timestamp) : '—'}
-              </TableCell>
-              <TableCell className={`${tableCol.status} text-sm`}>
-                <span
-                  className={clsx(
-                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
-                    event.name === 'Rebalance'
-                      ? 'bg-accent-400/10 text-accent-400'
-                      : event.name === 'VaultSwapped'
-                        ? 'bg-warning-400/10 text-warning-400'
-                        : 'bg-console-inset text-fg-tertiary',
-                  )}
-                >
-                  {event.name}
-                </span>
-              </TableCell>
-              <TableCell className={`${tableCol.primary} text-xs text-fg-tertiary`}>
-                <div className="truncate">{event.category}</div>
-              </TableCell>
-              <TableCell className={`${tableCol.numeric} text-xs`}>
-                {event.amount ? formatCurrency(event.amount, { decimals: 0 }) : '—'}
-              </TableCell>
-              <TableCell className={`${tableCol.numeric} text-xs`}>
-                {event.blockNumber ? formatNumber(event.blockNumber) : '—'}
-              </TableCell>
-              <TableCell className={`${tableCol.hash} text-xs`}>
-                {txShort ? (
-                  <a
-                    href={txUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent-400"
-                  >
-                    {txShort}
-                  </a>
-                ) : (
-                  '—'
-                )}
-              </TableCell>
+    <BentoGrid>
+      <BentoCard span={12}>
+        <DataTableShell
+          title="Rebalancing events"
+          count={`${formatNumber(events.value.length)} shown`}
+        >
+          <TableHead>
+            <TableRow>
+              <TableHeader className={tableCol.date}>Time</TableHeader>
+              <TableHeader className={tableCol.status}>Type</TableHeader>
+              <TableHeader className={tableCol.primary}>Category</TableHeader>
+              <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+              <TableHeader className={tableCol.numeric}>Block</TableHeader>
+              <TableHeader className={tableCol.hash}>Tx</TableHeader>
             </TableRow>
-          )
-        })}
-      </TableBody>
-    </DataTableShell>
+          </TableHead>
+          <TableBody>
+            {events.value.map((event, index) => {
+              const txShort = event.txHash === null ? null : formatHash(event.txHash)
+              const txUrl = event.explorerUrl ?? undefined
+              return (
+                <TableRow key={`${event.txHash ?? 'event'}-${index}`}>
+                  <TableCell className={`${tableCol.date} text-xs`}>
+                    {event.timestamp ? formatRelativeTime(event.timestamp) : '—'}
+                  </TableCell>
+                  <TableCell className={`${tableCol.status} text-sm`}>
+                    <span
+                      className={clsx(
+                        'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                        event.name === 'Rebalance'
+                          ? 'bg-accent-400/10 text-accent-400'
+                          : event.name === 'VaultSwapped'
+                            ? 'bg-warning-400/10 text-warning-400'
+                            : 'bg-console-inset text-fg-tertiary',
+                      )}
+                    >
+                      {event.name}
+                    </span>
+                  </TableCell>
+                  <TableCell className={`${tableCol.primary} text-xs text-fg-tertiary`}>
+                    <div className="truncate">{event.category}</div>
+                  </TableCell>
+                  <TableCell className={`${tableCol.numeric} text-xs`}>
+                    {event.amount ? formatCurrency(event.amount, { decimals: 0 }) : '—'}
+                  </TableCell>
+                  <TableCell className={`${tableCol.numeric} text-xs`}>
+                    {event.blockNumber ? formatNumber(event.blockNumber) : '—'}
+                  </TableCell>
+                  <TableCell className={`${tableCol.hash} text-xs`}>
+                    {txShort ? (
+                      <a
+                        href={txUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent-400"
+                      >
+                        {txShort}
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </DataTableShell>
+      </BentoCard>
+    </BentoGrid>
   )
 }
 
@@ -734,7 +799,7 @@ export default async function Page({ params }: PageProps) {
     : `Role ${roleLabel(session.role)} does not grant access to Keeper actions.`
 
   return (
-    <div className="space-y-8">
+    <DashboardShell>
       <AdminPageHeader title={vault.label} description="Capital, allocation, and recent activity." kpis={kpis} />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -757,6 +822,7 @@ export default async function Page({ params }: PageProps) {
 
       <VaultKeeperActionsSection isAdmin={isAdmin} disabledReason={disabledReason} />
 
+      {/* Page-level provenance note — one quiet text line, not a bordered strip. */}
       <Text className="text-sm text-fg-secondary">
         Source health and endpoint coverage:{' '}
         <Link href="/admin/runtime" className="underline">
@@ -764,6 +830,6 @@ export default async function Page({ params }: PageProps) {
         </Link>
         .
       </Text>
-    </div>
+    </DashboardShell>
   )
 }

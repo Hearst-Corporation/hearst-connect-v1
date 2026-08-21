@@ -1,5 +1,8 @@
-import { AdminPageHeader } from '@/components/admin/page-header'
+import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashCard, PanelState } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { surfaceInset } from '@/components/admin/surface'
+import { Badge } from '@/components/catalyst/badge'
 import { Text } from '@/components/catalyst/text'
 import {
   TableBody,
@@ -8,11 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { AdminTable, tableCol } from '@/components/compositions'
 import clsx from 'clsx'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
+import type { ResolvedStatus } from '@/lib/resolved'
+import { available, unavailable, type Availability } from '@/lib/vaults/model'
 import {
   CpuChipIcon,
   BoltIcon,
@@ -111,75 +116,33 @@ function btcValueUsdc(sats: string | null, price: string | null): string | null 
   return formatCurrency(btc * p, { decimals: 0 })
 }
 
-/* ── Sections ────────────────────────────────────────────────────────────── */
-
-function MiningKpis({
-  hashrate,
-  btcEarnedSats,
-  btcPrice,
-  machineCount,
-  activeMachines,
-}: Readonly<{
-  hashrate: string | null
-  btcEarnedSats: string | null
-  btcPrice: string | null
-  machineCount: number | null
-  activeMachines: number | null
-}>) {
-  const btcAmount = satsToBtc(btcEarnedSats)
-  const yieldValue = btcValueUsdc(btcEarnedSats, btcPrice)
-
-  const kpis = [
-    {
-      id: 'hashrate',
-      title: 'Hashrate',
-      value: hashrate !== null ? `${formatNumber(Number(hashrate))} TH/s` : '—',
-      unit: 'reported',
-      icon: CpuChipIcon,
-    },
-    {
-      id: 'btc-earned',
-      title: 'BTC earned',
-      value: btcAmount !== null ? `${btcAmount} BTC` : '—',
-      unit: 'cumulative',
-      icon: CircleStackIcon,
-    },
-    {
-      id: 'yield',
-      title: 'Yield value',
-      value: yieldValue !== null ? yieldValue : '—',
-      unit: 'USDC',
-      icon: BanknotesIcon,
-    },
-    {
-      id: 'machines',
-      title: 'Machines',
-      value:
-        machineCount !== null && activeMachines !== null
-          ? `${activeMachines} / ${machineCount}`
-          : '—',
-      unit: 'active',
-      icon: BoltIcon,
-    },
-  ] as const
-
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {kpis.map((kpi) => (
-        <div key={kpi.id} className={clsx(surfaceInset, 'p-4')}>
-          <div className="flex items-center gap-2">
-            <kpi.icon className="size-5 text-accent-400" />
-            <span className="text-xs font-medium text-fg-tertiary">{kpi.title}</span>
-          </div>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-fg">
-            {kpi.value}
-          </p>
-          {kpi.unit ? <p className="text-xs text-fg-tertiary">{kpi.unit}</p> : null}
-        </div>
-      ))}
-    </div>
-  )
+/**
+ * Hero KPI reading — an ALREADY-formatted value when the backend carried one,
+ * a named absence (status + reason from the Resolved bloc) when it did not.
+ */
+function kpiReading(
+  resolved: Resolved<unknown> | undefined,
+  value: string | null,
+): Availability<string> {
+  if (value !== null) return available(value)
+  return unavailable({
+    reason: resolved?.reason ?? null,
+    status: (resolved?.status ?? 'UNAVAILABLE') as ResolvedStatus,
+  })
 }
+
+/**
+ * Frozen panel slots — the box is FROZEN whether data is loading, absent, or
+ * plentiful; taller content scrolls inside (`scrollbar-none`). Paired tables
+ * share ONE slot height, so a row's columns end on the same line at any data
+ * state; flanks chain `h-full` down to a scrolling content area instead.
+ */
+const PANEL_SLOT_CLASS = {
+  table: 'h-[320px] overflow-y-auto scrollbar-none',
+  fill: 'flex-1 min-h-0 overflow-y-auto scrollbar-none',
+} as const
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
 
 function MachineFleetSection({
   machineCount,
@@ -194,9 +157,9 @@ function MachineFleetSection({
 
   if (!hasData) {
     return (
-      <SectionCard title="Machine fleet" hint="Operational telemetry">
-        <Text>Fleet telemetry unavailable.</Text>
-      </SectionCard>
+      <DashCard title="Machine fleet" subtitle="Operational telemetry" className="h-full">
+        <PanelState title="Fleet telemetry unavailable." />
+      </DashCard>
     )
   }
 
@@ -204,38 +167,410 @@ function MachineFleetSection({
     machineCount !== null && activeMachines !== null ? machineCount - activeMachines : null
 
   return (
-    <SectionCard title="Machine fleet" hint="Operational telemetry">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-            {machineCount !== null ? formatNumber(machineCount) : '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Active</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
-            {activeMachines !== null ? formatNumber(activeMachines) : '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Inactive</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
-            {inactiveMachines !== null ? formatNumber(inactiveMachines) : '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-            {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
-          </p>
+    <DashCard title="Machine fleet" subtitle="Operational telemetry" className="h-full">
+      <div className="@container min-w-0">
+        <div className="grid grid-cols-1 gap-3 @[24rem]:grid-cols-2 @[40rem]:grid-cols-4">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+              {machineCount !== null ? formatNumber(machineCount) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Active</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
+              {activeMachines !== null ? formatNumber(activeMachines) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Inactive</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
+              {inactiveMachines !== null ? formatNumber(inactiveMachines) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+              {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
+            </p>
+          </div>
         </div>
       </div>
       <p className="mt-3 text-xs text-fg-tertiary">
         Per-machine detail (model, location, serial) will appear once the backend exposes a fleet
         registry endpoint.
       </p>
-    </SectionCard>
+    </DashCard>
+  )
+}
+
+function ReportMetricsSection() {
+  return (
+    <DashCard
+      title="Report metrics"
+      subtitle="Keeper action"
+      className="h-full"
+      contentClassName="flex-1"
+    >
+      <Text className="text-sm text-fg-tertiary">
+        Submit hashrate and cumulative BTC earned to the backend. This is a Keeper log request — no
+        transaction is signed.
+      </Text>
+      <div className="mt-auto pt-4">
+        <ReportMetricsButton />
+      </div>
+    </DashCard>
+  )
+}
+
+function OpexSection({
+  monthlyCost,
+  kwhConsumed,
+  costPerKwh,
+}: Readonly<{
+  monthlyCost: string | null
+  kwhConsumed: string | null
+  costPerKwh: string | null
+}>) {
+  const hasData = monthlyCost !== null || kwhConsumed !== null || costPerKwh !== null
+
+  if (!hasData) {
+    return (
+      <DashCard title="OPEX" subtitle="Operational expenses" className="h-full">
+        <PanelState title="Electricity data unavailable." />
+      </DashCard>
+    )
+  }
+
+  return (
+    <DashCard
+      title="OPEX"
+      subtitle="Operational expenses"
+      className="h-full"
+      contentClassName="flex-1"
+    >
+      <div className="@container min-w-0">
+        <div className="grid grid-cols-1 gap-3 @[26rem]:grid-cols-3">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Monthly electricity</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+              {monthlyCost !== null ? formatCurrency(monthlyCost, { decimals: 0 }) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">kWh consumed</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+              {kwhConsumed !== null ? formatNumber(Number(kwhConsumed), { maximumFractionDigits: 0 }) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Cost per kWh</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+              {costPerKwh !== null ? formatCurrency(costPerKwh, { decimals: 2 }) : '—'}
+            </p>
+          </div>
+        </div>
+      </div>
+      {monthlyCost !== null ? (
+        <div className="mt-auto max-w-xs pt-4">
+          <PayElectricityButton amount={monthlyCost} />
+        </div>
+      ) : null}
+    </DashCard>
+  )
+}
+
+function YieldCalculationSection({
+  btcEarnedSats,
+  btcPrice,
+  electricityCost,
+}: Readonly<{
+  btcEarnedSats: string | null
+  btcPrice: string | null
+  electricityCost: string | null
+}>) {
+  const grossYield = btcValueUsdc(btcEarnedSats, btcPrice)
+  const netYield =
+    grossYield !== null && electricityCost !== null
+      ? formatCurrency(
+          Number(grossYield.replace(/[^0-9.-]/g, '')) - Number(electricityCost),
+          { decimals: 0 },
+        )
+      : null
+
+  return (
+    <DashCard
+      title="Yield calculation"
+      subtitle="Gross vs net for RWA distribution"
+      className="h-full"
+      contentClassName="flex-1"
+    >
+      <div className="@container min-w-0">
+        <div className="grid grid-cols-1 gap-3 @[26rem]:grid-cols-3">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Gross yield</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-accent-400">
+              {grossYield ?? '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">OPEX deduction</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
+              {electricityCost ? `-${formatCurrency(electricityCost, { decimals: 0 })}` : '—'}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-fg-tertiary">Net yield to RWA</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
+              {netYield ?? '—'}
+            </p>
+          </div>
+        </div>
+      </div>
+      <p className="mt-auto pt-3 text-xs text-fg-tertiary">
+        Net yield = gross BTC value minus electricity OPEX. This is the amount available for monthly
+        distribution to the RWA strategy.
+      </p>
+    </DashCard>
+  )
+}
+
+function NextDistributionCard({
+  distribution,
+}: Readonly<{
+  distribution: DistributionRecord | null
+}>) {
+  return (
+    <DashCard
+      title="Next distribution"
+      subtitle={
+        distribution !== null
+          ? `Scheduled for ${formatDateTime(distribution.distributionDate)}`
+          : 'Upcoming monthly yield'
+      }
+      className="h-full"
+      contentClassName={PANEL_SLOT_CLASS.fill}
+    >
+      {distribution === null ? (
+        <PanelState title="No pending distribution scheduled." />
+      ) : (
+        <div className="space-y-4">
+          <div className="@container min-w-0">
+            <div className="grid grid-cols-1 gap-3 @[20rem]:grid-cols-2">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-fg-tertiary">BTC amount</p>
+                <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+                  {satsToBtc(distribution.btcAmountSats) ?? '—'} BTC
+                </p>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-fg-tertiary">Value at price</p>
+                <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+                  {btcValueUsdc(distribution.btcAmountSats, distribution.btcPriceUsdc) ?? '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between border-t border-console-line-soft pt-4">
+            <div>
+              <p className="text-xs font-medium text-fg-tertiary">Target strategy</p>
+              <p className="text-sm font-medium text-fg">{distribution.rwaStrategyId}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-fg-tertiary">Status</p>
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                  distribution.status === 'approved'
+                    ? 'bg-success-400/10 text-success-400'
+                    : distribution.status === 'distributed'
+                      ? 'bg-accent-400/10 text-accent-400'
+                      : 'bg-warning-400/10 text-warning-400'
+                }`}
+              >
+                {distribution.status}
+              </span>
+            </div>
+          </div>
+          {distribution.status === 'pending' ? <ApproveButton distributionId={distribution.id} /> : null}
+        </div>
+      )}
+    </DashCard>
+  )
+}
+
+function DistributionHistory({
+  distributions,
+}: Readonly<{
+  distributions: readonly DistributionRecord[]
+}>) {
+  if (distributions.length === 0) {
+    return (
+      <DashCard title="Distribution history" className="h-full">
+        <PanelState title="No previous distributions recorded." />
+      </DashCard>
+    )
+  }
+
+  return (
+    <DashCard
+      title="Distribution history"
+      className="h-full"
+      contentClassName={PANEL_SLOT_CLASS.table}
+      action={<Badge color="neutral">{`${distributions.length}`}</Badge>}
+    >
+      <AdminTable>
+        <TableHead>
+          <TableRow>
+            <TableHeader className={tableCol.date}>Month</TableHeader>
+            <TableHeader className={tableCol.date}>Date</TableHeader>
+            <TableHeader className={tableCol.numeric}>BTC</TableHeader>
+            <TableHeader className={tableCol.numeric}>Value</TableHeader>
+            <TableHeader className={tableCol.hash}>Strategy</TableHeader>
+            <TableHeader className={tableCol.status}>Status</TableHeader>
+            <TableHeader className={tableCol.date}>Approved</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {distributions.map((d) => (
+            <TableRow key={d.id}>
+              <TableCell className={tableCol.date}>{d.month}</TableCell>
+              <TableCell className={tableCol.date}>{formatDateTime(d.distributionDate)}</TableCell>
+              <TableCell className={tableCol.numeric}>
+                {satsToBtc(d.btcAmountSats) ?? '—'} BTC
+              </TableCell>
+              <TableCell className={tableCol.numeric}>
+                {btcValueUsdc(d.btcAmountSats, d.btcPriceUsdc) ?? '—'}
+              </TableCell>
+              <TableCell className={tableCol.hash}>{d.rwaStrategyId}</TableCell>
+              <TableCell className={tableCol.status}>
+                <span
+                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                    d.status === 'approved'
+                      ? 'bg-success-400/10 text-success-400'
+                      : d.status === 'distributed'
+                        ? 'bg-accent-400/10 text-accent-400'
+                        : 'bg-warning-400/10 text-warning-400'
+                  }`}
+                >
+                  {d.status}
+                </span>
+              </TableCell>
+              <TableCell className={tableCol.date}>
+                {d.approvedAt ? formatDateTime(d.approvedAt) : '—'}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </AdminTable>
+    </DashCard>
+  )
+}
+
+function numericValue(v: string | null | undefined): number | null {
+  if (v === undefined || v === null || v === '' || v === 'null' || v === 'undefined') return null
+  const n = Number(v)
+  if (!Number.isFinite(n) || n <= 0) return null
+  return n
+}
+
+function isCalculationComplete(c: CalculationRecord): boolean {
+  return numericValue(c.btcAmountSats) !== null && numericValue(c.grossYieldUsdc) !== null
+}
+
+function CalculationsSection({
+  calculations,
+  nextPeriod,
+  defaultStrategyId,
+}: Readonly<{
+  calculations: readonly CalculationRecord[]
+  nextPeriod: string
+  defaultStrategyId: string
+}>) {
+  if (calculations.length === 0) {
+    return (
+      <DashCard
+        title="Calculations"
+        subtitle="Historical yield calculations"
+        className="h-full"
+        contentClassName="gap-3"
+      >
+        <PanelState title="No calculations recorded yet." />
+        <div className="max-w-xs">
+          <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+        </div>
+      </DashCard>
+    )
+  }
+
+  const incompleteCount = calculations.filter((c) => !isCalculationComplete(c)).length
+
+  return (
+    <DashCard
+      title="Calculation history"
+      subtitle="Historical yield calculations"
+      className="h-full"
+      contentClassName="gap-3"
+      action={<Badge color="neutral">{`${calculations.length}`}</Badge>}
+    >
+      {incompleteCount > 0 ? (
+        <p className="text-xs text-fg-tertiary">
+          {`${incompleteCount} calculation(s) incomplete — trigger again or check backend logs.`}
+        </p>
+      ) : null}
+      <div className={PANEL_SLOT_CLASS.table}>
+        <AdminTable>
+          <TableHead>
+            <TableRow>
+              <TableHeader className={tableCol.date}>Period</TableHeader>
+              <TableHeader className={tableCol.numeric}>BTC</TableHeader>
+              <TableHeader className={tableCol.numeric}>Gross yield</TableHeader>
+              <TableHeader className={tableCol.numeric}>OPEX</TableHeader>
+              <TableHeader className={tableCol.numeric}>Net yield</TableHeader>
+              <TableHeader className={tableCol.hash}>Strategy</TableHeader>
+              <TableHeader className={tableCol.status}>Status</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {calculations.map((c) => {
+              const complete = isCalculationComplete(c)
+              const opexValue = formatCurrency(c.opexDeductionUsdc, { decimals: 0 })
+              return (
+                <TableRow key={c.id}>
+                  <TableCell className={tableCol.date}>{c.period}</TableCell>
+                  <TableCell className={tableCol.numeric}>
+                    {complete ? `${satsToBtc(c.btcAmountSats)} BTC` : '—'}
+                  </TableCell>
+                  <TableCell className={tableCol.numeric}>
+                    {complete ? formatCurrency(c.grossYieldUsdc, { decimals: 0 }) : '—'}
+                  </TableCell>
+                  <TableCell className={`${tableCol.numeric} text-danger-400`}>
+                    {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
+                  </TableCell>
+                  <TableCell className={`${tableCol.numeric} text-success-400`}>
+                    {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0 }) : '—'}
+                  </TableCell>
+                  <TableCell className={tableCol.hash}>{c.rwaStrategyId}</TableCell>
+                  <TableCell className={tableCol.status}>
+                    {complete ? (
+                      <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
+                        complete
+                      </span>
+                    ) : (
+                      <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-400">
+                        incomplete
+                      </span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </AdminTable>
+      </div>
+      <div className="max-w-xs">
+        <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+      </div>
+    </DashCard>
   )
 }
 
@@ -259,9 +594,13 @@ function StrategyAllocationSection({
 
   if (!hasPockets && !hasDistributions) {
     return (
-      <SectionCard title="RWA strategy allocation" hint="Mining yield per strategy">
-        <Text>No strategy allocation data available.</Text>
-      </SectionCard>
+      <DashCard
+        title="RWA strategy allocation"
+        subtitle="Mining yield per strategy"
+        className="h-full"
+      >
+        <PanelState title="No strategy allocation data available." />
+      </DashCard>
     )
   }
 
@@ -288,11 +627,14 @@ function StrategyAllocationSection({
       }))
 
   return (
-    <DataTableShell
+    <DashCard
       title="RWA strategy allocation"
-      description="Mining yield per strategy"
-      count={`${rows.length}`}
+      subtitle="Mining yield per strategy"
+      className="h-full"
+      contentClassName={PANEL_SLOT_CLASS.table}
+      action={<Badge color="neutral">{`${rows.length}`}</Badge>}
     >
+      <AdminTable>
         <TableHead>
           <TableRow>
             <TableHeader className={tableCol.primary}>Strategy</TableHeader>
@@ -333,335 +675,8 @@ function StrategyAllocationSection({
             </TableRow>
           ))}
         </TableBody>
-    </DataTableShell>
-  )
-}
-
-function ReportMetricsSection() {
-  return (
-    <SectionCard title="Report metrics" hint="Keeper action">
-      <Text className="text-sm text-fg-tertiary">
-        Submit hashrate and cumulative BTC earned to the backend. This is a Keeper log request — no
-        transaction is signed.
-      </Text>
-      <div className="mt-4">
-        <ReportMetricsButton />
-      </div>
-    </SectionCard>
-  )
-}
-
-function OpexSection({
-  monthlyCost,
-  kwhConsumed,
-  costPerKwh,
-}: Readonly<{
-  monthlyCost: string | null
-  kwhConsumed: string | null
-  costPerKwh: string | null
-}>) {
-  const hasData = monthlyCost !== null || kwhConsumed !== null || costPerKwh !== null
-
-  if (!hasData) {
-    return (
-      <SectionCard title="OPEX" hint="Operational expenses">
-        <Text>Electricity data unavailable.</Text>
-      </SectionCard>
-    )
-  }
-
-  return (
-    <SectionCard title="OPEX" hint="Operational expenses">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Monthly electricity</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-            {monthlyCost !== null ? formatCurrency(monthlyCost, { decimals: 0 }) : '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">kWh consumed</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-            {kwhConsumed !== null ? formatNumber(Number(kwhConsumed), { maximumFractionDigits: 0 }) : '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Cost per kWh</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-            {costPerKwh !== null ? formatCurrency(costPerKwh, { decimals: 2 }) : '—'}
-          </p>
-        </div>
-      </div>
-      {monthlyCost !== null ? (
-        <div className="mt-4 max-w-xs">
-          <PayElectricityButton amount={monthlyCost} />
-        </div>
-      ) : null}
-    </SectionCard>
-  )
-}
-
-function YieldCalculationSection({
-  btcEarnedSats,
-  btcPrice,
-  electricityCost,
-}: Readonly<{
-  btcEarnedSats: string | null
-  btcPrice: string | null
-  electricityCost: string | null
-}>) {
-  const grossYield = btcValueUsdc(btcEarnedSats, btcPrice)
-  const netYield =
-    grossYield !== null && electricityCost !== null
-      ? formatCurrency(
-          Number(grossYield.replace(/[^0-9.-]/g, '')) - Number(electricityCost),
-          { decimals: 0 },
-        )
-      : null
-
-  return (
-    <SectionCard title="Yield calculation" hint="Gross vs net for RWA distribution">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Gross yield</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-accent-400">
-            {grossYield ?? '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">OPEX deduction</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
-            {electricityCost ? `-${formatCurrency(electricityCost, { decimals: 0 })}` : '—'}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-fg-tertiary">Net yield to RWA</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
-            {netYield ?? '—'}
-          </p>
-        </div>
-      </div>
-      <p className="mt-3 text-xs text-fg-tertiary">
-        Net yield = gross BTC value minus electricity OPEX. This is the amount available for monthly
-        distribution to the RWA strategy.
-      </p>
-    </SectionCard>
-  )
-}
-
-function NextDistributionCard({
-  distribution,
-}: Readonly<{
-  distribution: DistributionRecord | null
-}>) {
-  if (distribution === null) {
-    return (
-      <SectionCard title="Next distribution" hint="Upcoming monthly yield">
-        <Text>No pending distribution scheduled.</Text>
-      </SectionCard>
-    )
-  }
-
-  return (
-    <SectionCard
-      title="Next distribution"
-      hint={`Scheduled for ${formatDateTime(distribution.distributionDate)}`}
-    >
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">BTC amount</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {satsToBtc(distribution.btcAmountSats) ?? '—'} BTC
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Value at price</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {btcValueUsdc(distribution.btcAmountSats, distribution.btcPriceUsdc) ?? '—'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between border-t border-console-line-soft pt-4">
-          <div>
-            <p className="text-xs font-medium text-fg-tertiary">Target strategy</p>
-            <p className="text-sm font-medium text-fg">{distribution.rwaStrategyId}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-medium text-fg-tertiary">Status</p>
-            <span
-              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                distribution.status === 'approved'
-                  ? 'bg-success-400/10 text-success-400'
-                  : distribution.status === 'distributed'
-                    ? 'bg-accent-400/10 text-accent-400'
-                    : 'bg-warning-400/10 text-warning-400'
-              }`}
-            >
-              {distribution.status}
-            </span>
-          </div>
-        </div>
-        {distribution.status === 'pending' ? <ApproveButton distributionId={distribution.id} /> : null}
-      </div>
-    </SectionCard>
-  )
-}
-
-function DistributionHistory({
-  distributions,
-}: Readonly<{
-  distributions: readonly DistributionRecord[]
-}>) {
-  if (distributions.length === 0) {
-    return (
-      <DataTableShell title="Distribution history" calme="No previous distributions recorded." />
-    )
-  }
-
-  return (
-    <DataTableShell title="Distribution history" count={`${distributions.length}`}>
-      <TableHead>
-        <TableRow>
-          <TableHeader className={tableCol.date}>Month</TableHeader>
-          <TableHeader className={tableCol.date}>Date</TableHeader>
-          <TableHeader className={tableCol.numeric}>BTC</TableHeader>
-          <TableHeader className={tableCol.numeric}>Value</TableHeader>
-          <TableHeader className={tableCol.hash}>Strategy</TableHeader>
-          <TableHeader className={tableCol.status}>Status</TableHeader>
-          <TableHeader className={tableCol.date}>Approved</TableHeader>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {distributions.map((d) => (
-          <TableRow key={d.id}>
-            <TableCell className={tableCol.date}>{d.month}</TableCell>
-            <TableCell className={tableCol.date}>{formatDateTime(d.distributionDate)}</TableCell>
-            <TableCell className={tableCol.numeric}>
-              {satsToBtc(d.btcAmountSats) ?? '—'} BTC
-            </TableCell>
-            <TableCell className={tableCol.numeric}>
-              {btcValueUsdc(d.btcAmountSats, d.btcPriceUsdc) ?? '—'}
-            </TableCell>
-            <TableCell className={tableCol.hash}>{d.rwaStrategyId}</TableCell>
-            <TableCell className={tableCol.status}>
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                  d.status === 'approved'
-                    ? 'bg-success-400/10 text-success-400'
-                    : d.status === 'distributed'
-                      ? 'bg-accent-400/10 text-accent-400'
-                      : 'bg-warning-400/10 text-warning-400'
-                }`}
-              >
-                {d.status}
-              </span>
-            </TableCell>
-            <TableCell className={tableCol.date}>
-              {d.approvedAt ? formatDateTime(d.approvedAt) : '—'}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </DataTableShell>
-  )
-}
-
-function numericValue(v: string | null | undefined): number | null {
-  if (v === undefined || v === null || v === '' || v === 'null' || v === 'undefined') return null
-  const n = Number(v)
-  if (!Number.isFinite(n) || n <= 0) return null
-  return n
-}
-
-function isCalculationComplete(c: CalculationRecord): boolean {
-  return numericValue(c.btcAmountSats) !== null && numericValue(c.grossYieldUsdc) !== null
-}
-
-function CalculationsSection({
-  calculations,
-  nextPeriod,
-  defaultStrategyId,
-}: Readonly<{
-  calculations: readonly CalculationRecord[]
-  nextPeriod: string
-  defaultStrategyId: string
-}>) {
-  if (calculations.length === 0) {
-    return (
-      <SectionCard title="Calculations" hint="Historical yield calculations">
-        <Text>No calculations recorded yet.</Text>
-        <div className="mt-4 max-w-xs">
-          <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
-        </div>
-      </SectionCard>
-    )
-  }
-
-  const incompleteCount = calculations.filter((c) => !isCalculationComplete(c)).length
-
-  return (
-    <div className="space-y-4">
-      <DataTableShell
-        title="Calculation history"
-        count={`${calculations.length}`}
-        description={
-          incompleteCount > 0
-            ? `${incompleteCount} calculation(s) incomplete — trigger again or check backend logs.`
-            : undefined
-        }
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.date}>Period</TableHeader>
-            <TableHeader className={tableCol.numeric}>BTC</TableHeader>
-            <TableHeader className={tableCol.numeric}>Gross yield</TableHeader>
-            <TableHeader className={tableCol.numeric}>OPEX</TableHeader>
-            <TableHeader className={tableCol.numeric}>Net yield</TableHeader>
-            <TableHeader className={tableCol.hash}>Strategy</TableHeader>
-            <TableHeader className={tableCol.status}>Status</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {calculations.map((c) => {
-            const complete = isCalculationComplete(c)
-            const opexValue = formatCurrency(c.opexDeductionUsdc, { decimals: 0 })
-            return (
-              <TableRow key={c.id}>
-                <TableCell className={tableCol.date}>{c.period}</TableCell>
-                <TableCell className={tableCol.numeric}>
-                  {complete ? `${satsToBtc(c.btcAmountSats)} BTC` : '—'}
-                </TableCell>
-                <TableCell className={tableCol.numeric}>
-                  {complete ? formatCurrency(c.grossYieldUsdc, { decimals: 0 }) : '—'}
-                </TableCell>
-                <TableCell className={`${tableCol.numeric} text-danger-400`}>
-                  {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
-                </TableCell>
-                <TableCell className={`${tableCol.numeric} text-success-400`}>
-                  {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0 }) : '—'}
-                </TableCell>
-                <TableCell className={tableCol.hash}>{c.rwaStrategyId}</TableCell>
-                <TableCell className={tableCol.status}>
-                  {complete ? (
-                    <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
-                      complete
-                    </span>
-                  ) : (
-                    <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-400">
-                      incomplete
-                    </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </DataTableShell>
-      <div className="max-w-xs">
-        <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
-      </div>
-    </div>
+      </AdminTable>
+    </DashCard>
   )
 }
 
@@ -735,12 +750,56 @@ export default async function Page({ searchParams }: PageProps) {
   const nextPeriod = nextDistribution?.month ?? new Date().toISOString().slice(0, 7)
   const defaultStrategyId = validStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? 'rwa_mining'
 
+  const btcAmount = satsToBtc(btcEarnedSats)
+  const yieldValue = btcValueUsdc(btcEarnedSats, btcPrice)
+
+  // Hero KPI band (cockpit header) — hashrate is the dominant fact, the other
+  // readings support it. Same titles, values, and units as the former strip.
+  const kpis: readonly AdminHeroKpi[] = [
+    {
+      id: 'hashrate',
+      title: 'Hashrate',
+      value: kpiReading(
+        mining?.hashrate,
+        hashrate !== null ? `${formatNumber(Number(hashrate))} TH/s` : null,
+      ),
+      unit: 'reported',
+      icon: CpuChipIcon,
+    },
+    {
+      id: 'btc-earned',
+      title: 'BTC earned',
+      value: kpiReading(mining?.hashrate, btcAmount !== null ? `${btcAmount} BTC` : null),
+      unit: 'cumulative',
+      icon: CircleStackIcon,
+    },
+    {
+      id: 'yield',
+      title: 'Yield value',
+      value: kpiReading(btc?.btcProduced, yieldValue),
+      unit: 'USDC',
+      icon: BanknotesIcon,
+    },
+    {
+      id: 'machines',
+      title: 'Machines',
+      value: kpiReading(
+        mining?.operationalTelemetry,
+        machineCount !== null && activeMachines !== null
+          ? `${activeMachines} / ${machineCount}`
+          : null,
+      ),
+      unit: 'active',
+      icon: BoltIcon,
+    },
+  ]
+
   return (
-    <div className="space-y-8">
+    <div className="flex min-w-0 flex-col gap-6">
       <AdminPageHeader
         title="Mining operations"
         description="Manage hashrate, OPEX, and yield distribution to RWA strategy."
-        kpis={[]}
+        kpis={kpis}
       />
 
       {vaultOptions.length > 0 ? (
@@ -756,52 +815,75 @@ export default async function Page({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      <MiningKpis
-        hashrate={hashrate}
-        btcEarnedSats={btcEarnedSats}
-        btcPrice={btcPrice}
-        machineCount={machineCount}
-        activeMachines={activeMachines}
-      />
+      {/*
+        Rows whose heights MATCH by construction. Row A: the fleet card owns the
+        height, the keeper flank chains h-full and pins its button to the shared
+        bottom edge. Row B: symmetric pair, both h-full. Row D: the calculations
+        table is a FROZEN slot, the next-distribution flank scrolls inside the
+        same track. Row E: two tables on ONE frozen slot height — equal at any
+        row count. No voids, nothing stretches with the dataset.
+      */}
+      {/* Row A — fleet telemetry + keeper action flank. */}
+      <BentoGrid>
+        <BentoCard span={8} className="h-full">
+          <MachineFleetSection
+            machineCount={machineCount}
+            activeMachines={activeMachines}
+            averageUptimePct={mining?.operationalTelemetry?.value?.averageUptimePct ?? null}
+          />
+        </BentoCard>
+        <BentoCard span={4} className="h-full">
+          <ReportMetricsSection />
+        </BentoCard>
+      </BentoGrid>
 
-      <ReportMetricsSection />
+      {/* Row B — OPEX + yield: symmetric halves. */}
+      <BentoGrid>
+        <BentoCard span={6} className="h-full">
+          <OpexSection
+            monthlyCost={electricityCost}
+            kwhConsumed={kwhConsumed}
+            costPerKwh={costPerKwh}
+          />
+        </BentoCard>
+        <BentoCard span={6} className="h-full">
+          <YieldCalculationSection
+            btcEarnedSats={btcEarnedSats}
+            btcPrice={btcPrice}
+            electricityCost={electricityCost}
+          />
+        </BentoCard>
+      </BentoGrid>
 
-      <MachineFleetSection
-        machineCount={machineCount}
-        activeMachines={activeMachines}
-        averageUptimePct={mining?.operationalTelemetry?.value?.averageUptimePct ?? null}
-      />
-
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <OpexSection
-          monthlyCost={electricityCost}
-          kwhConsumed={kwhConsumed}
-          costPerKwh={costPerKwh}
-        />
-        <YieldCalculationSection
-          btcEarnedSats={btcEarnedSats}
-          btcPrice={btcPrice}
-          electricityCost={electricityCost}
-        />
-      </div>
-
+      {/* Row C — monthly production: frameless header + bare ChartFrame band. */}
       <MonthlyBtcChart distributions={distributions} />
 
-      <CalculationsSection
-        calculations={calculations}
-        nextPeriod={nextPeriod}
-        defaultStrategyId={defaultStrategyId}
-      />
+      {/* Row D — calculation history (frozen table) + next distribution flank. */}
+      <BentoGrid>
+        <BentoCard span={8} className="h-full">
+          <CalculationsSection
+            calculations={calculations}
+            nextPeriod={nextPeriod}
+            defaultStrategyId={defaultStrategyId}
+          />
+        </BentoCard>
+        <BentoCard span={4} className="h-full">
+          <NextDistributionCard distribution={nextDistribution} />
+        </BentoCard>
+      </BentoGrid>
 
-      <StrategyAllocationSection
-        distributions={distributions}
-        rwaPockets={filteredPockets}
-      />
-
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <NextDistributionCard distribution={nextDistribution} />
-        <DistributionHistory distributions={history} />
-      </div>
+      {/* Row E — distribution history + strategy allocation: paired frozen tables. */}
+      <BentoGrid>
+        <BentoCard span={8} className="h-full">
+          <DistributionHistory distributions={history} />
+        </BentoCard>
+        <BentoCard span={4} className="h-full">
+          <StrategyAllocationSection
+            distributions={distributions}
+            rwaPockets={filteredPockets}
+          />
+        </BentoCard>
+      </BentoGrid>
     </div>
   )
 }

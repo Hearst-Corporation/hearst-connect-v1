@@ -1,6 +1,6 @@
 'use client'
 
-import { surfaceBox } from '@/components/admin/surface'
+import { DashCard } from '@/components/admin/dashboard'
 import { Button } from '@/components/catalyst/button'
 import {
   Dialog,
@@ -11,7 +11,6 @@ import {
 } from '@/components/catalyst/dialog'
 import { ActionOutcome } from '@/components/admin/forms/admin-action-form'
 import { triggerIndexer, type IndexerTriggerOutcome } from '@/lib/backend/indexer-trigger'
-import clsx from 'clsx'
 import { useActionState, useState } from 'react'
 
 const INITIAL: IndexerTriggerOutcome = {
@@ -46,60 +45,60 @@ export function OperationsIndexerCard({
   const [state, action, pending] = useActionState(triggerIndexer, INITIAL)
 
   return (
-    // Top-level widget → surfaceBox (canon); surfaceInset is for nested wells.
-    <div className={clsx(surfaceBox, 'flex flex-col gap-3 p-4')} data-widget="operations-indexer">
-      <div>
-        <p className="text-sm font-semibold text-ink dark:text-fg">Indexer</p>
-        <p className="mt-1 text-xs text-fg-tertiary dark:text-fg-secondary">
-          Status: {indexerLabel(indexerStatus)}
-        </p>
-        <p className="mt-2 text-sm text-fg-tertiary dark:text-fg-secondary">
-          Refresh indexed blockchain activity. This does not sign or submit vault transactions.
-        </p>
-      </div>
+    <div data-widget="operations-indexer" className="min-w-0">
+      <DashCard title="Indexer">
+        <div className="flex flex-col gap-3">
+          <div>
+            <p className="text-xs text-fg-tertiary">Status: {indexerLabel(indexerStatus)}</p>
+            <p className="mt-2 text-sm text-fg-secondary">
+              Refresh indexed blockchain activity. This does not sign or submit vault transactions.
+            </p>
+          </div>
 
-      <div>
-        <Button type="button" color="dark/neutral" onClick={() => setOpen(true)} disabled={pending}>
-          {pending ? 'Running…' : 'Run indexer'}
-        </Button>
-      </div>
-
-      <Dialog open={open} onClose={setOpen} size="md">
-        <DialogTitle>Run indexer?</DialogTitle>
-        <DialogDescription>
-          This starts one Series 1 indexer pass against the configured vault. It will not execute
-          a rebalance or sign any transaction. If chain RPC is unreachable, the server will return
-          a visible failure.
-        </DialogDescription>
-        <DialogBody>
-          <p className="text-sm text-fg-tertiary">
-            Continue only if you intend to refresh indexed activity.
-          </p>
-        </DialogBody>
-        <DialogActions>
-          <Button plain type="button" onClick={() => setOpen(false)} disabled={pending}>
-            Cancel
-          </Button>
-          <form
-            action={action}
-            onSubmit={() => {
-              setOpen(false)
-            }}
-          >
-            <input type="hidden" name="confirm" value="CONFIRM" />
-            <Button type="submit" color="dark/neutral" disabled={pending}>
-              {pending ? 'Running…' : 'Confirm run'}
+          <div>
+            <Button type="button" color="dark/neutral" onClick={() => setOpen(true)} disabled={pending}>
+              {pending ? 'Running…' : 'Run indexer'}
             </Button>
-          </form>
-        </DialogActions>
-      </Dialog>
+          </div>
 
-      <ActionOutcome outcome={state} />
-      {state.ok ? (
-        <pre className="overflow-x-auto border-t border-console-line-soft pt-2 font-mono text-xs/5 text-fg">
-          {state.detail ?? 'OK'}
-        </pre>
-      ) : null}
+          <Dialog open={open} onClose={setOpen} size="md">
+            <DialogTitle>Run indexer?</DialogTitle>
+            <DialogDescription>
+              This starts one Series 1 indexer pass against the configured vault. It will not execute
+              a rebalance or sign any transaction. If chain RPC is unreachable, the server will return
+              a visible failure.
+            </DialogDescription>
+            <DialogBody>
+              <p className="text-sm text-fg-tertiary">
+                Continue only if you intend to refresh indexed activity.
+              </p>
+            </DialogBody>
+            <DialogActions>
+              <Button plain type="button" onClick={() => setOpen(false)} disabled={pending}>
+                Cancel
+              </Button>
+              <form
+                action={action}
+                onSubmit={() => {
+                  setOpen(false)
+                }}
+              >
+                <input type="hidden" name="confirm" value="CONFIRM" />
+                <Button type="submit" color="dark/neutral" disabled={pending}>
+                  {pending ? 'Running…' : 'Confirm run'}
+                </Button>
+              </form>
+            </DialogActions>
+          </Dialog>
+
+          <ActionOutcome outcome={state} />
+          {state.ok ? (
+            <pre className="max-h-40 overflow-auto border-t border-console-line-soft pt-2 font-mono text-xs/5 text-fg scrollbar-none">
+              {state.detail ?? 'OK'}
+            </pre>
+          ) : null}
+        </div>
+      </DashCard>
     </div>
   )
 }

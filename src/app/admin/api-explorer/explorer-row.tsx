@@ -51,7 +51,7 @@ export function ExplorerRow({
   const blockedLabel = unrunnableLabel(endpoint.method, pathParams)
 
   return (
-    <div className="border-b border-console-line-soft px-4 py-3 last:border-b-0">
+    <div className="border-b border-console-line-soft py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="rounded bg-console-inset px-1.5 py-0.5 font-mono text-xs font-medium text-fg">{endpoint.method}</span>
         <span className="font-mono text-xs break-all text-fg">{endpoint.path}</span>

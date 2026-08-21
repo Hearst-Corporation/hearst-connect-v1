@@ -1,6 +1,7 @@
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashCard, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
-import { Link } from '@/components/catalyst/link'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -13,8 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard, SourceAttendue, tableCol } from '@/components/compositions'
+import { Callout, DataTableShell, SourceAttendue, tableCol } from '@/components/compositions'
 import { callBackend } from '@/lib/backend/client'
 import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/availability'
 import { formatAddress, formatCurrency, formatDateTime, formatHash } from '@/lib/format'
@@ -102,6 +102,55 @@ function isNotFound(
 }
 
 /**
+ * Compact command bar — one title line (the client label), the directory link
+ * on the same row, KPIs as a compact strip beside it.
+ */
+function ClientHeader({
+  title,
+  description,
+  kpis,
+}: Readonly<{ title: string; description: string; kpis: readonly AdminHeroKpi[] }>) {
+  return (
+    <header
+      data-admin="hero-header"
+      className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
+          <PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>
+        </div>
+        <p className="mt-0.5 text-xs text-fg-tertiary">{description}</p>
+      </div>
+
+      <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
+        {kpis.map((kpi) => {
+          const available = isAvailable(kpi.value)
+          return (
+            <div key={kpi.id} className="min-w-0">
+              <dt className="flex items-center gap-1.5 text-[11px] font-medium text-fg-secondary">
+                <kpi.icon className="size-3.5 shrink-0 text-accent-300" aria-hidden="true" />
+                <span className="truncate">{kpi.title}</span>
+              </dt>
+              <dd className="mt-0.5 flex items-baseline gap-1.5">
+                <span
+                  className={`text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
+                >
+                  {available ? kpi.value.value : '—'}
+                </span>
+                {kpi.unit !== undefined && kpi.unit !== '' ? (
+                  <span className="truncate text-[11px] text-fg-tertiary">{kpi.unit}</span>
+                ) : null}
+              </dd>
+            </div>
+          )
+        })}
+      </dl>
+    </header>
+  )
+}
+
+/**
  * Admin client 360 — GET /api/v1/admin/clients/:id.
  * Each Resolved block is shown or named; a 404 does not invent a client.
  */
@@ -121,8 +170,8 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       { id: 'movements', title: 'Movements', value: missing, icon: ArrowsRightLeftIcon },
     ]
     return (
-      <div className="space-y-8">
-        <AdminPageHeader
+      <DashboardShell>
+        <ClientHeader
           title={id}
           description="GET /api/v1/admin/clients/:id — named absence when the investor is not on the book."
           kpis={kpis}
@@ -130,12 +179,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         <Callout tone="warning" title="Client not found">
           GET /api/v1/admin/clients/{id} returned 404 (INVESTOR_NOT_FOUND). No client record is shown.
         </Callout>
-        <Text>
-          <Link href="/admin/clients" className="underline">
-            Client directory
-          </Link>
-        </Text>
-      </div>
+      </DashboardShell>
     )
   }
 
@@ -152,8 +196,8 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       { id: 'movements', title: 'Movements', value: failed, icon: ArrowsRightLeftIcon },
     ]
     return (
-      <div className="space-y-8">
-        <AdminPageHeader
+      <DashboardShell>
+        <ClientHeader
           title={id}
           description="GET /api/v1/admin/clients/:id — named absence when the 360 cannot be read."
           kpis={kpis}
@@ -161,12 +205,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
         <Callout tone="warning" title="Client detail unavailable">
           {absenceDetail(failed)}
         </Callout>
-        <Text>
-          <Link href="/admin/clients" className="underline">
-            Client directory
-          </Link>
-        </Text>
-      </div>
+      </DashboardShell>
     )
   }
 
@@ -186,33 +225,58 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
   ]
 
   return (
-    <div className="space-y-8">
-      <AdminPageHeader
+    <DashboardShell>
+      <ClientHeader
         title={title}
         description="GET /api/v1/admin/clients/:id — identity, positions, movements, and exposure."
         kpis={kpis}
       />
 
-      {isAvailable(identity) ? (
-        <SectionCard title="Identity" hint="Label, wallet, and partner KYC from the 360 read-model.">
-          <DescriptionList>
-            <DescriptionTerm>Label</DescriptionTerm>
-            <DescriptionDetails>{identity.value.label}</DescriptionDetails>
-            <DescriptionTerm>Wallet</DescriptionTerm>
-            <DescriptionDetails className="font-mono text-sm">
-              {formatAddress(identity.value.walletAddress) ?? '—'}
-            </DescriptionDetails>
-            <DescriptionTerm>KYC</DescriptionTerm>
-            <DescriptionDetails>
-              <AdminToneBadge tone={toneForKycStatus(identity.value.kycStatus)}>
-                {kycStatusLabel(identity.value.kycStatus)}
-              </AdminToneBadge>
-            </DescriptionDetails>
-          </DescriptionList>
-        </SectionCard>
-      ) : (
-        <SourceAttendue {...namedSource('Identity', identity)} />
-      )}
+      {/* Row A — who this is beside what it sums to; an absent block is named
+          in the same slot (SourceAttendue is already a framed panel). */}
+      <BentoGrid>
+        <BentoCard span={6}>
+          {isAvailable(identity) ? (
+            <DashCard
+              title="Identity"
+              subtitle="Label, wallet, and partner KYC from the 360 read-model."
+              titleLevel={2}
+            >
+              <DescriptionList>
+                <DescriptionTerm>Label</DescriptionTerm>
+                <DescriptionDetails>{identity.value.label}</DescriptionDetails>
+                <DescriptionTerm>Wallet</DescriptionTerm>
+                <DescriptionDetails className="font-mono text-sm">
+                  {formatAddress(identity.value.walletAddress) ?? '—'}
+                </DescriptionDetails>
+                <DescriptionTerm>KYC</DescriptionTerm>
+                <DescriptionDetails>
+                  <AdminToneBadge tone={toneForKycStatus(identity.value.kycStatus)}>
+                    {kycStatusLabel(identity.value.kycStatus)}
+                  </AdminToneBadge>
+                </DescriptionDetails>
+              </DescriptionList>
+            </DashCard>
+          ) : (
+            <SourceAttendue {...namedSource('Identity', identity)} />
+          )}
+        </BentoCard>
+        <BentoCard span={6}>
+          {isAvailable(exposure) ? (
+            <DashCard
+              title="Exposure"
+              subtitle="Sum of on-book principal. Absent principal is never shown as zero."
+              titleLevel={2}
+            >
+              <p className="text-2xl font-semibold tabular-nums tracking-tight text-fg">
+                {formatWholeUsdc(exposure.value)}
+              </p>
+            </DashCard>
+          ) : (
+            <SourceAttendue {...namedSource('Exposure', exposure)} />
+          )}
+        </BentoCard>
+      </BentoGrid>
 
       <DataTableShell
         title="Positions"
@@ -293,22 +357,6 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
           </>
         ) : null}
       </DataTableShell>
-
-      {isAvailable(exposure) ? (
-        <SectionCard title="Exposure" hint="Sum of on-book principal. Absent principal is never shown as zero.">
-          <p className="text-2xl font-semibold tabular-nums tracking-tight text-fg">
-            {formatWholeUsdc(exposure.value)}
-          </p>
-        </SectionCard>
-      ) : (
-        <SourceAttendue {...namedSource('Exposure', exposure)} />
-      )}
-
-      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
-        <Link href="/admin/clients" className="underline">
-          Client directory
-        </Link>
-      </Text>
-    </div>
+    </DashboardShell>
   )
 }

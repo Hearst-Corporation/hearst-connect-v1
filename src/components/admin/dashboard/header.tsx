@@ -1,37 +1,36 @@
-import { HearstPrimaryAction } from '@/components/actions'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { isAvailable } from '@/lib/vaults/model'
-import { PlusIcon } from '@heroicons/react/16/solid'
+import type { ReactNode } from 'react'
 
 export type DashboardKpi = AdminHeroKpi
 
 /**
- * Cockpit command bar — no hero ceremony (glow, avatar, display type).
- * A cockpit spends its first pixels on readings, not on branding: the
- * greeting is one line, the four KPIs read as a compact strip beside it.
+ * Cockpit command bar — the compact header of every admin cockpit page.
+ * One title line, the KPI strip beside it, an optional action at the end.
+ * A cockpit spends its first pixels on readings, not on hero ceremony
+ * (glow, avatar, display type).
  */
 export function DashboardHeader({
-  userName,
+  title,
+  description,
   kpis,
-}: Readonly<{ userName: string; kpis: readonly DashboardKpi[] }>) {
-  const trimmed = userName.trim()
-  const rawFirst = trimmed.split(/\s+/)[0] || trimmed
-  const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : rawFirst
-
+  action,
+}: Readonly<{
+  title: string
+  description?: string
+  kpis: readonly DashboardKpi[]
+  action?: ReactNode
+}>) {
   return (
     <header
       data-admin="hero-header"
-      data-dashboard="header"
-      data-dashboard-kpi-bandeau=""
       className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
     >
       <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold tracking-tight text-fg">
-          Good morning, {firstName}
-        </h1>
-        <p className="mt-0.5 text-xs text-fg-tertiary">
-          Portfolio, market exposure and operations at a glance.
-        </p>
+        <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
+        {description !== undefined && description !== '' ? (
+          <p className="mt-0.5 text-xs text-fg-tertiary">{description}</p>
+        ) : null}
       </div>
 
       <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
@@ -56,12 +55,7 @@ export function DashboardHeader({
             </div>
           )
         })}
-        <HearstPrimaryAction
-          icon={<PlusIcon />}
-          disabledReason="Client creation is not available on the backend"
-        >
-          Add client
-        </HearstPrimaryAction>
+        {action}
       </dl>
     </header>
   )

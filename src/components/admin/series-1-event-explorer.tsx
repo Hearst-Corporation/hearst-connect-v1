@@ -1,10 +1,12 @@
 'use client'
 
+import { DashCard, PanelState } from '@/components/admin/dashboard'
+import { Badge } from '@/components/catalyst/badge'
 import { Field, Label } from '@/components/catalyst/fieldset'
 import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { DataTableShell, tableCol } from '@/components/compositions'
+import { AdminTable, tableCol } from '@/components/compositions'
 import { formatNumber, pluralSuffix } from '@/lib/format'
 import { dateLisible, ilYA, movementLabel } from '@/lib/movements'
 import { useMemo, useState } from 'react'
@@ -105,10 +107,19 @@ export function Series1EventExplorer({
   const filtered = useMemo(() => rows.filter((row) => rowMatches(row, filters)), [rows, filters])
 
   const count = explorerCount(filtered.length, rows.length)
+  const calmMessage =
+    calme ??
+    (rows.length > 0 && filtered.length === 0 ? 'No events match the current filters.' : undefined)
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <DashCard
+      title="Event explorer"
+      subtitle="Filter indexed Series 1 events. Vault, client, and block live in the row title / event detail."
+      action={
+        count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined
+      }
+    >
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field>
           <Label>Event</Label>
           <Select
@@ -173,68 +184,61 @@ export function Series1EventExplorer({
         </Field>
       </div>
 
-      <DataTableShell
-        title="Event explorer"
-        description="Filter indexed Series 1 events. Vault, client, and block live in the row title / event detail."
-        count={count}
-        calme={
-          calme ??
-          (rows.length > 0 && filtered.length === 0
-            ? 'No events match the current filters.'
-            : undefined)
-        }
-      >
-        {filtered.length > 0 ? (
-          <>
-            <TableHead>
-              <TableRow>
-                <TableHeader className={tableCol.primary}>Event</TableHeader>
-                <TableHeader className={tableCol.numeric}>Amount</TableHeader>
-                <TableHeader className={tableCol.hash}>Transaction</TableHeader>
-                <TableHeader className={tableCol.date}>When</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.map((row) => {
-                const tx = txShort(row.txHash)
-                const detailBits = [
-                  row.vaultId !== null ? `Vault ${row.vaultId}` : null,
-                  row.client !== null ? `Client ${row.client}` : null,
-                  row.blockNumber !== null && row.blockNumber !== ''
-                    ? `Block ${formatNumber(Number(row.blockNumber))}`
-                    : null,
-                ].filter(Boolean)
-                return (
-                  <TableRow key={row.id} title={detailBits.join(' · ') || undefined}>
-                    <TableCell className={tableCol.primary}>
-                      <div className="truncate font-medium">{movementLabel(row.eventName)}</div>
-                    </TableCell>
-                    <TableCell className={tableCol.numeric}>
-                      {row.amount !== null ? (
-                        <>
-                          {row.amount}
-                          {row.assetLabel !== null ? (
-                            <span className="ml-1 text-fg-tertiary">{row.assetLabel}</span>
-                          ) : null}
-                        </>
-                      ) : (
-                        '—'
-                      )}
-                    </TableCell>
-                    <TableCell className={`${tableCol.hash} text-sm`} title={row.txHash ?? undefined}>
-                      {tx ?? '—'}
-                    </TableCell>
-                    <TableCell className={tableCol.date} title={dateLisible(row.occurredAt)}>
-                      <span className="block">{ilYA(row.occurredAt)}</span>
-                      <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </>
-        ) : null}
-      </DataTableShell>
-    </div>
+      {calmMessage !== undefined ? (
+        <PanelState title={calmMessage} />
+      ) : filtered.length > 0 ? (
+        // Frozen slot: the box never grows with the dataset — rows scroll
+        // inside, header sticks (the Catalyst overflow div IS the scroll
+        // container, so `sticky` on the header cells holds).
+        <AdminTable className="h-[420px] overflow-y-auto scrollbar-none [&_table]:min-w-[40rem]">
+          <TableHead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-console-inset [&_th]:backdrop-blur-xl">
+            <TableRow>
+              <TableHeader className={tableCol.primary}>Event</TableHeader>
+              <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+              <TableHeader className={tableCol.hash}>Transaction</TableHeader>
+              <TableHeader className={tableCol.date}>When</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filtered.map((row) => {
+              const tx = txShort(row.txHash)
+              const detailBits = [
+                row.vaultId !== null ? `Vault ${row.vaultId}` : null,
+                row.client !== null ? `Client ${row.client}` : null,
+                row.blockNumber !== null && row.blockNumber !== ''
+                  ? `Block ${formatNumber(Number(row.blockNumber))}`
+                  : null,
+              ].filter(Boolean)
+              return (
+                <TableRow key={row.id} title={detailBits.join(' · ') || undefined}>
+                  <TableCell className={tableCol.primary}>
+                    <div className="truncate font-medium">{movementLabel(row.eventName)}</div>
+                  </TableCell>
+                  <TableCell className={tableCol.numeric}>
+                    {row.amount !== null ? (
+                      <>
+                        {row.amount}
+                        {row.assetLabel !== null ? (
+                          <span className="ml-1 text-fg-tertiary">{row.assetLabel}</span>
+                        ) : null}
+                      </>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
+                  <TableCell className={`${tableCol.hash} text-sm`} title={row.txHash ?? undefined}>
+                    {tx ?? '—'}
+                  </TableCell>
+                  <TableCell className={tableCol.date} title={dateLisible(row.occurredAt)}>
+                    <span className="block">{ilYA(row.occurredAt)}</span>
+                    <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </AdminTable>
+      ) : null}
+    </DashCard>
   )
 }
