@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/catalyst/dialog'
-import { Text } from '@/components/catalyst/text'
+import { ActionOutcome } from '@/components/admin/forms/admin-action-form'
 import { triggerIndexer, type IndexerTriggerOutcome } from '@/lib/backend/indexer-trigger'
 import clsx from 'clsx'
 import { useActionState, useState } from 'react'
@@ -71,9 +71,9 @@ export function OperationsIndexerCard({
           a visible failure.
         </DialogDescription>
         <DialogBody>
-          <Text className="text-sm text-fg-tertiary">
+          <p className="text-sm text-fg-tertiary">
             Continue only if you intend to refresh indexed activity.
-          </Text>
+          </p>
         </DialogBody>
         <DialogActions>
           <Button plain type="button" onClick={() => setOpen(false)} disabled={pending}>
@@ -93,25 +93,11 @@ export function OperationsIndexerCard({
         </DialogActions>
       </Dialog>
 
-      {state.validationError ? (
-        <Text className="text-sm text-danger-400">{state.validationError}</Text>
-      ) : null}
-      {state.stateReason ? (
-        <Text className="text-sm text-warning-400">{state.stateReason}</Text>
-      ) : null}
-      {state.problem ? (
-        <Text className="text-sm text-warning-400">
-          {state.problem.title}
-          {state.problem.detail ? ` — ${state.problem.detail}` : ''}
-        </Text>
-      ) : null}
+      <ActionOutcome outcome={state} />
       {state.ok ? (
-        <div className="space-y-1">
-          <Text className="text-sm text-accent-400">Request accepted — server response below.</Text>
-          <pre className="overflow-x-auto border-t border-console-line-soft pt-2 font-mono text-xs/5 text-fg">
-            {state.detail ?? 'OK'}
-          </pre>
-        </div>
+        <pre className="overflow-x-auto border-t border-console-line-soft pt-2 font-mono text-xs/5 text-fg">
+          {state.detail ?? 'OK'}
+        </pre>
       ) : null}
     </div>
   )

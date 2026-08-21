@@ -55,7 +55,7 @@ export function Panel({
     <Tag
       {...rest}
       data-surface="box"
-      className={clsx(surfaceBox, TONE_GEOMETRY[tone], className)}
+      className={clsx(surfaceBox, 'min-w-0', TONE_GEOMETRY[tone], className)}
     >
       {children}
     </Tag>

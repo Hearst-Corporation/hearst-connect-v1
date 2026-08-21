@@ -17,7 +17,7 @@ export function DashboardShell({
   // read at 2560px full-bleed is mostly whitespace and over-wide charts — the
   // bound keeps the composition dense and legible on any monitor.
   return (
-    <div data-dashboard="pilotage" className={clsx('mx-auto flex w-full max-w-360 flex-col gap-6', className)}>
+    <div data-dashboard="pilotage" className={clsx('mx-auto flex w-full min-w-0 max-w-360 flex-col gap-6', className)}>
       {children}
     </div>
   )
@@ -47,14 +47,14 @@ export function DashCard({
   subtitle?: string
 }>) {
   return (
-    <section data-surface="box" className={clsx(surfaceBox, 'flex flex-col', className)}>
+    <section data-surface="box" className={clsx(surfaceBox, 'flex min-w-0 flex-col', className)}>
       {title !== undefined ? (
         <header className="px-5 pt-5 pb-1">
           <Subheading level={titleLevel}>{title}</Subheading>
           {subtitle !== undefined ? <Text className="mt-1">{subtitle}</Text> : null}
         </header>
       ) : null}
-      <div className={clsx('flex min-h-0 flex-col p-5', contentClassName)}>{children}</div>
+      <div className={clsx('flex min-h-0 min-w-0 flex-col p-5', contentClassName)}>{children}</div>
     </section>
   )
 }

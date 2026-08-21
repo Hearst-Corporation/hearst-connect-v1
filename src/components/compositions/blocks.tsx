@@ -311,12 +311,14 @@ export const tableCol: Record<TableColRole, string> = {
 }
 
 /**
- * Readability floor for admin tables. Every column role except `primary` is
- * intrinsic and nowrap: below ~40rem of container they can no longer keep
- * their measure next to a readable primary, so the table holds its floor and
- * Catalyst's `overflow-x-auto` scrolls — columns are never crushed.
+ * Product table — Catalyst overflow, shrinks to the parent track.
+ * Page-width shells (DataTableShell) add the 40rem floor so columns scroll
+ * instead of crushing. Nested cards must NOT set that floor or they blow
+ * the grid (a 1/3 Bento track is ~23rem).
  */
-export const tableScrollFloor = '[&_table]:min-w-[40rem]'
+export function AdminTable({ className, ...props }: React.ComponentProps<typeof Table>) {
+  return <Table {...props} className={clsx(csl.heroTable, 'min-w-0', className)} />
+}
 
 export function DataTableShell({
   title,
@@ -364,7 +366,7 @@ export function DataTableShell({
       className={className}
       actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
     >
-      <Table className={clsx(csl.heroTable, tableScrollFloor)}>{children}</Table>
+      <AdminTable className="[&_table]:min-w-[40rem]">{children}</AdminTable>
     </SectionCard>
   )
 }
