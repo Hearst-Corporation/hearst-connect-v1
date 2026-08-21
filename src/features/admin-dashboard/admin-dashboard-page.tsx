@@ -277,10 +277,13 @@ async function DataHealthData() {
 
 /**
  * Admin dashboard — portfolio cockpit.
- * One bento grid straight under the hero KPIs: no editorial section headers,
- * no vertical chrome — the card titles carry the meaning. Row order is the
- * pilotage hierarchy: exposure + alerts → flow + history → capital → market
- * and sources. Every panel streams independently behind a Suspense boundary.
+ *
+ * EXPLICIT ROWS, never one global grid: a single 12-track grid across the
+ * whole page is fake masonry — CSS Grid waits for the tallest card before
+ * starting the next row, so mismatched heights blow white holes into the
+ * composition. Each row owns its grid and its height budget; the right rail
+ * of row A stacks the small signal cards so the column fills itself.
+ * Every panel streams independently behind a Suspense boundary.
  */
 export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
   return (
@@ -289,11 +292,7 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         <HeaderData userName={user.name} />
       </Suspense>
 
-      {/*
-        Cockpit composition — spans are role decisions (dominant 8, flank 4,
-        symmetric pair 6, band 12), never derived from today's data volume.
-        Below the container threshold every card stacks full-width.
-      */}
+      {/* Row A — pilotage: exposure dominant, signal rail stacked beside it. */}
       <BentoGrid>
         <BentoCard span={8}>
           <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
@@ -303,13 +302,28 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
           </DashPanel>
         </BentoCard>
         <BentoCard span={4}>
-          <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer">
-            <Suspense fallback={<PanelFallback />}>
-              <RebalancingAlertsData />
-            </Suspense>
-          </DashPanel>
+          <div className="flex min-w-0 flex-col gap-6">
+            <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer">
+              <Suspense fallback={<PanelFallback />}>
+                <RebalancingAlertsData />
+              </Suspense>
+            </DashPanel>
+            <DashPanel title="Market" subtitle="Normalized snapshot">
+              <Suspense fallback={<PanelFallback />}>
+                <MarketData />
+              </Suspense>
+            </DashPanel>
+            <DashPanel title="Recent clients" subtitle="Exposure and Som KYC">
+              <Suspense fallback={<PanelFallback />}>
+                <RecentClientsData />
+              </Suspense>
+            </DashPanel>
+          </div>
         </BentoCard>
+      </BentoGrid>
 
+      {/* Row B — flow: symmetric pair, the timeline stays a bounded flank. */}
+      <BentoGrid>
         <BentoCard span={6}>
           <DashPanel title="Activity" subtitle="Daily volume · 28 days">
             <Suspense fallback={<ChartPlaceholder title="Activity" />}>
@@ -324,7 +338,10 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
             </Suspense>
           </DashPanel>
         </BentoCard>
+      </BentoGrid>
 
+      {/* Row C — drift band, full width. */}
+      <BentoGrid>
         <BentoCard span={12}>
           <DashPanel title="Rebalancing drift" subtitle="Historical allocation drift over time">
             <Suspense fallback={<ChartPlaceholder title="Rebalancing drift" />}>
@@ -332,26 +349,14 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
             </Suspense>
           </DashPanel>
         </BentoCard>
+      </BentoGrid>
 
+      {/* Row D — capital: vaults dominant, BTC price flank. */}
+      <BentoGrid>
         <BentoCard span={8}>
           <DashPanel title="Vaults" subtitle="Capital per vault">
             <Suspense fallback={<PanelFallback />}>
               <VaultsData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-        <BentoCard span={4}>
-          <DashPanel title="Recent clients" subtitle="Exposure and Som KYC">
-            <Suspense fallback={<PanelFallback />}>
-              <RecentClientsData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-
-        <BentoCard span={4}>
-          <DashPanel title="Market" subtitle="Normalized snapshot">
-            <Suspense fallback={<PanelFallback />}>
-              <MarketData />
             </Suspense>
           </DashPanel>
         </BentoCard>
@@ -362,15 +367,18 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
             </Suspense>
           </DashPanel>
         </BentoCard>
-        <BentoCard span={4}>
+      </BentoGrid>
+
+      {/* Row E — primary-vault allocation + source freshness. */}
+      <BentoGrid>
+        <BentoCard span={6}>
           <DashPanel title="cbBTC / USDC allocation" subtitle="Primary vault — last 28 days">
             <Suspense fallback={<ChartPlaceholder title="cbBTC / USDC allocation" />}>
               <AllocationData />
             </Suspense>
           </DashPanel>
         </BentoCard>
-
-        <BentoCard span={12}>
+        <BentoCard span={6}>
           <DashPanel title="Data health" subtitle="Source freshness">
             <Suspense fallback={<PanelFallback />}>
               <DataHealthData />
