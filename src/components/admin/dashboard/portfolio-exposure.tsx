@@ -95,40 +95,46 @@ export function PortfolioExposurePanel({
       className="space-y-4 @container min-w-0"
       data-widget="portfolio-exposure"
     >
-      <div className="flex min-w-0 flex-col gap-4">
+      {/*
+        Wide cards read the ring and the strategy column side by side —
+        stacking them would double the panel's height for no reading gain.
+      */}
+      <div className="grid min-w-0 gap-4 @[36rem]:grid-cols-[minmax(0,auto)_minmax(0,1fr)] @[36rem]:items-start">
         <HearstDonutChart slices={allocationSlices} unit="% target" />
-        <TabList className="grid grid-cols-2 gap-2 @[28rem]:grid-cols-4">
-          {rows.map((row) => (
-            <Tab
-              key={row.strategyId}
-              className={clsx(
-                'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
-                'focus-visible:ring-2 focus-visible:ring-accent-500',
-                surfaceSelect,
-              )}
-            >
-              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
-                <ChartBarSquareIcon className="size-5" aria-hidden="true" />
-              </span>
-              <span className="mt-2 w-full truncate text-xs font-semibold text-fg" title={row.strategyLabel}>
-                {row.strategyLabel}
-              </span>
-              <span className="mt-0.5 text-lg font-semibold tabular-nums text-fg">
-                {formatPercent(row.actualBps, { fromBps: true })}
-              </span>
-              <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
-                target {formatPercent(row.targetBps, { fromBps: true })}
-              </span>
-            </Tab>
-          ))}
-        </TabList>
-        <TabPanels>
-          {rows.map((row) => (
-            <TabPanel key={row.strategyId} className="outline-none">
-              <StrategyDetail row={row} assetScale={scale} />
-            </TabPanel>
-          ))}
-        </TabPanels>
+        <div className="flex min-w-0 flex-col gap-4">
+          <TabList className="grid grid-cols-2 gap-2 @[28rem]:grid-cols-4">
+            {rows.map((row) => (
+              <Tab
+                key={row.strategyId}
+                className={clsx(
+                  'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
+                  'focus-visible:ring-2 focus-visible:ring-accent-500',
+                  surfaceSelect,
+                )}
+              >
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
+                  <ChartBarSquareIcon className="size-5" aria-hidden="true" />
+                </span>
+                <span className="mt-2 w-full truncate text-xs font-semibold text-fg" title={row.strategyLabel}>
+                  {row.strategyLabel}
+                </span>
+                <span className="mt-0.5 text-lg font-semibold tabular-nums text-fg">
+                  {formatPercent(row.actualBps, { fromBps: true })}
+                </span>
+                <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
+                  target {formatPercent(row.targetBps, { fromBps: true })}
+                </span>
+              </Tab>
+            ))}
+          </TabList>
+          <TabPanels>
+            {rows.map((row) => (
+              <TabPanel key={row.strategyId} className="outline-none">
+                <StrategyDetail row={row} assetScale={scale} />
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </div>
       </div>
     </TabGroup>
   )
