@@ -75,7 +75,7 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 
 **Orchestrator HC-ADMIN-CONSOLIDATION-ORCHESTRATOR-023** (2026-08-08): seven scoped branches merged locally — guardrails, dashboard truth, clients/profile (Mission 014 recovered), vaults, compliance, operations, product/service/journal/nav. Gates: `pnpm check` + `next build` green on integrated `main`.
 
-**Mission HC-BROWSER-PRODUCTION-PARITY-024** (2026-08-08): authenticated browser QA on local `main` (all admin routes × viewports including reduced-motion); hydration fixes on dashboard motion widgets and Series 1 table filters. Drift history **not wired** — production `GET /api/v1/rebalancing/history` responds 200 but payload is `UNAVAILABLE` (`db_error`); contract not ready for UI. `PROD_AUTODEPLOY: false` — Vercel prod may lag GitHub `main`. HEAD regression cleanup (`95172b` vault chart): English + no-zinc + hooks + endpoint test — re-validated browser QA green.
+**Mission HC-BROWSER-PRODUCTION-PARITY-024** (2026-08-08): authenticated browser QA on local `main` (all admin routes × viewports including reduced-motion); hydration fixes on dashboard motion widgets and Series 1 table filters. Drift history **not wired** — production `GET /api/v1/rebalancing/history` responds 200 but payload is `UNAVAILABLE` (`db_error`); contract not ready for UI. Vercel prod may lag GitHub `main`. HEAD regression cleanup (`95172b` vault chart): English + no-zinc + hooks + endpoint test — re-validated browser QA green.
 
 **Action boundary**: `src/components/actions/` (Catalyst buttons + disabled/loading states).
 
@@ -124,7 +124,7 @@ pnpm e2e                 # Playwright (access-control, audit-closure, veracity)
 pnpm exec next build     # build prod (hors gate)
 ```
 
-`PROD_AUTODEPLOY: false` — déploiement Vercel prod manuel : `vercel --prod` (projet `hearst-connect-v1`).
+Déploiement Vercel prod : `vercel --prod` (projet `hearst-connect-v1`).
 
 ## Design system
 

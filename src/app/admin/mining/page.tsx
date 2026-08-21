@@ -117,14 +117,12 @@ function MiningKpis({
   btcPrice,
   machineCount,
   activeMachines,
-  electricityCost,
 }: Readonly<{
   hashrate: string | null
   btcEarnedSats: string | null
   btcPrice: string | null
   machineCount: number | null
   activeMachines: number | null
-  electricityCost: string | null
 }>) {
   const btcAmount = satsToBtc(btcEarnedSats)
   const yieldValue = btcValueUsdc(btcEarnedSats, btcPrice)
@@ -762,7 +760,6 @@ export default async function Page({ searchParams }: PageProps) {
         btcPrice={btcPrice}
         machineCount={machineCount}
         activeMachines={activeMachines}
-        electricityCost={electricityCost}
       />
 
       <ReportMetricsSection />
@@ -773,7 +770,7 @@ export default async function Page({ searchParams }: PageProps) {
         averageUptimePct={mining?.operationalTelemetry?.value?.averageUptimePct ?? null}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <OpexSection
           monthlyCost={electricityCost}
           kwhConsumed={kwhConsumed}
@@ -799,7 +796,7 @@ export default async function Page({ searchParams }: PageProps) {
         rwaPockets={filteredPockets}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <NextDistributionCard distribution={nextDistribution} />
         <DistributionHistory distributions={history} />
       </div>

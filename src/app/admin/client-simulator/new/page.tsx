@@ -80,17 +80,15 @@ export default async function Page() {
         kpis={kpis}
       />
 
-      <SectionCard title="Recent creations" hint="Accounts created from this screen, by day." tone="chart">
-        <ChartFrame
-          question="Account creations per day"
-          unit="accounts / day"
-          state={{
-            type: 'empty',
-            explanation:
-              'No series to plot — this screen emits one creation at a time and does not measure history. The real account count lives in the client directory.',
-          }}
-        />
-      </SectionCard>
+      <ChartFrame
+        question="Account creations per day"
+        unit="accounts / day"
+        state={{
+          type: 'empty',
+          explanation:
+            'No series to plot — this screen emits one creation at a time and does not measure history. The real account count lives in the client directory.',
+        }}
+      />
 
       <SectionCard
         title="Create an investor or admin account"

@@ -330,13 +330,23 @@ export function DataTableShell({
   children?: React.ReactNode
   className?: string
 }>) {
-  let body: React.ReactNode
-  if (source !== undefined) {
-    body = <SourceAttendue {...source} />
-  } else if (calme !== undefined) {
-    body = <CalmState message={calme} />
-  } else {
-    body = <Table className={csl.heroTable}>{children}</Table>
+  // SourceAttendue / CalmState are ALREADY framed Panels (surfaceBox). Wrapping
+  // them in a SectionCard (a second surfaceBox) stacks a box inside a box — the
+  // exact anti-pattern the SectionHeader docstring warns against. So in a
+  // named-absence / calm state, emit a frameless SectionHeader above the single
+  // framed state; only the real table keeps the SectionCard frame around it.
+  if (source !== undefined || calme !== undefined) {
+    return (
+      <section className={clsx('flex flex-col gap-4', className)}>
+        <SectionHeader
+          as="h3"
+          title={title}
+          hint={description}
+          actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
+        />
+        {source !== undefined ? <SourceAttendue {...source} /> : <CalmState message={calme as string} />}
+      </section>
+    )
   }
   return (
     <SectionCard
@@ -346,7 +356,7 @@ export function DataTableShell({
       className={className}
       actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
     >
-      {body}
+      <Table className={csl.heroTable}>{children}</Table>
     </SectionCard>
   )
 }

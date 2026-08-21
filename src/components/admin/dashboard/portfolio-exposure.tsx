@@ -108,9 +108,7 @@ export function PortfolioExposurePanel({
       data-widget="portfolio-exposure"
     >
       <div className="flex min-w-0 flex-col gap-4">
-        <div className="mx-auto w-full max-w-xs">
-          <HearstDonutChart slices={allocationSlices} unit="% target" />
-        </div>
+        <HearstDonutChart slices={allocationSlices} unit="% target" />
         <TabList className="grid grid-cols-2 gap-2 @[28rem]:grid-cols-4">
           {rows.map((row) => (
             <Tab

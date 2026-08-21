@@ -92,20 +92,20 @@ describe('primary navigation', () => {
   })
 })
 
-describe('masonry Bento grid', () => {
-  it('reflows on the container, not the viewport', () => {
+describe('composable Bento grid', () => {
+  it('opens twelve tracks on the container, not the viewport', () => {
     const { container } = render(
       <BentoGrid>
-        <BentoCard>main</BentoCard>
-        <BentoCard>aside</BentoCard>
+        <BentoCard span={8}>main</BentoCard>
+        <BentoCard span={4}>aside</BentoCard>
       </BentoGrid>,
     )
     /*
      * Deux nœuds : l'enveloppe DÉCLARE le conteneur (`@container`), la grille
      * l'INTERROGE (`@[Nrem]:`). Les réunir était le défaut historique — un
-     * élément en `container-type: inline-size` ne s'interroge pas lui-même :
-     * `@[60rem]:` remonterait au conteneur au-dessus (`.workspace`, 1200 px) et
-     * une grille de 360 px ouvrirait toutes ses colonnes.
+     * élément en `container-type: inline-size` ne s'interroge pas lui-même.
+     * La grille suit la largeur du conteneur (rail + padding l'ont déjà
+     * rétréci), jamais celle du viewport — donc aucun palier `sm/md/lg/xl:`.
      */
     const enveloppe = container.firstElementChild
     const grid = enveloppe?.firstElementChild
@@ -113,35 +113,40 @@ describe('masonry Bento grid', () => {
     expect(grid?.className).not.toContain('@container')
 
     /*
-     * Masonry natif via CSS multi-column, piloté par le CONTENEUR : 1 colonne →
-     * 2 en `@[60rem]:`. Aucun palier `sm:`/`md:`/`lg:` de fenêtre — la grille
-     * vit dans une colonne dont la largeur dépend du rail et de l'aside, que la
-     * taille de la fenêtre ne décrit pas. Pas de `grid-cols`/`col-span` : un
-     * masonry ne dimensionne pas ses cartes, elles coulent.
+     * Bento composable : 1 colonne pleine largeur quand c'est étroit → 12 pistes
+     * égales quand le conteneur a la place. Chaque carte y déclare un SPAN
+     * (2⁄3–1⁄3, 50⁄50, full) — c'est la composition, pas la donnée, qui place.
      */
-    expect(grid?.className).toContain('columns-1')
-    expect(grid?.className).toMatch(/@\[[\d.]+rem\]:columns-2/)
-    expect(grid?.className).not.toMatch(/\b(sm|md|lg|xl):columns-/)
-    expect(grid?.className).not.toMatch(/grid-cols-/)
+    expect(grid?.className).toContain('grid-cols-1')
+    expect(grid?.className).toMatch(/@\[[\d.]+rem\]:grid-cols-12/)
+    expect(grid?.className).not.toMatch(/\b(sm|md|lg|xl):grid-cols-/)
+    expect(grid?.className).not.toMatch(/columns-\d/)
   })
 
-  it('lets cards flow instead of declaring a span, and never splits one', () => {
+  it('places a card by its declared span, from a bounded vocabulary', () => {
     const { container } = render(
       <BentoGrid>
-        <BentoCard>a</BentoCard>
-        <BentoCard>b</BentoCard>
+        <BentoCard span={8}>dominant</BentoCard>
+        <BentoCard span={4}>flank</BentoCard>
+        <BentoCard>default</BentoCard>
       </BentoGrid>,
     )
     const grid = container.firstElementChild?.firstElementChild
-    for (const card of Array.from(grid?.children ?? [])) {
-      /*
-       * Une carte ne déclare PAS un nombre de colonnes (`span={7}`) — c'est ce
-       * hardcode qui figeait et écrasait l'ancienne grille sous le rail. Dans un
-       * masonry, la carte tombe dans la colonne la plus courte ; elle doit juste
-       * ne jamais être coupée par un saut de colonne.
-       */
-      expect(card.className).toContain('break-inside-avoid')
-      expect(card.className).not.toMatch(/col-span-/)
+    const cards = Array.from(grid?.children ?? [])
+    /*
+     * DATASET SIZE DOES NOT OWN PAGE GEOMETRY : le span est un choix de RÔLE
+     * (dominant / flank / paire symétrique / bande), déclaré à la main dans un
+     * vocabulaire borné (12/8/6/4). Il n'est jamais dérivé du nombre de lignes
+     * renvoyées par la source — une liste de 3 et une de 30 dans le même rôle
+     * produisent le même span, la page ne saute pas avec la donnée.
+     */
+    expect(cards[0].className).toMatch(/@\[[\d.]+rem\]:col-span-8/)
+    expect(cards[1].className).toMatch(/@\[[\d.]+rem\]:col-span-4/)
+    // Défaut = demi-largeur (paire symétrique) quand l'auteur ne précise rien.
+    expect(cards[2].className).toMatch(/@\[[\d.]+rem\]:col-span-6/)
+    for (const card of cards) {
+      // Le span vit derrière la query conteneur : pleine largeur en dessous.
+      expect(card.className).not.toMatch(/(^|\s)col-span-/)
     }
   })
 })
