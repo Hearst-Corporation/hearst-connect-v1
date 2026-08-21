@@ -70,7 +70,13 @@ export function ActivityTimelinePanel({
 
   return (
     <div className="space-y-4" data-widget="activity-timeline">
-      <ul className="relative space-y-4 border-l border-console-line pl-4">
+      {/*
+        Static role height (max-h, not a dataset-derived one): the list scrolls
+        past ~28rem so a long timeline never dictates the row geometry. A finite
+        max-h is what actually arms overflow-y-auto — items-start keeps the card
+        intrinsic up to that ceiling. (rule 60: dataset ≠ page geometry.)
+      */}
+      <ul className="relative max-h-112 space-y-4 overflow-y-auto border-l border-console-line pl-4">
         {events.value.map((event) => (
           <li key={event.id} className="relative">
             <span
@@ -110,3 +116,4 @@ export function ActivityTimelinePanel({
     </div>
   )
 }
+

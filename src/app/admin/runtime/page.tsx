@@ -2,7 +2,6 @@ import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-head
 import { surfaceInset } from '@/components/admin/surface'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
-import clsx from 'clsx'
 import {
   DescriptionDetails,
   DescriptionList,
@@ -307,7 +306,7 @@ export default async function RuntimePage() {
                   <Callout tone="danger">The {label.toLowerCase()} probe did not respond.</Callout>
                 </div>
               ) : (
-                <pre className="mt-3 max-h-64 overflow-auto p-1 text-xs/5 text-fg">{payload}</pre>
+                <pre className={`${surfaceInset} mt-3 max-h-64 overflow-auto p-3 text-xs/5 text-fg`}>{payload}</pre>
               )}
             </details>
           ))}

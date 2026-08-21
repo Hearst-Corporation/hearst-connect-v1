@@ -15,6 +15,7 @@ import {
   StatCard,
   StatGrid,
   SectionCard,
+  SectionHeader,
   DataTableShell,
   tableCol,
 } from '@/components/compositions'
@@ -187,11 +188,11 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
 
   return (
     <div className="space-y-10">
-      <SectionCard
-        title="Data coverage"
-        hint="Which product surfaces are actually served today. States are shown exactly as the backend reports them — most degraded field first."
-        tone="plain"
-      >
+      <section className="space-y-4">
+        <SectionHeader
+          title="Data coverage"
+          hint="Which product surfaces are actually served today. States are shown exactly as the backend reports them — most degraded field first."
+        />
         <StatGrid label="Surface coverage" columns={3}>
           <StatCard title="Served" value={servedCell} showRoute />
           <StatCard title="Partial" value={partialCell} showRoute />
@@ -200,7 +201,7 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
           <StatCard title="Coverage rate" value={coverageCell} showRoute />
           <StatCard title="Source status" value={sourceState} showRoute />
         </StatGrid>
-      </SectionCard>
+      </section>
 
       <ChartFrame
         question="How is coverage distributed by tier?"

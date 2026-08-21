@@ -1,13 +1,14 @@
 /**
  * Shared layout tokens for the admin console.
  *
- * The dashboard composes its cards through a container-driven **masonry**
- * (`src/components/admin/grid.tsx`, `BentoGrid`/`BentoCard`): cards flow down
- * the shortest column at their natural height, so nothing declares a fixed
- * column span and nothing stretches to fill a track.
+ * The dashboard composes its cards through a container-driven **composable
+ * Bento** (`src/components/admin/grid.tsx`, `BentoGrid`/`BentoCard`): twelve
+ * equal tracks above the container threshold, each card claiming a role-based
+ * span (full / 2⁄3 / 1⁄3 / half). The span is authored, never derived from the
+ * dataset size.
  */
 
-/** The masonry column gutter, consumed by `BentoGrid`. */
+/** The Bento grid gutter, consumed by `BentoGrid`. */
 export const gridGap = 'gap-6'
 
 /*

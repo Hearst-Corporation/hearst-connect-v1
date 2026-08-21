@@ -118,7 +118,7 @@ function messageJournalCalme(
   if (!readable || movements === null || movements === undefined || movements.length === 0) {
     const motif = readableReason(reason)
     if (motif) {
-      return `No movement recorded to date : ${motif}. This is not an outage.`
+      return `No movement recorded to date: ${motif}. This is not an outage.`
     }
     return 'No movement recorded to date — the chain has not deposited anything for this fund yet. This is not an outage.'
   }

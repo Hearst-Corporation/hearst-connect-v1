@@ -695,7 +695,7 @@
 
 /* Le filet vertical sombre entre cartes n'a de sens que dans la bande `/espace`. */
 .viewport .metricCard {
-  border-right-color: #050506;
+  border-right-color: var(--color-console-line);
 }
 
 .metricCard h2 {

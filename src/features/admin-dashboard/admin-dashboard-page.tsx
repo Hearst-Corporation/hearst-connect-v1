@@ -193,7 +193,7 @@ function DashPanel({
   children,
 }: Readonly<{ title: string; subtitle: string; children: ReactNode }>) {
   return (
-    <DashCard className="min-w-0" contentClassName="flex-1" title={title} subtitle={subtitle}>
+    <DashCard className="min-w-0" title={title} subtitle={subtitle}>
       {children}
     </DashCard>
   )
@@ -265,8 +265,18 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
           title="Allocation and drift"
           hint="Where capital sits versus target, and whether anything is off-band."
         />
+        {/*
+          Asymmetric primary — exposure absorbs, alerts bounded. The threshold
+          is a CONTAINER width, not a viewport one: this region lives inside the
+          main, which the rail (16rem) + padding already shrank. The split needs
+          the bounded flank (16rem floor) plus a readable measure for exposure
+          beside it — ~34rem of container is where both fit. `@[60rem]` demanded
+          960px of container, i.e. a ~1304px viewport behind the rail, so it
+          never opened on a normal screen and the row stacked. 34rem tracks the
+          real container in both regimes (rail present ≥lg, or absent below it).
+        */}
         <div className="@container min-w-0">
-          <div className="grid items-start gap-6 @[60rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
+          <div className="grid items-start gap-6 @[34rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
             <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
               <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
             </DashPanel>
@@ -284,7 +294,7 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
           hint="Daily volume, indexed events, and historical allocation drift."
         />
         <BentoGrid>
-          <BentoCard>
+          <BentoCard span={6}>
             <DashPanel title="Activity" subtitle="Daily volume · 28 days">
               <ActivityChartSlot
                 showActivityCurve={showActivityCurve}
@@ -294,12 +304,12 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
               />
             </DashPanel>
           </BentoCard>
-          <BentoCard>
+          <BentoCard span={6}>
             <DashPanel title="Recent activity" subtitle="Blockchain and subscription timeline">
               <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
             </DashPanel>
           </BentoCard>
-          <BentoCard>
+          <BentoCard span={12}>
             <DashPanel title="Rebalancing drift" subtitle="Historical allocation drift over time">
               <RebalancingHistorySlot rebalancingHistory={data.rebalancingHistory} />
             </DashPanel>
@@ -314,12 +324,12 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
           hint="Deployed capital per vault and the latest client exposures."
         />
         <BentoGrid>
-          <BentoCard>
+          <BentoCard span={8}>
             <DashPanel title="Vaults" subtitle="Capital per vault">
               <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
             </DashPanel>
           </BentoCard>
-          <BentoCard>
+          <BentoCard span={4}>
             <DashPanel title="Recent clients" subtitle="Exposure and Som KYC">
               <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
             </DashPanel>
@@ -334,22 +344,22 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
           hint="Normalized market read, primary-vault allocation, and source freshness."
         />
         <BentoGrid>
-          <BentoCard>
+          <BentoCard span={6}>
             <DashPanel title="Market" subtitle="Normalized snapshot">
               <MarketSnapshotPanel snapshot={data.market} />
             </DashPanel>
           </BentoCard>
-          <BentoCard>
-            <DashPanel title="cbBTC / USDC allocation" subtitle="Primary vault — last 28 days">
-              <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
-            </DashPanel>
-          </BentoCard>
-          <BentoCard>
+          <BentoCard span={6}>
             <DashPanel title="BTC price" subtitle="At primary vault snapshots">
               <BtcPriceSlot cbbtcAllocation={data.cbbtcAllocation} />
             </DashPanel>
           </BentoCard>
-          <BentoCard>
+          <BentoCard span={6}>
+            <DashPanel title="cbBTC / USDC allocation" subtitle="Primary vault — last 28 days">
+              <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
+            </DashPanel>
+          </BentoCard>
+          <BentoCard span={6}>
             <DashPanel title="Data health" subtitle="Source freshness">
               <DataHealthGrid sources={data.dataHealth} />
             </DashPanel>

@@ -82,10 +82,12 @@ describe('design system surfaces — canon dashboard', () => {
   })
 
   it('service pages : pre / wells passent par surfaceInset', () => {
+    // Le well curl vit dans explorer-row.tsx (le composant enfant), pas dans
+    // page.tsx — c'est là que surfaceInset doit être appliqué.
     const runtime = readFileSync(join(process.cwd(), 'src/app/admin/runtime/page.tsx'), 'utf8')
-    const explorer = readFileSync(join(process.cwd(), 'src/app/admin/api-explorer/page.tsx'), 'utf8')
+    const explorerRow = readFileSync(join(process.cwd(), 'src/app/admin/api-explorer/explorer-row.tsx'), 'utf8')
     expect(runtime).toContain('surfaceInset')
-    expect(explorer).toContain('surfaceInset')
+    expect(explorerRow).toContain('surfaceInset')
   })
 
   it('chart tooltips : surfaceBox (vaults / produit / series)', () => {

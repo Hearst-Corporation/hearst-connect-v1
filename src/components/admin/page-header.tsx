@@ -58,9 +58,11 @@ export function AdminPageHeader({
           </div>
         </div>
 
-        <div className="mt-6 border-t border-white/10 pt-5 pb-6">
-          <AdminHeroKpiMetrics items={kpis} />
-        </div>
+        {kpis.length > 0 ? (
+          <div className="mt-6 border-t border-white/10 pt-5 pb-6">
+            <AdminHeroKpiMetrics items={kpis} />
+          </div>
+        ) : null}
       </div>
     </header>
   )

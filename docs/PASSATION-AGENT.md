@@ -33,7 +33,7 @@ Références : `.cursor/rules/30-no-gpu1.mdc`, `docs/ENDPOINT-MAPPING.md`, `READ
 ## Déploiement
 
 - **Backend** : push `main` GitHub → Railway auto
-- **Front** : `PROD_AUTODEPLOY: false` → `vercel --prod` manuel après push `main`
+- **Front** : `vercel --prod` après push `main`
 - Prod Vercel en retard possible — vérifier avant de dire « c'est en ligne »
 
 ## Commandes

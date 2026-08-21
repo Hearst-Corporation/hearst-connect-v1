@@ -1,6 +1,7 @@
 'use client'
 
 import { AdminProbeResult } from '@/components/admin/surfaces'
+import { surfaceInset } from '@/components/admin/surface'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
 import { probeEndpoint, type ProbeOutcome } from '@/lib/backend/probe'
 import { useActionState } from 'react'
@@ -95,7 +96,7 @@ export function ExplorerRow({
 
       <details className="mt-2">
         <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-fg">cURL (token redacted)</summary>
-        <pre className="mt-1 overflow-x-auto border-l-2 border-console-line-soft pl-2 font-mono text-xs text-fg-secondary">{curl}</pre>
+        <pre className={`${surfaceInset} mt-1 overflow-x-auto p-2 font-mono text-xs text-fg-secondary`}>{curl}</pre>
       </details>
 
       {isKeeper ? (

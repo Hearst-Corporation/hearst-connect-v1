@@ -2,38 +2,25 @@ import { gridGap } from '@/lib/layout-tokens'
 import clsx from 'clsx'
 
 /**
- * The admin **Bento grid** — a masonry of cards.
+ * The admin **Bento grid** — a composable 12-column layout.
  *
- * Every earlier attempt fought the same losing battle: the dashboard cards have
- * radically unequal natural heights (a ten-row activity timeline next to a
- * two-line rebalancing summary), and *any* row-based grid has to choose between
- * two bad outcomes — let rows flow at intrinsic height and leave black holes
- * next to the tall card (`items-start`), or stretch the short card to match and
- * leave it half-empty (`items-stretch`). Both were rejected on screen.
+ * A card is not sized by its dataset; it is placed by the composition. The
+ * grid owns twelve equal tracks and each card claims a span (full / two-thirds
+ * / one-third / half). This is what lets a section read as a real cockpit —
+ * a dominant 2⁄3 card beside a bounded 1⁄3 flank, a symmetric 50⁄50 pair, a
+ * full-width band — instead of a masonry of equal columns where every card,
+ * data-rich or nearly empty, takes the same slot.
  *
- * A masonry has no rows, so it has neither failure mode. Cards flow top-to-
- * bottom **down independent columns**; the next card starts where the previous
- * one ended, per column. No hole, no stretch, no card declaring a span.
+ * `DATASET SIZE DOES NOT OWN PAGE GEOMETRY` (rule 60): the span is declared by
+ * the author from the card's ROLE in the section, never derived from how many
+ * rows the source returned today. A three-row list and a thirty-row list in the
+ * same role produce the same span — the page does not jump with the data.
  *
- * Implementation is CSS multi-column (`columns-*`), the one masonry primitive
- * that ships in every browser today:
- *
- * 1. **No card declares a size.** It drops into the shortest-so-far column
- *    automatically. `span={7}` per card — the thing that froze and crammed the
- *    old grid behind the rail — is gone entirely.
- *
- * 2. **Column count follows the container, not the viewport.** `@container` +
- *    `@[Nrem]:columns-*` — the dashboard lives in a column whose width depends
- *    on the rail (200px) and the aside (290px), which no viewport breakpoint
- *    describes. One column when narrow, two when there is room.
- *
- * The ladder:
- *   base (< 60rem container)  1 column
- *   @[60rem]                  2 columns, masonry flow
- *
- * ── One caveat of CSS columns, handled by the card ──────────────────────────
- * Multi-column can split a single element across a column break. `BentoCard`
- * carries `break-inside-avoid` so a card is never cut in half.
+ * The track count follows the CONTAINER, not the viewport (`@container` +
+ * `@[Nrem]:`), because the dashboard lives inside the main whose width the rail
+ * (16rem) + padding already shrank — no viewport breakpoint describes it. Below
+ * the threshold every card is full-width (one readable column); above it, the
+ * twelve tracks open and spans take effect.
  */
 export function BentoGrid({
   children,
@@ -51,9 +38,13 @@ export function BentoGrid({
       <Tag
         {...rest}
         className={clsx(
-          // 1 column → 2 columns, masonry flow driven by container width.
-          'columns-1 @[60rem]:columns-2',
-          gridGap.replace('gap-', 'gap-x-'), // horizontal gutter between columns
+          // 1 column when narrow → 12 composable tracks when the container has room.
+          // items-start: each card keeps its intrinsic role height. Stretching a
+          // row to its tallest card made a fixed-height chart (176px) get punched
+          // with empty space next to a data-driven list — the dataset would then
+          // own the row geometry (rule 60: DATASET SIZE DOES NOT OWN PAGE GEOMETRY).
+          'grid grid-cols-1 items-start @[48rem]:grid-cols-12',
+          gridGap,
           className,
         )}
       >
@@ -64,32 +55,43 @@ export function BentoGrid({
 }
 
 /**
- * One card in the masonry.
+ * One card in the Bento grid.
  *
- * There is no `wide` / `span` knob any more — the whole point of a masonry is
- * that cards are *not* sized by the author; they flow into whichever column is
- * shortest. A card only has to declare that it must not be split across a
- * column break, and to carry the vertical gap to the next card in its column.
+ * `span` is the card's share of the twelve tracks ABOVE the container
+ * threshold — below it every card is full width (a single readable column).
+ * The span is a ROLE decision (dominant vs flank, symmetric pair, full band),
+ * not a function of the data volume.
+ *
+ *   12 → full-width band
+ *    8 → two-thirds (dominant)          4 → one-third (bounded flank)
+ *    6 → half (symmetric pair)
  */
+const SPAN_CLASS: Record<BentoSpan, string> = {
+  12: '@[48rem]:col-span-12',
+  8: '@[48rem]:col-span-8',
+  6: '@[48rem]:col-span-6',
+  4: '@[48rem]:col-span-4',
+}
+
+export type BentoSpan = 12 | 8 | 6 | 4
+
 export function BentoCard({
   children,
   className,
+  span = 6,
   as: Tag = 'div',
   ...rest
 }: Readonly<{
   children: React.ReactNode
   className?: string
+  span?: BentoSpan
   as?: 'div' | 'section' | 'article'
 }> &
   Omit<React.HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
   return (
     <Tag
       {...rest}
-      className={clsx(
-        className,
-        // Never split a card across a column break; space the next card below it.
-        'break-inside-avoid mb-6 min-w-0',
-      )}
+      className={clsx('min-w-0', SPAN_CLASS[span], className)}
     >
       {children}
     </Tag>

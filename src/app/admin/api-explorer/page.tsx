@@ -1,7 +1,5 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { surfaceInset } from '@/components/admin/surface'
 import { Badge } from '@/components/catalyst/badge'
-import clsx from 'clsx'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
@@ -65,7 +63,7 @@ const CATEGORY_LABELS: Record<BackendEndpoint['category'], string> = {
   probe: 'Probes',
   business: 'Business',
   'ai-context': 'AI context',
-  keeper: 'Actions Keeper',
+  keeper: 'Keeper actions',
 }
 
 function pathParamsOf(path: string): string[] {

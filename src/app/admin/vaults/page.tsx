@@ -197,17 +197,70 @@ function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[]
   )
 }
 
+/**
+ * Cockpit side rail — the parc-level facts that frame the registry table:
+ * how many vaults carry drift, and where to reconcile the read. Bounded
+ * secondary column; the registry table absorbs the row.
+ */
+function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>) {
+  const withDrift = vaultList.filter((v) => {
+    const bps = valueOf(v.worstDriftBps)
+    return bps !== null && bps !== 0
+  }).length
+  const worstDrift = vaultList.reduce<number | null>((max, v) => {
+    const bps = valueOf(v.worstDriftBps)
+    if (bps === null) return max
+    return max === null || Math.abs(bps) > Math.abs(max) ? bps : max
+  }, null)
+
+  return (
+    <aside className="flex flex-col gap-4">
+      <SectionCard title="Parc" hint="Registry-wide read at a glance.">
+        <dl className="space-y-4">
+          <div className="min-w-0">
+            <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
+              Vaults off target
+            </dt>
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-ink dark:text-fg">
+              {formatNumber(withDrift)}
+              <span className="ml-1 text-sm font-normal text-fg-tertiary">
+                / {formatNumber(vaultList.length)}
+              </span>
+            </dd>
+          </div>
+          <div className="min-w-0 border-t border-console-line-soft pt-4">
+            <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
+              Worst drift
+            </dt>
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-ink dark:text-fg">
+              {worstDrift === null ? '—' : driftPoints(worstDrift)}
+            </dd>
+          </div>
+        </dl>
+      </SectionCard>
+
+      <SectionCard title="Source" hint="Where this read comes from.">
+        <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+          Vault capital and drift are read from the service.{' '}
+          <Link href="/admin/runtime" className="underline">
+            Source health
+          </Link>
+          .
+        </Text>
+      </SectionCard>
+    </aside>
+  )
+}
+
 function VaultRegistryContent({ vaultList }: Readonly<{ vaultList: readonly Vault[] | null }>) {
   if (vaultList === null) {
     return (
-      <SectionCard title="Vaults" hint="Capital and allocation drift as reported by the service.">
-        <Callout tone="warning" title="Vault read unavailable">
-          The vault read did not succeed.{' '}
-          <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
-            Data coverage
-          </Link>
-        </Callout>
-      </SectionCard>
+      <Callout tone="warning" title="Vault read unavailable">
+        The vault read did not succeed.{' '}
+        <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
+          Data coverage
+        </Link>
+      </Callout>
     )
   }
 
@@ -221,7 +274,17 @@ function VaultRegistryContent({ vaultList }: Readonly<{ vaultList: readonly Vaul
     )
   }
 
-  return <VaultRegistryBody vaultList={vaultList} />
+  // Cockpit row: the registry table absorbs the space (minmax(0,1fr)); the
+  // parc rail is bounded (minmax(16rem,20rem)). items-start so neither the
+  // dataset nor the rail dictates the row height.
+  return (
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)]">
+      <div className="min-w-0">
+        <VaultRegistryBody vaultList={vaultList} />
+      </div>
+      <VaultParcRail vaultList={vaultList} />
+    </div>
+  )
 }
 
 export default async function Page() {

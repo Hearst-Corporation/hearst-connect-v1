@@ -8,7 +8,7 @@ import {
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, SectionHeader, tableCol } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -183,10 +183,11 @@ export default async function KeeperPage() {
         </TableBody>
       </DataTableShell>
 
-      <SectionCard
-        title="Actions"
-        hint={`${formatNumber(keeperEndpoints.length)} routes exposed by the service. Nothing leaves this page until CONFIRM is typed in the action-specific field.`}
-      >
+      <section className="space-y-4">
+        <SectionHeader
+          title="Actions"
+          hint={`${formatNumber(keeperEndpoints.length)} routes exposed by the service. Nothing leaves this page until CONFIRM is typed in the action-specific field.`}
+        />
         <div className="grid gap-6 md:grid-cols-2">
           {keeperEndpoints.map((endpoint) => (
             <KeeperForm
@@ -197,7 +198,7 @@ export default async function KeeperPage() {
             />
           ))}
         </div>
-      </SectionCard>
+      </section>
     </div>
   )
 }
