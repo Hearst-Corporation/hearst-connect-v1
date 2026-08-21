@@ -1,6 +1,7 @@
 import { DashCard, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminReading } from '@/components/admin/reading'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
@@ -332,7 +333,7 @@ export default async function Page() {
 
   return (
     <DashboardShell>
-      <AdminPageHeader
+      <DashboardHeader
         title="Vaults"
         description="Vault capital, strategies, drift, and rebalancing status."
         kpis={kpis}

@@ -1,5 +1,6 @@
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { Series1EventExplorer, type Series1EventRow } from '@/components/admin/series-1-event-explorer'
 import {
   ChartFrame,
@@ -171,7 +172,7 @@ export default async function Page() {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
-      <AdminPageHeader
+      <DashboardHeader
         title="Series 1 journal"
         description="Operational event explorer for indexed Series 1 — source /api/v1/series1/events only."
         kpis={kpis}

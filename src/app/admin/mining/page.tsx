@@ -1,4 +1,5 @@
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { DashCard, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { surfaceInset } from '@/components/admin/surface'
@@ -796,7 +797,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <AdminPageHeader
+      <DashboardHeader
         title="Mining operations"
         description="Manage hashrate, OPEX, and yield distribution to RWA strategy."
         kpis={kpis}
