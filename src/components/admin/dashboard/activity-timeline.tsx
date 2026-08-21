@@ -1,7 +1,6 @@
 'use client'
 
-import { HearstSecondaryAction } from '@/components/actions'
-import { PanelFooterLink, PanelState } from '@/components/admin/dashboard/panel-state'
+import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
@@ -22,9 +21,8 @@ function eventClientTitle(
 
 function TimelineState({ title, detail }: Readonly<{ title: string; detail: string }>) {
   return (
-    <div className="space-y-4" data-widget="activity-timeline">
+    <div data-widget="activity-timeline">
       <PanelState title={title} detail={detail} />
-      <PanelFooterLink href="/admin/operations" label="View all activity" />
     </div>
   )
 }
@@ -48,14 +46,12 @@ export function ActivityTimelinePanel({
   }
 
   return (
-    <div className="space-y-4" data-widget="activity-timeline">
+    <div className="flex h-full min-h-0 flex-col" data-widget="activity-timeline">
       {/*
-        Static role height (max-h, not a dataset-derived one): the list scrolls
-        past ~28rem so a long timeline never dictates the row geometry. A finite
-        max-h is what actually arms overflow-y-auto — items-start keeps the card
-        intrinsic up to that ceiling. (rule 60: dataset ≠ page geometry.)
+        The card's fixed slot owns the height (row-matched); the list fills it
+        and scrolls inside — dataset never owns geometry.
       */}
-      <ul className="relative max-h-112 space-y-4 overflow-y-auto border-l border-console-line pl-4">
+      <ul className="relative min-h-0 flex-1 space-y-4 overflow-y-auto border-l border-console-line pl-4">
         {events.value.map((event) => (
           <li key={event.id} className="relative">
             <span
@@ -88,8 +84,6 @@ export function ActivityTimelinePanel({
           </li>
         ))}
       </ul>
-
-      <PanelFooterLink href="/admin/operations" label="View all activity" />
     </div>
   )
 }

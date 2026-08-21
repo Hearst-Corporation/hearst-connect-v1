@@ -1,7 +1,6 @@
 'use client'
 
-import { HearstSecondaryAction } from '@/components/actions'
-import { PanelFooterLink, PanelState } from '@/components/admin/dashboard/panel-state'
+import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { formatDriftPts, formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
@@ -28,12 +27,7 @@ export function RebalancingAlertsPanel({
   summary,
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   if (!isAvailable(summary)) {
-    return (
-      <div className="space-y-4">
-        <PanelState title="Data unavailable" detail="Source unavailable" />
-        <PanelFooterLink href="/admin/operations" label="Open operations" />
-      </div>
-    )
+    return <PanelState title="Data unavailable" detail="Source unavailable" />
   }
 
   const data = summary.value
@@ -71,10 +65,7 @@ export function RebalancingAlertsPanel({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-console-line-soft pt-3">
-        <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
-        <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
-      </div>
+      <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
     </div>
   )
 }
