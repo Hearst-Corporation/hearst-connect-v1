@@ -1,8 +1,0 @@
-name: CI
-on:
-  push: { branches: [main] }
-  pull_request:
-jobs:
-  # Gate canonique d'organisation (typecheck, lint, tests, build).
-  ci:
-    uses: Hearst-Corporation/.github/.github/workflows/ci-nextjs.yml@v1

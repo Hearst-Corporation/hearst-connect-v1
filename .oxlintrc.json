@@ -1,4 +1,0 @@
-{
-  "categories": { "correctness": "warn", "suspicious": "warn" },
-  "ignorePatterns": ["dist", "build", ".next", "storybook-static", "coverage"]
-}
