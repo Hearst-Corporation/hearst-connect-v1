@@ -99,11 +99,11 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
     expect(SOURCE).toContain('SectionHeader')
 
     // The primary is an ASYMMETRIC container-query grid — NOT masonry. Its
-    // threshold is a CONTAINER width sized to the real column (rail + padding
-    // already shrank it): 34rem opens the split on a normal screen. A viewport
-    // like 60rem of container demanded a ~1304px window behind the rail and the
-    // row silently stacked forever — regression-lock the reachable threshold.
-    expect(SOURCE).toMatch(/@\[34rem\]:grid-cols-\[minmax\(0,1fr\)_minmax\(16rem,22rem\)\]/)
+    // threshold is a CONTAINER width sized to the real column (rail + card
+    // chrome already shrank it): 52rem keeps the split closed while exposure
+    // would be under ~470px (the VP ~1024–1200 crush zone) and opens it on a
+    // normal screen — regression-lock the cockpit threshold.
+    expect(SOURCE).toMatch(/@\[52rem\]:grid-cols-\[minmax\(0,1fr\)_minmax\(16rem,22rem\)\]/)
     // Exposure + alerts must NOT be nested in a <BentoGrid> (masonry columns
     // would flatten the hierarchy back to equal cards — the rejected build).
     const primaryBlock = SOURCE.slice(

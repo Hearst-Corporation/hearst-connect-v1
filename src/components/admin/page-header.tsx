@@ -33,11 +33,11 @@ export function AdminPageHeader({
       {...(dashboard
         ? { 'data-dashboard': 'header', 'data-dashboard-kpi-bandeau': '' }
         : {})}
-      className="-mx-6 -mt-6 overflow-hidden lg:-mx-10 lg:-mt-10 lg:rounded-t-lg"
+      className="-mx-6 -mt-6 overflow-hidden lg:-mx-5 lg:-mt-5 lg:rounded-t-lg"
     >
       <img alt="" src={CONSOLE_GLOW_SRC} className="h-20 w-full object-cover lg:h-28" />
 
-      <div className="bg-black px-6 lg:px-10">
+      <div className="bg-black px-6 lg:px-5">
         {/* Identity row — avatar overlaps the glow, title + CTA bottom-aligned */}
         <div className="-mt-8 flex items-end gap-x-4 sm:-mt-10 sm:gap-x-5">
           <span className="relative inline-flex size-16 shrink-0 items-center justify-center rounded-full bg-black ring-4 ring-black outline -outline-offset-1 outline-white/15 sm:size-[4.5rem]">
