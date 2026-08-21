@@ -6,6 +6,9 @@ import {
   type ChartViewportRole,
 } from '@/components/charts/core/chart-theme'
 import { useChartSize } from '@/components/charts/core/use-chart-width'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { ChartTooltipShell, TooltipRow, tooltipPoint } from '@/components/charts/richart/_shared/chart-tooltip'
+import { ChartViewportEmpty, sortByLabelTime } from '@/components/charts/richart/_shared/viewport'
 import { formatNumber } from '@/lib/format'
 import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -38,19 +41,14 @@ function AllocationTooltip({
   active?: boolean
   payload?: readonly { payload?: AllocationPoint }[]
 }>) {
-  const point = payload?.[0]?.payload
-  if (active !== true || point === undefined) return null
+  const point = tooltipPoint(active, payload)
+  if (point === null) return null
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-console-line dark:bg-console-raised dark:ring-console-line">
-      <p className="font-medium text-ink dark:text-fg">{point.detail}</p>
-      <p className="mt-1 tabular-nums text-fg-tertiary dark:text-fg-secondary">
-        cbBTC: {formatNumber(point.cbbtcPct, { maximumFractionDigits: 2 })}%
-      </p>
-      <p className="mt-0.5 tabular-nums text-fg-tertiary dark:text-fg-secondary">
-        USDC: {formatNumber(point.usdcPct, { maximumFractionDigits: 2 })}%
-      </p>
-    </div>
+    <ChartTooltipShell title={point.detail}>
+      <TooltipRow first label="cbBTC" value={`${formatNumber(point.cbbtcPct, { maximumFractionDigits: 2 })}%`} />
+      <TooltipRow label="USDC" value={`${formatNumber(point.usdcPct, { maximumFractionDigits: 2 })}%`} />
+    </ChartTooltipShell>
   )
 }
 
@@ -87,18 +85,10 @@ export function AllocationDualLineChart({
   const viewportHeight = resolveChartViewport({ height, viewport, kind: 'line' })
 
   if (points.length === 0) {
-    return (
-      <div
-        className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
-        style={{ height: viewportHeight }}
-        data-chart-viewport={viewportHeight}
-      >
-        No data points for this period.
-      </div>
-    )
+    return <ChartViewportEmpty viewportHeight={viewportHeight} message="No data points for this period." />
   }
 
-  const sorted = [...points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
+  const sorted = sortByLabelTime(points)
   const data = sorted.map((p) => ({ ...p }))
 
   return (
@@ -107,27 +97,18 @@ export function AllocationDualLineChart({
       style={{ height: viewportHeight }}
       data-chart-viewport={viewportHeight}
     >
-      <div className="sr-only">
-        <table>
-          <caption>Allocation percentages over time</caption>
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">cbBTC %</th>
-              <th scope="col">USDC %</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((p) => (
-              <tr key={p.label}>
-                <th scope="row">{p.detail}</th>
-                <td>{formatNumber(p.cbbtcPct, { maximumFractionDigits: 2 })}%</td>
-                <td>{formatNumber(p.usdcPct, { maximumFractionDigits: 2 })}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Allocation percentages over time"
+        columns={['Date', 'cbBTC %', 'USDC %']}
+        rows={sorted.map((p) => ({
+          key: p.label,
+          label: p.detail,
+          cells: [
+            `${formatNumber(p.cbbtcPct, { maximumFractionDigits: 2 })}%`,
+            `${formatNumber(p.usdcPct, { maximumFractionDigits: 2 })}%`,
+          ],
+        }))}
+      />
 
       <AllocationLegend />
 

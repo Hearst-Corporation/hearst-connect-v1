@@ -2,6 +2,8 @@
 
 import { chartTheme } from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { ChartTooltipShell, TooltipRow, tooltipPoint } from '@/components/charts/richart/_shared/chart-tooltip'
 import { formatNumber } from '@/lib/format'
 import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -25,13 +27,12 @@ function BucketTooltip({
   active?: boolean
   payload?: readonly { payload?: BucketHistoryPoint }[]
 }>) {
-  const point = payload?.[0]?.payload
-  if (active !== true || point === undefined) return null
+  const point = tooltipPoint(active, payload)
+  if (point === null) return null
   return (
-    <div className="rounded-lg bg-white px-2 py-1 text-xs shadow-lg ring-1 ring-console-line dark:bg-console-raised dark:ring-console-line">
-      <p className="font-medium text-ink dark:text-fg">{point.detail}</p>
-      <p className="tabular-nums text-fg-tertiary">{formatNumber(point.pct, { maximumFractionDigits: 2 })}%</p>
-    </div>
+    <ChartTooltipShell compact title={point.detail}>
+      <TooltipRow value={`${formatNumber(point.pct, { maximumFractionDigits: 2 })}%`} />
+    </ChartTooltipShell>
   )
 }
 
@@ -66,34 +67,18 @@ export function BucketSparklines({
 
   return (
     <div className="space-y-4 px-5 pb-5">
-      <div className="sr-only">
-        <table>
-          <caption>Allocation per bucket over time</caption>
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              {buckets.map((b) => (
-                <th key={b.bucket} scope="col">{b.bucket}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {buckets[0]?.points.map((_, i) => (
-              <tr key={i}>
-                <th scope="row">{buckets[0].points[i]?.detail}</th>
-                {buckets.map((b) => {
-                  const pct = b.points[i]?.pct
-                  return (
-                    <td key={b.bucket}>
-                      {typeof pct === 'number' ? `${formatNumber(pct, { maximumFractionDigits: 2 })}%` : '—'}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Allocation per bucket over time"
+        columns={['Date', ...buckets.map((b) => b.bucket)]}
+        rows={(buckets[0]?.points ?? []).map((_, i) => ({
+          key: String(i),
+          label: buckets[0]?.points[i]?.detail ?? '',
+          cells: buckets.map((b) => {
+            const pct = b.points[i]?.pct
+            return typeof pct === 'number' ? `${formatNumber(pct, { maximumFractionDigits: 2 })}%` : '—'
+          }),
+        }))}
+      />
 
       <div ref={ref} aria-hidden="true" className="w-full min-w-0 space-y-4">
         {width > 0

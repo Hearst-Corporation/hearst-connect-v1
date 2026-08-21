@@ -1,11 +1,12 @@
 'use client'
 
 import {
-  resolveChartViewport,
   chartTheme,
   type ChartViewportRole,
 } from '@/components/charts/core/chart-theme'
-import { useChartWidth } from '@/components/charts/core/use-chart-width'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { ChartTooltipShell, TooltipRow, tooltipPoint } from '@/components/charts/richart/_shared/chart-tooltip'
+import { ChartViewportEmpty, useChartViewport } from '@/components/charts/richart/_shared/viewport'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, Cell, LabelList, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -89,16 +90,15 @@ function SignedTooltip({
   active,
   payload,
 }: Readonly<{ active?: boolean; payload?: readonly { payload?: SignedBarItem }[] }>) {
-  const point = payload?.[0]?.payload
-  if (active !== true || point === undefined) return null
+  const point = tooltipPoint(active, payload)
+  if (point === null) return null
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-console-line dark:bg-console-raised dark:ring-console-line">
-      <p className="font-medium text-ink dark:text-fg">{point.detail ?? point.label}</p>
-      <p className="mt-1 tabular-nums text-fg-tertiary dark:text-fg-secondary">
-        {point.value >= 0 ? '+' : ''}
-        {formatNumber(point.value, { maximumFractionDigits: 2 })}%
-      </p>
-    </div>
+    <ChartTooltipShell title={point.detail ?? point.label}>
+      <TooltipRow
+        first
+        value={`${point.value >= 0 ? '+' : ''}${formatNumber(point.value, { maximumFractionDigits: 2 })}%`}
+      />
+    </ChartTooltipShell>
   )
 }
 
@@ -107,19 +107,10 @@ export function SignedBarChart({
   height,
   viewport,
 }: Readonly<{ items: readonly SignedBarItem[]; height?: number; viewport?: ChartViewportRole }>) {
-  const { ref, width } = useChartWidth()
-  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'rows' })
+  const { ref, width, viewportHeight } = useChartViewport({ height, viewport, kind: 'rows' })
 
   if (items.length === 0) {
-    return (
-      <div
-        className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
-        style={{ height: viewportHeight }}
-        data-chart-viewport={viewportHeight}
-      >
-        No runs for this period.
-      </div>
-    )
+    return <ChartViewportEmpty viewportHeight={viewportHeight} message="No runs for this period." />
   }
 
   const sorted = [...items].sort((a, b) => b.value - a.value)
@@ -128,25 +119,15 @@ export function SignedBarChart({
 
   return (
     <div className="min-w-0">
-      <div className="sr-only">
-        <table>
-          <caption>Total return by scenario (%)</caption>
-          <thead>
-            <tr>
-              <th scope="col">Scenario</th>
-              <th scope="col">Total return (%)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((item) => (
-              <tr key={item.label}>
-                <th scope="row">{item.detail ?? item.label}</th>
-                <td>{formatNumber(item.value, { maximumFractionDigits: 2 })}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Total return by scenario (%)"
+        columns={['Scenario', 'Total return (%)']}
+        rows={sorted.map((item) => ({
+          key: item.label,
+          label: item.detail ?? item.label,
+          cells: [`${formatNumber(item.value, { maximumFractionDigits: 2 })}%`],
+        }))}
+      />
 
       <div ref={ref} aria-hidden="true" className="w-full min-w-0" style={{ height: viewportHeight }}>
         {width > 0 ? (

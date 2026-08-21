@@ -7,8 +7,6 @@
  * decides how it is drawn. That is what makes swapping the engine possible
  * without touching the pages.
  *
- * The rule is enforced by `scripts/check-ui-boundaries.mjs`.
- *
  * ── Organization ──────────────────────────────────────────────────────────
  *   core/       the frame, the states, the theme — what every chart shares
  *   cartesian/  series on x/y axes (BTC production, reserve…)
@@ -17,18 +15,9 @@
  */
 
 /* ── Core ─────────────────────────────────────────────────────────────────── */
+/* Viewport helpers (`resolveChartViewport`, `chartViewport`, …) stay in
+   `core/chart-theme` — chart internals and tests import them there directly. */
 export { ChartFrame, type SeriesState } from '@/components/charts/core/chart-frame'
-export {
-  CHART_SPARK_VIEWPORT_PX,
-  CHART_VIEWPORT_PX,
-  chartHeight,
-  chartViewport,
-  defaultViewportForKind,
-  plottableAsChart,
-  resolveChartViewport,
-  type ChartKind,
-  type ChartViewportRole,
-} from '@/components/charts/core/chart-theme'
 
 /* ── Cartesian ────────────────────────────────────────────────────────────── */
 export { ReserveExposureChart, type BitcoinItem } from '@/components/charts/cartesian/product-charts'
@@ -36,32 +25,20 @@ export { ReserveExposureChart, type BitcoinItem } from '@/components/charts/cart
 /* ── richart ──────────────────────────────────────────────────────────────── */
 export { HearstActivityChart, type ActivityPoint } from '@/components/charts/richart/activity-chart'
 export { HearstAllocationChart, type AllocationItem } from '@/components/charts/richart/allocation-chart'
-export {
-  HearstBreakdownDonut,
-  type BreakdownSlice,
-} from '@/components/charts/richart/breakdown-donut'
-export { HearstCurveChart, type CurvePoint } from '@/components/charts/richart/curve-chart'
-export {
-  HearstExposureRadial,
-  type ExposureItem,
-} from '@/components/charts/richart/exposure-radial'
+export { HearstBreakdownDonut } from '@/components/charts/richart/breakdown-donut'
+export { HearstCurveChart } from '@/components/charts/richart/curve-chart'
+export { HearstExposureRadial } from '@/components/charts/richart/exposure-radial'
 export {
   RichDistributionChart,
   type DistributionItem,
 } from '@/components/charts/richart/distribution-chart'
 export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/donut-chart'
 export { HearstLineChart, type LinePoint } from '@/components/charts/richart/line-chart'
-export { SignedBarChart, type SignedBarItem } from '@/components/charts/richart/signed-bar-chart'
+export { SignedBarChart } from '@/components/charts/richart/signed-bar-chart'
 export { RichSparkline } from '@/components/charts/richart/sparkline'
-export {
-  VaultAumCbbtcChart,
-  type AumCbbtcPoint,
-} from '@/components/charts/richart/vault-aum-cbbtc-chart'
+export { VaultAumCbbtcChart } from '@/components/charts/richart/vault-aum-cbbtc-chart'
 export {
   AllocationDualLineChart,
   type AllocationPoint,
 } from '@/components/charts/richart/allocation-dual-line-chart'
-export {
-  BucketSparklines,
-  type BucketHistoryPoint,
-} from '@/components/charts/richart/bucket-sparklines'
+export { BucketSparklines } from '@/components/charts/richart/bucket-sparklines'

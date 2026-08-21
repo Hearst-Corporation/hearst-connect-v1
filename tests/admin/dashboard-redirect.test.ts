@@ -10,7 +10,8 @@ describe('dashboard URLs', () => {
     const source = readFileSync(ADMIN_PAGE, 'utf8')
     expect(source).toContain("from '@/features/admin-dashboard/admin-dashboard-page'")
     expect(source).toContain('<AdminDashboardPage')
-    expect(source).toContain('loadAdminDashboard')
+    // Thin route: panels stream their own cached read models — no blocking load here.
+    expect(source).not.toContain('loadAdminDashboard')
     expect(source).not.toContain('loadAdminRegistry')
     expect(source).toContain('requireSession')
     expect(source).not.toMatch(/AdminHomeDashboard/)

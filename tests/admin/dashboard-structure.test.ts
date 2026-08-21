@@ -19,7 +19,9 @@ const ACTIVITY = readFileSync(root('src/components/admin/dashboard/activity-time
 const VAULTS = readFileSync(root('src/components/admin/dashboard/vaults-panel.tsx'), 'utf8')
 const CLIENTS = readFileSync(root('src/components/admin/dashboard/recent-clients-panel.tsx'), 'utf8')
 const ACTIONS = readFileSync(root('src/components/actions/hearst-actions.tsx'), 'utf8')
-const LOAD = readFileSync(root('src/lib/admin-dashboard/load.ts'), 'utf8')
+const LOAD =
+  readFileSync(root('src/lib/admin-dashboard/load.ts'), 'utf8') +
+  readFileSync(root('src/lib/admin-dashboard/cache.ts'), 'utf8')
 
 describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
   it('uses Catalyst shell and DashboardHeader', () => {
@@ -63,13 +65,17 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
 
   it('loads admin dashboard read models server-side — no registry pilotage math', () => {
     expect(PAGE).not.toMatch(/^'use client'/)
-    expect(PAGE).toContain('loadAdminDashboard')
+    // Thin route: no blocking data load — panels stream via Suspense.
+    expect(PAGE).not.toMatch(/callBackend|fetch\(|loadAdmin/)
     expect(PAGE).not.toContain('loadAdminRegistry')
     expect(PAGE).not.toContain('buildFunnel')
     expect(SOURCE).toMatch(/AdminDashboardData/)
+    expect(SOURCE).toMatch(/<Suspense/)
     expect(SOURCE).not.toMatch(/buildFunnel|buildPriorityQueue|subscriptionsByProduct|movementDailyHeatmap/)
     expect(SOURCE).not.toMatch(/kycStatusBuckets|measuredCount|combine\(/)
     expect(LOAD).toContain('admin-portfolio-overview')
+    expect(LOAD).toContain("from 'react'")
+    expect(LOAD).toMatch(/cache\(/)
     expect(SOURCE).not.toMatch(/Math\.random\(/)
     expect(SOURCE).not.toMatch(/\.reduce\(/)
   })
@@ -104,7 +110,9 @@ describe('/admin — dashboard structure (WIRING-FIX-009)', () => {
       SOURCE.indexOf('Allocation and drift'),
       SOURCE.indexOf('Flow and history'),
     )
-    expect(primaryBlock).toMatch(/<PortfolioExposurePanel/)
+    // Streaming architecture: the async data wrapper mounts the panel.
+    expect(primaryBlock).toMatch(/<PortfolioExposureData/)
+    expect(SOURCE).toMatch(/<PortfolioExposurePanel/)
     expect(primaryBlock).not.toMatch(/<BentoGrid/)
     for (const t of [
       'Portfolio exposure',

@@ -1,11 +1,12 @@
 'use client'
 
 import {
-  resolveChartViewport,
   chartTheme,
   type ChartViewportRole,
 } from '@/components/charts/core/chart-theme'
-import { useChartWidth } from '@/components/charts/core/use-chart-width'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { ChartTooltipShell, TooltipRow, tooltipPoint } from '@/components/charts/richart/_shared/chart-tooltip'
+import { ChartViewportEmpty, sortByLabelTime, useChartViewport } from '@/components/charts/richart/_shared/viewport'
 import { formatNumber } from '@/lib/format'
 import { useId } from 'react'
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
@@ -28,6 +29,8 @@ import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
  */
 
 export type LinePoint = {
+  /** Stable React key when `label` is not unique (e.g. multiple samples on one calendar day). */
+  readonly id?: string
   readonly label: string
   readonly value: number
   readonly detail?: string
@@ -46,16 +49,13 @@ function LineTooltip({
   payload?: readonly { payload?: LinePoint }[]
   unit: string
 }>) {
-  const point = payload?.[0]?.payload
-  if (active !== true || point === undefined) return null
+  const point = tooltipPoint(active, payload)
+  if (point === null) return null
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-console-line dark:bg-console-raised dark:ring-console-line">
-      <p className="font-medium text-ink dark:text-fg">{point.detail ?? point.label}</p>
-      <p className="mt-1 text-fg-tertiary tabular-nums">
-        {unit}: {formatNumber(point.value, { maximumFractionDigits: 2 })}
-      </p>
-    </div>
+    <ChartTooltipShell title={point.detail ?? point.label}>
+      <TooltipRow first label={unit} value={formatNumber(point.value, { maximumFractionDigits: 2 })} />
+    </ChartTooltipShell>
   )
 }
 
@@ -75,48 +75,27 @@ export function HearstLineChart({
   yTickFormatter?: (v: number) => string
 }>) {
   // Hooks must run unconditionally — call before any early return (rules-of-hooks).
-  const { ref, width } = useChartWidth()
+  const { ref, width, viewportHeight } = useChartViewport({ height, viewport, kind: 'line' })
   const gradientId = useId()
-  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'line' })
 
   if (points.length === 0) {
-    return (
-      <div
-        className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
-        style={{ height: viewportHeight }}
-        data-chart-viewport={viewportHeight}
-      >
-        No data points for this period.
-      </div>
-    )
+    return <ChartViewportEmpty viewportHeight={viewportHeight} message="No data points for this period." />
   }
 
-  const sorted = [...points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
+  const sorted = sortByLabelTime(points)
   const data = sorted.map((p) => ({ ...p }))
 
   return (
     <div className="min-w-0">
-      <div className="sr-only">
-        <table>
-          <caption>
-            {unit} over time
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">{unit}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((p) => (
-              <tr key={p.label}>
-                <th scope="row">{p.detail ?? p.label}</th>
-                <td>{formatNumber(p.value, { maximumFractionDigits: 2 })}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption={`${unit} over time`}
+        columns={['Date', unit]}
+        rows={sorted.map((p) => ({
+          key: p.id ?? p.label,
+          label: p.detail ?? p.label,
+          cells: [formatNumber(p.value, { maximumFractionDigits: 2 })],
+        }))}
+      />
 
       <div
         ref={ref}

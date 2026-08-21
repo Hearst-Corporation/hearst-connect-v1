@@ -1,6 +1,20 @@
 import 'server-only'
 
-import { callBackend } from '@/lib/backend/client'
+import {
+  fetchActivityTimeseries,
+  fetchDataHealth,
+  fetchMarketSnapshot,
+  fetchPortfolioExposure,
+  fetchPortfolioOverview,
+  fetchRebalancingHistory,
+  fetchRebalancingOperations,
+  fetchRebalancingSummary,
+  fetchRecentActivity,
+  fetchRecentClients,
+  fetchVaultHistory,
+  fetchVaultsSummary,
+  type BackendResolved,
+} from '@/lib/admin-dashboard/cache'
 import type { ResolvedStatus } from '@/lib/resolved'
 import {
   available,
@@ -32,7 +46,6 @@ export {
 import type {
   AdminActivityEvent,
   AdminAllocationPoint,
-  AdminDashboardData,
   AdminDataHealthSource,
   AdminExposureStrategy,
   AdminMarketSnapshot,
@@ -46,15 +59,6 @@ import type {
   AdminVaultSummary,
 } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-
-/** Backend `Resolved<T>` block as returned inside envelope data. */
-type BackendResolved<T> = Readonly<{
-  status?: string
-  value: T | null
-  reason?: string | null
-  provenance?: string | null
-  freshness?: { asOf?: string | null; ageSeconds?: number | null; stale?: boolean } | null
-}>
 
 const DISPLAYABLE_STATUSES: ReadonlySet<ResolvedStatus> = new Set(['LIVE', 'STALE', 'PARTIAL', 'EMPTY'])
 
@@ -142,161 +146,173 @@ function unwrapAvailableField<T, K extends keyof T>(
   return withBlocMeta(bloc, bloc.value[field])
 }
 
-export async function loadAdminDashboard(): Promise<AdminDashboardData> {
-  const [
-    overviewRes,
-    exposureRes,
-    rebalancingRes,
-    rebalancingHistoryRes,
-    timeseriesRes,
-    marketRes,
-    vaultsRes,
-    clientsRes,
-    activityRes,
-    healthRes,
-  ] = await Promise.all([
-    callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>('admin-portfolio-overview'),
-    callBackend<{ exposure: BackendResolved<{ strategies: readonly AdminExposureStrategy[]; totalAumAtomic: string }> }>(
-      'admin-portfolio-exposure',
-    ),
-    callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
-    callBackend<{
-      history: BackendResolved<readonly AdminRebalancingHistoryPoint[]>
-    }>('rebalancing-history', { params: { limit: 90 } }),
-    callBackend<{ timeseries: BackendResolved<{ series: readonly AdminTimeseriesPoint[] }> }>(
-      'admin-activity-timeseries',
-      { params: { range: '28d' } },
-    ),
-    callBackend<{ snapshot: BackendResolved<AdminMarketSnapshot> }>('admin-market-snapshot'),
-    callBackend<{ vaultsSummary: BackendResolved<{ vaults: readonly AdminVaultSummary[]; totalAumAtomic: string }> }>(
-      'admin-vaults-summary',
-    ),
-    callBackend<{ clients: BackendResolved<readonly AdminRecentClient[]> }>('admin-clients-recent', {
-      params: { limit: 5 },
-    }),
-    callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
-      params: { limit: 10 },
-    }),
-    callBackend<{ sources: BackendResolved<readonly AdminDataHealthSource[]> }>('admin-data-health'),
-  ])
+/* ── Granular read models ────────────────────────────────────────────────────
+   One loader per backend read model, all backed by the React-cache fetchers
+   in `./cache` — Suspense panels and page composers share the same request
+   without duplicate backend calls. */
 
-  const overview = fromBackendOrUnavailable(
-    overviewRes,
-    overviewRes.ok ? overviewRes.data.overview : undefined,
+export async function loadAdminOverview(): Promise<Availability<AdminPortfolioOverview>> {
+  const res = await fetchPortfolioOverview()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.overview : undefined,
     '/api/v1/admin/portfolio/overview',
   )
+}
 
-  const exposureBloc = fromBackendOrUnavailable(
-    exposureRes,
-    exposureRes.ok ? exposureRes.data.exposure : undefined,
+export async function loadAdminExposure(): Promise<Availability<readonly AdminExposureStrategy[]>> {
+  const res = await fetchPortfolioExposure()
+  const bloc = fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.exposure : undefined,
     '/api/v1/admin/portfolio/exposure',
   )
-  const exposure = unwrapAvailableField(exposureBloc, 'strategies')
+  return unwrapAvailableField(bloc, 'strategies')
+}
 
-  const rebalancing = fromBackendOrUnavailable(
-    rebalancingRes,
-    rebalancingRes.ok ? rebalancingRes.data.summary : undefined,
+export async function loadAdminRebalancingSummary(): Promise<Availability<AdminRebalancingSummary>> {
+  const res = await fetchRebalancingSummary()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.summary : undefined,
     '/api/v1/admin/rebalancing/summary',
   )
+}
 
-  const rebalancingHistory = fromBackendOrUnavailable(
-    rebalancingHistoryRes,
-    rebalancingHistoryRes.ok ? rebalancingHistoryRes.data.history : undefined,
+export async function loadAdminRebalancingHistory(
+  limit = 90,
+): Promise<Availability<readonly AdminRebalancingHistoryPoint[]>> {
+  const res = await fetchRebalancingHistory(limit)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.history : undefined,
     '/api/v1/rebalancing/history',
   )
+}
 
-  const timeseriesBloc = fromBackendOrUnavailable(
-    timeseriesRes,
-    timeseriesRes.ok ? timeseriesRes.data.timeseries : undefined,
+export async function loadAdminRebalancingOperations(
+  limit = 50,
+): Promise<Availability<readonly AdminRebalancingOperation[]>> {
+  const res = await fetchRebalancingOperations(limit)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.operations : undefined,
+    '/api/v1/rebalancing/operations',
+  )
+}
+
+export async function loadAdminActivityTimeseries(
+  range = '28d',
+): Promise<Availability<readonly AdminTimeseriesPoint[]>> {
+  const res = await fetchActivityTimeseries(range)
+  const bloc = fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.timeseries : undefined,
     '/api/v1/admin/activity/timeseries',
   )
-  const activityTimeseries = unwrapAvailableField(timeseriesBloc, 'series')
+  return unwrapAvailableField(bloc, 'series')
+}
 
-  const market = fromBackendOrUnavailable(
-    marketRes,
-    marketRes.ok ? marketRes.data.snapshot : undefined,
+export async function loadAdminMarketSnapshot(): Promise<Availability<AdminMarketSnapshot>> {
+  const res = await fetchMarketSnapshot()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.snapshot : undefined,
     '/api/v1/admin/market/snapshot',
   )
+}
 
-  const vaultsBloc = fromBackendOrUnavailable(
-    vaultsRes,
-    vaultsRes.ok ? vaultsRes.data.vaultsSummary : undefined,
+export async function loadAdminVaultsSummary(): Promise<Availability<readonly AdminVaultSummary[]>> {
+  const res = await fetchVaultsSummary()
+  const bloc = fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.vaultsSummary : undefined,
     '/api/v1/admin/vaults/summary',
   )
-  const vaults = unwrapAvailableField(vaultsBloc, 'vaults')
+  return unwrapAvailableField(bloc, 'vaults')
+}
 
-  // Fetch allocation breakdown (cbBTC + USDC) for the vault with the highest AUM.
-  let cbbtcAllocation: Availability<readonly AdminAllocationPoint[]> = unavailable({
-    endpoint: '/api/v1/vault/history',
-    reason: 'no_vaults_available',
-  })
-  if (isAvailable(vaults) && vaults.value.length > 0) {
-    const topVault = [...vaults.value].sort(
-      (a, b) => Number(b.totalAssetsAtomic) - Number(a.totalAssetsAtomic),
-    )[0]
-    const historyRes = await callBackend<{
-      snapshots: BackendResolved<
-        readonly {
-          takenAt: string
-          btcPriceUsdc: string
-          allocations?: readonly { bucket: string; pct: string; valueUsdc: string }[]
-        }[]
-      >
-    }>('vault-history', { params: { vaultId: topVault.id, limit: 28 } })
-    if (historyRes.ok && historyRes.data.snapshots?.value) {
-      const points = historyRes.data.snapshots.value
-        .map((s) => {
-          const cbbtc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('cbbtc'))
-          const usdc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('usdc'))
-          if (!cbbtc || !usdc) return null
-          return {
-            at: s.takenAt.slice(0, 10),
-            cbbtcPct: Number(cbbtc.pct),
-            usdcPct: Number(usdc.pct),
-            btcPriceUsdc: Number(s.btcPriceUsdc),
-          }
-        })
-        .filter((p): p is NonNullable<typeof p> => p !== null)
-      cbbtcAllocation = available(points, { provenance: 'unknown' })
-    } else {
-      cbbtcAllocation = unavailable({
-        endpoint: '/api/v1/vault/history',
-        reason: historyRes.ok ? 'no_allocation_data' : 'service_did_not_respond',
-      })
-    }
-  }
-
-  const recentClients = fromBackendOrUnavailable(
-    clientsRes,
-    clientsRes.ok ? clientsRes.data.clients : undefined,
+export async function loadAdminRecentClients(
+  limit = 5,
+): Promise<Availability<readonly AdminRecentClient[]>> {
+  const res = await fetchRecentClients(limit)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.clients : undefined,
     '/api/v1/admin/clients/recent',
   )
+}
 
-  const recentActivity = fromBackendOrUnavailable(
-    activityRes,
-    activityRes.ok ? activityRes.data.events : undefined,
+export async function loadAdminRecentActivity(
+  limit = 10,
+): Promise<Availability<readonly AdminActivityEvent[]>> {
+  const res = await fetchRecentActivity(limit)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.events : undefined,
     '/api/v1/admin/activity/recent',
   )
+}
 
-  const dataHealth = fromBackendOrUnavailable(
-    healthRes,
-    healthRes.ok ? healthRes.data.sources : undefined,
+export async function loadAdminDataHealth(): Promise<Availability<readonly AdminDataHealthSource[]>> {
+  const res = await fetchDataHealth()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.sources : undefined,
     '/api/v1/admin/data-health',
   )
+}
 
-  return {
-    overview,
-    exposure,
-    rebalancing,
-    activityTimeseries,
-    rebalancingHistory,
-    market,
-    vaults,
-    recentClients,
-    recentActivity,
-    dataHealth,
-    cbbtcAllocation,
+/**
+ * Allocation breakdown (cbBTC + USDC) for the vault with the highest AUM.
+ * Chained read: vaults summary → top vault history — both cached fetchers.
+ */
+export async function loadAdminCbbtcAllocation(
+  limit = 28,
+): Promise<Availability<readonly AdminAllocationPoint[]>> {
+  const vaults = await loadAdminVaultsSummary()
+  if (!isAvailable(vaults) || vaults.value.length === 0) {
+    return unavailable({ endpoint: '/api/v1/vault/history', reason: 'no_vaults_available' })
   }
+
+  const topVault = [...vaults.value].sort(
+    (a, b) => Number(b.totalAssetsAtomic) - Number(a.totalAssetsAtomic),
+  )[0]
+  const historyRes = await fetchVaultHistory(topVault.id, limit)
+
+  if (historyRes.ok && historyRes.data.snapshots?.value) {
+    const points = historyRes.data.snapshots.value
+      .map((s) => {
+        const cbbtc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('cbbtc'))
+        const usdc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('usdc'))
+        if (!cbbtc || !usdc) return null
+        return {
+          at: s.takenAt.slice(0, 10),
+          cbbtcPct: Number(cbbtc.pct),
+          usdcPct: Number(usdc.pct),
+          btcPriceUsdc: Number(s.btcPriceUsdc),
+        }
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null)
+    return available(points, { provenance: 'unknown' })
+  }
+
+  return unavailable({
+    endpoint: '/api/v1/vault/history',
+    reason: historyRes.ok ? 'no_allocation_data' : 'service_did_not_respond',
+  })
+}
+
+/**
+ * Portfolio asset scale (asset + decimals) from the backend overview.
+ * Returns null when the overview is unavailable — atomic amounts must then be
+ * rendered without a blind decimal assumption, never with a hardcoded 6dp.
+ */
+export async function loadAdminAssetScale(): Promise<AdminAssetScale | null> {
+  const overview = await loadAdminOverview()
+  return isAvailable(overview)
+    ? { asset: overview.value.asset, decimals: overview.value.decimals }
+    : null
 }
 
 /**
@@ -306,85 +322,29 @@ export async function loadAdminDashboard(): Promise<AdminDashboardData> {
 export async function loadAdminClientsDirectory(
   limit = 100,
 ): Promise<Availability<readonly AdminRecentClient[]>> {
-  const clientsRes = await callBackend<{ clients: BackendResolved<readonly AdminRecentClient[]> }>(
-    'admin-clients-recent',
-    { params: { limit } },
-  )
-  return clientsRes.ok
-    ? fromBackend(clientsRes.data.clients, '/api/v1/admin/clients/recent')
-    : unavailable({ endpoint: '/api/v1/admin/clients/recent', reason: 'service_did_not_respond' })
-}
-
-/**
- * Portfolio asset scale (asset + decimals) from the backend overview.
- * Returns null when the overview is unavailable — atomic amounts must then be
- * rendered without a blind decimal assumption, never with a hardcoded 6dp.
- */
-export async function loadAdminAssetScale(): Promise<AdminAssetScale | null> {
-  const overviewRes = await callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>(
-    'admin-portfolio-overview',
-  )
-  if (!overviewRes.ok) return null
-  const overview = fromBackend(overviewRes.data.overview, '/api/v1/admin/portfolio/overview')
-  return isAvailable(overview)
-    ? { asset: overview.value.asset, decimals: overview.value.decimals }
-    : null
+  return loadAdminRecentClients(limit)
 }
 
 /** Focused read models for `/admin/operations` — no market/portfolio extras. */
 export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurface> {
-  const [rebalancingRes, activityRes, overviewRes, exposureRes, rebalancingHistoryRes, rebalancingOperationsRes] =
+  const [rebalancing, recentActivity, overview, exposure, rebalancingHistory, rebalancingOperations] =
     await Promise.all([
-      callBackend<{ summary: BackendResolved<AdminRebalancingSummary> }>('admin-rebalancing-summary'),
-      callBackend<{ events: BackendResolved<readonly AdminActivityEvent[]> }>('admin-activity-recent', {
-        params: { limit: 25 },
-      }),
-      callBackend<{ overview: BackendResolved<AdminPortfolioOverview> }>('admin-portfolio-overview'),
-      callBackend<{
-        exposure: BackendResolved<{ strategies: readonly AdminExposureStrategy[]; totalAumAtomic: string }>
-      }>('admin-portfolio-exposure'),
-      callBackend<{
-        history: BackendResolved<readonly AdminRebalancingHistoryPoint[]>
-      }>('rebalancing-history', { params: { limit: 90 } }),
-      callBackend<{
-        operations: BackendResolved<readonly AdminRebalancingOperation[]>
-      }>('rebalancing-operations', { params: { limit: 50 } }),
+      loadAdminRebalancingSummary(),
+      loadAdminRecentActivity(25),
+      loadAdminOverview(),
+      loadAdminExposure(),
+      loadAdminRebalancingHistory(90),
+      loadAdminRebalancingOperations(50),
     ])
 
-  const overview = overviewRes.ok
-    ? fromBackend(overviewRes.data.overview, '/api/v1/admin/portfolio/overview')
-    : unavailable({ endpoint: '/api/v1/admin/portfolio/overview', reason: 'service_did_not_respond' })
-
-  const exposureBloc = fromBackendOrUnavailable(
-    exposureRes,
-    exposureRes.ok ? exposureRes.data.exposure : undefined,
-    '/api/v1/admin/portfolio/exposure',
-  )
-
-  const rebalancingHistory = fromBackendOrUnavailable(
-    rebalancingHistoryRes,
-    rebalancingHistoryRes.ok ? rebalancingHistoryRes.data.history : undefined,
-    '/api/v1/rebalancing/history',
-  )
-
-  const rebalancingOperations = fromBackendOrUnavailable(
-    rebalancingOperationsRes,
-    rebalancingOperationsRes.ok ? rebalancingOperationsRes.data.operations : undefined,
-    '/api/v1/rebalancing/operations',
-  )
-
   return {
-    rebalancing: rebalancingRes.ok
-      ? fromBackend(rebalancingRes.data.summary, '/api/v1/admin/rebalancing/summary')
-      : unavailable({ endpoint: '/api/v1/admin/rebalancing/summary', reason: 'service_did_not_respond' }),
-    recentActivity: activityRes.ok
-      ? fromBackend(activityRes.data.events, '/api/v1/admin/activity/recent')
-      : unavailable({ endpoint: '/api/v1/admin/activity/recent', reason: 'service_did_not_respond' }),
+    rebalancing,
+    recentActivity,
     // Real portfolio scale — absent overview stays absent (null), never a blind 6-decimal assumption.
     assetScale: isAvailable(overview)
       ? { asset: overview.value.asset, decimals: overview.value.decimals }
       : null,
-    exposure: unwrapAvailableField(exposureBloc, 'strategies'),
+    exposure,
     rebalancingHistory,
     rebalancingOperations,
   }

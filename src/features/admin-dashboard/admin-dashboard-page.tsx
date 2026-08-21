@@ -6,8 +6,10 @@ import {
   DashboardShell,
   DataHealthGrid,
   MarketSnapshotPanel,
+  PanelFallback,
   PortfolioExposurePanel,
   RebalancingAlertsPanel,
+  RebalancingDriftChart,
   RecentClientsPanel,
   VaultsPanel,
   type DashboardKpi,
@@ -17,11 +19,24 @@ import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { SectionHeader } from '@/components/compositions'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
-import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import {
+  loadAdminActivityTimeseries,
+  loadAdminAssetScale,
+  loadAdminCbbtcAllocation,
+  loadAdminDataHealth,
+  loadAdminExposure,
+  loadAdminMarketSnapshot,
+  loadAdminOverview,
+  loadAdminRebalancingHistory,
+  loadAdminRebalancingSummary,
+  loadAdminRecentActivity,
+  loadAdminRecentClients,
+  loadAdminVaultsSummary,
+} from '@/lib/admin-dashboard/load'
 import { formatCurrency, formatDriftPts } from '@/lib/format'
 import type { SessionUser } from '@/lib/session'
 import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
-import type { ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
@@ -29,9 +44,9 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/16/solid'
 
-function vaultsKpiUnit(data: AdminDashboardData): string | undefined {
-  if (!isAvailable(data.overview)) return undefined
-  const { totalVaults, activeVaults } = data.overview.value
+function vaultsKpiUnit(overview: AdminDashboardData['overview']): string | undefined {
+  if (!isAvailable(overview)) return undefined
+  const { totalVaults, activeVaults } = overview.value
   if (totalVaults > activeVaults) return `/ ${totalVaults} total`
   return 'active'
 }
@@ -40,28 +55,68 @@ function unavailableReason(bloc: Availability<unknown>, fallback: string): strin
   return bloc.kind === 'unavailable' ? (bloc.reason ?? fallback) : fallback
 }
 
+// Order = hierarchy: AUM is the dominant fact (rendered display-large), then
+// drift leads the supporting band (pilotage angle: how much, and is it drifting).
+function kpisFromOverview(overview: AdminDashboardData['overview']): readonly DashboardKpi[] {
+  const deployedAmount = mapAvailability(overview, (o) =>
+    formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
+  )
+  return [
+    {
+      id: 'aum',
+      title: 'Total AUM',
+      value: mapAvailability(overview, (o) => formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals })),
+      unit: isAvailable(overview) ? overview.value.asset : undefined,
+      icon: BanknotesIcon,
+    },
+    {
+      id: 'drift',
+      title: 'Maximum drift',
+      value: mapAvailability(overview, (o) => formatDriftPts(o.maxDriftBps)),
+      unit: isAvailable(overview) ? (overview.value.maxDriftStrategyLabel ?? '—') : undefined,
+      icon: ExclamationTriangleIcon,
+    },
+    {
+      id: 'vaults',
+      title: 'Vaults',
+      value: mapAvailability(overview, (o) => String(o.activeVaults)),
+      unit: vaultsKpiUnit(overview),
+      icon: CubeTransparentIcon,
+    },
+    {
+      id: 'deployed',
+      title: 'Deployed capital',
+      value: mapAvailability(overview, (o) => `${o.deployedPct}%`),
+      unit: isAvailable(deployedAmount) ? deployedAmount.value : undefined,
+      icon: ArrowTrendingUpIcon,
+    },
+  ]
+}
+
 function ActivityChartSlot({
-  showActivityCurve,
-  activityNotConfigured,
-  activityPoints,
   activityTimeseries,
 }: Readonly<{
-  showActivityCurve: boolean
-  activityNotConfigured: boolean
-  activityPoints: ActivityPoint[]
   activityTimeseries: AdminDashboardData['activityTimeseries']
 }>) {
-  if (showActivityCurve) {
+  const points: ActivityPoint[] = isAvailable(activityTimeseries)
+    ? activityTimeseries.value.map((point) => ({
+        label: point.at.slice(5),
+        value: point.value,
+        detail: point.at,
+      }))
+    : []
+
+  if (points.length >= 2) {
     return (
       <HearstActivityChart
-        points={activityPoints}
+        points={points}
         unit="events"
         viewport="compact"
       />
     )
   }
 
-  if (activityNotConfigured) {
+  if (isAdminNotConfigured(activityTimeseries)) {
     return (
       <ChartPlaceholder
         title="Activity index not configured"
@@ -143,50 +198,6 @@ function BtcPriceSlot({
   return <ChartPlaceholder title="BTC price" />
 }
 
-function RebalancingHistorySlot({
-  rebalancingHistory,
-}: Readonly<{
-  rebalancingHistory: AdminDashboardData['rebalancingHistory']
-}>) {
-  const points: LinePoint[] = isAvailable(rebalancingHistory)
-    ? rebalancingHistory.value.map((p) => ({
-        label: p.takenAt.slice(0, 10),
-        value: p.driftBps,
-        detail: p.takenAt,
-      }))
-    : []
-
-  if (points.length >= 2) {
-    return (
-      <HearstLineChart
-        points={points}
-        unit="drift (bps)"
-        viewport="compact"
-      />
-    )
-  }
-
-  if (isAdminNotConfigured(rebalancingHistory)) {
-    return (
-      <ChartPlaceholder
-        title="Rebalancing history not configured"
-        detail={unavailableReason(rebalancingHistory, 'No rebalancing history indexed yet.')}
-      />
-    )
-  }
-
-  if (!isAvailable(rebalancingHistory)) {
-    return (
-      <ChartPlaceholder
-        title="Data unavailable"
-        detail={unavailableReason(rebalancingHistory, 'Source unavailable')}
-      />
-    )
-  }
-
-  return <ChartPlaceholder title="Rebalancing drift" />
-}
-
 function DashPanel({
   title,
   subtitle,
@@ -199,65 +210,83 @@ function DashPanel({
   )
 }
 
+/* ── Streaming data panels ───────────────────────────────────────────────────
+   Each panel awaits its own read model; the React-cache fetchers in
+   `lib/admin-dashboard/cache` dedupe shared endpoints across panels, so
+   streaming costs no extra backend calls. */
+
+async function HeaderData({ userName }: Readonly<{ userName: string }>) {
+  const overview = await loadAdminOverview()
+  const kpis = kpisFromOverview(overview)
+  return <DashboardHeader userName={userName} kpis={kpis} />
+}
+
+async function PortfolioExposureData() {
+  const [exposure, assetScale] = await Promise.all([loadAdminExposure(), loadAdminAssetScale()])
+  return <PortfolioExposurePanel strategies={exposure} assetScale={assetScale} />
+}
+
+async function RebalancingAlertsData() {
+  const rebalancing = await loadAdminRebalancingSummary()
+  return <RebalancingAlertsPanel summary={rebalancing} />
+}
+
+async function ActivityChartData() {
+  const activityTimeseries = await loadAdminActivityTimeseries()
+  return <ActivityChartSlot activityTimeseries={activityTimeseries} />
+}
+
+async function ActivityTimelineData() {
+  const [recentActivity, assetScale] = await Promise.all([loadAdminRecentActivity(10), loadAdminAssetScale()])
+  return <ActivityTimelinePanel events={recentActivity} assetScale={assetScale} />
+}
+
+async function RebalancingHistoryData() {
+  const rebalancingHistory = await loadAdminRebalancingHistory()
+  return <RebalancingDriftChart rebalancingHistory={rebalancingHistory} />
+}
+
+async function VaultsData() {
+  const [vaults, assetScale] = await Promise.all([loadAdminVaultsSummary(), loadAdminAssetScale()])
+  return <VaultsPanel vaults={vaults} assetScale={assetScale} />
+}
+
+async function RecentClientsData() {
+  const [clients, assetScale] = await Promise.all([loadAdminRecentClients(5), loadAdminAssetScale()])
+  return <RecentClientsPanel clients={clients} assetScale={assetScale} />
+}
+
+async function MarketData() {
+  const market = await loadAdminMarketSnapshot()
+  return <MarketSnapshotPanel snapshot={market} />
+}
+
+async function BtcPriceData() {
+  const cbbtcAllocation = await loadAdminCbbtcAllocation()
+  return <BtcPriceSlot cbbtcAllocation={cbbtcAllocation} />
+}
+
+async function AllocationData() {
+  const cbbtcAllocation = await loadAdminCbbtcAllocation()
+  return <AllocationSlot cbbtcAllocation={cbbtcAllocation} />
+}
+
+async function DataHealthData() {
+  const dataHealth = await loadAdminDataHealth()
+  return <DataHealthGrid sources={dataHealth} />
+}
+
 /**
  * Admin dashboard — portfolio cockpit.
  * Hierarchy: hero KPIs → asymmetric primary (exposure + alerts) → grouped masonry.
+ * Every panel streams independently behind a Suspense boundary.
  */
-export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboardData; user: SessionUser }>) {
-  const assetScale: AdminAssetScale | null = isAvailable(data.overview)
-    ? { asset: data.overview.value.asset, decimals: data.overview.value.decimals }
-    : null
-
-  const deployedAmount = mapAvailability(data.overview, (o) =>
-    formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
-  )
-
-  // Order = hierarchy: AUM is the dominant fact (rendered display-large), then
-  // drift leads the supporting band (pilotage angle: how much, and is it drifting).
-  const kpis: readonly DashboardKpi[] = [
-    {
-      id: 'aum',
-      title: 'Total AUM',
-      value: mapAvailability(data.overview, (o) => formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals })),
-      unit: isAvailable(data.overview) ? data.overview.value.asset : undefined,
-      icon: BanknotesIcon,
-    },
-    {
-      id: 'drift',
-      title: 'Maximum drift',
-      value: mapAvailability(data.overview, (o) => formatDriftPts(o.maxDriftBps)),
-      unit: isAvailable(data.overview) ? (data.overview.value.maxDriftStrategyLabel ?? '—') : undefined,
-      icon: ExclamationTriangleIcon,
-    },
-    {
-      id: 'vaults',
-      title: 'Vaults',
-      value: mapAvailability(data.overview, (o) => String(o.activeVaults)),
-      unit: vaultsKpiUnit(data),
-      icon: CubeTransparentIcon,
-    },
-    {
-      id: 'deployed',
-      title: 'Deployed capital',
-      value: mapAvailability(data.overview, (o) => `${o.deployedPct}%`),
-      unit: isAvailable(deployedAmount) ? deployedAmount.value : undefined,
-      icon: ArrowTrendingUpIcon,
-    },
-  ]
-
-  const activityPoints: ActivityPoint[] = isAvailable(data.activityTimeseries)
-    ? data.activityTimeseries.value.map((point) => ({
-        label: point.at.slice(5),
-        value: point.value,
-        detail: point.at,
-      }))
-    : []
-  const showActivityCurve = activityPoints.length >= 2
-  const activityNotConfigured = isAdminNotConfigured(data.activityTimeseries)
-
+export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
   return (
     <DashboardShell className="gap-10">
-      <DashboardHeader userName={user.name} kpis={kpis} />
+      <Suspense fallback={<PanelFallback label="Loading portfolio…" />}>
+        <HeaderData userName={user.name} />
+      </Suspense>
 
       <section className="flex flex-col gap-5">
         <SectionHeader
@@ -278,10 +307,14 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         <div className="@container min-w-0">
           <div className="grid items-start gap-6 @[34rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
             <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
-              <PortfolioExposurePanel strategies={data.exposure} assetScale={assetScale} />
+              <Suspense fallback={<PanelFallback />}>
+                <PortfolioExposureData />
+              </Suspense>
             </DashPanel>
             <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer">
-              <RebalancingAlertsPanel summary={data.rebalancing} />
+              <Suspense fallback={<PanelFallback />}>
+                <RebalancingAlertsData />
+              </Suspense>
             </DashPanel>
           </div>
         </div>
@@ -296,22 +329,23 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         <BentoGrid>
           <BentoCard span={6}>
             <DashPanel title="Activity" subtitle="Daily volume · 28 days">
-              <ActivityChartSlot
-                showActivityCurve={showActivityCurve}
-                activityNotConfigured={activityNotConfigured}
-                activityPoints={activityPoints}
-                activityTimeseries={data.activityTimeseries}
-              />
+              <Suspense fallback={<ChartPlaceholder title="Activity" />}>
+                <ActivityChartData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
           <BentoCard span={6}>
             <DashPanel title="Recent activity" subtitle="Blockchain and subscription timeline">
-              <ActivityTimelinePanel events={data.recentActivity} assetScale={assetScale} />
+              <Suspense fallback={<PanelFallback />}>
+                <ActivityTimelineData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
           <BentoCard span={12}>
             <DashPanel title="Rebalancing drift" subtitle="Historical allocation drift over time">
-              <RebalancingHistorySlot rebalancingHistory={data.rebalancingHistory} />
+              <Suspense fallback={<ChartPlaceholder title="Rebalancing drift" />}>
+                <RebalancingHistoryData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
         </BentoGrid>
@@ -326,12 +360,16 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         <BentoGrid>
           <BentoCard span={8}>
             <DashPanel title="Vaults" subtitle="Capital per vault">
-              <VaultsPanel vaults={data.vaults} assetScale={assetScale} />
+              <Suspense fallback={<PanelFallback />}>
+                <VaultsData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
           <BentoCard span={4}>
             <DashPanel title="Recent clients" subtitle="Exposure and Som KYC">
-              <RecentClientsPanel clients={data.recentClients} assetScale={assetScale} />
+              <Suspense fallback={<PanelFallback />}>
+                <RecentClientsData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
         </BentoGrid>
@@ -346,22 +384,30 @@ export function AdminDashboardPage({ data, user }: Readonly<{ data: AdminDashboa
         <BentoGrid>
           <BentoCard span={6}>
             <DashPanel title="Market" subtitle="Normalized snapshot">
-              <MarketSnapshotPanel snapshot={data.market} />
+              <Suspense fallback={<PanelFallback />}>
+                <MarketData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
           <BentoCard span={6}>
             <DashPanel title="BTC price" subtitle="At primary vault snapshots">
-              <BtcPriceSlot cbbtcAllocation={data.cbbtcAllocation} />
+              <Suspense fallback={<ChartPlaceholder title="BTC price" />}>
+                <BtcPriceData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
           <BentoCard span={6}>
             <DashPanel title="cbBTC / USDC allocation" subtitle="Primary vault — last 28 days">
-              <AllocationSlot cbbtcAllocation={data.cbbtcAllocation} />
+              <Suspense fallback={<ChartPlaceholder title="cbBTC / USDC allocation" />}>
+                <AllocationData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
           <BentoCard span={6}>
             <DashPanel title="Data health" subtitle="Source freshness">
-              <DataHealthGrid sources={data.dataHealth} />
+              <Suspense fallback={<PanelFallback />}>
+                <DataHealthData />
+              </Suspense>
             </DashPanel>
           </BentoCard>
         </BentoGrid>
