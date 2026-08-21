@@ -17,6 +17,7 @@ import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/com
 import { ChartFrame, HearstActivityChart, HearstDonutChart, HearstLineChart } from '@/components/charts'
 import type { ActivityPoint, LinePoint } from '@/components/charts'
 import {
+  isAdminNotConfigured,
   loadAdminOperationsSurface,
   type AdminActivityEvent,
   type AdminRebalancingOperation,
@@ -313,6 +314,14 @@ function RebalancingOperationsSection({
 }: Readonly<{
   operations: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['rebalancingOperations']
 }>) {
+  if (isAdminNotConfigured(operations)) {
+    return (
+      <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
+        <Text>No rebalance operations indexed yet.</Text>
+      </SectionCard>
+    )
+  }
+
   if (!isAvailable(operations)) {
     return (
       <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
