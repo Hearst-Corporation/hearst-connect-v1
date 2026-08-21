@@ -1,5 +1,3 @@
-'use client'
-
 import { surfaceInset } from '@/components/admin/surface'
 import { ProblemState, RequestMetadata } from '@/components/admin/truthful'
 import { Text } from '@/components/catalyst/text'

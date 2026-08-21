@@ -25,6 +25,9 @@ export function AdminPageHeader({
   dashboard?: boolean
 }>) {
   return (
+    // Card header band: escapes the card padding (`-mx/-mt`) and rounds only
+    // the top corners — it nests into the Catalyst content card restored on
+    // `SidebarLayout`, it is not a surface of its own.
     <header
       data-admin="hero-header"
       {...(dashboard

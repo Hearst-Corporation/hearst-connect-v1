@@ -84,7 +84,10 @@ export function SidebarLayout({
 
       {/* Content — sous le rail en z-index ; pl-64 réserve l’espace. */}
       <main className="relative z-10 flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
-        <div className="grow p-6 lg:rounded-lg lg:p-10">
+        {/* Catalyst content card — THE page surface (solid `console-surface`,
+            not a second glass): the hero header bleeds into its top corners
+            and the sections pad inside it. */}
+        <div className="grow p-6 lg:rounded-lg lg:bg-console-surface lg:shadow-xs lg:ring-1 lg:ring-console-line lg:p-10">
           <div className="w-full min-w-0">{children}</div>
         </div>
       </main>
