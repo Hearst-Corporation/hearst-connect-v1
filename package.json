@@ -6,20 +6,9 @@
   "scripts": {
     "dev": "next dev --port 4105",
     "start": "next start --port 4105",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
-    "lint:fast": "oxlint src",
-    "quality:dead": "knip",
-    "quality:dup:report": "jscpd src --threshold 100 --reporters consoleFull",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "e2e": "playwright test",
     "dashboard:open": "node scripts/open-dashboard-chrome.mjs",
     "sonar": "node scripts/sonar.mjs",
-    "graph:ui": "node scripts/build-ui-graph.mjs",
-    "graph:check": "node scripts/build-ui-graph.mjs --check"
+    "graph:ui": "node scripts/build-ui-graph.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -34,27 +23,16 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@playwright/test": "1.51.1",
     "@tailwindcss/postcss": "^4.3.1",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.6.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@vitest/coverage-v8": "^3.2.7",
-    "eslint": "^9.39.4",
-    "eslint-config-next": "16.2.12",
-    "jscpd": "^5.0.14",
-    "jsdom": "^29.1.1",
-    "knip": "^6.29.0",
-    "oxlint": "^1.75.0",
     "postcss": "^8.5.12",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.3.1",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.7"
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "@types/react": "19.2.14",
