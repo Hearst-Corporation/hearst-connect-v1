@@ -40,18 +40,8 @@ export const chartTheme = {
   gridOpacity: 0.06,
   tick: 'var(--chart-axis, var(--color-fg-tertiary))',
   cursor: 'color-mix(in oklab, var(--chart-axis, var(--color-fg-tertiary)) 8%, transparent)',
-  tooltip: {
-    bg: 'var(--color-white)',
-    border: 'color-mix(in oklab, var(--color-ink) 10%, transparent)',
-    title: 'var(--color-ink)',
-    body: 'var(--color-fg-tertiary)',
-  },
-  tooltipDark: {
-    bg: 'var(--chart-tooltip-surface, var(--color-console-raised))',
-    border: 'color-mix(in oklab, var(--color-white) 10%, transparent)',
-    title: 'var(--color-fg)',
-    body: 'var(--color-fg-secondary)',
-  },
+  /** Surface under the plot — the active-dot ring "cuts" the dot out of the line. */
+  plotSurface: 'var(--color-console-surface)',
 
   /**
    * Ordinary data. Mint and neutral, nothing else.
@@ -74,24 +64,6 @@ export const chartTheme = {
     warning: 'var(--chart-warning, var(--color-warning-400))',
     critical: 'var(--chart-negative, var(--color-danger-400))',
   },
-
-  /**
-   * Compatibility aliases over the two groups above. Kept so existing charts
-   * resolve, but every one of them now points at a role: `positive`,
-   * `warning` and `negative` are the semantic colors and must only be used
-   * where the value genuinely carries that state.
-   */
-  series: {
-    primary: 'var(--color-accent-400)',
-    primaryFill: 'var(--color-accent-400)',
-    secondary: 'var(--color-accent-700)',
-    reference: 'var(--chart-neutral, var(--color-fg-tertiary))',
-    tertiary: 'var(--color-console-fill)',
-    ghost: 'var(--color-console-fill-muted)',
-    positive: 'var(--chart-positive, var(--color-success-400))',
-    warning: 'var(--chart-warning, var(--color-warning-400))',
-    negative: 'var(--chart-negative, var(--color-danger-400))',
-  },
 } as const
 
 /**
@@ -105,13 +77,15 @@ export const chartTheme = {
  * shades of green pretending to be six different meanings.
  */
 // Doctrine §7.5: a SERIES ramp via the `--chart-1..5` tokens (a grammar
-// distinct from the status colors). The fallbacks preserve the canonical
-// colors when the tokens do not resolve.
+// distinct from the status colors). The fallbacks mirror the live token
+// values in `src/styles/tailwind.css` (`--chart-2: fg-secondary`,
+// `--chart-3: fg-tertiary`, `--chart-4: fg-muted`) — same colors whether or
+// not the CSS vars resolve.
 const CATEGORICAL_RAMP = [
   'var(--chart-1, var(--color-accent-400))',
-  'var(--chart-2, var(--color-fg))',
-  'var(--chart-3, var(--color-fg-secondary))',
-  'var(--chart-4, var(--color-fg-tertiary))',
+  'var(--chart-2, var(--color-fg-secondary))',
+  'var(--chart-3, var(--color-fg-tertiary))',
+  'var(--chart-4, var(--color-fg-muted))',
   'var(--chart-5, var(--color-console-fill))',
 ] as const
 

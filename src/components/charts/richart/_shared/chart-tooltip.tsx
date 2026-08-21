@@ -22,7 +22,7 @@ export function ChartTooltipShell({
   title,
   compact = false,
   children,
-}: Readonly<{ title: string; compact?: boolean; children: ReactNode }>) {
+}: Readonly<{ title?: string; compact?: boolean; children: ReactNode }>) {
   return (
     <div
       className={clsx(
@@ -30,7 +30,9 @@ export function ChartTooltipShell({
         compact ? 'px-2 py-1' : 'px-3 py-2',
       )}
     >
-      <p className="font-medium text-ink dark:text-fg">{title}</p>
+      {title !== undefined && title !== '' ? (
+        <p className="font-medium text-ink dark:text-fg">{title}</p>
+      ) : null}
       {children}
     </div>
   )

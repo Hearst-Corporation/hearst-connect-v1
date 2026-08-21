@@ -1,8 +1,10 @@
 'use client'
 
-import { resolveChartViewport, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
+import { chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { useChartViewport } from '@/components/charts/richart/_shared/viewport'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
  * richart — target vs actual allocation, paired horizontal bars.
@@ -22,7 +24,7 @@ const CONSTATE = chartTheme.dataSeries.dataReference
 type Row = { label: string; targetPct: number; actualPct: number | null }
 
 export function HearstAllocationChart({ items }: Readonly<{ items: readonly AllocationItem[] }>) {
-  const height = resolveChartViewport({ kind: 'rows' })
+  const { ref, width, viewportHeight } = useChartViewport({ kind: 'rows' })
   const anyActual = items.some((p) => p.actualPct !== null)
   const data: Row[] = items.map((p) => ({
     label: p.label,
@@ -32,31 +34,25 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
 
   return (
     <div className="px-5 pb-5 sm:px-6">
-      <div className="sr-only">
-        <table>
-          <caption>Target and actual allocation per pocket, in percent</caption>
-          <thead>
-            <tr>
-              <th scope="col">Poche</th>
-              <th scope="col">Target</th>
-              <th scope="col">Actual</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((p) => (
-              <tr key={p.label}>
-                <th scope="row">{p.label}</th>
-                <td>{formatChartPercent(p.targetPct)}</td>
-                <td>{p.actualPct === null ? 'Not read' : formatChartPercent(p.actualPct)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Target and actual allocation per pocket, in percent"
+        columns={['Poche', 'Target', 'Actual']}
+        rows={items.map((p) => ({
+          key: p.label,
+          label: p.label,
+          cells: [formatChartPercent(p.targetPct), p.actualPct === null ? 'Not read' : formatChartPercent(p.actualPct)],
+        }))}
+      />
 
-      <div aria-hidden="true" className="w-full" style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ ...chartTheme.margin, left: 8, right: 16 }}>
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className="w-full min-w-0"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
+        {width > 0 ? (
+          <BarChart width={width} height={viewportHeight} data={data} layout="vertical" margin={{ ...chartTheme.margin, left: 8, right: 16 }}>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
@@ -111,7 +107,7 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
               />
             ) : null}
           </BarChart>
-        </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   )

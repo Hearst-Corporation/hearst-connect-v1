@@ -1,6 +1,7 @@
 'use client'
 
-import { categoricalColor } from '@/components/charts/core/chart-theme'
+import { categoricalColor, chartTheme } from '@/components/charts/core/chart-theme'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
 import { formatNumber } from '@/lib/format'
 
 /**
@@ -48,7 +49,7 @@ const R_INNER = 21 // leaves a center hole for the metric
 const RING_GAP = 2.6
 // Track sits OFF the categorical ramp (categoricalColor(4) is console-fill), so a
 // 5th strategy's arc never collides with its own background track.
-const TRACK = 'var(--color-console-fill-muted)'
+const TRACK = chartTheme.dataSeries.neutralRaised
 
 /** Point on a circle; 0 % sits at 12 o'clock, values sweep clockwise. */
 function polar(radius: number, pct: number): { x: number; y: number } {
@@ -94,33 +95,21 @@ export function HearstExposureRadial({ items }: Readonly<{ items: readonly Expos
 
   return (
     <div className="w-full">
-      <div className="sr-only">
-        <table>
-          <caption>Target and actual allocation per strategy, in percent of vault</caption>
-          <thead>
-            <tr>
-              <th scope="col">Strategy</th>
-              <th scope="col">Target</th>
-              <th scope="col">Actual</th>
-              <th scope="col">Drift</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, index) => (
-              <tr key={`${r.label}-${index}`}>
-                <th scope="row">{r.label}</th>
-                <td>{formatNumber(r.targetPct, { maximumFractionDigits: 1 })}%</td>
-                <td>{r.actualPct === null ? 'not read' : `${formatNumber(r.actualPct, { maximumFractionDigits: 1 })}%`}</td>
-                <td>
-                  {r.drift === null
-                    ? 'not read'
-                    : `${r.drift >= 0 ? '+' : ''}${formatNumber(r.drift, { maximumFractionDigits: 1 })} pt`}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Target and actual allocation per strategy, in percent of vault"
+        columns={['Strategy', 'Target', 'Actual', 'Drift']}
+        rows={rows.map((r, index) => ({
+          key: `${r.label}-${index}`,
+          label: r.label,
+          cells: [
+            `${formatNumber(r.targetPct, { maximumFractionDigits: 1 })}%`,
+            r.actualPct === null ? 'not read' : `${formatNumber(r.actualPct, { maximumFractionDigits: 1 })}%`,
+            r.drift === null
+              ? 'not read'
+              : `${r.drift >= 0 ? '+' : ''}${formatNumber(r.drift, { maximumFractionDigits: 1 })} pt`,
+          ],
+        }))}
+      />
 
       <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
         <div className="relative h-[var(--chart-donut-viewport-block-size)] w-[var(--chart-donut-viewport-block-size)] max-w-full shrink-0">

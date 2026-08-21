@@ -38,7 +38,7 @@ export type LinePoint = {
 
 const SERIE = chartTheme.dataSeries.brandPrimary
 /** Surface color for the active-dot ring — keeps the marker legible on the line. */
-const SURFACE_RING = 'var(--color-console-surface)'
+const SURFACE_RING = chartTheme.plotSurface
 
 function LineTooltip({
   active,

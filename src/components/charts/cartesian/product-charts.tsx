@@ -1,20 +1,20 @@
 'use client'
 
-import { surfaceBox } from '@/components/admin/surface'
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Rectangle,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
   type BarShapeProps,
 } from 'recharts'
-import { resolveChartViewport, chartTheme } from '@/components/charts/core/chart-theme'
-import { formatCurrency, formatNumber } from '@/lib/format'
-import clsx from 'clsx'
+import { chartTheme } from '@/components/charts/core/chart-theme'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { useChartViewport } from '@/components/charts/richart/_shared/viewport'
+import { RichTooltip } from '@/components/charts/richart/tooltip'
+import { formatCurrency } from '@/lib/format'
 
 /**
  * Product-surface charts.
@@ -42,30 +42,6 @@ const SERIE = chartTheme.dataSeries.brandPrimary
 /** What it is read against — the other half of the allocation. */
 const REFERENCE = chartTheme.dataSeries.dataReference
 
-function ChartTooltip({
-  active,
-  payload,
-  label,
-  unit,
-}: Readonly<{
-  active?: boolean
-  payload?: readonly { name?: string; value?: number }[]
-  label?: string | number
-  unit: string
-}>) {
-  if (active !== true || payload === undefined || payload.length === 0) return null
-  return (
-    <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
-      <p className="font-medium text-fg">{label}</p>
-      {payload.map((p) => (
-        <p key={p.name} className="mt-0.5 text-fg tabular-nums">
-          {p.name}: {typeof p.value === 'number' ? `${formatNumber(p.value)} ${unit}` : '—'}
-        </p>
-      ))}
-    </div>
-  )
-}
-
 /* ── Reserve and exposure ────────────────────────────────────────────────── */
 
 export type BitcoinItem = { readonly item: string; readonly amount: number; readonly accent: boolean }
@@ -82,6 +58,9 @@ function PostBar(props: BarShapeProps) {
 
 /** "How much sits in reserve, how much is deployed as exposure?" */
 export function ReserveExposureChart({ items }: Readonly<{ items: readonly BitcoinItem[] }>) {
+  // Hooks before the early return (rules-of-hooks).
+  const { ref, width, viewportHeight } = useChartViewport({ kind: 'rows' })
+
   if (items.length === 0) {
     return (
       <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
@@ -92,29 +71,25 @@ export function ReserveExposureChart({ items }: Readonly<{ items: readonly Bitco
 
   return (
     <div className="px-3 pb-5 sm:px-4">
-      <div className="sr-only">
-        <table>
-          <caption>Reserve and exposure, in dollars</caption>
-          <thead>
-            <tr>
-              <th scope="col">Item</th>
-              <th scope="col">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((p) => (
-              <tr key={p.item}>
-                <th scope="row">{p.item}</th>
-                <td>{formatCurrency(p.amount, { fromAtomic: 1, decimals: 0 })}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Reserve and exposure, in dollars"
+        columns={['Item', 'Amount']}
+        rows={items.map((p) => ({
+          key: p.item,
+          label: p.item,
+          cells: [formatCurrency(p.amount, { fromAtomic: 1, decimals: 0 })],
+        }))}
+      />
 
-      <div aria-hidden="true" className="w-full" style={{ height: resolveChartViewport({ kind: 'rows' }) }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={[...items]} layout="vertical" margin={chartTheme.margin}>
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className="w-full min-w-0"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
+        {width > 0 ? (
+          <BarChart width={width} height={viewportHeight} data={[...items]} layout="vertical" margin={chartTheme.margin}>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
@@ -135,7 +110,7 @@ export function ReserveExposureChart({ items }: Readonly<{ items: readonly Bitco
               axisLine={false}
               width={96}
             />
-            <Tooltip content={<ChartTooltip unit="$" />} cursor={{ fill: chartTheme.cursor }} />
+            <Tooltip content={<RichTooltip unit="$" />} cursor={{ fill: chartTheme.cursor }} />
             <Bar
               dataKey="amount"
               name="Amount"
@@ -145,7 +120,7 @@ export function ReserveExposureChart({ items }: Readonly<{ items: readonly Bitco
               isAnimationActive={false}
             />
           </BarChart>
-        </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   )

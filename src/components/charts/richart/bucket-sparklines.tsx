@@ -4,6 +4,7 @@ import { chartTheme } from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
 import { ChartTooltipShell, TooltipRow, tooltipPoint } from '@/components/charts/richart/_shared/chart-tooltip'
+import { sortByLabelTime } from '@/components/charts/richart/_shared/viewport'
 import { formatNumber } from '@/lib/format'
 import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -83,7 +84,7 @@ export function BucketSparklines({
       <div ref={ref} aria-hidden="true" className="w-full min-w-0 space-y-4">
         {width > 0
           ? buckets.map((bucket, index) => {
-              const data = [...bucket.points].sort((a, b) => +new Date(a.label) - +new Date(b.label))
+              const data = sortByLabelTime(bucket.points)
               const color = bucketColor(index)
               return (
                 <div key={bucket.bucket} className="flex items-center gap-3">

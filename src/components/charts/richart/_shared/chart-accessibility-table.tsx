@@ -6,11 +6,14 @@ export function ChartAccessibilityTable({
   caption,
   columns,
   rows,
+  footer,
 }: Readonly<{
   caption: string
   /** First column names the row dimension (Date, Scenario…), the rest are values. */
   columns: readonly string[]
   rows: readonly { readonly key: string; readonly label: string; readonly cells: readonly string[] }[]
+  /** Optional totals row (part-to-whole charts) — rendered as `tfoot`. */
+  footer?: { readonly label: string; readonly cells: readonly string[] }
 }>) {
   return (
     <div className="sr-only">
@@ -35,6 +38,16 @@ export function ChartAccessibilityTable({
             </tr>
           ))}
         </tbody>
+        {footer ? (
+          <tfoot>
+            <tr>
+              <th scope="row">{footer.label}</th>
+              {footer.cells.map((cell, i) => (
+                <td key={i}>{cell}</td>
+              ))}
+            </tr>
+          </tfoot>
+        ) : null}
       </table>
     </div>
   )
