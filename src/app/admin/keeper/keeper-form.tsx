@@ -5,6 +5,7 @@ import {
   ActionOutcome,
   ConfirmField,
   KeeperMetricsFields,
+  actionButtonClass,
 } from '@/components/admin/forms/admin-action-form'
 import { StatusBadge } from '@/components/admin/truthful'
 import { Callout } from '@/components/compositions'
@@ -63,7 +64,7 @@ export function KeeperForm({
             <button
               type="submit"
               disabled={pending}
-              className="rounded-lg bg-accent-400 px-3 py-1.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+              className={actionButtonClass}
             >
               {pending ? 'Sending…' : 'Send request'}
             </button>

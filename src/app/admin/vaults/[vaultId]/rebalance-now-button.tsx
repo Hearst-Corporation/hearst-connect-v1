@@ -1,6 +1,8 @@
 'use client'
 
+import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
+import clsx from 'clsx'
 import { useToast } from '@/components/admin/toast'
 import { useRouter } from 'next/navigation'
 import { useTransition, useState, useCallback } from 'react'
@@ -52,7 +54,7 @@ export function RebalanceNowButton({ disabled, disabledReason }: Readonly<{ disa
         onClick={handleClick}
         disabled={disabled || isPending}
         title={disabledReason ?? undefined}
-        className="rounded-lg bg-accent-400 px-4 py-2.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+        className={clsx(actionButtonClass, 'w-full')}
       >
         {isPending ? 'Executing…' : 'Rebalance Now'}
       </button>
