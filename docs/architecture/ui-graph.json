@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
-  "sourceSha": "1b9947740db16f2a542b77a41eaa24dc79d63eae",
-  "generatedAt": "2026-08-21T16:23:37.139Z",
+  "sourceSha": "b57283c2e9eae7a5f36a33c1a9d00ee40e6bb7ce",
+  "generatedAt": "2026-08-21T16:42:07.902Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {

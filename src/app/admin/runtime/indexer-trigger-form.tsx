@@ -1,6 +1,7 @@
 'use client'
 
 import { surfaceInset } from '@/components/admin/surface'
+import { ActionOutcome } from '@/components/admin/forms/admin-action-form'
 import { Button } from '@/components/catalyst/button'
 import { Text } from '@/components/catalyst/text'
 import { triggerIndexer, type IndexerTriggerOutcome } from '@/lib/backend/indexer-trigger'
@@ -33,18 +34,7 @@ export function IndexerTriggerForm() {
       <Button type="submit" disabled={pending} color="dark/neutral">
         {pending ? 'Triggering…' : 'Run indexer'}
       </Button>
-      {state.validationError ? (
-        <Text className="text-danger-400">{state.validationError}</Text>
-      ) : null}
-      {state.stateReason ? (
-        <Text className="text-warning-400">{state.stateReason}</Text>
-      ) : null}
-      {state.problem ? (
-        <Text className="text-warning-400">
-          {state.problem.title}
-          {state.problem.detail ? ` — ${state.problem.detail}` : ''}
-        </Text>
-      ) : null}
+      <ActionOutcome outcome={state} />
       {state.ok ? (
         <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-fg')}>
           {state.detail ?? 'OK'}

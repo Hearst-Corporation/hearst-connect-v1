@@ -1,7 +1,12 @@
 'use client'
 
-import { surfaceBox, surfaceInset } from '@/components/admin/surface'
-import { ProblemState, RequestMetadata, StatusBadge } from '@/components/admin/truthful'
+import { surfaceBox } from '@/components/admin/surface'
+import {
+  ActionOutcome,
+  ConfirmField,
+  actionFieldClass,
+} from '@/components/admin/forms/admin-action-form'
+import { StatusBadge } from '@/components/admin/truthful'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
 import clsx from 'clsx'
@@ -15,39 +20,22 @@ import { useActionState } from 'react'
  * no transaction hash is ever displayed.
  */
 function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }>) {
-  const fieldClass = clsx(
-    surfaceInset,
-    'mt-1 w-full px-2 py-1.5 text-sm text-ink dark:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
-  )
-
   return (
     <>
       {needsMetrics ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs text-fg-tertiary dark:text-fg-secondary">hashrateTh — integer ≥ 0</span>
-            <input name="hashrateTh" type="number" min={0} step={1} required className={fieldClass} />
+            <input name="hashrateTh" type="number" min={0} step={1} required className={actionFieldClass} />
           </label>
           <label className="block">
             <span className="text-xs text-fg-tertiary dark:text-fg-secondary">btcEarnedSats — integer ≥ 0</span>
-            <input name="btcEarnedSats" type="number" min={0} step={1} required className={fieldClass} />
+            <input name="btcEarnedSats" type="number" min={0} step={1} required className={actionFieldClass} />
           </label>
         </div>
       ) : null}
 
-      <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
-          Type <span className="font-mono text-warning-400">CONFIRM</span> to send the
-          request
-        </span>
-        <input
-          name="confirm"
-          type="text"
-          autoComplete="off"
-          placeholder="CONFIRM"
-          className={`${fieldClass} font-mono sm:max-w-xs`}
-        />
-      </label>
+      <ConfirmField />
     </>
   )
 }
@@ -65,19 +53,12 @@ function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
     <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
       <p className="text-xs text-fg-tertiary dark:text-fg-secondary">
         Backend response:{' '}
-        <span className="font-mono text-ink dark:text-fg">
-          {outcome.result?.status ?? outcome.stateReason ?? '—'}
-        </span>
+        <span className="font-mono text-ink dark:text-fg">{outcome.result?.status ?? '—'}</span>
       </p>
       {outcome.result?.reason ? (
         <p className="mt-1 font-mono text-xs text-fg-tertiary dark:text-fg-secondary">reason: {outcome.result.reason}</p>
       ) : null}
-      <ProblemState problem={outcome.problem} keeper={outcome.result} />
-      {outcome.trace ? (
-        <div className="mt-3">
-          <RequestMetadata trace={outcome.trace} />
-        </div>
-      ) : null}
+      <ActionOutcome outcome={outcome} keeper={outcome.result} />
     </div>
   )
 }

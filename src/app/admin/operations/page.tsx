@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol, tableScrollFloor } from '@/components/compositions'
 import { ChartFrame, HearstActivityChart, HearstDonutChart } from '@/components/charts'
 import type { ActivityPoint } from '@/components/charts'
 import {
@@ -136,7 +136,7 @@ function RebalancingSection({
             <h3 className="text-sm font-semibold text-ink dark:text-fg">Needs attention</h3>
             <Badge color="neutral">{data.alerts.length}</Badge>
           </div>
-          <Table>
+          <Table className={tableScrollFloor}>
             <TableHead>
               <TableRow>
                 <TableHeader className={tableCol.primary}>Strategy</TableHeader>

@@ -1,7 +1,11 @@
 'use client'
 
 import { surfaceInset } from '@/components/admin/surface'
-import { ProblemState, RequestMetadata } from '@/components/admin/truthful'
+import {
+  ActionOutcome,
+  ConfirmField,
+  actionFieldClass,
+} from '@/components/admin/forms/admin-action-form'
 import { Button } from '@/components/catalyst/button'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
@@ -20,11 +24,6 @@ const INITIAL: CreateAdminUserOutcome = {
   createdUserId: null,
   createdEmail: null,
 }
-
-const FIELD_CLASS = clsx(
-  surfaceInset,
-  'mt-1 w-full px-2 py-1.5 text-sm text-ink dark:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
-)
 
 /**
  * Formulaire POST /api/v1/admin/users — fail-closed (CONFIRM requis).
@@ -50,7 +49,7 @@ export function CreateClientForm({
     <form action={action} className="max-w-md space-y-4">
       <label className="block">
         <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Email</span>
-        <input name="email" type="email" required autoComplete="off" className={FIELD_CLASS} />
+        <input name="email" type="email" required autoComplete="off" className={actionFieldClass} />
       </label>
 
       <label className="block">
@@ -61,52 +60,25 @@ export function CreateClientForm({
           required
           minLength={8}
           autoComplete="new-password"
-          className={FIELD_CLASS}
+          className={actionFieldClass}
         />
       </label>
 
       <label className="block">
         <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Role</span>
-        <select name="role" required defaultValue="investor" className={FIELD_CLASS}>
+        <select name="role" required defaultValue="investor" className={actionFieldClass}>
           <option value="investor">investor — simulated client</option>
           <option value="admin">admin</option>
         </select>
       </label>
 
-      <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
-          Type <span className="font-mono text-warning-400">CONFIRM</span> to send the
-          request
-        </span>
-        <input
-          name="confirm"
-          type="text"
-          autoComplete="off"
-          placeholder="CONFIRM"
-          className={`${FIELD_CLASS} font-mono sm:max-w-xs`}
-        />
-      </label>
+      <ConfirmField />
 
       <Button type="submit" disabled={pending} color="dark/neutral">
         {pending ? 'Creating…' : 'Create account'}
       </Button>
 
-      {state.validationError ? (
-        <Text className="text-danger-400">{state.validationError}</Text>
-      ) : null}
-      {state.stateReason ? (
-        <Text className="text-warning-400">{state.stateReason}</Text>
-      ) : null}
-      {state.problem ? (
-        <div className="mt-2">
-          <ProblemState problem={state.problem} keeper={null} />
-        </div>
-      ) : null}
-      {state.trace ? (
-        <div className="mt-2">
-          <RequestMetadata trace={state.trace} />
-        </div>
-      ) : null}
+      <ActionOutcome outcome={state} />
       {state.ok ? (
         <div className="space-y-2">
           <Callout tone="success" title="Account created">

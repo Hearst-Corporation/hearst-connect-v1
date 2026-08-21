@@ -25,6 +25,7 @@ export {
   SectionHeader,
   DataTableShell,
   tableCol,
+  tableScrollFloor,
   Callout,
   type TableColRole,
   type DeltaTone,
