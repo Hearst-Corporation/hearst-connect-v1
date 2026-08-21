@@ -30,14 +30,14 @@ export function AdminProbeResult({
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>
-      {reason ? <p className="mt-2 text-xs text-fg-tertiary dark:text-fg-secondary">{reason}</p> : null}
+      {reason ? <p className="mt-2 text-xs text-fg-secondary">{reason}</p> : null}
       <div className="mt-2">
         <RequestMetadata trace={trace} />
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-white">Raw JSON</summary>
-          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-ink dark:text-fg/80">{rawJson}</pre>
+          <summary className="cursor-pointer text-xs text-fg-secondary hover:text-fg">Raw JSON</summary>
+          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-fg/80">{rawJson}</pre>
         </details>
       ) : null}
       <ProblemState problem={problem ?? null} keeper={keeper ?? null} />
