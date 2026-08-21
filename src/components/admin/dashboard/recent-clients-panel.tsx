@@ -1,14 +1,13 @@
 import { PanelFooterLink, PanelState } from '@/components/admin/dashboard/panel-state'
 import { Badge } from '@/components/catalyst/badge'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { tableCol, tableScrollFloor } from '@/components/compositions'
+import { AdminTable, tableCol } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
@@ -40,7 +39,7 @@ export function RecentClientsPanel({
 
   return (
     <div className="space-y-4" data-widget="recent-clients">
-      <Table className={tableScrollFloor}>
+      <AdminTable>
         <TableHead>
           <TableRow>
             <TableHeader className={tableCol.primary}>Client</TableHeader>
@@ -66,7 +65,7 @@ export function RecentClientsPanel({
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </AdminTable>
 
       <PanelFooterLink href="/admin/clients" label="View all clients" />
     </div>
