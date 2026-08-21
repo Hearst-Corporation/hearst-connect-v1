@@ -26,7 +26,7 @@ export function MarketSnapshotPanel({
     return (
       <div
         data-widget="market-snapshot"
-        className="flex flex-col justify-center gap-1 py-5"
+        className="flex flex-col justify-center gap-2 py-5"
       >
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
         <p className="text-xs text-fg-tertiary">{snapshot.reason ?? 'Source unavailable'}</p>

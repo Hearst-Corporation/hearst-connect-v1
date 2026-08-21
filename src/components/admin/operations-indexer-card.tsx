@@ -1,6 +1,6 @@
 'use client'
 
-import { surfaceInset } from '@/components/admin/surface'
+import { surfaceBox } from '@/components/admin/surface'
 import { Button } from '@/components/catalyst/button'
 import {
   Dialog,
@@ -46,7 +46,8 @@ export function OperationsIndexerCard({
   const [state, action, pending] = useActionState(triggerIndexer, INITIAL)
 
   return (
-    <div className={clsx(surfaceInset, 'flex flex-col gap-3 p-4')} data-widget="operations-indexer">
+    // Top-level widget → surfaceBox (canon); surfaceInset is for nested wells.
+    <div className={clsx(surfaceBox, 'flex flex-col gap-3 p-4')} data-widget="operations-indexer">
       <div>
         <p className="text-sm font-semibold text-ink dark:text-fg">Indexer</p>
         <p className="mt-1 text-xs text-fg-tertiary dark:text-fg-secondary">

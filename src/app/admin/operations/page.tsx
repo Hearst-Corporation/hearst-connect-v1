@@ -1,7 +1,7 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { RebalancingDriftChart } from '@/components/admin/dashboard'
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
-import { surfaceInset } from '@/components/admin/surface'
+import { surfaceBox } from '@/components/admin/surface'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
@@ -448,7 +448,7 @@ export default async function Page() {
         <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
 
         <div
-          className={clsx(surfaceInset, 'flex flex-col gap-1.5 p-4')}
+          className={clsx(surfaceBox, 'flex flex-col gap-1.5 p-4')}
           data-widget="operations-last-rebalance"
         >
           <p className="text-sm font-semibold text-ink dark:text-fg">Last rebalance</p>

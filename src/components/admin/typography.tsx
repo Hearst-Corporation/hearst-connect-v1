@@ -4,27 +4,16 @@ import clsx from 'clsx'
  * Admin typography — canonical scale (dark-only product).
  * Text colors: Hearst semantic `fg` / `fg-secondary` / `fg-tertiary`.
  * KPI / amounts use `fg` (primary foreground), never raw `text-white`.
+ *
+ * Only the consumed keys live here — hero and KPI sizes are composed inline
+ * by `AdminHeroTitle` / `AdminHeroKpiMetrics` (their sizes are role-specific).
  */
 
 export const adminTypography = {
-  display: 'text-4xl/11 font-semibold tracking-tight text-fg',
-  pageTitle: 'text-3xl/9 font-semibold tracking-tight text-fg sm:text-4xl/10',
-  sectionTitle: 'text-xl/7 font-semibold tracking-tight text-fg',
-  surfaceTitle: 'text-base/6 font-semibold text-fg',
-  bodyLarge: 'text-base/7 text-fg-secondary',
-  body: 'text-sm/6 text-fg-secondary',
-  caption: 'text-xs/5 text-fg-secondary',
   label: 'text-[0.6875rem]/4 font-medium uppercase tracking-[0.08em] text-fg-secondary',
-  numericHero: 'text-4xl/10 font-semibold tracking-tight text-fg tabular-nums sm:text-5xl/10',
-  numericStandard: 'text-2xl/8 font-semibold tracking-tight text-fg tabular-nums',
-  mono: 'font-mono text-xs/5 text-fg-secondary',
 } as const
 
 type TypoProps = Readonly<{ children: React.ReactNode; className?: string }>
-
-export function AdminCaption({ children, className }: TypoProps) {
-  return <p className={clsx(adminTypography.caption, className)}>{children}</p>
-}
 
 export function AdminLabel({
   children,

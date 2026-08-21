@@ -1,4 +1,3 @@
-import { adminTypography } from '@/components/admin/typography'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
@@ -32,7 +31,14 @@ function HeroPrimary({ kpi }: Readonly<{ kpi: AdminHeroKpi }>) {
         <span className="truncate">{kpi.title}</span>
       </dt>
       <dd className="mt-1 flex items-baseline gap-2">
-        <span className={clsx(adminTypography.numericHero, !available && 'text-fg-tertiary')}>
+        <span
+          className={clsx(
+            // Hero size composed inline (like HeroSecondary) — one color class,
+            // never `numericHero` + a second text-* fighting over `color`.
+            'text-4xl/10 font-semibold tracking-tight tabular-nums sm:text-5xl/10',
+            available ? 'text-fg' : 'text-fg-tertiary',
+          )}
+        >
           {available ? kpi.value.value : '—'}
         </span>
         {kpi.unit !== undefined && kpi.unit !== '' ? (

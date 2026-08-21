@@ -9,9 +9,9 @@ import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/ou
 function RebalancingUnavailable() {
   return (
     <div className="space-y-4">
-      <div className="flex flex-col items-center justify-center py-8 text-center">
+      <div className="flex flex-col justify-center gap-2 py-5">
         <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <p className="mt-0.5 text-xs text-fg-tertiary">Source unavailable</p>
+        <p className="text-xs text-fg-tertiary">Source unavailable</p>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
         <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>

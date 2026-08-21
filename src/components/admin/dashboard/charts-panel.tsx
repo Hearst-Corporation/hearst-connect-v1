@@ -25,7 +25,7 @@ export function ChartPlaceholder({
     <output
       data-widget="chart-placeholder"
       data-chart-viewport={viewportPx}
-      className="flex h-full flex-col justify-center gap-1 py-5"
+      className="flex flex-col justify-center gap-1 py-5"
       style={{ height: viewportPx, minHeight: viewportPx }}
       aria-label={title}
     >

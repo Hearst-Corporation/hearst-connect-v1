@@ -132,7 +132,9 @@ function StateShell({
   children,
 }: Readonly<{ status: ResolvedStatus; title: string; reason?: string | null; children?: React.ReactNode }>) {
   return (
-    <div className={clsx(surfaceInset, 'border border-dashed border-console-line px-5 py-8 text-center')}>
+    // Dashed well — a distinct role from `surfaceInset` (whose solid ring would
+    // double the edge): inset background + ONE dashed border.
+    <div className={clsx('rounded-lg bg-console-inset border border-dashed border-console-line px-5 py-8 text-center')}>
       <StatusBadge status={status} />
       <p className="mt-3 text-sm font-medium text-fg">{title}</p>
       {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-fg-secondary">{reason}</p> : null}
