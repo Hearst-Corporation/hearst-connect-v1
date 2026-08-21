@@ -30,7 +30,7 @@ export function DropdownMenu({
       className={clsx(
         className,
         // Anchor positioning
-        '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(1)] data-[anchor~=end]:[--anchor-offset:6px] data-[anchor~=start]:[--anchor-offset:-6px] sm:data-[anchor~=end]:[--anchor-offset:4px] sm:data-[anchor~=start]:[--anchor-offset:-4px]',
+        '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(1)] data-[anchor~=end]:[--anchor-offset:--spacing(1.5)] data-[anchor~=start]:[--anchor-offset:--spacing(-1.5)] sm:data-[anchor~=end]:[--anchor-offset:--spacing(1)] sm:data-[anchor~=start]:[--anchor-offset:--spacing(-1)]',
         // Base styles
         'isolate w-max rounded-xl p-1',
         // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
@@ -40,7 +40,7 @@ export function DropdownMenu({
         // Popover background
         'bg-white/75 backdrop-blur-xl dark:bg-console-raised/75',
         // Shadows
-        'shadow-lg ring-1 ring-ink/10 dark:ring-white/10 dark:ring-inset',
+        'shadow-lg ring-1 ring-ink/10 dark:ring-console-line dark:ring-inset',
         // Define grid at the menu level if subgrid is supported
         'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
         // Transitions
@@ -62,9 +62,9 @@ export function DropdownItem({
     // Base styles
     'group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-hidden sm:px-3 sm:py-1.5',
     // Text styles
-    'text-left text-base/6 text-ink sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
+    'text-left text-base/6 text-ink sm:text-sm/6 dark:text-fg forced-colors:text-[CanvasText]',
     // Focus
-    'data-focus:bg-blue-500 data-focus:text-white',
+    'data-focus:bg-accent-600 data-focus:text-white',
     // Disabled state
     'data-disabled:opacity-50',
     // Forced colors mode
@@ -136,7 +136,7 @@ export function DropdownDivider({
 }
 
 export function DropdownLabel({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} {...props} />
+  return <div data-slot="label" {...props} className={clsx(className, 'col-start-2 row-start-1')} />
 }
 
 export function DropdownDescription({

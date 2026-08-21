@@ -12,7 +12,7 @@ export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'
 }
 
 export function NavbarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div aria-hidden="true" {...props} className={clsx(className, 'h-6 w-px bg-ink/10 dark:bg-white/10')} />
+  return <div aria-hidden="true" {...props} className={clsx(className, 'h-6 w-px bg-ink/10 dark:bg-console-line')} />
 }
 
 export function NavbarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -55,9 +55,9 @@ export const NavbarItem = forwardRef(function NavbarItem(
     // Active
     'data-active:bg-ink/5 data-active:*:data-[slot=icon]:fill-ink',
     // Dark mode
-    'dark:text-white dark:*:data-[slot=icon]:fill-fg-secondary',
-    'dark:data-hover:bg-white/5 dark:data-hover:*:data-[slot=icon]:fill-white',
-    'dark:data-active:bg-white/5 dark:data-active:*:data-[slot=icon]:fill-white'
+    'dark:text-fg dark:*:data-[slot=icon]:fill-fg-secondary',
+    'dark:data-hover:bg-fg/5 dark:data-hover:*:data-[slot=icon]:fill-fg',
+    'dark:data-active:bg-fg/5 dark:data-active:*:data-[slot=icon]:fill-fg'
   )
 
   return (
@@ -65,7 +65,7 @@ export const NavbarItem = forwardRef(function NavbarItem(
       {current && (
         <motion.span
           layoutId="current-indicator"
-          className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-ink dark:bg-white"
+          className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-ink dark:bg-fg"
         />
       )}
       {typeof props.href === 'string' ? (

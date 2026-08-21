@@ -64,7 +64,7 @@ export function TableRow({
         className={clsx(
           className,
           href &&
-            'has-[[data-row-link][data-focus]]:outline-2 has-[[data-row-link][data-focus]]:-outline-offset-2 has-[[data-row-link][data-focus]]:outline-blue-500 dark:focus-within:bg-white/2.5',
+            'has-[[data-row-link][data-focus]]:outline-2 has-[[data-row-link][data-focus]]:-outline-offset-2 has-[[data-row-link][data-focus]]:outline-accent-500 dark:focus-within:bg-fg/2.5',
           striped && 'even:bg-ink/2.5 dark:even:bg-white/2.5',
           href && striped && 'hover:bg-ink/5 dark:hover:bg-white/5',
           href && !striped && 'hover:bg-ink/2.5 dark:hover:bg-white/2.5'
@@ -82,7 +82,7 @@ export function TableHeader({ className, ...props }: React.ComponentPropsWithout
       {...props}
       className={clsx(
         className,
-        'border-b border-b-ink/10 px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2)) dark:border-b-white/10',
+        'border-b border-b-ink/10 px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2)) dark:border-b-console-line',
         grid && 'border-l border-l-ink/5 first:border-l-0 dark:border-l-white/5',
         !bleed && 'sm:first:pl-1 sm:last:pr-1'
       )}
@@ -102,8 +102,8 @@ export function TableCell({ className, children, ...props }: React.ComponentProp
       className={clsx(
         className,
         'relative px-4 first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))',
-        !striped && 'border-b border-ink/5 dark:border-white/5',
-        grid && 'border-l border-l-ink/5 first:border-l-0 dark:border-l-white/5',
+        !striped && 'border-b border-ink/5 dark:border-console-line-soft',
+        grid && 'border-l border-l-ink/5 first:border-l-0 dark:border-l-console-line-soft',
         dense ? 'py-2.5' : 'py-4',
         !bleed && 'sm:first:pl-1 sm:last:pr-1'
       )}

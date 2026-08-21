@@ -44,7 +44,7 @@ export const Input = forwardRef(function Input(
         // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
         'dark:before:hidden',
         // Focus ring
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset sm:focus-within:after:ring-2 sm:focus-within:after:ring-blue-500',
+        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset sm:focus-within:after:ring-2 sm:focus-within:after:ring-accent-500',
         // Disabled state
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-ink/5 has-data-disabled:before:shadow-none',
       ])}
@@ -72,17 +72,17 @@ export const Input = forwardRef(function Input(
           // Basic layout
           'relative block w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
           // Typography
-          'text-base/6 text-ink placeholder:text-fg-tertiary sm:text-sm/6 dark:text-white',
+          'text-base/6 text-ink placeholder:text-fg-tertiary sm:text-sm/6 dark:text-fg',
           // Border
-          'border border-ink/10 data-hover:border-ink/20 dark:border-white/10 dark:data-hover:border-white/20',
+          'border border-ink/10 data-hover:border-ink/20 dark:border-console-line dark:data-hover:border-console-line-strong',
           // Background color
-          'bg-transparent dark:bg-white/5',
+          'bg-transparent dark:bg-console-inset',
           // Hide default focus styles
           'focus:outline-hidden',
           // Invalid state
-          'data-invalid:border-red-500 data-invalid:data-hover:border-red-500 dark:data-invalid:border-red-600 dark:data-invalid:data-hover:border-red-600',
+          'data-invalid:border-danger-500 data-invalid:data-hover:border-danger-500 dark:data-invalid:border-danger-400 dark:data-invalid:data-hover:border-danger-400',
           // Disabled state
-          'data-disabled:border-ink/20 dark:data-disabled:border-white/15 dark:data-disabled:bg-white/2.5 dark:data-hover:data-disabled:border-white/15',
+          'data-disabled:border-ink/20 dark:data-disabled:border-console-line-strong dark:data-disabled:bg-fg/2.5 dark:data-hover:data-disabled:border-console-line-strong',
           // System icons
           'dark:scheme-dark',
         ])}
