@@ -72,12 +72,14 @@ function reserveExposureItems(
   reserveUsdc: string | null | undefined,
   exposureUsdc: string | null | undefined,
 ): readonly ReserveItem[] {
+  // `balanceUsdc` / `valueUsdc` are whole-USDC strings (codebase `*Usdc`
+  // convention, cf. factsheet `minimumDepositUsdc`) — no atomic divisor.
   const items: ReserveItem[] = []
   if (reserveUsdc !== null && reserveUsdc !== undefined && Number.isFinite(Number(reserveUsdc))) {
-    items.push({ item: 'Reserve', amount: Number(reserveUsdc) / 1_000_000 })
+    items.push({ item: 'Reserve', amount: Number(reserveUsdc) })
   }
   if (exposureUsdc !== null && exposureUsdc !== undefined && Number.isFinite(Number(exposureUsdc))) {
-    items.push({ item: 'Exposure', amount: Number(exposureUsdc) / 1_000_000 })
+    items.push({ item: 'Exposure', amount: Number(exposureUsdc) })
   }
   return items
 }
