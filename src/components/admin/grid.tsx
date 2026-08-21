@@ -43,7 +43,7 @@ export function BentoGrid({
           // row to its tallest card made a fixed-height chart (176px) get punched
           // with empty space next to a data-driven list — the dataset would then
           // own the row geometry (rule 60: DATASET SIZE DOES NOT OWN PAGE GEOMETRY).
-          'grid grid-cols-1 items-start @[48rem]:grid-cols-12',
+          'grid min-w-0 grid-cols-1 items-start @[48rem]:grid-cols-12',
           gridGap,
           className,
         )}

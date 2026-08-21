@@ -4,7 +4,7 @@ import { surfaceBox } from '@/components/admin/surface'
 import {
   ActionOutcome,
   ConfirmField,
-  actionFieldClass,
+  KeeperMetricsFields,
 } from '@/components/admin/forms/admin-action-form'
 import { StatusBadge } from '@/components/admin/truthful'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
@@ -13,56 +13,9 @@ import clsx from 'clsx'
 import { useActionState } from 'react'
 
 /**
- * Keeper action form — fail-closed.
- *
- * The operator must type "CONFIRM": no isolated click triggers a call.
- * Until the backend has responded, nothing is presented as executed, and
- * no transaction hash is ever displayed.
+ * Keeper action form — fail-closed. Nothing is presented as executed until
+ * the backend responds. No transaction hash is displayed here.
  */
-function KeeperActionFields({ needsMetrics }: Readonly<{ needsMetrics: boolean }>) {
-  return (
-    <>
-      {needsMetrics ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs text-fg-tertiary dark:text-fg-secondary">hashrateTh — integer ≥ 0</span>
-            <input name="hashrateTh" type="number" min={0} step={1} required className={actionFieldClass} />
-          </label>
-          <label className="block">
-            <span className="text-xs text-fg-tertiary dark:text-fg-secondary">btcEarnedSats — integer ≥ 0</span>
-            <input name="btcEarnedSats" type="number" min={0} step={1} required className={actionFieldClass} />
-          </label>
-        </div>
-      ) : null}
-
-      <ConfirmField />
-    </>
-  )
-}
-
-function KeeperOutcomePanel({ outcome }: Readonly<{ outcome: KeeperOutcome }>) {
-  if (outcome.validationError) {
-    return (
-      <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
-        <p className="text-xs text-warning-400">{outcome.validationError}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
-      <p className="text-xs text-fg-tertiary dark:text-fg-secondary">
-        Backend response:{' '}
-        <span className="font-mono text-ink dark:text-fg">{outcome.result?.status ?? '—'}</span>
-      </p>
-      {outcome.result?.reason ? (
-        <p className="mt-1 font-mono text-xs text-fg-tertiary dark:text-fg-secondary">reason: {outcome.result.reason}</p>
-      ) : null}
-      <ActionOutcome outcome={outcome} keeper={outcome.result} />
-    </div>
-  )
-}
-
 export function KeeperForm({
   endpoint,
   disabled,
@@ -96,7 +49,8 @@ export function KeeperForm({
       ) : (
         <form action={formAction} className="mt-4 space-y-3">
           <input type="hidden" name="endpointId" value={endpoint.id} />
-          <KeeperActionFields needsMetrics={needsMetrics} />
+          {needsMetrics ? <KeeperMetricsFields /> : null}
+          <ConfirmField />
           <button
             type="submit"
             disabled={pending}
@@ -107,7 +61,11 @@ export function KeeperForm({
         </form>
       )}
 
-      {outcome ? <KeeperOutcomePanel outcome={outcome} /> : null}
+      {outcome ? (
+        <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
+          <ActionOutcome outcome={outcome} />
+        </div>
+      ) : null}
     </section>
   )
 }

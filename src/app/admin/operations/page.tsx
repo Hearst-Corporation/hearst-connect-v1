@@ -7,14 +7,13 @@ import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard, tableCol, tableScrollFloor } from '@/components/compositions'
+import { Callout, DataTableShell, SectionCard, tableCol, AdminTable } from '@/components/compositions'
 import { ChartFrame, HearstActivityChart, HearstDonutChart } from '@/components/charts'
 import type { ActivityPoint } from '@/components/charts'
 import {
@@ -136,7 +135,7 @@ function RebalancingSection({
             <h3 className="text-sm font-semibold text-ink dark:text-fg">Needs attention</h3>
             <Badge color="neutral">{data.alerts.length}</Badge>
           </div>
-          <Table className={tableScrollFloor}>
+          <AdminTable>
             <TableHead>
               <TableRow>
                 <TableHeader className={tableCol.primary}>Strategy</TableHeader>
@@ -164,7 +163,7 @@ function RebalancingSection({
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </AdminTable>
         </div>
       ) : (
         <p className="mt-4 text-sm text-fg-tertiary dark:text-fg-secondary">

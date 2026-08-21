@@ -305,7 +305,7 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
           real container in both regimes (rail present ≥lg, or absent below it).
         */}
         <div className="@container min-w-0">
-          <div className="grid items-start gap-6 @[34rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
+          <div className="grid min-w-0 items-start gap-6 @[34rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
             <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
               <Suspense fallback={<PanelFallback />}>
                 <PortfolioExposureData />
