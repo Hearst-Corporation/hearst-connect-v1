@@ -114,21 +114,21 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
         className="-mx-2 block rounded-md px-2 py-3 transition-colors hover:bg-console-inset/40"
       >
         <div className="flex items-baseline justify-between gap-3">
-          <p className="truncate text-sm font-semibold text-ink dark:text-fg">{vault.label}</p>
-          <p className="shrink-0 tabular-nums text-sm text-ink dark:text-fg">
+          <p className="truncate text-sm font-semibold text-fg">{vault.label}</p>
+          <p className="shrink-0 tabular-nums text-sm text-fg">
             {!isAvailable(vault.worstDriftBps) ? '—' : driftPoints(driftBps!)}
           </p>
         </div>
         <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
           <div>
             <dt className="text-fg-tertiary">AUM</dt>
-            <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+            <dd className="mt-0.5 tabular-nums text-fg">
               <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} />
             </dd>
           </div>
           <div>
             <dt className="text-fg-tertiary">Deployed</dt>
-            <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+            <dd className="mt-0.5 tabular-nums text-fg">
               <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
               {deployedBps === null ? null : (
                 <span className="mt-0.5 block text-fg-tertiary">
@@ -139,7 +139,7 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
           </div>
           <div>
             <dt className="text-fg-tertiary">Available</dt>
-            <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
+            <dd className="mt-0.5 tabular-nums text-fg">
               <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />
             </dd>
           </div>
@@ -221,7 +221,7 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
             <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
               Vaults off target
             </dt>
-            <dd className="mt-1 text-2xl font-semibold tabular-nums text-ink dark:text-fg">
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-fg">
               {formatNumber(withDrift)}
               <span className="ml-1 text-sm font-normal text-fg-tertiary">
                 / {formatNumber(vaultList.length)}
@@ -232,7 +232,7 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
             <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
               Worst drift
             </dt>
-            <dd className="mt-1 text-2xl font-semibold tabular-nums text-ink dark:text-fg">
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-fg">
               {worstDrift === null ? '—' : driftPoints(worstDrift)}
             </dd>
           </div>
@@ -240,7 +240,7 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
       </SectionCard>
 
       <SectionCard title="Source" hint="Where this read comes from.">
-        <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+        <Text className="text-sm text-fg-secondary">
           Vault capital and drift are read from the service.{' '}
           <Link href="/admin/runtime" className="underline">
             Source health
@@ -257,7 +257,7 @@ function VaultRegistryContent({ vaultList }: Readonly<{ vaultList: readonly Vaul
     return (
       <Callout tone="warning" title="Vault read unavailable">
         The vault read did not succeed.{' '}
-        <Link href={entityHref('source', 'vault')} className="text-accent-600 dark:text-accent-400">
+        <Link href={entityHref('source', 'vault')} className="text-accent-400">
           Data coverage
         </Link>
       </Callout>
@@ -309,7 +309,7 @@ export default async function Page() {
 
       <VaultRegistryContent vaultList={vaultList} />
 
-      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+      <Text className="text-sm text-fg-secondary">
         Source health and endpoint coverage:{' '}
         <Link href="/admin/runtime" className="underline">
           Service

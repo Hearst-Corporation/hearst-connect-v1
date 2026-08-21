@@ -48,12 +48,12 @@ export function CreateClientForm({
     // the full admin content-column width on large screens.
     <form action={action} className="max-w-md space-y-4">
       <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Email</span>
+        <span className="text-xs text-fg-secondary">Email</span>
         <input name="email" type="email" required autoComplete="off" className={actionFieldClass} />
       </label>
 
       <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Password — min. 8 characters</span>
+        <span className="text-xs text-fg-secondary">Password — min. 8 characters</span>
         <input
           name="password"
           type="password"
@@ -65,7 +65,7 @@ export function CreateClientForm({
       </label>
 
       <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">Role</span>
+        <span className="text-xs text-fg-secondary">Role</span>
         <select name="role" required defaultValue="investor" className={actionFieldClass}>
           <option value="investor">investor — simulated client</option>
           <option value="admin">admin</option>

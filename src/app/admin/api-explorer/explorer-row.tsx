@@ -54,14 +54,14 @@ export function ExplorerRow({
     <div className="border-b border-console-line-soft px-4 py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="rounded bg-console-inset px-1.5 py-0.5 font-mono text-xs font-medium text-fg">{endpoint.method}</span>
-        <span className="font-mono text-xs break-all text-ink dark:text-fg">{endpoint.path}</span>
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">{endpoint.category}</span>
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">· {authLabel}</span>
+        <span className="font-mono text-xs break-all text-fg">{endpoint.path}</span>
+        <span className="text-xs text-fg-secondary">{endpoint.category}</span>
+        <span className="text-xs text-fg-secondary">· {authLabel}</span>
 
         <form action={formAction} className="ml-auto">
           <input type="hidden" name="endpointId" value={endpoint.id} />
           {blockedLabel !== null ? (
-            <span className="text-xs text-fg-tertiary dark:text-fg-secondary">{blockedLabel}</span>
+            <span className="text-xs text-fg-secondary">{blockedLabel}</span>
           ) : (
             <button
               type="submit"
@@ -74,7 +74,7 @@ export function ExplorerRow({
         </form>
       </div>
 
-      <p className="mt-1 text-xs text-fg-tertiary dark:text-fg-secondary">{endpoint.summary}</p>
+      <p className="mt-1 text-xs text-fg-secondary">{endpoint.summary}</p>
       {endpoint.caveat ? <p className="mt-1 text-xs text-warning-400">{endpoint.caveat}</p> : null}
 
       {outcome ? (
@@ -82,7 +82,7 @@ export function ExplorerRow({
           <div className="mb-2 flex items-center gap-2">
             <CopyButton text={outcome.rawJson} />
             {outcome.metaStatus ? (
-              <span className="text-xs text-fg-tertiary dark:text-fg-secondary">envelope: {outcome.metaStatus}</span>
+              <span className="text-xs text-fg-secondary">envelope: {outcome.metaStatus}</span>
             ) : null}
           </div>
           <AdminProbeResult
@@ -95,7 +95,7 @@ export function ExplorerRow({
       ) : null}
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-fg-tertiary dark:text-fg-secondary hover:text-ink dark:hover:text-fg">cURL (token redacted)</summary>
+        <summary className="cursor-pointer text-xs text-fg-secondary hover:text-fg">cURL (token redacted)</summary>
         <pre className={`${surfaceInset} mt-1 overflow-x-auto p-2 font-mono text-xs text-fg-secondary`}>{curl}</pre>
       </details>
 
