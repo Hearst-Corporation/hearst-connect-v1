@@ -1,23 +1,25 @@
-import { HearstSecondaryAction } from '@/components/actions'
+import { PanelFooterLink, PanelState } from '@/components/admin/dashboard/panel-state'
 import { Badge } from '@/components/catalyst/badge'
 import {
+  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { AdminTable, tableCol } from '@/components/compositions'
+import { tableCol, tableScrollFloor } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
-function ClientsFooter() {
+function ClientsState({ title, detail }: Readonly<{ title: string; detail: string }>) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-      <HearstSecondaryAction href="/admin/clients">View all clients</HearstSecondaryAction>
+    <div className="space-y-4">
+      <PanelState title={title} detail={detail} />
+      <PanelFooterLink href="/admin/clients" label="View all clients" />
     </div>
   )
 }
@@ -30,31 +32,15 @@ export function RecentClientsPanel({
   assetScale: AdminAssetScale | null
 }>) {
   if (!isAvailable(clients)) {
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-col justify-center gap-2 py-5">
-          <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-          <p className="text-xs text-fg-tertiary">Client directory source unavailable.</p>
-        </div>
-        <ClientsFooter />
-      </div>
-    )
+    return <ClientsState title="Data unavailable" detail="Client directory source unavailable." />
   }
   if (clients.value.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-col justify-center gap-2 py-5">
-          <p className="text-sm font-semibold text-ink dark:text-fg">No recent clients</p>
-          <p className="text-xs text-fg-tertiary">No client rows in the recent directory read.</p>
-        </div>
-        <ClientsFooter />
-      </div>
-    )
+    return <ClientsState title="No recent clients" detail="No client rows in the recent directory read." />
   }
 
   return (
     <div className="space-y-4" data-widget="recent-clients">
-      <AdminTable>
+      <Table className={tableScrollFloor}>
         <TableHead>
           <TableRow>
             <TableHeader className={tableCol.primary}>Client</TableHeader>
@@ -80,9 +66,9 @@ export function RecentClientsPanel({
             </TableRow>
           ))}
         </TableBody>
-      </AdminTable>
+      </Table>
 
-      <ClientsFooter />
+      <PanelFooterLink href="/admin/clients" label="View all clients" />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { StatusBadge } from '@/components/admin/truthful'
+import { PanelState } from '@/components/admin/dashboard/panel-state'
 import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
@@ -9,27 +9,20 @@ export function MarketSnapshotPanel({
 }: Readonly<{ snapshot: Availability<AdminMarketSnapshot> }>) {
   if (isAdminNotConfigured(snapshot)) {
     return (
-      <div
-        data-widget="market-snapshot"
-        className="flex flex-col justify-center gap-2 py-5"
-      >
-        <StatusBadge status="NOT_CONFIGURED" />
-        <p className="text-sm font-semibold text-ink dark:text-fg">Market feed not configured</p>
-        <p className="text-xs text-fg-tertiary">
-          {snapshot.kind === 'unavailable' ? snapshot.reason ?? 'No telemetry rows in the database yet.' : null}
-        </p>
+      <div data-widget="market-snapshot">
+        <PanelState
+          status="NOT_CONFIGURED"
+          title="Market feed not configured"
+          detail={snapshot.kind === 'unavailable' ? (snapshot.reason ?? 'No telemetry rows in the database yet.') : null}
+        />
       </div>
     )
   }
 
   if (!isAvailable(snapshot)) {
     return (
-      <div
-        data-widget="market-snapshot"
-        className="flex flex-col justify-center gap-2 py-5"
-      >
-        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <p className="text-xs text-fg-tertiary">{snapshot.reason ?? 'Source unavailable'}</p>
+      <div data-widget="market-snapshot">
+        <PanelState title="Data unavailable" detail={snapshot.reason ?? 'Source unavailable'} />
       </div>
     )
   }
@@ -63,7 +56,7 @@ export function MarketSnapshotPanel({
     >
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
-        <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{btc}</dd>
+        <dd className="mt-1 text-xl font-semibold tabular-nums text-fg">{btc}</dd>
         {btcChange !== null ? (
           <dd className="mt-0.5 text-xs text-fg-tertiary">
             {formatPercent(btcChange)} 24h
@@ -72,7 +65,7 @@ export function MarketSnapshotPanel({
       </div>
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Hashprice</dt>
-        <dd className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">{hashprice}</dd>
+        <dd className="mt-1 text-xl font-semibold tabular-nums text-fg">{hashprice}</dd>
         {hashpriceChange !== null ? (
           <dd className="mt-0.5 text-xs text-fg-tertiary">
             {formatPercent(hashpriceChange, { signed: true })}
@@ -81,11 +74,11 @@ export function MarketSnapshotPanel({
       </div>
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Energy</dt>
-        <dd className="mt-1 text-lg font-semibold tabular-nums text-ink dark:text-fg">{energy}</dd>
+        <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{energy}</dd>
       </div>
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Margin</dt>
-        <dd className="mt-1 text-lg font-semibold tabular-nums text-ink dark:text-fg">{margin}</dd>
+        <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{margin}</dd>
       </div>
     </dl>
   )

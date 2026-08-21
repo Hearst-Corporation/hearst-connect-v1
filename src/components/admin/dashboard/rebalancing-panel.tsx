@@ -1,24 +1,11 @@
 'use client'
 
 import { HearstSecondaryAction } from '@/components/actions'
+import { PanelFooterLink, PanelState } from '@/components/admin/dashboard/panel-state'
 import { formatDriftPts, formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-
-function RebalancingUnavailable() {
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col justify-center gap-2 py-5">
-        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <p className="text-xs text-fg-tertiary">Source unavailable</p>
-      </div>
-      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-        <HearstSecondaryAction href="/admin/operations">Open operations</HearstSecondaryAction>
-      </div>
-    </div>
-  )
-}
 
 function statusHeadline(data: AdminRebalancingSummary, stable: boolean): string {
   if (stable) return '✓ Portfolio stable'
@@ -41,7 +28,12 @@ export function RebalancingAlertsPanel({
   summary,
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   if (!isAvailable(summary)) {
-    return <RebalancingUnavailable />
+    return (
+      <div className="space-y-4">
+        <PanelState title="Data unavailable" detail="Source unavailable" />
+        <PanelFooterLink href="/admin/operations" label="Open operations" />
+      </div>
+    )
   }
 
   const data = summary.value
@@ -57,7 +49,7 @@ export function RebalancingAlertsPanel({
             <ExclamationTriangleIcon className="size-6 shrink-0 text-warning-500" aria-hidden="true" />
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-ink dark:text-fg">{statusHeadline(data, stable)}</p>
+            <p className="text-sm font-semibold text-fg">{statusHeadline(data, stable)}</p>
             <p className="mt-1 text-xs text-fg-tertiary">{statusDetail(data)}</p>
           </div>
         </div>
@@ -69,8 +61,8 @@ export function RebalancingAlertsPanel({
                 key={alert.strategyId}
                 className="flex min-w-0 items-center justify-between gap-2 border-t border-console-line-soft py-2 text-sm first:border-t-0"
               >
-                <span className="min-w-0 truncate font-medium text-ink dark:text-fg">{alert.strategyLabel}</span>
-                <span className="shrink-0 tabular-nums text-warning-700 dark:text-warning-400">
+                <span className="min-w-0 truncate font-medium text-fg">{alert.strategyLabel}</span>
+                <span className="shrink-0 tabular-nums text-warning-400">
                   {formatDriftPts(alert.driftBps)}
                 </span>
               </li>

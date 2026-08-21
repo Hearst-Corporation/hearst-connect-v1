@@ -1,4 +1,3 @@
-import { Text } from '@/components/catalyst/text'
 import {
   type ChartViewportRole,
   resolveChartViewport,
@@ -29,12 +28,8 @@ export function ChartPlaceholder({
       style={{ height: viewportPx, minHeight: viewportPx }}
       aria-label={title}
     >
-      <p className="text-sm font-semibold text-ink dark:text-fg">{title}</p>
-      {detail ? (
-        <p className="text-xs text-fg-tertiary">{detail}</p>
-      ) : (
-        <Text className="mt-0">No history available</Text>
-      )}
+      <p className="text-sm font-semibold text-fg">{title}</p>
+      <p className="text-xs text-fg-tertiary">{detail ?? 'No history available'}</p>
     </output>
   )
 }
