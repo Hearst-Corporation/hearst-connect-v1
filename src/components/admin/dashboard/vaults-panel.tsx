@@ -18,7 +18,7 @@ function VaultCard({
       : null
 
   return (
-    <article className="flex flex-col gap-2 border-t border-console-line-soft pt-4 first:border-t-0 first:pt-0">
+    <article className="flex min-w-0 flex-col gap-2">
       <h3 className="truncate text-sm font-semibold text-fg">{vault.label}</h3>
       <p className="text-xl font-semibold tabular-nums text-fg">
         {formatAdminAtomic(vault.totalAssetsAtomic, assetScale)}
@@ -71,10 +71,14 @@ export function VaultsPanel({
 
   return (
     <div className="space-y-4" data-widget="vaults-panel">
-      <div className="space-y-3">
-        {vaults.value.map((vault) => (
-          <VaultCard key={vault.id} vault={vault} assetScale={assetScale} />
-        ))}
+      {/* Capital band: vaults tile horizontally — one column per vault, any
+          count, never a vertical stack wasting the band's width. */}
+      <div className="@container">
+        <div className="grid grid-cols-1 gap-6 @[40rem]:grid-cols-2 @[64rem]:grid-cols-3">
+          {vaults.value.map((vault) => (
+            <VaultCard key={vault.id} vault={vault} assetScale={assetScale} />
+          ))}
+        </div>
       </div>
       <PanelFooterLink href="/admin/vaults" label="View all vaults" />
     </div>
