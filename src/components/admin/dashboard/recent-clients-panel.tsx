@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { tableCol } from '@/components/compositions'
+import { tableCol, tableScrollFloor } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
@@ -55,7 +55,7 @@ export function RecentClientsPanel({
 
   return (
     <div className="space-y-4" data-widget="recent-clients">
-      <Table>
+      <Table className={tableScrollFloor}>
         <TableHead>
           <TableRow>
             <TableHeader className={tableCol.primary}>Client</TableHeader>

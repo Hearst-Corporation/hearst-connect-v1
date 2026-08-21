@@ -310,6 +310,14 @@ export const tableCol: Record<TableColRole, string> = {
   action: 'whitespace-nowrap text-right',
 }
 
+/**
+ * Readability floor for admin tables. Every column role except `primary` is
+ * intrinsic and nowrap: below ~40rem of container they can no longer keep
+ * their measure next to a readable primary, so the table holds its floor and
+ * Catalyst's `overflow-x-auto` scrolls — columns are never crushed.
+ */
+export const tableScrollFloor = '[&_table]:min-w-[40rem]'
+
 export function DataTableShell({
   title,
   description,
@@ -356,7 +364,7 @@ export function DataTableShell({
       className={className}
       actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
     >
-      <Table className={csl.heroTable}>{children}</Table>
+      <Table className={clsx(csl.heroTable, tableScrollFloor)}>{children}</Table>
     </SectionCard>
   )
 }
