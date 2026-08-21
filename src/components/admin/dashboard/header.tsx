@@ -16,7 +16,7 @@ export function DashboardHeader({
   kpis,
   action,
 }: Readonly<{
-  title: string
+  title?: string
   description?: string
   kpis: readonly DashboardKpi[]
   action?: ReactNode
@@ -26,12 +26,14 @@ export function DashboardHeader({
       data-admin="hero-header"
       className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
     >
-      <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
-        {description !== undefined && description !== '' ? (
-          <p className="mt-0.5 text-xs text-fg-tertiary">{description}</p>
-        ) : null}
-      </div>
+      {title !== undefined && title !== '' ? (
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
+          {description !== undefined && description !== '' ? (
+            <p className="mt-0.5 text-xs text-fg-tertiary">{description}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
         {kpis.map((kpi) => {

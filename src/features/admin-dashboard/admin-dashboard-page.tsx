@@ -28,7 +28,6 @@ import {
   loadAdminAssetScale,
 } from '@/lib/admin-dashboard/load'
 import { formatCurrency, formatDriftPts } from '@/lib/format'
-import type { SessionUser } from '@/lib/session'
 import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
 import { Suspense, type ReactNode } from 'react'
 import {
@@ -140,13 +139,11 @@ type PanelSlot = keyof typeof PANEL_SLOT_CLASS
 
 function DashPanel({
   title,
-  subtitle,
   action,
   slot,
   children,
 }: Readonly<{
   title: string
-  subtitle: string
   action?: ReactNode
   slot?: PanelSlot
   children: ReactNode
@@ -156,7 +153,6 @@ function DashPanel({
       className="min-w-0"
       contentClassName={slot === undefined ? undefined : PANEL_SLOT_CLASS[slot]}
       title={title}
-      subtitle={subtitle}
       action={action}
     >
       {children}
@@ -169,16 +165,11 @@ function DashPanel({
    `lib/admin-dashboard/cache` dedupe shared endpoints across panels, so
    streaming costs no extra backend calls. */
 
-async function HeaderData({ userName }: Readonly<{ userName: string }>) {
+async function HeaderData() {
   const overview = await loadAdminOverview()
   const kpis = kpisFromOverview(overview)
-  const trimmed = userName.trim()
-  const rawFirst = trimmed.split(/\s+/)[0] || trimmed
-  const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : rawFirst
   return (
     <DashboardHeader
-      title={`Good morning, ${firstName}`}
-      description="Portfolio, market exposure and operations at a glance."
       kpis={kpis}
       action={
         <HearstPrimaryAction
@@ -233,11 +224,11 @@ async function RebalancingHistoryData() {
  * Explicit rows, each owning its grid; every panel streams independently
  * behind a Suspense boundary.
  */
-export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
+export function AdminDashboardPage() {
   return (
     <DashboardShell>
       <Suspense fallback={<PanelFallback label="Loading portfolio…" />}>
-        <HeaderData userName={user.name} />
+        <HeaderData />
       </Suspense>
 
       {/*
@@ -246,18 +237,28 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         the market strip is one thin band. No frozen slots, no voids, nothing
         stretches. Links live on the card title row, not in a footer strip.
       */}
+      {/* Market strip first — one thin band of readings at the top. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashPanel title="Market">
+            <Suspense fallback={<PanelFallback />}>
+              <MarketData />
+            </Suspense>
+          </DashPanel>
+        </BentoCard>
+      </BentoGrid>
+
       {/* Row A — pilotage + latest events rail. */}
       <BentoGrid>
         <BentoCard span={8}>
           <div className="flex min-w-0 flex-col gap-6">
-            <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target" slot="exposure">
+            <DashPanel title="Portfolio exposure" slot="exposure">
               <Suspense fallback={<PanelFallback />}>
                 <PortfolioExposureData />
               </Suspense>
             </DashPanel>
             <DashPanel
               title="Rebalancing & alerts"
-              subtitle="Drift and indexer"
               slot="signal"
               action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
             >
@@ -270,7 +271,6 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         <BentoCard span={4}>
           <DashPanel
             title="Recent activity"
-            subtitle="Blockchain and subscription timeline"
             slot="timeline"
             action={<PanelHeaderLink href="/admin/operations">View all activity</PanelHeaderLink>}
           >
@@ -284,14 +284,14 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
       {/* Row B — the chart pair: equal viewports, equal heights. */}
       <BentoGrid>
         <BentoCard span={6}>
-          <DashPanel title="Rebalancing drift" subtitle="Historical allocation drift over time">
+          <DashPanel title="Rebalancing drift">
             <Suspense fallback={<ChartPlaceholder title="Rebalancing drift" />}>
               <RebalancingHistoryData />
             </Suspense>
           </DashPanel>
         </BentoCard>
         <BentoCard span={6}>
-          <DashPanel title="Activity" subtitle="Daily volume · 28 days">
+          <DashPanel title="Activity">
             <Suspense fallback={<ChartPlaceholder title="Activity" />}>
               <ActivityChartData />
             </Suspense>
@@ -299,16 +299,6 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         </BentoCard>
       </BentoGrid>
 
-      {/* Row C — market strip: one thin band of readings. */}
-      <BentoGrid>
-        <BentoCard span={12}>
-          <DashPanel title="Market" subtitle="Normalized snapshot">
-            <Suspense fallback={<PanelFallback />}>
-              <MarketData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-      </BentoGrid>
     </DashboardShell>
   )
 }

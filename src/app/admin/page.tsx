@@ -1,6 +1,5 @@
 import { AdminDashboardPage } from '@/features/admin-dashboard/admin-dashboard-page'
 import { requireSession } from '@/lib/auth'
-import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -14,6 +13,6 @@ export const dynamic = 'force-dynamic'
  * and fetch through the cached read models in `lib/admin-dashboard`.
  */
 export default async function Page() {
-  const session = await requireSession()
-  return <AdminDashboardPage user={publicUser(session)} />
+  await requireSession()
+  return <AdminDashboardPage />
 }
