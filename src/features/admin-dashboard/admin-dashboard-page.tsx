@@ -4,33 +4,26 @@ import {
   DashCard,
   DashboardHeader,
   DashboardShell,
-  DataHealthGrid,
   MarketSnapshotPanel,
   PanelFallback,
   PortfolioExposurePanel,
   RebalancingAlertsPanel,
   RebalancingDriftChart,
-  RecentClientsPanel,
-  VaultsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
-import { AllocationDualLineChart, HearstActivityChart, HearstLineChart, type ActivityPoint, type AllocationPoint, type LinePoint } from '@/components/charts'
+import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import {
   loadAdminActivityTimeseries,
-  loadAdminAssetScale,
-  loadAdminCbbtcAllocation,
-  loadAdminDataHealth,
   loadAdminExposure,
   loadAdminMarketSnapshot,
   loadAdminOverview,
   loadAdminRebalancingHistory,
   loadAdminRebalancingSummary,
   loadAdminRecentActivity,
-  loadAdminRecentClients,
-  loadAdminVaultsSummary,
+  loadAdminAssetScale,
 } from '@/lib/admin-dashboard/load'
 import { formatCurrency, formatDriftPts } from '@/lib/format'
 import type { SessionUser } from '@/lib/session'
@@ -54,8 +47,8 @@ function unavailableReason(bloc: Availability<unknown>, fallback: string): strin
   return bloc.kind === 'unavailable' ? (bloc.reason ?? fallback) : fallback
 }
 
-// Order = hierarchy: AUM is the dominant fact (rendered display-large), then
-// drift leads the supporting band (pilotage angle: how much, and is it drifting).
+// Order = hierarchy: AUM is the dominant fact, then drift (pilotage angle:
+// how much, and is it drifting).
 function kpisFromOverview(overview: AdminDashboardData['overview']): readonly DashboardKpi[] {
   const deployedAmount = mapAvailability(overview, (o) =>
     formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
@@ -127,83 +120,35 @@ function ActivityChartSlot({
   return <ChartPlaceholder title="Activity" />
 }
 
-function AllocationSlot({
-  cbbtcAllocation,
-}: Readonly<{
-  cbbtcAllocation: AdminDashboardData['cbbtcAllocation']
-}>) {
-  const points: AllocationPoint[] = isAvailable(cbbtcAllocation)
-    ? cbbtcAllocation.value.map((p) => ({
-        label: p.at,
-        cbbtcPct: p.cbbtcPct,
-        usdcPct: p.usdcPct,
-        detail: p.at,
-      }))
-    : []
+/**
+ * Fixed panel slots (content area height, px) — the box is FROZEN whether the
+ * data is loading, absent, or plotted. Dataset never owns geometry: content
+ * taller than the slot scrolls inside the box, never the page. Heights are the
+ * settled content measures (ring + tabs, 3 alert rows, 2×2 metrics, capped
+ * timeline + footer).
+ */
+const PANEL_SLOT_CLASS = {
+  exposure: 'h-[304px] overflow-y-auto',
+  signal: 'h-[188px] overflow-y-auto',
+  metrics: 'h-[196px] overflow-y-auto',
+  timeline: 'h-[553px] overflow-y-auto',
+} as const
 
-  if (points.length >= 2) {
-    return (
-      <AllocationDualLineChart
-        points={points}
-        viewport="compact"
-      />
-    )
-  }
-
-  if (!isAvailable(cbbtcAllocation)) {
-    return (
-      <ChartPlaceholder
-        title="Data unavailable"
-        detail={unavailableReason(cbbtcAllocation, 'Source unavailable')}
-      />
-    )
-  }
-
-  return <ChartPlaceholder title="cbBTC / USDC allocation" />
-}
-
-function BtcPriceSlot({
-  cbbtcAllocation,
-}: Readonly<{
-  cbbtcAllocation: AdminDashboardData['cbbtcAllocation']
-}>) {
-  const points: LinePoint[] = isAvailable(cbbtcAllocation)
-    ? cbbtcAllocation.value.map((p) => ({
-        label: p.at,
-        value: p.btcPriceUsdc,
-        detail: p.at,
-      }))
-    : []
-
-  if (points.length >= 2) {
-    return (
-      <HearstLineChart
-        points={points}
-        unit="BTC price (USDC)"
-        viewport="compact"
-      />
-    )
-  }
-
-  if (!isAvailable(cbbtcAllocation)) {
-    return (
-      <ChartPlaceholder
-        title="Data unavailable"
-        detail={unavailableReason(cbbtcAllocation, 'Source unavailable')}
-      />
-    )
-  }
-
-  return <ChartPlaceholder title="BTC price" />
-}
+type PanelSlot = keyof typeof PANEL_SLOT_CLASS
 
 function DashPanel({
   title,
   subtitle,
+  slot,
   children,
-}: Readonly<{ title: string; subtitle: string; children: ReactNode }>) {
+}: Readonly<{ title: string; subtitle: string; slot?: PanelSlot; children: ReactNode }>) {
   return (
-    <DashCard className="min-w-0" title={title} subtitle={subtitle}>
+    <DashCard
+      className="min-w-0"
+      contentClassName={slot === undefined ? undefined : PANEL_SLOT_CLASS[slot]}
+      title={title}
+      subtitle={subtitle}
+    >
       {children}
     </DashCard>
   )
@@ -230,6 +175,11 @@ async function RebalancingAlertsData() {
   return <RebalancingAlertsPanel summary={rebalancing} />
 }
 
+async function MarketData() {
+  const market = await loadAdminMarketSnapshot()
+  return <MarketSnapshotPanel snapshot={market} />
+}
+
 async function ActivityChartData() {
   const activityTimeseries = await loadAdminActivityTimeseries()
   return <ActivityChartSlot activityTimeseries={activityTimeseries} />
@@ -245,47 +195,16 @@ async function RebalancingHistoryData() {
   return <RebalancingDriftChart rebalancingHistory={rebalancingHistory} />
 }
 
-async function VaultsData() {
-  const [vaults, assetScale] = await Promise.all([loadAdminVaultsSummary(), loadAdminAssetScale()])
-  return <VaultsPanel vaults={vaults} assetScale={assetScale} />
-}
-
-async function RecentClientsData() {
-  const [clients, assetScale] = await Promise.all([loadAdminRecentClients(5), loadAdminAssetScale()])
-  return <RecentClientsPanel clients={clients} assetScale={assetScale} />
-}
-
-async function MarketData() {
-  const market = await loadAdminMarketSnapshot()
-  return <MarketSnapshotPanel snapshot={market} />
-}
-
-async function BtcPriceData() {
-  const cbbtcAllocation = await loadAdminCbbtcAllocation()
-  return <BtcPriceSlot cbbtcAllocation={cbbtcAllocation} />
-}
-
-async function AllocationData() {
-  const cbbtcAllocation = await loadAdminCbbtcAllocation()
-  return <AllocationSlot cbbtcAllocation={cbbtcAllocation} />
-}
-
-async function DataHealthData() {
-  const dataHealth = await loadAdminDataHealth()
-  return <DataHealthGrid sources={dataHealth} />
-}
-
 /**
- * Admin dashboard — portfolio cockpit.
+ * Admin dashboard — the cockpit FIRST SCREEN.
  *
- * EXPLICIT ROWS, never one global grid: a single 12-track grid across the
- * whole page is fake masonry — CSS Grid waits for the tallest card before
- * starting the next row, so mismatched heights blow white holes into the
- * composition. Each row owns its grid and pairs panels of similar intrinsic
- * height (charts with charts, the long timeline against a self-filling
- * rail). Row order is the pilotage hierarchy: exposure → drift trend →
- * chart row → flow → capital band.
- * Every panel streams independently behind a Suspense boundary.
+ * Only what counts at a glance: KPI strip → exposure + signal rail → drift
+ * trend → flow. No pages of scroll, no secondary charts — BTC price and
+ * cbBTC/USDC allocation live on the vault page, clients on /admin/clients,
+ * source health on /admin/runtime, capital detail on /admin/vaults.
+ *
+ * Explicit rows, each owning its grid; every panel streams independently
+ * behind a Suspense boundary.
  */
 export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
   return (
@@ -294,16 +213,10 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         <HeaderData userName={user.name} />
       </Suspense>
 
-      {/*
-        Height-balanced rows (intrinsic panel heights, measured): a row never
-        pairs a tall panel with a short one — charts sit with charts, the long
-        timeline faces a rail that fills itself, and every rail stack sums to
-        its dominant's height. No voids, no fake masonry.
-      */}
-      {/* Row A — pilotage: exposure dominant (~650px), signal rail beside it. */}
+      {/* Row A — pilotage: exposure dominant, signal rail beside it. */}
       <BentoGrid>
         <BentoCard span={8}>
-          <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
+          <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target" slot="exposure">
             <Suspense fallback={<PanelFallback />}>
               <PortfolioExposureData />
             </Suspense>
@@ -311,12 +224,12 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         </BentoCard>
         <BentoCard span={4}>
           <div className="flex min-w-0 flex-col gap-6">
-            <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer">
+            <DashPanel title="Rebalancing & alerts" subtitle="Drift and indexer" slot="signal">
               <Suspense fallback={<PanelFallback />}>
                 <RebalancingAlertsData />
               </Suspense>
             </DashPanel>
-            <DashPanel title="Market" subtitle="Normalized snapshot">
+            <DashPanel title="Market" subtitle="Normalized snapshot" slot="metrics">
               <Suspense fallback={<PanelFallback />}>
                 <MarketData />
               </Suspense>
@@ -336,62 +249,19 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         </BentoCard>
       </BentoGrid>
 
-      {/* Row C — the chart row: three compact viewports, equal heights. */}
+      {/* Row C — flow: daily volume beside the event timeline. */}
       <BentoGrid>
-        <BentoCard span={4}>
+        <BentoCard span={6}>
           <DashPanel title="Activity" subtitle="Daily volume · 28 days">
             <Suspense fallback={<ChartPlaceholder title="Activity" />}>
               <ActivityChartData />
             </Suspense>
           </DashPanel>
         </BentoCard>
-        <BentoCard span={4}>
-          <DashPanel title="BTC price" subtitle="At primary vault snapshots">
-            <Suspense fallback={<ChartPlaceholder title="BTC price" />}>
-              <BtcPriceData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-        <BentoCard span={4}>
-          <DashPanel title="cbBTC / USDC allocation" subtitle="Primary vault — last 28 days">
-            <Suspense fallback={<ChartPlaceholder title="cbBTC / USDC allocation" />}>
-              <AllocationData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-      </BentoGrid>
-
-      {/* Row D — flow: the long timeline faces a rail that fills itself. */}
-      <BentoGrid>
-        <BentoCard span={8}>
-          <DashPanel title="Recent activity" subtitle="Blockchain and subscription timeline">
+        <BentoCard span={6}>
+          <DashPanel title="Recent activity" subtitle="Blockchain and subscription timeline" slot="timeline">
             <Suspense fallback={<PanelFallback />}>
               <ActivityTimelineData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-        <BentoCard span={4}>
-          <div className="flex min-w-0 flex-col gap-6">
-            <DashPanel title="Recent clients" subtitle="Exposure and Som KYC">
-              <Suspense fallback={<PanelFallback />}>
-                <RecentClientsData />
-              </Suspense>
-            </DashPanel>
-            <DashPanel title="Data health" subtitle="Source freshness">
-              <Suspense fallback={<PanelFallback />}>
-                <DataHealthData />
-              </Suspense>
-            </DashPanel>
-          </div>
-        </BentoCard>
-      </BentoGrid>
-
-      {/* Row E — capital band: vaults tile horizontally, any count. */}
-      <BentoGrid>
-        <BentoCard span={12}>
-          <DashPanel title="Vaults" subtitle="Capital per vault">
-            <Suspense fallback={<PanelFallback />}>
-              <VaultsData />
             </Suspense>
           </DashPanel>
         </BentoCard>
