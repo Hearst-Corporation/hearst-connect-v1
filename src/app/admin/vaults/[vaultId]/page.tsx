@@ -58,8 +58,6 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-const DOCUMENTED_DECIMALS = 6
-
 type PageProps = Readonly<{ params: Promise<{ vaultId: string }> }>
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -106,9 +104,9 @@ function pocketOf(row: RebalancingRow): string | null {
 
 function movementAmount(movement: Movement, vault: Vault): string {
   if (movement.assetAmountAtomic === null) return '—'
-  const measured = isAvailable(vault.asset) ? vault.asset.value : null
-  const decimals = measured === null ? DOCUMENTED_DECIMALS : measured.decimals
-  return formatCurrency(movement.assetAmountAtomic, { fromAtomic: 10 ** decimals })
+  // No measured asset scale → no invented decimals: the amount stays hidden.
+  if (!isAvailable(vault.asset)) return '—'
+  return formatCurrency(movement.assetAmountAtomic, { fromAtomic: 10 ** vault.asset.value.decimals })
 }
 
 function clientOwnerEmptyLabel(client: Unavailable): string {
@@ -168,8 +166,9 @@ function VaultClientPresence({
 function RebalancingTableRow({ row }: Readonly<{ row: RebalancingRow }>) {
   const pocket = pocketOf(row)
   const drift = driftPointsNullable(row.varianceBps)
+  // The row carries the DOM id that `entityHref('strategy', …)` anchors to.
   return (
-    <TableRow>
+    <TableRow {...(pocket !== null ? { id: `strategy-${pocket}` } : {})}>
       <TableCell className={tableCol.primary}>
         <VaultEntityLink
           kind="strategy"
@@ -483,21 +482,27 @@ function VaultHistorySection({
       )]
     : []
 
+  // A snapshot missing a bucket is dropped — never traced as 0% measured.
   const combinedPoints =
     isAvailable(history) && history.value.length > 0
       ? history.value
           .map((h) => {
             const cbbtc = h.allocations?.find((a) => a.bucket.toLowerCase().includes('cbbtc'))
             const usdc = h.allocations?.find((a) => a.bucket.toLowerCase().includes('usdc'))
+            if (!cbbtc || !usdc) return null
+            const cbbtcPct = Number(cbbtc.pct)
+            const usdcPct = Number(usdc.pct)
+            const aum = Number(h.aumUsdc)
+            if (!Number.isFinite(cbbtcPct) || !Number.isFinite(usdcPct) || !Number.isFinite(aum)) return null
             return {
               label: h.takenAt.slice(0, 10),
-              aum: Number(h.aumUsdc),
-              cbbtcPct: cbbtc ? Number(cbbtc.pct) : 0,
-              usdcPct: usdc ? Number(usdc.pct) : 0,
+              aum,
+              cbbtcPct,
+              usdcPct,
               detail: h.takenAt,
             }
           })
-          .filter((p) => p.aum > 0)
+          .filter((p): p is NonNullable<typeof p> => p !== null && p.aum > 0)
       : []
 
   const btcPricePoints =
@@ -508,7 +513,7 @@ function VaultHistorySection({
             value: Number(h.btcPriceUsdc),
             detail: h.takenAt,
           }))
-          .filter((p) => p.value > 0)
+          .filter((p) => Number.isFinite(p.value) && p.value > 0)
       : []
 
   const bucketSparklines = (() => {
@@ -605,8 +610,11 @@ type RebalanceEvent = {
 
 function RebalancingEventsSection({
   events,
+  assetDecimals,
 }: Readonly<{
   events: Availability<readonly RebalanceEvent[]>
+  /** Measured on-chain asset decimals — null when unreadable (amounts then stay hidden). */
+  assetDecimals: number | null
 }>) {
   if (!isAvailable(events)) {
     return (
@@ -677,7 +685,9 @@ function RebalancingEventsSection({
                     <div className="truncate">{event.category}</div>
                   </TableCell>
                   <TableCell className={`${tableCol.numeric} text-xs`}>
-                    {event.amount ? formatCurrency(event.amount, { decimals: 0 }) : '—'}
+                    {event.amount && assetDecimals !== null
+                      ? formatCurrency(event.amount, { decimals: 0, fromAtomic: 10 ** assetDecimals })
+                      : '—'}
                   </TableCell>
                   <TableCell className={`${tableCol.numeric} text-xs`}>
                     {event.blockNumber ? formatNumber(event.blockNumber) : '—'}
@@ -812,7 +822,10 @@ export default async function Page({ params }: PageProps) {
 
       <VaultHistorySection history={history} rebalancing={scopedRebalancing} />
 
-      <RebalancingEventsSection events={rebalanceEvents} />
+      <RebalancingEventsSection
+        events={rebalanceEvents}
+        assetDecimals={isAvailable(vault.asset) ? vault.asset.value.decimals : null}
+      />
 
       <VaultRecentActivitySection
         scopedMovements={scopedMovements}

@@ -4,6 +4,7 @@ import { surfaceBox, surfaceInset } from '@/components/admin/surface'
 import {
   ActionOutcome,
   ConfirmField,
+  KeeperBodyFields,
   KeeperMetricsFields,
   actionButtonClass,
 } from '@/components/admin/forms/admin-action-form'
@@ -60,6 +61,7 @@ export function KeeperForm({
           <form action={formAction} className="space-y-3">
             <input type="hidden" name="endpointId" value={endpoint.id} />
             {needsMetrics ? <KeeperMetricsFields /> : null}
+            <KeeperBodyFields endpointId={endpoint.id} />
             <ConfirmField />
             <button
               type="submit"

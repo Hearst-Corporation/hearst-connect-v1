@@ -51,6 +51,51 @@ export function KeeperMetricsFields() {
   )
 }
 
+/** Body fields for the keeper endpoints whose contract requires them. */
+export function KeeperBodyFields({ endpointId }: Readonly<{ endpointId: string }>) {
+  if (endpointId === 'mining-distribution-approve') {
+    return (
+      <label className="block">
+        <span className="text-xs text-fg-secondary">id — distribution identifier</span>
+        <input name="id" type="text" required className={actionFieldClass} />
+      </label>
+    )
+  }
+  if (endpointId === 'mining-calculation-trigger') {
+    return (
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-xs text-fg-secondary">period — YYYY-MM</span>
+          <input name="period" type="text" pattern="\d{4}-\d{2}" placeholder="2026-08" required className={actionFieldClass} />
+        </label>
+        <label className="block">
+          <span className="text-xs text-fg-secondary">rwaStrategyId</span>
+          <input name="rwaStrategyId" type="text" required className={actionFieldClass} />
+        </label>
+      </div>
+    )
+  }
+  if (endpointId === 'keeper-rwa-vault') {
+    return (
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-xs text-fg-secondary">action</span>
+          <select name="action" required className={actionFieldClass}>
+            <option value="deposit">deposit</option>
+            <option value="withdraw">withdraw</option>
+            <option value="deposit_yield">deposit_yield</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-xs text-fg-secondary">amount — base units, integer string</span>
+          <input name="amount" type="text" pattern="(0|[1-9][0-9]*)" required className={actionFieldClass} />
+        </label>
+      </div>
+    )
+  }
+  return null
+}
+
 export type ActionOutcomeState = Readonly<{
   validationError: string | null
   stateReason: string | null

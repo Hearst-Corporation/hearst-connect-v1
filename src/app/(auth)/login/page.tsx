@@ -13,9 +13,9 @@ export const dynamic = 'force-dynamic'
 /**
  * Sign-in screen.
  *
- * `reason=expired` is set by the `/admin` server guard when a missing or
- * expired session triggered a redirect: the user deserves to know why they
- * were sent back here, without exposing any technical detail.
+ * `reason=expired` is set by the `/admin` server guard when an expired
+ * session triggered a redirect; `reason=required` when there simply was no
+ * session. The user deserves to know which, without any technical detail.
  */
 export default async function LoginPage({
   searchParams,
@@ -25,7 +25,11 @@ export default async function LoginPage({
 
   const { reason } = await searchParams
   const notice =
-    reason === 'expired' ? 'Your session has expired. Sign in again to access the console.' : null
+    reason === 'expired'
+      ? 'Your session has expired. Sign in again to access the console.'
+      : reason === 'required'
+        ? 'Sign in to access the console.'
+        : null
 
   const { loginReady } = checkConfiguration()
 

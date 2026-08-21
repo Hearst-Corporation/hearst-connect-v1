@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { fromBackendRole, loginWithBackend, type BackendLoginFailure } from './backend/auth'
-import { getSession, type Session } from './session'
+import { getSession, SESSION_COOKIE, type Session } from './session'
 
 /**
  * Authentication — delegated to the Hearst Connect backend.
@@ -80,6 +81,10 @@ export async function authenticate(email: string, password: string): Promise<Aut
  */
 export async function requireSession(): Promise<Session> {
   const session = await getSession()
-  if (!session) redirect('/login?reason=expired')
-  return session
+  if (session) return session
+  // A missing cookie is "sign in required"; a cookie that fails verification
+  // is an actual expiry — the login page words each case honestly.
+  const store = await cookies()
+  const hadCookie = store.get(SESSION_COOKIE)?.value !== undefined
+  redirect(hadCookie ? '/login?reason=expired' : '/login?reason=required')
 }

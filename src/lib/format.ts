@@ -51,9 +51,9 @@ export function formatCurrency(
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return 'unknown date'
+  if (!iso) return '—'
   const t = Date.parse(iso)
-  return Number.isNaN(t) ? 'unknown date' : new Date(t).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
+  return Number.isNaN(t) ? '—' : new Date(t).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 export function formatRelativeTime(iso: string | null | undefined): string {

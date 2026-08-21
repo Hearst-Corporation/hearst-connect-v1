@@ -32,7 +32,7 @@ import {
   type AdminRebalancingSummary,
 } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
-import { formatDateTime, formatDriftPts, formatHash, formatNumber, formatRelativeTime } from '@/lib/format'
+import { formatDateTime, formatDriftPts, formatHash, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import { editorial, isAvailable, type Availability } from '@/lib/vaults/model'
 import { entityHref } from '@/components/vaults/vault-entity-link'
@@ -227,7 +227,7 @@ function LastRebalanceCard({
         <p className="text-lg font-semibold text-fg">
           {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
         </p>
-        {snapshot.lastRebalanceTxHash ? (
+        {snapshot.lastRebalance === null ? null : snapshot.lastRebalanceTxHash ? (
           <p
             className="mt-1.5 truncate font-mono text-xs text-fg-tertiary"
             title={snapshot.lastRebalanceTxHash}
@@ -468,7 +468,7 @@ function RebalanceOperationsCard({
                 <div className="flex flex-wrap gap-1">
                   {op.allocations.map((a, i) => (
                     <Badge key={i} className="text-xs">
-                      {formatNumber(Number(a))}
+                      {formatPercent(Number(a), { fromBps: true })}
                     </Badge>
                   ))}
                 </div>
@@ -479,9 +479,11 @@ function RebalanceOperationsCard({
                 ) : (
                   <ul className="space-y-1">
                     {op.swaps.map((swap, i) => (
-                      <li key={i} className="text-xs text-fg-tertiary" title={`${swap.tokenIn} → ${swap.tokenOut}`}>
-                        {formatHash(swap.tokenIn)} → {formatHash(swap.tokenOut)}:{' '}
-                        {formatNumber(Number(swap.amountIn))} / {formatNumber(Number(swap.amountOut))}
+                      // Swap amounts are atomics of two different tokens whose
+                      // decimals this surface cannot know — the raw values live
+                      // on the title, never rendered as a formatted measure.
+                      <li key={i} className="text-xs text-fg-tertiary" title={`${swap.tokenIn} → ${swap.tokenOut} · in ${swap.amountIn} / out ${swap.amountOut} (raw atomics)`}>
+                        {formatHash(swap.tokenIn)} → {formatHash(swap.tokenOut)}
                       </li>
                     ))}
                   </ul>

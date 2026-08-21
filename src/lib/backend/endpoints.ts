@@ -167,7 +167,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     path: '/api/v1/events/rebalancing',
     category: 'business',
     auth: 'session',
-    surface: '/admin/operations',
+    surface: '/admin/vaults',
     summary: 'Indexed rebalancing events (Rebalance, VaultSwapped, strategy changes).',
     caveat: 'DB-only read model — indexer is the sole writer.',
   }),
@@ -293,8 +293,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'session',
     surface: '/admin/product',
     summary: 'Mining metrics read on-chain.',
-    caveat:
-      'Direct on-chain read, distinct from the `mining` aggregate: `/admin/product` compares both and reports any mismatch.',
+    caveat: 'Direct on-chain read, distinct from the `mining` aggregate.',
   }),
   defineEndpoint({
     id: 'mining-electricity',
@@ -303,8 +302,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'session',
     surface: '/admin/product',
     summary: 'Mining electricity line item.',
-    caveat:
-      'Dedicated electricity line read, distinct from `mining.electricity`: `/admin/product` reconciles both.',
+    caveat: 'Dedicated electricity line read, distinct from `mining.electricity`.',
   }),
   defineEndpoint({
     id: 'mining-distributions',

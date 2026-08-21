@@ -137,6 +137,7 @@ function directoryAction(view: ClientsView): ReactNode {
       {view.kind === 'thin' ? (
         <Badge color="neutral">{`${view.clients.length} client(s)`}</Badge>
       ) : null}
+      <PanelHeaderLink href="/admin/compliance">Compliance</PanelHeaderLink>
       <PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>
     </span>
   )

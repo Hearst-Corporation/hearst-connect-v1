@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { formatDriftPts, formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
@@ -7,6 +8,7 @@ import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 function statusHeadline(data: AdminRebalancingSummary, stable: boolean): string {
+  if (data.measuredStrategies === 0) return 'No strategy measured'
   if (stable) return '✓ Portfolio stable'
   return `⚠ ${data.strategiesOutOfTarget} drift${pluralSuffix(data.strategiesOutOfTarget)} detected`
 }
@@ -19,8 +21,9 @@ function footerNote(data: AdminRebalancingSummary, stable: boolean): string {
   if (data.lastRebalanceAt !== null) {
     return `Last activity · ${formatRelativeTime(data.lastRebalanceAt)}`
   }
+  if (data.measuredStrategies === 0) return 'Nothing to monitor until a strategy is measured.'
   if (stable) return 'Monitoring all measured strategies.'
-  return 'Review drift alerts in Operations.'
+  return ''
 }
 
 export function RebalancingAlertsPanel({
@@ -31,13 +34,16 @@ export function RebalancingAlertsPanel({
   }
 
   const data = summary.value
-  const stable = data.strategiesOutOfTarget === 0
+  const measured = data.measuredStrategies > 0
+  const stable = measured && data.strategiesOutOfTarget === 0
 
   return (
     <div className="space-y-4" data-widget="rebalancing-alerts">
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex items-start gap-3">
-          {stable ? (
+          {!measured ? (
+            <ExclamationTriangleIcon className="size-6 shrink-0 text-fg-tertiary" aria-hidden="true" />
+          ) : stable ? (
             <CheckCircleIcon className="size-6 shrink-0 text-accent-500" aria-hidden="true" />
           ) : (
             <ExclamationTriangleIcon className="size-6 shrink-0 text-warning-500" aria-hidden="true" />
@@ -65,7 +71,16 @@ export function RebalancingAlertsPanel({
         ) : null}
       </div>
 
-      <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
+      {footerNote(data, stable) !== '' ? (
+        <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
+      ) : (
+        <Link
+          href="/admin/operations"
+          className="text-xs font-medium text-accent-400 hover:text-accent-300"
+        >
+          Review drift alerts in Operations
+        </Link>
+      )}
     </div>
   )
 }

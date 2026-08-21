@@ -73,8 +73,9 @@ const PRODUCT_ENTRY: SecondaryEntry = {
 
 /**
  * Groups for horizontal sub-navigation and lateral hubs.
- * Legacy routes (`/admin/mining`, `/admin/product`, `/admin/dashboard`, etc.)
- * redirect — they no longer appear here.
+ * Legacy routes (`/admin/dashboard`, `/admin/conformite`, `/admin/produit`,
+ * `/admin/btc`, `/admin/backtest`, `/admin/vault`) redirect — they no longer
+ * appear here.
  */
 export const ADMIN_SECONDARY: readonly SecondaryGroup[] = [
   {
@@ -203,7 +204,16 @@ export function activeBodyHref(pathname: string): string | undefined {
   return best
 }
 
+/** Routes that belong to a nav entry without sharing its href prefix. */
+const NAV_ALIASES: Readonly<Record<string, string>> = {
+  '/admin/client-simulator': '/admin/clients',
+}
+
 export function activeHref(pathname: string): string | undefined {
+  for (const [prefix, target] of Object.entries(NAV_ALIASES)) {
+    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return target
+  }
+
   let best: string | undefined
   for (const entry of ADMIN_NAV) {
     const matches = pathname === entry.href || pathname.startsWith(`${entry.href}/`)

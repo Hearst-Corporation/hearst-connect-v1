@@ -284,7 +284,10 @@ export function AdminDashboardPage() {
       {/* Row B — the chart pair: equal viewports, equal heights. */}
       <BentoGrid>
         <BentoCard span={6}>
-          <DashPanel title="Rebalancing drift">
+          <DashPanel
+            title="Rebalancing drift"
+            action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
+          >
             <Suspense fallback={<ChartPlaceholder title="Rebalancing drift" />}>
               <RebalancingHistoryData />
             </Suspense>

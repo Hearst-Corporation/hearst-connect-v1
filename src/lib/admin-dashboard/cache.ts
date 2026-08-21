@@ -4,7 +4,6 @@ import { cache } from 'react'
 import { callBackend } from '@/lib/backend/client'
 import type {
   AdminActivityEvent,
-  AdminDataHealthSource,
   AdminExposureStrategy,
   AdminMarketSnapshot,
   AdminPortfolioOverview,
@@ -13,7 +12,6 @@ import type {
   AdminRebalancingOperation,
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
-  AdminVaultSummary,
 } from '@/lib/admin-dashboard/contracts'
 
 /** Backend `Resolved<T>` block as returned inside envelope data. */
@@ -23,13 +21,6 @@ export type BackendResolved<T> = Readonly<{
   reason?: string | null
   provenance?: string | null
   freshness?: { asOf?: string | null; ageSeconds?: number | null; stale?: boolean } | null
-}>
-
-/** Raw vault-history snapshot row (allocation buckets + BTC price). */
-export type VaultHistorySnapshot = Readonly<{
-  takenAt: string
-  btcPriceUsdc: string
-  allocations?: readonly { bucket: string; pct: string; valueUsdc: string }[]
 }>
 
 /**
@@ -83,24 +74,8 @@ export const fetchMarketSnapshot = cache(() =>
   callBackend<{ snapshot: BackendResolved<AdminMarketSnapshot> }>('admin-market-snapshot'),
 )
 
-export const fetchVaultsSummary = cache(() =>
-  callBackend<{
-    vaultsSummary: BackendResolved<{ vaults: readonly AdminVaultSummary[]; totalAumAtomic: string }>
-  }>('admin-vaults-summary'),
-)
-
-export const fetchVaultHistory = cache((vaultId: string, limit: number) =>
-  callBackend<{ snapshots: BackendResolved<readonly VaultHistorySnapshot[]> }>('vault-history', {
-    params: { vaultId, limit },
-  }),
-)
-
 export const fetchRecentClients = cache((limit: number) =>
   callBackend<{ clients: BackendResolved<readonly AdminRecentClient[]> }>('admin-clients-recent', {
     params: { limit },
   }),
-)
-
-export const fetchDataHealth = cache(() =>
-  callBackend<{ sources: BackendResolved<readonly AdminDataHealthSource[]> }>('admin-data-health'),
 )
