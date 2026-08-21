@@ -129,8 +129,8 @@ function ActivityChartSlot({
  *   exposure 304 + alerts 188 + gap 24 + 3×header 76 == timeline 592 + 76.
  */
 const PANEL_SLOT_CLASS = {
-  exposure: 'h-[304px] overflow-y-auto',
-  signal: 'h-[188px] overflow-y-auto',
+  exposure: 'h-[304px] overflow-y-auto scrollbar-none',
+  signal: 'h-[188px] overflow-y-auto scrollbar-none',
   timeline: 'h-[592px] overflow-hidden',
 } as const
 

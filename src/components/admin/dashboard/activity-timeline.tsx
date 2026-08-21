@@ -51,7 +51,7 @@ export function ActivityTimelinePanel({
         The card's fixed slot owns the height (row-matched); the list fills it
         and scrolls inside — dataset never owns geometry.
       */}
-      <ul className="relative min-h-0 flex-1 space-y-4 overflow-y-auto border-l border-console-line pl-4">
+      <ul className="relative min-h-0 flex-1 space-y-4 overflow-y-auto border-l border-console-line pl-4 scrollbar-none">
         {events.value.map((event) => (
           <li key={event.id} className="relative">
             <span

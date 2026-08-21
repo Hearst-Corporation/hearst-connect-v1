@@ -195,6 +195,17 @@
 }
 
 /*
+ * Cockpit chrome: internal panel scrollbars stay functional but invisible —
+ * a visible bar inside a fixed box reads as broken chrome, not as affordance.
+ */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
  * Produit dark-only — tokens sémantiques Hearst (fg / ink / console-*).
  * Aucune rampe structurelle Tailwind sous `.dark`.
  */
