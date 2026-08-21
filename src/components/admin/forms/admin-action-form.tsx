@@ -14,6 +14,10 @@ export const actionFieldClass = clsx(
   'mt-1 w-full px-2 py-1.5 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
 )
 
+/** Accent submit — one class string for every hand-rolled admin action button. */
+export const actionButtonClass =
+  'rounded-lg bg-accent-400 px-2.5 py-1 text-xs font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600'
+
 /** Fail-closed: the operator types CONFIRM. No isolated click fires a write. */
 export function ConfirmField() {
   return (

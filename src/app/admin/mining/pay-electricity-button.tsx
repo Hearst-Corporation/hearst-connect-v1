@@ -1,6 +1,8 @@
 'use client'
 
+import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
 import { payElectricity, type PayElectricityOutcome } from '@/lib/mining/actions'
+import clsx from 'clsx'
 import { useActionState } from 'react'
 
 export function PayElectricityButton({
@@ -17,7 +19,7 @@ export function PayElectricityButton({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-accent-400 px-4 py-2.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+        className={clsx(actionButtonClass, 'w-full')}
       >
         {pending ? 'Processing…' : 'Pay electricity'}
       </button>

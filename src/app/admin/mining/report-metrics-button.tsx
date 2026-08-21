@@ -4,7 +4,9 @@ import {
   ActionOutcome,
   ConfirmField,
   KeeperMetricsFields,
+  actionButtonClass,
 } from '@/components/admin/forms/admin-action-form'
+import clsx from 'clsx'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
 import { useActionState } from 'react'
 
@@ -22,7 +24,7 @@ export function ReportMetricsButton() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-accent-400 px-4 py-2.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+        className={clsx(actionButtonClass, 'w-full')}
       >
         {pending ? 'Sending…' : 'Report metrics'}
       </button>
