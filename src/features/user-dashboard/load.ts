@@ -320,8 +320,8 @@ function btcProducedTotalFrom(field: ResolvedField | null): number | null {
 
 function minDepositFrom(factsheetData: unknown): number | null {
   const terms = envelopeField(factsheetData, 'terms').value as Record<string, unknown> | null
-  const min = num(terms?.minimumDepositUsdc)
-  return min === null ? null : min / USDC_ATOMIC
+  // `minimumDepositUsdc` is whole USDC (registry caveat, endpoints.ts) — no atomic divisor.
+  return num(terms?.minimumDepositUsdc)
 }
 
 /** Friendly labels for the backend ledger kinds (InvestorTransaction.type). */

@@ -50,6 +50,13 @@ const GROUPS: readonly ExplorerGroup[] = [
       'Keeper POSTs, financial and administrative. Listed here for reference; they run from Keeper Actions, each requiring explicit confirmation.',
     filter: (e) => e.category === 'keeper',
   },
+  {
+    id: 'operational',
+    title: 'Operational POSTs',
+    description:
+      'Non-keeper writes: authentication, indexer trigger, account creation. Each runs from its own surface (login, Service, client simulator).',
+    filter: (e) => e.method === 'POST' && e.category !== 'keeper',
+  },
 ]
 
 const AUTH_LEVELS: readonly { auth: EndpointAuth; label: string; detail: string }[] = [

@@ -49,10 +49,14 @@ type MiningAggregate = {
     reportedHashrateTh: string
     totalBtcEarnedSats: string
   }>
+  /** Mirrors the backend `ElectricityStatus` — on-chain elecStatus() read. */
   readonly electricity?: Resolved<{
-    monthlyCost: string
-    kwhConsumed: string
-    costPerKwh: string
+    monthlyCost: string | null
+    payee: string | null
+    totalPaid: string | null
+    lastPayment: string | null
+    nextEligiblePayment: string | null
+    canPay: boolean | null
   }>
   readonly operationalTelemetry?: Resolved<{
     machineCount: number
@@ -74,7 +78,7 @@ type RwaPocket = {
   readonly enabled: boolean
 }
 
-/** Placeholder — backend does not yet expose distributions. */
+/** Mirrors the backend `MiningDistributionItem`. */
 type DistributionRecord = {
   readonly id: string
   readonly month: string
@@ -233,17 +237,17 @@ function ReportMetricsSection() {
 }
 
 function OpexSection({
-  monthlyCost,
-  kwhConsumed,
-  costPerKwh,
+  electricity,
 }: Readonly<{
-  monthlyCost: string | null
-  kwhConsumed: string | null
-  costPerKwh: string | null
+  electricity: MiningAggregate['electricity'] extends Resolved<infer T> | undefined ? T | null : never
 }>) {
-  const hasData = monthlyCost !== null || kwhConsumed !== null || costPerKwh !== null
+  // All amounts are on-chain USDC atomics (6dp) — the formatCurrency default applies.
+  const monthlyCost = electricity?.monthlyCost ?? null
+  const totalPaid = electricity?.totalPaid ?? null
+  const lastPayment = electricity?.lastPayment ?? null
+  const canPay = electricity?.canPay === true
 
-  if (!hasData) {
+  if (electricity === null || electricity === undefined) {
     return (
       <DashCard title="OPEX" subtitle="Operational expenses" className="h-full">
         <PanelState title="Electricity data unavailable." />
@@ -267,23 +271,29 @@ function OpexSection({
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">kWh consumed</p>
+            <p className="text-xs font-medium text-fg-tertiary">Total paid</p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {kwhConsumed !== null ? formatNumber(Number(kwhConsumed), { maximumFractionDigits: 0 }) : '—'}
+              {totalPaid !== null ? formatCurrency(totalPaid, { decimals: 0 }) : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Cost per kWh</p>
+            <p className="text-xs font-medium text-fg-tertiary">Last payment</p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {costPerKwh !== null ? formatCurrency(costPerKwh, { decimals: 2 }) : '—'}
+              {lastPayment !== null ? formatDateTime(lastPayment) : '—'}
             </p>
           </div>
         </div>
       </div>
-      {monthlyCost !== null ? (
+      {canPay && monthlyCost !== null ? (
         <div className="mt-auto max-w-xs pt-4">
           <PayElectricityButton amount={monthlyCost} />
         </div>
+      ) : monthlyCost !== null ? (
+        <p className="mt-auto pt-4 text-xs text-fg-tertiary">
+          {electricity.nextEligiblePayment !== null && electricity.nextEligiblePayment !== undefined
+            ? `Next eligible payment: ${formatDateTime(electricity.nextEligiblePayment)}`
+            : 'Payment not eligible right now.'}
+        </p>
       ) : null}
     </DashCard>
   )
@@ -483,7 +493,9 @@ function DistributionHistory({
 function numericValue(v: string | null | undefined): number | null {
   if (v === undefined || v === null || v === '' || v === 'null' || v === 'undefined') return null
   const n = Number(v)
-  if (!Number.isFinite(n) || n <= 0) return null
+  // 0 is a legitimate measurement (a period can mine nothing) — only reject
+  // the unparseable and the negative.
+  if (!Number.isFinite(n) || n < 0) return null
   return n
 }
 
@@ -498,7 +510,7 @@ function CalculationsSection({
 }: Readonly<{
   calculations: readonly CalculationRecord[]
   nextPeriod: string
-  defaultStrategyId: string
+  defaultStrategyId: string | null
 }>) {
   if (calculations.length === 0) {
     return (
@@ -509,9 +521,15 @@ function CalculationsSection({
         contentClassName="gap-3"
       >
         <PanelState title="No calculations recorded yet." />
-        <div className="max-w-xs">
-          <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
-        </div>
+        {defaultStrategyId !== null ? (
+          <div className="max-w-xs">
+            <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+          </div>
+        ) : (
+          <p className="text-xs text-fg-tertiary">
+            No strategy identified — a calculation cannot be triggered without one.
+          </p>
+        )}
       </DashCard>
     )
   }
@@ -581,9 +599,11 @@ function CalculationsSection({
           </TableBody>
         </AdminTable>
       </div>
-      <div className="max-w-xs">
-        <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
-      </div>
+      {defaultStrategyId !== null ? (
+        <div className="max-w-xs">
+          <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+        </div>
+      ) : null}
     </DashCard>
   )
 }
@@ -726,8 +746,7 @@ export default async function Page({ searchParams }: PageProps) {
   const machineCount = mining?.operationalTelemetry?.value?.machineCount ?? null
   const activeMachines = mining?.operationalTelemetry?.value?.activeMachines ?? null
   const electricityCost = mining?.electricity?.value?.monthlyCost ?? null
-  const kwhConsumed = mining?.electricity?.value?.kwhConsumed ?? null
-  const costPerKwh = mining?.electricity?.value?.costPerKwh ?? null
+  const electricity = mining?.electricity?.value ?? null
 
   const [distRes, calcRes, rwaRes] = await Promise.all([
     callBackend<{
@@ -762,7 +781,9 @@ export default async function Page({ searchParams }: PageProps) {
   const history = distributions.filter((d) => d.status !== 'pending')
 
   const nextPeriod = nextDistribution?.month ?? new Date().toISOString().slice(0, 7)
-  const defaultStrategyId = validStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? 'rwa_mining'
+  // No fabricated strategy id: without a real source (selection, pending
+  // distribution, or vault pocket), there is no default — the trigger stays off.
+  const defaultStrategyId = validStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? null
 
   const btcAmount = satsToBtc(btcEarnedSats)
   const yieldValue = btcValueUsdc(btcEarnedSats, btcPrice)
@@ -854,11 +875,7 @@ export default async function Page({ searchParams }: PageProps) {
       {/* Row B — OPEX + yield: symmetric halves. */}
       <BentoGrid>
         <BentoCard span={6} className="h-full">
-          <OpexSection
-            monthlyCost={electricityCost}
-            kwhConsumed={kwhConsumed}
-            costPerKwh={costPerKwh}
-          />
+          <OpexSection electricity={electricity} />
         </BentoCard>
         <BentoCard span={6} className="h-full">
           <YieldCalculationSection

@@ -80,6 +80,8 @@ function seriesState(
 
 function investorPositionAbsent(data: UserDashboard): boolean {
   if (isAvailable(data.positionValue)) return false
+  // Only the backend's named absence counts — a generic unavailable (outage,
+  // db_error) is "position offline", never "no position".
   const reasons = new Set(['no_investor_position', 'no_investor_record'])
   if (data.positionValue.kind === 'unavailable' && data.positionValue.reason !== null && reasons.has(data.positionValue.reason)) {
     return true
@@ -87,7 +89,7 @@ function investorPositionAbsent(data: UserDashboard): boolean {
   if (data.position.kind === 'unavailable' && data.position.reason !== null && reasons.has(data.position.reason)) {
     return true
   }
-  return data.positionValue.kind === 'unavailable'
+  return false
 }
 
 function formatUsdc(amount: number | null): string {

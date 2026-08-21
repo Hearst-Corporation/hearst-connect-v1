@@ -2,7 +2,6 @@ import 'server-only'
 
 import {
   fetchActivityTimeseries,
-  fetchDataHealth,
   fetchMarketSnapshot,
   fetchPortfolioExposure,
   fetchPortfolioOverview,
@@ -11,8 +10,6 @@ import {
   fetchRebalancingSummary,
   fetchRecentActivity,
   fetchRecentClients,
-  fetchVaultHistory,
-  fetchVaultsSummary,
   type BackendResolved,
 } from '@/lib/admin-dashboard/cache'
 import type { ResolvedStatus } from '@/lib/resolved'
@@ -27,9 +24,7 @@ import {
 export {
   isAdminNotConfigured,
   type AdminActivityEvent,
-  type AdminAllocationPoint,
   type AdminDashboardData,
-  type AdminDataHealthSource,
   type AdminExposureStrategy,
   type AdminMarketSnapshot,
   type AdminOperationsSurface,
@@ -40,13 +35,10 @@ export {
   type AdminRebalancingOperation,
   type AdminRebalancingSummary,
   type AdminTimeseriesPoint,
-  type AdminVaultSummary,
 } from '@/lib/admin-dashboard/contracts'
 
 import type {
   AdminActivityEvent,
-  AdminAllocationPoint,
-  AdminDataHealthSource,
   AdminExposureStrategy,
   AdminMarketSnapshot,
   AdminOperationsSurface,
@@ -56,7 +48,6 @@ import type {
   AdminRebalancingOperation,
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
-  AdminVaultSummary,
 } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 
@@ -222,16 +213,6 @@ export async function loadAdminMarketSnapshot(): Promise<Availability<AdminMarke
   )
 }
 
-export async function loadAdminVaultsSummary(): Promise<Availability<readonly AdminVaultSummary[]>> {
-  const res = await fetchVaultsSummary()
-  const bloc = fromBackendOrUnavailable(
-    res,
-    res.ok ? res.data.vaultsSummary : undefined,
-    '/api/v1/admin/vaults/summary',
-  )
-  return unwrapAvailableField(bloc, 'vaults')
-}
-
 export async function loadAdminRecentClients(
   limit = 5,
 ): Promise<Availability<readonly AdminRecentClient[]>> {
@@ -252,55 +233,6 @@ export async function loadAdminRecentActivity(
     res.ok ? res.data.events : undefined,
     '/api/v1/admin/activity/recent',
   )
-}
-
-export async function loadAdminDataHealth(): Promise<Availability<readonly AdminDataHealthSource[]>> {
-  const res = await fetchDataHealth()
-  return fromBackendOrUnavailable(
-    res,
-    res.ok ? res.data.sources : undefined,
-    '/api/v1/admin/data-health',
-  )
-}
-
-/**
- * Allocation breakdown (cbBTC + USDC) for the vault with the highest AUM.
- * Chained read: vaults summary → top vault history — both cached fetchers.
- */
-export async function loadAdminCbbtcAllocation(
-  limit = 28,
-): Promise<Availability<readonly AdminAllocationPoint[]>> {
-  const vaults = await loadAdminVaultsSummary()
-  if (!isAvailable(vaults) || vaults.value.length === 0) {
-    return unavailable({ endpoint: '/api/v1/vault/history', reason: 'no_vaults_available' })
-  }
-
-  const topVault = [...vaults.value].sort(
-    (a, b) => Number(b.totalAssetsAtomic) - Number(a.totalAssetsAtomic),
-  )[0]
-  const historyRes = await fetchVaultHistory(topVault.id, limit)
-
-  if (historyRes.ok && historyRes.data.snapshots?.value) {
-    const points = historyRes.data.snapshots.value
-      .map((s) => {
-        const cbbtc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('cbbtc'))
-        const usdc = s.allocations?.find((a) => a.bucket.toLowerCase().includes('usdc'))
-        if (!cbbtc || !usdc) return null
-        return {
-          at: s.takenAt.slice(0, 10),
-          cbbtcPct: Number(cbbtc.pct),
-          usdcPct: Number(usdc.pct),
-          btcPriceUsdc: Number(s.btcPriceUsdc),
-        }
-      })
-      .filter((p): p is NonNullable<typeof p> => p !== null)
-    return available(points, { provenance: 'unknown' })
-  }
-
-  return unavailable({
-    endpoint: '/api/v1/vault/history',
-    reason: historyRes.ok ? 'no_allocation_data' : 'service_did_not_respond',
-  })
 }
 
 /**

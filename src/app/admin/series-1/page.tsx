@@ -15,9 +15,10 @@ import { callBackend } from '@/lib/backend/client'
 import {
   adresseCourte,
   movementLabel,
-  usdcAmount,
   readableReason,
 } from '@/lib/movements'
+import { formatEventAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
+import { loadAdminAssetScale } from '@/lib/admin-dashboard/load'
 import {
   editorial,
   isAvailable,
@@ -58,15 +59,18 @@ type ReponseEvenements = { readonly events?: Resolved<readonly Movement[]> }
 const estFinancier = (m: Movement): boolean =>
   m.assetAmountAtomic !== null && m.assetAmountAtomic !== undefined && m.assetAmountAtomic !== ''
 
-function ligneEvenement(m: Movement): Series1EventRow {
+function ligneEvenement(m: Movement, scale: AdminAssetScale | null): Series1EventRow {
   const resolvedVaultId = vaultId(m.chainId, m.contractAddress)
+  // Amounts are formatted only with the measured asset scale — never an
+  // assumed 6dp, never an invented asset label.
+  const financial = estFinancier(m) && scale !== null
   return {
     id: m.id,
     eventName: m.eventName,
     vaultId: resolvedVaultId,
     client: adresseCourte(m.investorAddress),
-    amount: estFinancier(m) ? usdcAmount(m.assetAmountAtomic) : null,
-    assetLabel: estFinancier(m) ? 'USDC' : null,
+    amount: financial ? formatEventAtomic(m.assetAmountAtomic ?? null, scale.asset, scale) : null,
+    assetLabel: null,
     txHash: m.txHash ?? null,
     blockNumber: m.blockNumber ?? null,
     occurredAt: m.occurredAt ?? null,
@@ -151,7 +155,10 @@ function serie1Kpis(
  */
 export default async function Page() {
   await requireSession()
-  const reponse = await callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } })
+  const [reponse, assetScale] = await Promise.all([
+    callBackend<ReponseEvenements>('series1-events', { params: { limit: 100 } }),
+    loadAdminAssetScale(),
+  ])
   const bloc = reponse.ok ? reponse.data.events : undefined
   const movements = bloc?.value
 
@@ -167,7 +174,7 @@ export default async function Page() {
   const trendState = trendChartState(reponse.ok, trendPoints.length)
   const breakdownState = breakdownChartState(readable, distributionItems)
   const journalCalme = messageJournalCalme(reponse.ok, readable, movements, bloc?.reason)
-  const rows = readable ? movements.map(ligneEvenement) : []
+  const rows = readable ? movements.map((m) => ligneEvenement(m, assetScale)) : []
   const kpis = serie1Kpis(reponse.ok, movementCount, financialCount, typesCount)
 
   return (

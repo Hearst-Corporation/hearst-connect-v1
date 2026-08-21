@@ -37,6 +37,30 @@ const SCHEMAS: Record<string, z.ZodType> = {
       btcEarnedSats: z.number().int().nonnegative(),
     })
     .strict(),
+  'mining-distribution-approve': z.object({ id: z.string().min(1) }).strict(),
+  'mining-calculation-trigger': z
+    .object({
+      period: z.string().regex(/^\d{4}-\d{2}$/, 'must be "YYYY-MM"'),
+      rwaStrategyId: z.string().min(1),
+    })
+    .strict(),
+  'keeper-rwa-vault': z
+    .object({
+      action: z.enum(['deposit', 'withdraw', 'deposit_yield']),
+      amount: z
+        .string()
+        .regex(/^(0|[1-9][0-9]*)$/, 'must be a base-10 integer string in base units')
+        .max(78),
+    })
+    .strict(),
+}
+
+/** Form fields each keeper endpoint consumes — mirrors its schema. */
+const BODY_FIELDS: Record<string, readonly string[]> = {
+  'keeper-mining-report': ['hashrateTh', 'btcEarnedSats'],
+  'mining-distribution-approve': ['id'],
+  'mining-calculation-trigger': ['period', 'rwaStrategyId'],
+  'keeper-rwa-vault': ['action', 'amount'],
 }
 
 function parseNumber(form: FormData, field: string): number | null {
@@ -90,9 +114,10 @@ export async function runKeeperAction(_prev: KeeperOutcome | null, form: FormDat
   let body: unknown = {}
   const schema = SCHEMAS[endpointId]
   if (schema) {
-    const candidate = {
-      hashrateTh: parseNumber(form, 'hashrateTh'),
-      btcEarnedSats: parseNumber(form, 'btcEarnedSats'),
+    const numeric = new Set(['hashrateTh', 'btcEarnedSats'])
+    const candidate: Record<string, unknown> = {}
+    for (const field of BODY_FIELDS[endpointId] ?? []) {
+      candidate[field] = numeric.has(field) ? parseNumber(form, field) : parseString(form, field)
     }
     const parsed = schema.safeParse(candidate)
     if (!parsed.success) {

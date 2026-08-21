@@ -92,21 +92,6 @@ export type AdminMarketSnapshot = Readonly<{
   asOf: string | null
 }>
 
-export type AdminVaultSummary = Readonly<{
-  id: string
-  label: string
-  chainId: number | null
-  address: string | null
-  totalAssetsAtomic: string
-  deployedAtomic: string | null
-  availableAtomic: string | null
-  deployedPct: string | null
-  strategiesCount: number
-  maxDriftBps: number | null
-  lastActivityAt: string | null
-  status: string
-}>
-
 export type AdminRecentClient = Readonly<{
   id: string
   label: string
@@ -133,21 +118,6 @@ export type AdminActivityEvent = Readonly<{
   status: string
 }>
 
-export type AdminDataHealthSource = Readonly<{
-  key: string
-  label: string
-  status: string
-  asOf: string | null
-  freshnessSeconds: number | null
-}>
-
-export type AdminAllocationPoint = Readonly<{
-  at: string
-  cbbtcPct: number
-  usdcPct: number
-  btcPriceUsdc: number
-}>
-
 export type AdminDashboardData = Readonly<{
   overview: Availability<AdminPortfolioOverview>
   exposure: Availability<readonly AdminExposureStrategy[]>
@@ -155,11 +125,8 @@ export type AdminDashboardData = Readonly<{
   activityTimeseries: Availability<readonly AdminTimeseriesPoint[]>
   rebalancingHistory: Availability<readonly AdminRebalancingHistoryPoint[]>
   market: Availability<AdminMarketSnapshot>
-  vaults: Availability<readonly AdminVaultSummary[]>
   recentClients: Availability<readonly AdminRecentClient[]>
   recentActivity: Availability<readonly AdminActivityEvent[]>
-  dataHealth: Availability<readonly AdminDataHealthSource[]>
-  cbbtcAllocation: Availability<readonly AdminAllocationPoint[]>
 }>
 
 export type AdminOperationsSurface = Readonly<{

@@ -15,7 +15,7 @@ import Link from 'next/link'
  * come first.
  */
 
-export type EntityKind = 'vault' | 'strategy' | 'client' | 'movement' | 'keeper' | 'source' | 'compliance'
+export type EntityKind = 'vault' | 'strategy' | 'client' | 'keeper' | 'source' | 'compliance'
 
 /**
  * A vault id is `{chainId}-{address}` and a strategy id is `{vaultId}:{pocket}`
@@ -45,10 +45,6 @@ export function entityHref(kind: EntityKind, id: string): string {
       // the vault page renders, character for character.
       return `/admin/vaults/${encodeURIComponent(parts.vault)}#strategy-${parts.pocket}`
     }
-
-    case 'movement':
-      // Same rule as above — the fragment must match the row's DOM id exactly.
-      return `/admin/operations#movement-${id}`
 
     // The remaining kinds have no per-entity route today, because the service
     // exposes no directory to build one from. They resolve to the screen that
