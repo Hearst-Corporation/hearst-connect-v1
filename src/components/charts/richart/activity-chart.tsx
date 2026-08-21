@@ -1,11 +1,11 @@
 'use client'
 
 import {
-  resolveChartViewport,
   chartTheme,
   type ChartViewportRole,
 } from '@/components/charts/core/chart-theme'
-import { useChartWidth } from '@/components/charts/core/use-chart-width'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { useChartViewport } from '@/components/charts/richart/_shared/viewport'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
@@ -55,8 +55,7 @@ export function HearstActivityChart({
   viewport?: ChartViewportRole
 }>) {
   const count = points.length
-  const viewportHeight = resolveChartViewport({ height, viewport, kind: 'columns' })
-  const { ref, width } = useChartWidth()
+  const { ref, width, viewportHeight } = useChartViewport({ height, viewport, kind: 'columns' })
   const barCategoryGap = barCategoryGapForCount(count)
   const maxBarSize = maxBarSizeForCount(count)
   const data = points.map((p) => ({
@@ -67,25 +66,15 @@ export function HearstActivityChart({
 
   return (
     <div className="min-w-0">
-      <div className="sr-only">
-        <table>
-          <caption>Activity by period, in {unit}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Period</th>
-              <th scope="col">Value ({unit})</th>
-            </tr>
-          </thead>
-          <tbody>
-            {points.map((p) => (
-              <tr key={p.detail}>
-                <th scope="row">{p.detail}</th>
-                <td>{formatNumber(p.value)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption={`Activity by period, in ${unit}`}
+        columns={['Period', `Value (${unit})`]}
+        rows={points.map((p) => ({
+          key: p.detail,
+          label: p.detail,
+          cells: [formatNumber(p.value)],
+        }))}
+      />
 
       <div
         ref={ref}

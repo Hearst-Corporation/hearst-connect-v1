@@ -1,6 +1,6 @@
 'use client'
 
-import { AdminProbeResult } from '@/components/admin/surfaces'
+import { AdminProbeResult } from '@/components/admin/admin-probe-result'
 import { surfaceInset } from '@/components/admin/surface'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
 import { probeEndpoint, type ProbeOutcome } from '@/lib/backend/probe'

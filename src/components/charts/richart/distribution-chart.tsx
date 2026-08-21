@@ -1,6 +1,7 @@
 'use client'
 
 import { categoricalColor, resolveChartViewport, chartTheme } from '@/components/charts/core/chart-theme'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -26,28 +27,15 @@ export function RichDistributionChart({
 
   return (
     <div className="px-5 pb-5 sm:px-6">
-      <div className="sr-only">
-        <table>
-          <caption>Distribution{unit === '' ? '' : ` (${unit})`}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Category</th>
-              <th scope="col">Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedItems.map((item) => (
-              <tr key={item.label}>
-                <th scope="row">{item.label}</th>
-                <td>
-                  {formatNumber(item.value)}
-                  {unit}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption={`Distribution${unit === '' ? '' : ` (${unit})`}`}
+        columns={['Category', 'Value']}
+        rows={sortedItems.map((item) => ({
+          key: item.label,
+          label: item.label,
+          cells: [`${formatNumber(item.value)}${unit}`],
+        }))}
+      />
 
       <div aria-hidden="true" className="w-full" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">

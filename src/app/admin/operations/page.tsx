@@ -1,4 +1,5 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { RebalancingDriftChart } from '@/components/admin/dashboard'
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
 import { surfaceInset } from '@/components/admin/surface'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
@@ -14,8 +15,8 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
-import { ChartFrame, HearstActivityChart, HearstDonutChart, HearstLineChart } from '@/components/charts'
-import type { ActivityPoint, LinePoint } from '@/components/charts'
+import { ChartFrame, HearstActivityChart, HearstDonutChart } from '@/components/charts'
+import type { ActivityPoint } from '@/components/charts'
 import {
   isAdminNotConfigured,
   loadAdminOperationsSurface,
@@ -415,48 +416,7 @@ function RebalancingDriftHistory({
 }: Readonly<{
   rebalancingHistory: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['rebalancingHistory']
 }>) {
-  const points: LinePoint[] = isAvailable(rebalancingHistory)
-    ? rebalancingHistory.value.map((p) => ({
-        label: p.takenAt.slice(0, 10),
-        value: p.driftBps,
-        detail: p.takenAt,
-      }))
-    : []
-
-  if (points.length >= 2) {
-    return (
-      <ChartFrame
-        question="How has portfolio drift evolved over time?"
-        unit="in basis points — 90 days"
-        state={{ type: 'plotted' }}
-      >
-        <HearstLineChart points={points} unit="drift (bps)" />
-      </ChartFrame>
-    )
-  }
-
-  if (!isAvailable(rebalancingHistory)) {
-    const reason =
-      rebalancingHistory.kind === 'unavailable' ? (rebalancingHistory.reason ?? 'Source unavailable') : 'Source unavailable'
-    return (
-      <ChartFrame
-        question="How has portfolio drift evolved over time?"
-        unit="in basis points — 90 days"
-        state={{
-          type: 'unavailable',
-          explanation: `${reason}. Drift history is read from the backend rebalancing read model — it cannot be reconstructed on the frontend.`,
-        }}
-      />
-    )
-  }
-
-  return (
-    <ChartFrame
-      question="How has portfolio drift evolved over time?"
-      unit="in basis points — 90 days"
-      state={{ type: 'empty', explanation: 'No drift history for this period.' }}
-    />
-  )
+  return <RebalancingDriftChart rebalancingHistory={rebalancingHistory} framed />
 }
 
 export default async function Page() {

@@ -1,6 +1,7 @@
 'use client'
 
 import { resolveChartViewport, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import {
   CartesianGrid,
@@ -39,27 +40,15 @@ export function HearstCurveChart({
 
   return (
     <div className="px-5 pb-5 sm:px-6">
-      <div className="sr-only">
-        <table>
-          <caption>Yield rate per product milestone month</caption>
-          <thead>
-            <tr>
-              <th scope="col">{domainLabel}</th>
-              <th scope="col">Taux</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((p) => (
-              <tr key={p.month}>
-                <th scope="row">
-                  {domainLabel} {p.month}
-                </th>
-                <td>{formatChartPercent(p.rate)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption="Yield rate per product milestone month"
+        columns={[domainLabel, 'Taux']}
+        rows={sorted.map((p) => ({
+          key: String(p.month),
+          label: `${domainLabel} ${p.month}`,
+          cells: [formatChartPercent(p.rate)],
+        }))}
+      />
 
       <div aria-hidden="true" className="w-full" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
