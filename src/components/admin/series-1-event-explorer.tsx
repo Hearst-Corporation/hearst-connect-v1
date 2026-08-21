@@ -1,6 +1,6 @@
 'use client'
 
-import { Field, FieldGroup, Label } from '@/components/catalyst/fieldset'
+import { Field, Label } from '@/components/catalyst/fieldset'
 import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
@@ -108,7 +108,7 @@ export function Series1EventExplorer({
 
   return (
     <div className="space-y-4">
-      <FieldGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field>
           <Label>Event</Label>
           <Select
@@ -171,7 +171,7 @@ export function Series1EventExplorer({
             onChange={(e) => setFilters((prev) => ({ ...prev, timeStatus: e.target.value }))}
           />
         </Field>
-      </FieldGroup>
+      </div>
 
       <DataTableShell
         title="Event explorer"

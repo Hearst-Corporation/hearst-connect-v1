@@ -1,5 +1,6 @@
+import { AdminProbeResult } from '@/components/admin/admin-probe-result'
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { surfaceInset } from '@/components/admin/surface'
+import { StatusBadge } from '@/components/admin/truthful'
 import { Link } from '@/components/catalyst/link'
 import { Text } from '@/components/catalyst/text'
 import {
@@ -14,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
 import {
@@ -23,7 +24,7 @@ import {
   type RuntimePayload,
 } from '@/lib/backend/runtime'
 import { formatDateTime, formatNumber } from '@/lib/format'
-import { readableSourceState, readableSourceStateCap } from '@/lib/movements'
+import { readableSourceStateCap } from '@/lib/movements'
 import { editorial } from '@/lib/vaults/model'
 import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-section'
 import {
@@ -215,7 +216,9 @@ export default async function RuntimePage() {
               <TableCell className={tableCol.primary}>
                 <div className="truncate font-medium">{row.label}</div>
               </TableCell>
-              <TableCell className={tableCol.status}>{readableSourceState(row.status)}</TableCell>
+              <TableCell className={tableCol.status}>
+                <StatusBadge status={row.status} />
+              </TableCell>
               <TableCell className={tableCol.primary}>{row.detail}</TableCell>
             </TableRow>
           ))}
@@ -226,48 +229,48 @@ export default async function RuntimePage() {
         title="Runtime"
         hint="Environment, version, chain, and scheduler as reported by the runtime probe."
       >
-      <DescriptionList>
-        <DescriptionTerm>Environment</DescriptionTerm>
-        <DescriptionDetails>{r?.environment ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Version</DescriptionTerm>
-        <DescriptionDetails>{r?.serviceVersion ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Commit</DescriptionTerm>
-        <DescriptionDetails className="font-mono text-sm">{r?.commitSha ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Uptime</DescriptionTerm>
-        <DescriptionDetails>{formatUptime(r?.uptimeSeconds)}</DescriptionDetails>
-        <DescriptionTerm>Chain ID</DescriptionTerm>
-        <DescriptionDetails>
-          {r?.contract?.chainId === undefined || r.contract.chainId === null ? '—' : String(r.contract.chainId)}
-        </DescriptionDetails>
-        <DescriptionTerm>Indexer interval</DescriptionTerm>
-        <DescriptionDetails>{intervalDetail(scheduler?.intervalMs)}</DescriptionDetails>
-      </DescriptionList>
+        <DescriptionList>
+          <DescriptionTerm>Environment</DescriptionTerm>
+          <DescriptionDetails>{r?.environment ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Version</DescriptionTerm>
+          <DescriptionDetails>{r?.serviceVersion ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Commit</DescriptionTerm>
+          <DescriptionDetails className="font-mono text-sm">{r?.commitSha ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Uptime</DescriptionTerm>
+          <DescriptionDetails>{formatUptime(r?.uptimeSeconds)}</DescriptionDetails>
+          <DescriptionTerm>Chain ID</DescriptionTerm>
+          <DescriptionDetails>
+            {r?.contract?.chainId === undefined || r.contract.chainId === null ? '—' : String(r.contract.chainId)}
+          </DescriptionDetails>
+          <DescriptionTerm>Indexer interval</DescriptionTerm>
+          <DescriptionDetails>{intervalDetail(scheduler?.intervalMs)}</DescriptionDetails>
+        </DescriptionList>
       </SectionCard>
 
       <SectionCard title="Vault contract">
-      <DescriptionList>
-        <DescriptionTerm>Mode</DescriptionTerm>
-        <DescriptionDetails>{r?.contract?.mode ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Address</DescriptionTerm>
-        <DescriptionDetails className="font-mono text-sm">{r?.contract?.contractAddress ?? '—'}</DescriptionDetails>
-        <DescriptionTerm>Code present</DescriptionTerm>
-        <DescriptionDetails>{formatCodePresent(r?.contract?.codePresent)}</DescriptionDetails>
-        <DescriptionTerm>Contract status</DescriptionTerm>
-        <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
-      </DescriptionList>
+        <DescriptionList>
+          <DescriptionTerm>Mode</DescriptionTerm>
+          <DescriptionDetails>{r?.contract?.mode ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Address</DescriptionTerm>
+          <DescriptionDetails className="font-mono text-sm">{r?.contract?.contractAddress ?? '—'}</DescriptionDetails>
+          <DescriptionTerm>Code present</DescriptionTerm>
+          <DescriptionDetails>{formatCodePresent(r?.contract?.codePresent)}</DescriptionDetails>
+          <DescriptionTerm>Contract status</DescriptionTerm>
+          <DescriptionDetails>{runtimeStatusLabel(r?.contractStatus)}</DescriptionDetails>
+        </DescriptionList>
       </SectionCard>
 
       <SectionCard title="Scheduler">
-      <DescriptionList>
-        <DescriptionTerm>Status</DescriptionTerm>
-        <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
-        <DescriptionTerm>Last success</DescriptionTerm>
-        <DescriptionDetails>{formatDateTime(scheduler?.lastSuccessAt)}</DescriptionDetails>
-        <DescriptionTerm>Last indexed block</DescriptionTerm>
-        <DescriptionDetails>{blockDetail(scheduler?.lastIndexedBlock)}</DescriptionDetails>
-        <DescriptionTerm>Consecutive errors</DescriptionTerm>
-        <DescriptionDetails>{errorsDetail(scheduler?.consecutiveErrors)}</DescriptionDetails>
-      </DescriptionList>
+        <DescriptionList>
+          <DescriptionTerm>Status</DescriptionTerm>
+          <DescriptionDetails>{runtimeStatusLabel(scheduler?.status)}</DescriptionDetails>
+          <DescriptionTerm>Last success</DescriptionTerm>
+          <DescriptionDetails>{formatDateTime(scheduler?.lastSuccessAt)}</DescriptionDetails>
+          <DescriptionTerm>Last indexed block</DescriptionTerm>
+          <DescriptionDetails>{blockDetail(scheduler?.lastIndexedBlock)}</DescriptionDetails>
+          <DescriptionTerm>Consecutive errors</DescriptionTerm>
+          <DescriptionDetails>{errorsDetail(scheduler?.consecutiveErrors)}</DescriptionDetails>
+        </DescriptionList>
       </SectionCard>
 
       <SectionCard
@@ -278,7 +281,7 @@ export default async function RuntimePage() {
       </SectionCard>
 
       <div className="space-y-4">
-        <p className="text-sm text-fg-muted dark:text-fg-secondary">
+        <p className="text-sm text-fg-secondary">
           Data coverage and source activity below are the canonical technical diagnostics for
           the console. Business pages no longer repeat these blocks.
         </p>
@@ -292,22 +295,25 @@ export default async function RuntimePage() {
         <div className="divide-y divide-console-line-soft">
           {(
             [
-              ['Runtime', runtime.ok ? jsonLisible(runtime.data) : null, !runtime.ok],
-              ['Health', health.ok ? jsonLisible(health.data) : null, !health.ok],
-              ['Ready', ready.ok ? jsonLisible(ready.data) : null, !ready.ok],
+              ['Runtime', runtime],
+              ['Health', health],
+              ['Ready', ready],
             ] as const
-          ).map(([label, payload, failed]) => (
+          ).map(([label, result]) => (
             <details key={label} className="group py-3 first:pt-0 last:pb-0">
-              <summary className="cursor-pointer text-sm font-semibold text-ink dark:text-fg">
+              <summary className="cursor-pointer text-sm font-semibold text-fg">
                 {label}
               </summary>
-              {failed ? (
-                <div className="mt-3">
-                  <Callout tone="danger">The {label.toLowerCase()} probe did not respond.</Callout>
-                </div>
-              ) : (
-                <pre className={`${surfaceInset} mt-3 max-h-64 overflow-auto p-3 text-xs/5 text-fg`}>{payload}</pre>
-              )}
+              <div className="mt-3">
+                <AdminProbeResult
+                  status={result.ok ? 'LIVE' : result.state.status}
+                  reason={result.ok ? null : result.state.reason}
+                  trace={result.trace}
+                  rawJson={result.ok ? jsonLisible(result.data) : undefined}
+                  problem={result.ok ? null : result.problem}
+                  keeper={result.ok ? null : result.keeper}
+                />
+              </div>
             </details>
           ))}
         </div>

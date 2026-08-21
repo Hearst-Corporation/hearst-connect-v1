@@ -147,7 +147,7 @@ export default async function Page() {
 
       <ClientsMainContent view={view} assetScale={assetScale} />
 
-      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+      <Text className="text-sm text-fg-secondary">
         Som provides KYC — status is read-only here. Source health:{' '}
         <Link href="/admin/runtime" className="underline">
           Service

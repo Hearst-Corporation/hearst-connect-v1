@@ -22,7 +22,6 @@ import {
   ServerIcon,
   UserIcon,
 } from '@heroicons/react/16/solid'
-import clsx from 'clsx'
 import type { Metadata } from 'next'
 import { KeeperForm } from './keeper-form'
 
@@ -38,13 +37,7 @@ function Prerequisite({
     <>
       <DescriptionTerm>{label}</DescriptionTerm>
       <DescriptionDetails>
-        <span
-          className={clsx(
-            satisfait ? 'text-ink dark:text-fg' : 'text-warning-400',
-          )}
-        >
-          {value}
-        </span>
+        <span className={satisfait ? 'text-fg' : 'text-warning-400'}>{value}</span>
       </DescriptionDetails>
     </>
   )
@@ -118,7 +111,7 @@ export default async function KeeperPage() {
       <SectionCard title="Scope" hint="These routes log a request — they sign nothing.">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Badge color="neutral">No on-chain signature</Badge>
-          <Text className="!mt-0 font-medium text-ink dark:text-fg">
+          <Text className="!mt-0 font-medium text-fg">
             None of these routes signs a transaction
           </Text>
         </div>
@@ -174,10 +167,10 @@ export default async function KeeperPage() {
               <TableCell className={tableCol.primary}>
                 <div className="truncate font-medium">{endpoint.summary}</div>
               </TableCell>
-              <TableCell className={`${tableCol.hash} text-xs text-fg-tertiary dark:text-fg-secondary`}>
+              <TableCell className={`${tableCol.hash} text-xs text-fg-secondary`}>
                 {endpoint.method} {endpoint.path}
               </TableCell>
-              <TableCell className={`${tableCol.primary} text-fg-tertiary dark:text-fg-secondary`}>{endpoint.caveat ?? '—'}</TableCell>
+              <TableCell className={`${tableCol.primary} text-fg-secondary`}>{endpoint.caveat ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

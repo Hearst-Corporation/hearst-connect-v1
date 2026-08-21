@@ -1,4 +1,5 @@
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { surfaceInset } from '@/components/admin/surface'
 import { Text } from '@/components/catalyst/text'
 import {
   TableBody,
@@ -7,7 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { DataTableShell, SectionCard } from '@/components/compositions'
+import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import clsx from 'clsx'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
@@ -164,12 +166,12 @@ function MiningKpis({
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {kpis.map((kpi) => (
-        <div key={kpi.id} className="rounded-lg bg-console-inset p-4 ring-1 ring-console-line-soft">
+        <div key={kpi.id} className={clsx(surfaceInset, 'p-4')}>
           <div className="flex items-center gap-2">
             <kpi.icon className="size-5 text-accent-400" />
             <span className="text-xs font-medium text-fg-tertiary">{kpi.title}</span>
           </div>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-2 text-2xl font-semibold tabular-nums text-fg">
             {kpi.value}
           </p>
           {kpi.unit ? <p className="text-xs text-fg-tertiary">{kpi.unit}</p> : null}
@@ -206,7 +208,7 @@ function MachineFleetSection({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {machineCount !== null ? formatNumber(machineCount) : '—'}
           </p>
         </div>
@@ -224,7 +226,7 @@ function MachineFleetSection({
         </div>
         <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
           </p>
         </div>
@@ -293,33 +295,33 @@ function StrategyAllocationSection({
     >
         <TableHead>
           <TableRow>
-            <TableHeader className="text-left text-xs">Strategy</TableHeader>
-            <TableHeader className="text-left text-xs">Target</TableHeader>
-            <TableHeader className="text-left text-xs">Actual</TableHeader>
-            <TableHeader className="text-left text-xs">BTC received</TableHeader>
-            <TableHeader className="text-left text-xs">Status</TableHeader>
+            <TableHeader className={tableCol.primary}>Strategy</TableHeader>
+            <TableHeader className={tableCol.numeric}>Target</TableHeader>
+            <TableHeader className={tableCol.numeric}>Actual</TableHeader>
+            <TableHeader className={tableCol.numeric}>BTC received</TableHeader>
+            <TableHeader className={tableCol.status}>Status</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.id}>
-              <TableCell className="text-xs">{row.label}</TableCell>
-              <TableCell className="text-xs tabular-nums">
+              <TableCell className={tableCol.primary}>{row.label}</TableCell>
+              <TableCell className={tableCol.numeric}>
                 {row.targetBps !== null
                   ? formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })
                   : '—'}
               </TableCell>
-              <TableCell className="text-xs tabular-nums">
+              <TableCell className={tableCol.numeric}>
                 {row.actualBps !== null
                   ? formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })
                   : '—'}
               </TableCell>
-              <TableCell className="text-xs tabular-nums">
+              <TableCell className={tableCol.numeric}>
                 {row.totalSats > 0 ? `${satsToBtc(String(row.totalSats))} BTC` : '—'}
               </TableCell>
-              <TableCell className="text-xs">
+              <TableCell className={tableCol.status}>
                 {row.enabled ? (
-                  <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-600 dark:text-success-400">
+                  <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
                     enabled
                   </span>
                 ) : (
@@ -373,19 +375,19 @@ function OpexSection({
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Monthly electricity</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {monthlyCost !== null ? formatCurrency(monthlyCost, { decimals: 0 }) : '—'}
           </p>
         </div>
         <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">kWh consumed</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {kwhConsumed !== null ? formatNumber(Number(kwhConsumed), { maximumFractionDigits: 0 }) : '—'}
           </p>
         </div>
         <div className="min-w-0">
           <p className="text-xs font-medium text-fg-tertiary">Cost per kWh</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {costPerKwh !== null ? formatCurrency(costPerKwh, { decimals: 2 }) : '—'}
           </p>
         </div>
@@ -469,13 +471,13 @@ function NextDistributionCard({
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="min-w-0">
             <p className="text-xs font-medium text-fg-tertiary">BTC amount</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
               {satsToBtc(distribution.btcAmountSats) ?? '—'} BTC
             </p>
           </div>
           <div className="min-w-0">
             <p className="text-xs font-medium text-fg-tertiary">Value at price</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
               {btcValueUsdc(distribution.btcAmountSats, distribution.btcPriceUsdc) ?? '—'}
             </p>
           </div>
@@ -483,17 +485,17 @@ function NextDistributionCard({
         <div className="flex items-center justify-between border-t border-console-line-soft pt-4">
           <div>
             <p className="text-xs font-medium text-fg-tertiary">Target strategy</p>
-            <p className="text-sm font-medium text-ink dark:text-fg">{distribution.rwaStrategyId}</p>
+            <p className="text-sm font-medium text-fg">{distribution.rwaStrategyId}</p>
           </div>
           <div className="text-right">
             <p className="text-xs font-medium text-fg-tertiary">Status</p>
             <span
               className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                 distribution.status === 'approved'
-                  ? 'bg-success-400/10 text-success-600 dark:text-success-400'
+                  ? 'bg-success-400/10 text-success-400'
                   : distribution.status === 'distributed'
-                    ? 'bg-accent-400/10 text-accent-600 dark:text-accent-400'
-                    : 'bg-warning-400/10 text-warning-600 dark:text-warning-400'
+                    ? 'bg-accent-400/10 text-accent-400'
+                    : 'bg-warning-400/10 text-warning-400'
               }`}
             >
               {distribution.status}
@@ -521,41 +523,41 @@ function DistributionHistory({
     <DataTableShell title="Distribution history" count={`${distributions.length}`}>
       <TableHead>
         <TableRow>
-          <TableHeader className="text-left text-xs">Month</TableHeader>
-          <TableHeader className="text-left text-xs">Date</TableHeader>
-          <TableHeader className="text-left text-xs">BTC</TableHeader>
-          <TableHeader className="text-left text-xs">Value</TableHeader>
-          <TableHeader className="text-left text-xs">Strategy</TableHeader>
-          <TableHeader className="text-left text-xs">Status</TableHeader>
-          <TableHeader className="text-left text-xs">Approved</TableHeader>
+          <TableHeader className={tableCol.date}>Month</TableHeader>
+          <TableHeader className={tableCol.date}>Date</TableHeader>
+          <TableHeader className={tableCol.numeric}>BTC</TableHeader>
+          <TableHeader className={tableCol.numeric}>Value</TableHeader>
+          <TableHeader className={tableCol.hash}>Strategy</TableHeader>
+          <TableHeader className={tableCol.status}>Status</TableHeader>
+          <TableHeader className={tableCol.date}>Approved</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
         {distributions.map((d) => (
           <TableRow key={d.id}>
-            <TableCell className="text-xs">{d.month}</TableCell>
-            <TableCell className="text-xs">{formatDateTime(d.distributionDate)}</TableCell>
-            <TableCell className="text-xs tabular-nums">
+            <TableCell className={tableCol.date}>{d.month}</TableCell>
+            <TableCell className={tableCol.date}>{formatDateTime(d.distributionDate)}</TableCell>
+            <TableCell className={tableCol.numeric}>
               {satsToBtc(d.btcAmountSats) ?? '—'} BTC
             </TableCell>
-            <TableCell className="text-xs tabular-nums">
+            <TableCell className={tableCol.numeric}>
               {btcValueUsdc(d.btcAmountSats, d.btcPriceUsdc) ?? '—'}
             </TableCell>
-            <TableCell className="text-xs">{d.rwaStrategyId}</TableCell>
-            <TableCell className="text-xs">
+            <TableCell className={tableCol.hash}>{d.rwaStrategyId}</TableCell>
+            <TableCell className={tableCol.status}>
               <span
                 className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                   d.status === 'approved'
-                    ? 'bg-success-400/10 text-success-600 dark:text-success-400'
+                    ? 'bg-success-400/10 text-success-400'
                     : d.status === 'distributed'
-                      ? 'bg-accent-400/10 text-accent-600 dark:text-accent-400'
-                      : 'bg-warning-400/10 text-warning-600 dark:text-warning-400'
+                      ? 'bg-accent-400/10 text-accent-400'
+                      : 'bg-warning-400/10 text-warning-400'
                 }`}
               >
                 {d.status}
               </span>
             </TableCell>
-            <TableCell className="text-xs">
+            <TableCell className={tableCol.date}>
               {d.approvedAt ? formatDateTime(d.approvedAt) : '—'}
             </TableCell>
           </TableRow>
@@ -611,13 +613,13 @@ function CalculationsSection({
       >
         <TableHead>
           <TableRow>
-            <TableHeader className="text-left text-xs">Period</TableHeader>
-            <TableHeader className="text-left text-xs">BTC</TableHeader>
-            <TableHeader className="text-left text-xs">Gross yield</TableHeader>
-            <TableHeader className="text-left text-xs">OPEX</TableHeader>
-            <TableHeader className="text-left text-xs">Net yield</TableHeader>
-            <TableHeader className="text-left text-xs">Strategy</TableHeader>
-            <TableHeader className="text-left text-xs">Status</TableHeader>
+            <TableHeader className={tableCol.date}>Period</TableHeader>
+            <TableHeader className={tableCol.numeric}>BTC</TableHeader>
+            <TableHeader className={tableCol.numeric}>Gross yield</TableHeader>
+            <TableHeader className={tableCol.numeric}>OPEX</TableHeader>
+            <TableHeader className={tableCol.numeric}>Net yield</TableHeader>
+            <TableHeader className={tableCol.hash}>Strategy</TableHeader>
+            <TableHeader className={tableCol.status}>Status</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -626,27 +628,27 @@ function CalculationsSection({
             const opexValue = formatCurrency(c.opexDeductionUsdc, { decimals: 0 })
             return (
               <TableRow key={c.id}>
-                <TableCell className="text-xs">{c.period}</TableCell>
-                <TableCell className="text-xs tabular-nums">
+                <TableCell className={tableCol.date}>{c.period}</TableCell>
+                <TableCell className={tableCol.numeric}>
                   {complete ? `${satsToBtc(c.btcAmountSats)} BTC` : '—'}
                 </TableCell>
-                <TableCell className="text-xs tabular-nums">
+                <TableCell className={tableCol.numeric}>
                   {complete ? formatCurrency(c.grossYieldUsdc, { decimals: 0 }) : '—'}
                 </TableCell>
-                <TableCell className="text-xs tabular-nums text-danger-400">
+                <TableCell className={`${tableCol.numeric} text-danger-400`}>
                   {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
                 </TableCell>
-                <TableCell className="text-xs tabular-nums text-success-400">
+                <TableCell className={`${tableCol.numeric} text-success-400`}>
                   {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0 }) : '—'}
                 </TableCell>
-                <TableCell className="text-xs">{c.rwaStrategyId}</TableCell>
-                <TableCell className="text-xs">
+                <TableCell className={tableCol.hash}>{c.rwaStrategyId}</TableCell>
+                <TableCell className={tableCol.status}>
                   {complete ? (
-                    <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-600 dark:text-success-400">
+                    <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
                       complete
                     </span>
                   ) : (
-                    <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-600 dark:text-warning-400">
+                    <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-400">
                       incomplete
                     </span>
                   )}
@@ -742,11 +744,11 @@ export default async function Page({ searchParams }: PageProps) {
       />
 
       {vaultOptions.length > 0 ? (
-        <div className="flex items-center justify-between gap-4 rounded-lg bg-console-inset p-3 ring-1 ring-console-line-soft">
+        <div className={clsx(surfaceInset, 'flex items-center justify-between gap-4 p-3')}>
           <MiningVaultSwitcher options={vaultOptions} selectedId={validStrategy} />
           {validStrategy ? (
             <span className="text-xs text-fg-tertiary">
-              Showing data for <span className="font-medium text-ink dark:text-fg">{validStrategy}</span>
+              Showing data for <span className="font-medium text-fg">{validStrategy}</span>
             </span>
           ) : (
             <span className="text-xs text-fg-tertiary">Showing all RWA strategies</span>

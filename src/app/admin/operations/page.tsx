@@ -107,7 +107,7 @@ function RebalancingSection({
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Strategies out of target
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {formatNumber(data.strategiesOutOfTarget)}
           </p>
         </div>
@@ -115,7 +115,7 @@ function RebalancingSection({
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Vaults out of target
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {formatNumber(data.vaultsOutOfTarget)}
           </p>
         </div>
@@ -123,7 +123,7 @@ function RebalancingSection({
           <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
             Maximum drift
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-ink dark:text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
             {data.maxDriftBps === null ? '—' : formatDriftPts(data.maxDriftBps)}
           </p>
         </div>
@@ -132,7 +132,7 @@ function RebalancingSection({
       {data.alerts.length > 0 ? (
         <div className="mt-4 space-y-2">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-ink dark:text-fg">Needs attention</h3>
+            <h3 className="text-sm font-semibold text-fg">Needs attention</h3>
             <Badge color="neutral">{data.alerts.length}</Badge>
           </div>
           <AdminTable>
@@ -166,7 +166,7 @@ function RebalancingSection({
           </AdminTable>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-fg-tertiary dark:text-fg-secondary">
+        <p className="mt-4 text-sm text-fg-secondary">
           Portfolio within target. No rebalancing action required.
         </p>
       )}
@@ -181,7 +181,7 @@ function RebalancingSection({
         ) : null}
       </div>
 
-      <p className="mt-4 text-xs text-fg-tertiary dark:text-fg-secondary">
+      <p className="mt-4 text-xs text-fg-secondary">
         On-chain rebalance execution is not exposed as a safe admin action. The keeper route
         requires a low-level swap payload and does not sign transactions in this service.
       </p>
@@ -451,8 +451,8 @@ export default async function Page() {
           className={clsx(surfaceBox, 'flex flex-col gap-1.5 p-4')}
           data-widget="operations-last-rebalance"
         >
-          <p className="text-sm font-semibold text-ink dark:text-fg">Last rebalance</p>
-          <p className="text-lg font-semibold text-ink dark:text-fg">
+          <p className="text-sm font-semibold text-fg">Last rebalance</p>
+          <p className="text-lg font-semibold text-fg">
             {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
           </p>
           {snapshot.lastRebalanceTxHash ? (
@@ -521,7 +521,7 @@ export default async function Page() {
         </DataTableShell>
       )}
 
-      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+      <Text className="text-sm text-fg-secondary">
         Technical probes and source coverage:{' '}
         <Link href="/admin/runtime" className="underline">
           Service status

@@ -1,9 +1,8 @@
 'use client'
 
-import { ChartFrame } from '@/components/charts/core/chart-frame'
-import { HearstLineChart, type LinePoint } from '@/components/charts/richart/line-chart'
+import { ChartFrame, HearstLineChart, type LinePoint } from '@/components/charts'
+import { SectionHeader } from '@/components/compositions'
 import { formatNumber } from '@/lib/format'
-import { SectionCard } from '@/components/compositions'
 
 type DistributionRecord = {
   readonly id: string
@@ -45,7 +44,8 @@ export function MonthlyBtcChart({
       : ({ type: 'plotted' } as const)
 
   return (
-    <SectionCard title="Monthly BTC earned" hint="Yield produced per month">
+    <section className="flex flex-col gap-4">
+      <SectionHeader title="Monthly BTC earned" hint="Yield produced per month" />
       <ChartFrame
         question="How much BTC does the fleet produce each month?"
         unit="in BTC"
@@ -57,6 +57,6 @@ export function MonthlyBtcChart({
           yTickFormatter={(v) => formatNumber(v, { maximumFractionDigits: 4 })}
         />
       </ChartFrame>
-    </SectionCard>
+    </section>
   )
 }

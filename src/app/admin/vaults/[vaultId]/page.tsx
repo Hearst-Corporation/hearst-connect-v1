@@ -144,7 +144,7 @@ function TxExplorerLink({
       href={txUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-accent-600 dark:text-accent-400"
+      className="text-accent-400"
     >
       {txShort}
     </a>
@@ -600,9 +600,9 @@ function RebalancingEventsSection({
                   className={clsx(
                     'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
                     event.name === 'Rebalance'
-                      ? 'bg-accent-400/10 text-accent-600 dark:text-accent-400'
+                      ? 'bg-accent-400/10 text-accent-400'
                       : event.name === 'VaultSwapped'
-                        ? 'bg-warning-400/10 text-warning-600 dark:text-warning-400'
+                        ? 'bg-warning-400/10 text-warning-400'
                         : 'bg-console-inset text-fg-tertiary',
                   )}
                 >
@@ -624,7 +624,7 @@ function RebalancingEventsSection({
                     href={txUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-accent-600 dark:text-accent-400"
+                    className="text-accent-400"
                   >
                     {txShort}
                   </a>
@@ -757,7 +757,7 @@ export default async function Page({ params }: PageProps) {
 
       <VaultKeeperActionsSection isAdmin={isAdmin} disabledReason={disabledReason} />
 
-      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+      <Text className="text-sm text-fg-secondary">
         Source health and endpoint coverage:{' '}
         <Link href="/admin/runtime" className="underline">
           Service

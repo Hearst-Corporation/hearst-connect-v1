@@ -190,27 +190,27 @@ export function ClientsDirectory({
                 href={`/admin/client-simulator/${client.id}`}
                 className={clsx(surfaceBox, 'block p-4')}
               >
-              <div className="flex items-start justify-between gap-3">
-                <p className="truncate text-sm font-semibold text-ink dark:text-fg">{client.label}</p>
-                <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
-              </div>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <dt className="text-fg-tertiary">Exposure</dt>
-                  <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
-                    {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
-                  </dd>
+                <div className="flex items-start justify-between gap-3">
+                  <p className="truncate text-sm font-semibold text-fg">{client.label}</p>
+                  <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
                 </div>
-                <div>
-                  <dt className="text-fg-tertiary">Vaults</dt>
-                  <dd className="mt-0.5 tabular-nums text-ink dark:text-fg">
-                    {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
-                  </dd>
-                </div>
-              </dl>
-              <p className="mt-3 text-xs text-fg-tertiary">
-                Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
-              </p>
+                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <dt className="text-fg-tertiary">Exposure</dt>
+                    <dd className="mt-0.5 tabular-nums text-fg">
+                      {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-fg-tertiary">Vaults</dt>
+                    <dd className="mt-0.5 tabular-nums text-fg">
+                      {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-3 text-xs text-fg-tertiary">
+                  Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+                </p>
               </Link>
             </li>
           ))

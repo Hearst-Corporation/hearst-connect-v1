@@ -93,7 +93,7 @@ export default async function Page() {
         </DataTableShell>
       )}
 
-      <Text className="text-sm text-fg-tertiary dark:text-fg-secondary">
+      <Text className="text-sm text-fg-secondary">
         Client directory:{' '}
         <Link href="/admin/clients" className="underline">
           Clients

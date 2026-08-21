@@ -7,6 +7,7 @@ import {
   KeeperMetricsFields,
 } from '@/components/admin/forms/admin-action-form'
 import { StatusBadge } from '@/components/admin/truthful'
+import { Callout } from '@/components/compositions'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
 import clsx from 'clsx'
@@ -28,8 +29,8 @@ export function KeeperForm({
     <section className={clsx(surfaceBox, 'p-5')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-ink dark:text-fg">{endpoint.summary}</h2>
-          <p className="mt-0.5 font-mono text-xs text-fg-tertiary dark:text-fg-secondary">
+          <h2 className="text-sm font-semibold text-fg">{endpoint.summary}</h2>
+          <p className="mt-0.5 font-mono text-xs text-fg-secondary">
             {endpoint.method} {endpoint.path}
           </p>
         </div>
@@ -37,9 +38,9 @@ export function KeeperForm({
       </div>
 
       {endpoint.caveat ? (
-        <p className="mt-3 rounded-lg bg-warning-400/10 px-3 py-2 text-xs text-warning-400 ring-1 ring-warning-400/20">
+        <Callout tone="warning" className="mt-3 text-xs">
           {endpoint.caveat}
-        </p>
+        </Callout>
       ) : null}
 
       {disabled ? (
@@ -62,7 +63,7 @@ export function KeeperForm({
       )}
 
       {outcome ? (
-        <div className="mt-4 border-t border-ink/5 pt-4 dark:border-console-line-soft">
+        <div className="mt-4 border-t border-console-line-soft pt-4">
           <ActionOutcome outcome={outcome} />
         </div>
       ) : null}

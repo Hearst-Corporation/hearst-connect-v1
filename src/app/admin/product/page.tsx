@@ -1,7 +1,6 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
 import {
   ChartFrame,
   HearstCurveChart,
@@ -58,17 +57,15 @@ type Factsheet = {
 
 type Backtest = { readonly runs?: Resolved<unknown> }
 
-const stateFrom = seriesStateFrom
-
-function ouRien(texte: string): string | null {
-  return texte === '—' ? null : texte
+function orNull(text: string): string | null {
+  return text === '—' ? null : text
 }
 
-function bitcoinProduitDe(totalSats: string | null | undefined): string | null {
+function btcProducedFrom(totalSats: string | null | undefined): string | null {
   if (totalSats === undefined || totalSats === null) return null
-  const nombre = Number(totalSats)
-  if (!Number.isFinite(nombre)) return null
-  return formatNumber(nombre / 100_000_000, { maximumFractionDigits: 4 })
+  const sats = Number(totalSats)
+  if (!Number.isFinite(sats)) return null
+  return formatNumber(sats / 100_000_000, { maximumFractionDigits: 4 })
 }
 
 type ReserveItem = { readonly item: string; readonly amount: number }
@@ -104,7 +101,7 @@ function curveExplanation(
   vendingCurve: Resolved<unknown> | undefined,
 ): string {
   if (points.length === 0) {
-    const state = stateFrom(vendingCurve, 'Product terms have not been submitted yet.')
+    const state = seriesStateFrom(vendingCurve, 'Product terms have not been submitted yet.')
     if (state.type === 'pending' || state.type === 'unavailable') return state.explanation
     return 'Product terms have not been submitted yet.'
   }
@@ -112,8 +109,8 @@ function curveExplanation(
   return 'All five product milestones are defined, but no rate has been recorded yet. The curve will appear once they are.'
 }
 
-function seriesExplanation(champ: Resolved<unknown> | undefined, fallback: string): string {
-  const state = stateFrom(champ, fallback)
+function seriesExplanation(field: Resolved<unknown> | undefined, fallback: string): string {
+  const state = seriesStateFrom(field, fallback)
   if (state.type === 'pending' || state.type === 'unavailable') return state.explanation
   return fallback
 }
@@ -205,47 +202,47 @@ function CapitalReserveSection({
   )
 }
 
-type LectureEnAttente = {
-  readonly cle: string
+type PendingReading = {
+  readonly key: string
   readonly label: string
-  readonly explication: string
-  readonly statut: string | undefined
+  readonly explanation: string
+  readonly status: string | undefined
 }
 
-function lecturesEnAttenteDe(
+function pendingReadingsFrom(
   backtest: Awaited<ReturnType<typeof callBackend<Backtest>>>,
   b: Btc | null,
   m: Mining | null,
-): readonly LectureEnAttente[] {
+): readonly PendingReading[] {
   return [
     {
-      cle: 'backtest',
+      key: 'backtest',
       label: 'Performance vs history',
-      explication: seriesExplanation(
+      explanation: seriesExplanation(
         backtest.ok ? backtest.data.runs : undefined,
         'No backtest has been run on this deployment yet.',
       ),
-      statut: backtest.ok ? backtest.data.runs?.status : undefined,
+      status: backtest.ok ? backtest.data.runs?.status : undefined,
     },
     {
-      cle: 'attribution',
+      key: 'attribution',
       label: 'Yield breakdown',
-      explication: seriesExplanation(b?.attribution, 'The yield breakdown has not been calculated yet.'),
-      statut: b?.attribution?.status,
+      explanation: seriesExplanation(b?.attribution, 'The yield breakdown has not been calculated yet.'),
+      status: b?.attribution?.status,
     },
     {
-      cle: 'telemetrie',
+      key: 'telemetry',
       label: 'Operational telemetry',
-      explication: seriesExplanation(
+      explanation: seriesExplanation(
         m?.operationalTelemetry,
         'Operational telemetry has not been submitted yet.',
       ),
-      statut: m?.operationalTelemetry?.status,
+      status: m?.operationalTelemetry?.status,
     },
   ]
 }
 
-function kpisProduitDe(
+function productKpisFrom(
   mining: Awaited<ReturnType<typeof callBackend<Mining>>>,
   btc: Awaited<ReturnType<typeof callBackend<Btc>>>,
   factsheet: Awaited<ReturnType<typeof callBackend<Factsheet>>>,
@@ -256,19 +253,19 @@ function kpisProduitDe(
   const hashrateCell = figureFromResolved(mining.ok ? m?.hashrate : undefined, MINING_ENDPOINT, (h) =>
     formatNumber(Number(h.reportedHashrateTh)),
   )
-  const btcProduitCell = figureFromResolved(
+  const btcProducedCell = figureFromResolved(
     btc.ok ? b?.btcProduced : undefined,
     BTC_ENDPOINT,
-    (p) => bitcoinProduitDe(p.totalSats) ?? '—',
+    (p) => btcProducedFrom(p.totalSats) ?? '—',
   )
-  const plafondCell = figureFromResolved(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
+  const capCell = figureFromResolved(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
     formatCurrency(c, { decimals: 0 }),
   )
 
   return [
     { id: 'hashrate', title: 'Hashrate', value: hashrateCell, unit: 'TH/s', icon: CpuChipIcon },
-    { id: 'btc-produced', title: 'BTC produced', value: btcProduitCell, unit: 'BTC', icon: CircleStackIcon },
-    { id: 'cap', title: 'Cap', value: plafondCell, icon: Square3Stack3DIcon },
+    { id: 'btc-produced', title: 'BTC produced', value: btcProducedCell, unit: 'BTC', icon: CircleStackIcon },
+    { id: 'cap', title: 'Cap', value: capCell, icon: Square3Stack3DIcon },
     {
       id: 'source-btc',
       title: 'BTC source',
@@ -292,7 +289,7 @@ export default async function Page() {
   const f = factsheet.ok ? factsheet.data : null
 
   const hashrate = m?.hashrate?.value
-  const bitcoinProduit = bitcoinProduitDe(b?.btcProduced?.value?.totalSats)
+  const btcProduced = btcProducedFrom(b?.btcProduced?.value?.totalSats)
 
   const items = reserveExposureItems(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
   const soleItem = items.length === 1 ? items[0] : undefined
@@ -304,10 +301,10 @@ export default async function Page() {
 
   const points = curvePointsFrom(f?.vendingCurve?.value)
   const curveConfigured = curveConfiguredFrom(points)
-  const plafond = f?.tvlCap?.value
+  const cap = f?.tvlCap?.value
 
-  const lecturesEnAttente = lecturesEnAttenteDe(backtest, b, m)
-  const kpis = kpisProduitDe(mining, btc, factsheet, m, b, f)
+  const pendingReadings = pendingReadingsFrom(backtest, b, m)
+  const kpis = productKpisFrom(mining, btc, factsheet, m, b, f)
 
   return (
     <div className="space-y-8">
@@ -324,14 +321,14 @@ export default async function Page() {
             {hashrate ? `${formatNumber(Number(hashrate.reportedHashrateTh))} TH/s` : '—'}
           </DescriptionDetails>
           <DescriptionTerm>BTC produced</DescriptionTerm>
-          <DescriptionDetails>{bitcoinProduit === null ? '—' : `${bitcoinProduit} BTC`}</DescriptionDetails>
+          <DescriptionDetails>{btcProduced === null ? '—' : `${btcProduced} BTC`}</DescriptionDetails>
           <DescriptionTerm>Monthly electricity cost</DescriptionTerm>
           <DescriptionDetails>
-            {ouRien(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })) ?? '—'}
+            {orNull(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })) ?? '—'}
           </DescriptionDetails>
           <DescriptionTerm>Fund cap</DescriptionTerm>
           <DescriptionDetails>
-            {plafond ? (ouRien(formatCurrency(plafond, { decimals: 0 })) ?? '—') : '—'}
+            {cap ? (orNull(formatCurrency(cap, { decimals: 0 })) ?? '—') : '—'}
           </DescriptionDetails>
         </DescriptionList>
       </SectionCard>
@@ -358,36 +355,33 @@ export default async function Page() {
         >
           <HearstCurveChart points={points} />
         </ChartFrame>
-        {points.length > 0 ? (
-          <DataTableShell
-            title="Yield curve"
-            description="Rate recorded per milestone — the exact figures the curve positions."
-            count={`${points.length} milestones`}
-          >
-            <TableHead>
-              <TableRow>
-                <TableHeader className={tableCol.primary}>Month</TableHeader>
-                <TableHeader className={tableCol.numeric}>Rate %</TableHeader>
+        <DataTableShell
+          title="Yield curve"
+          description="Rate recorded per milestone — the exact figures the curve positions."
+          count={points.length > 0 ? `${points.length} milestones` : undefined}
+          calme={points.length === 0 ? 'No readable milestones for now.' : undefined}
+        >
+          <TableHead>
+            <TableRow>
+              <TableHeader className={tableCol.primary}>Month</TableHeader>
+              <TableHeader className={tableCol.numeric}>Rate %</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {points.map((p) => (
+              <TableRow key={p.month}>
+                <TableCell className={tableCol.primary}>{formatNumber(p.month)}</TableCell>
+                <TableCell className={tableCol.numeric}>{formatNumber(p.rate, { maximumFractionDigits: 2 })}</TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {points.map((p) => (
-                <TableRow key={p.month}>
-                  <TableCell className={tableCol.primary}>{formatNumber(p.month)}</TableCell>
-                  <TableCell className={tableCol.numeric}>{formatNumber(p.rate, { maximumFractionDigits: 2 })}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </DataTableShell>
-        ) : (
-          <Text>No readable milestones for now.</Text>
-        )}
+            ))}
+          </TableBody>
+        </DataTableShell>
       </section>
 
       <DataTableShell
         title="Not measurable yet"
         description="Three views whose question, axis, and unit are already decided. None charts until the service provides its series — the displayed state is what the source announces."
-        count={`${lecturesEnAttente.length} readings`}
+        count={`${pendingReadings.length} readings`}
       >
         <TableHead>
           <TableRow>
@@ -397,14 +391,14 @@ export default async function Page() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {lecturesEnAttente.map((reading) => (
-            <TableRow key={reading.cle}>
+          {pendingReadings.map((reading) => (
+            <TableRow key={reading.key}>
               <TableCell className={tableCol.primary}>
                 <div className="truncate font-medium">{reading.label}</div>
               </TableCell>
-              <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{reading.explication}</TableCell>
+              <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{reading.explanation}</TableCell>
               <TableCell className={tableCol.status}>
-                {reading.statut ? readableSourceState(reading.statut) : 'Not reported'}
+                {reading.status ? readableSourceState(reading.status) : 'Not reported'}
               </TableCell>
             </TableRow>
           ))}
