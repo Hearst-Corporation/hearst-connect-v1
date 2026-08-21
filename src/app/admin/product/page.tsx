@@ -1,6 +1,7 @@
 import { DashCard, PanelHeaderLink, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { HearstCurveChart, ReserveExposureChart, type BitcoinItem } from '@/components/charts'
 import { AdminTable, Callout, tableCol } from '@/components/compositions'
@@ -356,7 +357,7 @@ export default async function Page() {
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <AdminPageHeader
+      <DashboardHeader
         title="Consolidated product view"
         description="Mining, BTC, and product factsheet readings — no invented values."
         kpis={kpis}

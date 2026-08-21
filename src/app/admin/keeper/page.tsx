@@ -1,4 +1,5 @@
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { DashCard, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { Badge } from '@/components/catalyst/badge'
@@ -100,7 +101,7 @@ export default async function KeeperPage() {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
-      <AdminPageHeader
+      <DashboardHeader
         title="Keeper actions"
         description="Keeper routes from the registry — logging only, no on-chain signature."
         kpis={kpis}

@@ -1,4 +1,5 @@
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashboardHeader } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import {
   ChartPlaceholder,
   DashCard,
@@ -587,7 +588,7 @@ export default async function Page() {
 
   return (
     <DashboardShell>
-      <AdminPageHeader
+      <DashboardHeader
         title="Operations"
         description="Monitor portfolio drift and run supported operational actions."
         kpis={kpis}
