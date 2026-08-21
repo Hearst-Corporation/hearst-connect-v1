@@ -151,7 +151,7 @@ export function UnavailableState({ state, children }: Readonly<{ state: Resolved
   return (
     <StateShell status={state.status} title={STATUS_LABEL[state.status]} reason={state.reason}>
       {state.provenance.route ? (
-        <p className="mt-3 font-mono text-xs break-all text-fg-muted dark:text-fg-secondary">
+        <p className="mt-3 font-mono text-xs break-all text-fg-secondary">
           {state.provenance.route}
           {state.provenance.requestId ? ` · req ${state.provenance.requestId}` : null}
         </p>

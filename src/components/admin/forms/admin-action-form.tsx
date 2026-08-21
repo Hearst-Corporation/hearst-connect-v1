@@ -11,14 +11,14 @@ import clsx from 'clsx'
 
 export const actionFieldClass = clsx(
   surfaceInset,
-  'mt-1 w-full px-2 py-1.5 text-sm text-ink dark:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
+  'mt-1 w-full px-2 py-1.5 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
 )
 
 /** Fail-closed: the operator types CONFIRM. No isolated click fires a write. */
 export function ConfirmField() {
   return (
     <label className="block">
-      <span className="text-xs text-fg-tertiary dark:text-fg-secondary">
+      <span className="text-xs text-fg-secondary">
         Type <span className="font-mono text-warning-400">CONFIRM</span> to send the request
       </span>
       <input
@@ -36,11 +36,11 @@ export function KeeperMetricsFields() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">hashrateTh — integer ≥ 0</span>
+        <span className="text-xs text-fg-secondary">hashrateTh — integer ≥ 0</span>
         <input name="hashrateTh" type="number" min={0} step={1} required className={actionFieldClass} />
       </label>
       <label className="block">
-        <span className="text-xs text-fg-tertiary dark:text-fg-secondary">btcEarnedSats — integer ≥ 0</span>
+        <span className="text-xs text-fg-secondary">btcEarnedSats — integer ≥ 0</span>
         <input name="btcEarnedSats" type="number" min={0} step={1} required className={actionFieldClass} />
       </label>
     </div>
@@ -72,8 +72,8 @@ export function ActionOutcome({ outcome }: Readonly<{ outcome: ActionOutcomeStat
       ) : null}
       {outcome.problem ? <ProblemState problem={outcome.problem} /> : null}
       {result ? (
-        <p className="font-mono text-xs text-fg-tertiary dark:text-fg-secondary">
-          Backend response: <span className="text-ink dark:text-fg">{result.status}</span>
+        <p className="font-mono text-xs text-fg-secondary">
+          Backend response: <span className="text-fg">{result.status}</span>
           {result.reason ? ` · ${result.reason}` : ''}
           {result.detail ? ` — ${result.detail}` : ''}
         </p>

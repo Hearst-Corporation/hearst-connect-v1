@@ -17,14 +17,14 @@ export function TextLink({ className, ...props }: React.ComponentPropsWithoutRef
       {...props}
       className={clsx(
         className,
-        'text-ink underline decoration-ink/50 data-hover:decoration-ink dark:text-white dark:decoration-white/50 dark:data-hover:decoration-white'
+        'text-fg underline decoration-fg/50 hover:decoration-fg'
       )}
     />
   )
 }
 
 export function Strong({ className, ...props }: React.ComponentPropsWithoutRef<'strong'>) {
-  return <strong {...props} className={clsx(className, 'font-medium text-ink dark:text-fg')} />
+  return <strong {...props} className={clsx(className, 'font-medium text-fg')} />
 }
 
 export function Code({ className, ...props }: React.ComponentPropsWithoutRef<'code'>) {
@@ -33,7 +33,7 @@ export function Code({ className, ...props }: React.ComponentPropsWithoutRef<'co
       {...props}
       className={clsx(
         className,
-        'rounded-sm border border-ink/10 bg-ink/2.5 px-0.5 text-sm font-medium text-ink sm:text-[0.8125rem] dark:border-white/20 dark:bg-white/5 dark:text-white'
+        'rounded-sm border border-ink/10 bg-ink/2.5 px-0.5 text-sm font-medium text-ink sm:text-[0.8125rem] dark:border-console-line-strong dark:bg-fg/5 dark:text-fg'
       )}
     />
   )

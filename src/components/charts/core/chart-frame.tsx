@@ -74,7 +74,7 @@ function StateVisual({
         <Icon className="size-7" aria-hidden="true" />
       </span>
       <AdminToneBadge tone={danger ? 'bad' : 'neutral'}>{STATE_LABEL[state.type]}</AdminToneBadge>
-      <Text className="max-w-sm text-sm leading-relaxed text-fg-tertiary dark:text-fg-secondary">{state.explanation}</Text>
+      <Text className="max-w-sm text-sm leading-relaxed text-fg-secondary">{state.explanation}</Text>
       {expectedSource?.length ? (
         <div className="w-full max-w-xs text-left">
           <AdminLabel>Expected source</AdminLabel>
@@ -85,7 +85,7 @@ function StateVisual({
         <button
           type="button"
           onClick={onRetry}
-          className="text-xs font-medium text-accent-600 underline underline-offset-4 hover:text-accent-700 dark:text-accent-400"
+          className="text-xs font-medium text-accent-400 underline underline-offset-4 hover:text-accent-300"
         >
           {retryLabel}
         </button>
@@ -120,7 +120,7 @@ function ChartFrameContent({
           <AdminToneBadge tone={state.type === 'unavailable' ? 'bad' : 'neutral'}>
             {STATE_LABEL[state.type]}
           </AdminToneBadge>
-          <Text className="max-w-prose text-xs leading-relaxed text-fg-tertiary dark:text-fg-secondary">
+          <Text className="max-w-prose text-xs leading-relaxed text-fg-secondary">
             {state.explanation}
           </Text>
         </div>
