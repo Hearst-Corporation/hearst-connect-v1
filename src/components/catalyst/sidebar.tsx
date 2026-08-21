@@ -17,7 +17,7 @@ export function SidebarHeader({ className, ...props }: React.ComponentPropsWitho
       {...props}
       className={clsx(
         className,
-        'flex flex-col border-b border-ink/5 p-4 dark:border-white/5 [&>[data-slot=section]+[data-slot=section]]:mt-2.5'
+        'flex flex-col border-b border-ink/5 p-4 dark:border-console-line-soft [&>[data-slot=section]+[data-slot=section]]:mt-2.5'
       )}
     />
   )
@@ -41,7 +41,7 @@ export function SidebarFooter({ className, ...props }: React.ComponentPropsWitho
       {...props}
       className={clsx(
         className,
-        'flex flex-col border-t border-ink/5 p-4 dark:border-white/5 [&>[data-slot=section]+[data-slot=section]]:mt-2.5'
+        'flex flex-col border-t border-ink/5 p-4 dark:border-console-line-soft [&>[data-slot=section]+[data-slot=section]]:mt-2.5'
       )}
     />
   )
@@ -58,7 +58,7 @@ export function SidebarSection({ className, ...props }: React.ComponentPropsWith
 }
 
 export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
-  return <hr {...props} className={clsx(className, 'my-4 border-t border-ink/5 lg:-mx-4 dark:border-white/5')} />
+  return <hr {...props} className={clsx(className, 'my-4 border-t border-ink/5 lg:-mx-4 dark:border-console-line-soft')} />
 }
 
 export function SidebarSpacer({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -99,10 +99,10 @@ export const SidebarItem = forwardRef(function SidebarItem(
     // Current
     'data-current:*:data-[slot=icon]:fill-ink',
     // Dark mode
-    'dark:text-white dark:*:data-[slot=icon]:fill-fg-secondary',
-    'dark:data-hover:bg-white/5 dark:data-hover:*:data-[slot=icon]:fill-white',
-    'dark:data-active:bg-white/5 dark:data-active:*:data-[slot=icon]:fill-white',
-    'dark:data-current:*:data-[slot=icon]:fill-white'
+    'dark:text-fg dark:*:data-[slot=icon]:fill-fg-secondary',
+    'dark:data-hover:bg-fg/5 dark:data-hover:*:data-[slot=icon]:fill-fg',
+    'dark:data-active:bg-fg/5 dark:data-active:*:data-[slot=icon]:fill-fg',
+    'dark:data-current:*:data-[slot=icon]:fill-fg'
   )
 
   return (
@@ -110,7 +110,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
       {current && (
         <motion.span
           layoutId="current-indicator"
-          className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-ink dark:bg-white"
+          className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-ink dark:bg-fg"
         />
       )}
       {typeof props.href === 'string' ? (
