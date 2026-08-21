@@ -88,16 +88,17 @@ type DistributionRecord = {
   readonly approvedBy: string | null
 }
 
+/** Mirrors the backend `MiningPeriodSummaryItem` — whole-USD strings, sats for BTC. */
 type CalculationRecord = {
   readonly id: string
   readonly period: string
-  readonly btcAmountSats: string
-  readonly btcPriceUsdc: string
-  readonly grossYieldUsdc: string
-  readonly opexDeductionUsdc: string
+  readonly totalBtcMinedSats: string
+  readonly avgBtcPrice: string
+  readonly grossRevenueUsdc: string
+  readonly opexUsdc: string | null
   readonly netYieldUsdc: string
   readonly rwaStrategyId: string
-  readonly calculatedAt: string
+  readonly createdAt: string
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -109,12 +110,19 @@ function satsToBtc(sats: string | null | undefined): string | null {
   return formatNumber(n / 100_000_000, { maximumFractionDigits: 4 })
 }
 
-function btcValueUsdc(sats: string | null, price: string | null): string | null {
+/** Numeric whole-USD value of a sats amount at a whole-USD BTC price. */
+function btcValueUsdcNumeric(sats: string | null, price: string | null): number | null {
   if (sats === null || price === null) return null
   const btc = Number(sats) / 100_000_000
   const p = Number(price)
   if (!Number.isFinite(btc) || !Number.isFinite(p)) return null
-  return formatCurrency(btc * p, { decimals: 0 })
+  return btc * p
+}
+
+function btcValueUsdc(sats: string | null, price: string | null): string | null {
+  const value = btcValueUsdcNumeric(sats, price)
+  // Already whole USD — `fromAtomic: 1` opts out of the 6dp default.
+  return value === null ? null : formatCurrency(value, { decimals: 0, fromAtomic: 1 })
 }
 
 /**
@@ -290,13 +298,18 @@ function YieldCalculationSection({
   btcPrice: string | null
   electricityCost: string | null
 }>) {
-  const grossYield = btcValueUsdc(btcEarnedSats, btcPrice)
+  const grossNumeric = btcValueUsdcNumeric(btcEarnedSats, btcPrice)
+  const grossYield =
+    grossNumeric === null ? null : formatCurrency(grossNumeric, { decimals: 0, fromAtomic: 1 })
+  // `electricityCost` is the on-chain monthlyElecCost — a 6-decimal USDC
+  // atomic — while the gross yield is whole USD. Convert before subtracting.
+  const electricityNumeric = numericValue(electricityCost)
   const netYield =
-    grossYield !== null && electricityCost !== null
-      ? formatCurrency(
-          Number(grossYield.replace(/[^0-9.-]/g, '')) - Number(electricityCost),
-          { decimals: 0 },
-        )
+    grossNumeric !== null && electricityNumeric !== null
+      ? formatCurrency(grossNumeric - electricityNumeric / 1_000_000, {
+          decimals: 0,
+          fromAtomic: 1,
+        })
       : null
 
   return (
@@ -475,7 +488,7 @@ function numericValue(v: string | null | undefined): number | null {
 }
 
 function isCalculationComplete(c: CalculationRecord): boolean {
-  return numericValue(c.btcAmountSats) !== null && numericValue(c.grossYieldUsdc) !== null
+  return numericValue(c.totalBtcMinedSats) !== null && numericValue(c.grossRevenueUsdc) !== null
 }
 
 function CalculationsSection({
@@ -534,21 +547,21 @@ function CalculationsSection({
           <TableBody>
             {calculations.map((c) => {
               const complete = isCalculationComplete(c)
-              const opexValue = formatCurrency(c.opexDeductionUsdc, { decimals: 0 })
+              const opexValue = formatCurrency(c.opexUsdc, { decimals: 0, fromAtomic: 1 })
               return (
                 <TableRow key={c.id}>
                   <TableCell className={tableCol.date}>{c.period}</TableCell>
                   <TableCell className={tableCol.numeric}>
-                    {complete ? `${satsToBtc(c.btcAmountSats)} BTC` : '—'}
+                    {complete ? `${satsToBtc(c.totalBtcMinedSats)} BTC` : '—'}
                   </TableCell>
                   <TableCell className={tableCol.numeric}>
-                    {complete ? formatCurrency(c.grossYieldUsdc, { decimals: 0 }) : '—'}
+                    {complete ? formatCurrency(c.grossRevenueUsdc, { decimals: 0, fromAtomic: 1 }) : '—'}
                   </TableCell>
                   <TableCell className={`${tableCol.numeric} text-danger-400`}>
                     {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
                   </TableCell>
                   <TableCell className={`${tableCol.numeric} text-success-400`}>
-                    {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0 }) : '—'}
+                    {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0, fromAtomic: 1 }) : '—'}
                   </TableCell>
                   <TableCell className={tableCol.hash}>{c.rwaStrategyId}</TableCell>
                   <TableCell className={tableCol.status}>
