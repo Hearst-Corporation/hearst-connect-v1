@@ -1,13 +1,13 @@
 'use client'
 
-import { resolveChartViewport, chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
+import { chartTheme, formatChartPercent } from '@/components/charts/core/chart-theme'
 import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { useChartViewport } from '@/components/charts/richart/_shared/viewport'
 import { RichTooltip } from '@/components/charts/richart/tooltip'
 import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -30,8 +30,8 @@ export function HearstCurveChart({
   points,
   domainLabel = 'Mois',
 }: Readonly<{ points: readonly CurvePoint[]; domainLabel?: string }>) {
+  const { ref, width, viewportHeight } = useChartViewport({ kind: 'line' })
   const sorted = [...points].sort((a, b) => a.month - b.month)
-  const height = resolveChartViewport({ kind: 'line' })
   const data = sorted.map((p) => ({
     month: p.month,
     rate: p.rate,
@@ -50,9 +50,15 @@ export function HearstCurveChart({
         }))}
       />
 
-      <div aria-hidden="true" className="w-full" style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ ...chartTheme.margin, right: 16, left: -8 }}>
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className="w-full min-w-0"
+        style={{ height: viewportHeight }}
+        data-chart-viewport={viewportHeight}
+      >
+        {width > 0 ? (
+          <LineChart width={width} height={viewportHeight} data={data} margin={{ ...chartTheme.margin, right: 16, left: -8 }}>
             <CartesianGrid
               stroke={chartTheme.grid}
               strokeOpacity={chartTheme.gridOpacity}
@@ -82,7 +88,7 @@ export function HearstCurveChart({
               isAnimationActive={false}
             />
           </LineChart>
-        </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   )

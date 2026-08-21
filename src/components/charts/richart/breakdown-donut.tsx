@@ -1,8 +1,11 @@
 'use client'
 
-import { categoricalColor } from '@/components/charts/core/chart-theme'
+import { CHART_VIEWPORT_PX, categoricalColor } from '@/components/charts/core/chart-theme'
+import { useChartWidth } from '@/components/charts/core/use-chart-width'
+import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
+import { ChartTooltipShell, TooltipRow } from '@/components/charts/richart/_shared/chart-tooltip'
 import { formatNumber } from '@/lib/format'
-import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { Pie, PieChart, Tooltip } from 'recharts'
 
 /**
  * richart — account breakdown donut (allocation, activity mix).
@@ -35,6 +38,10 @@ export type BreakdownSlice = {
   readonly value: number
 }
 
+/** Same fixed donut viewport as `donut-chart` (220px block, 260px max inline). */
+const DONUT_MAX_INLINE_PX = 260
+const DONUT_BLOCK_PX = CHART_VIEWPORT_PX.donut
+
 export function HearstBreakdownDonut({
   slices,
   kind,
@@ -49,6 +56,9 @@ export function HearstBreakdownDonut({
   /** Sub-line under the center metric (e.g. "allocated"). Defaults to `unit`. */
   centerCaption?: string
 }>) {
+  // Hooks before any early return (rules-of-hooks).
+  const { ref, width } = useChartWidth()
+
   // Largest first, so the mint accent lands on the leading category.
   const ranked = [...slices]
     .filter((s) => s.value > 0)
@@ -68,45 +78,34 @@ export function HearstBreakdownDonut({
 
   return (
     <div className="w-full">
-      <div className="sr-only">
-        <table>
-          <caption>Breakdown ({unit})</caption>
-          <thead>
-            <tr>
-              <th scope="col">Category</th>
-              <th scope="col">{kind === 'percent' ? 'Percent' : unit}</th>
-              {kind === 'count' ? <th scope="col">Share</th> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {ranked.map((s, index) => (
-              <tr key={`${s.label}-${index}`}>
-                <th scope="row">{s.label}</th>
-                <td>
-                  {kind === 'percent'
-                    ? `${formatNumber(s.value, { maximumFractionDigits: 1 })}%`
-                    : formatNumber(s.value)}
-                </td>
-                {kind === 'count' ? <td>{sharePct(s.value)}%</td> : null}
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th scope="row">Total</th>
-              <td>{totalText}</td>
-              {kind === 'count' ? <td>100%</td> : null}
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      <ChartAccessibilityTable
+        caption={`Breakdown (${unit})`}
+        columns={
+          kind === 'percent' ? ['Category', 'Percent'] : ['Category', unit, 'Share']
+        }
+        rows={ranked.map((s, index) => ({
+          key: `${s.label}-${index}`,
+          label: s.label,
+          cells:
+            kind === 'percent'
+              ? [`${formatNumber(s.value, { maximumFractionDigits: 1 })}%`]
+              : [formatNumber(s.value), `${sharePct(s.value)}%`],
+        }))}
+        footer={{
+          label: 'Total',
+          cells: kind === 'percent' ? [totalText] : [totalText, '100%'],
+        }}
+      />
 
       <div
+        ref={ref}
         aria-hidden="true"
-        className="relative mx-auto w-full max-w-[var(--chart-donut-viewport-max-inline-size)] h-[var(--chart-donut-viewport-block-size)]"
+        className="relative mx-auto w-full"
+        style={{ maxWidth: DONUT_MAX_INLINE_PX, height: DONUT_BLOCK_PX }}
+        data-chart-viewport={DONUT_BLOCK_PX}
       >
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+        {width > 0 ? (
+          <PieChart width={width} height={DONUT_BLOCK_PX}>
             <Pie
               data={ranked}
               dataKey="value"
@@ -119,7 +118,7 @@ export function HearstBreakdownDonut({
             />
             <Tooltip content={<BreakdownTooltip kind={kind} unit={unit} total={total} />} />
           </PieChart>
-        </ResponsiveContainer>
+        ) : null}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-semibold tabular-nums text-fg">{totalText}</span>
           <span className="text-[11px] text-fg-tertiary">{caption}</span>
@@ -178,13 +177,15 @@ function BreakdownTooltip({
   const value = row.value
   if (typeof value !== 'number') return null
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-console-line dark:bg-console-raised dark:ring-console-line">
-      <p className="font-medium text-ink dark:text-fg">{row.name ?? ''}</p>
-      <p className="mt-0.5 tabular-nums text-fg-tertiary dark:text-fg-secondary">
-        {kind === 'percent'
-          ? `${formatNumber(value, { maximumFractionDigits: 1 })}%`
-          : `${formatNumber(value)} ${unit} · ${formatNumber((value / total) * 100, { maximumFractionDigits: 0 })}%`}
-      </p>
-    </div>
+    <ChartTooltipShell title={row.name ?? ''}>
+      <TooltipRow
+        first
+        value={
+          kind === 'percent'
+            ? `${formatNumber(value, { maximumFractionDigits: 1 })}%`
+            : `${formatNumber(value)} ${unit} · ${formatNumber((value / total) * 100, { maximumFractionDigits: 0 })}%`
+        }
+      />
+    </ChartTooltipShell>
   )
 }

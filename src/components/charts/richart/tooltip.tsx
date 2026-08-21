@@ -1,11 +1,10 @@
 'use client'
 
-import { surfaceBox } from '@/components/admin/surface'
+import { ChartTooltipShell, TooltipRow } from '@/components/charts/richart/_shared/chart-tooltip'
 import { formatNumber } from '@/lib/format'
-import clsx from 'clsx'
 
 /**
- * Shared richart tooltip — same surface box as the dashboard.
+ * Shared richart tooltip — the canonical `_shared` shell.
  * No invented values: renders only what Recharts has in the payload.
  */
 
@@ -23,16 +22,15 @@ export function RichTooltip({
   if (active !== true || payload === undefined || payload.length === 0) return null
   const suffix = unit === undefined || unit === '' ? '' : ` ${unit}`
   return (
-    <div className={clsx(surfaceBox, 'px-3 py-2 text-xs shadow-lg')}>
-      {label !== undefined && label !== '' ? (
-        <p className="font-medium text-fg">{label}</p>
-      ) : null}
-      {payload.map((row) => (
-        <p key={row.name ?? 'v'} className="mt-0.5 text-fg tabular-nums">
-          {row.name === undefined || row.name === '' ? '' : `${row.name}: `}
-          {typeof row.value === 'number' ? `${formatNumber(row.value)}${suffix}` : '—'}
-        </p>
+    <ChartTooltipShell title={label === undefined ? undefined : String(label)}>
+      {payload.map((row, i) => (
+        <TooltipRow
+          key={row.name ?? 'v'}
+          first={i === 0}
+          label={row.name === undefined || row.name === '' ? undefined : row.name}
+          value={typeof row.value === 'number' ? `${formatNumber(row.value)}${suffix}` : '—'}
+        />
       ))}
-    </div>
+    </ChartTooltipShell>
   )
 }

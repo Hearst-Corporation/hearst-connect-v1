@@ -32,7 +32,7 @@ export type AllocationPoint = {
 
 const CBBTC_COLOR = chartTheme.dataSeries.brandPrimary
 const USDC_COLOR = chartTheme.dataSeries.dataReference
-const SURFACE_RING = 'var(--color-console-surface)'
+const SURFACE_RING = chartTheme.plotSurface
 
 function AllocationTooltip({
   active,
