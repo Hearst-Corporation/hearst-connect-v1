@@ -1,6 +1,8 @@
 'use client'
 
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
+import { surfaceBox } from '@/components/admin/surface'
+import clsx from 'clsx'
 import { Input } from '@/components/catalyst/input'
 import { Link } from '@/components/catalyst/link'
 import {
@@ -178,7 +180,7 @@ export function ClientsDirectory({
 
       <ul className="space-y-3 md:hidden" aria-label="Client directory">
         {filtered.length === 0 ? (
-          <li className="rounded-lg bg-console-card p-4 text-sm text-fg-tertiary ring-1 ring-console-line-soft">
+          <li className={clsx(surfaceBox, 'p-4 text-sm text-fg-tertiary')}>
             No clients match this search or filter.
           </li>
         ) : (
@@ -186,7 +188,7 @@ export function ClientsDirectory({
             <li key={client.id}>
               <Link
                 href={`/admin/client-simulator/${client.id}`}
-                className="block rounded-lg bg-console-card p-4 ring-1 ring-console-line-soft"
+                className={clsx(surfaceBox, 'block p-4')}
               >
               <div className="flex items-start justify-between gap-3">
                 <p className="truncate text-sm font-semibold text-ink dark:text-fg">{client.label}</p>

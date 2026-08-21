@@ -6,6 +6,7 @@ import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminExposureStrategy } from '@/lib/admin-dashboard/contracts'
 import { isAvailable } from '@/lib/vaults/model'
 import type { Availability } from '@/lib/vaults/model'
+import { surfaceSelect } from '@/components/admin/surface'
 import { HearstDonutChart } from '@/components/charts'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { ChartBarSquareIcon } from '@heroicons/react/24/outline'
@@ -116,7 +117,7 @@ export function PortfolioExposurePanel({
               className={clsx(
                 'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-accent-500',
-                'data-selected:bg-accent-soft',
+                surfaceSelect,
               )}
             >
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">

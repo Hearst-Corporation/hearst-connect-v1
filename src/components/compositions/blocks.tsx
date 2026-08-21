@@ -102,14 +102,16 @@ export function StatCard({
   className?: string
 }>) {
   return (
-    <Panel tone="metric" className={clsx('flex flex-col gap-2', className)}>
+    // `.metricCard` (tone="metric") already carries display:flex + direction;
+    // `Reading` already applies `metricValue` — pass only what they don't own.
+    <Panel tone="metric" className={clsx('gap-2', className)}>
       <Tag className={csl.cardTitle}>{title}</Tag>
       {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
       <div className={csl.metricText}>
         {typeof value === 'string' ? (
           <span className={csl.metricValue}>{value}</span>
         ) : (
-          <Reading value={value} className={csl.metricValue} showRoute={showRoute} />
+          <Reading value={value} showRoute={showRoute} />
         )}
       </div>
       {delta !== undefined && delta !== '' && (
@@ -390,7 +392,7 @@ export type CalloutTone = 'info' | 'success' | 'warning' | 'danger'
 
 const CALLOUT_TONE_CLASS: Record<CalloutTone, string> = {
   // /10 fill, full left rule, text at the legible step of each ramp.
-  info: 'bg-white/5 border-l-fg-tertiary text-fg',
+  info: 'bg-fg/5 border-l-fg-tertiary text-fg',
   success: 'bg-success-400/10 border-l-success-400 text-success-300',
   warning: 'bg-warning-400/10 border-l-warning-400 text-warning-300',
   danger: 'bg-danger-400/10 border-l-danger-400 text-danger-300',

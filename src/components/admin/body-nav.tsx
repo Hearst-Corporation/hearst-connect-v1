@@ -23,7 +23,7 @@ export function AdminBodyNav() {
   const active = activeBodyHref(pathname)
 
   return (
-    <nav aria-label="Sub-navigation" className="mb-8 border-b border-ink/10 dark:border-white/10">
+    <nav aria-label="Sub-navigation" className="mb-8 border-b border-console-line-soft">
       <Navbar className="gap-0! flex-wrap pb-0">
         <NavbarSection className="shrink-0">
           {submenus.map((entry) => (
