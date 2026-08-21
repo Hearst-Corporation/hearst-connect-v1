@@ -12,12 +12,11 @@ export function DashboardShell({
   children,
   className,
 }: Readonly<{ children: ReactNode; className?: string }>) {
-  // Reading measure for the console: past ~1440px the charts and cards stop
-  // stretching and the content centres in the space beside the rail. A cockpit
-  // read at 2560px full-bleed is mostly whitespace and over-wide charts — the
-  // bound keeps the composition dense and legible on any monitor.
+  // Cockpit, not editorial: no reading-measure cap — the bento tracks and
+  // container queries own the geometry at every width, the shell fills the
+  // content card.
   return (
-    <div data-dashboard="pilotage" className={clsx('mx-auto flex w-full min-w-0 max-w-360 flex-col gap-6', className)}>
+    <div data-dashboard="pilotage" className={clsx('flex w-full min-w-0 flex-col gap-6', className)}>
       {children}
     </div>
   )

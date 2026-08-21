@@ -297,15 +297,14 @@ export function AdminDashboardPage({ user }: Readonly<{ user: SessionUser }>) {
         {/*
           Asymmetric primary — exposure absorbs, alerts bounded. The threshold
           is a CONTAINER width, not a viewport one: this region lives inside the
-          main, which the rail (16rem) + padding already shrank. The split needs
-          the bounded flank (16rem floor) plus a readable measure for exposure
-          beside it — ~34rem of container is where both fit. `@[60rem]` demanded
-          960px of container, i.e. a ~1304px viewport behind the rail, so it
-          never opened on a normal screen and the row stacked. 34rem tracks the
-          real container in both regimes (rail present ≥lg, or absent below it).
+          main, which the rail (16rem) + card chrome already shrank. The split
+          needs the bounded flank (16rem floor) plus a readable exposure panel
+          beside it. 34rem opened the split while exposure was still ~300px in
+          the VP ~1024–1200 crush zone; 52rem keeps the pair side-by-side only
+          when exposure retains ~470px+ of track.
         */}
         <div className="@container min-w-0">
-          <div className="grid min-w-0 items-start gap-6 @[34rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
+          <div className="grid min-w-0 items-start gap-6 @[52rem]:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
             <DashPanel title="Portfolio exposure" subtitle="Where capital is allocated vs target">
               <Suspense fallback={<PanelFallback />}>
                 <PortfolioExposureData />

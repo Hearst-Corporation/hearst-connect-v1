@@ -21,6 +21,11 @@ import clsx from 'clsx'
  * (16rem) + padding already shrank — no viewport breakpoint describes it. Below
  * the threshold every card is full-width (one readable column); above it, the
  * twelve tracks open and spans take effect.
+ *
+ * Threshold = 56rem: the tightest span is the 1/3 flank (`span={4}`). At
+ * 48rem the tracks opened while the flank was still ~240px — crushed table
+ * and chart. 56rem keeps the flank ≥ ~280px of track, and with the rail +
+ * card chrome that means the split opens around a ~1200px viewport.
  */
 export function BentoGrid({
   children,
@@ -43,7 +48,7 @@ export function BentoGrid({
           // row to its tallest card made a fixed-height chart (176px) get punched
           // with empty space next to a data-driven list — the dataset would then
           // own the row geometry (rule 60: DATASET SIZE DOES NOT OWN PAGE GEOMETRY).
-          'grid min-w-0 grid-cols-1 items-start @[48rem]:grid-cols-12',
+          'grid min-w-0 grid-cols-1 items-start @[56rem]:grid-cols-12',
           gridGap,
           className,
         )}
@@ -67,10 +72,10 @@ export function BentoGrid({
  *    6 → half (symmetric pair)
  */
 const SPAN_CLASS: Record<BentoSpan, string> = {
-  12: '@[48rem]:col-span-12',
-  8: '@[48rem]:col-span-8',
-  6: '@[48rem]:col-span-6',
-  4: '@[48rem]:col-span-4',
+  12: '@[56rem]:col-span-12',
+  8: '@[56rem]:col-span-8',
+  6: '@[56rem]:col-span-6',
+  4: '@[56rem]:col-span-4',
 }
 
 export type BentoSpan = 12 | 8 | 6 | 4
