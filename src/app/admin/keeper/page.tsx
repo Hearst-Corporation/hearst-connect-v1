@@ -1,4 +1,6 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
+import { DashCard, PanelHeaderLink } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { Badge } from '@/components/catalyst/badge'
 import {
   DescriptionDetails,
@@ -8,7 +10,7 @@ import {
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
 import { ChartFrame } from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, SectionHeader, tableCol } from '@/components/compositions'
+import { Callout, DataTableShell, SectionHeader, tableCol } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
@@ -43,8 +45,14 @@ function Prerequisite({
   )
 }
 
+/* Row A info cards — FROZEN at one shared height so the pair ends on the same
+   line at any gate state (warning callout vs ok text). The settled Scope copy
+   measures ≈ 236px at the 56rem container threshold (the narrowest half-track);
+   240px covers it — anything taller scrolls inside, the row never moves. */
+const INFO_SLOT_CLASS = 'h-[240px] overflow-y-auto scrollbar-none'
+
 /**
- * Keeper actions — composition blocks around the client forms.
+ * Keeper actions — cockpit composition around the client forms.
  * The forms call the backend keeper routes; nothing is signed on-chain.
  */
 export default async function KeeperPage() {
@@ -91,63 +99,79 @@ export default async function KeeperPage() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="flex w-full min-w-0 flex-col gap-6">
       <AdminPageHeader
         title="Keeper actions"
         description="Keeper routes from the registry — logging only, no on-chain signature."
         kpis={kpis}
       />
 
+      {/* Row A — the gate pair: symmetric halves frozen at one height. */}
+      <BentoGrid>
+        <BentoCard span={6}>
+          <DashCard
+            title="Scope"
+            subtitle="These routes log a request — they sign nothing."
+            contentClassName={INFO_SLOT_CLASS}
+          >
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <Badge color="neutral">No on-chain signature</Badge>
+              <Text className="mt-0! font-medium text-fg">
+                None of these routes signs a transaction
+              </Text>
+            </div>
+            <Text className="mt-4">
+              The backend has no on-chain write assistant — these routes log a request, they produce
+              neither a signature nor a transaction hash. Three of them currently return an HTTP 501 with
+              a <span className="font-mono">KeeperActionResult</span>. This console will never display a
+              fabricated hash.
+            </Text>
+            <Text className="mt-4">
+              Two additional backend safeguards: a quota of 5 requests per minute per user, and the
+              circuit breaker <span className="font-mono">KEEPER_ENABLED</span> — disabled by default, it returns 503{' '}
+              <span className="font-mono">NOT_CONFIGURED</span>.
+            </Text>
+          </DashCard>
+        </BentoCard>
+        <BentoCard span={6}>
+          <DashCard
+            title="Can they run now?"
+            contentClassName={INFO_SLOT_CLASS}
+            action={<PanelHeaderLink href="/admin/runtime">Open runtime</PanelHeaderLink>}
+          >
+            <DescriptionList>
+              <Prerequisite label="Your role" value={roleLabel(session.role)} satisfait={isAdmin} />
+              <Prerequisite
+                label="Service address"
+                value={backendConfigured ? 'Configured' : 'Not set'}
+                satisfait={backendConfigured}
+              />
+            </DescriptionList>
+            {disabledReason ? (
+              <Callout tone="warning" title="Inert actions" className="mt-4">
+                {disabledReason}
+              </Callout>
+            ) : (
+              <Text className="mt-4">
+                Both prerequisites are met. The service may still refuse a call — its circuit breaker and its
+                quota are checked on its side, and its response is shown under the action that triggered it.
+              </Text>
+            )}
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
+
+      {/* Row B — the chart as one thin band (compact role, like the cockpit strips). */}
       <ChartFrame
         question="How many Keeper actions were triggered over time?"
         unit="Keeper requests per day"
+        viewport="compact"
         state={{
           type: 'empty',
           explanation:
             'No series to plot — these routes log a request without history usable by this console. Nothing is fabricated to fill the axis.',
         }}
       />
-
-      <SectionCard title="Scope" hint="These routes log a request — they sign nothing.">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <Badge color="neutral">No on-chain signature</Badge>
-          <Text className="!mt-0 font-medium text-fg">
-            None of these routes signs a transaction
-          </Text>
-        </div>
-        <Text className="mt-4">
-          The backend has no on-chain write assistant — these routes log a request, they produce
-          neither a signature nor a transaction hash. Three of them currently return an HTTP 501 with
-          a <span className="font-mono">KeeperActionResult</span>. This console will never display a
-          fabricated hash.
-        </Text>
-        <Text className="mt-4">
-          Two additional backend safeguards: a quota of 5 requests per minute per user, and the
-          circuit breaker <span className="font-mono">KEEPER_ENABLED</span> — disabled by default, it returns 503{' '}
-          <span className="font-mono">NOT_CONFIGURED</span>.
-        </Text>
-      </SectionCard>
-
-      <SectionCard title="Can they run now?">
-        <DescriptionList>
-          <Prerequisite label="Your role" value={roleLabel(session.role)} satisfait={isAdmin} />
-          <Prerequisite
-            label="Service address"
-            value={backendConfigured ? 'Configured' : 'Not set'}
-            satisfait={backendConfigured}
-          />
-        </DescriptionList>
-        {disabledReason ? (
-          <Callout tone="warning" title="Inert actions" className="mt-4">
-            {disabledReason}
-          </Callout>
-        ) : (
-          <Text className="mt-4">
-            Both prerequisites are met. The service may still refuse a call — its circuit breaker and its
-            quota are checked on its side, and its response is shown under the action that triggered it.
-          </Text>
-        )}
-      </SectionCard>
 
       <DataTableShell
         title="Exposed routes"
@@ -180,16 +204,22 @@ export default async function KeeperPage() {
         <SectionHeader
           title="Actions"
           hint={`${formatNumber(keeperEndpoints.length)} routes exposed by the service. Nothing leaves this page until CONFIRM is typed in the action-specific field.`}
+          actions={<PanelHeaderLink href="/admin/api-explorer">Open API explorer</PanelHeaderLink>}
         />
-        <div className="grid gap-6 md:grid-cols-2">
-          {keeperEndpoints.map((endpoint) => (
-            <KeeperForm
-              key={endpoint.id}
-              endpoint={endpoint}
-              disabled={Boolean(disabledReason)}
-              disabledReason={disabledReason}
-            />
-          ))}
+        {/* Container query, not a viewport breakpoint: the rail already shrank
+            the column. 40rem = two ~19rem form cards + the gap (the same floor
+            the table shells use) — below it, one readable column. */}
+        <div className="@container min-w-0">
+          <div className="grid grid-cols-1 gap-6 @[40rem]:grid-cols-2">
+            {keeperEndpoints.map((endpoint) => (
+              <KeeperForm
+                key={endpoint.id}
+                endpoint={endpoint}
+                disabled={Boolean(disabledReason)}
+                disabledReason={disabledReason}
+              />
+            ))}
+          </div>
         </div>
       </section>
     </div>

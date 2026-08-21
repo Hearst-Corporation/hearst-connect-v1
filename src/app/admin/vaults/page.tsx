@@ -1,5 +1,8 @@
+import { DashCard, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { AdminReading } from '@/components/admin/reading'
+import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import {
   TableBody,
@@ -9,7 +12,7 @@ import {
   TableRow,
 } from '@/components/catalyst/table'
 import { Text } from '@/components/catalyst/text'
-import { Callout, DataTableShell, SectionCard, tableCol } from '@/components/compositions'
+import { AdminTable, Callout, DataTableShell, tableCol } from '@/components/compositions'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
@@ -152,39 +155,56 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
   )
 }
 
+/**
+ * FROZEN BOX — the registry table slot never resizes with the row count:
+ * six rows or sixty, the card keeps the same box and taller datasets scroll
+ * inside. The height is row-matched to the rail: [Parc + Source] + gap lands
+ * on the same line as [table header + 312px slot] at any data state.
+ */
+const REGISTRY_SLOT_CLASS = 'h-[312px] overflow-y-auto scrollbar-none'
+
 function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>) {
   return (
     <>
       <div className="hidden min-w-0 lg:block">
-        <DataTableShell
+        <DashCard
           title="Vaults"
-          description="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
-          count={`${formatNumber(vaultList.length)} vault(s)`}
+          subtitle="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
+          action={
+            <Badge color="neutral" className="shrink-0">
+              {formatNumber(vaultList.length)} vault(s)
+            </Badge>
+          }
+          contentClassName={REGISTRY_SLOT_CLASS}
         >
-          <TableHead>
-            <TableRow>
-              <TableHeader className={tableCol.primary}>Vault</TableHeader>
-              <TableHeader className={tableCol.numeric}>AUM</TableHeader>
-              <TableHeader className={tableCol.numeric}>Deployed</TableHeader>
-              <TableHeader className={tableCol.numeric}>Available</TableHeader>
-              <TableHeader className={tableCol.numeric}>Drift</TableHeader>
-              <TableHeader className={tableCol.date}>Rebalance</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {vaultList.map((vault) => (
-              <VaultPrimaryRow key={vault.id} vault={vault} />
-            ))}
-          </TableBody>
-        </DataTableShell>
+          <AdminTable>
+            <TableHead>
+              <TableRow>
+                <TableHeader className={tableCol.primary}>Vault</TableHeader>
+                <TableHeader className={tableCol.numeric}>AUM</TableHeader>
+                <TableHeader className={tableCol.numeric}>Deployed</TableHeader>
+                <TableHeader className={tableCol.numeric}>Available</TableHeader>
+                <TableHeader className={tableCol.numeric}>Drift</TableHeader>
+                <TableHeader className={tableCol.date}>Rebalance</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {vaultList.map((vault) => (
+                <VaultPrimaryRow key={vault.id} vault={vault} />
+              ))}
+            </TableBody>
+          </AdminTable>
+        </DashCard>
       </div>
 
-      <SectionCard
+      <DashCard
         title="Vaults"
-        hint="Capital and allocation drift as reported by the service."
+        subtitle="Capital and allocation drift as reported by the service."
         className="lg:hidden"
-        actions={
-          <span className="text-xs text-fg-tertiary">{formatNumber(vaultList.length)} vault(s)</span>
+        action={
+          <span className="shrink-0 text-xs text-fg-tertiary">
+            {formatNumber(vaultList.length)} vault(s)
+          </span>
         }
       >
         <ul className="divide-y divide-console-line-soft">
@@ -192,7 +212,7 @@ function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[]
             <VaultMobileCard key={vault.id} vault={vault} />
           ))}
         </ul>
-      </SectionCard>
+      </DashCard>
     </>
   )
 }
@@ -214,8 +234,8 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
   }, null)
 
   return (
-    <aside className="flex flex-col gap-4">
-      <SectionCard title="Parc" hint="Registry-wide read at a glance.">
+    <aside className="flex min-w-0 flex-col gap-6">
+      <DashCard title="Parc" subtitle="Registry-wide read at a glance.">
         <dl className="space-y-4">
           <div className="min-w-0">
             <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
@@ -237,17 +257,18 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
             </dd>
           </div>
         </dl>
-      </SectionCard>
+      </DashCard>
 
-      <SectionCard title="Source" hint="Where this read comes from.">
+      {/* The "full view" link lives on the title row — no bordered footer strip. */}
+      <DashCard
+        title="Source"
+        subtitle="Where this read comes from."
+        action={<PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>}
+      >
         <Text className="text-sm text-fg-secondary">
-          Vault capital and drift are read from the service.{' '}
-          <Link href="/admin/runtime" className="underline">
-            Source health
-          </Link>
-          .
+          Vault capital and drift are read from the service.
         </Text>
-      </SectionCard>
+      </DashCard>
     </aside>
   )
 }
@@ -255,35 +276,45 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
 function VaultRegistryContent({ vaultList }: Readonly<{ vaultList: readonly Vault[] | null }>) {
   if (vaultList === null) {
     return (
-      <Callout tone="warning" title="Vault read unavailable">
-        The vault read did not succeed.{' '}
-        <Link href={entityHref('source', 'vault')} className="text-accent-400">
-          Data coverage
-        </Link>
-      </Callout>
+      <BentoGrid>
+        <BentoCard span={12}>
+          <Callout tone="warning" title="Vault read unavailable">
+            The vault read did not succeed.{' '}
+            <Link href={entityHref('source', 'vault')} className="text-accent-400">
+              Data coverage
+            </Link>
+          </Callout>
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
   if (vaultList.length === 0) {
     return (
-      <DataTableShell
-        title="Vaults"
-        description="Capital and allocation drift as reported by the service."
-        calme="The service responded with no vault in the registry."
-      />
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DataTableShell
+            title="Vaults"
+            description="Capital and allocation drift as reported by the service."
+            calme="The service responded with no vault in the registry."
+          />
+        </BentoCard>
+      </BentoGrid>
     )
   }
 
-  // Cockpit row: the registry table absorbs the space (minmax(0,1fr)); the
-  // parc rail is bounded (minmax(16rem,20rem)). items-start so neither the
-  // dataset nor the rail dictates the row height.
+  // BALANCED ROW — the registry table is the dominant panel (span 8, frozen
+  // slot); the rail stacks the two small cards (span 4) to meet it. No voids:
+  // below the container threshold everything collapses to one column.
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)]">
-      <div className="min-w-0">
+    <BentoGrid>
+      <BentoCard span={8}>
         <VaultRegistryBody vaultList={vaultList} />
-      </div>
-      <VaultParcRail vaultList={vaultList} />
-    </div>
+      </BentoCard>
+      <BentoCard span={4}>
+        <VaultParcRail vaultList={vaultList} />
+      </BentoCard>
+    </BentoGrid>
   )
 }
 
@@ -300,7 +331,7 @@ export default async function Page() {
   ]
 
   return (
-    <div className="space-y-8">
+    <DashboardShell>
       <AdminPageHeader
         title="Vaults"
         description="Vault capital, strategies, drift, and rebalancing status."
@@ -308,14 +339,6 @@ export default async function Page() {
       />
 
       <VaultRegistryContent vaultList={vaultList} />
-
-      <Text className="text-sm text-fg-secondary">
-        Source health and endpoint coverage:{' '}
-        <Link href="/admin/runtime" className="underline">
-          Service
-        </Link>
-        .
-      </Text>
-    </div>
+    </DashboardShell>
   )
 }

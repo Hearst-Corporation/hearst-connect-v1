@@ -1,6 +1,6 @@
 'use client'
 
-import { surfaceBox } from '@/components/admin/surface'
+import { surfaceBox, surfaceInset } from '@/components/admin/surface'
 import {
   ActionOutcome,
   ConfirmField,
@@ -12,6 +12,12 @@ import type { BackendEndpoint } from '@/lib/backend/endpoints'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
 import clsx from 'clsx'
 import { useActionState } from 'react'
+
+/* FROZEN BOX: 340px holds the tallest idle state (mining-report = caveat +
+   metrics pair + CONFIRM + button ≈ 326px chrome included) without scrolling;
+   the outcome well and any longer state scroll INSIDE — the grid row never
+   moves with the data. */
+const CARD_HEIGHT_CLASS = 'h-[340px]'
 
 /**
  * Keeper action form — fail-closed. Nothing is presented as executed until
@@ -26,8 +32,11 @@ export function KeeperForm({
   const needsMetrics = endpoint.id === 'keeper-mining-report'
 
   return (
-    <section className={clsx(surfaceBox, 'p-5')}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section
+      data-surface="box"
+      className={clsx(surfaceBox, 'flex min-w-0 flex-col p-5', CARD_HEIGHT_CLASS)}
+    >
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-fg">{endpoint.summary}</h2>
           <p className="mt-0.5 font-mono text-xs text-fg-secondary">
@@ -37,36 +46,36 @@ export function KeeperForm({
         <StatusBadge status={disabled ? 'NOT_CONFIGURED' : 'LIVE'} />
       </div>
 
-      {endpoint.caveat ? (
-        <Callout tone="warning" className="mt-3 text-xs">
-          {endpoint.caveat}
-        </Callout>
-      ) : null}
+      <div className="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scrollbar-none">
+        {endpoint.caveat ? (
+          <Callout tone="warning" className="text-xs">
+            {endpoint.caveat}
+          </Callout>
+        ) : null}
 
-      {disabled ? (
-        <p className="mt-4 border-t border-console-line-soft pt-3 text-xs text-fg-secondary">
-          {disabledReason}
-        </p>
-      ) : (
-        <form action={formAction} className="mt-4 space-y-3">
-          <input type="hidden" name="endpointId" value={endpoint.id} />
-          {needsMetrics ? <KeeperMetricsFields /> : null}
-          <ConfirmField />
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg bg-accent-400 px-3 py-1.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
-          >
-            {pending ? 'Sending…' : 'Send request'}
-          </button>
-        </form>
-      )}
+        {disabled ? (
+          <p className={clsx(surfaceInset, 'p-3 text-xs text-fg-secondary')}>{disabledReason}</p>
+        ) : (
+          <form action={formAction} className="space-y-3">
+            <input type="hidden" name="endpointId" value={endpoint.id} />
+            {needsMetrics ? <KeeperMetricsFields /> : null}
+            <ConfirmField />
+            <button
+              type="submit"
+              disabled={pending}
+              className="rounded-lg bg-accent-400 px-3 py-1.5 text-sm font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
+            >
+              {pending ? 'Sending…' : 'Send request'}
+            </button>
+          </form>
+        )}
 
-      {outcome ? (
-        <div className="mt-4 border-t border-console-line-soft pt-4">
-          <ActionOutcome outcome={outcome} />
-        </div>
-      ) : null}
+        {outcome ? (
+          <div className={clsx(surfaceInset, 'p-3')}>
+            <ActionOutcome outcome={outcome} />
+          </div>
+        ) : null}
+      </div>
     </section>
   )
 }

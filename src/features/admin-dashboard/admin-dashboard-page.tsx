@@ -12,6 +12,7 @@ import {
   RebalancingDriftChart,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
+import { HearstPrimaryAction } from '@/components/actions'
 import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
@@ -35,6 +36,7 @@ import {
   BanknotesIcon,
   CubeTransparentIcon,
   ExclamationTriangleIcon,
+  PlusIcon,
 } from '@heroicons/react/16/solid'
 
 function vaultsKpiUnit(overview: AdminDashboardData['overview']): string | undefined {
@@ -170,7 +172,24 @@ function DashPanel({
 async function HeaderData({ userName }: Readonly<{ userName: string }>) {
   const overview = await loadAdminOverview()
   const kpis = kpisFromOverview(overview)
-  return <DashboardHeader userName={userName} kpis={kpis} />
+  const trimmed = userName.trim()
+  const rawFirst = trimmed.split(/\s+/)[0] || trimmed
+  const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : rawFirst
+  return (
+    <DashboardHeader
+      title={`Good morning, ${firstName}`}
+      description="Portfolio, market exposure and operations at a glance."
+      kpis={kpis}
+      action={
+        <HearstPrimaryAction
+          icon={<PlusIcon />}
+          disabledReason="Client creation is not available on the backend"
+        >
+          Add client
+        </HearstPrimaryAction>
+      }
+    />
+  )
 }
 
 async function PortfolioExposureData() {

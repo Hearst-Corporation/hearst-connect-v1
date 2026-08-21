@@ -1,13 +1,12 @@
-import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
+import { DashCard, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { ChartFrame } from '@/components/charts'
-import { SectionCard } from '@/components/compositions'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
 import { ROLE_LABELS } from '@/lib/session'
-import { editorial } from '@/lib/vaults/model'
+import { editorial, isAvailable } from '@/lib/vaults/model'
 import {
   PaperAirplaneIcon,
   ServerIcon,
@@ -33,8 +32,58 @@ const NON_RESTITUE = [
 ] as const
 
 /**
+ * Compact command bar — one title line, the directory link on the same row,
+ * KPIs as a compact strip beside it.
+ */
+function NewClientHeader({ kpis }: Readonly<{ kpis: readonly AdminHeroKpi[] }>) {
+  return (
+    <header
+      data-admin="hero-header"
+      className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-fg">New simulated client</h1>
+          <PanelHeaderLink href="/admin/clients">Back to client directory</PanelHeaderLink>
+        </div>
+        <p className="mt-0.5 text-xs text-fg-tertiary">
+          Real creation via POST /api/v1/admin/users — password never returned.
+        </p>
+      </div>
+
+      <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
+        {kpis.map((kpi) => {
+          const available = isAvailable(kpi.value)
+          return (
+            <div key={kpi.id} className="min-w-0">
+              <dt className="flex items-center gap-1.5 text-[11px] font-medium text-fg-secondary">
+                <kpi.icon className="size-3.5 shrink-0 text-accent-300" aria-hidden="true" />
+                <span className="truncate">{kpi.title}</span>
+              </dt>
+              <dd className="mt-0.5 flex items-baseline gap-1.5">
+                <span
+                  className={`text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
+                >
+                  {available ? kpi.value.value : '—'}
+                </span>
+                {kpi.unit !== undefined && kpi.unit !== '' ? (
+                  <span className="truncate text-[11px] text-fg-tertiary">{kpi.unit}</span>
+                ) : null}
+              </dd>
+            </div>
+          )
+        })}
+      </dl>
+    </header>
+  )
+}
+
+/**
  * New simulated client — POST /api/v1/admin/users (admin only).
  * Creates a real account in the database; the password is never returned by the service.
+ *
+ * Cockpit shape: the form is the dominant card; the two contract notes and
+ * the (named-empty) chart stack in the flank so the row ends on one line.
  */
 export default async function Page() {
   const session = await requireSession()
@@ -73,49 +122,49 @@ export default async function Page() {
   ]
 
   return (
-    <div className="space-y-8">
-      <AdminPageHeader
-        title="New simulated client"
-        description="Real creation via POST /api/v1/admin/users — password never returned."
-        kpis={kpis}
-      />
+    <DashboardShell>
+      <NewClientHeader kpis={kpis} />
 
-      <ChartFrame
-        question="Account creations per day"
-        unit="accounts / day"
-        state={{
-          type: 'empty',
-          explanation:
-            'No series to plot — this screen emits one creation at a time and does not measure history. The real account count lives in the client directory.',
-        }}
-      />
-
-      <SectionCard
-        title="Create an investor or admin account"
-        hint="The service never returns the password — only id, email, and role are shown after success."
-      >
-        <CreateClientForm disabled={!canPost} disabledReason={disabledReason} />
-      </SectionCard>
-
-      <SectionCard title="Request fields" hint="What POST /api/v1/admin/users expects." tone="plain">
-        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
-          {CHAMPS_REQUIS.map((champ) => (
-            <li key={champ}>{champ}</li>
-          ))}
-        </ul>
-      </SectionCard>
-
-      <SectionCard title="What is not returned" hint="Simulator veracity rule." tone="plain">
-        <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
-          {NON_RESTITUE.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </SectionCard>
-
-      <Text>
-        <Link href="/admin/clients" className="underline">Back to client directory</Link>
-      </Text>
-    </div>
+      {/* Single row — the form dominates; notes + chart flank it. */}
+      <BentoGrid>
+        <BentoCard span={8}>
+          <DashCard
+            title="Create an investor or admin account"
+            subtitle="The service never returns the password — only id, email, and role are shown after success."
+            titleLevel={2}
+          >
+            <CreateClientForm disabled={!canPost} disabledReason={disabledReason} />
+          </DashCard>
+        </BentoCard>
+        <BentoCard span={4}>
+          <div className="flex min-w-0 flex-col gap-6">
+            <DashCard title="Request fields" subtitle="What POST /api/v1/admin/users expects." titleLevel={2}>
+              <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
+                {CHAMPS_REQUIS.map((champ) => (
+                  <li key={champ}>{champ}</li>
+                ))}
+              </ul>
+            </DashCard>
+            <DashCard title="What is not returned" subtitle="Simulator veracity rule." titleLevel={2}>
+              <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
+                {NON_RESTITUE.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </DashCard>
+            <ChartFrame
+              question="Account creations per day"
+              unit="accounts / day"
+              viewport="compact"
+              state={{
+                type: 'empty',
+                explanation:
+                  'No series to plot — this screen emits one creation at a time and does not measure history. The real account count lives in the client directory.',
+              }}
+            />
+          </div>
+        </BentoCard>
+      </BentoGrid>
+    </DashboardShell>
   )
 }

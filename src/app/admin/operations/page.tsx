@@ -1,7 +1,13 @@
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { RebalancingDriftChart } from '@/components/admin/dashboard'
+import {
+  ChartPlaceholder,
+  DashCard,
+  DashboardShell,
+  PanelState,
+  RebalancingDriftChart,
+} from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
-import { surfaceBox } from '@/components/admin/surface'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
@@ -13,9 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { Callout, DataTableShell, SectionCard, tableCol, AdminTable } from '@/components/compositions'
-import { ChartFrame, HearstActivityChart, HearstDonutChart } from '@/components/charts'
+import { Callout, tableCol, AdminTable } from '@/components/compositions'
+import { HearstActivityChart, HearstDonutChart } from '@/components/charts'
 import type { ActivityPoint } from '@/components/charts'
+import type { AdminOperationsSurface } from '@/lib/admin-dashboard/contracts'
 import {
   isAdminNotConfigured,
   loadAdminOperationsSurface,
@@ -33,14 +40,15 @@ import {
   ExclamationTriangleIcon,
   SignalIcon,
 } from '@heroicons/react/16/solid'
-import clsx from 'clsx'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 
 export const metadata: Metadata = { title: 'Operations' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Operations — action + decision + execution history.
+ * Operations — action + decision + execution history, shaped as a cockpit:
+ * explicit Bento rows, frozen panel slots, links on the title row.
  * Technical observability lives on /admin/runtime.
  *
  * Supported write: admin indexer trigger only.
@@ -77,20 +85,39 @@ function filterOpsActivity(
   return events.filter((event) => OPS_ACTIVITY_TYPES.has(event.type))
 }
 
-function RebalancingSection({
+/**
+ * Fixed panel slots (content area, px) — the box is FROZEN whether data is
+ * loading, absent, or populated; taller content scrolls inside the box
+ * (`scrollbar-none`). Row A is height-matched by construction:
+ *   last-rebalance ≈ 126 + indexer ≈ 200 + gap 24 ≈ 350
+ *     == rebalancing header 76 + slot 242 + padding 32.
+ * Row B's slot is the donut block (220) — the compact charts (176) share the
+ * same frozen box, so all three cards settle on the same line.
+ */
+const PANEL_SLOT_CLASS = {
+  rebalancing: 'h-[242px] overflow-y-auto scrollbar-none',
+  chart: 'h-[220px] overflow-y-auto scrollbar-none',
+  table: 'h-[320px] overflow-y-auto scrollbar-none',
+} as const
+
+function RebalancingPanel({
   summary,
 }: Readonly<{ summary: Availability<AdminRebalancingSummary> }>) {
   if (!isAvailable(summary)) {
     return (
-      <SectionCard title="Rebalancing">
-        <Callout tone="warning" title="Rebalancing status unavailable">
+      <DashCard
+        title="Rebalancing"
+        subtitle="Rebalancing status unavailable"
+        contentClassName={PANEL_SLOT_CLASS.rebalancing}
+      >
+        <Callout tone="warning">
           The rebalancing summary could not be read. Technical detail lives under{' '}
           <Link href="/admin/runtime" className="underline">
             Service
           </Link>
           .
         </Callout>
-      </SectionCard>
+      </DashCard>
     )
   }
 
@@ -98,9 +125,10 @@ function RebalancingSection({
   const stable = data.strategiesOutOfTarget === 0
 
   return (
-    <SectionCard
+    <DashCard
       title="Rebalancing"
-      hint={rebalancingHint(stable, data.strategiesOutOfTarget)}
+      subtitle={rebalancingHint(stable, data.strategiesOutOfTarget)}
+      contentClassName={PANEL_SLOT_CLASS.rebalancing}
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="min-w-0">
@@ -132,7 +160,7 @@ function RebalancingSection({
       {data.alerts.length > 0 ? (
         <div className="mt-4 space-y-2">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-fg">Needs attention</h3>
+            <h4 className="text-sm font-semibold text-fg">Needs attention</h4>
             <Badge color="neutral">{data.alerts.length}</Badge>
           </div>
           <AdminTable>
@@ -185,7 +213,31 @@ function RebalancingSection({
         On-chain rebalance execution is not exposed as a safe admin action. The keeper route
         requires a low-level swap payload and does not sign transactions in this service.
       </p>
-    </SectionCard>
+    </DashCard>
+  )
+}
+
+function LastRebalanceCard({
+  snapshot,
+}: Readonly<{ snapshot: RebalancingSnapshot }>) {
+  return (
+    <div data-widget="operations-last-rebalance" className="min-w-0">
+      <DashCard title="Last rebalance">
+        <p className="text-lg font-semibold text-fg">
+          {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
+        </p>
+        {snapshot.lastRebalanceTxHash ? (
+          <p
+            className="mt-1.5 truncate font-mono text-xs text-fg-tertiary"
+            title={snapshot.lastRebalanceTxHash}
+          >
+            {formatHash(snapshot.lastRebalanceTxHash)}
+          </p>
+        ) : (
+          <p className="mt-1.5 text-xs text-fg-tertiary">No transaction hash reported.</p>
+        )}
+      </DashCard>
+    </div>
   )
 }
 
@@ -262,34 +314,45 @@ function opsEventsDe(
   return filterOpsActivity(recentActivity.value)
 }
 
-function PortfolioAllocationDonut({
+function AllocationChartCard({
   exposure,
 }: Readonly<{
-  exposure: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['exposure']
+  exposure: AdminOperationsSurface['exposure']
 }>) {
-  if (!isAvailable(exposure) || exposure.value.length === 0) {
-    return (
-      <ChartFrame
-        question="How is capital allocated across strategies?"
-        unit="in percent — target mix"
-        state={{ type: 'empty', explanation: 'No exposure data available.' }}
-      />
-    )
-  }
-
-  const slices = exposure.value.map((row) => ({
-    label: row.strategyLabel,
-    value: row.targetBps / 100,
-  }))
-
   return (
-    <ChartFrame
-      question="How is capital allocated across strategies?"
-      unit="in percent — target mix"
-      state={{ type: 'plotted' }}
+    <DashCard
+      title="How is capital allocated across strategies?"
+      subtitle="in percent — target mix"
+      contentClassName={PANEL_SLOT_CLASS.chart}
     >
-      <HearstDonutChart slices={slices} unit="% target" />
-    </ChartFrame>
+      {!isAvailable(exposure) || exposure.value.length === 0 ? (
+        <ChartPlaceholder title="Portfolio allocation" detail="No exposure data available." />
+      ) : (
+        <HearstDonutChart
+          slices={exposure.value.map((row) => ({
+            label: row.strategyLabel,
+            value: row.targetBps / 100,
+          }))}
+          unit="% target"
+        />
+      )}
+    </DashCard>
+  )
+}
+
+function DriftHistoryCard({
+  rebalancingHistory,
+}: Readonly<{
+  rebalancingHistory: AdminOperationsSurface['rebalancingHistory']
+}>) {
+  return (
+    <DashCard
+      title="How has portfolio drift evolved over time?"
+      subtitle="in basis points — 90 days"
+      contentClassName={PANEL_SLOT_CLASS.chart}
+    >
+      <RebalancingDriftChart rebalancingHistory={rebalancingHistory} />
+    </DashCard>
   )
 }
 
@@ -309,57 +372,78 @@ function bucketOperationsByDay(rows: readonly AdminRebalancingOperation[]): read
     }))
 }
 
-function RebalancingOperationsSection({
+function RebalanceCadenceCard({
   operations,
 }: Readonly<{
-  operations: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['rebalancingOperations']
+  operations: AdminOperationsSurface['rebalancingOperations']
 }>) {
+  let body: ReactNode
   if (isAdminNotConfigured(operations)) {
-    return (
-      <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
-        <Text>No rebalance operations indexed yet.</Text>
-      </SectionCard>
+    body = <ChartPlaceholder title="Rebalance operations" detail="No rebalance operations indexed yet." />
+  } else if (!isAvailable(operations)) {
+    body = (
+      <ChartPlaceholder
+        title="Rebalance operations could not be read."
+        detail={operations.kind === 'unavailable' ? operations.reason ?? 'Source unavailable' : 'Source unavailable'}
+      />
+    )
+  } else if (operations.value.length === 0) {
+    body = <ChartPlaceholder title="Rebalance operations" detail="No rebalance operations indexed yet." />
+  } else {
+    body = (
+      <HearstActivityChart
+        points={bucketOperationsByDay(operations.value)}
+        unit="ops"
+        viewport="compact"
+      />
     )
   }
 
-  if (!isAvailable(operations)) {
+  return (
+    <DashCard
+      title="When did rebalances occur?"
+      subtitle="operations per day"
+      contentClassName={PANEL_SLOT_CLASS.chart}
+    >
+      {body}
+    </DashCard>
+  )
+}
+
+function RebalanceOperationsCard({
+  operations,
+}: Readonly<{
+  operations: AdminOperationsSurface['rebalancingOperations']
+}>) {
+  if (!isAvailable(operations) || operations.value.length === 0) {
     return (
-      <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
-        <Text>
-          Rebalance operations could not be read.{' '}
-          {operations.kind === 'unavailable' ? operations.reason ?? 'Source unavailable' : 'Source unavailable'}
-        </Text>
-      </SectionCard>
+      <DashCard
+        title="Rebalance operations"
+        subtitle="On-chain rebalancing events"
+        contentClassName={PANEL_SLOT_CLASS.table}
+      >
+        {isAdminNotConfigured(operations) || isAvailable(operations) ? (
+          <PanelState title="No rebalance operations indexed yet." />
+        ) : (
+          <PanelState
+            title="Rebalance operations could not be read."
+            detail={operations.kind === 'unavailable' ? operations.reason ?? 'Source unavailable' : 'Source unavailable'}
+          />
+        )}
+      </DashCard>
     )
   }
 
   const rows = operations.value
 
-  if (rows.length === 0) {
-    return (
-      <SectionCard title="Rebalance operations" hint="On-chain rebalancing events">
-        <Text>No rebalance operations indexed yet.</Text>
-      </SectionCard>
-    )
-  }
-
-  const chartPoints = bucketOperationsByDay(rows)
-
   return (
-    <div className="space-y-4">
-      <ChartFrame
-        question="When did rebalances occur?"
-        unit="operations per day"
-        state={{ type: 'plotted' }}
-      >
-        <HearstActivityChart points={chartPoints} unit="ops" viewport="compact" />
-      </ChartFrame>
-
-      <DataTableShell
-        title="Rebalance operations"
-        description="On-chain rebalance events with allocation changes and swap details."
-        count={`${rows.length}`}
-      >
+    <DashCard
+      title="Rebalance operations"
+      subtitle="On-chain rebalance events with allocation changes and swap details."
+      action={<Badge color="neutral">{`${rows.length}`}</Badge>}
+      contentClassName={PANEL_SLOT_CLASS.table}
+    >
+      <AdminTable>
         <TableHead>
           <TableRow>
             <TableHeader className={tableCol.date}>Occurred</TableHeader>
@@ -405,17 +489,91 @@ function RebalancingOperationsSection({
             </TableRow>
           ))}
         </TableBody>
-      </DataTableShell>
-    </div>
+      </AdminTable>
+    </DashCard>
   )
 }
 
-function RebalancingDriftHistory({
-  rebalancingHistory,
+const RECENT_OPERATIONS_SUBTITLE =
+  'Rebalancing, vault, and related indexed activity. Full transaction hash is on the title attribute.'
+
+function RecentOperationsCard({
+  opsEvents,
+  assetScale,
 }: Readonly<{
-  rebalancingHistory: import('@/lib/admin-dashboard/contracts').AdminOperationsSurface['rebalancingHistory']
+  opsEvents: readonly AdminActivityEvent[] | null
+  assetScale: AdminOperationsSurface['assetScale']
 }>) {
-  return <RebalancingDriftChart rebalancingHistory={rebalancingHistory} framed />
+  if (opsEvents === null) {
+    return (
+      <DashCard
+        title="Recent operations"
+        subtitle={RECENT_OPERATIONS_SUBTITLE}
+        contentClassName={PANEL_SLOT_CLASS.table}
+      >
+        <PanelState title="Recent activity unavailable" detail="Operational activity could not be read." />
+      </DashCard>
+    )
+  }
+
+  if (opsEvents.length === 0) {
+    return (
+      <DashCard
+        title="Recent operations"
+        subtitle={RECENT_OPERATIONS_SUBTITLE}
+        contentClassName={PANEL_SLOT_CLASS.table}
+      >
+        <PanelState title="No recent operational activity." />
+      </DashCard>
+    )
+  }
+
+  return (
+    <DashCard
+      title="Recent operations"
+      subtitle={RECENT_OPERATIONS_SUBTITLE}
+      action={<Badge color="neutral">{`${opsEvents.length}`}</Badge>}
+      contentClassName={PANEL_SLOT_CLASS.table}
+    >
+      <AdminTable>
+        <TableHead>
+          <TableRow>
+            <TableHeader className={tableCol.primary}>Operation</TableHeader>
+            <TableHeader className={tableCol.status}>Status</TableHeader>
+            <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+            <TableHeader className={tableCol.hash}>Tx</TableHeader>
+            <TableHeader className={tableCol.date}>When</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {opsEvents.map((event) => (
+            <TableRow key={event.id}>
+              <TableCell className={tableCol.primary}>
+                <div className="truncate font-medium" title={event.vaultId ?? undefined}>
+                  {event.title}
+                </div>
+              </TableCell>
+              <TableCell className={tableCol.status}>
+                <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
+              </TableCell>
+              <TableCell className={tableCol.numeric}>
+                {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}
+              </TableCell>
+              <TableCell
+                className={`${tableCol.hash} text-xs text-fg-tertiary`}
+                title={event.txHash ?? undefined}
+              >
+                {event.txHash ? formatHash(event.txHash) : '—'}
+              </TableCell>
+              <TableCell className={`${tableCol.date} text-fg-tertiary`}>
+                {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </AdminTable>
+    </DashCard>
+  )
 }
 
 export default async function Page() {
@@ -428,98 +586,52 @@ export default async function Page() {
   const kpis = kpisOperationsDe(snapshot)
 
   return (
-    <div className="space-y-8">
+    <DashboardShell>
       <AdminPageHeader
         title="Operations"
         description="Monitor portfolio drift and run supported operational actions."
         kpis={kpis}
       />
 
-      <RebalancingSection summary={rebalancing} />
+      {/* Row A — rebalancing pilotage + action rail (last rebalance, indexer). */}
+      <BentoGrid>
+        <BentoCard span={8}>
+          <RebalancingPanel summary={rebalancing} />
+        </BentoCard>
+        <BentoCard span={4}>
+          <div className="flex min-w-0 flex-col gap-6">
+            <LastRebalanceCard snapshot={snapshot} />
+            <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
+          </div>
+        </BentoCard>
+      </BentoGrid>
 
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <PortfolioAllocationDonut exposure={exposure} />
-        <RebalancingDriftHistory rebalancingHistory={rebalancingHistory} />
-      </div>
+      {/* Row B — chart trio: one frozen slot height for all three cards. */}
+      <BentoGrid>
+        <BentoCard span={4}>
+          <AllocationChartCard exposure={exposure} />
+        </BentoCard>
+        <BentoCard span={4}>
+          <DriftHistoryCard rebalancingHistory={rebalancingHistory} />
+        </BentoCard>
+        <BentoCard span={4}>
+          <RebalanceCadenceCard operations={rebalancingOperations} />
+        </BentoCard>
+      </BentoGrid>
 
-      <RebalancingOperationsSection operations={rebalancingOperations} />
+      {/* Row C — execution history band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <RebalanceOperationsCard operations={rebalancingOperations} />
+        </BentoCard>
+      </BentoGrid>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
-        <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
-
-        <div
-          className={clsx(surfaceBox, 'flex flex-col gap-1.5 p-4')}
-          data-widget="operations-last-rebalance"
-        >
-          <p className="text-sm font-semibold text-fg">Last rebalance</p>
-          <p className="text-lg font-semibold text-fg">
-            {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
-          </p>
-          {snapshot.lastRebalanceTxHash ? (
-            <p
-              className="truncate font-mono text-xs text-fg-tertiary"
-              title={snapshot.lastRebalanceTxHash}
-            >
-              {formatHash(snapshot.lastRebalanceTxHash)}
-            </p>
-          ) : (
-            <p className="text-xs text-fg-tertiary">No transaction hash reported.</p>
-          )}
-        </div>
-      </div>
-
-      {opsEvents === null ? (
-        <Callout tone="warning" title="Recent activity unavailable">
-          Operational activity could not be read.
-        </Callout>
-      ) : (
-        <DataTableShell
-          title="Recent operations"
-          description="Rebalancing, vault, and related indexed activity. Full transaction hash is on the title attribute."
-          count={opsEvents.length > 0 ? `${opsEvents.length}` : undefined}
-          calme={opsEvents.length === 0 ? 'No recent operational activity.' : undefined}
-        >
-          {opsEvents.length > 0 ? (
-            <>
-              <TableHead>
-                <TableRow>
-                  <TableHeader className={tableCol.primary}>Operation</TableHeader>
-                  <TableHeader className={tableCol.status}>Status</TableHeader>
-                  <TableHeader className={tableCol.numeric}>Amount</TableHeader>
-                  <TableHeader className={tableCol.hash}>Tx</TableHeader>
-                  <TableHeader className={tableCol.date}>When</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {opsEvents.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell className={tableCol.primary}>
-                      <div className="truncate font-medium" title={event.vaultId ?? undefined}>
-                        {event.title}
-                      </div>
-                    </TableCell>
-                    <TableCell className={tableCol.status}>
-                      <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
-                    </TableCell>
-                    <TableCell className={tableCol.numeric}>
-                      {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}
-                    </TableCell>
-                    <TableCell
-                      className={`${tableCol.hash} text-xs text-fg-tertiary`}
-                      title={event.txHash ?? undefined}
-                    >
-                      {event.txHash ? formatHash(event.txHash) : '—'}
-                    </TableCell>
-                    <TableCell className={`${tableCol.date} text-fg-tertiary`}>
-                      {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </>
-          ) : null}
-        </DataTableShell>
-      )}
+      {/* Row D — operational activity band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <RecentOperationsCard opsEvents={opsEvents} assetScale={assetScale} />
+        </BentoCard>
+      </BentoGrid>
 
       <Text className="text-sm text-fg-secondary">
         Technical probes and source coverage:{' '}
@@ -528,6 +640,6 @@ export default async function Page() {
         </Link>
         .
       </Text>
-    </div>
+    </DashboardShell>
   )
 }

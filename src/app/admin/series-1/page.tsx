@@ -1,3 +1,4 @@
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
 import { Series1EventExplorer, type Series1EventRow } from '@/components/admin/series-1-event-explorer'
 import {
@@ -169,30 +170,43 @@ export default async function Page() {
   const kpis = serie1Kpis(reponse.ok, movementCount, financialCount, typesCount)
 
   return (
-    <div className="space-y-8">
+    <div className="flex w-full min-w-0 flex-col gap-6">
       <AdminPageHeader
         title="Series 1 journal"
         description="Operational event explorer for indexed Series 1 — source /api/v1/series1/events only."
         kpis={kpis}
       />
 
-      <ChartFrame
-        question="How fast do movements arrive?"
-        unit="number of movements, per observed day"
-        state={trendState}
-      >
-        <HearstActivityChart points={trendPoints} unit="movements" />
-      </ChartFrame>
+      {/* Chart pair — symmetric spans, same compact viewport: equal heights. */}
+      <BentoGrid>
+        <BentoCard span={6}>
+          <ChartFrame
+            question="How fast do movements arrive?"
+            unit="number of movements, per observed day"
+            state={trendState}
+            viewport="compact"
+          >
+            <HearstActivityChart points={trendPoints} unit="movements" viewport="compact" />
+          </ChartFrame>
+        </BentoCard>
+        <BentoCard span={6}>
+          <ChartFrame
+            question="What is this journal made of?"
+            unit="number of movements, by type"
+            state={breakdownState}
+            viewport="compact"
+          >
+            <RichDistributionChart items={distributionItems} unit="movements" />
+          </ChartFrame>
+        </BentoCard>
+      </BentoGrid>
 
-      <ChartFrame
-        question="What is this journal made of?"
-        unit="number of movements, by type"
-        state={breakdownState}
-      >
-        <RichDistributionChart items={distributionItems} unit="movements" />
-      </ChartFrame>
-
-      <Series1EventExplorer rows={rows} calme={journalCalme} />
+      {/* Explorer — full-width band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <Series1EventExplorer rows={rows} calme={journalCalme} />
+        </BentoCard>
+      </BentoGrid>
     </div>
   )
 }

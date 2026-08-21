@@ -63,7 +63,7 @@ export function ReserveExposureChart({ items }: Readonly<{ items: readonly Bitco
 
   if (items.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+      <p className="px-5 pb-5 text-sm text-fg-secondary">
         No allocation readable on-chain. Nothing is plotted, rather than a split at zero.
       </p>
     )

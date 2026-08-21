@@ -1,13 +1,9 @@
+import { DashCard, PanelHeaderLink, PanelState } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { AdminPageHeader, type AdminHeroKpi } from '@/components/admin/page-header'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import {
-  ChartFrame,
-  HearstCurveChart,
-  ReserveExposureChart,
-  type BitcoinItem,
-} from '@/components/charts'
-import { Callout, DataTableShell, SectionCard, SectionHeader, tableCol } from '@/components/compositions'
+import { HearstCurveChart, ReserveExposureChart, type BitcoinItem } from '@/components/charts'
+import { AdminTable, Callout, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { figureFromResolved } from '@/lib/backend/availability'
 import { callBackend } from '@/lib/backend/client'
@@ -22,6 +18,7 @@ import {
   Square3Stack3DIcon,
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 
 const MINING_ENDPOINT = '/api/v1/mining'
 const BTC_ENDPOINT = '/api/v1/btc'
@@ -136,6 +133,57 @@ function curveChartState(factsheetOk: boolean, curveConfigured: boolean): CurveC
   return { type: 'plotted' }
 }
 
+/**
+ * Fixed panel slots (content area, px) — the box is FROZEN whether data is
+ * absent, partial, or plotted; taller content scrolls inside the box
+ * (`scrollbar-none`). Both cards of a row share the same slot, so each row's
+ * two columns end on the same line at any data state.
+ */
+const PANEL_SLOT_CLASS = {
+  production: 'h-[304px] overflow-y-auto scrollbar-none',
+  capital: 'h-[304px] overflow-y-auto scrollbar-none',
+  curve: 'h-[304px] overflow-y-auto scrollbar-none',
+  milestones: 'h-[304px] overflow-y-auto scrollbar-none',
+} as const
+
+type PanelSlot = keyof typeof PANEL_SLOT_CLASS
+
+function ProductPanel({
+  title,
+  subtitle,
+  action,
+  slot,
+  children,
+}: Readonly<{
+  title: string
+  subtitle: string
+  action?: ReactNode
+  slot: PanelSlot
+  children: ReactNode
+}>) {
+  return (
+    <DashCard
+      className="min-w-0"
+      contentClassName={PANEL_SLOT_CLASS[slot]}
+      title={title}
+      subtitle={subtitle}
+      action={action}
+    >
+      {children}
+    </DashCard>
+  )
+}
+
+/** One compact reading row — label left, tabular figure right. */
+function ReadingRow({ label, value }: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-3">
+      <dt className="min-w-0 text-xs font-medium text-fg-tertiary">{label}</dt>
+      <dd className="shrink-0 text-sm font-semibold tabular-nums text-fg">{value}</dd>
+    </div>
+  )
+}
+
 function CapitalReserveSection({
   items,
   soleItem,
@@ -146,18 +194,18 @@ function CapitalReserveSection({
   chartItems: readonly BitcoinItem[]
 }>) {
   if (items.length === 0) {
-    return <Callout tone="warning">Neither reserve nor exposure could be read on-chain.</Callout>
+    return <PanelState title="No readable position" detail="Neither reserve nor exposure could be read on-chain." />
   }
 
   if (soleItem !== undefined) {
     return (
       <>
-        <DescriptionList>
-          <DescriptionTerm>{soleItem.item}</DescriptionTerm>
-          <DescriptionDetails>
-            {formatCurrency(soleItem.amount, { fromAtomic: 1, decimals: 0 })}
-          </DescriptionDetails>
-        </DescriptionList>
+        <dl className="divide-y divide-console-line-soft">
+          <ReadingRow
+            label={soleItem.item}
+            value={formatCurrency(soleItem.amount, { fromAtomic: 1, decimals: 0 })}
+          />
+        </dl>
         <Callout tone="info" className="mt-4">
           The other position could not be read on-chain. Only one of the two positions is readable — reserve and
           exposure cannot be compared yet.
@@ -168,19 +216,18 @@ function CapitalReserveSection({
 
   return (
     <>
-      <ChartFrame
-        question="Where is the fund's capital?"
-        unit="in dollars — idle reserve vs exposed value"
-        state={{ type: 'plotted' }}
-      >
-        <ReserveExposureChart items={chartItems} />
-      </ChartFrame>
-      <DataTableShell
-        title="Capital allocation"
-        description="Reserve and exposure read on-chain — the exact figures the chart positions."
-        count={`${items.length} positions`}
-        className="mt-6"
-      >
+      <ReserveExposureChart items={chartItems} />
+      <div className="mt-2 border-t border-console-line-soft pt-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-xs font-semibold text-fg">Capital allocation</p>
+          <p className="text-[11px] text-fg-tertiary">{items.length} positions</p>
+        </div>
+        <p className="mt-0.5 text-[11px] text-fg-tertiary">
+          in dollars — idle reserve vs exposed value · Reserve and exposure read on-chain — the exact figures the
+          chart positions.
+        </p>
+      </div>
+      <AdminTable className="mt-2">
         <TableHead>
           <TableRow>
             <TableHeader className={tableCol.primary}>Position</TableHeader>
@@ -197,7 +244,7 @@ function CapitalReserveSection({
             </TableRow>
           ))}
         </TableBody>
-      </DataTableShell>
+      </AdminTable>
     </>
   )
 }
@@ -302,108 +349,157 @@ export default async function Page() {
   const points = curvePointsFrom(f?.vendingCurve?.value)
   const curveConfigured = curveConfiguredFrom(points)
   const cap = f?.tvlCap?.value
+  const curveState = curveChartState(factsheet.ok, curveConfigured)
 
   const pendingReadings = pendingReadingsFrom(backtest, b, m)
   const kpis = productKpisFrom(mining, btc, factsheet, m, b, f)
 
   return (
-    <div className="space-y-8">
+    <div className="flex min-w-0 flex-col gap-6">
       <AdminPageHeader
         title="Consolidated product view"
         description="Mining, BTC, and product factsheet readings — no invented values."
         kpis={kpis}
       />
 
-      <SectionCard title="Production" eyebrow="Fund" hint="Reported hashrate and figures that qualify it.">
-        <DescriptionList>
-          <DescriptionTerm>Reported hashrate</DescriptionTerm>
-          <DescriptionDetails>
-            {hashrate ? `${formatNumber(Number(hashrate.reportedHashrateTh))} TH/s` : '—'}
-          </DescriptionDetails>
-          <DescriptionTerm>BTC produced</DescriptionTerm>
-          <DescriptionDetails>{btcProduced === null ? '—' : `${btcProduced} BTC`}</DescriptionDetails>
-          <DescriptionTerm>Monthly electricity cost</DescriptionTerm>
-          <DescriptionDetails>
-            {orNull(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })) ?? '—'}
-          </DescriptionDetails>
-          <DescriptionTerm>Fund cap</DescriptionTerm>
-          <DescriptionDetails>
-            {cap ? (orNull(formatCurrency(cap, { decimals: 0 })) ?? '—') : '—'}
-          </DescriptionDetails>
-        </DescriptionList>
-      </SectionCard>
+      {/*
+        Rows whose heights MATCH by construction: both cards of a row share the
+        same frozen content slot (PANEL_SLOT_CLASS), so the two columns end on
+        the same line at any data state — absence, partial read, or plotted.
+        Links live on the card title row (DashCard `action`), not in a footer.
+      */}
+      {/* Row A — production rail + capital. */}
+      <BentoGrid>
+        <BentoCard span={4}>
+          <ProductPanel
+            title="Production"
+            subtitle="Fund · Reported hashrate and figures that qualify it."
+            slot="production"
+            action={<PanelHeaderLink href="/admin/mining">Open mining</PanelHeaderLink>}
+          >
+            <dl className="divide-y divide-console-line-soft">
+              <ReadingRow
+                label="Reported hashrate"
+                value={hashrate ? `${formatNumber(Number(hashrate.reportedHashrateTh))} TH/s` : '—'}
+              />
+              <ReadingRow label="BTC produced" value={btcProduced === null ? '—' : `${btcProduced} BTC`} />
+              <ReadingRow
+                label="Monthly electricity cost"
+                value={orNull(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })) ?? '—'}
+              />
+              <ReadingRow
+                label="Fund cap"
+                value={cap ? (orNull(formatCurrency(cap, { decimals: 0 })) ?? '—') : '—'}
+              />
+            </dl>
+          </ProductPanel>
+        </BentoCard>
+        <BentoCard span={8}>
+          <ProductPanel
+            title="Where is the fund's capital?"
+            subtitle="Reserve and yield · The two readings the product is actually measured on today."
+            slot="capital"
+          >
+            <CapitalReserveSection items={items} soleItem={soleItem} chartItems={chartItems} />
+          </ProductPanel>
+        </BentoCard>
+      </BentoGrid>
 
-      <section className="space-y-6">
-        <SectionHeader
-          title="Where is the fund's capital?"
-          eyebrow="Reserve and yield"
-          hint="The two readings the product is actually measured on today."
-        />
-        <CapitalReserveSection items={items} soleItem={soleItem} chartItems={chartItems} />
-      </section>
+      {/* Row B — the yield pair: dominant curve, bounded milestones table. */}
+      <BentoGrid>
+        <BentoCard span={8}>
+          <ProductPanel
+            title="How does yield evolve over time?"
+            subtitle={curveExplanation(points, curveConfigured, f?.vendingCurve)}
+            slot="curve"
+          >
+            <p className="text-[11px] text-fg-tertiary">as a percentage, per product milestone</p>
+            {curveState.type === 'plotted' ? (
+              <HearstCurveChart points={points} />
+            ) : (
+              <PanelState
+                title={curveState.type === 'unavailable' ? 'Data unavailable' : 'Waiting on source'}
+                detail={curveState.explanation}
+              />
+            )}
+          </ProductPanel>
+        </BentoCard>
+        <BentoCard span={4}>
+          <ProductPanel
+            title="Yield curve"
+            subtitle="Reserve and yield · Rate recorded per milestone — the exact figures the curve positions."
+            slot="milestones"
+            action={
+              points.length > 0 ? (
+                <span className="shrink-0 text-xs text-fg-tertiary">{points.length} milestones</span>
+              ) : undefined
+            }
+          >
+            {points.length === 0 ? (
+              <PanelState title="No readable milestones for now." />
+            ) : (
+              <AdminTable>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader className={tableCol.primary}>Month</TableHeader>
+                    <TableHeader className={tableCol.numeric}>Rate %</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {points.map((p) => (
+                    <TableRow key={p.month}>
+                      <TableCell className={tableCol.primary}>{formatNumber(p.month)}</TableCell>
+                      <TableCell className={tableCol.numeric}>
+                        {formatNumber(p.rate, { maximumFractionDigits: 2 })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </AdminTable>
+            )}
+          </ProductPanel>
+        </BentoCard>
+      </BentoGrid>
 
-      <section className="space-y-6">
-        <SectionHeader
-          title="How does yield evolve over time?"
-          eyebrow="Reserve and yield"
-          hint={curveExplanation(points, curveConfigured, f?.vendingCurve)}
-        />
-        <ChartFrame
-          question="How does yield evolve over time?"
-          unit="as a percentage, per product milestone"
-          state={curveChartState(factsheet.ok, curveConfigured)}
-        >
-          <HearstCurveChart points={points} />
-        </ChartFrame>
-        <DataTableShell
-          title="Yield curve"
-          description="Rate recorded per milestone — the exact figures the curve positions."
-          count={points.length > 0 ? `${points.length} milestones` : undefined}
-          calme={points.length === 0 ? 'No readable milestones for now.' : undefined}
-        >
-          <TableHead>
-            <TableRow>
-              <TableHeader className={tableCol.primary}>Month</TableHeader>
-              <TableHeader className={tableCol.numeric}>Rate %</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {points.map((p) => (
-              <TableRow key={p.month}>
-                <TableCell className={tableCol.primary}>{formatNumber(p.month)}</TableCell>
-                <TableCell className={tableCol.numeric}>{formatNumber(p.rate, { maximumFractionDigits: 2 })}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </DataTableShell>
-      </section>
-
-      <DataTableShell
-        title="Not measurable yet"
-        description="Three views whose question, axis, and unit are already decided. None charts until the service provides its series — the displayed state is what the source announces."
-        count={`${pendingReadings.length} readings`}
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.primary}>Reading</TableHeader>
-            <TableHeader className={tableCol.primary}>Why it does not appear yet</TableHeader>
-            <TableHeader className={tableCol.status}>Source state</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {pendingReadings.map((reading) => (
-            <TableRow key={reading.key}>
-              <TableCell className={tableCol.primary}>
-                <div className="truncate font-medium">{reading.label}</div>
-              </TableCell>
-              <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{reading.explanation}</TableCell>
-              <TableCell className={tableCol.status}>
-                {reading.status ? readableSourceState(reading.status) : 'Not reported'}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
+      {/* Row C — pending readings: always exactly three rows, full-width band. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            className="min-w-0"
+            title="Not measurable yet"
+            subtitle="Three views whose question, axis, and unit are already decided. None charts until the service provides its series — the displayed state is what the source announces."
+            action={
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="text-xs text-fg-tertiary">{pendingReadings.length} readings</span>
+                <PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>
+              </div>
+            }
+          >
+            <AdminTable>
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Reading</TableHeader>
+                  <TableHeader className={tableCol.primary}>Why it does not appear yet</TableHeader>
+                  <TableHeader className={tableCol.status}>Source state</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pendingReadings.map((reading) => (
+                  <TableRow key={reading.key}>
+                    <TableCell className={tableCol.primary}>
+                      <div className="truncate font-medium">{reading.label}</div>
+                    </TableCell>
+                    <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{reading.explanation}</TableCell>
+                    <TableCell className={tableCol.status}>
+                      {reading.status ? readableSourceState(reading.status) : 'Not reported'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </AdminTable>
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
     </div>
   )
 }

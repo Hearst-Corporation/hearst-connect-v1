@@ -1,8 +1,10 @@
 'use client'
 
+import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { surfaceBox } from '@/components/admin/surface'
 import clsx from 'clsx'
+import { Badge } from '@/components/catalyst/badge'
 import { Input } from '@/components/catalyst/input'
 import { Link } from '@/components/catalyst/link'
 import {
@@ -12,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { DataTableShell, tableCol } from '@/components/compositions'
+import { AdminTable, tableCol } from '@/components/compositions'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatRelativeTime } from '@/lib/format'
@@ -66,6 +68,12 @@ function matchesFilter(client: AdminRecentClient, filter: FilterId): boolean {
   }
 }
 
+/**
+ * Directory CONTENT — the DashCard frame (title row, count, frozen height)
+ * lives on the page so the box keeps the same shape across rich / thin /
+ * empty / unavailable states. Here: toolbar (search + filters + live count),
+ * then ONE scroll region holding the desktop table and the mobile card list.
+ */
 export function ClientsDirectory({
   clients,
   assetScale,
@@ -91,8 +99,8 @@ export function ClientsDirectory({
   }, [clients, filter, query])
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1 sm:max-w-xs">
           <Input
             type="search"
@@ -103,119 +111,115 @@ export function ClientsDirectory({
             aria-label="Search clients"
           />
         </div>
-        <fieldset className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
-          <legend className="sr-only">Client filters</legend>
-          {FILTERS.map((item) => {
-            const active = filter === item.id
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setFilter(item.id)}
-                aria-pressed={active}
-                className={
-                  active
-                    ? 'rounded-lg bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30'
-                    : 'rounded-lg px-3 py-1.5 text-xs font-medium text-fg-tertiary ring-1 ring-console-line-soft hover:text-fg'
-                }
-              >
-                {item.label}
-              </button>
-            )
-          })}
-        </fieldset>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
+          <Badge color="neutral">{`${filtered.length} of ${clients.length}`}</Badge>
+          <fieldset className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
+            <legend className="sr-only">Client filters</legend>
+            {FILTERS.map((item) => {
+              const active = filter === item.id
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setFilter(item.id)}
+                  aria-pressed={active}
+                  className={
+                    active
+                      ? 'rounded-lg bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30'
+                      : 'rounded-lg px-3 py-1.5 text-xs font-medium text-fg-tertiary ring-1 ring-console-line-soft hover:text-fg'
+                  }
+                >
+                  {item.label}
+                </button>
+              )
+            })}
+          </fieldset>
+        </div>
       </div>
 
-      <div className="hidden min-w-0 md:block">
-        <DataTableShell
-          title="Directory"
-          description="Partner KYC via Som — read only. Vault membership and created date live on the client record when available."
-          count={`${filtered.length} of ${clients.length}`}
-          calme={filtered.length === 0 ? 'No clients match this search or filter.' : undefined}
-        >
-          {filtered.length > 0 ? (
-            <>
-              <TableHead>
-                <TableRow>
-                  <TableHeader className={tableCol.primary}>Client</TableHeader>
-                  <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
-                  <TableHeader className={tableCol.numeric}>Vaults</TableHeader>
-                  <TableHeader className={tableCol.status}>KYC</TableHeader>
-                  <TableHeader className={tableCol.date}>Activity</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filtered.map((client) => (
-                  <TableRow
-                    key={client.id}
-                    href={`/admin/client-simulator/${client.id}`}
-                    title={`Open ${client.label}`}
-                  >
-                    <TableCell className={tableCol.primary}>
-                      <div className="truncate font-medium text-fg">{client.label}</div>
-                    </TableCell>
-                    <TableCell className={tableCol.numeric}>
-                      {assetScale
-                        ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
-                        : '—'}
-                    </TableCell>
-                    <TableCell className={`${tableCol.numeric} text-fg-tertiary`}>
-                      {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
-                    </TableCell>
-                    <TableCell className={tableCol.status}>
-                      <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>
-                        {kycStatusLabel(client.kycStatus)}
-                      </AdminToneBadge>
-                    </TableCell>
-                    <TableCell className={`${tableCol.date} text-fg-tertiary`}>
-                      {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </>
-          ) : null}
-        </DataTableShell>
-      </div>
-
-      <ul className="space-y-3 md:hidden" aria-label="Client directory">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-none">
         {filtered.length === 0 ? (
-          <li className={clsx(surfaceBox, 'p-4 text-sm text-fg-tertiary')}>
-            No clients match this search or filter.
-          </li>
+          <PanelState title="No clients match this search or filter." />
         ) : (
-          filtered.map((client) => (
-            <li key={client.id}>
-              <Link
-                href={`/admin/client-simulator/${client.id}`}
-                className={clsx(surfaceBox, 'block p-4')}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="truncate text-sm font-semibold text-fg">{client.label}</p>
-                  <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
-                </div>
-                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <dt className="text-fg-tertiary">Exposure</dt>
-                    <dd className="mt-0.5 tabular-nums text-fg">
-                      {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-fg-tertiary">Vaults</dt>
-                    <dd className="mt-0.5 tabular-nums text-fg">
-                      {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
-                    </dd>
-                  </div>
-                </dl>
-                <p className="mt-3 text-xs text-fg-tertiary">
-                  Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
-                </p>
-              </Link>
-            </li>
-          ))
+          <>
+            <div className="hidden min-w-0 md:block">
+              <AdminTable className="[&_table]:min-w-[40rem]">
+                <TableHead>
+                  <TableRow>
+                    <TableHeader className={tableCol.primary}>Client</TableHeader>
+                    <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
+                    <TableHeader className={tableCol.numeric}>Vaults</TableHeader>
+                    <TableHeader className={tableCol.status}>KYC</TableHeader>
+                    <TableHeader className={tableCol.date}>Activity</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filtered.map((client) => (
+                    <TableRow
+                      key={client.id}
+                      href={`/admin/client-simulator/${client.id}`}
+                      title={`Open ${client.label}`}
+                    >
+                      <TableCell className={tableCol.primary}>
+                        <div className="truncate font-medium text-fg">{client.label}</div>
+                      </TableCell>
+                      <TableCell className={tableCol.numeric}>
+                        {assetScale
+                          ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
+                          : '—'}
+                      </TableCell>
+                      <TableCell className={`${tableCol.numeric} text-fg-tertiary`}>
+                        {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
+                      </TableCell>
+                      <TableCell className={tableCol.status}>
+                        <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>
+                          {kycStatusLabel(client.kycStatus)}
+                        </AdminToneBadge>
+                      </TableCell>
+                      <TableCell className={`${tableCol.date} text-fg-tertiary`}>
+                        {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </AdminTable>
+            </div>
+
+            <ul className="space-y-3 md:hidden" aria-label="Client directory">
+              {filtered.map((client) => (
+                <li key={client.id}>
+                  <Link
+                    href={`/admin/client-simulator/${client.id}`}
+                    className={clsx(surfaceBox, 'block p-4')}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="truncate text-sm font-semibold text-fg">{client.label}</p>
+                      <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <dt className="text-fg-tertiary">Exposure</dt>
+                        <dd className="mt-0.5 tabular-nums text-fg">
+                          {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-fg-tertiary">Vaults</dt>
+                        <dd className="mt-0.5 tabular-nums text-fg">
+                          {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p className="mt-3 text-xs text-fg-tertiary">
+                      Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-      </ul>
+      </div>
     </div>
   )
 }

@@ -1,9 +1,5 @@
-import {
-  DescriptionDetails,
-  DescriptionList,
-  DescriptionTerm,
-} from '@/components/catalyst/description-list'
-import { Text } from '@/components/catalyst/text'
+import { DashCard, PanelState } from '@/components/admin/dashboard'
+import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import {
   TableBody,
   TableCell,
@@ -14,13 +10,13 @@ import {
 import {
   StatCard,
   StatGrid,
-  SectionCard,
   SectionHeader,
-  DataTableShell,
+  AdminTable,
   tableCol,
 } from '@/components/compositions'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
+import { FieldList, FieldRow } from '@/features/admin-runtime/field-list'
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
 import { availabilityFromResolved } from '@/lib/backend/availability'
 import { readableReason, readableSourceState } from '@/lib/movements'
@@ -33,6 +29,9 @@ import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
  *
  * The former dedicated route was removed: this section lives under the Service
  * hub alongside the runtime probes — what the backend actually serves.
+ *
+ * Cockpit shape: KPI strip → [surface table | donut + tier rail] → source
+ * activity band. Tables sit in frozen DashCard slots that scroll inside.
  */
 
 type ResolvedField = { readonly status: string; readonly value: unknown; readonly reason?: string | null }
@@ -118,6 +117,16 @@ function coverageChartState(
   return { type: 'plotted' }
 }
 
+/**
+ * Frozen table slots (px) — row-matched against the right rail:
+ *   surfaces 496 + header 76 ≈ donut frame (~320) + gap 24 + tier card (~228).
+ * Taller content scrolls inside the box; the row never jumps with the data.
+ */
+const PANEL_SLOT_CLASS = {
+  surfaces: 'h-[496px] overflow-y-auto scrollbar-none',
+  sources: 'h-[288px] overflow-y-auto scrollbar-none',
+} as const
+
 export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLabel: string }>) {
   const response = await callBackend<Record<string, unknown>>('dashboard')
   const registry = await loadAdminRegistry(accountLabel, { movementLimit: MOVEMENT_WINDOW })
@@ -187,104 +196,117 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
       })
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-4">
-        <SectionHeader
-          title="Data coverage"
-          hint="Which product surfaces are actually served today. States are shown exactly as the backend reports them — most degraded field first."
-        />
-        <StatGrid label="Surface coverage" columns={3}>
-          <StatCard title="Served" value={servedCell} showRoute />
-          <StatCard title="Partial" value={partialCell} showRoute />
-          <StatCard title="Not opened" value={notOpenedCell} showRoute />
-          <StatCard title="Total surfaces" value={totalCell} showRoute />
-          <StatCard title="Coverage rate" value={coverageCell} showRoute />
-          <StatCard title="Source status" value={sourceState} showRoute />
-        </StatGrid>
-      </section>
+    <div className="flex min-w-0 flex-col gap-6">
+      <SectionHeader
+        title="Data coverage"
+        hint="Which product surfaces are actually served today. States are shown exactly as the backend reports them — most degraded field first."
+      />
+      <StatGrid label="Surface coverage" columns={3}>
+        <StatCard title="Served" value={servedCell} showRoute />
+        <StatCard title="Partial" value={partialCell} showRoute />
+        <StatCard title="Not opened" value={notOpenedCell} showRoute />
+        <StatCard title="Total surfaces" value={totalCell} showRoute />
+        <StatCard title="Coverage rate" value={coverageCell} showRoute />
+        <StatCard title="Source status" value={sourceState} showRoute />
+      </StatGrid>
 
-      <ChartFrame
-        question="How is coverage distributed by tier?"
-        unit="number of surfaces, by tier"
-        state={coverageChartState(aggregate, surfaces, filledTiers)}
-        expectedSource={['GET /api/v1/dashboard']}
-      >
-        {aggregate !== null && filledTiers >= 2 ? (
-          <HearstDonutChart slices={coverageSlices} unit="surfaces" />
-        ) : null}
-      </ChartFrame>
+      {/* Row — the per-surface ledger beside the tier rail (donut + meanings). */}
+      <BentoGrid>
+        <BentoCard span={8}>
+          <DashCard
+            className="min-w-0"
+            contentClassName={PANEL_SLOT_CLASS.surfaces}
+            title="Surface by surface"
+            subtitle="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
+          >
+            {aggregate === null ? (
+              <PanelState
+                status="UNAVAILABLE"
+                title="Surface by surface"
+                detail="The dashboard entry point did not respond. No coverage is inferred."
+              />
+            ) : (
+              <AdminTable>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader className={tableCol.primary}>Surface</TableHeader>
+                    <TableHeader className={tableCol.status}>Status</TableHeader>
+                    <TableHeader className={tableCol.primary}>Reason</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {ordered.map((surface) => (
+                    <TableRow key={surface.key}>
+                      <TableCell className={tableCol.primary}>
+                        <div className="truncate font-medium">{surface.name}</div>
+                      </TableCell>
+                      <TableCell className={tableCol.status}>{TIER_TITLE[surface.tier]}</TableCell>
+                      <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{surface.reason ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </AdminTable>
+            )}
+          </DashCard>
+        </BentoCard>
+        <BentoCard span={4}>
+          <div className="flex min-w-0 flex-col gap-6">
+            <ChartFrame
+              question="How is coverage distributed by tier?"
+              unit="number of surfaces, by tier"
+              state={coverageChartState(aggregate, surfaces, filledTiers)}
+              viewport="donut"
+              expectedSource={['GET /api/v1/dashboard']}
+            >
+              {aggregate !== null && filledTiers >= 2 ? (
+                <HearstDonutChart slices={coverageSlices} unit="surfaces" />
+              ) : null}
+            </ChartFrame>
+            <DashCard className="min-w-0" title="Tier meanings">
+              <FieldList>
+                {TIER_ORDER.map((tier) => (
+                  <FieldRow key={tier} term={TIER_TITLE[tier]} stacked>
+                    {countIn(surfaces, tier)} — {TIER_EXPLANATION[tier]}
+                  </FieldRow>
+                ))}
+              </FieldList>
+            </DashCard>
+          </div>
+        </BentoCard>
+      </BentoGrid>
 
-      {aggregate === null ? (
-        <SectionCard
-          title="Surface by surface"
-          hint="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
-        >
-          <Text>
-            The dashboard entry point did not respond. No coverage is inferred.
-          </Text>
-        </SectionCard>
-      ) : (
-        <DataTableShell
-          title="Surface by surface"
-          description="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
-        >
-          <TableHead>
-            <TableRow>
-              <TableHeader className={tableCol.primary}>Surface</TableHeader>
-              <TableHeader className={tableCol.status}>Status</TableHeader>
-              <TableHeader className={tableCol.primary}>Reason</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {ordered.map((surface) => (
-              <TableRow key={surface.key}>
-                <TableCell className={tableCol.primary}>
-                  <div className="truncate font-medium">{surface.name}</div>
-                </TableCell>
-                <TableCell className={tableCol.status}>{TIER_TITLE[surface.tier]}</TableCell>
-                <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{surface.reason ?? '—'}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </DataTableShell>
-      )}
-
-      <SectionCard title="Tier meanings">
-        <DescriptionList>
-          {TIER_ORDER.map((tier) => (
-            <div key={tier} className="contents">
-              <DescriptionTerm>{TIER_TITLE[tier]}</DescriptionTerm>
-              <DescriptionDetails>
-                {countIn(surfaces, tier)} — {TIER_EXPLANATION[tier]}
-              </DescriptionDetails>
-            </div>
-          ))}
-        </DescriptionList>
-      </SectionCard>
-
-      <DataTableShell
-        title="Source activity"
-        description="Backend endpoint status, as reported by the registry."
-      >
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.primary}>Source</TableHeader>
-            <TableHeader className={tableCol.status}>Status</TableHeader>
-            <TableHeader className={tableCol.primary}>Detail</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {registry.sources.map((source: SourceActivityRow) => (
-            <TableRow key={source.endpointId}>
-              <TableCell className={tableCol.primary}>
-                <div className="truncate font-medium">{source.label}</div>
-              </TableCell>
-              <TableCell className={tableCol.status}>{readableSourceState(source.status)}</TableCell>
-              <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{source.detail ?? '—'}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </DataTableShell>
+      {/* Row — source activity: one bounded band, scrolls inside. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            className="min-w-0"
+            contentClassName={PANEL_SLOT_CLASS.sources}
+            title="Source activity"
+            subtitle="Backend endpoint status, as reported by the registry."
+          >
+            <AdminTable>
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Source</TableHeader>
+                  <TableHeader className={tableCol.status}>Status</TableHeader>
+                  <TableHeader className={tableCol.primary}>Detail</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {registry.sources.map((source: SourceActivityRow) => (
+                  <TableRow key={source.endpointId}>
+                    <TableCell className={tableCol.primary}>
+                      <div className="truncate font-medium">{source.label}</div>
+                    </TableCell>
+                    <TableCell className={tableCol.status}>{readableSourceState(source.status)}</TableCell>
+                    <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{source.detail ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </AdminTable>
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
     </div>
   )
 }

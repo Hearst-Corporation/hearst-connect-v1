@@ -16,9 +16,7 @@ export function DashboardShell({
   // container queries own the geometry at every width, the shell fills the
   // content card.
   return (
-    <div data-dashboard="pilotage" className={clsx('flex w-full min-w-0 flex-col gap-6', className)}>
-      {children}
-    </div>
+    <div className={clsx('flex w-full min-w-0 flex-col gap-6', className)}>{children}</div>
   )
 }
 
