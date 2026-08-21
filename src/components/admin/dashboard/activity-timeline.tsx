@@ -1,8 +1,8 @@
 'use client'
 
 import { HearstSecondaryAction } from '@/components/actions'
+import { PanelFooterLink, PanelState } from '@/components/admin/dashboard/panel-state'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
-import { Text } from '@/components/catalyst/text'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
@@ -20,6 +20,15 @@ function eventClientTitle(
   return `${event.clientLabel} · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
 }
 
+function TimelineState({ title, detail }: Readonly<{ title: string; detail: string }>) {
+  return (
+    <div className="space-y-4" data-widget="activity-timeline">
+      <PanelState title={title} detail={detail} />
+      <PanelFooterLink href="/admin/operations" label="View all activity" />
+    </div>
+  )
+}
+
 export function ActivityTimelinePanel({
   events,
   assetScale,
@@ -29,43 +38,13 @@ export function ActivityTimelinePanel({
 }>) {
   if (!isAvailable(events)) {
     if (isAdminNotConfigured(events)) {
-      return (
-        <div className="space-y-4" data-widget="activity-timeline">
-          <div className="flex flex-col justify-center gap-2 py-5">
-            <p className="text-sm font-semibold text-ink dark:text-fg">Activity index not configured</p>
-            <Text>No events indexed yet.</Text>
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-            <HearstSecondaryAction href="/admin/operations">View all activity</HearstSecondaryAction>
-          </div>
-        </div>
-      )
+      return <TimelineState title="Activity index not configured" detail="No events indexed yet." />
     }
-    return (
-      <div className="space-y-4" data-widget="activity-timeline">
-        <div className="flex flex-col justify-center gap-2 py-5">
-          <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-          <Text>Activity source unavailable.</Text>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-          <HearstSecondaryAction href="/admin/operations">View all activity</HearstSecondaryAction>
-        </div>
-      </div>
-    )
+    return <TimelineState title="Data unavailable" detail="Activity source unavailable." />
   }
 
   if (events.value.length === 0) {
-    return (
-      <div className="space-y-4" data-widget="activity-timeline">
-        <div className="flex flex-col justify-center gap-2 py-5">
-          <p className="text-sm font-semibold text-ink dark:text-fg">No recent activity</p>
-          <Text>No events in the current window.</Text>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-          <HearstSecondaryAction href="/admin/operations">View all activity</HearstSecondaryAction>
-        </div>
-      </div>
-    )
+    return <TimelineState title="No recent activity" detail="No events in the current window." />
   }
 
   return (
@@ -87,7 +66,7 @@ export function ActivityTimelinePanel({
               <div className="min-w-0">
                 {/* English vocabulary from the movement type (backend fact); the
                     backend `title` is localized copy and is not rendered here. */}
-                <p className="text-sm font-semibold text-ink dark:text-fg">{movementLabel(event.type)}</p>
+                <p className="text-sm font-semibold text-fg">{movementLabel(event.type)}</p>
                 <p
                   className="mt-0.5 truncate text-xs text-fg-tertiary"
                   title={eventClientTitle(event, assetScale)}
@@ -110,10 +89,7 @@ export function ActivityTimelinePanel({
         ))}
       </ul>
 
-      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-console-line-soft pt-3">
-        <HearstSecondaryAction href="/admin/operations">View all activity</HearstSecondaryAction>
-      </div>
+      <PanelFooterLink href="/admin/operations" label="View all activity" />
     </div>
   )
 }
-

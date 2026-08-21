@@ -1,4 +1,4 @@
-import { Text } from '@/components/catalyst/text'
+import { PanelState } from '@/components/admin/dashboard/panel-state'
 import type { AdminDataHealthSource } from '@/lib/admin-dashboard/contracts'
 import { formatRelativeTime } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
@@ -24,12 +24,7 @@ export function DataHealthGrid({
   sources,
 }: Readonly<{ sources: Availability<readonly AdminDataHealthSource[]> }>) {
   if (!isAvailable(sources)) {
-    return (
-      <div className="flex flex-col justify-center py-5">
-        <p className="text-sm font-semibold text-ink dark:text-fg">Data unavailable</p>
-        <Text className="mt-1">Source freshness unavailable.</Text>
-      </div>
-    )
+    return <PanelState title="Data unavailable" detail="Source freshness unavailable." />
   }
 
   const byKey = new Map(sources.value.map((s) => [s.key, s]))
@@ -62,9 +57,9 @@ export function DataHealthGrid({
                   t === 'bad' && 'bg-danger-500',
                 )}
               />
-              <p className="truncate text-[11px] font-semibold text-ink dark:text-fg">{label}</p>
+              <p className="truncate text-[11px] font-semibold text-fg">{label}</p>
             </div>
-            <Text className="mt-1 truncate text-[10px]">{freshness}</Text>
+            <p className="mt-1 truncate text-[10px] text-fg-tertiary">{freshness}</p>
           </li>
         )
       })}

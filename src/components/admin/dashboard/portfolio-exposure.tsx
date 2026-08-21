@@ -6,6 +6,7 @@ import { formatAdminAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminExposureStrategy } from '@/lib/admin-dashboard/contracts'
 import { isAvailable } from '@/lib/vaults/model'
 import type { Availability } from '@/lib/vaults/model'
+import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { surfaceSelect } from '@/components/admin/surface'
 import { HearstDonutChart } from '@/components/charts'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
@@ -18,7 +19,7 @@ function StrategyDetail({
 }: Readonly<{ row: AdminExposureStrategy; assetScale: AdminAssetScale }>) {
   return (
     <div className="border-t border-console-line-soft pt-4">
-      <p className="truncate text-sm font-semibold text-ink dark:text-fg">{row.strategyLabel}</p>
+      <p className="truncate text-sm font-semibold text-fg">{row.strategyLabel}</p>
       <dl className="mt-3 flex min-w-0 flex-wrap gap-x-6 gap-y-2 text-xs">
         <div>
           <dt className="text-fg-tertiary">Actual</dt>
@@ -34,7 +35,7 @@ function StrategyDetail({
         </div>
         <div>
           <dt className="text-fg-tertiary">Drift</dt>
-          <dd className="font-semibold tabular-nums text-warning-700 dark:text-warning-400">
+          <dd className="font-semibold tabular-nums text-warning-400">
             {formatDriftPts(row.driftBps)}
           </dd>
         </div>
@@ -49,18 +50,6 @@ function StrategyDetail({
   )
 }
 
-function ExposureEmptyState({
-  title,
-  detail,
-}: Readonly<{ title: string; detail: string }>) {
-  return (
-    <div className="flex flex-col justify-center gap-2 py-5">
-      <p className="text-sm font-semibold text-ink dark:text-fg">{title}</p>
-      <p className="text-xs text-fg-tertiary">{detail}</p>
-    </div>
-  )
-}
-
 export function PortfolioExposurePanel({
   strategies,
   assetScale,
@@ -69,13 +58,11 @@ export function PortfolioExposurePanel({
   assetScale: AdminAssetScale | null
 }>) {
   if (!isAvailable(strategies)) {
-    return (
-      <ExposureEmptyState title="Data unavailable" detail="Portfolio exposure source unavailable." />
-    )
+    return <PanelState title="Data unavailable" detail="Portfolio exposure source unavailable." />
   }
   if (strategies.value.length === 0) {
     return (
-      <ExposureEmptyState
+      <PanelState
         title="No strategies measured"
         detail="No indexed strategies in the portfolio read."
       />
@@ -85,7 +72,7 @@ export function PortfolioExposurePanel({
   const scale = assetScale
   if (!scale) {
     return (
-      <ExposureEmptyState
+      <PanelState
         title="Portfolio asset scale unavailable"
         detail="Exposure amounts stay hidden until the asset scale is readable."
       />
@@ -123,10 +110,10 @@ export function PortfolioExposurePanel({
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
                 <ChartBarSquareIcon className="size-5" aria-hidden="true" />
               </span>
-              <span className="mt-2 w-full truncate text-xs font-semibold text-ink dark:text-fg" title={row.strategyLabel}>
+              <span className="mt-2 w-full truncate text-xs font-semibold text-fg" title={row.strategyLabel}>
                 {row.strategyLabel}
               </span>
-              <span className="mt-0.5 text-lg font-semibold tabular-nums text-ink dark:text-fg">
+              <span className="mt-0.5 text-lg font-semibold tabular-nums text-fg">
                 {formatPercent(row.actualBps, { fromBps: true })}
               </span>
               <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
