@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
-  "sourceSha": "62295a600f973db55fdbee270cfcf3e849f93234",
-  "generatedAt": "2026-08-21T18:28:38.431Z",
+  "sourceSha": "6103253d0d526c8ec6d3fb196f2bd0297fc0700e",
+  "generatedAt": "2026-08-22T01:11:48.613Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {
@@ -484,48 +484,6 @@
       }
     },
     {
-      "id": "region:admin-btc-price",
-      "type": "BUSINESS_REGION",
-      "name": "BTC price",
-      "domain": "admin",
-      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
-      "evidence": "BtcPriceSlot / HearstLineChart",
-      "geometryOwner": "layout",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false,
-      "surface": {
-        "kind": "admin:DashCard"
-      }
-    },
-    {
-      "id": "region:admin-cbbtc-allocation",
-      "type": "BUSINESS_REGION",
-      "name": "cbBTC/USDC allocation",
-      "domain": "admin",
-      "source": "src/features/admin-dashboard/admin-dashboard-page.tsx",
-      "evidence": "AllocationSlot / AllocationDualLineChart",
-      "geometryOwner": "layout",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false,
-      "surface": {
-        "kind": "admin:DashCard"
-      }
-    },
-    {
-      "id": "region:admin-data-health",
-      "type": "BUSINESS_REGION",
-      "name": "Data health",
-      "domain": "admin",
-      "source": "src/components/admin/dashboard/data-health-grid.tsx",
-      "evidence": "DataHealthGrid",
-      "geometryOwner": "layout",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false,
-      "surface": {
-        "kind": "admin:DashCard"
-      }
-    },
-    {
       "id": "region:admin-kpi-header",
       "type": "BUSINESS_REGION",
       "name": "Dashboard KPI header",
@@ -602,34 +560,6 @@
       "domain": "admin",
       "source": "src/components/admin/dashboard/activity-timeline.tsx",
       "evidence": "ActivityTimelinePanel",
-      "geometryOwner": "layout",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false,
-      "surface": {
-        "kind": "admin:DashCard"
-      }
-    },
-    {
-      "id": "region:admin-recent-clients",
-      "type": "BUSINESS_REGION",
-      "name": "Recent clients",
-      "domain": "admin",
-      "source": "src/components/admin/dashboard/recent-clients-panel.tsx",
-      "evidence": "RecentClientsPanel",
-      "geometryOwner": "layout",
-      "dataSlotOwner": "component",
-      "datasetControlsGeometry": false,
-      "surface": {
-        "kind": "admin:DashCard"
-      }
-    },
-    {
-      "id": "region:admin-vaults-capital",
-      "type": "BUSINESS_REGION",
-      "name": "Vaults capital",
-      "domain": "admin",
-      "source": "src/components/admin/dashboard/vaults-panel.tsx",
-      "evidence": "VaultsPanel",
       "geometryOwner": "layout",
       "dataSlotOwner": "component",
       "datasetControlsGeometry": false,
@@ -1346,21 +1276,6 @@
     },
     {
       "from": "region:admin-bento-body",
-      "to": "region:admin-btc-price",
-      "type": "contains"
-    },
-    {
-      "from": "region:admin-bento-body",
-      "to": "region:admin-cbbtc-allocation",
-      "type": "contains"
-    },
-    {
-      "from": "region:admin-bento-body",
-      "to": "region:admin-data-health",
-      "type": "contains"
-    },
-    {
-      "from": "region:admin-bento-body",
       "to": "region:admin-market",
       "type": "contains"
     },
@@ -1386,16 +1301,6 @@
     },
     {
       "from": "region:admin-bento-body",
-      "to": "region:admin-recent-clients",
-      "type": "contains"
-    },
-    {
-      "from": "region:admin-bento-body",
-      "to": "region:admin-vaults-capital",
-      "type": "contains"
-    },
-    {
-      "from": "region:admin-bento-body",
       "to": "layout:admin-bento-grid",
       "type": "owns_geometry"
     },
@@ -1411,36 +1316,6 @@
     },
     {
       "from": "region:admin-bento-body",
-      "to": "surface:admin-dash-card",
-      "type": "uses_surface"
-    },
-    {
-      "from": "region:admin-btc-price",
-      "to": "chart:hearst-line",
-      "type": "uses_chart"
-    },
-    {
-      "from": "region:admin-btc-price",
-      "to": "surface:admin-dash-card",
-      "type": "uses_surface"
-    },
-    {
-      "from": "region:admin-cbbtc-allocation",
-      "to": "chart:allocation-dual-line",
-      "type": "uses_chart"
-    },
-    {
-      "from": "region:admin-cbbtc-allocation",
-      "to": "surface:admin-dash-card",
-      "type": "uses_surface"
-    },
-    {
-      "from": "region:admin-data-health",
-      "to": "surface:admin-box",
-      "type": "uses_surface"
-    },
-    {
-      "from": "region:admin-data-health",
       "to": "surface:admin-dash-card",
       "type": "uses_surface"
     },
@@ -1486,16 +1361,6 @@
     },
     {
       "from": "region:admin-recent-activity",
-      "to": "surface:admin-dash-card",
-      "type": "uses_surface"
-    },
-    {
-      "from": "region:admin-recent-clients",
-      "to": "surface:admin-dash-card",
-      "type": "uses_surface"
-    },
-    {
-      "from": "region:admin-vaults-capital",
       "to": "surface:admin-dash-card",
       "type": "uses_surface"
     },

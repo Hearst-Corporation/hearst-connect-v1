@@ -1,4 +1,4 @@
-import { DashCard, DashboardShell } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { Badge } from '@/components/catalyst/badge'
@@ -7,7 +7,7 @@ import { Text } from '@/components/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import { AdminTable, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
-import { BACKEND_ENDPOINTS, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
+import { BACKEND_ENDPOINTS, pathParamNames, type BackendEndpoint, type EndpointAuth } from '@/lib/backend/endpoints'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
 import { editorial, isAvailable } from '@/lib/vaults/model'
@@ -75,8 +75,8 @@ const CATEGORY_LABELS: Record<BackendEndpoint['category'], string> = {
   keeper: 'Keeper actions',
 }
 
-function pathParamsOf(path: string): string[] {
-  return [...path.matchAll(/:(\w+)/g)].map(([, name]) => name)
+function countBy(filter: (e: BackendEndpoint) => boolean): number {
+  return BACKEND_ENDPOINTS.filter(filter).length
 }
 
 function curlFor(method: string, path: string, auth: string): string {
@@ -88,54 +88,6 @@ function curlFor(method: string, path: string, auth: string): string {
   ]
   if (auth !== 'public') lines.push(`  -H 'Authorization: Bearer <REDACTED>'`)
   return lines.join(' \\\n')
-}
-
-function countBy(filter: (e: BackendEndpoint) => boolean): number {
-  return BACKEND_ENDPOINTS.filter(filter).length
-}
-
-/**
- * Compact command bar — same reading as the dashboard header (one title line,
- * KPIs as a compact strip beside it), without the dashboard-only hero ceremony.
- */
-function ExplorerHeader({ kpis }: Readonly<{ kpis: readonly AdminHeroKpi[] }>) {
-  return (
-    <header
-      data-admin="hero-header"
-      className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
-    >
-      <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold tracking-tight text-fg">API explorer</h1>
-        <p className="mt-0.5 text-xs text-fg-tertiary">
-          BACKEND_ENDPOINTS registry — safe reads, actions, and AI context.
-        </p>
-      </div>
-
-      <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
-        {kpis.map((kpi) => {
-          const available = isAvailable(kpi.value)
-          return (
-            <div key={kpi.id} className="min-w-0">
-              <dt className="flex items-center gap-1.5 text-[11px] font-medium text-fg-secondary">
-                <kpi.icon className="size-3.5 shrink-0 text-accent-300" aria-hidden="true" />
-                <span className="truncate">{kpi.title}</span>
-              </dt>
-              <dd className="mt-0.5 flex items-baseline gap-1.5">
-                <span
-                  className={`text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
-                >
-                  {available ? kpi.value.value : '—'}
-                </span>
-                {kpi.unit !== undefined && kpi.unit !== '' ? (
-                  <span className="truncate text-[11px] text-fg-tertiary">{kpi.unit}</span>
-                ) : null}
-              </dd>
-            </div>
-          )
-        })}
-      </dl>
-    </header>
-  )
 }
 
 /**
@@ -188,7 +140,11 @@ export default async function ApiExplorerPage() {
 
   return (
     <DashboardShell>
-      <ExplorerHeader kpis={kpis} />
+      <DashboardHeader
+        title="API explorer"
+        description="BACKEND_ENDPOINTS registry — safe reads, actions, and AI context."
+        kpis={kpis}
+      />
 
       {/* Row A — the registry split beside the two reading notes, stacked so
           the right column ends on the chart's line. */}
@@ -279,7 +235,7 @@ export default async function ApiExplorerPage() {
                     key={endpoint.id}
                     endpoint={endpoint}
                     curl={curlFor(endpoint.method, endpoint.path, endpoint.auth)}
-                    pathParams={pathParamsOf(endpoint.path)}
+                    pathParams={pathParamNames(endpoint.path)}
                   />
                 ))}
               </DashCard>

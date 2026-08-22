@@ -13,11 +13,14 @@ export type DashboardKpi = AdminHeroKpi
 export function DashboardHeader({
   title,
   description,
+  titleAddon,
   kpis,
   action,
 }: Readonly<{
   title?: string
   description?: string
+  /** Inline link or control beside the page title (e.g. back to directory). */
+  titleAddon?: ReactNode
   kpis: readonly DashboardKpi[]
   action?: ReactNode
 }>) {
@@ -28,7 +31,14 @@ export function DashboardHeader({
     >
       {title !== undefined && title !== '' ? (
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
+          {titleAddon !== undefined ? (
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
+              {titleAddon}
+            </div>
+          ) : (
+            <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
+          )}
           {description !== undefined && description !== '' ? (
             <p className="mt-0.5 text-xs text-fg-tertiary">{description}</p>
           ) : null}

@@ -16,6 +16,7 @@ import { AdminTable, Callout, tableCol } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { loadAdminAssetScale, loadAdminClientsDirectory } from '@/lib/admin-dashboard/load'
+import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import {
   available,
@@ -43,7 +44,7 @@ export const dynamic = 'force-dynamic'
  * Clients — operational directory.
  * Prefer GET /api/v1/admin/clients/recent (exposure + Som KYC).
  * Fall back to GET /api/v1/clients (id + label) when the rich read is empty/unavailable.
- * No Create client button — POST /api/v1/admin/users creates an application user, not a client record.
+ * Simulated client creation lives at /admin/client-simulator/new (admin role only).
  */
 
 type ClientsView =
@@ -131,11 +132,14 @@ function directorySubtitle(view: ClientsView): string | undefined {
   return undefined
 }
 
-function directoryAction(view: ClientsView): ReactNode {
+function directoryAction(view: ClientsView, showCreateLink: boolean): ReactNode {
   return (
     <span className="flex shrink-0 items-center gap-3">
       {view.kind === 'thin' ? (
         <Badge color="neutral">{`${view.clients.length} client(s)`}</Badge>
+      ) : null}
+      {showCreateLink ? (
+        <PanelHeaderLink href="/admin/client-simulator/new">Create simulated client</PanelHeaderLink>
       ) : null}
       <PanelHeaderLink href="/admin/compliance">Compliance</PanelHeaderLink>
       <PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>
@@ -208,6 +212,7 @@ export default async function Page() {
   ])
 
   const view = resolveClientsView(recent, registry.clients)
+  const showCreateLink = toBackendRole(session.role) === 'admin'
 
   const kpis: readonly AdminHeroKpi[] = [
     { id: 'clients', title: 'Clients listed', value: view.listedCount, icon: UsersIcon },
@@ -247,7 +252,7 @@ export default async function Page() {
             title="Directory"
             titleLevel={2}
             subtitle={directorySubtitle(view)}
-            action={directoryAction(view)}
+            action={directoryAction(view, showCreateLink)}
           >
             <ClientsMainContent view={view} assetScale={assetScale} />
           </DashCard>

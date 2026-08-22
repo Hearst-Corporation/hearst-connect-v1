@@ -294,7 +294,8 @@ export function UserDashboardView({
               </div>
             </header>
 
-            <div className={`dashboard-view${isDashboard ? '' : ' hidden'}`}>
+            {isDashboard ? (
+            <div className="dashboard-view">
               <header className="page-intro">
                 <p className="eyebrow">Account</p>
                 <AdminHeroTitle>Command center</AdminHeroTitle>
@@ -565,8 +566,10 @@ export function UserDashboardView({
                 </section>
               </section>
             </div>
+            ) : null}
 
-            <section className={`trade-view${isDashboard ? '' : ' active'}`}>
+            {!isDashboard ? (
+            <section className="trade-view active">
               <div>
                 <p className="eyebrow">Execution only</p>
                 <AdminHeroTitle>Trade terminal</AdminHeroTitle>
@@ -576,6 +579,7 @@ export function UserDashboardView({
                 </p>
               </div>
             </section>
+            ) : null}
           </div>
         </main>
       </div>

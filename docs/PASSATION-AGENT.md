@@ -44,12 +44,16 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 ### Reste à faire (ordonné)
 
 1. **Désactiver « Sleep when idle »** sur le service Railway `hearst-base-fork-app` (dashboard Railway uniquement — le CLI ne l'expose pas). Quand le fork dort, les lectures on-chain du backend échouent quelques secondes au réveil → états « unavailable » sporadiques.
-2. **`rebalancing/status`** reste `not_exposed_by_contract` par construction : le v2.1 stock n'a pas de getter de drift (le backend le documente lui-même dans `rebalancing-status.ts`). L'ancien fork avait une implémentation **upgradée** (`depositToStrategy`/`withdrawFromStrategy`, doc `FORK_VAULT_STATE.md` du repo `Hearst-Corporation/hearst-chain`). Redéployer cette impl si le rebalancing opérationnel est voulu.
+2. **`rebalancing/status`** reste `not_exposed_by_contract` par construction : le v2.1 stock n'a pas de getter de drift (le backend le documente lui-même dans `rebalancing-status.ts`). Redéployer l'impl upgradée si le rebalancing opérationnel est voulu.
 3. **Drift réel −33 pt sur S2 (idle)** : les dépôts sont arrivés en poche idle ; un rebalance résorberait. `POST /api/v1/rebalancing/execute` est un keeper log (aucune signature on-chain côté backend).
 4. **Doubles read models backend** (non bloquant) : drift porté par `admin-portfolio-overview` ET `admin-rebalancing-summary` ; KYC par `admin-clients-recent` ET `compliance`. Canonisation = décision backend.
-5. **Mineurs d'audit non traités** : headers KPI dupliqués ×4 (api-explorer/profile/client-simulator), regex `:param` ×3, types redéfinis (`Movement`, `BackendResolved`), pages legacy `/espace/*` à réduire à un catch-all, compteurs hardcodés (« Eighteen surfaces », « 5 requests per minute »), double h1 sur `/account`, page `/admin/client-simulator/new` orpheline (aucun lien UI).
-6. **Erreurs TS e2e pré-existantes** : `@playwright/test` non installé — `pnpm exec tsc --noEmit` échoue sur `e2e/` uniquement ; `next build` passe (n'inclut pas e2e).
-7. **Dependabot backend** : 12 vulnérabilités signalées par GitHub sur `hearst-connect-backend`.
+5. **Dependabot backend** : 12 vulnérabilités signalées par GitHub sur `hearst-connect-backend`.
+
+### Traité (2026-08-22, passe front)
+
+- Gate `pnpm check` restaurée (`next build && tsc --noEmit`) ; `e2e/` exclu du tsconfig (Playwright non installé).
+- UI graph régénéré ; panels dashboard obsolètes retirés du catalog.
+- Mineurs audit §50 : headers KPI unifiés (`DashboardHeader` + `titleAddon`), regex `:param` canonique, types `Series1Event` / `ClientMovement` / `BackendResolved`, `/espace/*` → catch-all, compteurs dynamiques, double h1 `/account` corrigé, lien « Create simulated client » sur `/admin/clients`.
 
 ## UI — ligne directrice
 

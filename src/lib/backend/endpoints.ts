@@ -605,10 +605,18 @@ export function endpointsByCategory(category: EndpointCategory): BackendEndpoint
   return BACKEND_ENDPOINTS.filter((endpoint) => endpoint.category === category)
 }
 
+/** Path parameters declared by the registry, `:name` syntax. */
+export const PATH_PARAM_PATTERN = /:(\w+)/g
+
+/** Names of path parameters in a route template. */
+export function pathParamNames(path: string): string[] {
+  return [...path.matchAll(PATH_PARAM_PATTERN)].map(([, name]) => name)
+}
+
 /** Substitutes path parameters. Refuses any missing parameter. */
 export function resolvePath(endpoint: BackendEndpoint, params: Record<string, string | number> = {}): string {
   const consumed = new Set<string>()
-  const path = endpoint.path.replace(/:(\w+)/g, (_, name: string) => {
+  const path = endpoint.path.replace(PATH_PARAM_PATTERN, (_, name: string) => {
     const value = params[name]
     if (value === undefined) {
       throw new Error(`Parameter "${name}" required by ${endpoint.path} and not provided.`)
