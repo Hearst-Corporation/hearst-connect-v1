@@ -15,7 +15,7 @@ export function RebalanceNowButton({ disabled, disabledReason }: Readonly<{ disa
 
   const handleClick = useCallback(() => {
     if (disabled) return
-    if (!window.confirm('Execute rebalance on-chain?')) return
+    if (!window.confirm('Log a rebalance request with the keeper? No on-chain transaction is signed.')) return
 
     const form = new FormData()
     form.set('endpointId', 'keeper-rebalancing-execute')
@@ -27,7 +27,7 @@ export function RebalanceNowButton({ disabled, disabledReason }: Readonly<{ disa
 
       if (outcome.ok && outcome.result?.status === 'success') {
         const txHash = (outcome.result as { txHash?: string }).txHash
-        showToast(txHash ? `Rebalance submitted: ${txHash}` : 'Rebalance submitted', { type: 'success' })
+        showToast(txHash ? `Keeper logged rebalance: ${txHash}` : 'Keeper logged rebalance request', { type: 'success' })
         router.refresh()
         return
       }
@@ -56,12 +56,12 @@ export function RebalanceNowButton({ disabled, disabledReason }: Readonly<{ disa
         title={disabledReason ?? undefined}
         className={clsx(actionButtonClass, 'w-full')}
       >
-        {isPending ? 'Executing…' : 'Rebalance Now'}
+        {isPending ? 'Logging…' : 'Request rebalance'}
       </button>
       {disabled && disabledReason ? (
         <p className="text-xs text-fg-tertiary">{disabledReason}</p>
       ) : lastOutcome?.ok && lastOutcome.result?.status === 'success' ? (
-        <p className="text-xs text-success-400">Rebalance submitted. Data will refresh shortly.</p>
+        <p className="text-xs text-success-400">Keeper request logged. Data will refresh shortly.</p>
       ) : lastOutcome?.ok && lastOutcome.result?.status === 'blocked' ? (
         <p className="text-xs text-warning-400">Blocked: {lastOutcome.result.detail ?? lastOutcome.result.reason}</p>
       ) : lastOutcome && (!lastOutcome.ok || lastOutcome.result?.status !== 'success') ? (
