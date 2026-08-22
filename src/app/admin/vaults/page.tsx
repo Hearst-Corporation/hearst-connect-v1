@@ -1,6 +1,5 @@
-import { DashCard, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { DashboardHeader } from '@/components/admin/dashboard'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminReading } from '@/components/admin/reading'
 import { Badge } from '@/components/catalyst/badge'
@@ -236,7 +235,7 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
 
   return (
     <aside className="flex min-w-0 flex-col gap-6">
-      <DashCard title="Parc" subtitle="Registry-wide read at a glance.">
+      <DashCard title="Fleet" subtitle="Registry-wide read at a glance.">
         <dl className="space-y-4">
           <div className="min-w-0">
             <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">

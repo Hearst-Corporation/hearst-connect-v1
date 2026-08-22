@@ -124,7 +124,6 @@ export function UserDashboardView({
 }: Readonly<{ data: UserDashboard; user: SessionUser }>) {
   const [route, setRoute] = useState<Route>('dashboard')
   const [central, setCentral] = useState<CentralView>('value')
-  const [isDepositOpen, setIsDepositOpen] = useState(false)
   const initials = userInitials(user.name)
 
   const isDashboard = route === 'dashboard'
@@ -311,12 +310,14 @@ export function UserDashboardView({
                   <button
                     type="button"
                     className="position-deposit-cta"
-                    aria-expanded={isDepositOpen}
-                    aria-controls="account-deposit-panel"
-                    onClick={() => setIsDepositOpen((open) => !open)}
+                    disabled
+                    title="On-chain deposit is not wired in this app yet — no POST /api/v1/me/deposits consumer."
                   >
                     Deposit
                   </button>
+                  <p className="mt-2 text-xs text-fg-tertiary">
+                    On-chain deposit flow is not available in this release.
+                  </p>
                 </div>
                 {positionAbsent ? (
                   <div className="position-absent">
@@ -361,23 +362,6 @@ export function UserDashboardView({
                     signal={signalOf(data.positionSubscribedAt)}
                   />
                 </div>
-                {isDepositOpen ? (
-                  <section
-                    id="account-deposit-panel"
-                    className="deposit-panel"
-                    aria-labelledby="account-deposit-heading"
-                  >
-                    <div className="deposit-copy">
-                      <h3 id="account-deposit-heading">Deposit</h3>
-                      <p>On-chain deposit flow — coming soon.</p>
-                    </div>
-                    <TermRow
-                      icon={LockClosedIcon}
-                      label="Minimum deposit"
-                      value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
-                    />
-                  </section>
-                ) : null}
               </section>
 
               <section className="your-account" aria-label="Your account">

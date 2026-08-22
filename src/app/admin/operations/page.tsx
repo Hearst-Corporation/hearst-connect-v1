@@ -1,12 +1,12 @@
-import { DashboardHeader } from '@/components/admin/dashboard'
-import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import {
   ChartPlaceholder,
   DashCard,
+  DashboardHeader,
   DashboardShell,
   PanelState,
   RebalancingDriftChart,
 } from '@/components/admin/dashboard'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
 import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
