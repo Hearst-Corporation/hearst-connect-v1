@@ -119,7 +119,7 @@ function ActivityChartSlot({
     )
   }
 
-  return <ChartPlaceholder title="Activity" />
+  return <ChartPlaceholder title="Activity" detail="No activity series indexed yet." />
 }
 
 /**
@@ -172,10 +172,7 @@ async function HeaderData() {
     <DashboardHeader
       kpis={kpis}
       action={
-        <HearstPrimaryAction
-          icon={<PlusIcon />}
-          disabledReason="Client creation is not available on the backend"
-        >
+        <HearstPrimaryAction icon={<PlusIcon />} href="/admin/client-simulator/new">
           Add client
         </HearstPrimaryAction>
       }
@@ -288,14 +285,14 @@ export function AdminDashboardPage() {
             title="Rebalancing drift"
             action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
           >
-            <Suspense fallback={<ChartPlaceholder title="Rebalancing drift" />}>
+            <Suspense fallback={<PanelFallback label="Rebalancing drift" />}>
               <RebalancingHistoryData />
             </Suspense>
           </DashPanel>
         </BentoCard>
         <BentoCard span={6}>
           <DashPanel title="Activity">
-            <Suspense fallback={<ChartPlaceholder title="Activity" />}>
+            <Suspense fallback={<PanelFallback label="Activity" />}>
               <ActivityChartData />
             </Suspense>
           </DashPanel>

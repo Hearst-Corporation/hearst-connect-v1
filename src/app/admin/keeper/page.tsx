@@ -27,7 +27,7 @@ import {
   UserIcon,
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
-import { KeeperForm } from './keeper-form'
+import { KeeperForm } from '@/components/admin/keeper-form'
 
 export const metadata: Metadata = { title: 'Actions Keeper' }
 export const dynamic = 'force-dynamic'

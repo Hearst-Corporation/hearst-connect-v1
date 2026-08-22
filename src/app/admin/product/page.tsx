@@ -309,7 +309,7 @@ function productKpisFrom(
     (p) => btcProducedFrom(p.totalSats) ?? '—',
   )
   const capCell = figureFromResolved(factsheet.ok ? f?.tvlCap : undefined, FACTSHEET_ENDPOINT, (c) =>
-    formatCurrency(c, { decimals: 0 }),
+    formatCurrency(c, { decimals: 0, fromAtomic: 1 }),
   )
 
   return [
@@ -388,11 +388,15 @@ export default async function Page() {
               <ReadingRow label="BTC produced" value={btcProduced === null ? '—' : `${btcProduced} BTC`} />
               <ReadingRow
                 label="Monthly electricity cost"
-                value={orNull(formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0 })) ?? '—'}
+                value={
+                  orNull(
+                    formatCurrency(m?.electricity?.value?.monthlyCost, { decimals: 0, fromAtomic: 1_000_000 }),
+                  ) ?? '—'
+                }
               />
               <ReadingRow
                 label="Fund cap"
-                value={cap ? (orNull(formatCurrency(cap, { decimals: 0 })) ?? '—') : '—'}
+                value={cap ? (orNull(formatCurrency(cap, { decimals: 0, fromAtomic: 1 })) ?? '—') : '—'}
               />
             </dl>
           </ProductPanel>
