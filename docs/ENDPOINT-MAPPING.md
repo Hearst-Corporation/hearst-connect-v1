@@ -2,7 +2,7 @@
 
 > **Spécification backend** (auteur back-end) — contrat à respecter côté front.  
 > Ce fichier ne « corrige » pas la spec : il mesure la **conformité** du front `hearst-connect-v1` (`main`) par rapport à ce contrat.  
-> Mis à jour : 2026-08-13.
+> Mis à jour : 2026-08-22.
 
 ---
 
@@ -55,7 +55,22 @@
 
 | Method | Endpoint | Spec | Conformité front |
 |--------|----------|------|------------------|
-| `GET` | `/api/v1/rebalancing/status` | vaults + operations | ✅ |
+| `GET` | `/api/v1/rebalancing/status` | vaults + operations | ✅ front ; runtime souvent `not_exposed_by_contract` (v2.1 sans getter drift) |
+| `GET` | `/api/v1/rebalancing/history` | `/admin`, `/admin/operations` | ✅ |
+| `GET` | `/api/v1/rebalancing/operations` | `/admin/operations` | ✅ |
+| `GET` | `/api/v1/admin/portfolio/overview` | `/admin` | ✅ |
+| `GET` | `/api/v1/admin/portfolio/exposure` | `/admin`, `/admin/operations` | ✅ |
+| `GET` | `/api/v1/admin/rebalancing/summary` | `/admin`, `/admin/operations` | ✅ |
+| `GET` | `/api/v1/admin/activity/recent` | `/admin` | ✅ |
+| `GET` | `/api/v1/admin/activity/timeseries` | `/admin` | ✅ |
+| `GET` | `/api/v1/admin/market/snapshot` | `/admin` | ✅ |
+| `GET` | `/api/v1/admin/vaults/summary` | `/admin/vaults` | ✅ |
+| `GET` | `/api/v1/admin/clients/recent` | `/admin/clients` | ✅ |
+| `GET` | `/api/v1/admin/clients/:id` | `/admin/client-simulator/[id]` | ✅ |
+| `GET` | `/api/v1/vault/history` | `/admin/vaults/[vaultId]` | ✅ |
+| `GET` | `/api/v1/vault/strategy-history` | vault detail | ✅ |
+| `GET` | `/api/v1/me/portfolio` | `/account` | ✅ |
+| `GET` | `/api/v1/me/movements` | `/account` | ✅ |
 | `GET` | `/api/v1/clients` | `/admin/clients` | ✅ (extension registry — hors liste initiale spec, branché) |
 | `GET` | `/api/v1/deployments` | vaults | ✅ |
 | `GET` | `/api/v1/compliance` | `/admin/compliance` | ✅ |
@@ -89,6 +104,6 @@ La spec backend décrit **le contrat et les surfaces attendues**.
 Les colonnes ⚠️/❌ du document d’origine décrivaient un **état front** à un instant T — pas une erreur de contrat.  
 Depuis, le front a rattrapé la plupart des items ; le trigger indexeur est confirmé branché sur le runtime Railway. `POST /api/v1/admin/users` est **livré** sur Railway (probe 2026-08-06 : 401 sans session, 400 corps invalide).
 
-Registre front : `src/lib/backend/endpoints.ts` (48 routes).  
+Registre front : `src/lib/backend/endpoints.ts` (**54 routes** + `auth-login` hors registre public).  
 Ajouts 2026-08-13 (plan de données client) : `GET /api/v1/me/portfolio`, `GET /api/v1/me/movements`, `GET /api/v1/admin/clients/:id`. La route `POST /api/v1/me/deposits` est livrée backend mais volontairement hors registre front (aucun consommateur UI : le CTA `/account` n'appelle rien).  
 Auth login/register : hors registre, `src/lib/backend/auth.ts`.

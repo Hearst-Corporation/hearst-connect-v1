@@ -43,7 +43,7 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 
 ### Reste à faire (ordonné)
 
-1. **Désactiver « Sleep when idle »** sur le service Railway `hearst-base-fork-app` (dashboard Railway uniquement — le CLI ne l'expose pas). Quand le fork dort, les lectures on-chain du backend échouent quelques secondes au réveil → états « unavailable » sporadiques.
+1. **Désactiver « Sleep when idle »** sur le service Railway `hearst-base-fork-app` (dashboard uniquement — le CLI ne l'expose pas). Projet **`determined-flexibility`** → [Settings du service](https://railway.com/project/c94ee40b-303e-403f-b326-dde3378e0034?environmentId=787f6425-2220-481d-8aa2-1ca302579a1d). Quand le fork dort, les lectures on-chain du backend échouent quelques secondes au réveil → états « unavailable » sporadiques.
 2. **`rebalancing/status`** reste `not_exposed_by_contract` par construction : le v2.1 stock n'a pas de getter de drift (le backend le documente lui-même dans `rebalancing-status.ts`). Redéployer l'impl upgradée si le rebalancing opérationnel est voulu.
 3. **Drift réel −33 pt sur S2 (idle)** : les dépôts sont arrivés en poche idle ; un rebalance résorberait. `POST /api/v1/rebalancing/execute` est un keeper log (aucune signature on-chain côté backend).
 4. **Doubles read models backend** (non bloquant) : drift porté par `admin-portfolio-overview` ET `admin-rebalancing-summary` ; KYC par `admin-clients-recent` ET `compliance`. Canonisation = décision backend.
