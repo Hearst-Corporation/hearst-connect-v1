@@ -8,6 +8,7 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Text } from '@/components/catalyst/text'
 import { BucketSparklines, ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
+import type { BackendResolved } from '@/lib/admin-dashboard/cache'
 import { endpointById } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
 import { DataTableShell, SectionCard, tableCol } from '@/components/compositions'
@@ -446,14 +447,6 @@ type VaultHistorySnapshot = {
   readonly source: string
   readonly allocations?: readonly VaultAllocationItem[]
 }
-
-type BackendResolved<T> = Readonly<{
-  status?: string
-  value: T | null
-  reason?: string | null
-  provenance?: string | null
-  freshness?: { asOf?: string | null; ageSeconds?: number | null; stale?: boolean } | null
-}>
 
 function VaultHistorySection({
   history,

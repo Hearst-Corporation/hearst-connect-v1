@@ -217,7 +217,7 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
             className="min-w-0"
             contentClassName={PANEL_SLOT_CLASS.surfaces}
             title="Surface by surface"
-            subtitle="Eighteen surfaces in one list, ordered by tier. No status is reclassified on the front end."
+            subtitle={`${surfaces.length} surfaces in one list, ordered by tier. No status is reclassified on the front end.`}
           >
             {aggregate === null ? (
               <PanelState

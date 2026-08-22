@@ -39,7 +39,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = { title: 'Series 1 journal' }
 export const dynamic = 'force-dynamic'
 
-type Movement = {
+type Series1Event = {
   readonly id: string
   readonly eventName: string
   readonly chainId?: number | null
@@ -54,12 +54,12 @@ type Movement = {
 }
 
 type Resolved<T> = { readonly status: string; readonly value: T | null; readonly reason?: string | null }
-type ReponseEvenements = { readonly events?: Resolved<readonly Movement[]> }
+type ReponseEvenements = { readonly events?: Resolved<readonly Series1Event[]> }
 
-const estFinancier = (m: Movement): boolean =>
+const estFinancier = (m: Series1Event): boolean =>
   m.assetAmountAtomic !== null && m.assetAmountAtomic !== undefined && m.assetAmountAtomic !== ''
 
-function ligneEvenement(m: Movement, scale: AdminAssetScale | null): Series1EventRow {
+function ligneEvenement(m: Series1Event, scale: AdminAssetScale | null): Series1EventRow {
   const resolvedVaultId = vaultId(m.chainId, m.contractAddress)
   // Amounts are formatted only with the measured asset scale — never an
   // assumed 6dp, never an invented asset label.
@@ -78,7 +78,7 @@ function ligneEvenement(m: Movement, scale: AdminAssetScale | null): Series1Even
   }
 }
 
-function repartitionParNature(movements: readonly Movement[]): readonly DistributionItem[] {
+function repartitionParNature(movements: readonly Series1Event[]): readonly DistributionItem[] {
   const parNature = new Map<string, number>()
   for (const m of movements) {
     const name = movementLabel(m.eventName)
@@ -115,7 +115,7 @@ function breakdownChartState(readable: boolean, distributionItems: readonly Dist
 function messageJournalCalme(
   reponseOk: boolean,
   readable: boolean,
-  movements: readonly Movement[] | null | undefined,
+  movements: readonly Series1Event[] | null | undefined,
   reason?: string | null,
 ): string | undefined {
   if (!reponseOk) {
@@ -162,7 +162,7 @@ export default async function Page() {
   const bloc = reponse.ok ? reponse.data.events : undefined
   const movements = bloc?.value
 
-  const eventsAvail = availabilityFromResolved<readonly Movement[]>(bloc, '/api/v1/series1/events')
+  const eventsAvail = availabilityFromResolved<readonly Series1Event[]>(bloc, '/api/v1/series1/events')
   const movementCount = measuredCount(eventsAvail)
   const financialCount = measuredCount(mapAvailability(eventsAvail, (list) => list.filter(estFinancier)))
   const typesCount = mapAvailability(eventsAvail, (list) => String(new Set(list.map((m) => m.eventName)).size))

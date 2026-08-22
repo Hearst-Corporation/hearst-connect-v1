@@ -1,4 +1,4 @@
-import { DashCard, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
@@ -49,7 +49,7 @@ type Position = Readonly<{
   subscribedAt: string
 }>
 
-type Movement = Readonly<{
+type ClientMovement = Readonly<{
   type: string
   amountUsdc: string
   occurredAt: string
@@ -60,7 +60,7 @@ type ClientDetailData = Readonly<{
   id?: string
   identity?: ResolvedBlock<Identity>
   positions?: ResolvedBlock<readonly Position[]>
-  movements?: ResolvedBlock<readonly Movement[]>
+  movements?: ResolvedBlock<readonly ClientMovement[]>
   exposure?: ResolvedBlock<string>
 }>
 
@@ -102,55 +102,6 @@ function isNotFound(
 }
 
 /**
- * Compact command bar — one title line (the client label), the directory link
- * on the same row, KPIs as a compact strip beside it.
- */
-function ClientHeader({
-  title,
-  description,
-  kpis,
-}: Readonly<{ title: string; description: string; kpis: readonly AdminHeroKpi[] }>) {
-  return (
-    <header
-      data-admin="hero-header"
-      className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
-    >
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h1 className="truncate text-xl font-semibold tracking-tight text-fg">{title}</h1>
-          <PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>
-        </div>
-        <p className="mt-0.5 text-xs text-fg-tertiary">{description}</p>
-      </div>
-
-      <dl className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-x-8 gap-y-3">
-        {kpis.map((kpi) => {
-          const available = isAvailable(kpi.value)
-          return (
-            <div key={kpi.id} className="min-w-0">
-              <dt className="flex items-center gap-1.5 text-[11px] font-medium text-fg-secondary">
-                <kpi.icon className="size-3.5 shrink-0 text-accent-300" aria-hidden="true" />
-                <span className="truncate">{kpi.title}</span>
-              </dt>
-              <dd className="mt-0.5 flex items-baseline gap-1.5">
-                <span
-                  className={`text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
-                >
-                  {available ? kpi.value.value : '—'}
-                </span>
-                {kpi.unit !== undefined && kpi.unit !== '' ? (
-                  <span className="truncate text-[11px] text-fg-tertiary">{kpi.unit}</span>
-                ) : null}
-              </dd>
-            </div>
-          )
-        })}
-      </dl>
-    </header>
-  )
-}
-
-/**
  * Admin client 360 — GET /api/v1/admin/clients/:id.
  * Each Resolved block is shown or named; a 404 does not invent a client.
  */
@@ -171,9 +122,10 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
     ]
     return (
       <DashboardShell>
-        <ClientHeader
+        <DashboardHeader
           title={id}
           description="GET /api/v1/admin/clients/:id — named absence when the investor is not on the book."
+          titleAddon={<PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>}
           kpis={kpis}
         />
         <Callout tone="warning" title="Client not found">
@@ -197,9 +149,10 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
     ]
     return (
       <DashboardShell>
-        <ClientHeader
+        <DashboardHeader
           title={id}
           description="GET /api/v1/admin/clients/:id — named absence when the 360 cannot be read."
+          titleAddon={<PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>}
           kpis={kpis}
         />
         <Callout tone="warning" title="Client detail unavailable">
@@ -226,9 +179,10 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
 
   return (
     <DashboardShell>
-      <ClientHeader
+      <DashboardHeader
         title={title}
         description="GET /api/v1/admin/clients/:id — identity, positions, movements, and exposure."
+        titleAddon={<PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>}
         kpis={kpis}
       />
 

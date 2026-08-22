@@ -651,12 +651,7 @@ function catalog() {
     ['region:admin-recent-activity', 'Recent activity timeline', 'src/components/admin/dashboard/activity-timeline.tsx', 'ActivityTimelinePanel', null],
     ['region:admin-rebalancing', 'Rebalancing & alerts', 'src/components/admin/dashboard/rebalancing-panel.tsx', 'RebalancingAlertsPanel', null],
     ['region:admin-rebalancing-history', 'Rebalancing drift history', 'src/features/admin-dashboard/admin-dashboard-page.tsx', 'RebalancingHistorySlot / HearstLineChart', 'chart:hearst-line'],
-    ['region:admin-vaults-capital', 'Vaults capital', 'src/components/admin/dashboard/vaults-panel.tsx', 'VaultsPanel', null],
-    ['region:admin-data-health', 'Data health', 'src/components/admin/dashboard/data-health-grid.tsx', 'DataHealthGrid', null],
     ['region:admin-market', 'Market snapshot', 'src/components/admin/dashboard/market-panel.tsx', 'MarketSnapshotPanel', null],
-    ['region:admin-cbbtc-allocation', 'cbBTC/USDC allocation', 'src/features/admin-dashboard/admin-dashboard-page.tsx', 'AllocationSlot / AllocationDualLineChart', 'chart:allocation-dual-line'],
-    ['region:admin-btc-price', 'BTC price', 'src/features/admin-dashboard/admin-dashboard-page.tsx', 'BtcPriceSlot / HearstLineChart', 'chart:hearst-line'],
-    ['region:admin-recent-clients', 'Recent clients', 'src/components/admin/dashboard/recent-clients-panel.tsx', 'RecentClientsPanel', null],
   ]
 
   for (const [id, name, source, evidence, chartId] of adminPanels) {
@@ -678,7 +673,6 @@ function catalog() {
   }
 
   e('region:admin-portfolio-exposure', 'uses_surface', 'surface:admin-select')
-  e('region:admin-data-health', 'uses_surface', 'surface:admin-box')
   e('region:admin-market', 'uses_surface', 'surface:admin-inset')
 
   // Other admin pages — thin page nodes (not full card trees)

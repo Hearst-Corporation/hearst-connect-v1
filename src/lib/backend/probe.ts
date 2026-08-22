@@ -4,7 +4,7 @@ import type { ResolvedStatus } from '@/lib/resolved'
 import { getSession } from '@/lib/session'
 import { toBackendRole } from './auth'
 import { callBackend, statusFromMeta, type CallTrace } from './client'
-import { BACKEND_ENDPOINTS, type BackendEndpoint } from './endpoints'
+import { BACKEND_ENDPOINTS, pathParamNames, type BackendEndpoint } from './endpoints'
 
 /**
  * Single call triggered from the API Explorer.
@@ -27,21 +27,9 @@ export type ProbeOutcome = {
   trace: CallTrace
 }
 
-/** Path parameters declared by the registry, `:name` syntax. */
-const PATH_PARAM = /:(\w+)/g
-
 /** The registry is the only source: reads without throwing, unlike `endpointById`. */
 function findEndpoint(id: string): BackendEndpoint | null {
   return BACKEND_ENDPOINTS.find((endpoint) => endpoint.id === id) ?? null
-}
-
-/**
- * Names of a route's path parameters, read from `endpoint.path`.
- * Inspects the registry without modifying it or duplicating its syntax
- * elsewhere.
- */
-function pathParamNames(path: string): string[] {
-  return [...path.matchAll(PATH_PARAM)].map(([, name]) => name)
 }
 
 /**

@@ -14,6 +14,7 @@ import { ChartFrame } from '@/components/charts'
 import { Callout, DataTableShell, SectionHeader, tableCol } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
 import { toBackendRole } from '@/lib/backend/auth'
+import { KEEPER_RATE_LIMIT_PER_MINUTE } from '@/lib/backend/constants'
 import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
@@ -128,7 +129,7 @@ export default async function KeeperPage() {
               fabricated hash.
             </Text>
             <Text className="mt-4">
-              Two additional backend safeguards: a quota of 5 requests per minute per user, and the
+              Two additional backend safeguards: a quota of {KEEPER_RATE_LIMIT_PER_MINUTE} requests per minute per user, and the
               circuit breaker <span className="font-mono">KEEPER_ENABLED</span> — disabled by default, it returns 503{' '}
               <span className="font-mono">NOT_CONFIGURED</span>.
             </Text>
