@@ -1,21 +1,16 @@
 'use client'
 
 import { CHART_VIEWPORT_PX, categoricalColor } from '@/components/charts/core/chart-theme'
-import { useChartWidth } from '@/components/charts/core/use-chart-width'
 import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
-import { RichTooltip } from '@/components/charts/richart/tooltip'
 import { formatNumber } from '@/lib/format'
-import { Pie, PieChart, Tooltip } from 'recharts'
 
 /**
- * richart — categorical breakdown donut (KYC, etc.).
- * Recharts engine behind the charts boundary — never imported from a route.
+ * richart — categorical breakdown donut (KYC, allocation mix…).
  *
- * Measured PX like every richart chart (ResizeObserver) — never
- * `ResponsiveContainer`: its % wrapper collapses to a 0×0 intermediate box
- * (`width:0; height:0; overflow:visible`) inside flex cells and the ring
- * paints late or never. The donut keeps its role viewport (220px block,
- * 260px max inline, centered) — a ring does not stretch.
+ * Pure CSS `conic-gradient` ring — no chart engine: the ring is crisp at any
+ * size and never paints late. Values live in the legend rows; the center
+ * carries the total. An all-zero breakdown is a named absence, never a
+ * fabricated "0" over an empty ring.
  */
 
 export type DonutSlice = {
@@ -23,27 +18,33 @@ export type DonutSlice = {
   readonly value: number
 }
 
-/** Matches `--chart-donut-viewport-max-inline-size` (breakdown-donut / exposure-radial still read the var). */
+/** Matches `--chart-donut-viewport-max-inline-size`. */
 const DONUT_MAX_INLINE_PX = 260
 const DONUT_BLOCK_PX = CHART_VIEWPORT_PX.donut
+
+function conicGradient(slices: readonly { fill: string; value: number }[], total: number): string {
+  let acc = 0
+  const stops: string[] = []
+  for (const s of slices) {
+    const from = (acc / total) * 360
+    acc += s.value
+    const to = (acc / total) * 360
+    stops.push(`${s.fill} ${from.toFixed(2)}deg ${to.toFixed(2)}deg`)
+  }
+  return `conic-gradient(${stops.join(', ')})`
+}
 
 export function HearstDonutChart({
   slices,
   unit = 'dossiers',
 }: Readonly<{ slices: readonly DonutSlice[]; unit?: string }>) {
-  const { ref, width } = useChartWidth()
   const data = slices
     .filter((s) => s.value > 0)
     .map((s, index) => ({ ...s, fill: categoricalColor(index) }))
   const total = data.reduce((sum, s) => sum + s.value, 0)
 
-  // All-zero breakdown: a named absence, never a fabricated "0" over an empty ring.
   if (data.length === 0) {
-    return (
-      <p className="px-5 pb-5 text-sm text-fg-secondary">
-        Nothing to break down yet.
-      </p>
-    )
+    return <p className="px-5 pb-5 text-sm text-fg-secondary">Nothing to break down yet.</p>
   }
 
   return (
@@ -59,27 +60,23 @@ export function HearstDonutChart({
       />
 
       <div
-        ref={ref}
         aria-hidden="true"
         className="relative mx-auto w-full"
         style={{ maxWidth: DONUT_MAX_INLINE_PX, height: DONUT_BLOCK_PX }}
         data-chart-viewport={DONUT_BLOCK_PX}
       >
-        {width > 0 ? (
-          <PieChart width={width} height={DONUT_BLOCK_PX}>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="label"
-              innerRadius="58%"
-              outerRadius="82%"
-              paddingAngle={2}
-              strokeWidth={0}
-              isAnimationActive={false}
-            />
-            <Tooltip content={<RichTooltip unit={unit} />} />
-          </PieChart>
-        ) : null}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="rounded-full"
+            style={{
+              width: '82%',
+              height: '82%',
+              background: conicGradient(data, total),
+              WebkitMask: 'radial-gradient(closest-side, transparent 62%, black 63%)',
+              mask: 'radial-gradient(closest-side, transparent 62%, black 63%)',
+            }}
+          />
+        </div>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-semibold tabular-nums text-ink dark:text-fg">
             {formatNumber(total)}
@@ -88,17 +85,16 @@ export function HearstDonutChart({
         </div>
       </div>
 
-      <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+      <ul aria-hidden="true" className="mt-3 flex flex-col gap-1.5">
         {data.map((s) => (
           <li key={s.label} className="flex items-center gap-2 text-xs text-console-fill dark:text-fg">
-            <span
-              className="size-2 shrink-0 rounded-full"
-              style={{ background: s.fill }}
-              aria-hidden="true"
-            />
+            <span className="size-2 shrink-0 rounded-full" style={{ background: s.fill }} />
             <span className="truncate">{s.label}</span>
             <span className="ml-auto tabular-nums font-medium text-ink dark:text-fg">
               {formatNumber(s.value)}
+            </span>
+            <span className="w-12 shrink-0 text-right tabular-nums text-fg-tertiary">
+              {formatNumber((s.value / total) * 100, { maximumFractionDigits: 1 })}%
             </span>
           </li>
         ))}
