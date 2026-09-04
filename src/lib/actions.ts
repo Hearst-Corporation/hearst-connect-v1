@@ -75,7 +75,13 @@ export async function logout(): Promise<void> {
  * dedicated pair for local dev, distinct from the real owner account.
  */
 export async function quickLoginOwner(_prevState: LoginState): Promise<LoginState> {
-  if (process.env.NODE_ENV === 'production') {
+  // Même garde que `devQuickLogin()` : Vercel construit les previews en
+  // production, donc `NODE_ENV` seul rejetait aussi les branches de démo. Le
+  // refus vaut pour le déploiement de PRODUCTION, pas pour une preview.
+  if (process.env.VERCEL_ENV === 'production') {
+    return { error: loginErrorMessage('missing_fields') }
+  }
+  if (process.env.VERCEL_ENV === undefined && process.env.NODE_ENV === 'production') {
     return { error: loginErrorMessage('missing_fields') }
   }
 
