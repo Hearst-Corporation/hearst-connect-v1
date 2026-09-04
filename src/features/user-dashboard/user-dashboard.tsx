@@ -282,7 +282,7 @@ export function UserDashboardView({
                 ancre l'écran, le contenu à droite porte le verre. */}
             <aside className="rail" aria-label="Account sections">
               <div className="rail-brand">
-                <HearstConnectLockupImage className="h-8 w-auto" />
+                <HearstConnectLockupImage className="h-10 w-auto" />
               </div>
 
               <nav className="rail-nav">
