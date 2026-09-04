@@ -13,7 +13,13 @@ import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, problem, bloc, payloadFor, nowIso,
  * les valeurs restent inventées. À annoncer comme telles en présentation.
  */
 
-const TOKENS = new Map<string, { id: string; email: string; role: string }>()
+/**
+ * Jeton sans état : chaque requête Vercel s'exécute dans une instance
+ * serverless distincte, donc une `Map` en mémoire perdait le jeton émis au
+ * login dès l'appel suivant. Un préfixe fixe suffit ici — ce backend ne sert
+ * que des données fictives, il n'y a rien à protéger.
+ */
+const DEMO_TOKEN_PREFIX = 'demo-'
 
 async function handle(req: Request, path: string): Promise<NextResponse> {
   // Le garde vise le PROJET, pas l'environnement : la démo est déployée en
@@ -32,8 +38,7 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
     if (!account) {
       return NextResponse.json(problem(401, 'UNAUTHORIZED', 'Invalid email or password.'), { status: 401 })
     }
-    const token = String(randomUUID()).replace(/-/g, '')
-    TOKENS.set(token, { id: account.id, email: account.email, role: account.role })
+    const token = DEMO_TOKEN_PREFIX + String(randomUUID()).replace(/-/g, '')
     return NextResponse.json({
       token,
       tokenType: 'Bearer',
@@ -50,7 +55,7 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
   if (!isPublic) {
     const auth = req.headers.get('authorization') ?? ''
     const token = auth.replace(/^Bearer\s+/i, '').trim()
-    if (!TOKENS.has(token)) {
+    if (!token.startsWith(DEMO_TOKEN_PREFIX)) {
       return NextResponse.json(
         problem(401, 'UNAUTHORIZED', 'Missing or invalid bearer token.'),
         { status: 401 },
