@@ -31,6 +31,8 @@ export function StatTile({
   signal,
   trend,
   delta,
+  meter,
+  footnote,
 }: Readonly<{
   icon: ComponentType<SVGProps<SVGSVGElement>>
   label: string
@@ -38,6 +40,11 @@ export function StatTile({
   signal: Signal
   trend?: readonly number[]
   delta?: number | null
+  /** Ratio 0–1 → barre de progression sous la valeur. Pour les tuiles dont la
+   *  mesure EST une proportion ; jamais une donnée dérivée d'autre chose. */
+  meter?: number | null
+  /** Ligne de contexte sous la valeur (ex. écart au pair). */
+  footnote?: string | null
 }>) {
   const hasDelta = delta !== null && delta !== undefined && Number.isFinite(delta)
   const up = hasDelta && (delta as number) >= 0
@@ -59,11 +66,21 @@ export function StatTile({
           </span>
         ) : null}
       </div>
-      {trend !== undefined && trend.length >= 2 ? (
-        <div className="stat-spark">
-          <RichSparkline data={[...trend]} />
-        </div>
-      ) : null}
+      {/* Bande basse commune : barre, note ou sparkline occupent la MÊME rangée
+          d'une tuile à l'autre, pour que la ligne du bas soit continue. */}
+      <div className="stat-foot">
+        {meter !== null && meter !== undefined && Number.isFinite(meter) ? (
+          <div className="stat-meter" role="presentation">
+            <span style={{ width: `${Math.max(0, Math.min(100, meter * 100))}%` }} />
+          </div>
+        ) : null}
+        {footnote ? <p className="stat-footnote">{footnote}</p> : null}
+        {trend !== undefined && trend.length >= 2 ? (
+          <div className="stat-spark">
+            <RichSparkline data={[...trend]} />
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

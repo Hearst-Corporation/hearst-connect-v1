@@ -48,6 +48,8 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // Turbopack infère mal la racine du workspace (il remonte sur src/app) : on la fixe.
+  turbopack: { root: import.meta.dirname },
   async redirects() {
     return [
       { source: '/admin/conformite', destination: '/admin/compliance', permanent: true },

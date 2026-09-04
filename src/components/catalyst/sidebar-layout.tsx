@@ -1,7 +1,6 @@
 'use client'
 
 import { surfaceNav } from '@/components/admin/surface'
-import { CONSOLE_GLOW_SRC, consoleGlowLayer } from '@/lib/brand'
 import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import React, { useState } from 'react'
@@ -56,12 +55,8 @@ export function SidebarLayout({
 
   return (
     <div className="relative isolate flex min-h-svh w-full max-lg:flex-col">
-      {/* Glow — z-0, jamais au-dessus du rail ni du contenu. */}
-      <div
-        aria-hidden="true"
-        className={clsx(consoleGlowLayer, 'z-0')}
-        style={{ backgroundImage: `url('${CONSOLE_GLOW_SRC}')` }}
-      />
+      {/* Plus de couche de halo (passe UI 2026-09) : les surfaces sont opaques,
+          le glow ne teintait plus que les marges et délavait la hiérarchie. */}
 
       {/* Sidebar — z au-dessus du main (sinon le padding lg:pl-64 du main
           capture les clics et la nav est morte). */}
@@ -87,7 +82,7 @@ export function SidebarLayout({
         {/* Content card — the page surface as GLASS (console-card + blur), so
             the glow shines through like on the account shell. Solid
             `console-surface` hid it. Cockpit density: `lg:p-5`. */}
-        <div className="grow p-6 lg:rounded-lg lg:bg-console-card lg:shadow-xs lg:ring-1 lg:ring-console-line lg:backdrop-blur-xl lg:backdrop-saturate-150 lg:p-5">
+        <div className="grow p-6 lg:rounded-lg lg:bg-console-card lg:ring-1 lg:ring-console-line lg:p-5">
           <div className="w-full min-w-0">{children}</div>
         </div>
       </main>

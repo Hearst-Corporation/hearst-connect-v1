@@ -63,7 +63,13 @@ export function BreakdownFlank({
   return (
     <section className="flank-panel">
       {heading}
-      <HearstBreakdownDonut slices={slices} kind={kind} unit={unit} centerCaption={centerCaption} />
+      {/* `flank-donut` : le panneau est étiré par la rangée, ce wrapper laisse le
+          graphe et sa légende se répartir l'espace au lieu de se tasser en haut.
+          Une classe propre, pas un `:last-child` — le flanc BTC finit par un
+          bouton, qu'une règle générique étirerait. */}
+      <div className="flank-donut">
+        <HearstBreakdownDonut slices={slices} kind={kind} unit={unit} centerCaption={centerCaption} />
+      </div>
     </section>
   )
 }

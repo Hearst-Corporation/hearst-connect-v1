@@ -138,6 +138,17 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'Scoped to the connected session — not the fund-wide dashboard aggregate.',
   }),
   defineEndpoint({
+    id: 'me-deposits',
+    method: 'POST',
+    path: '/api/v1/me/deposits',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Records a subscription intent for the connected investor.',
+    caveat:
+      '`amountUsdc` is whole USDC on the wire, same convention as `me-movements`. The backend owns every acceptance rule (KYC, minimum, capacity): the form pre-validates for the user, it never decides.',
+  }),
+  defineEndpoint({
     id: 'me-movements',
     path: '/api/v1/me/movements',
     category: 'business',

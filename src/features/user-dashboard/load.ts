@@ -2,7 +2,7 @@ import 'server-only'
 
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
 import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/availability'
-import { measuredCount, type Availability } from '@/lib/vaults/model'
+import { measuredCount, type Availability, available, unavailable, valueOf} from '@/lib/vaults/model'
 
 /**
  * Account dashboard loader — session-scoped, backend-first.
@@ -95,10 +95,54 @@ export type MarketSnapshot = {
   readonly difficulty: number | null
   readonly asOf: string | null
 }
+/**
+ * Position convertie en BTC au cours spot.
+ *
+ * DÉRIVÉE, jamais lue au book : le backend tient la position en USDC entiers.
+ * `source: 'derived'` doit rester visible à l'écran — présenter ce chiffre comme
+ * un solde BTC détenu serait un mensonge : le vault ne détient pas ce bitcoin.
+ * Quand la réserve BTC existera côté backend, cette dérivation cède la place à
+ * une lecture réelle et le drapeau passe à 'book'.
+ */
+export type BtcEquivalent = {
+  readonly btc: number
+  readonly rateUsd: number
+  readonly source: 'derived'
+}
+
+/**
+ * Comparaison au simple fait d'avoir gardé ses bitcoins.
+ *
+ * C'est le référentiel d'un client dont le métier est le bitcoin : un vault qui
+ * sert 8 % en dollars pendant que le BTC prend 25 % lui fait PERDRE des sats.
+ * Le produit ne montrait ce chiffre nulle part — ni au client, ni en interne.
+ *
+ * `heldBtc`   : sats que vaut la position d'aujourd'hui, au spot.
+ * `hodlBtc`   : sats qu'on aurait en ayant converti le principal à l'entrée.
+ * `deltaPct`  : écart relatif — négatif = le produit fait moins bien que HODL.
+ *
+ * DÉRIVÉ de bout en bout, comme `BtcEquivalent` : le vault ne détient pas ces
+ * bitcoins. Le cours d'entrée vient du plus ancien point de `btcSeries`, donc
+ * la comparaison porte sur la fenêtre couverte par l'historique — pas depuis la
+ * souscription si celle-ci lui est antérieure. `windowLabel` le dit à l'écran.
+ */
+export type BtcVsHodl = {
+  readonly heldBtc: number
+  readonly hodlBtc: number
+  readonly deltaPct: number
+  readonly entryRateUsd: number
+  readonly spotRateUsd: number
+  readonly windowLabel: string
+}
+
 export type UserMovement = {
   readonly id: string
   readonly title: string
   readonly detail: string | null
+  /** On-chain transaction hash, when the source carries one. Sert la
+   *  vérifiabilité du mouvement — pas de lien explorateur, aucune URL n'est
+   *  câblée côté produit. */
+  readonly txHash: string | null
   /** Whole-USDC amount of this ledger movement. Null when the source carries no
    *  amount — an absent amount is never rendered as 0. */
   readonly amountUsdc: number | null
@@ -118,6 +162,12 @@ export type UserDashboard = {
   readonly positionStatus: Availability<string>
   /** ISO timestamp when the investor subscribed (book record). */
   readonly positionSubscribedAt: Availability<string>
+  /** Position value converted to BTC at spot — derived, never a held balance. */
+  readonly positionBtc: Availability<BtcEquivalent>
+  /** Accrued yield converted to BTC at spot — what the reserve would hold. */
+  readonly accruedBtc: Availability<BtcEquivalent>
+  /** Position measured against simply having held bitcoin over the window. */
+  readonly btcVsHodl: Availability<BtcVsHodl>
   readonly performance: Availability<ResolvedField>
   readonly subscription: Availability<ResolvedField>
   /** Latest-snapshot allocation buckets (donut). */
@@ -134,6 +184,8 @@ export type UserDashboard = {
   readonly backtestRuns: Availability<readonly BacktestRun[]>
   /** Target vs actual allocation per pocket (paired bars). */
   readonly exposure: Availability<readonly ExposurePocket[]>
+  /** Vault AUM at the latest snapshot (whole USDC) — sizes each pocket. */
+  readonly vaultAum: Availability<number>
   /** NAV per share (whole USDC). */
   readonly navPerShare: Availability<number>
   /** Vault utilization toward the TVL cap (%). */
@@ -382,7 +434,8 @@ function movementsFrom(field: ResolvedField | null): readonly UserMovement[] | n
           : typeof row.timestamp === 'string'
             ? row.timestamp
             : null
-      return { id, title, detail, amountUsdc, occurredAt }
+      const txHash = typeof row.txHash === 'string' && row.txHash !== '' ? row.txHash : null
+      return { id, title, detail, txHash, amountUsdc, occurredAt }
     })
   return rows.length > 0 ? rows : null
 }
@@ -518,6 +571,18 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     reason: 'no_history_snapshot',
   })
   const valueSeries = availabilityFromResolved(historyBlock(valueSeriesFrom(snaps)), HISTORY_ENDPOINT)
+
+  // AUM courant = dernier point de la série de valeur. Sert à chiffrer chaque
+  // poche : le factsheet donne des pourcentages, pas des montants.
+  const aumPoints = valueSeriesFrom(snaps)
+  const vaultAum = availabilityFromResolved<number>(
+    {
+      status: historyStatus,
+      value: aumPoints !== null && aumPoints.length > 0 ? aumPoints[aumPoints.length - 1].value : null,
+      reason: 'no_history',
+    },
+    HISTORY_ENDPOINT,
+  )
   const btcSeries = availabilityFromResolved(historyBlock(btcSeriesFrom(snaps)), HISTORY_ENDPOINT)
   const allocationSeries = availabilityFromResolved(
     historyBlock(allocationSeriesFrom(snaps)),
@@ -591,9 +656,81 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     MARKET_SNAPSHOT_ENDPOINT,
   )
 
+  // ── Équivalent BTC ────────────────────────────────────────────────────────
+  // Le book est en USDC ; la réserve BTC n'existe pas encore côté backend. On
+  // convertit donc au spot pour donner au client son référentiel — en marquant
+  // la valeur comme dérivée. Sans cours disponible, c'est une absence nommée :
+  // jamais un montant BTC inventé à partir d'un taux supposé.
+  const spotUsd = valueOf(marketSnapshot)?.btcUsd ?? null
+
+  const toBtc = (usdc: Availability<number>): Availability<BtcEquivalent> => {
+    const usd = valueOf(usdc)
+    if (usd === null || spotUsd === null || spotUsd <= 0) {
+      return unavailable({
+        endpoint: MARKET_SNAPSHOT_ENDPOINT,
+        reason: usd === null ? 'no_investor_position' : 'no_btc_rate',
+      })
+    }
+    return available(
+      { btc: usd / spotUsd, rateUsd: spotUsd, source: 'derived' as const },
+      // 'unknown' : ni lu en base ni sur la chaîne — c'est un calcul du front.
+      { provenance: 'unknown', stale: false, asOf: null },
+    )
+  }
+
+  const positionBtc = toBtc(positionValue)
+  const accruedBtc = toBtc(positionAccrued)
+
+  // ── Comparaison au HODL ───────────────────────────────────────────────────
+  // Le chiffre que la note de cadrage dit manquant : ce que la position vaut en
+  // sats, contre les sats qu'on aurait eus en convertissant le principal à
+  // l'entrée. Le cours d'entrée est le plus ANCIEN point de `btcSeries` — donc
+  // la fenêtre est celle de l'historique, pas celle de la souscription. Deux
+  // absences nommées et distinctes : pas de position, ou pas d'historique de
+  // cours exploitable. Jamais de comparaison bâtie sur un taux supposé.
+  const btcVsHodl = ((): Availability<BtcVsHodl> => {
+    const principal = valueOf(positionPrincipal)
+    const current = valueOf(positionValue)
+    const points = valueOf(btcSeries)
+
+    if (principal === null || current === null) {
+      return unavailable({ endpoint: PORTFOLIO_ENDPOINT, reason: 'no_investor_position' })
+    }
+    if (spotUsd === null || spotUsd <= 0 || points === null || points.length < 2) {
+      return unavailable({ endpoint: HISTORY_ENDPOINT, reason: 'no_btc_history' })
+    }
+
+    const entryRateUsd = points[0].value
+    if (!Number.isFinite(entryRateUsd) || entryRateUsd <= 0) {
+      return unavailable({ endpoint: HISTORY_ENDPOINT, reason: 'no_btc_history' })
+    }
+
+    const heldBtc = current / spotUsd
+    const hodlBtc = principal / entryRateUsd
+    if (hodlBtc <= 0) {
+      return unavailable({ endpoint: PORTFOLIO_ENDPOINT, reason: 'no_investor_position' })
+    }
+
+    return available(
+      {
+        heldBtc,
+        hodlBtc,
+        deltaPct: (heldBtc / hodlBtc - 1) * 100,
+        entryRateUsd,
+        spotRateUsd: spotUsd,
+        windowLabel: `${points[0].label} → ${points[points.length - 1].label}`,
+      },
+      // Calcul du front sur deux sources lues : ni book, ni chaîne.
+      { provenance: 'unknown', stale: false, asOf: null },
+    )
+  })()
+
   return {
     sourceStatus,
     position,
+    positionBtc,
+    accruedBtc,
+    btcVsHodl,
     positionValue,
     positionPrincipal,
     positionAccrued,
@@ -608,6 +745,7 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     activityBars,
     backtestRuns,
     exposure,
+    vaultAum,
     navPerShare,
     utilizationPct,
     availableCapacity,
