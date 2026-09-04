@@ -16,7 +16,12 @@ export const actionFieldClass = clsx(
 
 /** Accent submit — one class string for every hand-rolled admin action button. */
 export const actionButtonClass =
-  'rounded-lg bg-accent-400 px-2.5 py-1 text-xs font-semibold text-accent-ink hover:bg-accent-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600'
+  // Pilule pleine, aplat mint, encre sombre — le bouton primaire des maquettes
+  // Hearst. Hauteur fixe 34px : compact, mais pas riquiqui comme avant.
+  'inline-flex h-[34px] items-center justify-center gap-1.5 rounded-full bg-accent-400 px-4 ' +
+  'text-[13px] font-semibold leading-none text-accent-ink transition-colors ' +
+  'hover:bg-accent-300 disabled:cursor-default disabled:opacity-50 ' +
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400'
 
 /** Fail-closed: the operator types CONFIRM. No isolated click fires a write. */
 export function ConfirmField() {

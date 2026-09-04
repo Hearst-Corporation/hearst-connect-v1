@@ -7,9 +7,9 @@ const styles = {
   base: [
     // Base — cockpit density: a button is a control, not a banner. Compact
     // text + tight padding (TouchTarget keeps the hit area on touch).
-    'relative isolate inline-flex items-baseline justify-center gap-x-1.5 rounded-lg border text-sm/5 font-semibold',
+    'relative isolate inline-flex h-[34px] items-center justify-center gap-x-1.5 rounded-full border text-[13px] font-semibold leading-none',
     // Sizing
-    'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(1.5)-1px)] sm:px-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1)-1px)] sm:text-xs/5',
+    'px-4 sm:px-4',
     // Focus
     'focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
     // Disabled
@@ -23,7 +23,7 @@ const styles = {
     // Dark mode: border is rendered on `after` so background is set to button background
     'dark:bg-(--btn-bg)',
     // Button background, implemented as foreground layer to stack on top of pseudo-border layer
-    'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius-lg)-1px)] before:bg-(--btn-bg)',
+    'before:absolute before:inset-0 before:-z-10 before:rounded-full before:bg-(--btn-bg)',
     // Drop shadow, applied to the inset `before` layer so it blends with the border
     'before:shadow-sm',
     // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
@@ -31,13 +31,13 @@ const styles = {
     // Dark mode: Subtle white outline is applied using a border
     'dark:border-white/5',
     // Shim/overlay, inset to match button foreground and used for hover state + highlight shadow
-    'after:absolute after:inset-0 after:-z-10 after:rounded-[calc(var(--radius-lg)-1px)]',
+    'after:absolute after:inset-0 after:-z-10 after:rounded-full',
     // Inner highlight shadow
     'after:shadow-[inset_0_1px_--theme(--color-white/15%)]',
     // White overlay on hover
     'data-active:after:bg-(--btn-hover-overlay) data-hover:after:bg-(--btn-hover-overlay)',
     // Dark mode: `after` layer expands to cover entire button
-    'dark:after:-inset-px dark:after:rounded-lg',
+    'dark:after:-inset-px dark:after:rounded-full',
     // Disabled
     'data-disabled:before:shadow-none data-disabled:after:shadow-none',
   ],

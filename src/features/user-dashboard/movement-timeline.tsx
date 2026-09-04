@@ -13,15 +13,15 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import { ClockIcon } from '@heroicons/react/16/solid'
-import type { ComponentType, SVGProps } from 'react'
-import { formatCurrency, formatRelativeTime } from '@/lib/format'
+import { useState, type ComponentType, type SVGProps } from 'react'
+import { formatCurrency, formatDate, formatDateTime, formatRelativeTime } from '@/lib/format'
 import { valueOf } from '@/lib/vaults/model'
 import { useMotionReady } from './motion-guard'
 import type { UserDashboard, UserMovement } from './load'
 
 /**
  * Premium investor movement timeline — a left-rail stepper with a per-category
- * Heroicon medallion, a category chip and relative time, staggered on entrance.
+ * Heroicon medallion, the amount and relative time, staggered on entrance.
  *
  * Honest by construction: `UserMovement` carries {id, title, detail (kind),
  * amountUsdc, occurredAt}. The amount renders as USD, or "—" when the source
@@ -49,12 +49,24 @@ function movementIcon(kind: string | null) {
   return <Cmp className="size-4" aria-hidden="true" />
 }
 
-function chipLabel(category: string | null): string {
-  if (category === null || category === '') return 'Movement'
-  return category.charAt(0).toUpperCase() + category.slice(1)
+/** Hash tronqué : lisible, et suffisant pour recouper une transaction. */
+function shortHash(hash: string): string {
+  return hash.length > 14 ? `${hash.slice(0, 8)}…${hash.slice(-4)}` : hash
 }
 
-function Row({ movement }: Readonly<{ movement: UserMovement }>) {
+function Row({
+  movement,
+  btcSpotUsd,
+}: Readonly<{ movement: UserMovement; btcSpotUsd: number | null }>) {
+  const [open, setOpen] = useState(false)
+
+  // Contrevaleur au spot : dérivée, jamais un montant lu au book. Sans cours
+  // lisible, la colonne reste vide plutôt que d'afficher un taux supposé.
+  const btc =
+    movement.amountUsdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
+      ? `≈ ${(movement.amountUsdc / btcSpotUsd).toFixed(4)} BTC`
+      : null
+
   return (
     <div className="timeline-item">
       <span className="timeline-node" aria-hidden="true">
@@ -63,21 +75,56 @@ function Row({ movement }: Readonly<{ movement: UserMovement }>) {
       <div className="timeline-body">
         <p className="timeline-title">{movement.title}</p>
         <div className="timeline-meta">
+          <span className="timeline-date">
+            {movement.occurredAt !== null ? formatDate(movement.occurredAt) : '—'}
+          </span>
           <span className="timeline-amount">
             {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
           </span>
-          <span className="timeline-chip">{chipLabel(movement.detail)}</span>
+          <span className="timeline-btc">{btc ?? ''}</span>
           {movement.occurredAt !== null ? (
             <span className="timeline-time">
               <ClockIcon className="size-3" aria-hidden="true" />
               {formatRelativeTime(movement.occurredAt)}
             </span>
-          ) : null}
+          ) : (
+            <span />
+          )}
+          {/* Piste vide : écarte l'action de l'ancienneté sans padding ad hoc. */}
+          <span aria-hidden="true" />
+
+          <button
+            type="button"
+            className="timeline-detail"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? 'Hide' : 'Detail'}
+          </button>
         </div>
+
+        {/* Le dépli ne charge rien : il montre ce que la ligne ne peut pas tenir
+            — le hash on-chain et l'horodatage complet. Pas de lien explorateur,
+            aucune URL n'est câblée. */}
+        {open ? (
+          <dl className="timeline-detail-body">
+            <dt>Transaction</dt>
+            <dd className="mono">
+              {movement.txHash !== null ? shortHash(movement.txHash) : 'not reported'}
+            </dd>
+            <dt>Recorded</dt>
+            <dd>
+              {movement.occurredAt !== null ? formatDateTime(movement.occurredAt) : 'not reported'}
+            </dd>
+          </dl>
+        ) : null}
       </div>
     </div>
   )
 }
+
+/** Lignes visibles tant que la liste est repliée. */
+const COLLAPSED_COUNT = 5
 
 const listVariants: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 const itemVariants: Variants = {
@@ -85,8 +132,12 @@ const itemVariants: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.24, ease: 'easeOut' } },
 }
 
-export function MovementTimeline({ availability }: Readonly<{ availability: UserDashboard['activity'] }>) {
+export function MovementTimeline({
+  availability,
+  btcSpotUsd = null,
+}: Readonly<{ availability: UserDashboard['activity']; btcSpotUsd?: number | null }>) {
   const animate = useMotionReady()
+  const [expanded, setExpanded] = useState(false)
   const rows = valueOf(availability)
 
   if (rows === null || rows.length === 0) {
@@ -106,31 +157,50 @@ export function MovementTimeline({ availability }: Readonly<{ availability: User
     )
   }
 
+  // Repli : les cinq mouvements les plus récents, le reste sur demande. Le
+  // compte total reste annoncé par le bouton — on ne masque pas l'existence
+  // des lignes, seulement leur affichage.
+  const hidden = rows.length - COLLAPSED_COUNT
+  const visible = expanded ? rows : rows.slice(0, COLLAPSED_COUNT)
+
+  const toggle =
+    hidden > 0 ? (
+      <button type="button" className="timeline-toggle" onClick={() => setExpanded((v) => !v)}>
+        {expanded ? 'Show less' : `Show ${hidden} more`}
+      </button>
+    ) : null
+
   if (!animate) {
     return (
-      <ul className="timeline" aria-label="Your movements">
-        {rows.map((movement) => (
-          <li key={movement.id}>
-            <Row movement={movement} />
-          </li>
-        ))}
-      </ul>
+      <>
+        <ul className="timeline" aria-label="Your movements">
+          {visible.map((movement) => (
+            <li key={movement.id}>
+              <Row movement={movement} btcSpotUsd={btcSpotUsd} />
+            </li>
+          ))}
+        </ul>
+        {toggle}
+      </>
     )
   }
 
   return (
-    <motion.ul
-      className="timeline"
-      aria-label="Your movements"
-      initial="hidden"
-      animate="show"
-      variants={listVariants}
-    >
-      {rows.map((movement) => (
-        <motion.li key={movement.id} variants={itemVariants}>
-          <Row movement={movement} />
-        </motion.li>
-      ))}
-    </motion.ul>
+    <>
+      <motion.ul
+        className="timeline"
+        aria-label="Your movements"
+        initial="hidden"
+        animate="show"
+        variants={listVariants}
+      >
+        {visible.map((movement) => (
+          <motion.li key={movement.id} variants={itemVariants}>
+            <Row movement={movement} btcSpotUsd={btcSpotUsd} />
+          </motion.li>
+        ))}
+      </motion.ul>
+      {toggle}
+    </>
   )
 }

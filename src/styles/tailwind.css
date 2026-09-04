@@ -44,10 +44,10 @@
    */
 
   /* ── Text hierarchy (Hearst semantic) ────────────────────────────────────── */
-  --color-fg: #f3f5f2;
-  --color-fg-secondary: #a8aea9;
-  --color-fg-tertiary: #737a75;
-  --color-fg-muted: #5c635e;
+  --color-fg: #f2f2f2;
+  --color-fg-secondary: #a9a9a9;
+  --color-fg-tertiary: #6f6f6f;
+  --color-fg-muted: #565656;
   /* Encre sombre — texte / filets sur surfaces claires (Catalyst light branch). */
   --color-ink: #0b0f10;
 
@@ -57,27 +57,36 @@
    * Les KPI du header `/admin` sont du texte dans le bandeau, pas des boxes.
    * Un fond lumineux (PNG) derrière le shell doit transparaître.
    */
-  --color-console-app: #0b0f10;
-  --color-console-shell: #060908;
-  --color-console-surface: #151b1b;
-  --color-console-raised: #232a26;
-  --color-console-fill: #39413b;
-  --color-console-fill-muted: #292f2b;
-  /* Face vitrée des boxes — translucide pour laisser passer le glow. */
-  --color-console-card: rgba(0, 0, 0, 0.28);
-  --color-console-card-top: rgba(10, 10, 10, 0.38);
-  --color-console-inset: rgba(10, 10, 10, 0.4);
+  /* ── PASSE UI 2026-09 : gris NEUTRES, surfaces OPAQUES ────────────────────
+   * Aligné sur les écrans Hearst d'origine et sur `/account`. Deux ruptures
+   * assumées avec l'état précédent :
+   *   1. Plus de teinte olive : les neutres sont strictement gris. Un gris
+   *      verdi lisait comme un accident à côté du mint de marque.
+   *   2. Les boxes ne sont plus en VERRE. Le halo mint traversait chaque
+   *      surface et délavait la hiérarchie ; les maquettes posent des aplats.
+   * Hiérarchie : rail (#0a0a0a) < page (#1a1a1a) < carte (#212121) < relevé.
+   */
+  --color-console-app: #1a1a1a;
+  --color-console-shell: #0a0a0a;
+  --color-console-surface: #212121;
+  --color-console-raised: #292929;
+  --color-console-fill: #333333;
+  --color-console-fill-muted: #262626;
+  /* Face des boxes — opaque désormais, plus de verre translucide. */
+  --color-console-card: #212121;
+  --color-console-card-top: #262626;
+  --color-console-inset: #161616;
   /* Retirés PASS 1 (2026-08-09) : console-main, console-kpi, console-section —
    * déclarés sans aucun consommateur runtime / test / gate. */
 
   /* Menu / rail — verre plus dense pour rester lisible et cliquable. */
-  --color-console-glass: rgba(0, 0, 0, 0.72);
+  --color-console-glass: #0a0a0a;
 
   /* Separators. Three weights, all pure white at low alpha — a tinted border
    * is the fastest way to smuggle a colour cast back into a neutral system. */
-  --color-console-line-soft: rgba(255, 255, 255, 0.08);
-  --color-console-line: rgba(255, 255, 255, 0.13);
-  --color-console-line-strong: rgba(255, 255, 255, 0.18);
+  --color-console-line-soft: rgba(255, 255, 255, 0.05);
+  --color-console-line: rgba(255, 255, 255, 0.07);
+  --color-console-line-strong: rgba(255, 255, 255, 0.12);
 
   /* Voile de sélection (parcours, etc.) — mint de marque, très léger. */
   --color-accent-soft: rgba(167, 251, 144, 0.1);

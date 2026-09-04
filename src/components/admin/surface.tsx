@@ -2,15 +2,16 @@
  * Design system surfaces — canonical Hearst Connect material.
  *
  * ── PASS 2 architecture ───────────────────────────────────────────────────
- * ONE box material: `surfaceBox` (`console-card` glass).
+ * ONE box material: `surfaceBox` (`console-card`, OPAQUE depuis la passe UI
+ * 2026-09 : le verre laissait le halo mint délaver chaque surface).
  * Components (`Panel`, `DashCard`, tooltips…) COMPOSE this material.
  * They do not redeclare a second glass via a CSS module (`.panel` / csl).
  *
  * Other materials = DISTINCT roles, not duplicate boxes:
  * | Token class     | Material                             | Usage                       |
  * |-----------------|--------------------------------------|-----------------------------|
- * | `surfaceBox`    | `console-card` glass + blur          | Panel, DashCard, tooltips   |
- * | `surfaceNav`    | `console-glass` glass + blur         | Menu / rail                 |
+ * | `surfaceBox`    | `console-card` opaque                | Panel, DashCard, tooltips   |
+ * | `surfaceNav`    | `console-glass` opaque               | Menu / rail                 |
  * | `surfaceInset`  | `console-inset` (denser well)        | pre, wells, sub-blocks      |
  * | `surfaceSelect` | mint veil `data-selected:`           | journey selection           |
  *
@@ -19,17 +20,15 @@
 
 /** Box — glass face (transparency + depth). The single box material. */
 export const surfaceBox =
-  'rounded-xl bg-console-card shadow-xs ring-1 ring-console-line backdrop-blur-xl backdrop-saturate-150'
+  'rounded-xl bg-console-card ring-1 ring-console-line'
 
 /**
  * Menu / rail — same glass family, `console-glass` token (slightly denser).
  */
-export const surfaceNav =
-  'bg-console-glass backdrop-blur-xl backdrop-saturate-150 ring-1 ring-console-line-soft'
+export const surfaceNav = 'bg-console-glass ring-1 ring-console-line-soft'
 
 /** Recessed sub-surface (code, forms, metadata) — one notch denser. */
-export const surfaceInset =
-  'rounded-lg bg-console-inset ring-1 ring-console-line-soft backdrop-blur-md'
+export const surfaceInset = 'rounded-lg bg-console-inset ring-1 ring-console-line-soft'
 
 /** Selection — mint veil (`data-selected` Headless UI state / journey). */
 export const surfaceSelect =
