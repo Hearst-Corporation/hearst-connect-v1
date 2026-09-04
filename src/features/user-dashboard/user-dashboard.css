@@ -107,7 +107,7 @@
   min-height: 100dvh;
   margin: 0;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 170px minmax(0, 1fr);
   align-items: stretch;
   background: var(--ud-page);
   /* NB: the glass blur is applied via Tailwind utilities on the element
@@ -140,23 +140,20 @@
 }
 
 .ud-root .rail-brand { top: 0; }
-.ud-root .rail-nav { top: 75px; }
+.ud-root .rail-nav { top: 89px; }
 .ud-root .rail-support { position: static; }
 
-/* Bande de marque à la HAUTEUR de la topbar, filet compris : le trait de
-   séparation traverse ainsi tout l'écran, rail et contenu alignés. */
-/* 10px au-dessus et en dessous du logo : la bande fait donc 44px de contenu,
-   portée à 64px pour rester alignée sur la topbar et la nav — le filet doit
-   traverser l'écran sans décrochement. */
-/* L'asset du lockup porte sa propre marge basse : centré à la règle, il paraît
-   collé en haut. D'où un padding haut plus généreux que le bas — c'est
-   l'équilibre VU qui compte, pas la symétrie du cadre. La bande reste alignée
-   sur la topbar et la nav, sans quoi le filet se briserait au raccord. */
+/* Bande de marque alignée sur la topbar et la nav (74px) : le filet doit
+   traverser l'écran sans décrochement.
+   `height` et non `min-height` : le logo mesure 40px, un padding trop généreux
+   étirait la bande au-delà de 74 et brisait le raccord. Le padding haut reste
+   plus grand que le bas — l'asset du lockup porte sa propre marge basse, donc
+   un centrage strict le fait paraître collé en haut. */
 .ud-root .rail-brand {
   display: flex;
   align-items: center;
-  min-height: 74px;
-  padding: 24px 20px 14px;
+  height: 88px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--ud-line);
 }
 
@@ -234,7 +231,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 74px;
+  min-height: 88px;
   padding: 0 var(--space);
   border-bottom: 1px solid var(--ud-line);
 }
@@ -282,7 +279,7 @@
 
 .ud-root .nav {
   flex: 0 0 auto;
-  min-height: 74px;
+  min-height: 88px;
   padding: 0 var(--space);
   display: grid;
   grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
@@ -1190,7 +1187,7 @@
 }
 
 .ud-root .movements-heading {
-  min-height: 74px;
+  min-height: 88px;
   padding: var(--ud-pad-card);
   display: flex;
   align-items: center;
