@@ -89,13 +89,23 @@ export function authSecret(): string | null {
 }
 
 /**
- * Dev quick-login credentials — LOCAL DEV ONLY. Returns null in production
- * or when unset. Never logged. The real owner password is never read here
- * (doctrine §7): these are a dedicated dev-only pair, distinct from the real
- * owner account (guard verified by tests/auth-doctrine.test.ts).
+ * Dev quick-login credentials — LOCAL DEV AND PREVIEW ONLY. Returns null on
+ * the production deployment or when unset. Never logged. The real owner
+ * password is never read here (doctrine §7): these are a dedicated dev-only
+ * pair, distinct from the real owner account.
+ *
+ * Le garde-fou tient sur le PROJET, via `DEMO_BACKEND` — pas sur l'environnement.
+ * Ni `NODE_ENV` ni `VERCEL_ENV` ne conviennent : Vercel construit tout en
+ * production, previews comprises, et le déploiement de démo est lui-même une
+ * production sur son propre projet. Seul un drapeau explicite distingue une
+ * instance de démonstration du site de l'équipe, qui ne le définit nulle part.
  */
 export function devQuickLogin(): { email: string; password: string } | null {
-  if (process.env.NODE_ENV === 'production') return null
+  const isDemo = process.env.DEMO_BACKEND === '1'
+  if (!isDemo && process.env.VERCEL_ENV === 'production') return null
+  if (!isDemo && process.env.VERCEL_ENV === undefined && process.env.NODE_ENV === 'production') {
+    return null
+  }
   const email = process.env.DEV_QUICK_LOGIN_EMAIL?.trim()
   const password = process.env.DEV_QUICK_LOGIN_PASSWORD?.trim()
   if (!email || !password) return null

@@ -4,13 +4,16 @@ import { useState, type ReactNode } from 'react'
 import './user-dashboard.css'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import {
+  ArrowsRightLeftIcon,
   BanknotesIcon,
+  HomeIcon,
+  QuestionMarkCircleIcon,
   BeakerIcon,
   CalendarDaysIcon,
   ChartPieIcon,
   CircleStackIcon,
+  CpuChipIcon,
   CurrencyDollarIcon,
-  LockClosedIcon,
   PresentationChartLineIcon,
   ScaleIcon,
   SignalIcon,
@@ -27,8 +30,7 @@ import {
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
 import { logout } from '@/lib/actions'
-import { CONSOLE_GLOW_SRC, HEARST_H_SRC, consoleGlowLayer } from '@/lib/brand'
-import { formatDateTime, formatNumber, formatPercent } from '@/lib/format'
+import { formatDateTime, formatNumber, formatPercent, formatDate} from '@/lib/format'
 import { readableSourceStateCap } from '@/lib/movements'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
 import type { SessionUser } from '@/lib/session'
@@ -37,8 +39,10 @@ import { StatTile, deltaOf } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
 import { BtcContextFlank } from './btc-context-flank'
 import { MovementTimeline } from './movement-timeline'
-import { CapacityMeter } from './capacity-meter'
 import type { UserDashboard } from './load'
+import { HearstConnectLockupImage } from '@/components/logo'
+import { DepositForm } from './deposit-form'
+import { BtcPositionHeadline } from './btc-position'
 
 /**
  * Account command center — session-scoped premium composition.
@@ -118,6 +122,19 @@ function TermRow({
   )
 }
 
+/**
+ * Ce que produit chaque poche, en une ligne.
+ *
+ * Éditorial : le factsheet expose des libellés et des pourcentages, pas de
+ * description. Clé = le libellé exact renvoyé par la source ; une poche absente
+ * de cette table n'affiche pas de ligne, plutôt qu'un texte vague.
+ */
+const POCKET_BRIEF: Record<string, string> = {
+  'Basis carry': 'Écart entre spot et futures, couvert — rendement sans pari directionnel',
+  'RWA T-bills': "Bons du Trésor tokenisés — la poche défensive de l'allocation",
+  'Mining alpha': 'Bitcoin produit par notre propre infrastructure de minage',
+}
+
 export function UserDashboardView({
   data,
   user,
@@ -172,12 +189,23 @@ export function UserDashboardView({
     'Allocation terms did not resolve.',
   )
 
-  const latestBtc = btcPoints !== null && btcPoints.length > 0 ? btcPoints[btcPoints.length - 1].value : null
   const vaultAum = valuePoints !== null && valuePoints.length > 0 ? valuePoints[valuePoints.length - 1].value : null
   const positionAbsent = investorPositionAbsent(data)
   const positionValue = valueOf(data.positionValue)
   const positionPrincipal = valueOf(data.positionPrincipal)
   const positionAccrued = valueOf(data.positionAccrued)
+
+  // Contrevaleur BTC des montants du book, au spot. Le produit se vend en
+  // bitcoin : chaque montant en dollars gagne sa lecture dans l'unité du
+  // client. Dérivée, jamais un solde détenu — d'où la ligne secondaire et non
+  // une seconde valeur de tuile. Sans cours lisible, rien ne s'affiche : mieux
+  // vaut une tuile en dollars seuls qu'un montant BTC bâti sur un taux supposé.
+  const btcProduced = valueOf(data.btcProducedTotal)
+  const btcSpotUsd = valueOf(data.marketSnapshot)?.btcUsd ?? null
+  const btcAside = (usdc: number | null): string | null =>
+    usdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
+      ? `≈ ${(usdc / btcSpotUsd).toFixed(4)} BTC`
+      : null
   const positionStatus = valueOf(data.positionStatus)
   const positionSubscribedAt = valueOf(data.positionSubscribedAt)
   const navPerShare = valueOf(data.navPerShare)
@@ -185,7 +213,6 @@ export function UserDashboardView({
   const availableCapacity = valueOf(data.availableCapacity)
   const minimumDeposit = valueOf(data.minimumDeposit)
 
-  const btcTrend = btcPoints !== null ? btcPoints.map((p) => p.value) : undefined
 
   const centralChart: Record<
     CentralView,
@@ -245,53 +272,73 @@ export function UserDashboardView({
   return (
     <MotionConfig reducedMotion="user">
       <div className="ud-root">
-        {/* Shared Hearst glow behind the glass — same material as /admin. z-0,
-            never above the shell. The shell's translucent glass lets it show. */}
-        <div
-          aria-hidden="true"
-          className={consoleGlowLayer}
-          style={{ backgroundImage: `url('${CONSOLE_GLOW_SRC}')` }}
-        />
+        {/* Pas de couche de halo ici : les maquettes /account posent des gris
+            neutres et opaques. Le glow mint reste le matériau de /admin, où le
+            shell est en verre. */}
         <main className="page">
-          <div className="shell backdrop-blur-xl backdrop-saturate-150">
-            <header className="nav">
-              <div className="brand">
-                <img className="brand-mark" src={HEARST_H_SRC} alt="" width={28} height={28} />
-                <span className="brand-name">Hearst</span>
+          <div className="shell">
+            {/* Rail latéral — structure des maquettes Hearst : marque en haut,
+                navigation au centre, support en pied. Le rail est opaque : il
+                ancre l'écran, le contenu à droite porte le verre. */}
+            <aside className="rail" aria-label="Account sections">
+              <div className="rail-brand">
+                <HearstConnectLockupImage className="h-10 w-auto" />
               </div>
-              <nav className="nav-links" aria-label="Main navigation">
-                {(['dashboard', 'trade'] as Route[]).map((r) => (
+
+              <nav className="rail-nav">
+                {(
+                  [
+                    ['dashboard', 'Home', HomeIcon],
+                    ['trade', 'Trade', ArrowsRightLeftIcon],
+                  ] as const
+                ).map(([r, label, Icon]) => (
                   <button
                     key={r}
-                    className={route === r ? 'active' : undefined}
-                    onClick={() => setRoute(r)}
                     type="button"
+                    className={route === r ? 'rail-item active' : 'rail-item'}
+                    aria-current={route === r ? 'page' : undefined}
+                    onClick={() => setRoute(r as Route)}
                   >
-                    {route === r ? <motion.span layoutId="ud-nav-pill" className="nav-pill" aria-hidden="true" /> : null}
-                    <span className="nav-inner">{r === 'dashboard' ? 'Dashboard' : 'Trade'}</span>
+                    <Icon className="size-4" aria-hidden="true" />
+                    <span>{label}</span>
                   </button>
                 ))}
               </nav>
-              <div className="account-state">
-                <i data-signal={signalOf(data.positionValue)} />
-                <span className="sync-label">
-                  {isAvailable(data.positionValue) ? 'Position live' : positionAbsent ? 'No investor position' : 'Position offline'}
-                </span>
-                <span className="avatar" title={user.email} aria-label={user.name}>
-                  {initials || 'HC'}
-                </span>
-                <button
-                  type="button"
-                  className="sign-out"
-                  onClick={() => {
-                    void logout()
-                  }}
-                >
-                  <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
-                  <span>Sign out</span>
-                </button>
-              </div>
-            </header>
+
+              <a
+                className="rail-support"
+                href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20support"
+              >
+                <QuestionMarkCircleIcon className="size-4" aria-hidden="true" />
+                <span>Support</span>
+              </a>
+            </aside>
+
+            <div className="content">
+              <header className="topbar">
+                <div className="account-state">
+                  <i data-signal={signalOf(data.positionValue)} />
+                  <span className="sync-label">
+                    {isAvailable(data.positionValue) ? 'Position live' : positionAbsent ? 'No investor position' : 'Position offline'}
+                  </span>
+                </div>
+                <div className="topbar-user">
+                  <span className="avatar" title={user.email} aria-label={user.name}>
+                    {initials || 'HC'}
+                  </span>
+                  <span className="topbar-name">{user.name}</span>
+                  <button
+                    type="button"
+                    className="sign-out"
+                    onClick={() => {
+                      void logout()
+                    }}
+                  >
+                    <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
+                    <span>Sign out</span>
+                  </button>
+                </div>
+              </header>
 
             {isDashboard ? (
             <div className="dashboard-view">
@@ -302,22 +349,16 @@ export function UserDashboardView({
 
               <section className="your-position" aria-label="Your position">
                 <div className="section-heading position-heading">
-                  <div>
+                  <div className="position-heading-text">
                     <p className="eyebrow">Your position</p>
-                    <h2>Book position</h2>
-                    <span>Your on-book principal, accrued yield and subscription record — not vault AUM</span>
+                    <h2>Bitcoin position</h2>
+                    {/* Pas de sous-titre : « Bitcoin position » se suffit, et la
+                        jauge annonce elle-même la comparaison au HODL. */}
                   </div>
-                  <button
-                    type="button"
-                    className="position-deposit-cta"
-                    disabled
-                    title="On-chain deposit is not wired in this app yet — no POST /api/v1/me/deposits consumer."
-                  >
-                    Deposit
-                  </button>
-                  <p className="mt-2 text-xs text-fg-tertiary">
-                    On-chain deposit flow is not available in this release.
-                  </p>
+                  <DepositForm
+                    minimumUsdc={minimumDeposit}
+                    capacityUsdc={availableCapacity}
+                  />
                 </div>
                 {positionAbsent ? (
                   <div className="position-absent">
@@ -330,24 +371,35 @@ export function UserDashboardView({
                     </div>
                   </div>
                 ) : null}
+
+                <BtcPositionHeadline
+                  positionBtc={data.positionBtc}
+                  positionUsdc={positionValue}
+                  accruedBtc={data.accruedBtc}
+                  vsHodl={data.btcVsHodl}
+                />
+
                 <div className="position-grid">
                   <StatTile
                     icon={ScaleIcon}
                     label="Principal"
                     value={formatUsdc(positionPrincipal)}
                     signal={signalOf(data.positionPrincipal)}
+                    footnote={btcAside(positionPrincipal)}
                   />
                   <StatTile
                     icon={ChartPieIcon}
                     label="Accrued"
                     value={formatUsdc(positionAccrued)}
                     signal={signalOf(data.positionAccrued)}
+                    footnote={btcAside(positionAccrued)}
                   />
                   <StatTile
                     icon={BanknotesIcon}
                     label="Position value"
                     value={formatUsdc(positionValue)}
                     signal={signalOf(data.positionValue)}
+                    footnote={btcAside(positionValue)}
                   />
                   <StatTile
                     icon={SignalIcon}
@@ -358,37 +410,8 @@ export function UserDashboardView({
                   <StatTile
                     icon={CalendarDaysIcon}
                     label="Subscribed at"
-                    value={positionSubscribedAt !== null ? formatDateTime(positionSubscribedAt) : '—'}
+                    value={positionSubscribedAt !== null ? formatDate(positionSubscribedAt) : '—'}
                     signal={signalOf(data.positionSubscribedAt)}
-                  />
-                </div>
-              </section>
-
-              <section className="your-account" aria-label="Your account">
-                <div className="section-heading">
-                  <p className="eyebrow">Your account</p>
-                  <h2>Capital activity</h2>
-                  <span>Your verified deposits, distributions and movements only</span>
-                </div>
-                <div className="your-account-body">
-                  <section className="movements" aria-label="Your movements">
-                    <div className="movements-heading">
-                      <div>
-                        <h3>Your movements</h3>
-                      </div>
-                      <span>
-                        Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
-                      </span>
-                    </div>
-                    <MovementTimeline availability={data.activity} />
-                  </section>
-                  <BreakdownFlank
-                    title="Your activity mix"
-                    hint="Your movements by type"
-                    icon={Squares2X2Icon}
-                    availability={data.activityByType}
-                    kind="count"
-                    unit="events"
                   />
                 </div>
               </section>
@@ -414,26 +437,50 @@ export function UserDashboardView({
                     label="Fund utilization"
                     value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
                     signal={signalOf(data.utilizationPct)}
+                    meter={utilization !== null ? utilization / 100 : null}
+                    footnote={
+                      utilization !== null
+                        ? `${formatPercent(utilization, { maximumFractionDigits: 1 })} of the cap`
+                        : null
+                    }
                   />
                   <StatTile
                     icon={CircleStackIcon}
                     label="Fund capacity left"
                     value={formatUsdc(availableCapacity)}
                     signal={signalOf(data.availableCapacity)}
+                    meter={utilization !== null ? 1 - utilization / 100 : null}
+                    footnote={
+                      utilization !== null
+                        ? `${formatPercent(100 - utilization, { maximumFractionDigits: 1 })} still free`
+                        : null
+                    }
                   />
                   <StatTile
                     icon={ScaleIcon}
                     label="NAV / share"
                     value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
                     signal={signalOf(data.navPerShare)}
+                    footnote={
+                      navPerShare !== null
+                        ? `${formatPercent((navPerShare - 1) * 100, { maximumFractionDigits: 2, signed: true })} vs par`
+                        : null
+                    }
                   />
+                  {/* Pas le cours du BTC : le flanc « BTC context » le porte déjà,
+                      avec sa courbe. Ici, le bitcoin que l'infrastructure a
+                      réellement produit — le chiffre que la promesse engage.
+                      C'est une mesure FOND, pas la part de ce client : la source
+                      (`/api/v1/btc`) n'expose aucune ventilation par
+                      souscripteur. Le libellé le dit, et la section entière est
+                      annoncée « fund-wide » — sans quoi le client lirait 3 BTC
+                      comme les siens. */}
                   <StatTile
-                    icon={CurrencyDollarIcon}
-                    label="BTC price"
-                    value={latestBtc !== null ? formatNumber(latestBtc, { maximumFractionDigits: 0 }) : '—'}
-                    signal={signalOf(data.btcSeries)}
-                    trend={btcTrend}
-                    delta={deltaOf(btcPoints)}
+                    icon={CpuChipIcon}
+                    label="BTC produced"
+                    value={btcProduced !== null ? `${formatNumber(btcProduced, { maximumFractionDigits: 3 })} BTC` : '—'}
+                    signal={signalOf(data.btcProducedTotal)}
+                    footnote={btcProduced !== null ? 'fund-wide, since inception' : null}
                   />
                 </section>
 
@@ -449,7 +496,7 @@ export function UserDashboardView({
                   />
 
                   <div className="center">
-                    <div className="center-panel backdrop-blur-xl backdrop-saturate-150">
+                    <div className="center-panel">
                       <div className="chart-switch" role="group" aria-label="Fund chart">
                         {CENTRAL_VIEWS.map((view) => {
                           const Icon = view.icon
@@ -508,7 +555,11 @@ export function UserDashboardView({
                   />
                 </section>
 
-                <section className="exposure-cap" aria-label="Strategy exposure and capacity">
+                {/* Panneau unique : « Fund capacity » doublonnait le bandeau du
+                    dessus (Fund utilization + capacity left). L'espace revient à
+                    l'exposition, qui a des poches à détailler. Le minimum de
+                    dépôt, lui, n'existait qu'ici — il reste en pied. */}
+                <section className="exposure-cap" aria-label="Strategy exposure">
                   <div className="ec-panel">
                     <div className="ec-heading">
                       <h2>
@@ -519,7 +570,11 @@ export function UserDashboardView({
                     </div>
                     <div className="ec-body">
                       {exposureState.type === 'plotted' && exposurePockets !== null ? (
-                        <HearstExposureRadial items={[...exposurePockets]} />
+                        <HearstExposureRadial
+                          items={[...exposurePockets]}
+                          aumUsdc={valueOf(data.vaultAum)}
+                          briefs={POCKET_BRIEF}
+                        />
                       ) : (
                         <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
                           <span className="empty-mark" />
@@ -528,26 +583,36 @@ export function UserDashboardView({
                       )}
                     </div>
                   </div>
-                  <div className="ec-panel">
-                    <div className="ec-heading">
-                      <h2>
-                        <SignalIcon className="size-4" aria-hidden="true" />
-                        Fund capacity
-                      </h2>
-                      <span>Utilization toward the vault cap</span>
-                    </div>
-                    <div className="ec-body ec-body--meter">
-                      <CapacityMeter utilization={data.utilizationPct} capacity={data.availableCapacity} />
-                    </div>
-                    <div className="ec-terms">
-                      <TermRow
-                        icon={LockClosedIcon}
-                        label="Minimum deposit"
-                        value={minimumDeposit !== null ? `${formatNumber(minimumDeposit, { maximumFractionDigits: 0 })} USDC` : '—'}
-                      />
-                    </div>
-                  </div>
                 </section>
+              </section>
+
+              <section className="your-account" aria-label="Your account">
+                <div className="section-heading">
+                  <p className="eyebrow">Your account</p>
+                  <h2>Capital activity</h2>
+                  <span>Your verified deposits, distributions and movements only</span>
+                </div>
+                <div className="your-account-body">
+                  <section className="movements" aria-label="Your movements">
+                    <div className="movements-heading">
+                      <div>
+                        <h3>Your movements</h3>
+                      </div>
+                      <span>
+                        Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
+                      </span>
+                    </div>
+                    <MovementTimeline availability={data.activity} btcSpotUsd={btcSpotUsd} />
+                  </section>
+                  <BreakdownFlank
+                    title="Your activity mix"
+                    hint="Your movements by type"
+                    icon={Squares2X2Icon}
+                    availability={data.activityByType}
+                    kind="count"
+                    unit="events"
+                  />
+                </div>
               </section>
             </div>
             ) : null}
@@ -564,6 +629,7 @@ export function UserDashboardView({
               </div>
             </section>
             ) : null}
+            </div>
           </div>
         </main>
       </div>

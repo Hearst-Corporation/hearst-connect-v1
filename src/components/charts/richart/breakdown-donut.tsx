@@ -125,7 +125,7 @@ export function HearstBreakdownDonut({
         </div>
       </div>
 
-      <ul className="mt-3 flex flex-col gap-1.5">
+      <ul className="mt-5 flex flex-col gap-1.5">
         {ranked.map((s, index) => (
           <li key={`${s.label}-${index}`} className="flex items-center gap-2.5 text-xs text-fg-secondary">
             <span

@@ -191,7 +191,7 @@ export function Series1EventExplorer({
         // inside, header sticks (the Catalyst overflow div IS the scroll
         // container, so `sticky` on the header cells holds).
         <AdminTable className="h-[420px] overflow-y-auto scrollbar-none [&_table]:min-w-[40rem]">
-          <TableHead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-console-inset [&_th]:backdrop-blur-xl">
+          <TableHead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-console-inset">
             <TableRow>
               <TableHeader className={tableCol.primary}>Event</TableHeader>
               <TableHeader className={tableCol.numeric}>Amount</TableHeader>

@@ -1,6 +1,7 @@
 import { DashCard, PanelHeaderLink, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { DashboardHeader } from '@/components/admin/dashboard'
+import { BtcReserveBalance, type ReserveBalance } from '@/components/admin/btc-reserve-balance'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { HearstCurveChart, ReserveExposureChart, type BitcoinItem } from '@/components/charts'
@@ -37,14 +38,14 @@ type Resolved<T> = { readonly status: string; readonly value: T | null; readonly
 
 type Mining = {
   readonly hashrate?: Resolved<{ reportedHashrateTh: string; totalBtcEarnedSats: string }>
-  readonly electricity?: Resolved<{ monthlyCost: string }>
+  readonly electricity?: Resolved<{ monthlyCost: string; totalPaid?: string }>
   readonly operationalTelemetry?: Resolved<unknown>
 }
 
 type Btc = {
   readonly reserve?: Resolved<{ balanceUsdc: string | null }>
   readonly exposure?: Resolved<{ valueUsdc: string | null; pouch: string | null }>
-  readonly btcProduced?: Resolved<{ totalSats: string }>
+  readonly btcProduced?: Resolved<{ totalSats: string; currentPriceUsdc?: string }>
   readonly attribution?: Resolved<unknown>
 }
 
@@ -67,6 +68,47 @@ function btcProducedFrom(totalSats: string | null | undefined): string | null {
 }
 
 type ReserveItem = { readonly item: string; readonly amount: number }
+
+/**
+ * Bilan de la réserve : ce qui est produit, ce qui en reste.
+ *
+ * `retainedSats` vaut 0 tant qu'aucun endpoint ne publie de solde de réserve
+ * BTC — c'est une lecture du système tel qu'il est (tout le miné est vendu),
+ * pas une absence de source. `btc.reserve.balanceUsdc` ne convient pas : c'est
+ * une réserve en dollars, pas en bitcoin.
+ *
+ * Les montants d'électricité arrivent en MICRO-dollars, comme partout ailleurs
+ * sur cette page (`fromAtomic: 1_000_000`) — d'où la division avant comparaison
+ * au dollar du BTC produit.
+ */
+const MICRO_USD = 1_000_000
+
+function reserveBalanceFrom(
+  totalSats: string | null | undefined,
+  spotUsdc: string | null | undefined,
+  electricityTotalMicroUsd: string | null | undefined,
+): ReserveBalance | null {
+  if (totalSats === undefined || totalSats === null) return null
+  const producedSats = Number(totalSats)
+  if (!Number.isFinite(producedSats) || producedSats < 0) return null
+
+  const spot = spotUsdc === undefined || spotUsdc === null ? null : Number(spotUsdc)
+  const producedUsd =
+    spot !== null && Number.isFinite(spot) && spot > 0
+      ? (producedSats / 100_000_000) * spot
+      : null
+
+  const paidMicro =
+    electricityTotalMicroUsd === undefined || electricityTotalMicroUsd === null
+      ? null
+      : Number(electricityTotalMicroUsd)
+  const electricityUsd =
+    paidMicro !== null && Number.isFinite(paidMicro) && paidMicro >= 0
+      ? paidMicro / MICRO_USD
+      : null
+
+  return { producedSats, retainedSats: 0, producedUsd, electricityUsd }
+}
 
 function reserveExposureItems(
   reserveUsdc: string | null | undefined,
@@ -341,6 +383,12 @@ export default async function Page() {
   const hashrate = m?.hashrate?.value
   const btcProduced = btcProducedFrom(b?.btcProduced?.value?.totalSats)
 
+  const reserveBalance = reserveBalanceFrom(
+    b?.btcProduced?.value?.totalSats,
+    b?.btcProduced?.value?.currentPriceUsdc,
+    m?.electricity?.value?.totalPaid,
+  )
+
   const items = reserveExposureItems(b?.reserve?.value?.balanceUsdc, b?.exposure?.value?.valueUsdc)
   const soleItem = items.length === 1 ? items[0] : undefined
   const chartItems: readonly BitcoinItem[] = items.map((p) => ({
@@ -409,6 +457,22 @@ export default async function Page() {
           >
             <CapitalReserveSection items={items} soleItem={soleItem} chartItems={chartItems} />
           </ProductPanel>
+        </BentoCard>
+      </BentoGrid>
+
+      {/* Row A-bis — le bilan de la réserve bitcoin.
+          Rangée propre et pleine largeur : c'est la lecture qui juge la promesse
+          du produit, pas une métrique de plus à mettre en regard d'une autre. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            className="min-w-0"
+            title="What happens to the bitcoin we mine?"
+            subtitle="Production, retention and sales — the reserve the product is named after."
+            action={<PanelHeaderLink href="/admin/mining">Open mining</PanelHeaderLink>}
+          >
+            <BtcReserveBalance balance={reserveBalance} />
+          </DashCard>
         </BentoCard>
       </BentoGrid>
 

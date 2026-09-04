@@ -1,23 +1,67 @@
-/*
- * Autonomous user dashboard — styles.
- *
- * Colors and surfaces flow through the ONE Hearst token authority
- * (`src/styles/tailwind.css`, `@theme` → `:root`, always present under the
- * `.dark` root layout). Tokens are referenced bare (`var(--color-…)`), with no
- * local hex fallback: a fallback here only ever encoded a second, drifting copy
- * of a neutral that the token already resolves — never a rendered value. The DS
- * material is shared; the layout below (clamp scale, shell geometry) is the
- * account-specific semantic, not a foundation.
- *
- * The DOCUMENT scrolls as one — no nested scroll container traps the wheel.
- */
-
 .ud-root {
-  --edge: clamp(16px, 2.2vw, 40px);
-  --space: clamp(12px, 1.35vw, 28px);
-  --micro: clamp(10px, 0.7vw, 11px);
-  --small: clamp(11px, 0.8vw, 13px);
-  --body-copy: clamp(12px, 0.9vw, 14px);
+  /* ══ SYSTÈME DE DESIGN /account ═══════════════════════════════════════════
+   * Aligné sur les écrans Hearst d'origine (Mining operations, Transaction
+   * history). Portée LOCALE : les `--color-console-*` globaux, verdis, pilotent
+   * /admin et ne sont pas touchés.
+   *
+   * Deux partis pris repris des maquettes :
+   *   1. Gris NEUTRES, pas de teinte olive.
+   *   2. Valeurs FIXES, pas de `clamp()` : la densité d'un tableau de bord
+   *      institutionnel ne doit pas dériver avec la largeur du viewport.
+   */
+
+  /* ── Vert de marque ───────────────────────────────────────────────────── */
+  --hearst-green: #9eea7a;
+  --hearst-green-ink: #06140a;   /* texte sur aplat vert */
+  --hearst-green-dim: rgba(158, 234, 122, 0.14);
+
+  /* ── Surfaces, du plus sombre au plus clair ───────────────────────────── */
+  --ud-rail: #0a0a0a;            /* barre latérale, quasi noire */
+  --ud-page: #1a1a1a;            /* fond de page */
+  --ud-card: #212121;            /* cartes */
+  --ud-card-raised: #292929;     /* imbriqué : en-têtes, onglets, survol */
+  --ud-inset: #161616;           /* creux : pistes, fonds de graphes */
+
+  /* ── Filets ───────────────────────────────────────────────────────────── */
+  --ud-line: rgba(255, 255, 255, 0.07);
+  --ud-line-strong: rgba(255, 255, 255, 0.12);
+
+  /* ── Texte ────────────────────────────────────────────────────────────── */
+  --ud-fg: #f2f2f2;
+  --ud-fg-2: #a9a9a9;
+  --ud-fg-3: #6f6f6f;
+
+  /* ── Rayons ───────────────────────────────────────────────────────────── */
+  --ud-radius: 12px;
+  --ud-radius-sm: 8px;
+  --ud-radius-pill: 999px;
+
+  /* ── Espacement ───────────────────────────────────────────────────────── */
+  --ud-pad-page: 24px;           /* marge de la colonne de contenu */
+  --ud-pad-card: 20px;           /* marge interne des cartes */
+  --ud-gap: 16px;                /* gouttière entre cartes d'une même grille */
+  --ud-gap-sm: 10px;
+  /* Écart entre les grandes régions de la page. Distinct de `--ud-gap` : ce
+     sont des blocs autonomes posés sur le fond, ils respirent davantage que
+     deux cartes voisines d'une même grille. */
+  --ud-gap-section: 28px;
+
+  /* ── Échelle typographique (fixe) ─────────────────────────────────────── */
+  --ud-t-page: 22px;             /* titre de page */
+  --ud-t-section: 16px;          /* titre de section */
+  --ud-t-card: 14px;             /* titre de carte */
+  --ud-t-body: 13px;
+  --ud-t-label: 12px;
+  --ud-t-micro: 11px;
+  --ud-t-metric: 26px;           /* valeur de KPI */
+  --ud-t-metric-lg: 38px;        /* métrique principale (BTC) */
+
+  /* Alias hérités → tokens du système. Valeurs fixes : plus de dérive fluide. */
+  --edge: 0px;
+  --space: var(--ud-pad-page);
+  --micro: var(--ud-t-micro);
+  --small: var(--ud-t-label);
+  --body-copy: var(--ud-t-body);
 
   /* Shared Hearst material: the app background + mint glow come from the
    * `consoleGlowLayer` (same asset as /admin), mounted as a fixed z-0 layer.
@@ -28,8 +72,8 @@
   z-index: 0;
   width: 100%;
   min-height: 100dvh;
-  color: var(--color-fg);
-  background: var(--color-console-app);
+  color: var(--ud-fg);
+  background: var(--ud-page);
   /* Product typeface only — Satoshi Variable from root layout. */
   font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
@@ -49,7 +93,7 @@
   width: 100%;
   min-height: 100dvh;
   margin: 0;
-  padding: var(--edge);
+  padding: 0;
 }
 
 /*
@@ -60,30 +104,187 @@
  */
 .ud-root .shell {
   width: 100%;
-  min-height: calc(100dvh - (var(--edge) * 2));
+  min-height: 100dvh;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--color-console-line);
-  border-radius: 16px;
-  background: var(--color-console-card);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: stretch;
+  background: var(--ud-page);
   /* NB: the glass blur is applied via Tailwind utilities on the element
    * (`backdrop-blur-xl backdrop-saturate-150`) — the raw `backdrop-filter`
    * property is dropped by the CSS pipeline (Lightning CSS) in this stylesheet,
    * so the utility path (same as admin `surfaceBox`) is the reliable one. */
 }
 
+/* ── Rail latéral ────────────────────────────────────────────────────────── */
+
+.ud-root .rail {
+  /* Collant : le rail reste à l'écran pendant que la page défile. C'est LE
+     RAIL qui colle, jamais ses enfants (ils sortaient du cadre). */
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 18px;
+  border-right: 1px solid var(--ud-line);
+  background: var(--ud-rail);
+}
+
+/* Le bloc marque + nav + support se colle au haut de l'écran pendant que la
+   page défile, sans que le rail lui-même cesse de peindre son fond. */
+.ud-root .rail > * {
+  position: sticky;
+  z-index: 1;
+}
+
+.ud-root .rail-brand { top: 0; }
+.ud-root .rail-nav { top: 89px; }
+.ud-root .rail-support { position: static; }
+
+/* Bande de marque alignée sur la topbar et la nav (74px) : le filet doit
+   traverser l'écran sans décrochement.
+   `height` et non `min-height` : le logo mesure 40px, un padding trop généreux
+   étirait la bande au-delà de 74 et brisait le raccord. Le padding haut reste
+   plus grand que le bas — l'asset du lockup porte sa propre marge basse, donc
+   un centrage strict le fait paraître collé en haut. */
+.ud-root .rail-brand {
+  display: flex;
+  align-items: center;
+  height: 88px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--ud-line);
+}
+
+.ud-root .rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  padding: 22px 12px 0;
+}
+
+.ud-root .rail-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--ud-radius);
+  color: var(--ud-fg-2);
+  background: transparent;
+  font-size: var(--body-copy);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Survol franc, comme la référence : un voile à 4 % se voyait à peine sur le
+   fond noir du rail, et rien ne signalait que l'item répondait. */
+.ud-root .rail-item:hover {
+  color: var(--ud-fg);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Item courant : pastille mint pleine, encre sombre — le repère fort des
+   maquettes. C'est le seul aplat de marque de l'écran. */
+.ud-root .rail-item.active {
+  color: #06110a;
+  background: var(--hearst-green);
+  font-weight: 600;
+}
+
+.ud-root .rail-item.active:hover {
+  background: var(--hearst-green);
+}
+
+.ud-root .rail-support {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--ud-radius);
+  color: var(--hearst-green);
+  font-size: var(--body-copy);
+  text-decoration: none;
+}
+
+.ud-root .rail-support:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Colonne de contenu ──────────────────────────────────────────────────── */
+
+.ud-root .content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Opaque, comme les maquettes : le halo mint ne délave plus les surfaces. */
+  background: var(--ud-page);
+}
+
+.ud-root .topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 88px;
+  padding: 0 var(--space);
+  border-bottom: 1px solid var(--ud-line);
+}
+
+.ud-root .topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ud-root .topbar-name {
+  color: var(--ud-fg);
+  font-size: var(--body-copy);
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+/* Sous 860px le rail passe en bandeau horizontal au-dessus du contenu. */
+@media (max-width: 860px) {
+  .ud-root .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ud-root .rail {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--ud-line);
+  }
+
+  .ud-root .rail-nav {
+    flex-direction: row;
+  }
+
+  .ud-root .rail-brand .brand-name,
+  .ud-root .rail-support span {
+    display: none;
+  }
+}
+
 /* ── Nav ─────────────────────────────────────────────────────────────────── */
 
 .ud-root .nav {
   flex: 0 0 auto;
-  min-height: clamp(58px, 5.2vh, 78px);
+  min-height: 88px;
   padding: 0 var(--space);
   display: grid;
   grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
   align-items: center;
-  border-bottom: 1px solid var(--color-console-line);
+  border-bottom: 1px solid var(--ud-line);
 }
 
 .ud-root .brand,
@@ -94,54 +295,54 @@
 }
 
 .ud-root .brand {
-  gap: clamp(8px, 0.6vw, 12px);
-  font-size: clamp(12px, 0.78vw, 16px);
+  gap: 10px;
+  font-size: var(--ud-t-card);
   font-weight: 650;
 }
 
 .ud-root .brand-mark {
-  width: clamp(27px, 1.8vw, 36px);
-  height: clamp(27px, 1.8vw, 36px);
+  width: 28px;
+  height: 28px;
   display: block;
   object-fit: contain;
   padding: 5px;
-  border: 1px solid var(--color-console-line-strong);
-  border-radius: 8px;
-  background: var(--color-console-raised);
+  border: 1px solid var(--ud-line-strong);
+  border-radius: var(--ud-radius-sm);
+  background: var(--ud-card-raised);
 }
 
 .ud-root .nav-links {
-  height: clamp(36px, 3vw, 46px);
+  height: 43px;
   justify-self: center;
   padding: 4px;
   gap: 3px;
-  border: 1px solid var(--color-console-line);
-  border-radius: 12px;
-  background: var(--color-console-shell);
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: var(--ud-rail);
 }
 
 .ud-root .nav-links button {
-  padding: clamp(6px, 0.55vw, 10px) clamp(12px, 1vw, 20px);
+  padding: 9px 17px;
   position: relative;
   isolation: isolate;
   border: 0;
-  border-radius: 8px;
-  color: var(--color-fg-tertiary);
+  border-radius: var(--ud-radius-sm);
+  color: var(--ud-fg-3);
   background: transparent;
   font-size: var(--small);
   cursor: pointer;
 }
 
 .ud-root .nav-links button.active {
-  color: var(--color-fg);
+  color: var(--ud-fg);
 }
 
 .ud-root .nav-pill {
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 8px;
-  background: var(--color-console-raised);
+  border-radius: var(--ud-radius-sm);
+  background: var(--ud-card-raised);
 }
 
 .ud-root .nav-inner {
@@ -151,8 +352,8 @@
 
 .ud-root .account-state {
   justify-self: end;
-  gap: clamp(10px, 0.8vw, 16px);
-  color: var(--color-fg-secondary);
+  gap: 12px;
+  color: var(--ud-fg-2);
   font-size: var(--micro);
 }
 
@@ -160,26 +361,26 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-fg-muted);
+  background: var(--ud-fg-3);
 }
 
 .ud-root .account-state i[data-signal='live'] {
-  background: var(--color-accent-400);
+  background: var(--hearst-green);
 }
 
 .ud-root .account-state i[data-signal='stale'] {
-  background: var(--color-fg-secondary);
+  background: var(--ud-fg-2);
 }
 
 .ud-root .avatar {
-  width: clamp(30px, 2vw, 40px);
-  height: clamp(30px, 2vw, 40px);
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--color-console-line-strong);
+  border: 1px solid var(--ud-line-strong);
   border-radius: 50%;
-  color: var(--color-fg);
-  background: var(--color-console-raised);
+  color: var(--ud-fg);
+  background: var(--ud-card-raised);
   font-size: var(--micro);
   letter-spacing: 0.04em;
 }
@@ -190,98 +391,99 @@
   gap: 6px;
   margin: 0;
   padding: 6px 10px;
-  border: 1px solid var(--color-console-line);
-  border-radius: 999px;
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius-pill);
   background: transparent;
-  color: var(--color-fg-secondary);
+  color: var(--ud-fg-2);
   font: inherit;
   font-size: var(--micro);
   cursor: pointer;
 }
 
 .ud-root .sign-out:hover {
-  color: var(--color-fg);
-  border-color: var(--color-console-line-strong);
+  color: var(--ud-fg);
+  border-color: var(--ud-line-strong);
 }
 
 /* ── Page intro ──────────────────────────────────────────────────────────── */
 
 .ud-root .page-intro {
-  padding: clamp(16px, 1.5vw, 26px) var(--space);
-  border-bottom: 1px solid var(--color-console-line);
+  padding: 4px 0 2px;
+  border-bottom: 1px solid var(--ud-line);
 }
 
 .ud-root .section-heading {
-  padding: clamp(14px, 1.4vw, 22px) var(--space) clamp(10px, 1vw, 14px);
-  border-bottom: 1px solid var(--color-console-line-soft);
+  padding: var(--ud-pad-card);
+}
+
+/* Le filet appartient à l'en-tête SAUF pour la position : le bandeau BTC qui
+   la suit porte déjà son propre trait haut. */
+.ud-root .section-heading:not(.position-heading) {
+  border-bottom: 1px solid var(--ud-line);
 }
 
 .ud-root .section-heading h2 {
   margin: 0;
-  color: var(--color-fg);
-  font-size: clamp(16px, 1.05vw, 22px);
-  font-weight: 520;
+  color: var(--ud-fg);
+  font-size: var(--ud-t-section);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
 .ud-root .section-heading span {
   display: block;
-  margin-top: 4px;
-  max-width: 42rem;
-  color: var(--color-fg-tertiary);
-  font-size: var(--small);
-  line-height: 1.5;
+  margin-top: 3px;
+  max-width: 46rem;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-label);
+  line-height: 1.45;
 }
 
 /* ── Your position ───────────────────────────────────────────────────────── */
 
 .ud-root .your-position {
-  border-bottom: 1px solid var(--color-console-line);
+  border-bottom: 1px solid var(--ud-line);
 }
 
 .ud-root .position-heading {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 62ch) auto;
+  grid-template-areas: 'title cta' 'form form';
+  justify-content: space-between;
+  /* `center` : sans sous-titre, le titre tient sur une ligne — le CTA se cale
+     dessus au lieu de flotter au-dessus. */
   align-items: center;
-  gap: clamp(16px, 2vw, 32px);
+  gap: 20px;
 }
 
-.ud-root .position-deposit-cta {
-  padding: 9px 14px;
-  border: 1px solid var(--color-console-line);
-  border-radius: 10px;
-  color: var(--color-fg-secondary);
-  background: transparent;
-  font-size: var(--small);
-  cursor: pointer;
+.ud-root .position-heading-text {
+  grid-area: title;
+  min-width: 0;
 }
 
-.ud-root .position-deposit-cta:hover,
-.ud-root .position-deposit-cta[aria-expanded='true'] {
-  color: var(--color-fg);
-  border-color: var(--color-console-line-strong);
-}
 .ud-root .position-absent {
   display: flex;
   align-items: center;
   gap: 18px;
-  margin: 0 var(--space) clamp(12px, 1.2vw, 18px);
-  padding: clamp(14px, 1.2vw, 20px);
-  border: 1px solid var(--color-console-line-soft);
-  border-radius: 12px;
-  background: var(--color-console-inset);
+  margin: 0 var(--ud-pad-card) 16px;
+  padding: var(--ud-pad-card);
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: var(--ud-card);
 }
 
 .ud-root .position-absent h3 {
   margin: 0 0 6px;
-  color: var(--color-fg-secondary);
-  font-size: clamp(14px, 0.9vw, 18px);
+  color: var(--ud-fg-2);
+  font-size: 17px;
   font-weight: 500;
 }
 
 .ud-root .position-absent span {
   display: block;
   max-width: 36rem;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
   line-height: 1.6;
 }
@@ -289,49 +491,56 @@
 .ud-root .position-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(128px, 1fr));
+  gap: 1px;
+  background: var(--ud-line);
 }
 
-.ud-root .position-grid .stat-tile:not(:last-child) {
-  border-right: 1px solid var(--color-console-line);
+.ud-root .position-grid > * {
+  background: var(--ud-card);
 }
 
 .ud-root .deposit-panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
   align-items: center;
-  gap: clamp(18px, 2vw, 36px);
-  padding: clamp(16px, 1.5vw, 24px) var(--space);
-  border-top: 1px solid var(--color-console-line);
-  background: var(--color-console-inset);
+  gap: 30px;
+  padding: var(--ud-pad-card);
+  border-top: 1px solid var(--ud-line);
+  background: var(--ud-card);
 }
 
 .ud-root .deposit-copy h3 {
   margin: 0;
-  color: var(--color-fg);
-  font-size: clamp(15px, 1vw, 19px);
+  color: var(--ud-fg);
+  font-size: 18px;
   font-weight: 520;
 }
 
 .ud-root .deposit-copy p {
   margin: 5px 0 0;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
   line-height: 1.5;
 }
 /* ── Your account ────────────────────────────────────────────────────────── */
 
 .ud-root .your-account {
-  border-bottom: 1px solid var(--color-console-line);
+  border-bottom: 1px solid var(--ud-line);
 }
 
 .ud-root .your-account-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: 1px;
+  background: var(--ud-line);
+}
+
+.ud-root .your-account-body > * {
+  background: var(--ud-card);
 }
 
 .ud-root .your-account-body>.movements {
   min-width: 0;
-  border-right: 1px solid var(--color-console-line);
 }
 
 .ud-root .your-account-body>.flank-panel {
@@ -340,8 +549,8 @@
 
 .ud-root .your-account .movements-heading h3 {
   margin: 0;
-  color: var(--color-fg);
-  font-size: clamp(15px, 1vw, 19px);
+  color: var(--ud-fg);
+  font-size: 18px;
   font-weight: 520;
 }
 
@@ -350,15 +559,20 @@
 .ud-root .fund-vault .fund-kpis {
   display: grid;
   grid-template-columns: repeat(5, minmax(128px, 1fr));
-  border-bottom: 1px solid var(--color-console-line);
+  border-bottom: 1px solid var(--ud-line);
 }
 
 .ud-root .fund-kpis .stat-tile {
-  padding: clamp(16px, 1.5vw, 26px) var(--space);
+  padding: 18px var(--ud-pad-card);
 }
 
-.ud-root .fund-kpis .stat-tile:not(:last-child) {
-  border-right: 1px solid var(--color-console-line);
+.ud-root .fund-kpis {
+  gap: 1px;
+  background: var(--ud-line);
+}
+
+.ud-root .fund-kpis > * {
+  background: var(--ud-card);
 }
 
 /* `.analysis--fund` now shares the default 3-column `.analysis` template —
@@ -368,7 +582,7 @@
 /* ── KPI hero (legacy class retained for stat tiles) ─────────────────────── */
 .ud-root .eyebrow {
   margin: 0 0 7px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
   font-weight: 650;
   letter-spacing: 0.14em;
@@ -382,23 +596,66 @@
 
 .ud-root .stat-tile {
   min-width: 0;
+  display: grid;
+  /* Trois bandes de hauteur FIXE : le libellé, la valeur, puis le complément
+     (barre, note ou sparkline). Chaque zone occupe la même bande sur toutes
+     les tuiles, donc tout s'aligne horizontalement. */
+  grid-template-rows: 16px auto 28px;
+  align-content: center;
+  gap: 8px;
+  padding: 18px var(--ud-pad-card);
+}
+
+/* Bande du libellé : hauteur fixe et pas de retour à la ligne, sinon un
+   libellé long décale la valeur et casse l'alignement de la rangée. */
+.ud-root .stat-eyebrow {
+  min-width: 0;
+  height: 16px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.ud-root .stat-eyebrow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Bande basse commune — hauteur FIXE, contenu calé en bas. Sans elle, une
+   barre (4px), une note (17px) et une sparkline (28px) tombent à trois
+   hauteurs différentes et la ligne du bas se casse. */
+/* La note se cale en BAS de la bande dans tous les cas : les tuiles avec barre
+   (la barre + sa marge occupent le haut) et celles sans doivent poser leur
+   ligne de texte au même niveau. */
+.ud-root .stat-foot {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: clamp(16px, 1.5vw, 26px) var(--space);
+  justify-content: flex-end;
+  height: 32px;
+  min-width: 0;
+}
+
+/* La sparkline remplit la bande ; barre et note se posent au fond. */
+.ud-root .stat-foot .stat-spark {
+  height: 28px;
+}
+
+/* Les compléments perdent leurs marges propres : c'est la bande qui espace. */
+.ud-root .stat-foot .stat-meter,
+.ud-root .stat-foot .stat-footnote,
+.ud-root .stat-foot .stat-spark {
+  margin: 0;
 }
 
 .ud-root .stat-eyebrow {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
 }
 
 .ud-root .stat-eyebrow svg {
-  color: var(--color-accent-300);
+  color: var(--hearst-green);
 }
 
 .ud-root .stat-eyebrow span {
@@ -413,27 +670,42 @@
   height: 6px;
   margin-left: auto;
   border-radius: 50%;
-  background: var(--color-fg-muted);
+  background: var(--ud-fg-3);
 }
 
 .ud-root .stat-signal[data-signal='live'] {
-  background: var(--color-accent-400);
+  background: var(--hearst-green);
 }
 
 .ud-root .stat-signal[data-signal='stale'] {
-  background: var(--color-fg-secondary);
+  background: var(--ud-fg-2);
 }
 
 .ud-root .stat-value-row {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  flex-wrap: wrap;
+  /* Pas de retour à la ligne : le delta reste sur la ligne de la valeur,
+     sinon il ajoute une ligne et décale la tuile par rapport aux autres. */
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* La valeur cède la place au delta plutôt que de le tronquer. */
+.ud-root .stat-value-row .stat-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ud-root .stat-value-row .stat-delta {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .ud-root .stat-value {
-  color: var(--color-fg);
-  font-size: clamp(19px, 1.4vw, 28px);
+  color: var(--ud-fg);
+  font-size: var(--ud-t-metric);
   font-weight: 480;
   letter-spacing: -0.02em;
 }
@@ -447,11 +719,11 @@
 }
 
 .ud-root .stat-delta.is-up {
-  color: var(--color-accent-400);
+  color: var(--hearst-green);
 }
 
 .ud-root .stat-delta.is-down {
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
 }
 
 .ud-root .stat-spark {
@@ -472,26 +744,41 @@
 .ud-root .analysis {
   display: grid;
   grid-template-columns: minmax(220px, 320px) minmax(0, 1fr) minmax(220px, 320px);
-  border-bottom: 1px solid var(--color-console-line);
+  /* Séparateurs portés par la GRILLE, pas par les enfants : un gap de 1px
+     laisse voir le fond, qui devient le filet. Il court sur toute la hauteur
+     de rangée même quand une colonne est plus courte que sa voisine. */
+  gap: 1px;
+  background: var(--ud-line);
+  border-bottom: 1px solid var(--ud-line);
+}
+
+/* Chaque cellule repeint le fond de carte par-dessus le fond de grille. */
+.ud-root .analysis > * {
+  background: var(--ud-card);
 }
 
 .ud-root .flank-panel {
   min-width: 0;
-  padding: clamp(14px, 1.4vw, 22px) clamp(12px, 1vw, 18px);
+  padding: var(--ud-pad-card);
   display: flex;
   flex-direction: column;
 }
 
-.ud-root .analysis > .flank-panel:first-child {
-  border-right: 1px solid var(--color-console-line);
+/* Le graphe reste ANCRÉ EN HAUT : centré, il descendait quand la liste de
+   mouvements s'allonge (« Show 5 more »), alors que rien n'a changé de son
+   côté. Un élément qui bouge sans raison est un bug de lecture. */
+.ud-root .flank-donut {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.ud-root .analysis > .flank-panel:last-child {
-  border-left: 1px solid var(--color-console-line);
-}
+
+/* Plus de bordure d'enfant : le `gap` de la grille fait le séparateur. */
 
 .ud-root .flank-heading {
-  padding: 0 clamp(4px, 0.6vw, 10px) clamp(10px, 1vw, 16px);
+  padding: 0 8px 14px;
 }
 
 .ud-root .flank-heading h2 {
@@ -499,19 +786,19 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  color: var(--color-fg);
-  font-size: clamp(14px, 0.95vw, 18px);
+  color: var(--ud-fg);
+  font-size: 17px;
   font-weight: 560;
 }
 
 .ud-root .flank-heading h2 svg {
-  color: var(--color-accent-300);
+  color: var(--hearst-green);
 }
 
 .ud-root .flank-heading span {
   display: block;
   margin-top: 2px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
 }
 
@@ -545,7 +832,7 @@
 
 .ud-root .flank-empty p {
   margin: 0;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
   line-height: 1.6;
 }
@@ -554,7 +841,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: clamp(14px, 1.4vw, 22px) clamp(12px, 1vw, 18px);
+  padding: 19px 16px;
 }
 
 /* The central chart lives on one Hearst glass surface (same as admin boxes):
@@ -565,18 +852,26 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--color-console-line);
-  border-radius: 14px;
-  background: var(--color-console-card);
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: var(--ud-card);
   /* Glass blur via Tailwind utility on the element (see .shell note). */
 }
 
+/* Les onglets vivent sur une PISTE : sans fond commun, les inactifs flottaient
+   sur la page et rien ne disait qu'ils étaient cliquables. La piste les
+   rassemble, la pilule active se détache dessus. */
 .ud-root .chart-switch {
   display: flex;
   gap: 4px;
-  padding: clamp(10px, 1vw, 14px) clamp(12px, 1.2vw, 18px);
+  margin: 13px 16px;
+  padding: 4px;
   flex-wrap: wrap;
-  border-bottom: 1px solid var(--color-console-line-soft);
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-inset);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+  width: fit-content;
+  max-width: calc(100% - 32px);
 }
 
 .ud-root .chart-switch button {
@@ -584,29 +879,29 @@
   isolation: isolate;
   flex: 0 1 auto;
   border: 0;
-  border-radius: 9px;
-  color: var(--color-fg-tertiary);
+  border-radius: var(--ud-radius-sm);
+  color: var(--ud-fg-3);
   background: transparent;
   font-size: var(--small);
   cursor: pointer;
   transition: color 0.15s;
 }
 
-.ud-root .chart-switch button:hover {
-  color: var(--color-fg-secondary);
+.ud-root .chart-switch button:hover:not(.active) {
+  color: var(--ud-fg);
+  background: color-mix(in srgb, var(--ud-fg) 7%, transparent);
 }
 
 .ud-root .chart-switch button.active {
-  color: var(--color-fg);
+  color: var(--ud-fg);
 }
 
 .ud-root .switch-pill {
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 9px;
-  background: var(--color-accent-soft);
-  box-shadow: inset 0 0 0 1px var(--color-console-line);
+  border-radius: var(--ud-radius-pill);
+  background: #ffffff;
 }
 
 .ud-root .switch-inner {
@@ -619,23 +914,23 @@
 }
 
 .ud-root .switch-inner svg {
-  color: var(--color-accent-300);
+  color: var(--hearst-green);
 }
 
 .ud-root .fresh-badge {
   margin-left: auto;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--ud-radius-pill);
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-fg-secondary);
-  background: var(--color-console-inset);
-  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+  color: var(--ud-fg-2);
+  background: var(--ud-card);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
 .ud-root .fresh-badge[data-signal='live'] {
-  color: var(--color-accent-300);
+  color: var(--hearst-green);
 }
 
 .ud-root .center-plot-inner {
@@ -658,13 +953,13 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
-  padding: clamp(12px, 1.2vw, 18px) clamp(14px, 1.4vw, 22px) 0;
+  padding: 16px 19px 0;
 }
 
 .ud-root .center-head h2 {
   margin: 0;
-  color: var(--color-fg);
-  font-size: clamp(14px, 0.95vw, 17px);
+  color: var(--ud-fg);
+  font-size: 16px;
   font-weight: 560;
   white-space: nowrap;
   flex: 0 0 auto;
@@ -676,7 +971,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
 }
 
@@ -687,7 +982,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(8px, 1vw, 14px) clamp(10px, 1vw, 16px) clamp(12px, 1.2vw, 18px);
+  padding: 12px 14px 16px;
 }
 
 .ud-root .center-plot > * {
@@ -707,13 +1002,13 @@
 .ud-root .center-state p {
   margin: 0;
   max-width: 340px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
   line-height: 1.6;
 }
 
 .ud-root .center-state.is-bad p {
-  color: var(--color-fg-secondary);
+  color: var(--ud-fg-2);
 }
 
 /* ── BTC context flank ─────────────────────────────────────────────────────
@@ -722,14 +1017,14 @@
  * see `MarketSnapshot` in `load.ts` for why difficulty/hashprice carry no
  * trend line. */
 .ud-root .btc-flank {
-  gap: clamp(12px, 1.1vw, 18px);
+  gap: 16px;
 }
 
 .ud-root .btc-flank-price {
-  padding: clamp(12px, 1.1vw, 16px);
-  border-radius: 12px;
-  background: var(--color-console-card);
-  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+  padding: 15px;
+  border-radius: var(--ud-radius);
+  background: var(--ud-card);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
 .ud-root .btc-flank-price-head {
@@ -737,15 +1032,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
 }
 
 .ud-root .btc-flank-price-value {
   display: block;
   margin-top: 4px;
-  color: var(--color-fg);
-  font-size: clamp(19px, 1.4vw, 26px);
+  color: var(--ud-fg);
+  font-size: 24px;
   font-weight: 480;
   letter-spacing: -0.02em;
 }
@@ -761,20 +1056,13 @@
   gap: 8px;
 }
 
+/* Aligné à gauche (la colonne flex l'étirait sur toute la largeur, ce qui
+   noyait le texte), et CENTRÉ dans l'espace libre sous le contenu : des marges
+   auto en haut ET en bas, au lieu de le coller au fond de la carte. */
 .ud-root .btc-flank-cta {
   margin-top: auto;
-  padding: 9px 14px;
-  border: 1px solid var(--color-console-line);
-  border-radius: 10px;
-  color: var(--color-fg-secondary);
-  background: transparent;
-  font-size: var(--small);
-  cursor: pointer;
-}
-
-.ud-root .btc-flank-cta:hover {
-  color: var(--color-fg);
-  border-color: var(--color-console-line-strong);
+  margin-bottom: auto;
+  align-self: flex-start;
 }
 
 /* ── Exposure & capacity ─────────────────────────────────────────────────── */
@@ -788,23 +1076,20 @@
  * `/admin/operations` indexer + "Last rebalance" card for the same
  * primary/bounded-secondary shape).
  */
+/* Un seul panneau depuis le retrait de « Fund capacity » (doublon du bandeau
+   supérieur) : plus de grille à deux colonnes, l'exposition prend la largeur. */
 .ud-root .exposure-cap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
-  border-bottom: 1px solid var(--color-console-line);
+  border-bottom: 1px solid var(--ud-line);
+  background: var(--ud-card);
 }
 
 .ud-root .ec-panel {
   min-width: 0;
-  padding: clamp(16px, 1.5vw, 26px) var(--space);
-}
-
-.ud-root .exposure-cap > .ec-panel:first-child {
-  border-right: 1px solid var(--color-console-line);
+  padding: var(--ud-pad-card);
 }
 
 .ud-root .ec-heading {
-  margin-bottom: clamp(10px, 1vw, 16px);
+  margin-bottom: 14px;
 }
 
 .ud-root .ec-heading h2 {
@@ -812,19 +1097,19 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  color: var(--color-fg);
-  font-size: clamp(15px, 1vw, 19px);
+  color: var(--ud-fg);
+  font-size: 18px;
   font-weight: 540;
 }
 
 .ud-root .ec-heading h2 svg {
-  color: var(--color-accent-300);
+  color: var(--hearst-green);
 }
 
 .ud-root .ec-heading span {
   display: block;
   margin-top: 2px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
 }
 
@@ -855,35 +1140,35 @@
 }
 
 .ud-root .meter-value {
-  color: var(--color-fg);
-  font-size: clamp(24px, 2vw, 34px);
+  color: var(--ud-fg);
+  font-size: 31px;
   font-weight: 460;
   letter-spacing: -0.02em;
 }
 
 .ud-root .meter-label {
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
 }
 
 .ud-root .meter-track {
   width: 100%;
   height: 10px;
-  border-radius: 999px;
+  border-radius: var(--ud-radius-pill);
   overflow: hidden;
-  background: var(--color-console-inset);
-  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+  background: var(--ud-card);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
 .ud-root .meter-fill {
   height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-accent-600), var(--color-accent-400));
+  border-radius: var(--ud-radius-pill);
+  background: linear-gradient(90deg, var(--color-accent-600), var(--hearst-green));
 }
 
 .ud-root .meter-caption {
   margin: 10px 0 0;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
   font-variant-numeric: tabular-nums;
 }
@@ -895,11 +1180,15 @@
  * grows the document on its own, nothing empty grows with it. */
 .ud-root .movements {
   min-width: 0;
+  /* Colonne flex : permet au bouton de repli de se centrer dans l'espace
+     libre sous la liste, au lieu de rester collé dessous. */
+  display: flex;
+  flex-direction: column;
 }
 
 .ud-root .movements-heading {
-  min-height: clamp(58px, 6vh, 82px);
-  padding: clamp(14px, 1.4vw, 22px) var(--space);
+  min-height: 88px;
+  padding: var(--ud-pad-card);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -908,13 +1197,13 @@
 
 .ud-root .movements-heading h2 {
   margin: 0;
-  color: var(--color-fg);
-  font-size: clamp(16px, 1.05vw, 22px);
+  color: var(--ud-fg);
+  font-size: var(--ud-t-section);
   font-weight: 520;
 }
 
 .ud-root .movements-heading > span {
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
   text-align: right;
 }
@@ -922,15 +1211,17 @@
 .ud-root .timeline {
   list-style: none;
   margin: 0;
-  /* A journal is a reading column, not a table: bound it to a legible measure so
-     rows don't trail title-far-from-time across a full-width region. Left-aligned
-     like any feed; the region heading spans the full width above it. */
-  max-width: 40rem;
-  padding: 4px 0 clamp(20px, 2vw, 32px);
+  /* Le journal occupe toute la région : c'est un registre, pas une colonne de
+     lecture. Les colonnes ci-dessous sont fluides, donc la ligne s'étire sans
+     laisser de vide à droite. */
+  width: 100%;
+  /* Pas de padding bas : le bouton de repli qui suit gère son propre
+     espacement — cumuler les deux le décentrait. */
+  padding: 4px 0 0;
 }
 
 .ud-root .timeline > li {
-  padding: 0 var(--space);
+  padding: 0 var(--ud-pad-card);
 }
 
 .ud-root .timeline-item {
@@ -947,7 +1238,7 @@
   top: 38px;
   bottom: -10px;
   width: 1px;
-  background: var(--color-console-line);
+  background: var(--ud-line);
 }
 
 .ud-root .timeline-node {
@@ -959,22 +1250,128 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: var(--color-accent-300);
-  background: var(--color-console-inset);
-  box-shadow: inset 0 0 0 1px var(--color-console-line);
+  color: var(--hearst-green);
+  background: var(--ud-card);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
 .ud-root .timeline-body {
   min-width: 0;
   flex: 1 1 auto;
-  /* Ledger row: title on the left, category + time pushed to the right, so a
-     full-width journal uses its row instead of trailing off as a narrow column. */
-  display: flex;
-  flex-wrap: wrap;
+  /* Colonnes invisibles : intitulé, montant, catégorie, date. Chaque colonne a
+     une largeur fixe et son contenu est aligné à GAUCHE, pour que l'œil suive
+     une verticale d'une ligne à l'autre. Le flex précédent, en poussant les
+     éléments vers les bords, décalait les chips à chaque ligne. */
+  display: grid;
+  /* Intitulé, date, montant, équivalent BTC, ancienneté, action. L'intitulé
+     prend l'espace libre ; les colonnes de valeurs sont dimensionnées par leur
+     contenu et alignées à droite, pour que les chiffres restent en colonne
+     d'une ligne à l'autre. */
+  /* Chaque colonne a une largeur PROPRE : en `1fr` l'intitulé absorbait tout
+     l'espace et rejetait les valeurs au bord droit. Ici c'est la ligne entière
+     qui s'étire, à écart constant, et les chiffres s'alignent d'une ligne à
+     l'autre. */
+  /* L'intitulé se dimensionne sur son contenu (« WITHDRAWAL » au plus long) :
+     un minimum de 7rem lui réservait une largeur qu'il n'utilisait pas, d'où le
+     trou après la première colonne. Les quatre colonnes de valeurs se partagent
+     tout le reste à parts égales ; une piste vide en fin de ligne écarte le
+     bouton de l'ancienneté sans padding ad hoc. */
+  /* Toutes les colonnes de contenu ont une largeur FIXE, intitulé compris : en
+     `max-content` il se dimensionnait ligne par ligne (« WITHDRAWAL » plus large
+     que « DEPOSIT »), et les dates ne s'alignaient plus. Une seule piste
+     extensible, juste avant l'action, pousse le bouton au bord droit. */
+  grid-template-columns:
+    9.5rem
+    7rem
+    6.5rem
+    7rem
+    5.5rem
+    minmax(0, 1fr)
+    max-content;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
+  gap: 4px 24px;
   padding-top: 3px;
+}
+
+/* Date absolue : le repère factuel, à côté de l'ancienneté relative. */
+/* Chaque valeur part du bord gauche de sa piste, en chiffres tabulaires : les
+   largeurs de piste étant fixes, c'est ce qui donne des colonnes nettes. */
+.ud-root .timeline-date {
+  justify-self: start;
+  color: var(--ud-fg-3);
+  font-size: var(--micro);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Contrevaleur au spot — dérivée, d'où le corps et la couleur secondaires. */
+.ud-root .timeline-btc {
+  justify-self: start;
+  color: var(--ud-fg-3);
+  font-size: var(--micro);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Un seul registre pour les boutons « Detail » : celui des mouvements et celui
+   de l'exposition partagent géométrie, vert et encre. */
+.ud-root .timeline-detail,
+.ud-root .ud-detail-btn {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ud-root .timeline-detail {
+  justify-self: end;
+}
+
+.ud-root .ud-detail-btn {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.ud-root .timeline-detail:hover,
+.ud-root .ud-detail-btn:hover {
+  filter: brightness(1.06);
+}
+
+.ud-root .timeline-detail:focus-visible,
+.ud-root .ud-detail-btn:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
+}
+
+/* Dépli : deux lignes clé/valeur sous l'intitulé, sans nouvelle indentation. */
+.ud-root .timeline-detail-body {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ud-line);
+  font-size: var(--micro);
+}
+
+.ud-root .timeline-detail-body dt {
+  color: var(--ud-fg-3);
+}
+
+.ud-root .timeline-detail-body dd {
+  margin: 0;
+  color: var(--ud-fg-2);
+}
+
+.ud-root .timeline-detail-body dd.mono {
+  font-family: var(--ud-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-variant-numeric: tabular-nums;
 }
 
 .ud-root .timeline-title {
@@ -986,46 +1383,75 @@
 
 .ud-root .timeline-title {
   margin: 0;
-  color: var(--color-fg);
+  color: var(--ud-fg);
   font-size: var(--small);
   font-weight: 520;
 }
 
 .ud-root .timeline-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ud-root .timeline-chip {
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-fg-secondary);
-  background: var(--color-console-card);
-  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+  display: contents;
 }
 
 .ud-root .timeline-amount {
-  color: var(--color-fg);
+  justify-self: start;
+  color: var(--ud-fg);
   font-size: var(--small);
   font-weight: 560;
   font-variant-numeric: tabular-nums;
 }
 
 .ud-root .timeline-time {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   gap: 3px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--micro);
 }
 
-/* Minimum deposit (the one kept subscription term) sits under the capacity meter. */
-.ud-root .ec-terms {
-  margin-top: clamp(12px, 1.4vw, 20px);
+/* Écran étroit : les quatre colonnes ne tiennent plus côte à côte. La ligne
+   repasse en deux niveaux — intitulé au-dessus, montant / catégorie / date
+   en dessous — plutôt que de déborder. */
+/* Écran étroit : six colonnes ne tiennent plus. Intitulé et action sur la
+   première ligne, les valeurs en dessous. */
+@media (max-width: 760px) {
+  .ud-root .timeline-body {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 6px 12px;
+  }
+
+  .ud-root .timeline-title {
+    grid-column: 1;
+  }
+
+  /* La piste d'écartement n'a plus d'objet une fois la ligne repliée. */
+  .ud-root .timeline-meta > span[aria-hidden='true'] {
+    display: none;
+  }
+
+  .ud-root .timeline-detail {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ud-root .timeline-date,
+  .ud-root .timeline-amount,
+  .ud-root .timeline-btc,
+  .ud-root .timeline-time {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .ud-root .timeline-amount {
+    grid-column: 1;
+  }
+
+  .ud-root .timeline-date,
+  .ud-root .timeline-btc,
+  .ud-root .timeline-time {
+    grid-column: 1 / -1;
+  }
 }
 
 .ud-root .term-row {
@@ -1033,27 +1459,27 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border-radius: 10px;
-  background: var(--color-console-card);
-  box-shadow: inset 0 0 0 1px var(--color-console-line-soft);
+  border-radius: var(--ud-radius);
+  background: var(--ud-card);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
 .ud-root .term-icon {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  color: var(--color-accent-300);
+  color: var(--hearst-green);
 }
 
 .ud-root .term-label {
   min-width: 0;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
 }
 
 .ud-root .term-value {
   margin-left: auto;
-  color: var(--color-fg);
+  color: var(--ud-fg);
   font-size: var(--small);
   font-variant-numeric: tabular-nums;
 }
@@ -1064,29 +1490,29 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: clamp(18px, 1.6vw, 28px) var(--space) clamp(24px, 2vw, 32px);
+  padding: 25px var(--space) 29px;
 }
 
 .ud-root .empty-mark {
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
-  border: 1px solid var(--color-console-line);
+  border: 1px solid var(--ud-line);
   border-radius: 50%;
   background: radial-gradient(circle, var(--color-accent-soft) 0 2px, transparent 3px);
 }
 
 .ud-root .empty h3 {
   margin: 0 0 7px;
-  color: var(--color-fg-secondary);
-  font-size: clamp(14px, 0.9vw, 19px);
+  color: var(--ud-fg-2);
+  font-size: 17px;
   font-weight: 500;
 }
 
 .ud-root .empty span {
-  max-width: clamp(330px, 28vw, 560px);
+  max-width: 482px;
   display: block;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: var(--small);
   line-height: 1.6;
 }
@@ -1111,13 +1537,57 @@
 
 .ud-root .trade-view p {
   max-width: 480px;
-  color: var(--color-fg-tertiary);
+  color: var(--ud-fg-3);
   font-size: 12px;
   line-height: 1.7;
 }
 
 .ud-root .dashboard-view.hidden {
   display: none;
+}
+
+/* ── Sections en boxes ────────────────────────────────────────────────────
+ * Les maquettes ne collent rien au bord : chaque section est une carte posée
+ * sur le fond, séparée par du vide. On remplace donc les filets pleine largeur
+ * (héritage console) par des surfaces autonomes.
+ */
+.ud-root .dashboard-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ud-gap-section);
+  padding: var(--ud-pad-page);
+}
+
+.ud-root .dashboard-view > .page-intro,
+.ud-root .dashboard-view > .your-position,
+.ud-root .dashboard-view > .your-account,
+.ud-root .dashboard-view > .fund-vault {
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: var(--ud-card);
+  overflow: hidden;
+}
+
+/* Le titre de page n'a pas besoin d'un cadre : il annonce, il ne contient pas. */
+.ud-root .dashboard-view > .page-intro {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+}
+
+/* Les filets de séparation internes disparaissent : c'est le vide entre les
+   boxes qui sépare désormais, plus une ligne. */
+.ud-root .dashboard-view > .your-position,
+.ud-root .dashboard-view > .your-account,
+.ud-root .dashboard-view > .fund-vault {
+  border-bottom: 1px solid var(--ud-line);
+}
+
+.ud-root .page-intro {
+  border-bottom: none;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
@@ -1130,8 +1600,8 @@
 
     .ud-root .position-grid .stat-tile,
     .ud-root .fund-kpis .stat-tile {
-    border-right: 1px solid var(--color-console-line);
-    border-bottom: 1px solid var(--color-console-line);
+    border-right: 1px solid var(--ud-line);
+    border-bottom: 1px solid var(--ud-line);
   }
 
     .ud-root .position-grid .stat-tile:nth-child(3n),
@@ -1147,7 +1617,7 @@
   
     .ud-root .your-account-body>.movements {
       border-right: 0;
-      border-bottom: 1px solid var(--color-console-line);
+      border-bottom: 1px solid var(--ud-line);
     }
   
     .ud-root .analysis,
@@ -1159,12 +1629,12 @@
   .ud-root .analysis > .flank-panel:last-child {
     border-left: 0;
     border-right: 0;
-    border-bottom: 1px solid var(--color-console-line);
+    border-bottom: 1px solid var(--ud-line);
   }
 
   .ud-root .center {
     order: -1;
-    border-bottom: 1px solid var(--color-console-line);
+    border-bottom: 1px solid var(--ud-line);
   }
 
   .ud-root .flank-panel {
@@ -1176,14 +1646,6 @@
     max-width: 320px;
   }
 
-  .ud-root .exposure-cap {
-    grid-template-columns: 1fr;
-  }
-
-  .ud-root .exposure-cap > .ec-panel:first-child {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-console-line);
-  }
 }
 
 @media (max-width: 768px) {
@@ -1203,7 +1665,7 @@
     }
     .ud-root .position-grid .stat-tile:nth-child(3n),
     .ud-root .fund-kpis .stat-tile:nth-child(3n) {
-    border-right: 1px solid var(--color-console-line);
+    border-right: 1px solid var(--ud-line);
   }
 
     .ud-root .position-grid .stat-tile:nth-child(2n),
@@ -1249,4 +1711,673 @@
     flex: 0 0 auto;
     white-space: nowrap;
   }
+}
+
+/* ── Subscription intent form (behind the Deposit CTA) ──────────────────── */
+/* La grille et ses areas sont définies avec `.position-heading` plus haut —
+   les redéclarer ici écrasait `grid-template-columns` et étirait le titre. */
+
+.ud-root .deposit-block {
+  grid-area: cta;
+  display: contents;
+}
+
+.ud-root .deposit-block > .position-deposit-cta {
+  grid-area: cta;
+  justify-self: end;
+  align-self: center;
+}
+
+.ud-root .deposit-block > .deposit-form,
+.ud-root .deposit-block > .deposit-hint {
+  grid-area: form;
+  margin-top: 12px;
+}
+
+.ud-root .deposit-hint,
+.ud-root .deposit-help {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ud-fg-3);
+}
+
+.ud-root .deposit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  /* Le formulaire est le dernier élément de l'en-tête : sans marge basse, il
+     touche le filet du bandeau BTC qui suit. */
+  margin-bottom: 10px;
+  padding: 14px;
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: color-mix(in srgb, var(--ud-fg) 3%, transparent);
+  max-width: 520px;
+}
+
+.ud-root .deposit-label {
+  font-size: 12px;
+  color: var(--ud-fg-3);
+  align-self: flex-start;
+}
+
+.ud-root .deposit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ud-root .deposit-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: transparent;
+  color: var(--ud-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .deposit-input:focus-visible {
+  outline: 2px solid var(--ud-line-strong);
+  outline-offset: 1px;
+}
+
+.ud-root .deposit-unit {
+  font-size: 12px;
+  color: var(--ud-fg-3);
+}
+
+.ud-root .deposit-submit {
+  padding: 9px 14px;
+  border: 1px solid var(--ud-line-strong);
+  border-radius: var(--ud-radius);
+  background: transparent;
+  color: var(--ud-fg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ud-root .deposit-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Refusals and confirmations carry their own tone — never a bare grey line. */
+.ud-root .deposit-error {
+  margin: 0;
+  align-self: flex-start;
+  font-size: 12px;
+  color: var(--color-warning-400, #f5a524);
+}
+
+.ud-root .deposit-ok {
+  display: block;
+  align-self: flex-start;
+  font-size: 12px;
+  color: var(--ud-fg);
+}
+
+/* ── Bandeau position BTC ─────────────────────────────────────────────────
+ * Grammaire des maquettes Hearst : carte opaque (pas de verre), bord net,
+ * valeur BTC en mint et en très gros, contre-valeur USD en secondaire dessous.
+ * Le BTC est l'unité principale ; le dollar est la note de bas de ligne.
+ *//* ── Position en bitcoin ──────────────────────────────────────────────────
+ * UN bloc, pas un bandeau plus des barres : la position et le repère HODL
+ * répondent à la même question. Le chiffre BTC domine, la jauge en dessous le
+ * situe contre le simple fait d'avoir gardé ses bitcoins.
+ */
+.ud-root .btc-block {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--ud-line);
+  border-bottom: 1px solid var(--ud-line);
+}
+
+.ud-root .btc-block-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  /* `stretch` : la colonne de droite prend toute la hauteur, donc son filet
+     gauche court d'un bord à l'autre sans cadre autour du bandeau. */
+  align-items: stretch;
+}
+
+.ud-root .btc-block-top > * {
+  padding: var(--ud-pad-card);
+}
+
+.ud-root .btc-block-top > * + * {
+  border-left: 1px solid var(--ud-line);
+}
+
+.ud-root .btc-block-label {
+  margin: 0;
+  font-size: var(--small);
+  color: var(--ud-fg-3);
+}
+
+/* Métrique principale : ancrée, pas de dérive fluide. */
+.ud-root .btc-block-value {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: var(--ud-t-metric-lg);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--hearst-green);
+}
+
+/* L'unité ne concourt pas avec le nombre : même ligne de base, poids et corps
+   ramenés à ceux d'une légende. */
+.ud-root .btc-block-unit {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ud-fg-3);
+}
+
+.ud-root .btc-block-value.is-absent {
+  color: var(--ud-fg-3);
+}
+
+.ud-root .btc-block-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: var(--ud-fg-2);
+}
+
+.ud-root .btc-block-note {
+  font-size: 12px;
+  color: var(--ud-fg-3);
+}
+
+.ud-root .btc-block-side {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ud-root .btc-block-side-value {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 550;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ud-fg);
+}
+
+/* ── Jauge : position contre référence HODL ───────────────────────────────
+ * Une seule piste. La barre pleine est la position, le trait vertical le
+ * repère « si vous aviez simplement gardé ». L'échelle court jusqu'à la plus
+ * grande des deux, donc l'écart se lit comme une distance — pas comme deux
+ * longueurs à mesurer l'une contre l'autre.
+ */
+.ud-root .btc-gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--ud-pad-card);
+  border-top: 1px solid var(--ud-line);
+}
+
+.ud-root .btc-gauge-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 20px;
+}
+
+.ud-root .btc-gauge-question {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: var(--ud-t-body);
+  color: var(--ud-fg-2);
+}
+
+/* La fenêtre qualifie la question, elle ne concourt pas avec elle. */
+.ud-root .btc-gauge-window {
+  font-size: 12px;
+  color: var(--ud-fg-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .btc-gauge-delta {
+  margin: 0;
+}
+
+.ud-root .btc-gauge-delta-value {
+  font-size: var(--ud-t-metric);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Le pourcentage prend la couleur du verdict : vert si le produit devance,
+   ambre s'il décroche. C'est le seul endroit où l'ambre apparaît — les barres
+   restent vert / gris, pour que la comparaison se lise sans code couleur. */
+.ud-root .btc-gauge.is-ahead .btc-gauge-delta-value {
+  color: var(--hearst-green);
+}
+
+.ud-root .btc-gauge.is-behind .btc-gauge-delta-value {
+  color: var(--color-warning-400, #f5a524);
+}
+
+.ud-root .btc-gauge-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ud-root .btc-gauge-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 14px;
+}
+
+.ud-root .btc-gauge-key {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ud-fg-3);
+  white-space: nowrap;
+}
+
+.ud-root .btc-gauge-track {
+  height: 12px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-card);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+  overflow: hidden;
+}
+
+.ud-root .btc-gauge-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+/* Vert : ta position. Gris foncé : le simple fait d'avoir gardé. Deux valeurs
+   de même nature, une seule mise en avant — la tienne. */
+.ud-root .btc-gauge-fill.is-held {
+  background: var(--hearst-green);
+}
+
+.ud-root .btc-gauge-fill.is-hodl {
+  background: var(--ud-fg-3);
+}
+
+.ud-root .btc-gauge-val {
+  margin: 0;
+  font-size: var(--ud-t-body);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  color: var(--ud-fg);
+}
+
+/* Sous 620px la clé passe au-dessus de sa barre : à trois colonnes, la piste
+   deviendrait trop courte pour montrer quoi que ce soit. */
+@media (max-width: 620px) {
+  .ud-root .btc-gauge-row {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 5px 12px;
+  }
+
+  .ud-root .btc-gauge-key {
+    grid-column: 1 / -1;
+  }
+}
+
+.ud-root .btc-block-absent {
+  margin: 0;
+  padding: var(--ud-pad-card);
+  border-top: 1px solid var(--ud-line);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ud-fg-3);
+}
+
+/* Sous ~720px la colonne latérale passe dessous, séparée par un filet haut. */
+@media (max-width: 720px) {
+  .ud-root .btc-block-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ud-root .btc-block-side {
+    padding-left: 0;
+    padding-top: 18px;
+    border-left: none;
+    border-top: 1px solid var(--ud-line);
+  }
+}
+
+/* ── Repli de la liste de mouvements ──────────────────────────────────────
+ * La liste s'arrête à cinq lignes ; le bouton annonce combien restent, pour
+ * que le repli n'escamote pas l'existence des mouvements masqués.
+ */
+/* Placement seul : l'apparence vient du registre de boutons partagé plus bas
+   (aplat mint, encre sombre). Marge gauche = le padding des lignes,
+   donc le bouton tombe à l'aplomb des médaillons. */
+.ud-root .timeline-toggle {
+  margin: 14px 0 var(--ud-pad-card) var(--ud-pad-card);
+}
+
+
+/* ══ Boutons ═══════════════════════════════════════════════════════════════
+ * Deux registres seulement, repris des écrans d'origine : un primaire vert à
+ * encre sombre (« Show details »), un secondaire sombre à filet discret.
+ * Hauteur compacte — 34px — pour tenir la densité institutionnelle.
+ */
+.ud-root .position-deposit-cta,
+.ud-root .deposit-submit,
+.ud-root .timeline-toggle {
+  height: 36px;
+  /* Padding horizontal CONSTANT : le texte garde le même écart aux bords quel
+     que soit le libellé. Largeur = contenu, jamais étirée par le conteneur. */
+  padding: 0 20px;
+  width: fit-content;
+  border-radius: var(--ud-radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ud-root .deposit-submit {
+  border: 0;
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  font-weight: 600;
+}
+
+.ud-root .deposit-submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* PRIMAIRE — l'action que la page attend de l'investisseur. */
+.ud-root .position-deposit-cta {
+  border: 0;
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  font-weight: 600;
+}
+
+.ud-root .position-deposit-cta:hover,
+.ud-root .position-deposit-cta[aria-expanded='true'] {
+  filter: brightness(1.06);
+}
+
+/* Boutons d'action — même aplat mint et même géométrie que « Deposit ». */
+.ud-root .timeline-toggle,
+.ud-root .btc-flank-cta {
+  height: 36px;
+  padding: 0 20px;
+  width: fit-content;
+  border: 0;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ud-root .timeline-toggle:hover,
+.ud-root .btc-flank-cta:hover {
+  filter: brightness(1.06);
+}
+
+.ud-root .timeline-toggle:focus-visible,
+.ud-root .btc-flank-cta:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
+}
+
+/* ══ En-têtes de section ═══════════════════════════════════════════════════
+ * Le filet sous l'en-tête est le séparateur des maquettes : pas d'ombre,
+ * pas de fond distinct, un simple trait.
+ */
+/* `:not(.position-heading)` : le bandeau BTC qui suit cet en-tête-là porte
+   déjà son propre filet haut — sans l'exception, deux traits se suivaient. */
+.ud-root .section-heading:not(.position-heading) {
+  border-bottom: 1px solid var(--ud-line);
+}
+
+
+/* ══ Raffinement — pass 2 ══════════════════════════════════════════════════ */
+
+/* Les valeurs de KPI cassaient sur deux lignes (« 44,342,833 / USDC »), ce qui
+   défaisait l'alignement de la rangée. Taille resserrée + pas de retour. */
+.ud-root .stat-value {
+  font-size: 21px;
+  font-weight: 550;
+  letter-spacing: -0.018em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ud-root .stat-tile {
+  padding: 14px var(--ud-pad-card);
+}
+
+.ud-root .stat-eyebrow {
+  font-size: var(--ud-t-micro);
+  color: var(--ud-fg-3);
+}
+
+/* La date tient désormais sur une ligne (sans heure) : même traitement que
+   les autres tuiles, plus d'exception. */
+
+/* Cartes internes : filet net, fond légèrement relevé — la séparation des
+   maquettes se fait au trait, jamais à l'ombre. */
+.ud-root .flank-panel,
+.ud-root .analysis,
+.ud-root .exposure-cap > * {
+  border-color: var(--ud-line);
+}
+
+/* Onglets de graphe : compacts, l'actif sur fond relevé et texte plein. */
+.ud-root .chart-switch button {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--ud-radius-pill);
+  font-size: var(--ud-t-label);
+}
+
+/* Couleur au repos seulement : sans `:not(:hover)` cette règle écrasait l'état
+   de survol, déclaré plus haut dans le fichier. */
+.ud-root .chart-switch button:not(:hover):not(.active) {
+  color: var(--ud-fg-3);
+}
+
+/* Texte ET icône en encre sombre sur la pilule blanche — le mint sur blanc
+   serait illisible. */
+.ud-root .chart-switch button.active .switch-inner,
+.ud-root .chart-switch button.active .switch-inner svg {
+  color: #111111;
+  font-weight: 600;
+}
+
+/* Tableau de mouvements : lignes plus serrées, comme Transaction history. */
+.ud-root .timeline-item {
+  padding: 7px 0;
+}
+
+.ud-root .timeline-node {
+  width: 28px;
+  height: 28px;
+}
+
+.ud-root .timeline > li:not(:last-child) .timeline-item::before {
+  left: 14px;
+  top: 32px;
+}
+
+.ud-root .timeline-title {
+  font-size: var(--ud-t-body);
+  font-weight: 500;
+}
+
+.ud-root .timeline-amount {
+  font-size: var(--ud-t-body);
+}
+
+/* Le rail : espacement vertical des maquettes. */
+.ud-root .rail-item {
+  height: 42px;
+  padding: 0 12px;
+  font-size: var(--ud-t-body);
+}
+
+/* Pas de hauteur ici : la bande de marque s'aligne sur la topbar (56px), fixée
+   plus haut. Un `height: 38px` cassait ce raccord. */
+.ud-root .rail-brand {
+  font-size: var(--ud-t-card);
+}
+
+
+/* ══ Anneaux ═══════════════════════════════════════════════════════════════
+ * Le composant partagé (`donut-chart.tsx`) masque son disque à 62 % : trop
+ * épais à côté des anneaux fins des maquettes. On repousse le masque à 74 %
+ * ICI SEULEMENT — /admin garde le composant tel quel — et on réduit le
+ * diamètre, qui mangeait la hauteur de carte.
+ */
+.ud-root [data-chart-viewport] > div > div[style*='conic-gradient'] {
+  width: 74% !important;
+  height: 74% !important;
+  -webkit-mask: radial-gradient(closest-side, transparent 74%, black 75%) !important;
+  mask: radial-gradient(closest-side, transparent 74%, black 75%) !important;
+}
+
+.ud-root [data-chart-viewport] {
+  height: 180px !important;
+}
+
+/* Chiffre central : plus discret, l'anneau porte l'information. */
+.ud-root [data-chart-viewport] span:first-of-type {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* Légendes d'anneau : alignées, tabulaires, compactes. */
+.ud-root .breakdown-legend li,
+.ud-root [data-chart-viewport] ~ ul li {
+  font-size: var(--ud-t-label);
+}
+
+
+/* ══ Raffinement — pass 3 : densité verticale ══════════════════════════════
+ * Les colonnes latérales (allocation, exposition) étaient étirées par la
+ * hauteur de la colonne centrale, laissant de grands vides sous leur contenu.
+ * On les ancre en haut plutôt que de les étirer.
+ */
+/* Pas d'`align-items: start` sur ces grilles : les cellules doivent s'étirer
+   pour que les filets (gap + fond) courent d'un bord à l'autre de la rangée. */
+
+/* Le graphe central portait toute la hauteur : on la borne pour que la rangée
+   respire sans que la carte s'allonge indéfiniment. */
+.ud-root .analysis [data-chart-viewport] {
+  height: 260px !important;
+}
+
+/* Cartes de section : marge interne homogène partout. */
+.ud-root .flank-panel,
+.ud-root .analysis > *,
+.ud-root .exposure-cap > * {
+  padding: var(--ud-pad-card);
+}
+
+/* Titres de carte — « Vault allocation », « BTC context » : même corps que
+   les titres de section des maquettes, jamais plus gros. */
+.ud-root .flank-panel h3,
+.ud-root .movements-heading h3 {
+  font-size: var(--ud-t-card);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* Pied de page des cartes : le vide résiduel est réduit. */
+.ud-root .breakdown-legend {
+  margin-top: 10px;
+}
+
+/* La légende du donut collait à l'anneau : on l'écarte pour lui rendre son
+   air. Vise le `ul` que rend le composant partagé après le viewport, ainsi
+   que la légende locale. */
+.ud-root [data-chart-viewport] ~ ul {
+  margin-top: 22px;
+}
+
+
+/* ══ Raffinement — pass 4 : graphes ════════════════════════════════════════
+ * La colonne centrale reste étirée par la carte la plus haute de sa rangée :
+ * on borne la hauteur du bloc plutôt que de laisser le graphe flotter au-dessus
+ * d'un vide. Le graphe se cale en haut de sa carte, comme dans les maquettes.
+ */
+.ud-root .analysis [data-chart-viewport] {
+  height: 230px !important;
+}
+
+/* Axes : corps réduit et teinte discrète — dans les maquettes, la courbe porte
+   l'information, la graduation reste en retrait. */
+.ud-root [data-chart-viewport] text,
+.ud-root .chart-axis,
+.ud-root .chart-axis * {
+  font-size: 10px;
+  fill: var(--ud-fg-3);
+  color: var(--ud-fg-3);
+}
+
+/* Le badge LIVE reprend le vert de marque, en filet plutôt qu'en aplat. */
+.ud-root .chart-live,
+.ud-root [class*='live-badge'] {
+  color: var(--hearst-green);
+  border-color: rgba(158, 234, 122, 0.3);
+  background: var(--hearst-green-dim);
+}
+
+/* ══ Tuile : barre de ratio et note de contexte ════════════════════════════
+ * Deux compléments pour équilibrer la rangée de KPI : une barre là où la
+ * mesure EST une proportion, une note là où un écart se déduit de la valeur.
+ * Aucune des deux n'introduit de donnée que le backend ne fournit pas.
+ */
+.ud-root .stat-meter {
+  height: 4px;
+  margin-bottom: 12px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-inset);
+  overflow: hidden;
+}
+
+.ud-root .stat-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--hearst-green);
+}
+
+/* Pas de marge haute : la bande `.stat-foot` cale déjà la note en bas, et une
+   marge ici décalait les tuiles avec barre par rapport à celles sans. */
+.ud-root .stat-footnote {
+  margin: 0;
+  font-size: var(--ud-t-micro);
+  color: var(--ud-fg-3);
+  font-variant-numeric: tabular-nums;
 }

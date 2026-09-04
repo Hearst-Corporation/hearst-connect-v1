@@ -56,6 +56,16 @@ export function formatDateTime(iso: string | null | undefined): string {
   return Number.isNaN(t) ? '—' : new Date(t).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+/**
+ * Date seule, sans heure — pour les faits dont l'heure n'apporte rien (date de
+ * souscription, échéance). `formatDateTime` reste la forme complète.
+ */
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const t = Date.parse(iso)
+  return Number.isNaN(t) ? '—' : new Date(t).toLocaleDateString(LOCALE, { dateStyle: 'medium' })
+}
+
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return '—'
   const t = Date.parse(iso)
