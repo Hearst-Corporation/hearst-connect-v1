@@ -16,7 +16,10 @@ import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, problem, bloc, payloadFor, nowIso,
 const TOKENS = new Map<string, { id: string; email: string; role: string }>()
 
 async function handle(req: Request, path: string): Promise<NextResponse> {
-  if (process.env.VERCEL_ENV === 'production') {
+  // Le garde vise le PROJET, pas l'environnement : la démo est déployée en
+  // production sur son propre projet Vercel, alors que le projet de l'équipe ne
+  // doit jamais exposer cette route. Sans `DEMO_BACKEND=1`, rien ne répond.
+  if (process.env.DEMO_BACKEND !== '1') {
     return NextResponse.json(problem(404, 'NOT_FOUND', 'Not found.'), { status: 404 })
   }
 
