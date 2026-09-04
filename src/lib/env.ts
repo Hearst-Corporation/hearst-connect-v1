@@ -94,15 +94,18 @@ export function authSecret(): string | null {
  * password is never read here (doctrine §7): these are a dedicated dev-only
  * pair, distinct from the real owner account.
  *
- * Le garde-fou tient sur `VERCEL_ENV`, pas `NODE_ENV` : Vercel construit TOUTE
- * la plateforme en production, previews comprises, donc `NODE_ENV` ne distingue
- * pas une branche de démo du site en ligne. `VERCEL_ENV` vaut 'production'
- * uniquement sur le déploiement de production, 'preview' sur les branches.
- * Hors Vercel (build local, autre hébergeur), on retombe sur `NODE_ENV`.
+ * Le garde-fou tient sur le PROJET, via `DEMO_BACKEND` — pas sur l'environnement.
+ * Ni `NODE_ENV` ni `VERCEL_ENV` ne conviennent : Vercel construit tout en
+ * production, previews comprises, et le déploiement de démo est lui-même une
+ * production sur son propre projet. Seul un drapeau explicite distingue une
+ * instance de démonstration du site de l'équipe, qui ne le définit nulle part.
  */
 export function devQuickLogin(): { email: string; password: string } | null {
-  if (process.env.VERCEL_ENV === 'production') return null
-  if (process.env.VERCEL_ENV === undefined && process.env.NODE_ENV === 'production') return null
+  const isDemo = process.env.DEMO_BACKEND === '1'
+  if (!isDemo && process.env.VERCEL_ENV === 'production') return null
+  if (!isDemo && process.env.VERCEL_ENV === undefined && process.env.NODE_ENV === 'production') {
+    return null
+  }
   const email = process.env.DEV_QUICK_LOGIN_EMAIL?.trim()
   const password = process.env.DEV_QUICK_LOGIN_PASSWORD?.trim()
   if (!email || !password) return null

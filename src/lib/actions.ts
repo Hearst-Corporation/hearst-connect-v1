@@ -75,19 +75,12 @@ export async function logout(): Promise<void> {
  * dedicated pair for local dev, distinct from the real owner account.
  */
 export async function quickLoginOwner(_prevState: LoginState): Promise<LoginState> {
-  // Même garde que `devQuickLogin()` : Vercel construit les previews en
-  // production, donc `NODE_ENV` seul rejetait aussi les branches de démo. Le
-  // refus vaut pour le déploiement de PRODUCTION, pas pour une preview.
-  if (process.env.VERCEL_ENV === 'production') {
-    return { error: loginErrorMessage('missing_fields') }
-  }
-  if (process.env.VERCEL_ENV === undefined && process.env.NODE_ENV === 'production') {
-    return { error: loginErrorMessage('missing_fields') }
-  }
-
+  // Une seule autorité : `devQuickLogin()` porte à la fois le garde d'instance
+  // et la lecture des identifiants. Le dupliquer ici avait déjà produit deux
+  // gardes désaccordés — le bouton s'affichait, l'action refusait.
   const credentials = devQuickLogin()
   if (!credentials) {
-    return { error: 'DEV_QUICK_LOGIN_EMAIL / DEV_QUICK_LOGIN_PASSWORD missing from .env.local.' }
+    return { error: loginErrorMessage('missing_fields') }
   }
 
   return authenticateAndStartSession(credentials.email, credentials.password)
