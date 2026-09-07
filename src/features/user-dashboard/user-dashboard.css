@@ -250,31 +250,6 @@
 }
 
 /* Sous 860px le rail passe en bandeau horizontal au-dessus du contenu. */
-@media (max-width: 860px) {
-  .ud-root .shell {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .ud-root .rail {
-    position: static;
-    height: auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    border-right: none;
-    border-bottom: 1px solid var(--ud-line);
-  }
-
-  .ud-root .rail-nav {
-    flex-direction: row;
-  }
-
-  .ud-root .rail-brand .brand-name,
-  .ud-root .rail-support span {
-    display: none;
-  }
-}
-
 /* ── Nav ─────────────────────────────────────────────────────────────────── */
 
 .ud-root .nav {
@@ -861,6 +836,11 @@
 /* Les onglets vivent sur une PISTE : sans fond commun, les inactifs flottaient
    sur la page et rien ne disait qu'ils étaient cliquables. La piste les
    rassemble, la pilule active se détache dessus. */
+/* Sélecteur natif : masqué au-dessus de 480px, où les onglets tiennent. */
+.ud-root .chart-switch-select {
+  display: none;
+}
+
 .ud-root .chart-switch {
   display: flex;
   gap: 4px;
@@ -1415,45 +1395,6 @@
    en dessous — plutôt que de déborder. */
 /* Écran étroit : six colonnes ne tiennent plus. Intitulé et action sur la
    première ligne, les valeurs en dessous. */
-@media (max-width: 760px) {
-  .ud-root .timeline-body {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    gap: 6px 12px;
-  }
-
-  .ud-root .timeline-title {
-    grid-column: 1;
-  }
-
-  /* La piste d'écartement n'a plus d'objet une fois la ligne repliée. */
-  .ud-root .timeline-meta > span[aria-hidden='true'] {
-    display: none;
-  }
-
-  .ud-root .timeline-detail {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .ud-root .timeline-date,
-  .ud-root .timeline-amount,
-  .ud-root .timeline-btc,
-  .ud-root .timeline-time {
-    justify-self: start;
-    text-align: left;
-  }
-
-  .ud-root .timeline-amount {
-    grid-column: 1;
-  }
-
-  .ud-root .timeline-date,
-  .ud-root .timeline-btc,
-  .ud-root .timeline-time {
-    grid-column: 1 / -1;
-  }
-}
-
 .ud-root .term-row {
   display: flex;
   align-items: center;
@@ -1591,127 +1532,6 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
-
-@media (max-width: 1200px) {
-  .ud-root .position-grid,
-    .ud-root .fund-kpis {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-    .ud-root .position-grid .stat-tile,
-    .ud-root .fund-kpis .stat-tile {
-    border-right: 1px solid var(--ud-line);
-    border-bottom: 1px solid var(--ud-line);
-  }
-
-    .ud-root .position-grid .stat-tile:nth-child(3n),
-    .ud-root .fund-kpis .stat-tile:nth-child(3n) {
-    border-right: 0;
-  }
-}
-
-@media (max-width: 1100px) {
-  .ud-root .your-account-body {
-      grid-template-columns: 1fr;
-    }
-  
-    .ud-root .your-account-body>.movements {
-      border-right: 0;
-      border-bottom: 1px solid var(--ud-line);
-    }
-  
-    .ud-root .analysis,
-    .ud-root .analysis--fund {
-    grid-template-columns: 1fr;
-  }
-
-  .ud-root .analysis > .flank-panel:first-child,
-  .ud-root .analysis > .flank-panel:last-child {
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--ud-line);
-  }
-
-  .ud-root .center {
-    order: -1;
-    border-bottom: 1px solid var(--ud-line);
-  }
-
-  .ud-root .flank-panel {
-    align-items: center;
-  }
-
-  .ud-root .flank-heading {
-    width: 100%;
-    max-width: 320px;
-  }
-
-}
-
-@media (max-width: 768px) {
-  .ud-root .nav {
-    min-height: 56px;
-    padding: 0 14px;
-    grid-template-columns: auto auto auto;
-  }
-
-    .ud-root .position-grid,
-    .ud-root .fund-kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-    .ud-root .deposit-panel {
-      grid-template-columns: 1fr;
-    }
-    .ud-root .position-grid .stat-tile:nth-child(3n),
-    .ud-root .fund-kpis .stat-tile:nth-child(3n) {
-    border-right: 1px solid var(--ud-line);
-  }
-
-    .ud-root .position-grid .stat-tile:nth-child(2n),
-    .ud-root .fund-kpis .stat-tile:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .ud-root .movements-heading {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-}
-
-@media (max-width: 480px) {
-  .ud-root .kpis {
-    grid-template-columns: 1fr;
-  }
-
-  .ud-root .stat-tile {
-    border-right: 0 !important;
-  }
-
-  .ud-root .brand-name {
-    display: none;
-  }
-
-  .ud-root .account-state .sync-label {
-    display: none;
-  }
-
-  .ud-root .sign-out span {
-    display: none;
-  }
-
-  .ud-root .chart-switch {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
-  }
-
-  .ud-root .chart-switch button {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-}
 
 /* ── Subscription intent form (behind the Deposit CTA) ──────────────────── */
 /* La grille et ses areas sont définies avec `.position-heading` plus haut —
@@ -2033,17 +1853,6 @@
 
 /* Sous 620px la clé passe au-dessus de sa barre : à trois colonnes, la piste
    deviendrait trop courte pour montrer quoi que ce soit. */
-@media (max-width: 620px) {
-  .ud-root .btc-gauge-row {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    gap: 5px 12px;
-  }
-
-  .ud-root .btc-gauge-key {
-    grid-column: 1 / -1;
-  }
-}
-
 .ud-root .btc-block-absent {
   margin: 0;
   padding: var(--ud-pad-card);
@@ -2054,19 +1863,6 @@
 }
 
 /* Sous ~720px la colonne latérale passe dessous, séparée par un filet haut. */
-@media (max-width: 720px) {
-  .ud-root .btc-block-top {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .ud-root .btc-block-side {
-    padding-left: 0;
-    padding-top: 18px;
-    border-left: none;
-    border-top: 1px solid var(--ud-line);
-  }
-}
-
 /* ── Repli de la liste de mouvements ──────────────────────────────────────
  * La liste s'arrête à cinq lignes ; le bouton annonce combien restent, pour
  * que le repli n'escamote pas l'existence des mouvements masqués.
@@ -2380,4 +2176,272 @@
   font-size: var(--ud-t-micro);
   color: var(--ud-fg-3);
   font-variant-numeric: tabular-nums;
+}
+
+/* ══ Responsive ════════════════════════════════════════════════════════════
+ * TROIS points de rupture, pas huit : les précédents (480, 620, 720, 760, 768,
+ * 860, 1100, 1200) s'étaient accumulés au fil des ajouts, deux d'entre eux à
+ * 8px d'écart. Ici chaque palier correspond à une famille d'appareils, et tout
+ * ce qui doit changer à cette largeur y est rassemblé.
+ *
+ *   1024px — tablette paysage : les grilles de 5 tuiles passent à 3
+ *    768px — tablette portrait : rail en barre, colonnes latérales dessous
+ *    480px — téléphone : une seule colonne, valeurs sous leur libellé
+ */
+
+/* ── Tablette paysage ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Cinq tuiles ne tiennent plus : 128px minimum × 5 = 640px de contenu. */
+  .ud-root .position-grid,
+  .ud-root .fund-kpis,
+  .ud-root .kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ud-root .position-grid .stat-tile,
+  .ud-root .fund-kpis .stat-tile {
+    border-right: 1px solid var(--ud-line);
+    border-bottom: 1px solid var(--ud-line);
+  }
+
+  .ud-root .position-grid .stat-tile:nth-child(3n),
+  .ud-root .fund-kpis .stat-tile:nth-child(3n) {
+    border-right: 0;
+  }
+
+  /* L'analyse à trois colonnes (flanc / centre / flanc) se réduit à deux. */
+  .ud-root .analysis {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  }
+
+  .ud-root .analysis > :first-child {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--ud-line);
+  }
+
+  /* Le titre de section cesse d'être borné à 62ch : le CTA a besoin de place. */
+  .ud-root .position-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* ── Tablette portrait ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Le rail devient une barre horizontale : une colonne fixe de 170px ampute
+     trop le contenu à cette largeur. */
+  .ud-root .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ud-root .rail {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border-right: none;
+    border-bottom: 1px solid var(--ud-line);
+  }
+
+  .ud-root .rail-brand {
+    min-height: 0;
+    height: auto;
+    padding: 10px 0;
+    border-bottom: none;
+  }
+
+  .ud-root .rail-brand img {
+    height: 30px;
+  }
+
+  .ud-root .rail-nav {
+    flex-direction: row;
+    flex: 0 1 auto;
+    padding: 0;
+    gap: 6px;
+  }
+
+  .ud-root .rail-item {
+    height: 36px;
+    padding: 0 14px;
+  }
+
+  /* Support et libellés secondaires : la barre doit tenir sur une ligne. */
+  .ud-root .rail-support,
+  .ud-root .rail-brand .brand-name {
+    display: none;
+  }
+
+  /* Analyse et compte passent en pile. */
+  .ud-root .analysis,
+  .ud-root .your-account-body,
+  .ud-root .btc-block-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ud-root .analysis > * + *,
+  .ud-root .your-account-body > * + * {
+    border-top: 1px solid var(--ud-line);
+  }
+
+  .ud-root .your-account-body > .movements {
+    border-right: 0;
+  }
+
+  .ud-root .btc-block-side {
+    padding-left: var(--ud-pad-card);
+    padding-top: 18px;
+    border-left: none;
+    border-top: 1px solid var(--ud-line);
+  }
+
+  /* Mouvements : intitulé et action sur la première ligne, valeurs dessous. */
+  .ud-root .timeline-body {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 6px 12px;
+  }
+
+  .ud-root .timeline-title {
+    grid-column: 1;
+  }
+
+  .ud-root .timeline-meta > span[aria-hidden='true'] {
+    display: none;
+  }
+
+  .ud-root .timeline-detail {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ud-root .timeline-date,
+  .ud-root .timeline-amount,
+  .ud-root .timeline-btc,
+  .ud-root .timeline-time {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .ud-root .timeline-amount {
+    grid-column: 1;
+  }
+
+  .ud-root .timeline-date,
+  .ud-root .timeline-btc,
+  .ud-root .timeline-time {
+    grid-column: 1 / -1;
+  }
+
+  /* Barres du haut : plus besoin de 88px sans le rail vertical à raccorder. */
+  .ud-root .topbar,
+  .ud-root .nav {
+    min-height: 60px;
+  }
+
+  .ud-root .nav {
+    padding: 0 14px;
+    grid-template-columns: auto 1fr auto;
+  }
+}
+
+/* ── Téléphone ────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Cinq onglets ne tiennent pas sur 375px : la piste cède la place à un
+     sélecteur natif. Ni empilement (une pilule sur trois lignes n'a plus de
+     forme), ni défilement (ce qui dépasse devient invisible). */
+  .ud-root .chart-switch {
+    display: none;
+  }
+
+  .ud-root .chart-switch-select {
+    display: block;
+    width: calc(100% - 28px);
+    height: 40px;
+    margin: 13px 14px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--ud-radius);
+    background: var(--ud-inset);
+    box-shadow: inset 0 0 0 1px var(--ud-line);
+    color: var(--ud-fg);
+    font-family: inherit;
+    font-size: var(--ud-t-label);
+    /* `appearance: none` retirerait le chevron système sans rien mettre à la
+       place — on garde le rendu natif, qui signale déjà qu'on peut dérouler. */
+  }
+
+  .ud-root .chart-switch-select:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: 2px;
+  }
+
+  .ud-root .dashboard-view {
+    padding: 14px;
+    gap: 18px;
+  }
+
+  /* Une seule colonne : à 375px, trois tuiles laissent 100px chacune. */
+  .ud-root .position-grid,
+  .ud-root .fund-kpis,
+  .ud-root .kpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ud-root .position-grid .stat-tile,
+  .ud-root .fund-kpis .stat-tile,
+  .ud-root .stat-tile {
+    border-right: 0;
+  }
+
+  /* Le CTA passe sous le titre plutôt que de le comprimer. */
+  .ud-root .position-heading {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'title' 'cta' 'form';
+    gap: 14px;
+  }
+
+  .ud-root .deposit-block > .position-deposit-cta {
+    justify-self: start;
+  }
+
+  /* Métrique principale : 38px déborde sur 375px de large. */
+  .ud-root .btc-block-value {
+    font-size: 30px;
+  }
+
+  .ud-root .btc-block-top > *,
+  .ud-root .btc-gauge,
+  .ud-root .section-heading,
+  .ud-root .ec-panel,
+  .ud-root .movements-heading,
+  .ud-root .timeline > li {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* Jauge HODL : la clé passe au-dessus de sa barre. */
+  .ud-root .btc-gauge-row {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 5px 12px;
+  }
+
+  .ud-root .btc-gauge-key {
+    grid-column: 1 / -1;
+  }
+
+  .ud-root .btc-gauge-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  /* Le formulaire de dépôt ne tient plus sur une ligne. */
+  .ud-root .deposit-row {
+    flex-wrap: wrap;
+  }
+
+  .ud-root .deposit-input {
+    flex: 1 1 100%;
+  }
 }
