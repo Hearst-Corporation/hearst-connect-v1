@@ -497,6 +497,25 @@ export function UserDashboardView({
 
                   <div className="center">
                     <div className="center-panel">
+                      {/* Sur téléphone, un `select` natif remplace les cinq
+                          onglets : ils ne tiennent pas sur 375px, et le
+                          sélecteur système est plus confortable qu'un menu
+                          maison. Les deux existent dans le DOM, le CSS n'en
+                          montre qu'un — un seul état, aucune désynchronisation
+                          possible. */}
+                      <select
+                        className="chart-switch-select"
+                        aria-label="Fund chart"
+                        value={central}
+                        onChange={(e) => setCentral(e.target.value as typeof central)}
+                      >
+                        {CENTRAL_VIEWS.map((view) => (
+                          <option key={view.key} value={view.key}>
+                            {view.label}
+                          </option>
+                        ))}
+                      </select>
+
                       <div className="chart-switch" role="group" aria-label="Fund chart">
                         {CENTRAL_VIEWS.map((view) => {
                           const Icon = view.icon
