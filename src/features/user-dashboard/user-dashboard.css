@@ -141,7 +141,6 @@
 
 .ud-root .rail-brand { top: 0; }
 .ud-root .rail-nav { top: 89px; }
-.ud-root .rail-support { position: static; }
 
 /* Bande de marque alignée sur la topbar et la nav (74px) : le filet doit
    traverser l'écran sans décrochement.
@@ -182,6 +181,9 @@
   background: transparent;
   font-size: var(--body-copy);
   text-align: left;
+  /* Le registre couvre aussi un `<a>` (Support) : sans cela, le lien portait
+     le soulignement par défaut au milieu de boutons qui n'en ont pas. */
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -202,22 +204,6 @@
 
 .ud-root .rail-item.active:hover {
   background: var(--hearst-green);
-}
-
-.ud-root .rail-support {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 12px;
-  padding: 10px 12px;
-  border-radius: var(--ud-radius);
-  color: var(--hearst-green);
-  font-size: var(--body-copy);
-  text-decoration: none;
-}
-
-.ud-root .rail-support:hover {
-  background: rgba(255, 255, 255, 0.04);
 }
 
 /* ── Newsletter ──────────────────────────────────────────────────────────
@@ -2487,7 +2473,6 @@
   /* Support et libellés secondaires : la barre doit tenir sur une ligne. */
   /* `.rail-social` compris : les icônes vivent dans le panneau du burger sur
      mobile, les laisser dans la barre les aurait dupliquées. */
-  .ud-root .rail-support,
   .ud-root .rail-social,
   .ud-root .rail-brand .brand-name {
     display: none;
@@ -2700,9 +2685,10 @@
   }
 
   /* ── Pied de page ────────────────────────────────────────────────────
-     Marque à gauche, mention légale à droite, séparés par un filet du
-     contenu qui précède. `margin-top: auto` le colle au bas quand la page
-     est plus courte que l'écran, au lieu de le laisser flotter au milieu. */
+     Marque, copyright et liens légaux se suivent à écart constant, séparés du
+     contenu par un filet. `margin-top: auto` colle le bloc au bas quand la page
+     est plus courte que l'écran, au lieu de le laisser flotter au milieu.
+     `flex-wrap` renvoie les liens à la ligne plutôt que de les comprimer. */
   .ud-root .ud-footer {
     display: flex;
     flex-wrap: wrap;
@@ -2713,19 +2699,23 @@
     border-top: 1px solid var(--ud-line);
   }
 
-  /* Le copyright pousse les liens au bord droit tant que la ligne tient ; passé
-     ce point, `flex-wrap` les renvoie dessous plutôt que de les comprimer. */
+  /* Les trois éléments se suivent à écart CONSTANT : le `gap` du pied de page
+     les sépare tous les trois de la même façon. Le copyright portait
+     `flex: 1 1 auto`, il absorbait l'espace libre et rejetait les deux liens au
+     bord droit — d'où un trou après lui et un écart serré entre eux. */
   .ud-root .ud-footer-copy {
     margin: 0;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     color: var(--ud-fg-3);
     font-size: var(--ud-t-micro);
   }
 
+  /* `display: contents` : le conteneur s'efface et ses deux liens deviennent
+     enfants directs du pied de page, donc soumis au même `gap` que le
+     copyright. Un conteneur avec son propre `gap` aurait gardé deux écarts
+     différents. */
   .ud-root .ud-footer-links {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 16px;
+    display: contents;
   }
 
   /* Gris au repos, blanc au survol — le registre du site public. */

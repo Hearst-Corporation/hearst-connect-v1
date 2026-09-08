@@ -397,6 +397,18 @@ export function UserDashboardView({
                     <span>{label}</span>
                   </button>
                 ))}
+
+                {/* Support rejoint la navigation plutôt que de rester isolé en
+                    pied de rail. Il garde sa nature de LIEN — c'est un courriel,
+                    pas une vue — d'où la balise `a` au milieu des boutons ; seule
+                    l'apparence est commune. */}
+                <a
+                  className="rail-item rail-item--support"
+                  href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20support"
+                >
+                  <QuestionMarkCircleIcon className="size-4" aria-hidden="true" />
+                  <span>Support</span>
+                </a>
               </nav>
 
               {/* Navigation mobile — n'apparaît que sous 768px, où la topbar et
@@ -418,14 +430,6 @@ export function UserDashboardView({
                   <i />
                 </span>
               </button>
-
-              <a
-                className="rail-support"
-                href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20support"
-              >
-                <QuestionMarkCircleIcon className="size-4" aria-hidden="true" />
-                <span>Support</span>
-              </a>
 
               <SocialLinks className="rail-social" />
 
