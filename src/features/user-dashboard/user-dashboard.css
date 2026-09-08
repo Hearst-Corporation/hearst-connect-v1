@@ -212,8 +212,8 @@
    caractères (« Enter ») pendant que le bouton gardait sa largeur. Le panneau
    du burger, lui, court sur toute la largeur de l'écran.
 
-   Le bouton ne prend pas le vert : il rivaliserait avec « Trade » et
-   « Deposit », qui sont les actions du produit. */
+   Le bouton prend le vert du produit : dans un panneau où il est la seule
+   action, rien ne lui dispute le premier rang. */
 .ud-root .rail-menu-newsletter {
   display: flex;
   flex-direction: column;
@@ -262,24 +262,26 @@
   outline-offset: 1px;
 }
 
+/* Registre primaire, comme « Deposit » et « Trade » : aplat vert, encre sombre,
+   éclairci au survol. Le bouton cerclé de la référence se lisait comme
+   secondaire alors que c'est l'action du bloc. */
 .ud-root .newsletter-row button {
   flex: 0 0 auto;
   height: 34px;
-  padding: 0 14px;
-  border: 1px solid var(--ud-line-strong);
+  padding: 0 16px;
+  border: 0;
   border-radius: var(--ud-radius-pill);
-  background: transparent;
-  color: var(--ud-fg);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
   font-family: inherit;
   font-size: var(--ud-t-micro);
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: filter 0.15s;
 }
 
 .ud-root .newsletter-row button:hover {
-  border-color: var(--ud-fg);
-  background: rgba(255, 255, 255, 0.04);
+  filter: brightness(1.06);
 }
 
 .ud-root .newsletter-row button:focus-visible {
@@ -2778,12 +2780,14 @@
     outline-offset: 2px;
   }
 
-  /* Pas d'`opacity` sur le lockup : l'image est un blanc plein, la voiler la
-     rendait grise et sale au lieu de discrète. Sa taille — 7 contre 10 dans la
-     barre du haut — suffit à dire qu'elle ne réclame pas l'attention. */
+  /* Le monogramme prend le vert de marque : c'est un SVG en `currentColor`,
+     donc la couleur vient d'ici — l'ancien lockup, une image, ne s'y prêtait
+     pas. Plus haut que le reste de la ligne, il ancre le pied de page sans
+     qu'un libellé soit nécessaire. */
   .ud-root .ud-footer-brand {
     display: inline-flex;
     flex: 0 0 auto;
+    color: var(--hearst-green);
   }
 
 

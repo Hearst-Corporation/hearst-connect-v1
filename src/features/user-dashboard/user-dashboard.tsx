@@ -43,7 +43,7 @@ import { DottedH } from '@/assets/brand/dotted-h'
 import { InstagramIcon, LinkedInIcon, XIcon } from '@/assets/brand/social'
 import { MovementTimeline } from './movement-timeline'
 import type { UserDashboard } from './load'
-import { HearstConnectLockupImage } from '@/components/logo'
+import { HearstConnectLockupImage, LogoMark } from '@/components/logo'
 import { DepositForm } from './deposit-form'
 import { BtcPositionHeadline } from './btc-position'
 
@@ -856,8 +856,11 @@ export function UserDashboardView({
                 porte déjà la marque et les liens en permanence, alors qu'en
                 barre horizontale il ne reste que le logo et le burger. */}
             <footer className="ud-footer">
-              <span className="ud-footer-brand">
-                <HearstConnectLockupImage className="h-7 w-auto" />
+              {/* Le H seul, pas le lockup : au pied d'une page qui porte déjà la
+                  marque en tête, le monogramme suffit — et il prend la couleur
+                  du CSS, ce qu'une image ne permet pas. */}
+              <span className="ud-footer-brand" aria-label="Hearst">
+                <LogoMark className="h-9 w-auto" />
               </span>
               <p className="ud-footer-copy">© {COPYRIGHT_YEAR} Hearst. All rights reserved.</p>
               <div className="ud-footer-links">
