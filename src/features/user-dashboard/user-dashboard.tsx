@@ -18,6 +18,7 @@ import {
   ScaleIcon,
   SignalIcon,
   Squares2X2Icon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
 import {
@@ -438,6 +439,17 @@ export function UserDashboardView({
                   panneau garde son identité entre deux ouvertures, et le lecteur
                   d'écran suit l'état annoncé par `aria-expanded`. */}
               <div className="rail-menu" id="mobile-nav" hidden={!menuOpen}>
+                {/* Fermeture explicite : le burger referme aussi, mais il est
+                    hors du panneau ouvert et l'œil ne l'y cherche pas. */}
+                <button
+                  type="button"
+                  className="rail-menu-close"
+                  aria-label="Close menu"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <XMarkIcon className="size-5" aria-hidden="true" />
+                </button>
+
                 <nav className="rail-menu-nav" aria-label="Main">
                   {(
                     [
@@ -470,8 +482,6 @@ export function UserDashboardView({
                   </a>
                 </nav>
 
-                <NewsletterForm className="rail-menu-newsletter" />
-
                 <SocialLinks className="rail-menu-social" />
 
                 {/* Détaché du groupe : sortir du compte n'est pas une destination
@@ -486,6 +496,8 @@ export function UserDashboardView({
                   <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
                   <span>Sign out</span>
                 </button>
+
+                <NewsletterForm className="rail-menu-newsletter" />
               </div>
             </aside>
 

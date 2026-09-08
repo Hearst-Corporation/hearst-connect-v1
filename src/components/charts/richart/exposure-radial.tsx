@@ -141,7 +141,7 @@ export function HearstExposureRadial({
       />
 
       <div className="ud-radial-row flex flex-wrap items-center gap-x-7 gap-y-6">
-        <div className="relative aspect-square w-[16rem] min-w-[12rem] max-w-full flex-[0_1_auto]">
+        <div className="ud-radial-dial relative aspect-square w-[16rem] min-w-[12rem] max-w-full flex-[0_1_auto]">
           <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden="true">
             {geom.map((g, index) => (
               <g key={`${g.label}-${index}`}>

@@ -2561,10 +2561,51 @@
     box-shadow: 0 18px 32px -18px rgb(0 0 0 / 0.75);
   }
 
+  /* Croix de fermeture, calée au bord droit comme « Sign out » plus bas : la
+     colonne de droite porte les sorties. Verte, seule note de couleur du
+     panneau — c'est l'action qui rend la page au lecteur. */
+  .ud-root .rail-menu-close {
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ud-radius);
+    background: transparent;
+    color: var(--hearst-green);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .ud-root .rail-menu-close:hover {
+    background: color-mix(in srgb, var(--hearst-green) 12%, transparent);
+  }
+
+  .ud-root .rail-menu-close:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: -2px;
+  }
+
   .ud-root .rail-menu-nav {
     display: flex;
     flex-direction: column;
     gap: 2px;
+  }
+
+  /* Le radial d'exposition se centre dès que la légende passe sous lui : calé à
+     gauche, il laissait un vide à droite. `justify-content` ne suffisait pas —
+     le conteneur du donut porte `max-w-full` et occupe toute la ligne, donc il
+     n'y a rien à pousser. C'est LUI qu'on centre, par des marges auto. */
+  .ud-root .ud-radial-row {
+    justify-content: center;
+  }
+
+  .ud-root .ud-radial-dial {
+    margin-inline: auto;
   }
 
   .ud-root .rail-menu-item {
@@ -2612,12 +2653,12 @@
     outline-offset: -2px;
   }
 
-  /* Newsletter du panneau : séparée de la navigation par un filet — c'est une
-     inscription, pas une destination. */
+  /* Newsletter en fin de bloc, après « Sign out ». Pas de filet : celui du
+     bouton de déconnexion la sépare déjà de la navigation, un second trait
+     aurait découpé le panneau en trois. */
   .ud-root .rail-menu-newsletter {
-    margin-top: 12px;
-    padding: 14px 6px 4px;
-    border-top: 1px solid var(--ud-line);
+    margin-top: 10px;
+    padding: 0 6px 4px;
   }
 
   .ud-root .rail-menu-newsletter .newsletter-row input,
@@ -2968,12 +3009,6 @@
   .ud-root .timeline > li {
     padding-left: 14px;
     padding-right: 14px;
-  }
-
-  /* Le radial d'exposition se centre : aligné à gauche il laissait un vide à
-     droite, la légende étant passée dessous. */
-  .ud-root .ud-radial-row {
-    justify-content: center;
   }
 
   /* Jauge HODL : la clé passe au-dessus de sa barre. */
