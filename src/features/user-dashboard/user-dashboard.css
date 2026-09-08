@@ -2424,7 +2424,10 @@
     flex-direction: row;
     align-items: center;
     gap: 12px;
-    padding: 0 16px;
+    /* Même retrait latéral que la colonne de contenu : à 16px en dur, le logo
+       ne tombait pas à l'aplomb de « Account » juste dessous. La variable les
+       tient alignés à tous les paliers, comme pour le pied de page. */
+    padding: 0 var(--ud-pad-page);
     border-right: none;
     border-bottom: 1px solid var(--ud-line);
   }

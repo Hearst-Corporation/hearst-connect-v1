@@ -859,8 +859,13 @@ export function UserDashboardView({
               {/* Le H seul, pas le lockup : au pied d'une page qui porte déjà la
                   marque en tête, le monogramme suffit — et il prend la couleur
                   du CSS, ce qu'une image ne permet pas. */}
+              {/* `viewBox` resserré sur le tracé : celui de `LogoMark` porte
+                  12.6 unités de vide à gauche sur 155 (8 %), qui décalaient le H
+                  vers l'intérieur alors que les blocs au-dessus commencent au
+                  bord du padding. Le composant reste intact pour ses autres
+                  usages — seule cette instance recadre. */}
               <span className="ud-footer-brand" aria-label="Hearst">
-                <LogoMark className="h-9 w-auto" />
+                <LogoMark className="h-9 w-auto" viewBox="12.6 11.87 129.26 142.86" />
               </span>
               <p className="ud-footer-copy">© {COPYRIGHT_YEAR} Hearst. All rights reserved.</p>
               <div className="ud-footer-links">
