@@ -2552,12 +2552,12 @@
     border-top: 1px solid var(--ud-line);
   }
 
+  /* Pas d'`opacity` sur le lockup : l'image est un blanc plein, la voiler la
+     rendait grise et sale au lieu de discrète. Sa taille — 7 contre 10 dans la
+     barre du haut — suffit à dire qu'elle ne réclame pas l'attention. */
   .ud-root .ud-footer-brand {
     display: inline-flex;
     flex: 0 0 auto;
-    /* Le lockup est une marque de pied de page, pas une action : il ne
-       rivalise pas avec celui de la barre du haut, qui lui est cliquable. */
-    opacity: 0.62;
   }
 
   .ud-root .ud-footer-legal {
