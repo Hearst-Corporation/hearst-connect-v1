@@ -220,6 +220,125 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* ── Newsletter ──────────────────────────────────────────────────────────
+   Champ et bouton en pilules cerclées sur fond noir, comme sur le site public.
+   Le bouton ne prend PAS le vert : dans le rail, il rivaliserait avec « Trade »
+   et « Deposit », qui sont les actions du produit. */
+.ud-root .rail-newsletter,
+.ud-root .rail-menu-newsletter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ud-root .newsletter-title {
+  margin: 0;
+  color: var(--ud-fg);
+  font-size: var(--ud-t-label);
+  font-weight: 600;
+}
+
+.ud-root .newsletter-copy {
+  margin: 0 0 6px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  line-height: 1.45;
+}
+
+.ud-root .newsletter-row {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ud-root .newsletter-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--ud-line-strong);
+  border-radius: var(--ud-radius-pill);
+  background: transparent;
+  color: var(--ud-fg);
+  font-family: inherit;
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .newsletter-row input::placeholder {
+  color: var(--ud-fg-3);
+}
+
+.ud-root .newsletter-row input:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 1px;
+}
+
+.ud-root .newsletter-row button {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--ud-line-strong);
+  border-radius: var(--ud-radius-pill);
+  background: transparent;
+  color: var(--ud-fg);
+  font-family: inherit;
+  font-size: var(--ud-t-micro);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ud-root .newsletter-row button:hover {
+  border-color: var(--ud-fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ud-root .newsletter-row button:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
+}
+
+/* ── Réseaux sociaux ─────────────────────────────────────────────────────
+   Gris au repos, blanc au survol — le registre du site public, repris tel quel
+   pour que l'application et la vitrine se répondent. Pas de vert ici : la
+   couleur de marque signale les actions du produit, pas des liens sortants.
+   Elle vient de `currentColor` dans le SVG, donc la transition porte sur le
+   lien et le tracé suit. */
+/* Pas de `margin-top: auto` : `.rail-nav` porte déjà `flex: 1 1 auto` et
+   absorbe l'espace libre, donc le bloc est de toute façon en bas de colonne. */
+.ud-root .rail-newsletter {
+  margin: 6px 12px 10px;
+  padding: 0 4px;
+}
+
+.ud-root .rail-social {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 12px 14px;
+  padding: 0 4px;
+}
+
+.ud-root .rail-social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ud-radius-sm);
+  color: var(--ud-fg-3);
+  transition: color 0.15s;
+}
+
+.ud-root .rail-social a:hover {
+  color: #ffffff;
+}
+
+.ud-root .rail-social a:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
+}
+
 /* ── Colonne de contenu ──────────────────────────────────────────────────── */
 
 .ud-root .content {
@@ -2370,7 +2489,10 @@
   }
 
   /* Support et libellés secondaires : la barre doit tenir sur une ligne. */
+  /* `.rail-social` compris : les icônes vivent dans le panneau du burger sur
+     mobile, les laisser dans la barre les aurait dupliquées. */
   .ud-root .rail-support,
+  .ud-root .rail-social,
   .ud-root .rail-brand .brand-name {
     display: none;
   }
@@ -2509,6 +2631,49 @@
     outline-offset: -2px;
   }
 
+  /* Newsletter du panneau : séparée de la navigation par un filet — c'est une
+     inscription, pas une destination. */
+  .ud-root .rail-menu-newsletter {
+    margin-top: 12px;
+    padding: 14px 6px 4px;
+    border-top: 1px solid var(--ud-line);
+  }
+
+  .ud-root .rail-menu-newsletter .newsletter-row input,
+  .ud-root .rail-menu-newsletter .newsletter-row button {
+    height: 40px;
+  }
+
+  /* Réseaux sociaux du panneau : plus grands qu'au rail, la cible étant tactile.
+     Même registre — gris au repos, blanc au survol. */
+  .ud-root .rail-menu-social {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 0 6px;
+  }
+
+  .ud-root .rail-menu-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--ud-radius);
+    color: var(--ud-fg-3);
+    transition: color 0.15s;
+  }
+
+  .ud-root .rail-menu-social a:hover {
+    color: #ffffff;
+  }
+
+  .ud-root .rail-menu-social a:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: -2px;
+  }
+
   /* Écart et filet : sortir du compte n'est pas une destination de plus. */
   .ud-root .rail-menu-signout {
     display: flex;
@@ -2544,12 +2709,44 @@
      est plus courte que l'écran, au lieu de le laisser flotter au milieu. */
   .ud-root .ud-footer {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    gap: 10px 16px;
     margin-top: auto;
     padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--ud-line);
+  }
+
+  /* Le copyright pousse les liens au bord droit tant que la ligne tient ; passé
+     ce point, `flex-wrap` les renvoie dessous plutôt que de les comprimer. */
+  .ud-root .ud-footer-copy {
+    margin: 0;
+    flex: 1 1 auto;
+    color: var(--ud-fg-3);
+    font-size: var(--ud-t-micro);
+  }
+
+  .ud-root .ud-footer-links {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 16px;
+  }
+
+  /* Gris au repos, blanc au survol — le registre du site public. */
+  .ud-root .ud-footer-links a {
+    color: var(--ud-fg-3);
+    font-size: var(--ud-t-micro);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .ud-root .ud-footer-links a:hover {
+    color: #ffffff;
+  }
+
+  .ud-root .ud-footer-links a:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: 2px;
   }
 
   /* Pas d'`opacity` sur le lockup : l'image est un blanc plein, la voiler la
@@ -2558,23 +2755,6 @@
   .ud-root .ud-footer-brand {
     display: inline-flex;
     flex: 0 0 auto;
-  }
-
-  .ud-root .ud-footer-legal {
-    flex: 0 0 auto;
-    color: var(--ud-fg-3);
-    font-size: var(--ud-t-micro);
-    text-decoration: none;
-  }
-
-  .ud-root .ud-footer-legal:hover {
-    color: var(--ud-fg-2);
-    text-decoration: underline;
-  }
-
-  .ud-root .ud-footer-legal:focus-visible {
-    outline: 2px solid var(--hearst-green);
-    outline-offset: 2px;
   }
 
 

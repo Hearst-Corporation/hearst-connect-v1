@@ -39,6 +39,7 @@ import { StatTile, deltaOf } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
 import { BtcContextFlank } from './btc-context-flank'
 import { DottedH } from '@/assets/brand/dotted-h'
+import { InstagramIcon, LinkedInIcon, XIcon } from '@/assets/brand/social'
 import { MovementTimeline } from './movement-timeline'
 import type { UserDashboard } from './load'
 import { HearstConnectLockupImage } from '@/components/logo'
@@ -59,6 +60,86 @@ import { BtcPositionHeadline } from './btc-position'
 
 type CentralView = 'value' | 'allocation' | 'btc' | 'activity' | 'backtest'
 type Route = 'dashboard' | 'trade'
+
+/**
+ * Comptes sociaux de Hearst. Une seule table pour les deux emplacements — le
+ * rail desktop et le panneau mobile — de sorte qu'un lien ajouté ici apparaisse
+ * aux deux, sans qu'une liste puisse dériver de l'autre.
+ */
+/* Année du copyright, calculée UNE fois au chargement du module. `new Date()`
+   dans le rendu s'évaluerait côté serveur puis côté client : au passage d'un
+   1er janvier, ou sur deux fuseaux, les deux valeurs divergent et React signale
+   une erreur d'hydratation. */
+const COPYRIGHT_YEAR = new Date().getFullYear()
+
+const SOCIAL_LINKS = [
+  { label: 'X', href: 'https://x.com/Hearst_io', Icon: XIcon },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/hearstio/', Icon: LinkedInIcon },
+  { label: 'Instagram', href: 'https://www.instagram.com/hearst.io/', Icon: InstagramIcon },
+] as const
+
+/**
+ * Inscription à la newsletter.
+ *
+ * Aucun backend d'abonnement n'existe : le formulaire ouvre un courriel
+ * pré-adressé plutôt que de simuler une inscription qui n'enregistrerait rien.
+ * L'adresse saisie voyage dans le corps du message, et l'utilisateur voit
+ * exactement ce qu'il envoie — pas de confirmation de façade.
+ *
+ * Quand un service d'abonnement existera, seul `onSubmit` change ; la forme
+ * tient telle quelle.
+ */
+function NewsletterForm({ className }: Readonly<{ className: string }>) {
+  const [email, setEmail] = useState('')
+
+  return (
+    <form
+      className={className}
+      onSubmit={(e) => {
+        e.preventDefault()
+        const address = email.trim()
+        if (address === '') return
+        window.location.href = `mailto:connect@hearstcorporation.io?subject=${encodeURIComponent(
+          'Newsletter subscription',
+        )}&body=${encodeURIComponent(`Please subscribe this address to the newsletter: ${address}`)}`
+      }}
+    >
+      <p className="newsletter-title">Subscribe to our newsletter</p>
+      <p className="newsletter-copy">Stay up to date on features and releases.</p>
+      <div className="newsletter-row">
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          aria-label="Your email address"
+        />
+        <button type="submit">Subscribe</button>
+      </div>
+    </form>
+  )
+}
+
+/** Rangée d'icônes sociales. `rel` complet : ces liens quittent l'application. */
+function SocialLinks({ className }: Readonly<{ className: string }>) {
+  return (
+    <div className={className}>
+      {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+        <a
+          key={label}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={label}
+          title={label}
+        >
+          <Icon className="size-4" />
+        </a>
+      ))}
+    </div>
+  )
+}
 
 const CENTRAL_VIEWS: readonly {
   readonly key: CentralView
@@ -345,6 +426,11 @@ export function UserDashboardView({
                 <QuestionMarkCircleIcon className="size-4" aria-hidden="true" />
                 <span>Support</span>
               </a>
+
+              <NewsletterForm className="rail-newsletter" />
+
+              <SocialLinks className="rail-social" />
+
               {/* Panneau du burger. Rendu dans le rail, donc juste sous la barre
                   dont il descend. `hidden` plutôt qu'un rendu conditionnel : le
                   panneau garde son identité entre deux ouvertures, et le lecteur
@@ -381,6 +467,10 @@ export function UserDashboardView({
                     <span>Support</span>
                   </a>
                 </nav>
+
+                <NewsletterForm className="rail-menu-newsletter" />
+
+                <SocialLinks className="rail-menu-social" />
 
                 {/* Détaché du groupe : sortir du compte n'est pas une destination
                     de plus. Le filet et l'écart le disent avant le libellé. */}
@@ -749,18 +839,21 @@ export function UserDashboardView({
             ) : null}
 
             {/* Pied de page — mobile seulement : sur desktop, le rail latéral
-                porte déjà la marque et le lien de support en permanence, alors
-                qu'en barre horizontale il ne reste que le logo et le burger. */}
+                porte déjà la marque et les liens en permanence, alors qu'en
+                barre horizontale il ne reste que le logo et le burger. */}
             <footer className="ud-footer">
               <span className="ud-footer-brand">
                 <HearstConnectLockupImage className="h-7 w-auto" />
               </span>
-              <a
-                className="ud-footer-legal"
-                href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20—%20Legal"
-              >
-                Legal notice
-              </a>
+              <p className="ud-footer-copy">© {COPYRIGHT_YEAR} Hearst. All rights reserved.</p>
+              <div className="ud-footer-links">
+                <a href="mailto:connect@hearstcorporation.io?subject=Terms%20%26%20conditions">
+                  Terms &amp; conditions
+                </a>
+                <a href="mailto:connect@hearstcorporation.io?subject=Privacy%20Policy">
+                  Privacy Policy
+                </a>
+              </div>
             </footer>
             </div>
           </div>
