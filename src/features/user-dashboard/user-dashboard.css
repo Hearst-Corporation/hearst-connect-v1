@@ -2744,12 +2744,13 @@
     border-top: 1px solid var(--ud-line);
   }
 
-  /* Les trois éléments se suivent à écart CONSTANT : le `gap` du pied de page
-     les sépare tous les trois de la même façon. Le copyright portait
-     `flex: 1 1 auto`, il absorbait l'espace libre et rejetait les deux liens au
-     bord droit — d'où un trou après lui et un écart serré entre eux. */
+  /* Copyright et liens gardent l'écart constant du `gap`, mais le groupe est
+     poussé à DROITE : `margin-left: auto` place l'espace libre avant lui, non
+     entre ses membres. Le dernier lien vient alors border le padding du pied de
+     page, soit le même retrait que le monogramme à gauche — la ligne est
+     symétrique d'un bord à l'autre. */
   .ud-root .ud-footer-copy {
-    margin: 0;
+    margin: 0 0 0 auto;
     flex: 0 0 auto;
     color: var(--ud-fg-3);
     font-size: var(--ud-t-micro);
