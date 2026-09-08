@@ -2598,6 +2598,31 @@
     gap: 2px;
   }
 
+  /* Tuiles en deux colonnes : le montant et sa contrevaleur BTC ne tiennent
+     plus côte à côte et se tronquaient TOUS DEUX — « 420,000 … » et
+     « ≈ 4.4294… ». Le `flex: 0 1 auto` de l'aside devait la faire céder la
+     première, mais elle ne peut pas descendre sous son ellipse.
+
+     La contrevaleur passe donc à la ligne, sur toute la largeur : le chiffre
+     principal retrouve la place entière. Le `flex-wrap` s'ouvre ici SEULEMENT
+     pour elle — le delta (« -7.3 % ») garde `flex: 0 0 auto` et reste collé à
+     la valeur, comme le veut la règle de base. */
+  .ud-root .stat-value-row {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .ud-root .stat-value-row .stat-value {
+    /* Sans cela, la valeur ne réclame que sa largeur de contenu et l'aside
+       remonterait à côté d'elle sur les montants courts. */
+    flex: 1 1 auto;
+  }
+
+  .ud-root .stat-aside {
+    flex: 1 0 100%;
+    overflow: visible;
+  }
+
   /* Le radial d'exposition se centre dès que la légende passe sous lui : calé à
      gauche, il laissait un vide à droite. `justify-content` ne suffisait pas —
      le conteneur du donut porte `max-w-full` et occupe toute la ligne, donc il
@@ -2738,19 +2763,22 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
+    /* Le `gap` devient un MINIMUM : `space-between` écarte davantage tant qu'il
+       reste de la place, et le gap prend le relais quand la ligne se remplit. */
     gap: 10px 16px;
     margin-top: auto;
     padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--ud-line);
   }
 
-  /* Copyright et liens gardent l'écart constant du `gap`, mais le groupe est
-     poussé à DROITE : `margin-left: auto` place l'espace libre avant lui, non
-     entre ses membres. Le dernier lien vient alors border le padding du pied de
-     page, soit le même retrait que le monogramme à gauche — la ligne est
-     symétrique d'un bord à l'autre. */
+  /* Plus de `margin-left: auto` : il massait tout l'espace libre juste après le
+     monogramme, laissant un trou à gauche pendant que les trois textes se
+     serraient à droite. `justify-content: space-between` sur le pied de page
+     distribue ce vide ENTRE les quatre éléments — le monogramme reste au bord
+     gauche, « Privacy Policy » au bord droit, et l'écart est le même partout. */
   .ud-root .ud-footer-copy {
-    margin: 0 0 0 auto;
+    margin: 0;
     flex: 0 0 auto;
     color: var(--ud-fg-3);
     font-size: var(--ud-t-micro);
