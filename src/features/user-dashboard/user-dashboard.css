@@ -2653,12 +2653,13 @@
     outline-offset: -2px;
   }
 
-  /* Newsletter en fin de bloc, après « Sign out ». Pas de filet : celui du
-     bouton de déconnexion la sépare déjà de la navigation, un second trait
-     aurait découpé le panneau en trois. */
+  /* Newsletter en fin de bloc, après « Sign out », et séparée de lui par son
+     propre filet. Les filets ne font pas doublon : chacun isole un registre —
+     navigation, réseaux sociaux, sortie, inscription. */
   .ud-root .rail-menu-newsletter {
-    margin-top: 10px;
-    padding: 0 6px 4px;
+    margin-top: 14px;
+    padding: 16px 6px 4px;
+    border-top: 1px solid var(--ud-line);
   }
 
   .ud-root .rail-menu-newsletter .newsletter-row input,
@@ -2672,8 +2673,9 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-top: 6px;
-    padding: 0 6px;
+    margin-top: 14px;
+    padding: 14px 6px 0;
+    border-top: 1px solid var(--ud-line);
   }
 
   .ud-root .rail-menu-social a {
