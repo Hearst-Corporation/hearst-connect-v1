@@ -33,6 +33,7 @@ export function StatTile({
   delta,
   meter,
   footnote,
+  aside,
 }: Readonly<{
   icon: ComponentType<SVGProps<SVGSVGElement>>
   label: string
@@ -45,6 +46,10 @@ export function StatTile({
   meter?: number | null
   /** Ligne de contexte sous la valeur (ex. écart au pair). */
   footnote?: string | null
+  /** Contrevaleur posée SUR LA LIGNE de la valeur, pas dessous : elle dit la
+   *  même quantité dans une autre unité (« ≈ 0.1164 BTC »), là où `footnote`
+   *  porte un fait distinct. Deux rôles, deux places. */
+  aside?: string | null
 }>) {
   const hasDelta = delta !== null && delta !== undefined && Number.isFinite(delta)
   const up = hasDelta && (delta as number) >= 0
@@ -59,6 +64,7 @@ export function StatTile({
       </div>
       <div className="stat-value-row">
         <strong className="stat-value mono">{value}</strong>
+        {aside ? <span className="stat-aside mono">{aside}</span> : null}
         {hasDelta ? (
           <span className={`stat-delta mono${up ? ' is-up' : ' is-down'}`}>
             <DeltaIcon className="size-3" aria-hidden="true" />

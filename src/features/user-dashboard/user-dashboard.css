@@ -150,6 +150,11 @@
    plus grand que le bas — l'asset du lockup porte sa propre marge basse, donc
    un centrage strict le fait paraître collé en haut. */
 .ud-root .rail-brand {
+  /* Bouton depuis qu'il ramène à l'accueil : on neutralise l'apparence native. */
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
   display: flex;
   align-items: center;
   height: 88px;
@@ -387,6 +392,20 @@
   border-bottom: 1px solid var(--ud-line);
 }
 
+/* Navigation mobile : rendue à toutes les tailles, visible seulement sous
+   768px. Au-dessus, le rail latéral porte déjà Home / Trade / Support et la
+   topbar porte la déconnexion. */
+.ud-root .rail-burger,
+.ud-root .rail-menu {
+  display: none;
+}
+
+/* Pied de page : même règle, même raison — le rail latéral tient ce rôle sur
+   desktop. */
+.ud-root .ud-footer {
+  display: none;
+}
+
 .ud-root .section-heading {
   padding: var(--ud-pad-card);
 }
@@ -470,6 +489,27 @@
   background: var(--ud-line);
 }
 
+/* Case décorative : n'existe qu'en grille à trois colonnes, où cinq tuiles
+   laissent une place vide. Masquée sur cinq colonnes (rien ne manque) et sur
+   une seule (elle ferait une rangée creuse). */
+.ud-root .position-grid-mark {
+  display: none;
+  place-items: center;
+  padding: var(--ud-pad-card);
+  background: var(--ground, #0a0a0a);
+  overflow: hidden;
+}
+
+/* Le tracé est un semis de points d'un demi-pixel : à 50 % d'opacité il
+   disparaissait. Pleine couleur, et une taille bornée pour que les points
+   restent assez denses pour se lire. */
+.ud-root .position-grid-mark-svg {
+  width: auto;
+  height: 100%;
+  max-height: 96px;
+  color: var(--hearst-green);
+}
+
 .ud-root .position-grid > * {
   background: var(--ud-card);
 }
@@ -531,19 +571,20 @@
 
 /* ── Fund / Vault ────────────────────────────────────────────────────────── */
 
-.ud-root .fund-vault .fund-kpis {
+/* Un seul sélecteur pour la grille : `.fund-vault .fund-kpis` portait DEUX
+   classes, donc il l'emportait sur les règles responsive (une seule classe),
+   media query ou pas — la grille restait à cinq colonnes sur mobile et débordait
+   de l'écran. La spécificité ici est alignée sur celle des paliers. */
+.ud-root .fund-kpis {
   display: grid;
   grid-template-columns: repeat(5, minmax(128px, 1fr));
+  gap: 1px;
   border-bottom: 1px solid var(--ud-line);
+  background: var(--ud-line);
 }
 
 .ud-root .fund-kpis .stat-tile {
   padding: 18px var(--ud-pad-card);
-}
-
-.ud-root .fund-kpis {
-  gap: 1px;
-  background: var(--ud-line);
 }
 
 .ud-root .fund-kpis > * {
@@ -676,6 +717,21 @@
 .ud-root .stat-value-row .stat-delta {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/* Contrevaleur BTC, sur la ligne du montant : c'est la MÊME quantité dans une
+   autre unité, donc elle se lit d'un seul regard avec elle. En encre tertiaire
+   et en petit — dérivée du cours, elle ne prétend pas au rang de la valeur.
+   `flex: 0 1 auto` : elle cède avant le montant si la tuile se resserre. */
+.ud-root .stat-aside {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  font-variant-numeric: tabular-nums;
 }
 
 .ud-root .stat-value {
@@ -836,7 +892,8 @@
 /* Les onglets vivent sur une PISTE : sans fond commun, les inactifs flottaient
    sur la page et rien ne disait qu'ils étaient cliquables. La piste les
    rassemble, la pilule active se détache dessus. */
-/* Sélecteur natif : masqué au-dessus de 480px, où les onglets tiennent. */
+/* Sélecteur : masqué au-dessus de 480px, où la piste d'onglets tient. Son
+   apparence mobile est définie dans le bloc 480px. */
 .ud-root .chart-switch-select {
   display: none;
 }
@@ -1037,11 +1094,14 @@
 }
 
 /* Aligné à gauche (la colonne flex l'étirait sur toute la largeur, ce qui
-   noyait le texte), et CENTRÉ dans l'espace libre sous le contenu : des marges
-   auto en haut ET en bas, au lieu de le coller au fond de la carte. */
+   noyait le texte), et POUSSÉ EN BAS de sa colonne : `margin-top: auto` mange
+   tout l'espace libre. Son voisin « Show N more », dans la colonne des
+   mouvements, fait de même — les deux boutons partagent donc la même ligne de
+   base, celle du fond des deux cartes. Le décalage venait de `margin-bottom:
+   auto`, qui recentrait celui-ci dans l'espace restant. */
 .ud-root .btc-flank-cta {
   margin-top: auto;
-  margin-bottom: auto;
+  margin-bottom: 0;
   align-self: flex-start;
 }
 
@@ -1260,12 +1320,13 @@
      `max-content` il se dimensionnait ligne par ligne (« WITHDRAWAL » plus large
      que « DEPOSIT »), et les dates ne s'alignaient plus. Une seule piste
      extensible, juste avant l'action, pousse le bouton au bord droit. */
+  /* Intitulé, date, montant, équivalent BTC, piste extensible, action. La
+     colonne d'ancienneté a disparu : la date absolue la rendait redondante. */
   grid-template-columns:
     9.5rem
     7rem
     6.5rem
     7rem
-    5.5rem
     minmax(0, 1fr)
     max-content;
   align-items: baseline;
@@ -1380,21 +1441,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.ud-root .timeline-time {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  gap: 3px;
-  color: var(--ud-fg-3);
-  font-size: var(--micro);
-}
 
-/* Écran étroit : les quatre colonnes ne tiennent plus côte à côte. La ligne
-   repasse en deux niveaux — intitulé au-dessus, montant / catégorie / date
-   en dessous — plutôt que de déborder. */
-/* Écran étroit : six colonnes ne tiennent plus. Intitulé et action sur la
-   première ligne, les valeurs en dessous. */
 .ud-root .term-row {
   display: flex;
   align-items: center;
@@ -1871,8 +1918,28 @@
    (aplat mint, encre sombre). Marge gauche = le padding des lignes,
    donc le bouton tombe à l'aplomb des médaillons. */
 .ud-root .timeline-toggle {
-  margin: 14px 0 var(--ud-pad-card) var(--ud-pad-card);
+  /* `margin-top: auto` : le bouton tombe au fond de la colonne des mouvements,
+     à l'aplomb de « View BTC chart » qui fait de même dans la colonne voisine.
+     Marge gauche = le padding des lignes.
+
+     La marge basse égale le padding de `.flank-panel` : les deux colonnes ont
+     alors le même retrait au fond, donc les deux boutons la même ligne. */
+  margin: 0 0 0 var(--ud-pad-card);
+  align-self: flex-start;
 }
+
+/* Boîte de placement du bouton. `margin-top: auto` sur le bouton lui-même ne
+   poussait que s'il RESTAIT de la place : liste dépliée, la colonne est pleine,
+   la marge vaut zéro et le bouton venait se coller à la dernière ligne. Le
+   padding haut, lui, tient dans tous les cas, et vaut le retrait bas — même
+   écart au-dessus qu'en dessous. Le `margin-top: auto` migre ici, pour que le
+   bouton reste aligné sur « View BTC chart » quand la liste est courte. */
+.ud-root .timeline-tail {
+  display: flex;
+  margin-top: auto;
+  padding: var(--ud-pad-card) 0;
+}
+
 
 
 /* ══ Boutons ═══════════════════════════════════════════════════════════════
@@ -2178,6 +2245,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Doublons de valeurs propres à la ligne de poche étroite : masqués tant que
+   les sept colonnes tiennent (voir le palier téléphone). */
+.ud-root .ud-pocket-inline-amount,
+.ud-root .ud-pocket-inline-drift {
+  display: none;
+}
+
 /* ══ Responsive ════════════════════════════════════════════════════════════
  * TROIS points de rupture, pas huit : les précédents (480, 620, 720, 760, 768,
  * 860, 1100, 1200) s'étaient accumulés au fil des ajouts, deux d'entre eux à
@@ -2193,8 +2267,7 @@
 @media (max-width: 1024px) {
   /* Cinq tuiles ne tiennent plus : 128px minimum × 5 = 640px de contenu. */
   .ud-root .position-grid,
-  .ud-root .fund-kpis,
-  .ud-root .kpis {
+  .ud-root .fund-kpis {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -2207,6 +2280,10 @@
   .ud-root .position-grid .stat-tile:nth-child(3n),
   .ud-root .fund-kpis .stat-tile:nth-child(3n) {
     border-right: 0;
+  }
+
+  .ud-root .position-grid-mark {
+    display: grid;
   }
 
   /* L'analyse à trois colonnes (flanc / centre / flanc) se réduit à deux. */
@@ -2235,35 +2312,60 @@
 
   .ud-root .rail {
     position: static;
-    height: auto;
+    /* Hauteur explicite : en `auto` la barre se réglait sur le logo (~50px) et
+       paraissait écrasée face aux blocs du contenu. La variable la partage avec
+       le panneau du burger, qui s'ancre juste dessous — deux 68px indépendants
+       se seraient désaccordés à la première retouche. */
+    --ud-bar-h: 68px;
+    height: var(--ud-bar-h);
     flex-direction: row;
     align-items: center;
     gap: 12px;
-    padding: 0 14px;
+    padding: 0 16px;
     border-right: none;
     border-bottom: 1px solid var(--ud-line);
   }
 
   .ud-root .rail-brand {
     min-height: 0;
-    height: auto;
-    padding: 10px 0;
+    height: 100%;
+    padding: 0;
     border-bottom: none;
   }
 
   .ud-root .rail-brand img {
-    height: 30px;
-  }
-
-  .ud-root .rail-nav {
-    flex-direction: row;
-    flex: 0 1 auto;
-    padding: 0;
-    gap: 6px;
-  }
-
-  .ud-root .rail-item {
     height: 36px;
+  }
+
+  /* Tablette portrait : trois colonnes coupaient les tuiles (chiffre tronqué
+     sur une largeur de ~200px). Deux colonnes × trois rangées, la sixième case
+     revenant au H pointillé — la grille reste pleine, sans trou. */
+  .ud-root .position-grid,
+  .ud-root .fund-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ud-root .position-grid .stat-tile:nth-child(3n),
+  .ud-root .fund-kpis .stat-tile:nth-child(3n) {
+    border-right: 1px solid var(--ud-line);
+  }
+
+  .ud-root .position-grid .stat-tile:nth-child(2n),
+  .ud-root .fund-kpis .stat-tile:nth-child(2n) {
+    border-right: 0;
+  }
+
+  /* Cinq tuiles + la case décorative = six : la grille tombe juste. */
+  .ud-root .position-grid-mark {
+    display: grid;
+  }
+
+  /* `width: 100%` vient du rail vertical : en barre horizontale il étirait le
+     bouton, dont la hauteur ne se calait plus sur celle de ses voisins. */
+  .ud-root .rail-item {
+    width: auto;
+    height: 38px;
+    align-self: center;
     padding: 0 14px;
   }
 
@@ -2272,6 +2374,209 @@
   .ud-root .rail-brand .brand-name {
     display: none;
   }
+
+  /* « Home » disparaît : le logo, cliquable, fait la même chose et occupe déjà
+     la gauche de la barre. */
+  .ud-root .rail-item--dashboard {
+    display: none;
+  }
+
+  /* Une seule barre : la topbar disparaît et le rail porte les deux rôles.
+     Deux bandeaux empilés mangeaient 130px avant le contenu. */
+  .ud-root .topbar {
+    display: none;
+  }
+
+  /* La nav quitte la barre du haut : « Trade » est rendu dans l'en-tête de
+     page (voir `page-intro`), au niveau du titre. */
+  .ud-root .rail-nav {
+    display: none;
+  }
+
+  /* ── Burger ──────────────────────────────────────────────────────────
+     Trois traits verts à droite de la barre. Cible de 44px, le minimum
+     confortable au doigt, pour un tracé de 20px : la zone cliquable déborde
+     le dessin, sans que le dessin grossisse. */
+  .ud-root .rail-burger {
+    /* `margin-left: auto` : le burger prend tout l'espace libre à sa gauche et
+       se cale contre le bord droit, le logo restant à gauche. */
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    align-self: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ud-radius);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .ud-root .rail-burger:hover {
+    background: color-mix(in srgb, var(--ud-fg) 7%, transparent);
+  }
+
+  .ud-root .rail-burger:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: 2px;
+  }
+
+  .ud-root .rail-burger-bars {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 20px;
+    height: 14px;
+  }
+
+  .ud-root .rail-burger-bars i {
+    display: block;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--hearst-green);
+  }
+
+  /* ── Panneau ─────────────────────────────────────────────────────────
+     Il descend de la barre et couvre la largeur : un menu qui flotte au
+     milieu de la page ne dit pas d'où il vient. `position: fixed` et non
+     `absolute` — le rail n'établit pas de contexte de positionnement, et le
+     panneau doit rester au-dessus du contenu qui défile. */
+  .ud-root .rail-menu {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: var(--ud-bar-h, 68px);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    padding: 10px 14px 14px;
+    border-bottom: 1px solid var(--ud-line);
+    background: var(--ud-card);
+    box-shadow: 0 18px 32px -18px rgb(0 0 0 / 0.75);
+  }
+
+  .ud-root .rail-menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ud-root .rail-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 48px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--ud-radius);
+    background: transparent;
+    color: var(--ud-fg-2);
+    font-family: inherit;
+    font-size: var(--ud-t-body);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .ud-root .rail-menu-item svg {
+    flex: 0 0 auto;
+    color: var(--ud-fg-3);
+  }
+
+  .ud-root .rail-menu-item:hover {
+    background: color-mix(in srgb, var(--ud-fg) 6%, transparent);
+    color: var(--ud-fg);
+  }
+
+  /* La vue courante : encre pleine et icône verte, le même signal que la
+     pilule active du rail desktop. */
+  .ud-root .rail-menu-item.active {
+    background: color-mix(in srgb, var(--ud-fg) 8%, transparent);
+    color: var(--ud-fg);
+    font-weight: 600;
+  }
+
+  .ud-root .rail-menu-item.active svg {
+    color: var(--hearst-green);
+  }
+
+  .ud-root .rail-menu-item:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: -2px;
+  }
+
+  /* Écart et filet : sortir du compte n'est pas une destination de plus. */
+  .ud-root .rail-menu-signout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 44px;
+    margin-top: 14px;
+    padding: 0 12px;
+    border: 0;
+    border-top: 1px solid var(--ud-line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ud-fg-3);
+    font-family: inherit;
+    font-size: var(--ud-t-body);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .ud-root .rail-menu-signout:hover {
+    color: var(--ud-fg);
+  }
+
+  .ud-root .rail-menu-signout:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: -2px;
+  }
+
+  /* ── Pied de page ────────────────────────────────────────────────────
+     Marque à gauche, mention légale à droite, séparés par un filet du
+     contenu qui précède. `margin-top: auto` le colle au bas quand la page
+     est plus courte que l'écran, au lieu de le laisser flotter au milieu. */
+  .ud-root .ud-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: auto;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--ud-line);
+  }
+
+  .ud-root .ud-footer-brand {
+    display: inline-flex;
+    flex: 0 0 auto;
+    /* Le lockup est une marque de pied de page, pas une action : il ne
+       rivalise pas avec celui de la barre du haut, qui lui est cliquable. */
+    opacity: 0.62;
+  }
+
+  .ud-root .ud-footer-legal {
+    flex: 0 0 auto;
+    color: var(--ud-fg-3);
+    font-size: var(--ud-t-micro);
+    text-decoration: none;
+  }
+
+  .ud-root .ud-footer-legal:hover {
+    color: var(--ud-fg-2);
+    text-decoration: underline;
+  }
+
+  .ud-root .ud-footer-legal:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: 2px;
+  }
+
 
   /* Analyse et compte passent en pile. */
   .ud-root .analysis,
@@ -2296,7 +2601,46 @@
     border-top: 1px solid var(--ud-line);
   }
 
-  /* Mouvements : intitulé et action sur la première ligne, valeurs dessous. */
+  /* Ligne de poche : trois colonnes au lieu de sept. Pastille et libellé en
+     haut, l'action au bord droit ; barre et valeurs sur les lignes suivantes.
+     Les container queries Tailwind ne se vérifiant pas à l'œil ici, le
+     placement passe par le CSS du dashboard. */
+  .ud-root .ud-pocket-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  /* Barre et valeurs : pleine largeur sous le libellé. */
+  .ud-root .ud-pocket-row > :nth-child(3),
+  .ud-root .ud-pocket-share {
+    grid-column: 1 / -1;
+  }
+
+  .ud-root .ud-pocket-share {
+    display: flex;
+    gap: 0 16px;
+    text-align: left;
+  }
+
+  /* Les valeurs rejoignent la part du vault sur une ligne commune ; leurs
+     doubles de la version large disparaissent. */
+  .ud-root .ud-pocket-inline-amount,
+  .ud-root .ud-pocket-inline-drift {
+    display: inline;
+  }
+
+  .ud-root .ud-pocket-wide {
+    display: none;
+  }
+
+  /* L'action se cale au bord droit de la première ligne. */
+  .ud-root .ud-pocket-row .ud-detail-btn {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  /* Mouvements : les colonnes ne tiennent plus côte à côte. Intitulé et action
+     sur la première ligne, les valeurs en dessous. */
   .ud-root .timeline-body {
     grid-template-columns: minmax(0, 1fr) max-content;
     gap: 6px 12px;
@@ -2317,8 +2661,7 @@
 
   .ud-root .timeline-date,
   .ud-root .timeline-amount,
-  .ud-root .timeline-btc,
-  .ud-root .timeline-time {
+  .ud-root .timeline-btc {
     justify-self: start;
     text-align: left;
   }
@@ -2328,8 +2671,7 @@
   }
 
   .ud-root .timeline-date,
-  .ud-root .timeline-btc,
-  .ud-root .timeline-time {
+  .ud-root .timeline-btc {
     grid-column: 1 / -1;
   }
 
@@ -2354,21 +2696,44 @@
     display: none;
   }
 
+  /* Même registre que la pilule active du desktop (`.switch-pill`) : aplat
+     blanc, encre sombre. Le sélecteur EST la vue courante, il porte donc la
+     même couleur qu'elle porterait dans la piste d'onglets.
+
+     `appearance: none` retire le chevron système — trop collé au bord et
+     impossible à repositionner — au profit d'un chevron dessiné en
+     `background-image`, dont on maîtrise l'écart au bord droit. Le padding
+     droit lui réserve sa place, pour qu'un libellé long ne passe pas dessous. */
   .ud-root .chart-switch-select {
+    appearance: none;
+    -webkit-appearance: none;
     display: block;
     width: calc(100% - 28px);
     height: 40px;
     margin: 13px 14px;
-    padding: 0 12px;
+    padding: 0 40px 0 16px;
     border: 0;
-    border-radius: var(--ud-radius);
-    background: var(--ud-inset);
-    box-shadow: inset 0 0 0 1px var(--ud-line);
-    color: var(--ud-fg);
+    border-radius: var(--ud-radius-pill);
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%230a0a0a' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.75 6 6.5l5-4.75'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    /* 18px du bord : le chevron respire au lieu de toucher l'arrondi. */
+    background-position: right 18px center;
+    background-size: 11px 8px;
+    color: #0a0a0a;
     font-family: inherit;
     font-size: var(--ud-t-label);
-    /* `appearance: none` retirerait le chevron système sans rien mettre à la
-       place — on garde le rendu natif, qui signale déjà qu'on peut dérouler. */
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Le menu déroulé est dessiné par le système : il hérite des couleurs du
+     `select`, ce qui donnait une liste sombre sur gris. On le repasse en
+     surface de carte, dans le registre de la page. */
+  .ud-root .chart-switch-select option {
+    background: var(--ud-card);
+    color: var(--ud-fg);
+    font-weight: 500;
   }
 
   .ud-root .chart-switch-select:focus-visible {
@@ -2383,9 +2748,13 @@
 
   /* Une seule colonne : à 375px, trois tuiles laissent 100px chacune. */
   .ud-root .position-grid,
-  .ud-root .fund-kpis,
-  .ud-root .kpis {
+  .ud-root .fund-kpis {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Sur une colonne, la case décorative ferait une rangée creuse. */
+  .ud-root .position-grid-mark {
+    display: none;
   }
 
   .ud-root .position-grid .stat-tile,
@@ -2401,9 +2770,24 @@
     gap: 14px;
   }
 
+  /* Même règle que le header : les actions du contenu se rangent à droite. */
   .ud-root .deposit-block > .position-deposit-cta {
-    justify-self: start;
+    justify-self: end;
   }
+
+  /* « Show N more » reste à GAUCHE, à l'aplomb des lignes de mouvements qu'il
+     déplie : il commande la liste sous lui, il n'est pas une action de page
+     comme le CTA du header. Le padding du bloc y est réduit à 14px. */
+  .ud-root .timeline-tail {
+    padding: 14px 0;
+  }
+
+  .ud-root .timeline-toggle {
+    margin-left: 14px;
+    margin-right: auto;
+  }
+
+
 
   /* Métrique principale : 38px déborde sur 375px de large. */
   .ud-root .btc-block-value {
@@ -2418,6 +2802,12 @@
   .ud-root .timeline > li {
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  /* Le radial d'exposition se centre : aligné à gauche il laissait un vide à
+     droite, la légende étant passée dessous. */
+  .ud-root .ud-radial-row {
+    justify-content: center;
   }
 
   /* Jauge HODL : la clé passe au-dessus de sa barre. */

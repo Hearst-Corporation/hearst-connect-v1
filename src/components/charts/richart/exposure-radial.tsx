@@ -140,7 +140,7 @@ export function HearstExposureRadial({
         }))}
       />
 
-      <div className="flex flex-wrap items-center gap-x-7 gap-y-6">
+      <div className="ud-radial-row flex flex-wrap items-center gap-x-7 gap-y-6">
         <div className="relative aspect-square w-[16rem] min-w-[12rem] max-w-full flex-[0_1_auto]">
           <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden="true">
             {geom.map((g, index) => (
@@ -268,7 +268,7 @@ function PocketRow({
     // niveaux — libellé et action en haut, valeurs dessous — plutôt que de
     // déborder. `@max-*` cible la largeur du CONTENEUR, pas de la fenêtre :
     // ce composant vit aussi bien en flanc étroit qu'en pleine largeur.
-    <li className="@container grid grid-cols-[auto_9rem_minmax(3rem,1fr)_3.25rem_6.5rem_3.5rem_auto] items-baseline gap-x-4 gap-y-1.5 text-xs @max-2xl:grid-cols-[auto_minmax(0,1fr)_auto]">
+    <li className="ud-pocket-row grid grid-cols-[auto_9rem_minmax(3rem,1fr)_3.25rem_6.5rem_3.5rem_auto] items-baseline gap-x-4 gap-y-1.5 text-xs">
       <span
         className="size-2.5 translate-y-[1px] rounded-[3px]"
         style={{ background: row.fill }}
@@ -280,7 +280,7 @@ function PocketRow({
       {/* Poids de la poche dans le vault. L'échelle est absolue (0–100 % du
           fonds), comme les anneaux : une barre pleine dirait « tout le vault »,
           jamais « la plus grosse des trois ». */}
-      <span className="h-1.5 self-center overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft @max-2xl:col-span-full @max-2xl:mt-1">
+      <span className="h-1.5 self-center overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft">
         <span
           className="block h-full rounded-full"
           style={{
@@ -289,18 +289,18 @@ function PocketRow({
           }}
         />
       </span>
-      <span className="text-right tabular-nums text-fg-tertiary @max-2xl:col-span-full @max-2xl:flex @max-2xl:gap-x-4 @max-2xl:text-left">
+      <span className="text-right tabular-nums text-fg-tertiary ud-pocket-share">
         <span>
           {row.actualPct === null
             ? '—'
             : `${formatNumber(row.actualPct, { maximumFractionDigits: 1 })} %`}
         </span>
-        <span className="hidden text-fg-secondary @max-2xl:inline">{amount}</span>
-        <span className={`hidden @max-2xl:inline ${driftClass}`}>{driftText}</span>
+        <span className="ud-pocket-inline-amount text-fg-secondary">{amount}</span>
+        <span className={`ud-pocket-inline-drift ${driftClass}`}>{driftText}</span>
       </span>
 
-      <span className="text-right tabular-nums text-fg-secondary @max-2xl:hidden">{amount}</span>
-      <span className={`text-right tabular-nums @max-2xl:hidden ${driftClass}`}>{driftText}</span>
+      <span className="text-right tabular-nums text-fg-secondary  ud-pocket-wide">{amount}</span>
+      <span className={`text-right tabular-nums  ud-pocket-wide ${driftClass}`}>{driftText}</span>
       {/* Mêmes tokens que le bouton « Detail » des mouvements : `bg-accent-400`
           (#a7fb90) et `text-accent-ink` (#000) divergeaient de `--hearst-green`
           (#9eea7a) et `--hearst-green-ink` (#06140a). */}
@@ -308,7 +308,7 @@ function PocketRow({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="ud-detail-btn @max-2xl:col-start-3 @max-2xl:row-start-1"
+        className="ud-detail-btn"
       >
         {open ? 'Hide' : 'Detail'}
       </button>

@@ -38,6 +38,7 @@ import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '
 import { StatTile, deltaOf } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
 import { BtcContextFlank } from './btc-context-flank'
+import { DottedH } from '@/assets/brand/dotted-h'
 import { MovementTimeline } from './movement-timeline'
 import type { UserDashboard } from './load'
 import { HearstConnectLockupImage } from '@/components/logo'
@@ -140,6 +141,9 @@ export function UserDashboardView({
   user,
 }: Readonly<{ data: UserDashboard; user: SessionUser }>) {
   const [route, setRoute] = useState<Route>('dashboard')
+  /* Ouverture du menu mobile. Fermé à chaque navigation : laisser le panneau
+     ouvert sur la vue qu'on vient d'atteindre cacherait le résultat du clic. */
+  const [menuOpen, setMenuOpen] = useState(false)
   const [central, setCentral] = useState<CentralView>('value')
   const initials = userInitials(user.name)
 
@@ -281,9 +285,18 @@ export function UserDashboardView({
                 navigation au centre, support en pied. Le rail est opaque : il
                 ancre l'écran, le contenu à droite porte le verre. */}
             <aside className="rail" aria-label="Account sections">
-              <div className="rail-brand">
+              {/* Le logo ramène à l'accueil : sur mobile il remplace l'entrée
+                  « Home », qui ne fait que ça. Un bouton et non un lien — la vue
+                  est un état local, pas une route. */}
+              <button
+                type="button"
+                className="rail-brand"
+                aria-current={route === 'dashboard' ? 'page' : undefined}
+                onClick={() => setRoute('dashboard')}
+              >
                 <HearstConnectLockupImage className="h-10 w-auto" />
-              </div>
+                <span className="sr-only">Home</span>
+              </button>
 
               <nav className="rail-nav">
                 {(
@@ -295,7 +308,7 @@ export function UserDashboardView({
                   <button
                     key={r}
                     type="button"
-                    className={route === r ? 'rail-item active' : 'rail-item'}
+                    className={`rail-item rail-item--${r}${route === r ? ' active' : ''}`}
                     aria-current={route === r ? 'page' : undefined}
                     onClick={() => setRoute(r as Route)}
                   >
@@ -305,6 +318,26 @@ export function UserDashboardView({
                 ))}
               </nav>
 
+              {/* Navigation mobile — n'apparaît que sous 768px, où la topbar et
+                  la nav latérale sont masquées. Le CSS décide de sa visibilité :
+                  un seul balisage, pas de détection de largeur en JS. */}
+              <button
+                type="button"
+                className="rail-burger"
+                aria-expanded={menuOpen}
+                aria-controls="mobile-nav"
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                {/* Trois traits dessinés, pas une icône : leur épaisseur et leur
+                    écart se règlent au pixel, et ils portent le vert de marque. */}
+                <span className="rail-burger-bars" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </button>
+
               <a
                 className="rail-support"
                 href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20support"
@@ -312,6 +345,56 @@ export function UserDashboardView({
                 <QuestionMarkCircleIcon className="size-4" aria-hidden="true" />
                 <span>Support</span>
               </a>
+              {/* Panneau du burger. Rendu dans le rail, donc juste sous la barre
+                  dont il descend. `hidden` plutôt qu'un rendu conditionnel : le
+                  panneau garde son identité entre deux ouvertures, et le lecteur
+                  d'écran suit l'état annoncé par `aria-expanded`. */}
+              <div className="rail-menu" id="mobile-nav" hidden={!menuOpen}>
+                <nav className="rail-menu-nav" aria-label="Main">
+                  {(
+                    [
+                      ['dashboard', 'Home', HomeIcon],
+                      ['trade', 'Trade', ArrowsRightLeftIcon],
+                    ] as const
+                  ).map(([r, label, Icon]) => (
+                    <button
+                      key={r}
+                      type="button"
+                      className={`rail-menu-item${route === r ? ' active' : ''}`}
+                      aria-current={route === r ? 'page' : undefined}
+                      onClick={() => {
+                        setRoute(r as Route)
+                        setMenuOpen(false)
+                      }}
+                    >
+                      <Icon className="size-5" aria-hidden="true" />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+
+                  <a
+                    className="rail-menu-item"
+                    href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20support"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <QuestionMarkCircleIcon className="size-5" aria-hidden="true" />
+                    <span>Support</span>
+                  </a>
+                </nav>
+
+                {/* Détaché du groupe : sortir du compte n'est pas une destination
+                    de plus. Le filet et l'écart le disent avant le libellé. */}
+                <button
+                  type="button"
+                  className="rail-menu-signout"
+                  onClick={() => {
+                    void logout()
+                  }}
+                >
+                  <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
+                  <span>Sign out</span>
+                </button>
+              </div>
             </aside>
 
             <div className="content">
@@ -343,8 +426,11 @@ export function UserDashboardView({
             {isDashboard ? (
             <div className="dashboard-view">
               <header className="page-intro">
-                <p className="eyebrow">Account</p>
-                <AdminHeroTitle>Command center</AdminHeroTitle>
+                <div>
+                  <p className="eyebrow">Account</p>
+                  <AdminHeroTitle>Command center</AdminHeroTitle>
+                </div>
+
               </header>
 
               <section className="your-position" aria-label="Your position">
@@ -385,21 +471,21 @@ export function UserDashboardView({
                     label="Principal"
                     value={formatUsdc(positionPrincipal)}
                     signal={signalOf(data.positionPrincipal)}
-                    footnote={btcAside(positionPrincipal)}
+                    aside={btcAside(positionPrincipal)}
                   />
                   <StatTile
                     icon={ChartPieIcon}
                     label="Accrued"
                     value={formatUsdc(positionAccrued)}
                     signal={signalOf(data.positionAccrued)}
-                    footnote={btcAside(positionAccrued)}
+                    aside={btcAside(positionAccrued)}
                   />
                   <StatTile
                     icon={BanknotesIcon}
                     label="Position value"
                     value={formatUsdc(positionValue)}
                     signal={signalOf(data.positionValue)}
-                    footnote={btcAside(positionValue)}
+                    aside={btcAside(positionValue)}
                   />
                   <StatTile
                     icon={SignalIcon}
@@ -413,6 +499,13 @@ export function UserDashboardView({
                     value={positionSubscribedAt !== null ? formatDate(positionSubscribedAt) : '—'}
                     signal={signalOf(data.positionSubscribedAt)}
                   />
+                  {/* La grille tombe à trois colonnes sous 1024px : cinq tuiles
+                      laissent une place vide en fin de seconde rangée. Le motif
+                      de marque l'occupe plutôt qu'un trou. Décoratif, donc
+                      `aria-hidden` — rien à annoncer à un lecteur d'écran. */}
+                  <div className="position-grid-mark" aria-hidden="true">
+                    <DottedH className="position-grid-mark-svg" />
+                  </div>
                 </div>
               </section>
 
@@ -482,6 +575,12 @@ export function UserDashboardView({
                     signal={signalOf(data.btcProducedTotal)}
                     footnote={btcProduced !== null ? 'fund-wide, since inception' : null}
                   />
+                  {/* Même rôle que dans `position-grid` : cinq tuiles sur deux
+                      ou trois colonnes laissent une case vide en fin de grille.
+                      Le motif de marque l'occupe. Décoratif, donc `aria-hidden`. */}
+                  <div className="position-grid-mark" aria-hidden="true">
+                    <DottedH className="position-grid-mark-svg" />
+                  </div>
                 </section>
 
                 <section className="analysis analysis--fund" aria-label="Fund analysis">
@@ -648,6 +747,21 @@ export function UserDashboardView({
               </div>
             </section>
             ) : null}
+
+            {/* Pied de page — mobile seulement : sur desktop, le rail latéral
+                porte déjà la marque et le lien de support en permanence, alors
+                qu'en barre horizontale il ne reste que le logo et le burger. */}
+            <footer className="ud-footer">
+              <span className="ud-footer-brand">
+                <HearstConnectLockupImage className="h-7 w-auto" />
+              </span>
+              <a
+                className="ud-footer-legal"
+                href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20—%20Legal"
+              >
+                Legal notice
+              </a>
+            </footer>
             </div>
           </div>
         </main>

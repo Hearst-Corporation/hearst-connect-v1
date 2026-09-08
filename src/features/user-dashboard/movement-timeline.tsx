@@ -12,16 +12,15 @@ import {
   Squares2X2Icon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
-import { ClockIcon } from '@heroicons/react/16/solid'
 import { useState, type ComponentType, type SVGProps } from 'react'
-import { formatCurrency, formatDate, formatDateTime, formatRelativeTime } from '@/lib/format'
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/format'
 import { valueOf } from '@/lib/vaults/model'
 import { useMotionReady } from './motion-guard'
 import type { UserDashboard, UserMovement } from './load'
 
 /**
  * Premium investor movement timeline — a left-rail stepper with a per-category
- * Heroicon medallion, the amount and relative time, staggered on entrance.
+ * Heroicon medallion, the date and the amount, staggered on entrance.
  *
  * Honest by construction: `UserMovement` carries {id, title, detail (kind),
  * amountUsdc, occurredAt}. The amount renders as USD, or "—" when the source
@@ -82,15 +81,9 @@ function Row({
             {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
           </span>
           <span className="timeline-btc">{btc ?? ''}</span>
-          {movement.occurredAt !== null ? (
-            <span className="timeline-time">
-              <ClockIcon className="size-3" aria-hidden="true" />
-              {formatRelativeTime(movement.occurredAt)}
-            </span>
-          ) : (
-            <span />
-          )}
-          {/* Piste vide : écarte l'action de l'ancienneté sans padding ad hoc. */}
+          {/* Pas d'ancienneté relative : la date absolue est déjà sur la ligne,
+              et « 12 d ago » redisait la même chose en moins précis. */}
+          {/* Piste vide : écarte l'action des valeurs sans padding ad hoc. */}
           <span aria-hidden="true" />
 
           <button
@@ -165,9 +158,11 @@ export function MovementTimeline({
 
   const toggle =
     hidden > 0 ? (
-      <button type="button" className="timeline-toggle" onClick={() => setExpanded((v) => !v)}>
-        {expanded ? 'Show less' : `Show ${hidden} more`}
-      </button>
+      <div className="timeline-tail">
+        <button type="button" className="timeline-toggle" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? 'Show less' : `Show ${hidden} more`}
+        </button>
+      </div>
     ) : null
 
   if (!animate) {
