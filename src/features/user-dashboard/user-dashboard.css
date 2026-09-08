@@ -2766,9 +2766,13 @@
     justify-content: space-between;
     /* Le `gap` devient un MINIMUM : `space-between` écarte davantage tant qu'il
        reste de la place, et le gap prend le relais quand la ligne se remplit. */
-    gap: 10px 16px;
+    gap: 10px 12px;
     margin-top: auto;
-    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    /* Le retrait latéral suit `--ud-pad-page`, celui de la colonne de contenu :
+       à 16px, le dernier lien tombait EN DEÇÀ du bord droit des blocs qui le
+       surplombent. Même variable, donc les deux bords s'alignent quel que soit
+       le palier. */
+    padding: 18px var(--ud-pad-page) calc(18px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--ud-line);
   }
 
@@ -2983,8 +2987,13 @@
     outline-offset: 2px;
   }
 
+  /* La VARIABLE change, pas le padding : le pied de page la suit, donc son
+     retrait latéral reste aligné sur celui des blocs à tous les paliers. */
+  .ud-root {
+    --ud-pad-page: 14px;
+  }
+
   .ud-root .dashboard-view {
-    padding: 14px;
     gap: 18px;
   }
 
