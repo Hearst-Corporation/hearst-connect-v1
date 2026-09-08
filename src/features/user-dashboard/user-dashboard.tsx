@@ -427,8 +427,6 @@ export function UserDashboardView({
                 <span>Support</span>
               </a>
 
-              <NewsletterForm className="rail-newsletter" />
-
               <SocialLinks className="rail-social" />
 
               {/* Panneau du burger. Rendu dans le rail, donc juste sous la barre

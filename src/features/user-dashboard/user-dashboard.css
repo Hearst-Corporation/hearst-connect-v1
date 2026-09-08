@@ -222,9 +222,12 @@
 
 /* ── Newsletter ──────────────────────────────────────────────────────────
    Champ et bouton en pilules cerclées sur fond noir, comme sur le site public.
-   Le bouton ne prend PAS le vert : dans le rail, il rivaliserait avec « Trade »
-   et « Deposit », qui sont les actions du produit. */
-.ud-root .rail-newsletter,
+   MOBILE SEULEMENT : le rail desktop mesure ~230px, le champ y tombait à trois
+   caractères (« Enter ») pendant que le bouton gardait sa largeur. Le panneau
+   du burger, lui, court sur toute la largeur de l'écran.
+
+   Le bouton ne prend pas le vert : il rivaliserait avec « Trade » et
+   « Deposit », qui sont les actions du produit. */
 .ud-root .rail-menu-newsletter {
   display: flex;
   flex-direction: column;
@@ -304,13 +307,6 @@
    couleur de marque signale les actions du produit, pas des liens sortants.
    Elle vient de `currentColor` dans le SVG, donc la transition porte sur le
    lien et le tracé suit. */
-/* Pas de `margin-top: auto` : `.rail-nav` porte déjà `flex: 1 1 auto` et
-   absorbe l'espace libre, donc le bloc est de toute façon en bas de colonne. */
-.ud-root .rail-newsletter {
-  margin: 6px 12px 10px;
-  padding: 0 4px;
-}
-
 .ud-root .rail-social {
   display: flex;
   align-items: center;
