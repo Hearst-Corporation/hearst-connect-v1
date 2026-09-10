@@ -83,12 +83,12 @@ function Row({
           <span className="timeline-btc">{btc ?? ''}</span>
           {/* Pas d'ancienneté relative : la date absolue est déjà sur la ligne,
               et « 12 d ago » redisait la même chose en moins précis. */}
-          {/* Piste vide : écarte l'action des valeurs sans padding ad hoc. */}
+          {/* Piste vide : écarte le hash des valeurs sans padding ad hoc. */}
           <span aria-hidden="true" />
 
           <button
             type="button"
-            className="timeline-detail"
+            className="ud-detail-btn timeline-detail"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
@@ -98,7 +98,7 @@ function Row({
 
         {/* Le dépli ne charge rien : il montre ce que la ligne ne peut pas tenir
             — le hash on-chain et l'horodatage complet. Pas de lien explorateur,
-            aucune URL n'est câblée. */}
+            aucune URL n'est câblée côté produit. */}
         {open ? (
           <dl className="timeline-detail-body">
             <dt>Transaction</dt>

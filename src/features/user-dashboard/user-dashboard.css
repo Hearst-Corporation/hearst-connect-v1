@@ -206,6 +206,681 @@
   background: var(--hearst-green);
 }
 
+/* ── Rendements par poche ────────────────────────────────────────────────
+   Grille à cinq colonnes de largeur FIXE (sauf la piste) : les taux, tendances
+   et montants s'alignent d'une ligne à l'autre. En `1fr`, chaque ligne se
+   dimensionnerait sur son propre contenu et les colonnes danseraient. */
+.ud-root .bucket-yields {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ud-line);
+}
+
+.ud-root .bucket-yields-head {
+  margin: 0 0 12px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .bucket-yields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ud-root .bucket-yield {
+  display: grid;
+  grid-template-columns: 8rem minmax(2rem, 1fr) 3.5rem 3rem;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .bucket-yield-name {
+  color: var(--ud-fg-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ud-root .bucket-yield-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-inset);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+
+.ud-root .bucket-yield-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+}
+
+.ud-root .bucket-yield-pct {
+  color: var(--ud-fg);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .bucket-yield-trend {
+  color: var(--ud-fg-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .bucket-yield-trend.is-up {
+  color: var(--hearst-green);
+}
+
+.ud-root .bucket-yield-trend.is-down {
+  color: #d99a4e;
+}
+
+.ud-root .bucket-yields-note,
+.ud-root .bucket-yields-absent {
+  margin: 12px 0 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  line-height: 1.5;
+}
+
+/* Écran étroit : tendance et capital passent sous la ligne plutôt que
+   d'étrangler le nom de la poche. */
+@media (max-width: 768px) {
+  .ud-root .bucket-yield {
+    grid-template-columns: 7rem minmax(2rem, 1fr) 3.5rem;
+  }
+
+  .ud-root .bucket-yield-trend {
+    display: none;
+  }
+}
+
+/* ── Coût de production du BTC ───────────────────────────────────────────
+   L'écart entre les deux chiffres EST le sujet : la barre le porte, les deux
+   valeurs ne font que le borner. */
+/* Chiffre de tête : la marge en dollars, ce que rapporte chaque bitcoin miné. */
+.ud-root .prodcost-lead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+
+.ud-root .prodcost-lead-note {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-label);
+}
+
+.ud-root .prodcost-lead-pct {
+  color: var(--hearst-green);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Colonne empilée : la hauteur totale est le prix de vente, le coût occupe sa
+   part par le bas. L'œil lit le rapport sans soustraire deux nombres. */
+
+
+
+/* Sous l'eau, la marge n'est plus un gain : elle cesse d'être verte. */
+
+
+/* L'étiquette s'efface quand sa tranche devient trop mince pour la contenir —
+   `overflow: hidden` sur la piste la coupe proprement. */
+
+/* L'échelle borne la colonne : prix de vente en haut, seuil de rentabilité en
+   bas. Les deux extrêmes suffisent — une graduation intermédiaire n'apporte
+   rien sur deux valeurs. */
+
+
+
+
+/* Chiffre de tête : la marge de sécurité, en pourcentage. C'est la réponse à
+   « jusqu'où le marché peut tomber avant qu'on perde de l'argent ». */
+.ud-root .prodcost-lead-value {
+  margin: 0;
+  color: var(--hearst-green);
+  font-size: 40px;
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .prodcost-lead-strong {
+  color: var(--ud-fg);
+  font-weight: 600;
+}
+
+/* Les deux bornes encadrent la piste : coût à gauche, prix de vente à droite. */
+.ud-root .prodcost-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.ud-root .prodcost-end--right {
+  text-align: right;
+}
+
+.ud-root .prodcost-end-label {
+  margin: 0 0 2px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .prodcost-end-value {
+  margin: 0;
+  color: var(--ud-fg);
+  font-size: 24px;
+  font-weight: 480;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Une seule piste : le coût en creux, la marge en aplat. Le FOND est la marge —
+   ce que la barre grise ne couvre pas est ce qui reste. */
+.ud-root .prodcost-bar {
+  display: flex;
+  height: 14px;
+  overflow: hidden;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+}
+
+/* Sous l'eau, ce qui reste n'est plus un gain. */
+.ud-root .prodcost-bar.is-underwater {
+  background: #d99a4e;
+}
+
+/* Pas de bordure interne : elle rétrécissait le creux d'un pixel de chaque
+   côté, si bien que la part sombre paraissait plus fine que l'aplat vert alors
+   que les deux occupent la même piste. */
+/* Le creux porte SON PROPRE arrondi à gauche : sans lui, le fond vert de la
+   piste débordait dans les coins arrondis et laissait un liseré vert au-dessus
+   et au-dessous de la part sombre. */
+.ud-root .prodcost-bar-cost {
+  height: 100%;
+  border-radius: var(--ud-radius-pill) 0 0 var(--ud-radius-pill);
+  background: var(--ud-inset);
+}
+
+.ud-root .prodcost-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .prodcost-legend strong {
+  color: var(--ud-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .prodcost-legend-pct {
+  color: var(--hearst-green);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .prodcost-key {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+/* Les deux pastilles ont la MÊME géométrie : un aplat plein chacune, sans
+   filet sur l'une seulement — un contour rendait celle du coût plus petite à
+   l'œil. `margin-left` sépare les deux entrées de légende. */
+.ud-root .prodcost-key--margin {
+  margin-left: 10px;
+  background: var(--hearst-green);
+}
+
+/* Même couleur que le creux de la piste, pas un gris d'encre : la légende doit
+   nommer ce qu'on voit sur la barre. */
+.ud-root .prodcost-key--cost {
+  background: var(--ud-inset);
+}
+
+.ud-root .projection-note,
+.ud-root .projection-absent {
+  margin: 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  line-height: 1.5;
+}
+
+/* ── Donut des distributions ─────────────────────────────────────────────── */
+.ud-root .dist-donut {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ud-root .dist-donut-plot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Le centre du donut. `PieChart` dessine dans le CARRÉ central du conteneur :
+   sur une carte plus large que haute, un centrage sur tout le rectangle
+   décalerait le texte. La hauteur fixe du tracé garde les deux confondus. */
+.ud-root .dist-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  pointer-events: none;
+}
+
+/* Le bitcoin porte le premier rang : c'est l'unité du produit. */
+.ud-root .dist-donut-btc {
+  margin: 0;
+  color: var(--ud-fg);
+  font-size: 21px;
+  font-weight: 560;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .dist-donut-usd {
+  margin: 0;
+  color: var(--hearst-green);
+  font-size: var(--ud-t-label);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .dist-donut-caption {
+  margin: 1px 0 0;
+  color: var(--ud-fg-3);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Colonnes fixes : les montants et parts s'alignent d'une ligne à l'autre. */
+.ud-root .dist-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ud-root .dist-legend-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) max-content 2.5rem;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .dist-legend-key {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.ud-root .dist-legend-label {
+  color: var(--ud-fg-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ud-root .dist-legend-value {
+  color: var(--ud-fg);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .dist-legend-share {
+  color: var(--ud-fg-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .distributions-absent {
+  margin: 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  line-height: 1.5;
+}
+
+/* ── Projection ──────────────────────────────────────────────────────────── */
+.ud-root .projection {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.ud-root .projection-lead-label {
+  margin: 0 0 2px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .projection-lead-value {
+  margin: 0;
+  color: var(--ud-fg);
+  font-size: 30px;
+  font-weight: 480;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .projection-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Colonnes CENTRÉES : alignés à droite, les trois scénarios se tassaient contre
+   leur bord et l'écart entre eux se lisait mal. Au centre, les trois montants
+   d'une même ligne se comparent d'un regard. */
+.ud-root .projection-table th,
+.ud-root .projection-table td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--ud-line);
+}
+
+.ud-root .projection-table thead th {
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  font-weight: 500;
+}
+
+.ud-root .projection-table th:first-child,
+.ud-root .projection-table tbody th {
+  text-align: left;
+  color: var(--ud-fg-2);
+  font-size: var(--ud-t-label);
+  font-weight: 500;
+}
+
+/* La colonne médiane porte le scénario central : elle se détache des deux
+   bornes, qui l'encadrent sans la concurrencer. */
+.ud-root .projection-table .is-median {
+  background: color-mix(in srgb, var(--hearst-green) 6%, transparent);
+}
+
+.ud-root .projection-table thead .is-median {
+  color: var(--hearst-green);
+  font-weight: 600;
+}
+
+.ud-root .projection-amount {
+  display: block;
+  color: var(--ud-fg);
+  font-size: var(--ud-t-label);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .projection-table .is-median .projection-amount {
+  font-size: 17px;
+}
+
+.ud-root .projection-delta {
+  display: block;
+  margin-top: 2px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .prodcost {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0 4px;
+}
+
+
+
+
+
+
+/* Sous l'eau, la marge n'est plus un gain : le fond cesse d'être vert. Couleur
+   littérale — la feuille ne définit aucun token d'alerte, et un `var()` sur une
+   variable inexistante cacherait la dépendance derrière un repli. */
+
+
+
+
+
+/* Les paramètres qui déterminent le coût, au registre `term-row` — picto cerclé,
+   libellé, valeur. Quatre mesures : difficulté, hashrate, électricité,
+   hashprice. */
+.ud-root .prodcost-rows {
+  display: grid;
+  /* DEUX colonnes fixes, pas `auto-fit` : à trois pistes, les quatre mesures
+     laissaient une case vide en fin de seconde rangée. 2×2 remplit la grille. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 18px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ud-line);
+}
+
+/* Recharts pose un `tabIndex` sur sa surface de tracé : au clic, le navigateur
+   y dessinait son contour bleu par-dessus le graphe. Le graphe n'est pas une
+   cible interactive — la table d'accessibilité porte les données pour le
+   clavier —, donc le contour n'a rien à signaler ici. */
+.ud-root .recharts-wrapper:focus,
+.ud-root .recharts-surface:focus,
+.ud-root [class*='recharts'] :focus {
+  outline: none;
+}
+
+/* ── Cours du BTC, avec sélection de période ─────────────────────────────── */
+.ud-root .btc-price-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 10px;
+}
+
+.ud-root .btc-price-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.ud-root .btc-price-value {
+  margin: 0;
+  color: var(--ud-fg);
+  font-size: 30px;
+  font-weight: 480;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .btc-price-change {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+  font-size: var(--ud-t-label);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .btc-price-change.is-up {
+  color: var(--hearst-green);
+}
+
+.ud-root .btc-price-change.is-down {
+  color: #d99a4e;
+}
+
+.ud-root .btc-price-change-note {
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  font-weight: 400;
+}
+
+.ud-root .btc-price-chart {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* Sélecteur de fenêtre : même piste que les onglets de graphe, en plus petit —
+   c'est une commande du graphe, pas une navigation. */
+.ud-root .btc-price-windows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-self: flex-start;
+  padding: 3px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-inset);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+
+.ud-root .btc-price-window {
+  min-width: 3.25rem;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ud-radius-pill);
+  background: transparent;
+  /* Encre secondaire, pas tertiaire : en `fg-3`, un bouton simplement
+     non-sélectionné se lisait comme désactivé — impossible de distinguer
+     « cliquable » de « indisponible ». */
+  color: var(--ud-fg-2);
+  font-family: inherit;
+  font-size: var(--ud-t-micro);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ud-root .btc-price-window:hover:not(:disabled):not(.active) {
+  color: var(--ud-fg);
+  background: color-mix(in srgb, var(--ud-fg) 7%, transparent);
+}
+
+/* Fenêtre courante : aplat blanc, comme la pilule active des onglets. */
+.ud-root .btc-price-window.active {
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+/* Historique insuffisant : la fenêtre est refusée, pas silencieusement tronquée. */
+.ud-root .btc-price-window:disabled {
+  color: var(--ud-fg-3);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* `:focus` et non seulement `:focus-visible` : au clic souris, le navigateur
+   posait son propre contour bleu par-dessus la piste. On le remplace ici, et
+   `focus-visible` garde l'anneau vert pour la navigation au clavier. */
+.ud-root .btc-price-window:focus {
+  outline: none;
+}
+
+.ud-root .btc-price-window:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: -2px;
+}
+
+/* En-tête du vault : titre à gauche, retrait à droite. `start` et non `center`
+   comme `position-heading` — ce titre porte un sous-titre sur deux lignes, un
+   bouton centré dessus flotterait au milieu du paragraphe. */
+.ud-root .vault-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.ud-root .vault-heading-text {
+  min-width: 0;
+}
+
+/* ── Actions du vault ────────────────────────────────────────────────────
+   « Withdraw » porte le registre primaire du produit ; « Increase vault » reste
+   secondaire ET verrouillé tant que l'admin ne l'a pas ouvert. Un bouton
+   désactivé garde un contraste lisible : illisible, il se lit comme une panne
+   plutôt que comme une permission manquante. */
+/* Plus une barre sous les tuiles : le bouton vit dans l'en-tête. Sans filet ni
+   padding propre — c'est l'en-tête qui les porte. */
+.ud-root .vault-actions {
+  flex: 0 0 auto;
+}
+
+/* Même géométrie que « Deposit » et « Show N more » : 36px, padding constant,
+   13px semi-gras. Le bouton portait une bordure et une icône qui le tenaient à
+   l'écart du registre partagé. */
+.ud-root .vault-action {
+  height: 36px;
+  padding: 0 20px;
+  width: fit-content;
+  border: 0;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.ud-root .vault-action:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.ud-root .vault-action:disabled {
+  cursor: not-allowed;
+  border-color: var(--ud-line);
+  background: var(--ud-inset);
+  color: var(--ud-fg-3);
+}
+
+.ud-root .vault-action:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
+}
+
+.ud-root .vault-actions-absent {
+  margin: 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  line-height: 1.5;
+}
+
 /* ── Newsletter ──────────────────────────────────────────────────────────
    Champ et bouton en pilules cerclées sur fond noir, comme sur le site public.
    MOBILE SEULEMENT : le rail desktop mesure ~230px, le champ y tombait à trois
@@ -603,6 +1278,13 @@
   overflow: hidden;
 }
 
+/* Le bandeau du vault ne porte que QUATRE tuiles sur cinq colonnes : sa case
+   décorative s'affiche donc dès le gabarit large, là où `position-grid` en a
+   cinq et n'a rien à combler. */
+.ud-root .fund-kpis .position-grid-mark {
+  display: grid;
+}
+
 /* Le tracé est un semis de points d'un demi-pixel : à 50 % d'opacité il
    disparaissait. Pleine couleur, et une taille bornée pour que les points
    restent assez denses pour se lire. */
@@ -877,7 +1559,15 @@
  */
 .ud-root .analysis {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr) minmax(220px, 320px);
+  /* Le gabarit est celui des CINQ tuiles du dessus, à l'identique : mêmes
+     colonnes, même gap. Le centre en occupe trois (`span 3` plus bas), les
+     flancs une chacun — les filets verticaux tombent donc aux MÊMES abscisses
+     d'une rangée à l'autre. Deux gabarits libres les décalaient.
+
+     Le plancher de 128px est celui des tuiles : une valeur différente romprait
+     l'alignement dès que la fenêtre se resserre. Sous 1024px les deux grilles
+     changent de gabarit ensemble (voir les paliers). */
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
   /* Séparateurs portés par la GRILLE, pas par les enfants : un gap de 1px
      laisse voir le fond, qui devient le filet. Il court sur toute la hauteur
      de rangée même quand une colonne est plus courte que sa voisine. */
@@ -889,6 +1579,12 @@
 /* Chaque cellule repeint le fond de carte par-dessus le fond de grille. */
 .ud-root .analysis > * {
   background: var(--ud-card);
+}
+
+/* Le centre couvre trois colonnes du gabarit à cinq ; les flancs en gardent
+   une. L'ordre du markup fait le reste — flanc, centre, flanc. */
+.ud-root .analysis > :nth-child(2) {
+  grid-column: span 3;
 }
 
 .ud-root .flank-panel {
@@ -1160,52 +1856,66 @@
   gap: 16px;
 }
 
-.ud-root .btc-flank-price {
-  padding: 15px;
-  border-radius: var(--ud-radius);
-  background: var(--ud-card);
-  box-shadow: inset 0 0 0 1px var(--ud-line);
-}
 
-.ud-root .btc-flank-price-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: var(--ud-fg-3);
-  font-size: var(--micro);
-}
 
-.ud-root .btc-flank-price-value {
-  display: block;
-  margin-top: 4px;
-  color: var(--ud-fg);
-  font-size: 24px;
-  font-weight: 480;
-  letter-spacing: -0.02em;
-}
+/* ── Compute Infrastructure ──────────────────────────────────────────────
+   Les quatre mesures du parc, en vert : ce sont des capacités, pas des
+   montants du book — la couleur les distingue des chiffres du vault, qui
+   restent en encre blanche.
 
-.ud-root .btc-flank-spark {
-  margin-top: 6px;
-  opacity: 0.9;
-}
-
-.ud-root .btc-flank-rows {
+   UNE colonne : le flanc n'a plus le graphe du cours à loger, chaque mesure
+   prend donc sa ligne et son chiffre gagne en présence. */
+.ud-root .fleet-metrics {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 18px;
+  /* Marge haute : le premier chiffre est très gros et collait au sous-titre du
+     bloc, qui n'a pas de retrait bas propre. */
+  margin: 22px 0 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ud-line);
 }
 
-/* Aligné à gauche (la colonne flex l'étirait sur toute la largeur, ce qui
-   noyait le texte), et POUSSÉ EN BAS de sa colonne : `margin-top: auto` mange
-   tout l'espace libre. Son voisin « Show N more », dans la colonne des
-   mouvements, fait de même — les deux boutons partagent donc la même ligne de
-   base, celle du fond des deux cartes. Le décalage venait de `margin-bottom:
-   auto`, qui recentrait celui-ci dans l'espace restant. */
-.ud-root .btc-flank-cta {
-  margin-top: auto;
-  margin-bottom: 0;
-  align-self: flex-start;
+.ud-root .fleet-metric-value {
+  color: var(--hearst-green);
+  font-size: 34px;
+  font-weight: 560;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .fleet-metric-label {
+  margin: 4px 0 0;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-label);
+  line-height: 1.35;
+}
+
+/* La disponibilité ferme le bloc : c'est une propriété du service, pas une
+   cinquième mesure de même rang — d'où le corps plus petit et la pastille. */
+.ud-root .fleet-uptime {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 16px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+}
+
+.ud-root .fleet-uptime-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hearst-green);
+}
+
+.ud-root .fleet-absent {
+  margin: 0 0 16px;
+  color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
+  line-height: 1.5;
 }
 
 /* ── Exposure & capacity ─────────────────────────────────────────────────── */
@@ -1457,9 +2167,8 @@
   white-space: nowrap;
 }
 
-/* Un seul registre pour les boutons « Detail » : celui des mouvements et celui
-   de l'exposition partagent géométrie, vert et encre. */
-.ud-root .timeline-detail,
+/* Bouton « Detail » de l'exposition. Celui des mouvements a disparu : le hash
+   qu'il dépliait tient sur la ligne. */
 .ud-root .ud-detail-btn {
   height: 24px;
   padding: 0 12px;
@@ -1477,46 +2186,44 @@
   justify-self: end;
 }
 
-.ud-root .ud-detail-btn {
-  flex: 0 0 auto;
-  align-self: center;
-}
-
-.ud-root .timeline-detail:hover,
-.ud-root .ud-detail-btn:hover {
-  filter: brightness(1.06);
-}
-
-.ud-root .timeline-detail:focus-visible,
-.ud-root .ud-detail-btn:focus-visible {
-  outline: 2px solid var(--hearst-green);
-  outline-offset: 2px;
-}
-
 /* Dépli : deux lignes clé/valeur sous l'intitulé, sans nouvelle indentation. */
 .ud-root .timeline-detail-body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
-  gap: 4px 16px;
-  margin: 10px 0 0;
+  gap: 4px 14px;
+  margin: 10px 0 2px;
   padding-top: 10px;
   border-top: 1px solid var(--ud-line);
-  font-size: var(--micro);
 }
 
 .ud-root .timeline-detail-body dt {
   color: var(--ud-fg-3);
+  font-size: var(--ud-t-micro);
 }
 
 .ud-root .timeline-detail-body dd {
   margin: 0;
   color: var(--ud-fg-2);
+  font-size: var(--ud-t-micro);
 }
 
-.ud-root .timeline-detail-body dd.mono {
-  font-family: var(--ud-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-variant-numeric: tabular-nums;
+.ud-root .ud-detail-btn {
+  flex: 0 0 auto;
+  align-self: center;
 }
+
+.ud-root .ud-detail-btn:hover {
+  filter: brightness(1.06);
+}
+
+.ud-root .ud-detail-btn:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
+}
+
+
+
+
 
 .ud-root .timeline-title {
   min-width: 0;
@@ -2089,29 +2796,23 @@
   filter: brightness(1.06);
 }
 
-/* Boutons d'action — même aplat mint et même géométrie que « Deposit ». */
-.ud-root .timeline-toggle,
-.ud-root .btc-flank-cta {
-  height: 36px;
-  padding: 0 20px;
-  width: fit-content;
+/* Boutons d'action — même aplat mint et même géométrie que « Deposit ».
+   Ces trois règles avaient perdu leur CORPS lors d'un nettoyage : le sélecteur
+   restait, suivi d'une virgule et de rien, ce qui invalidait le bloc entier et
+   laissait le bouton sans couleur. */
+/* Géométrie déjà portée par le registre partagé plus haut : ici, seul l'aplat. */
+.ud-root .timeline-toggle {
   border: 0;
-  border-radius: var(--ud-radius-pill);
   background: var(--hearst-green);
   color: var(--hearst-green-ink);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
+  font-family: inherit;
 }
 
-.ud-root .timeline-toggle:hover,
-.ud-root .btc-flank-cta:hover {
+.ud-root .timeline-toggle:hover {
   filter: brightness(1.06);
 }
 
-.ud-root .timeline-toggle:focus-visible,
-.ud-root .btc-flank-cta:focus-visible {
+.ud-root .timeline-toggle:focus-visible {
   outline: 2px solid var(--hearst-green);
   outline-offset: 2px;
 }
@@ -2349,8 +3050,9 @@
 }
 
 /* Doublons de valeurs propres à la ligne de poche étroite : masqués tant que
-   les sept colonnes tiennent (voir le palier téléphone). */
+   les colonnes tiennent (voir le palier téléphone). */
 .ud-root .ud-pocket-inline-amount,
+.ud-root .ud-pocket-inline-yield,
 .ud-root .ud-pocket-inline-drift {
   display: none;
 }
@@ -2368,10 +3070,16 @@
 
 /* ── Tablette paysage ─────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  /* Cinq tuiles ne tiennent plus : 128px minimum × 5 = 640px de contenu. */
-  .ud-root .position-grid,
-  .ud-root .fund-kpis {
+  /* Cinq tuiles ne tiennent plus : 128px minimum × 5 = 640px de contenu.
+     La position en a CINQ (3 + 2, la case décorative comble la sixième) ; le
+     vault n'en a que QUATRE, d'où deux colonnes — 2×2 remplit la grille là où
+     trois pistes laissaient deux trous. */
+  .ud-root .position-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ud-root .fund-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ud-root .position-grid .stat-tile,
@@ -2380,18 +3088,33 @@
     border-bottom: 1px solid var(--ud-line);
   }
 
-  .ud-root .position-grid .stat-tile:nth-child(3n),
-  .ud-root .fund-kpis .stat-tile:nth-child(3n) {
+  .ud-root .position-grid .stat-tile:nth-child(3n) {
     border-right: 0;
   }
 
+  .ud-root .fund-kpis .stat-tile:nth-child(2n) {
+    border-right: 0;
+  }
+
+  /* La position affiche sa case décorative (5 tuiles sur 3 colonnes) ; le vault
+     n'en a plus besoin, ses quatre tuiles remplissent 2×2. */
   .ud-root .position-grid-mark {
     display: grid;
   }
 
-  /* L'analyse à trois colonnes (flanc / centre / flanc) se réduit à deux. */
+  .ud-root .fund-kpis .position-grid-mark {
+    display: none;
+  }
+
+  /* L'analyse à trois colonnes (flanc / centre / flanc) se réduit à deux. Le
+     gabarit à cinq colonnes ne vaut plus : `span 3` est donc annulé, sans quoi
+     le centre déborderait d'une grille qui n'a plus que deux pistes. */
   .ud-root .analysis {
     grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  }
+
+  .ud-root .analysis > :nth-child(2) {
+    grid-column: auto;
   }
 
   .ud-root .analysis > :first-child {
@@ -2461,9 +3184,15 @@
     border-right: 0;
   }
 
-  /* Cinq tuiles + la case décorative = six : la grille tombe juste. */
+  /* Cinq tuiles + la case décorative = six : la grille tombe juste. Le vault,
+     lui, a quatre tuiles qui remplissent 2×2 — sa case reste masquée (héritée
+     du palier 1024px, redite ici parce que la règle générale la rallumerait). */
   .ud-root .position-grid-mark {
     display: grid;
+  }
+
+  .ud-root .fund-kpis .position-grid-mark {
+    display: none;
   }
 
   /* `width: 100%` vient du rail vertical : en barre horizontale il étirait le
@@ -2873,6 +3602,7 @@
   /* Les valeurs rejoignent la part du vault sur une ligne commune ; leurs
      doubles de la version large disparaissent. */
   .ud-root .ud-pocket-inline-amount,
+  .ud-root .ud-pocket-inline-yield,
   .ud-root .ud-pocket-inline-drift {
     display: inline;
   }

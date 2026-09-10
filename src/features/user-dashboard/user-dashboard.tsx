@@ -4,16 +4,19 @@ import { useState, type ReactNode } from 'react'
 import './user-dashboard.css'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import {
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
   ArrowsRightLeftIcon,
   BanknotesIcon,
+  LockClosedIcon,
   HomeIcon,
   QuestionMarkCircleIcon,
   BeakerIcon,
   CalendarDaysIcon,
   ChartPieIcon,
+  CurrencyDollarIcon,
   CircleStackIcon,
   CpuChipIcon,
-  CurrencyDollarIcon,
   PresentationChartLineIcon,
   ScaleIcon,
   SignalIcon,
@@ -22,8 +25,6 @@ import {
 } from '@heroicons/react/24/outline'
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
 import {
-  AllocationDualLineChart,
-  HearstActivityChart,
   HearstExposureRadial,
   HearstLineChart,
   SignedBarChart,
@@ -35,14 +36,21 @@ import { formatDateTime, formatNumber, formatPercent, formatDate} from '@/lib/fo
 import { readableSourceStateCap } from '@/lib/movements'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
 import type { SessionUser } from '@/lib/session'
-import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
+import { available, isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { StatTile, deltaOf } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
-import { BtcContextFlank } from './btc-context-flank'
+import { ComputeFleetFlank } from './compute-fleet-flank'
 import { DottedH } from '@/assets/brand/dotted-h'
+import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { InstagramIcon, LinkedInIcon, XIcon } from '@/assets/brand/social'
 import { MovementTimeline } from './movement-timeline'
-import type { UserDashboard } from './load'
+import { VaultActions } from './vault-actions'
+import { ProductionCostPanel } from './production-cost-panel'
+import { BtcPricePanel } from './btc-price-panel'
+import { HearstAllocationStackChart } from '@/components/charts/richart/allocation-stack-chart'
+import { DistributionsDonut } from './distributions-donut'
+import { ProjectionTable } from './projection-table'
+import type { AllocationBar, UserDashboard } from './load'
 import { HearstConnectLockupImage, LogoMark } from '@/components/logo'
 import { DepositForm } from './deposit-form'
 import { BtcPositionHeadline } from './btc-position'
@@ -59,7 +67,7 @@ import { BtcPositionHeadline } from './btc-position'
  * Reachable only with a valid console session (login remains admin-gated today).
  */
 
-type CentralView = 'value' | 'allocation' | 'btc' | 'activity' | 'backtest'
+type CentralView = 'btc' | 'mining' | 'allocation' | 'value'
 type Route = 'dashboard' | 'trade'
 
 /**
@@ -147,11 +155,15 @@ const CENTRAL_VIEWS: readonly {
   readonly label: string
   readonly icon: typeof PresentationChartLineIcon
 }[] = [
-  { key: 'value', label: 'Vault AUM', icon: PresentationChartLineIcon },
-  { key: 'allocation', label: 'Fund allocation', icon: ChartPieIcon },
+  // « Mining economics » en tête : c'est ce qui distingue le produit. Le cours
+  // du BTC n'est plus un onglet — il vit dans le flanc droit, avec son
+  // historique et ses fenêtres, plutôt que d'occuper deux endroits.
   { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
-  { key: 'activity', label: 'Activity', icon: Squares2X2Icon },
-  { key: 'backtest', label: 'Backtest', icon: BeakerIcon },
+  { key: 'mining', label: 'Mining economics', icon: CpuChipIcon },
+  { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
+  // La projection ferme la série : c'est une hypothèse, pas une mesure — elle
+  // se lit après ce qui est constaté, jamais avant.
+  { key: 'value', label: 'Projection', icon: PresentationChartLineIcon },
 ]
 
 function seriesState(
@@ -226,18 +238,12 @@ export function UserDashboardView({
   /* Ouverture du menu mobile. Fermé à chaque navigation : laisser le panneau
      ouvert sur la vue qu'on vient d'atteindre cacherait le résultat du clic. */
   const [menuOpen, setMenuOpen] = useState(false)
-  const [central, setCentral] = useState<CentralView>('value')
+  const [central, setCentral] = useState<CentralView>('btc')
   const initials = userInitials(user.name)
 
   const isDashboard = route === 'dashboard'
 
   const valuePoints = valueOf(data.valueSeries)
-  const valueState = seriesState(
-    data.valueSeries,
-    valuePoints !== null && valuePoints.length > 1,
-    'Not enough history to trace a value curve yet.',
-    'Awaiting a verified value source.',
-  )
   const allocationTime = valueOf(data.allocationSeries)
   const allocationState = seriesState(
     data.allocationSeries,
@@ -249,22 +255,25 @@ export function UserDashboardView({
   const btcState = seriesState(
     data.btcSeries,
     btcPoints !== null && btcPoints.length > 1,
-    'Not enough BTC snapshots to plot yet.',
+    'Not enough BTC history to plot yet.',
     'Awaiting a verified market source.',
   )
-  const activityBars = valueOf(data.activityBars)
-  const activityBarsState = seriesState(
-    data.activityBars,
-    activityBars !== null && activityBars.length > 0,
-    'No indexed activity for this period.',
-    'Awaiting a verified activity source.',
+  // Projection Monte-Carlo : deux points au moins, sinon il n'y a pas de bande
+  // à tracer — une projection d'un seul point n'est pas une projection.
+  const projection = valueOf(data.projection)
+  const projectionState = seriesState(
+    data.projection,
+    projection !== null && projection.points.length > 1,
+    'Not enough horizon to project this vault yet.',
+    'Awaiting a verified projection source.',
   )
-  const backtestRuns = valueOf(data.backtestRuns)
-  const backtestState = seriesState(
-    data.backtestRuns,
-    backtestRuns !== null && backtestRuns.length > 0,
-    'No backtest run to display yet.',
-    'Awaiting a verified backtest source.',
+
+  const productionCost = valueOf(data.productionCost)
+  const productionCostState = seriesState(
+    data.productionCost,
+    productionCost !== null,
+    'Production cost is not computable from the current network readings.',
+    'Awaiting a verified mining source.',
   )
 
   const exposurePockets = valueOf(data.exposure)
@@ -275,7 +284,6 @@ export function UserDashboardView({
     'Allocation terms did not resolve.',
   )
 
-  const vaultAum = valuePoints !== null && valuePoints.length > 0 ? valuePoints[valuePoints.length - 1].value : null
   const positionAbsent = investorPositionAbsent(data)
   const positionValue = valueOf(data.positionValue)
   const positionPrincipal = valueOf(data.positionPrincipal)
@@ -292,9 +300,29 @@ export function UserDashboardView({
     usdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
       ? `≈ ${(usdc / btcSpotUsd).toFixed(4)} BTC`
       : null
+  // ── Vault dédié ───────────────────────────────────────────────────────────
+  // Un vault PAR CLIENT : ces montants sont les siens, pas une quote-part d'un
+  // pool. Les parts sont calculées ici, jamais lues — deux sources pour un même
+  // ratio finissent par diverger.
+  const vault = valueOf(data.vaultAccount)
+  const vaultLabel = vault?.label ?? 'Dedicated vault'
+  const vaultPrincipal = vault?.principalUsdc ?? null
+  const vaultWithdrawn = vault?.withdrawnUsdc ?? null
+  const vaultAvailable = vault?.availableUsdc ?? null
+
+  const shareOfPrincipal = (amount: number | null): number | null =>
+    amount !== null && vaultPrincipal !== null && vaultPrincipal > 0
+      ? (amount / vaultPrincipal) * 100
+      : null
+
+  const withdrawnShare = shareOfPrincipal(vaultWithdrawn)
+  const accruedShare = shareOfPrincipal(positionAccrued)
+
+  const nextDistributionLabel =
+    vault?.nextDistributionAt != null ? `next on ${formatDate(vault.nextDistributionAt)}` : null
+
   const positionStatus = valueOf(data.positionStatus)
   const positionSubscribedAt = valueOf(data.positionSubscribedAt)
-  const navPerShare = valueOf(data.navPerShare)
   const utilization = valueOf(data.utilizationPct)
   const availableCapacity = valueOf(data.availableCapacity)
   const minimumDeposit = valueOf(data.minimumDeposit)
@@ -304,42 +332,49 @@ export function UserDashboardView({
     CentralView,
     { question: string; unit: string; state: SeriesState; node: ReactNode; source: Availability<unknown> }
   > = {
-    value: {
-      question: 'Vault AUM',
-      unit: 'fund total assets · USDC',
-      state: valueState,
-      node: valuePoints !== null ? <HearstLineChart points={[...valuePoints]} unit="USDC" viewport="hero" /> : null,
-      source: data.valueSeries,
-    },
-    allocation: {
-      question: 'Fund allocation over time',
-      unit: 'cbBTC vs USDC · % of vault',
-      state: allocationState,
-      node: allocationTime !== null ? <AllocationDualLineChart points={[...allocationTime]} viewport="hero" /> : null,
-      source: data.allocationSeries,
-    },
     btc: {
       question: 'BTC price',
-      unit: 'USDC · at vault snapshots',
+      unit: 'USD · select a period below',
       state: btcState,
-      node: btcPoints !== null ? <HearstLineChart points={[...btcPoints]} unit="USDC" viewport="hero" /> : null,
+      node: btcPoints !== null ? <BtcPricePanel points={[...btcPoints]} /> : null,
       source: data.btcSeries,
     },
-    activity: {
-      // Vault-GLOBAL indexed on-chain events (series1), not this client's — kept
-      // as explicit fund context, never presented as personal account activity.
-      question: 'Vault activity',
-      unit: 'indexed vault events · per day',
-      state: activityBarsState,
-      node: activityBars !== null ? <HearstActivityChart points={[...activityBars]} unit="events" viewport="hero" /> : null,
-      source: data.activityBars,
+    value: {
+      // Plus l'AUM du fonds : le vault est DÉDIÉ, un total mutualisé n'aurait
+      // pas de sens ici. Ce que le client veut savoir, c'est où son propre
+      // vault peut aller — d'où la projection et ses bandes.
+      question: 'Where this vault could be',
+      unit: 'Monte-Carlo scenarios · USDC',
+      state: projectionState,
+      node: projection !== null ? <ProjectionTable projection={projection} /> : null,
+      source: data.projection,
     },
-    backtest: {
-      question: 'Backtest performance',
-      unit: 'total return · % per scenario',
-      state: backtestState,
-      node: backtestRuns !== null ? <SignedBarChart items={[...backtestRuns]} viewport="hero" /> : null,
-      source: data.backtestRuns,
+    allocation: {
+      // La composition du vault, poche par poche — plus « cbBTC vs USDC », un
+      // découpage qui ne correspondait à aucune stratégie du produit.
+      question: 'Vault composition',
+      unit: 'share of vault by strategy · %',
+      state: allocationState,
+      node:
+        allocationTime !== null ? (
+          <HearstAllocationStackChart points={[...allocationTime]} viewport="hero" />
+        ) : null,
+      source: data.allocationSeries,
+    },
+    mining: {
+      // Ce qui distingue ce produit : à QUEL PRIX il produit son bitcoin.
+      // L'écart au marché est la marge — elle dit si le minage crée de la valeur.
+      question: 'Cost to mine one BTC',
+      unit: 'production cost vs market · USD',
+      state: productionCostState,
+      node:
+        productionCost !== null ? (
+          <ProductionCostPanel
+            cost={productionCost}
+            hashprice={valueOf(data.marketSnapshot)?.hashprice ?? null}
+          />
+        ) : null,
+      source: data.productionCost,
     },
   }
   const active = centralChart[central]
@@ -541,8 +576,8 @@ export function UserDashboardView({
                 <div className="section-heading position-heading">
                   <div className="position-heading-text">
                     <p className="eyebrow">Your position</p>
-                    <h2>Bitcoin position</h2>
-                    {/* Pas de sous-titre : « Bitcoin position » se suffit, et la
+                    <h2>Bitcoin Strategic Reserve</h2>
+                    {/* Pas de sous-titre : le titre se suffit, et la
                         jauge annonce elle-même la comparaison au HODL. */}
                   </div>
                   <DepositForm
@@ -613,75 +648,71 @@ export function UserDashboardView({
                 </div>
               </section>
 
-              <section className="fund-vault" aria-label="Fund and vault">
-                <div className="section-heading">
-                  <p className="eyebrow">Fund / Vault</p>
-                  <h2>Vault context</h2>
-                  <span>Fund-wide metrics and vault history — not your personal book position</span>
+              <section className="fund-vault" aria-label="Your vault">
+                {/* Même patron que « Your position » : titre à gauche, action à
+                    droite. Le retrait vivait dans une barre sous les tuiles, qui
+                    ajoutait une rangée et décrochait les séparateurs des blocs
+                    suivants. */}
+                <div className="section-heading vault-heading">
+                  <div className="vault-heading-text">
+                    <p className="eyebrow">Your vault</p>
+                    <h2>{vaultLabel}</h2>
+                    <span>
+                      Your own vault — capital, distributions and withdrawals. Nothing here is
+                      shared with another client.
+                    </span>
+                  </div>
+                  <VaultActions vault={data.vaultAccount} onWithdraw={() => setRoute('trade')} />
                 </div>
 
-                <section className="fund-kpis" aria-label="Fund indicators">
+                <section className="fund-kpis" aria-label="Vault indicators">
+                  {/* BTC produced en tête : c'est la mesure du produit. Le
+                      capital investi a quitté la grille — il est déjà le
+                      dénominateur des deux parts affichées plus loin, et le
+                      répéter en tuile ajoutait un chiffre sans lecture propre. */}
                   <StatTile
-                    icon={PresentationChartLineIcon}
-                    label="Vault AUM"
-                    value={formatUsdc(vaultAum)}
-                    signal={signalOf(data.valueSeries)}
-                    trend={valuePoints !== null ? valuePoints.map((p) => p.value) : undefined}
-                    delta={deltaOf(valuePoints)}
+                    icon={BitcoinIcon}
+                    label="BTC produced"
+                    value={btcProduced !== null ? `${formatNumber(btcProduced, { maximumFractionDigits: 3 })} BTC` : '—'}
+                    signal={signalOf(data.btcProducedTotal)}
+                    footnote={btcProduced !== null ? 'by the mining infrastructure' : null}
                   />
                   <StatTile
-                    icon={SignalIcon}
-                    label="Fund utilization"
-                    value={utilization !== null ? formatPercent(utilization, { maximumFractionDigits: 1 }) : '—'}
-                    signal={signalOf(data.utilizationPct)}
-                    meter={utilization !== null ? utilization / 100 : null}
-                    footnote={
-                      utilization !== null
-                        ? `${formatPercent(utilization, { maximumFractionDigits: 1 })} of the cap`
-                        : null
-                    }
+                    icon={ArrowDownTrayIcon}
+                    label="Available to withdraw"
+                    value={formatUsdc(vaultAvailable)}
+                    aside={btcAside(vaultAvailable)}
+                    signal={signalOf(data.vaultAccount)}
+                    footnote={nextDistributionLabel}
                   />
                   <StatTile
-                    icon={CircleStackIcon}
-                    label="Fund capacity left"
-                    value={formatUsdc(availableCapacity)}
-                    signal={signalOf(data.availableCapacity)}
-                    meter={utilization !== null ? 1 - utilization / 100 : null}
+                    icon={ArrowUpTrayIcon}
+                    label="Withdrawn to date"
+                    value={formatUsdc(vaultWithdrawn)}
+                    aside={btcAside(vaultWithdrawn)}
+                    signal={signalOf(data.vaultAccount)}
+                    meter={withdrawnShare !== null ? withdrawnShare / 100 : null}
                     footnote={
-                      utilization !== null
-                        ? `${formatPercent(100 - utilization, { maximumFractionDigits: 1 })} still free`
+                      withdrawnShare !== null
+                        ? `${formatPercent(withdrawnShare, { maximumFractionDigits: 1 })} of capital invested`
                         : null
                     }
                   />
                   <StatTile
                     icon={ScaleIcon}
-                    label="NAV / share"
-                    value={navPerShare !== null ? formatNumber(navPerShare, { maximumFractionDigits: 4 }) : '—'}
-                    signal={signalOf(data.navPerShare)}
+                    label="Earned to date"
+                    value={formatUsdc(positionAccrued)}
+                    aside={btcAside(positionAccrued)}
+                    signal={signalOf(data.positionAccrued)}
                     footnote={
-                      navPerShare !== null
-                        ? `${formatPercent((navPerShare - 1) * 100, { maximumFractionDigits: 2, signed: true })} vs par`
+                      accruedShare !== null
+                        ? `${formatPercent(accruedShare, { maximumFractionDigits: 1 })} of capital invested`
                         : null
                     }
                   />
-                  {/* Pas le cours du BTC : le flanc « BTC context » le porte déjà,
-                      avec sa courbe. Ici, le bitcoin que l'infrastructure a
-                      réellement produit — le chiffre que la promesse engage.
-                      C'est une mesure FOND, pas la part de ce client : la source
-                      (`/api/v1/btc`) n'expose aucune ventilation par
-                      souscripteur. Le libellé le dit, et la section entière est
-                      annoncée « fund-wide » — sans quoi le client lirait 3 BTC
-                      comme les siens. */}
-                  <StatTile
-                    icon={CpuChipIcon}
-                    label="BTC produced"
-                    value={btcProduced !== null ? `${formatNumber(btcProduced, { maximumFractionDigits: 3 })} BTC` : '—'}
-                    signal={signalOf(data.btcProducedTotal)}
-                    footnote={btcProduced !== null ? 'fund-wide, since inception' : null}
-                  />
-                  {/* Même rôle que dans `position-grid` : cinq tuiles sur deux
-                      ou trois colonnes laissent une case vide en fin de grille.
-                      Le motif de marque l'occupe. Décoratif, donc `aria-hidden`. */}
+                  {/* Quatre tuiles sur cinq colonnes laissent une case vide en
+                      fin de grille. Le motif de marque l'occupe. Décoratif,
+                      donc `aria-hidden`. */}
                   <div className="position-grid-mark" aria-hidden="true">
                     <DottedH className="position-grid-mark-svg" />
                   </div>
@@ -768,13 +799,7 @@ export function UserDashboardView({
                     </div>
                   </div>
 
-                  <BtcContextFlank
-                    marketSnapshot={data.marketSnapshot}
-                    btcPoints={btcPoints}
-                    btcPriceSignal={signalOf(data.btcSeries)}
-                    btcProducedTotal={data.btcProducedTotal}
-                    onViewBtc={() => setCentral('btc')}
-                  />
+                  <ComputeFleetFlank fleet={data.fleet} />
                 </section>
 
                 {/* Panneau unique : « Fund capacity » doublonnait le bandeau du
@@ -792,10 +817,16 @@ export function UserDashboardView({
                     </div>
                     <div className="ec-body">
                       {exposureState.type === 'plotted' && exposurePockets !== null ? (
+                        /* Le capital de référence est celui de CE vault, pas
+                           l'AUM d'un fonds : les montants par poche sont ceux
+                           du client. Le rendement rejoint la ligne de sa poche
+                           — un bloc séparé rejouait les mêmes libellés pour
+                           n'ajouter qu'une colonne. */
                         <HearstExposureRadial
                           items={[...exposurePockets]}
-                          aumUsdc={valueOf(data.vaultAum)}
+                          aumUsdc={vaultPrincipal}
                           briefs={POCKET_BRIEF}
+                          yields={valueOf(data.bucketYields)}
                         />
                       ) : (
                         <div className={`center-state${exposureState.type === 'unavailable' ? ' is-bad' : ''}`}>
@@ -826,14 +857,7 @@ export function UserDashboardView({
                     </div>
                     <MovementTimeline availability={data.activity} btcSpotUsd={btcSpotUsd} />
                   </section>
-                  <BreakdownFlank
-                    title="Your activity mix"
-                    hint="Your movements by type"
-                    icon={Squares2X2Icon}
-                    availability={data.activityByType}
-                    kind="count"
-                    unit="events"
-                  />
+                  <DistributionsDonut distributions={data.distributions} />
                 </div>
               </section>
             </div>

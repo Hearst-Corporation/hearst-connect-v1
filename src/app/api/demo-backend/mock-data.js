@@ -25,6 +25,10 @@ const ACCOUNTS = [
 
 const TOKENS = new Map()
 
+/* Cours du bitcoin — une seule valeur pour tout le mock : deux prix différents
+   sur un même écran ne se lisent pas comme deux sources, mais comme un bug. */
+const BTC_SPOT_USD = 94_820
+
 const nowIso = () => new Date().toISOString()
 
 /**
@@ -534,6 +538,109 @@ function payloadFor(path) {
     return { context: 'Contexte généré par le mock local — jamais un fait métier.', tokens: 128, generatedAt: nowIso() }
   }
 
+
+  if (p === '/api/v1/me/vault') {
+    const principal = 420_000
+    const withdrawn = 96_500
+    const monthlyDistribution = 5_250
+    return {
+      vault: bloc({
+        vaultId: 'vault-hearst-001',
+        label: 'Dedicated vault',
+        principalUsdc: principal,
+        // Cumul déjà sorti, et sa part du principal.
+        withdrawnUsdc: withdrawn,
+        // Distribution du mois, disponible au retrait.
+        availableUsdc: monthlyDistribution,
+        nextDistributionAt: '2026-10-01T09:00:00Z',
+        // Le dépôt reste fermé tant que l'admin ne l'a pas ouvert.
+        depositUnlocked: false,
+        depositRequestedAt: null,
+        withdrawUnlocked: true,
+      }),
+    }
+  }
+
+  if (p === '/api/v1/mining/fleet') {
+    return {
+      fleet: bloc({
+        minersManaged: 10_000,
+        hashrateEhs: 2.1,
+        btcProducedTotal: 750.4,
+        countries: 10,
+        uptimePct: 99.2,
+        asOf: nowIso(),
+      }),
+    }
+  }
+
+  if (p === '/api/v1/mining/production-cost') {
+    return {
+      productionCost: bloc({
+        costPerBtcUsd: 62_400,
+        // MÊME cours que le snapshot et que les séries : deux prix du bitcoin
+        // sur un même écran ne se lisent pas comme deux sources, mais comme
+        // un bug. `marginPct` est de toute façon recalculée côté front.
+        marketPriceUsd: BTC_SPOT_USD,
+        marginPct: 0,
+        electricityUsdPerKwh: 0.042,
+        networkDifficulty: 1.26e14,
+        hashrateEhs: 782.4,
+        asOf: nowIso(),
+      }),
+    }
+  }
+
+  if (p === '/api/v1/vault/bucket-yields') {
+    return {
+      /*
+       * Les MÊMES poches que `POCKETS` — celles du radial d'exposition. Une
+       * seconde taxonomie (Mining / Lending / Liquidity / Reserve) découpait le
+       * même capital autrement : deux listes concurrentes pour un seul vault,
+       * sans qu'on puisse savoir laquelle fait foi.
+       *
+       * Les montants dérivent de `pocketAssets`, donc les deux blocs racontent
+       * la même répartition, l'un en parts, l'autre en rendement.
+       */
+      bucketYields: bloc(
+        POCKETS.map((pocket, i) => ({
+          bucket: pocket.label,
+          yieldPct: [8.4, 5.1, 11.6][i] ?? 0,
+          // `actualBps` comme le radial, PAS `pocketAssets` : deux sources pour
+          // un même montant divergent toujours, et l'écran afficherait alors
+          // 179 004 d'un côté, 176 400 de l'autre pour la même poche.
+          capitalUsdc: Math.round(420_000 * (pocket.actualBps / 10_000)),
+          trendPct: [0.3, -0.2, 0.9][i] ?? 0,
+        })),
+      ),
+    }
+  }
+
+  if (p === '/api/v1/me/vault/projection') {
+    const start = 482_000
+    const months = 24
+    const points = Array.from({ length: months + 1 }, (_, i) => {
+      const t = i / 12
+      const grow = (rate) => Math.round(start * Math.pow(1 + rate, t))
+      return {
+        month: i,
+        label: i === 0 ? 'Today' : `M+${i}`,
+        p10: grow(0.012),
+        p25: grow(0.041),
+        p50: grow(0.079),
+        p75: grow(0.118),
+        p90: grow(0.163),
+      }
+    })
+    return {
+      projection: bloc({
+        runs: 10_000,
+        horizonMonths: months,
+        startValueUsdc: start,
+        points,
+      }),
+    }
+  }
 
   if (p === '/api/v1/mining/distributions') {
     return {

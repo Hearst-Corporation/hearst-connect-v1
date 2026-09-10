@@ -138,6 +138,65 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'Scoped to the connected session — not the fund-wide dashboard aggregate.',
   }),
   defineEndpoint({
+    id: 'me-vault',
+    path: '/api/v1/me/vault',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: "Dedicated vault of the connected investor — principal, withdrawn to date, amount available this month, and whether deposit is unlocked.",
+    caveat:
+      "The product is one vault PER CLIENT, never a shared pool: nothing here is fund-wide. `depositUnlocked` is the admin's decision — the interface reflects it, it never grants it.",
+  }),
+  defineEndpoint({
+    id: 'me-vault-projection',
+    path: '/api/v1/me/vault/projection',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Monte-Carlo projection of the vault value — percentile bands, precomputed.',
+    caveat:
+      'Percentiles come already computed: the front draws bands, it never replays the simulation. A projection is not a forecast — the spread between p10 and p90 IS the message.',
+  }),
+  defineEndpoint({
+    id: 'mining-distributions',
+    path: '/api/v1/mining/distributions',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Monthly distributions — amount paid, BTC equivalent, approval state.',
+    caveat:
+      'A distribution is only cash once `status` is `distributed`: approved and pending rows are announcements, not payments. The interface must keep the three apart.',
+  }),
+  defineEndpoint({
+    id: 'mining-fleet',
+    path: '/api/v1/mining/fleet',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Compute fleet the vault gives access to — miners, hashrate, BTC produced, footprint.',
+    caveat:
+      'Fleet-WIDE, never a per-client share: it measures the infrastructure, not a position. `btcProducedTotal` is cumulative since inception.',
+  }),
+  defineEndpoint({
+    id: 'mining-production-cost',
+    path: '/api/v1/mining/production-cost',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'What one mined BTC costs to produce today, against market price.',
+    caveat:
+      'Derived from network difficulty, hashrate and electricity price at `asOf`. It measures production, not the market — the two move independently.',
+  }),
+  defineEndpoint({
+    id: 'vault-bucket-yields',
+    path: '/api/v1/vault/bucket-yields',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'Current annualised yield per strategy bucket, with capital deployed.',
+    caveat: 'Annualised from the current rate: it is a run-rate, not a realised return.',
+  }),
+  defineEndpoint({
     id: 'me-deposits',
     method: 'POST',
     path: '/api/v1/me/deposits',

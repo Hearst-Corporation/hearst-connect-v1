@@ -78,6 +78,7 @@ export function HearstExposureRadial({
   items,
   aumUsdc = null,
   briefs = null,
+  yields = null,
 }: Readonly<{
   items: readonly ExposureItem[]
   /** AUM du vault : chiffre chaque poche en dollars. Sans lui, la légende
@@ -86,6 +87,9 @@ export function HearstExposureRadial({
   /** Une ligne par poche, indexée sur le libellé. Éditorial, pas lu d'une
    *  source : une poche absente de la table n'affiche pas de description. */
   briefs?: Readonly<Record<string, string>> | null
+  /** Rendement courant par poche, indexé sur le libellé. Une poche sans taux
+   *  affiche `—` : c'est une absence, pas un rendement nul. */
+  yields?: readonly { readonly bucket: string; readonly yieldPct: number }[] | null
 }>) {
   const rows: Row[] = items.map((p, index) => ({
     ...p,
@@ -126,13 +130,17 @@ export function HearstExposureRadial({
     <div className="w-full">
       <ChartAccessibilityTable
         caption="Target and actual allocation per strategy, in percent of vault"
-        columns={['Strategy', 'Target', 'Actual', 'Drift']}
+        columns={['Strategy', 'Target', 'Actual', 'Yield', 'Drift']}
         rows={rows.map((r, index) => ({
           key: `${r.label}-${index}`,
           label: r.label,
           cells: [
             `${formatNumber(r.targetPct, { maximumFractionDigits: 1 })}%`,
             r.actualPct === null ? 'not read' : `${formatNumber(r.actualPct, { maximumFractionDigits: 1 })}%`,
+            (() => {
+              const y = yields?.find((v) => v.bucket === r.label)?.yieldPct
+              return y === undefined ? 'not read' : `${formatNumber(y, { maximumFractionDigits: 1 })}%`
+            })(),
             r.drift === null
               ? 'not read'
               : `${r.drift >= 0 ? '+' : ''}${formatNumber(r.drift, { maximumFractionDigits: 1 })} pt`,
@@ -211,7 +219,7 @@ export function HearstExposureRadial({
         {/* Legend = exact numbers (the rings are the visual comparison). */}
         <div className="min-w-[20rem] flex-[1_1_32rem]">
           <p className="mb-4 text-[11px] text-fg-tertiary">
-            Share of vault · value · drift from target
+            Share of vault · value · yield · drift from target
           </p>
           <ul className="flex flex-col gap-6">
             {rows.map((r, index) => (
@@ -220,6 +228,7 @@ export function HearstExposureRadial({
                 row={r}
                 aumUsdc={aumUsdc}
                 brief={briefs?.[r.label]}
+                yieldPct={yields?.find((y) => y.bucket === r.label)?.yieldPct ?? null}
               />
             ))}
           </ul>
@@ -245,7 +254,13 @@ function PocketRow({
   row,
   aumUsdc,
   brief,
-}: Readonly<{ row: Row; aumUsdc: number | null; brief: string | undefined }>) {
+  yieldPct,
+}: Readonly<{
+  row: Row
+  aumUsdc: number | null
+  brief: string | undefined
+  yieldPct: number | null
+}>) {
   const [open, setOpen] = useState(false)
 
   const amount =
@@ -268,7 +283,7 @@ function PocketRow({
     // niveaux — libellé et action en haut, valeurs dessous — plutôt que de
     // déborder. `@max-*` cible la largeur du CONTENEUR, pas de la fenêtre :
     // ce composant vit aussi bien en flanc étroit qu'en pleine largeur.
-    <li className="ud-pocket-row grid grid-cols-[auto_9rem_minmax(3rem,1fr)_3.25rem_6.5rem_3.5rem_auto] items-baseline gap-x-4 gap-y-1.5 text-xs">
+    <li className="ud-pocket-row grid grid-cols-[auto_9rem_minmax(3rem,1fr)_3.25rem_6.5rem_4rem_3.5rem_auto] items-baseline gap-x-4 gap-y-1.5 text-xs">
       <span
         className="size-2.5 translate-y-[1px] rounded-[3px]"
         style={{ background: row.fill }}
@@ -296,10 +311,19 @@ function PocketRow({
             : `${formatNumber(row.actualPct, { maximumFractionDigits: 1 })} %`}
         </span>
         <span className="ud-pocket-inline-amount text-fg-secondary">{amount}</span>
+        <span className="ud-pocket-inline-yield text-accent-400">
+          {yieldPct === null ? '' : `${formatNumber(yieldPct, { maximumFractionDigits: 1 })} %`}
+        </span>
         <span className={`ud-pocket-inline-drift ${driftClass}`}>{driftText}</span>
       </span>
 
       <span className="text-right tabular-nums text-fg-secondary  ud-pocket-wide">{amount}</span>
+      {/* Rendement courant de la poche. Un run-rate annualisé, pas un réalisé —
+          la ligne de pied du bloc le dit. `—` quand la poche n'en publie pas :
+          une absence, jamais un zéro. */}
+      <span className="text-right tabular-nums text-accent-400 ud-pocket-wide" title="Current annualised yield">
+        {yieldPct === null ? '—' : `${formatNumber(yieldPct, { maximumFractionDigits: 1 })} %`}
+      </span>
       <span className={`text-right tabular-nums  ud-pocket-wide ${driftClass}`}>{driftText}</span>
       {/* Mêmes tokens que le bouton « Detail » des mouvements : `bg-accent-400`
           (#a7fb90) et `text-accent-ink` (#000) divergeaient de `--hearst-green`
