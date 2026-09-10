@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { formatNumber, formatPercent } from '@/lib/format'
 import type { VaultProjection } from './load'
 
@@ -14,6 +15,12 @@ import type { VaultProjection } from './load'
  * Le scénario médian est mis en avant, les deux bornes l'encadrent. Le mot
  * « projection » est répété en pied : ce ne sont pas des prévisions, et l'écart
  * entre les colonnes est la seule chose honnête à en retenir.
+ *
+ * DEUX lectures, parce qu'elles ne disent pas la même chose. En dollars, seule
+ * la stratégie est incertaine : le capital compose à un taux inconnu. En
+ * bitcoin, le cours s'ajoute — et sa volatilité domine tout le reste, d'où une
+ * fourchette bien plus large. Convertir simplement les montants dollars au spot
+ * du jour aurait affiché une fourchette étroite là où la réalité est large.
  */
 
 const usd = (v: number) => `$${formatNumber(v, { maximumFractionDigits: 0 })}`
@@ -22,9 +29,15 @@ const usd = (v: number) => `$${formatNumber(v, { maximumFractionDigits: 0 })}`
 const HORIZONS = [6, 12, 24] as const
 
 export function ProjectionTable({ projection }: Readonly<{ projection: VaultProjection }>) {
-  const { points, startValueUsdc, runs } = projection
+  const { points, startValueUsdc, startValueBtc, runs, btcVolAnnualPct } = projection
 
-  // `points[i]` est le mois i : l'index EST l'échéance, la série partant de 0.
+  // La lecture bitcoin n'est proposée que si la source la publie.
+  const hasBtc = points.some((p) => p.btcP50 !== null)
+  /* Le bitcoin d'abord : c'est l'unité du produit, et la lecture qui porte la
+     vraie incertitude. La lecture en dollars reste à un clic. */
+  const [unit, setUnit] = useState<'usd' | 'btc'>('btc')
+  const showBtc = hasBtc && unit === 'btc'
+
   const rows = HORIZONS.filter((m) => m < points.length).map((m) => ({
     months: m,
     point: points[m],
@@ -38,13 +51,51 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
     )
   }
 
-  const growth = (v: number) => (startValueUsdc > 0 ? ((v - startValueUsdc) / startValueUsdc) * 100 : 0)
+  const base = showBtc ? startValueBtc : startValueUsdc
+  const fmt = (v: number | null) =>
+    v === null ? '—' : showBtc ? `${formatNumber(v, { maximumFractionDigits: 2 })} BTC` : usd(v)
+  const growth = (v: number | null) =>
+    v === null || base === null || base <= 0 ? null : ((v - base) / base) * 100
+
+  const cell = (v: number | null) => (
+    <>
+      <span className="projection-amount">{fmt(v)}</span>
+      {growth(v) !== null ? (
+        <span className="projection-delta">
+          {formatPercent(growth(v) as number, { maximumFractionDigits: 1, signed: true })}
+        </span>
+      ) : null}
+    </>
+  )
 
   return (
     <div className="projection">
-      <div className="projection-lead">
-        <p className="projection-lead-label">Vault value today</p>
-        <p className="projection-lead-value">{usd(startValueUsdc)}</p>
+      <div className="projection-head">
+        <div>
+          <p className="projection-lead-label">Vault value today</p>
+          <p className="projection-lead-value">{fmt(base)}</p>
+        </div>
+
+        {hasBtc ? (
+          <div className="projection-units" role="group" aria-label="Projection unit">
+            <button
+              type="button"
+              className={`projection-unit${unit === 'btc' ? ' active' : ''}`}
+              aria-pressed={unit === 'btc'}
+              onClick={() => setUnit('btc')}
+            >
+              BTC
+            </button>
+            <button
+              type="button"
+              className={`projection-unit${unit === 'usd' ? ' active' : ''}`}
+              aria-pressed={unit === 'usd'}
+              onClick={() => setUnit('usd')}
+            >
+              USDC
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <table className="projection-table">
@@ -62,24 +113,9 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
           {rows.map(({ months, point }) => (
             <tr key={months}>
               <th scope="row">{months} months</th>
-              <td>
-                <span className="projection-amount">{usd(point.p10)}</span>
-                <span className="projection-delta">
-                  {formatPercent(growth(point.p10), { maximumFractionDigits: 1, signed: true })}
-                </span>
-              </td>
-              <td className="is-median">
-                <span className="projection-amount">{usd(point.p50)}</span>
-                <span className="projection-delta">
-                  {formatPercent(growth(point.p50), { maximumFractionDigits: 1, signed: true })}
-                </span>
-              </td>
-              <td>
-                <span className="projection-amount">{usd(point.p90)}</span>
-                <span className="projection-delta">
-                  {formatPercent(growth(point.p90), { maximumFractionDigits: 1, signed: true })}
-                </span>
-              </td>
+              <td>{cell(showBtc ? point.btcP10 : point.p10)}</td>
+              <td className="is-median">{cell(showBtc ? point.btcP50 : point.p50)}</td>
+              <td>{cell(showBtc ? point.btcP90 : point.p90)}</td>
             </tr>
           ))}
         </tbody>
@@ -87,8 +123,19 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
 
       <p className="projection-note">
         Monte-Carlo simulation over {formatNumber(runs)} runs. Downside and upside are the 10th and
-        90th percentiles: eight runs out of ten land between them. A projection is not a forecast —
-        past strategy behaviour does not bind future returns.
+        90th percentiles: eight runs out of ten land between them.{' '}
+        {showBtc ? (
+          <>
+            In bitcoin the spread is far wider, because the price moves too
+            {btcVolAnnualPct !== null
+              ? ` (${formatNumber(btcVolAnnualPct, { maximumFractionDigits: 0 })} % annualised volatility)`
+              : ''}
+            : a vault paying a dollar yield does not protect against a rising bitcoin.
+          </>
+        ) : (
+          'In dollars only the strategy is uncertain — the bitcoin price is not modelled here.'
+        )}{' '}
+        A projection is not a forecast.
       </p>
     </div>
   )

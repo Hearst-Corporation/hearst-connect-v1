@@ -275,6 +275,10 @@ export type VaultAccount = {
   /** Distribution du mois, retirable maintenant. */
   readonly availableUsdc: number
   readonly nextDistributionAt: string | null
+  /** Début du blocage du capital. Null quand la source ne le publie pas. */
+  readonly lockupStartAt: string | null
+  /** Durée du blocage, en mois. */
+  readonly lockupMonths: number | null
   /** Le dépôt reste fermé tant que l'admin ne l'a pas ouvert. L'interface REFLÈTE
    *  cette décision, elle ne l'accorde jamais. */
   readonly depositUnlocked: boolean
@@ -289,12 +293,20 @@ export type ProjectionPoint = {
   readonly p50: number
   readonly p75: number
   readonly p90: number
+  /** Contrevaleur bitcoin — dépend AUSSI du cours, d'où une fourchette bien
+   *  plus large que celle en dollars. Absente si la source ne la publie pas. */
+  readonly btcP10: number | null
+  readonly btcP50: number | null
+  readonly btcP90: number | null
 }
 
 export type VaultProjection = {
   readonly runs: number
   readonly horizonMonths: number
   readonly startValueUsdc: number
+  readonly startValueBtc: number | null
+  /** Volatilité annualisée retenue pour le cours, en points de pourcentage. */
+  readonly btcVolAnnualPct: number | null
   readonly points: readonly ProjectionPoint[]
 }
 
@@ -516,6 +528,8 @@ function vaultAccountFrom(field: ResolvedField | null): VaultAccount | null {
     withdrawnUsdc,
     availableUsdc,
     nextDistributionAt: typeof r.nextDistributionAt === 'string' ? r.nextDistributionAt : null,
+    lockupStartAt: typeof r.lockupStartAt === 'string' ? r.lockupStartAt : null,
+    lockupMonths: num(r.lockupMonths),
     depositUnlocked: r.depositUnlocked === true,
     withdrawUnlocked: r.withdrawUnlocked === true,
   }
@@ -533,13 +547,29 @@ function projectionFrom(field: ResolvedField | null): VaultProjection | null {
     const q = p as Record<string, unknown>
     const [p10, p25, p50, p75, p90] = [q.p10, q.p25, q.p50, q.p75, q.p90].map(num)
     if (p10 === null || p25 === null || p50 === null || p75 === null || p90 === null) return []
-    return [{ label: typeof q.label === 'string' ? q.label : '', p10, p25, p50, p75, p90 }]
+    return [
+      {
+        label: typeof q.label === 'string' ? q.label : '',
+        p10,
+        p25,
+        p50,
+        p75,
+        p90,
+        // Lecture bitcoin : optionnelle. Une source qui ne la publie pas laisse
+        // le tableau en dollars seuls plutôt que d'inventer une conversion.
+        btcP10: num(q.btcP10),
+        btcP50: num(q.btcP50),
+        btcP90: num(q.btcP90),
+      },
+    ]
   })
   if (points.length < 2) return null
   return {
     runs: num(r.runs) ?? 0,
     horizonMonths: num(r.horizonMonths) ?? points.length - 1,
     startValueUsdc: num(r.startValueUsdc) ?? points[0].p50,
+    startValueBtc: num(r.startValueBtc),
+    btcVolAnnualPct: num(r.btcVolAnnualPct),
     points,
   }
 }

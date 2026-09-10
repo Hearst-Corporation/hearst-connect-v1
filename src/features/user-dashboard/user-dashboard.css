@@ -505,13 +505,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.ud-root .dist-donut-usd {
-  margin: 0;
-  color: var(--hearst-green);
-  font-size: var(--ud-t-label);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
 
 .ud-root .dist-donut-caption {
   margin: 1px 0 0;
@@ -533,6 +526,8 @@
 
 .ud-root .dist-legend-row {
   display: grid;
+  /* Les montants BTC sont plus longs qu'un dollar abrégé : la colonne les
+     dimensionne sur leur contenu, la part garde sa largeur fixe. */
   grid-template-columns: 10px minmax(0, 1fr) max-content 2.5rem;
   align-items: center;
   gap: 10px;
@@ -578,6 +573,60 @@
   flex-direction: column;
   gap: 18px;
   padding: 4px 0;
+}
+
+/* Le titre et la bascule d'unité se partagent la ligne. */
+.ud-root .projection-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+
+/* Même piste que les fenêtres du cours : c'est une commande de lecture, pas
+   une navigation. */
+.ud-root .projection-units {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-inset);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+
+.ud-root .projection-unit {
+  min-width: 4rem;
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--ud-radius-pill);
+  background: transparent;
+  color: var(--ud-fg-2);
+  font-family: inherit;
+  font-size: var(--ud-t-micro);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ud-root .projection-unit:hover:not(.active) {
+  color: var(--ud-fg);
+  background: color-mix(in srgb, var(--ud-fg) 7%, transparent);
+}
+
+.ud-root .projection-unit.active {
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+.ud-root .projection-unit:focus {
+  outline: none;
+}
+
+.ud-root .projection-unit:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: -2px;
 }
 
 .ud-root .projection-lead-label {
@@ -748,9 +797,19 @@
   font-weight: 400;
 }
 
+/* `flex: 0 0 auto` : le graphe porte sa PROPRE hauteur (rôle `hero`, 340px).
+   En `1 1 auto` il réclamait en plus l'espace libre du panneau, débordait sur
+   la piste des boutons et interceptait leurs clics — d'où des boutons inertes
+   et un clic qui sélectionnait les graduations de l'axe. */
 .ud-root .btc-price-chart {
+  flex: 0 0 auto;
   min-height: 0;
-  flex: 1 1 auto;
+}
+
+/* La piste passe au-dessus de tout ce qui pourrait déborder sur elle. */
+.ud-root .btc-price-windows {
+  position: relative;
+  z-index: 1;
 }
 
 /* Sélecteur de fenêtre : même piste que les onglets de graphe, en plus petit —
@@ -1276,13 +1335,6 @@
   padding: var(--ud-pad-card);
   background: var(--ground, #0a0a0a);
   overflow: hidden;
-}
-
-/* Le bandeau du vault ne porte que QUATRE tuiles sur cinq colonnes : sa case
-   décorative s'affiche donc dès le gabarit large, là où `position-grid` en a
-   cinq et n'a rien à combler. */
-.ud-root .fund-kpis .position-grid-mark {
-  display: grid;
 }
 
 /* Le tracé est un semis de points d'un demi-pixel : à 50 % d'opacité il
@@ -2133,12 +2185,13 @@
      `max-content` il se dimensionnait ligne par ligne (« WITHDRAWAL » plus large
      que « DEPOSIT »), et les dates ne s'alignaient plus. Une seule piste
      extensible, juste avant l'action, pousse le bouton au bord droit. */
-  /* Intitulé, date, montant, équivalent BTC, piste extensible, action. La
-     colonne d'ancienneté a disparu : la date absolue la rendait redondante. */
+  /* Intitulé, date, montant BTC, contrevaleur en dollars, piste extensible,
+     action. Le bitcoin porte la valeur principale — d'où sa colonne plus large
+     que celle du dollar, qui la suit en creux. */
   grid-template-columns:
     9.5rem
     7rem
-    6.5rem
+    7.5rem
     7rem
     minmax(0, 1fr)
     max-content;
@@ -3072,14 +3125,11 @@
 @media (max-width: 1024px) {
   /* Cinq tuiles ne tiennent plus : 128px minimum × 5 = 640px de contenu.
      La position en a CINQ (3 + 2, la case décorative comble la sixième) ; le
-     vault n'en a que QUATRE, d'où deux colonnes — 2×2 remplit la grille là où
-     trois pistes laissaient deux trous. */
-  .ud-root .position-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
+     Les deux grilles portent CINQ tuiles : 3 + 2, la case décorative comblant
+     la sixième pour la position. */
+  .ud-root .position-grid,
   .ud-root .fund-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .ud-root .position-grid .stat-tile,
@@ -3088,22 +3138,13 @@
     border-bottom: 1px solid var(--ud-line);
   }
 
-  .ud-root .position-grid .stat-tile:nth-child(3n) {
+  .ud-root .position-grid .stat-tile:nth-child(3n),
+  .ud-root .fund-kpis .stat-tile:nth-child(3n) {
     border-right: 0;
   }
 
-  .ud-root .fund-kpis .stat-tile:nth-child(2n) {
-    border-right: 0;
-  }
-
-  /* La position affiche sa case décorative (5 tuiles sur 3 colonnes) ; le vault
-     n'en a plus besoin, ses quatre tuiles remplissent 2×2. */
   .ud-root .position-grid-mark {
     display: grid;
-  }
-
-  .ud-root .fund-kpis .position-grid-mark {
-    display: none;
   }
 
   /* L'analyse à trois colonnes (flanc / centre / flanc) se réduit à deux. Le
@@ -3195,15 +3236,9 @@
     border-right: 0;
   }
 
-  /* Cinq tuiles + la case décorative = six : la grille tombe juste. Le vault,
-     lui, a quatre tuiles qui remplissent 2×2 — sa case reste masquée (héritée
-     du palier 1024px, redite ici parce que la règle générale la rallumerait). */
+  /* Cinq tuiles + la case décorative = six : la grille tombe juste. */
   .ud-root .position-grid-mark {
     display: grid;
-  }
-
-  .ud-root .fund-kpis .position-grid-mark {
-    display: none;
   }
 
   /* `width: 100%` vient du rail vertical : en barre horizontale il étirait le

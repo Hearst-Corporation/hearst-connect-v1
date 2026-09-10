@@ -59,11 +59,12 @@ function Row({
 }: Readonly<{ movement: UserMovement; btcSpotUsd: number | null }>) {
   const [open, setOpen] = useState(false)
 
-  // Contrevaleur au spot : dérivée, jamais un montant lu au book. Sans cours
-  // lisible, la colonne reste vide plutôt que d'afficher un taux supposé.
+  // Le BTC porte la valeur PRINCIPALE — c'est l'unité du produit —, le dollar
+  // sa contrevaleur. Le montant bitcoin reste DÉRIVÉ du book au spot : sans
+  // cours lisible, la colonne reste vide plutôt que d'afficher un taux supposé.
   const btc =
     movement.amountUsdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
-      ? `≈ ${(movement.amountUsdc / btcSpotUsd).toFixed(4)} BTC`
+      ? `${(movement.amountUsdc / btcSpotUsd).toFixed(4)} BTC`
       : null
 
   return (
@@ -77,10 +78,11 @@ function Row({
           <span className="timeline-date">
             {movement.occurredAt !== null ? formatDate(movement.occurredAt) : '—'}
           </span>
-          <span className="timeline-amount">
-            {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
+          {/* Bitcoin d'abord, en corps principal ; le dollar suit, en creux. */}
+          <span className="timeline-amount">{btc ?? '—'}</span>
+          <span className="timeline-btc">
+            ≈ {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
           </span>
-          <span className="timeline-btc">{btc ?? ''}</span>
           {/* Pas d'ancienneté relative : la date absolue est déjà sur la ligne,
               et « 12 d ago » redisait la même chose en moins précis. */}
           {/* Piste vide : écarte le hash des valeurs sans padding ad hoc. */}

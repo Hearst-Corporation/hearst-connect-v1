@@ -11,24 +11,12 @@ import type { Distribution } from './load'
 /**
  * Distributions par état — versé, approuvé, en attente.
  *
- * Le centre porte le total RÉELLEMENT versé, en bitcoin puis en dollars : c'est
- * la seule chose qu'on ne lit nulle part ailleurs sur la page. Les deux autres
- * états n'y entrent pas — additionner un versement reçu et une intention
- * donnerait un total que personne n'a touché.
- *
- * Les montants sont abrégés (K, M) : à trois entrées de légende dans une colonne
- * de 280px, six chiffres pleins débordaient.
+ * Le centre porte le total RÉELLEMENT versé, en bitcoin — l'unité du produit.
+ * Les deux autres états n'y entrent pas : additionner un versement reçu et une
+ * intention donnerait un total que personne n'a touché.
  */
 
 const DONUT_PX = 200
-
-/** `237588` → `$238K`. Le chiffre exact vit dans le `title` de la ligne. */
-function shortUsd(v: number): string {
-  const abs = Math.abs(v)
-  if (abs >= 1_000_000) return `$${formatNumber(v / 1_000_000, { maximumFractionDigits: 2 })}M`
-  if (abs >= 1_000) return `$${formatNumber(v / 1_000, { maximumFractionDigits: 0 })}K`
-  return `$${formatNumber(v, { maximumFractionDigits: 0 })}`
-}
 
 const STATUS_ORDER = ['Paid', 'Approved', 'Pending'] as const
 
@@ -61,19 +49,22 @@ export function DistributionsDonut({
     )
   }
 
-  // Regroupement par état, dans un ordre FIXE : les couleurs ne permutent pas
-  // quand un mois change de statut.
+  /*
+   * Regroupement par état, dans un ordre FIXE : les couleurs ne permutent pas
+   * quand un mois change de statut.
+   *
+   * Les parts sont comptées en BITCOIN, l'unité du produit. Chaque mois a été
+   * converti au cours de SA distribution — c'est pourquoi on somme les montants
+   * BTC ligne par ligne plutôt que de diviser un total en dollars par le spot
+   * du jour, ce qui réécrirait l'histoire au cours d'aujourd'hui.
+   */
   const buckets = new Map<string, number>()
   let paidBtc = 0
-  let paidUsd = 0
   for (const d of rows) {
     const label =
       d.status === 'distributed' ? 'Paid' : d.status === 'approved' ? 'Approved' : 'Pending'
-    buckets.set(label, (buckets.get(label) ?? 0) + (d.amountUsdc ?? 0))
-    if (d.status === 'distributed') {
-      paidBtc += d.btcAmount ?? 0
-      paidUsd += d.amountUsdc ?? 0
-    }
+    buckets.set(label, (buckets.get(label) ?? 0) + (d.btcAmount ?? 0))
+    if (d.status === 'distributed') paidBtc += d.btcAmount ?? 0
   }
 
   const slices = STATUS_ORDER.filter((s) => buckets.has(s)).map((label, index) => ({
@@ -114,9 +105,8 @@ export function DistributionsDonut({
               somme des trois états. */}
           <div className="dist-donut-center">
             <p className="dist-donut-btc">
-              {formatNumber(paidBtc, { maximumFractionDigits: 2 })} BTC
+              {formatNumber(paidBtc, { maximumFractionDigits: 3 })} BTC
             </p>
-            <p className="dist-donut-usd">{shortUsd(paidUsd)}</p>
             <p className="dist-donut-caption">distributed</p>
           </div>
         </div>
@@ -126,11 +116,8 @@ export function DistributionsDonut({
             <li key={s.label} className="dist-legend-row">
               <span className="dist-legend-key" style={{ background: s.fill }} aria-hidden="true" />
               <span className="dist-legend-label">{s.label}</span>
-              <span
-                className="dist-legend-value"
-                title={`$${formatNumber(s.value, { maximumFractionDigits: 0 })}`}
-              >
-                {shortUsd(s.value)}
+              <span className="dist-legend-value">
+                {formatNumber(s.value, { maximumFractionDigits: 3 })} BTC
               </span>
               <span className="dist-legend-share">
                 {total > 0 ? `${formatNumber((s.value / total) * 100, { maximumFractionDigits: 0 })} %` : '—'}

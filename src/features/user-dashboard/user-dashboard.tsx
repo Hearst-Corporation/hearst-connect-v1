@@ -296,10 +296,19 @@ export function UserDashboardView({
   // vaut une tuile en dollars seuls qu'un montant BTC bâti sur un taux supposé.
   const btcProduced = valueOf(data.btcProducedTotal)
   const btcSpotUsd = valueOf(data.marketSnapshot)?.btcUsd ?? null
-  const btcAside = (usdc: number | null): string | null =>
+  /*
+   * Le bitcoin porte la valeur PRINCIPALE des tuiles, le dollar sa contrevaleur.
+   * Les deux restent dérivés du book USDC au spot : sans cours lisible, la tuile
+   * retombe sur le montant en dollars plutôt que d'afficher un BTC bâti sur un
+   * taux supposé — mieux vaut la bonne unité manquante que la mauvaise inventée.
+   */
+  const btcValue = (usdc: number | null): string =>
     usdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
-      ? `≈ ${(usdc / btcSpotUsd).toFixed(4)} BTC`
-      : null
+      ? `${(usdc / btcSpotUsd).toFixed(4)} BTC`
+      : formatUsdc(usdc)
+
+  const usdAside = (usdc: number | null): string | null =>
+    usdc !== null && btcSpotUsd !== null && btcSpotUsd > 0 ? `≈ ${formatUsdc(usdc)}` : null
   // ── Vault dédié ───────────────────────────────────────────────────────────
   // Un vault PAR CLIENT : ces montants sont les siens, pas une quote-part d'un
   // pool. Les parts sont calculées ici, jamais lues — deux sources pour un même
@@ -316,7 +325,26 @@ export function UserDashboardView({
       : null
 
   const withdrawnShare = shareOfPrincipal(vaultWithdrawn)
-  const accruedShare = shareOfPrincipal(positionAccrued)
+
+  /*
+   * Avancement du blocage du capital.
+   *
+   * Compté en MOIS PLEINS depuis le début, pas en millisecondes : le mois est
+   * l'unité du contrat, et une fraction de mois n'a pas de sens à l'écran. La
+   * date du jour est prise une fois au rendu — un décalage d'un jour entre
+   * serveur et client ne change pas un compte en mois entiers, donc pas de
+   * divergence d'hydratation à craindre ici.
+   */
+  const lockup = ((): { elapsed: number; total: number; pct: number } | null => {
+    if (vault?.lockupStartAt == null || vault.lockupMonths == null) return null
+    const start = new Date(vault.lockupStartAt)
+    if (Number.isNaN(start.getTime()) || vault.lockupMonths <= 0) return null
+    const now = new Date()
+    const months =
+      (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+    const elapsed = Math.max(0, Math.min(months, vault.lockupMonths))
+    return { elapsed, total: vault.lockupMonths, pct: (elapsed / vault.lockupMonths) * 100 }
+  })()
 
   const nextDistributionLabel =
     vault?.nextDistributionAt != null ? `next on ${formatDate(vault.nextDistributionAt)}` : null
@@ -608,23 +636,23 @@ export function UserDashboardView({
                   <StatTile
                     icon={ScaleIcon}
                     label="Principal"
-                    value={formatUsdc(positionPrincipal)}
+                    value={btcValue(positionPrincipal)}
                     signal={signalOf(data.positionPrincipal)}
-                    aside={btcAside(positionPrincipal)}
+                    aside={usdAside(positionPrincipal)}
                   />
                   <StatTile
                     icon={ChartPieIcon}
                     label="Accrued"
-                    value={formatUsdc(positionAccrued)}
+                    value={btcValue(positionAccrued)}
                     signal={signalOf(data.positionAccrued)}
-                    aside={btcAside(positionAccrued)}
+                    aside={usdAside(positionAccrued)}
                   />
                   <StatTile
                     icon={BanknotesIcon}
                     label="Position value"
-                    value={formatUsdc(positionValue)}
+                    value={btcValue(positionValue)}
                     signal={signalOf(data.positionValue)}
-                    aside={btcAside(positionValue)}
+                    aside={usdAside(positionValue)}
                   />
                   <StatTile
                     icon={SignalIcon}
@@ -680,16 +708,18 @@ export function UserDashboardView({
                   <StatTile
                     icon={ArrowDownTrayIcon}
                     label="Available to withdraw"
-                    value={formatUsdc(vaultAvailable)}
-                    aside={btcAside(vaultAvailable)}
+                    value={btcValue(vaultAvailable)}
+                    aside={usdAside(vaultAvailable)}
                     signal={signalOf(data.vaultAccount)}
                     footnote={nextDistributionLabel}
                   />
+                  {/* Bitcoin seul sur cette tuile et sur « Earned to date » :
+                      elles portent des FLUX de rendement, dont l'unité est celle
+                      du produit — la contrevaleur en dollars n'y ajoute rien. */}
                   <StatTile
                     icon={ArrowUpTrayIcon}
                     label="Withdrawn to date"
-                    value={formatUsdc(vaultWithdrawn)}
-                    aside={btcAside(vaultWithdrawn)}
+                    value={btcValue(vaultWithdrawn)}
                     signal={signalOf(data.vaultAccount)}
                     meter={withdrawnShare !== null ? withdrawnShare / 100 : null}
                     footnote={
@@ -698,21 +728,37 @@ export function UserDashboardView({
                         : null
                     }
                   />
+                  {/* Pas de jauge de blocage ici : le rendement est VERSÉ
+                      mensuellement, c'est le capital qui reste engagé. */}
                   <StatTile
                     icon={ScaleIcon}
                     label="Earned to date"
-                    value={formatUsdc(positionAccrued)}
-                    aside={btcAside(positionAccrued)}
+                    value={btcValue(positionAccrued)}
                     signal={signalOf(data.positionAccrued)}
                     footnote={
-                      accruedShare !== null
-                        ? `${formatPercent(accruedShare, { maximumFractionDigits: 1 })} of capital invested`
+                      positionAccrued !== null ? 'paid out monthly' : null
+                    }
+                  />
+
+                  {/* Le capital engagé porte l'échéance : c'est LUI qui est
+                      bloqué, et rien d'autre à l'écran ne dit où en est le
+                      terme. */}
+                  <StatTile
+                    icon={BanknotesIcon}
+                    label="Capital locked"
+                    value={btcValue(vaultPrincipal)}
+                    aside={usdAside(vaultPrincipal)}
+                    signal={signalOf(data.vaultAccount)}
+                    meter={lockup !== null ? lockup.pct / 100 : null}
+                    footnote={
+                      lockup !== null
+                        ? `${lockup.total - lockup.elapsed} of ${lockup.total} months remaining`
                         : null
                     }
                   />
-                  {/* Quatre tuiles sur cinq colonnes laissent une case vide en
-                      fin de grille. Le motif de marque l'occupe. Décoratif,
-                      donc `aria-hidden`. */}
+                  {/* Cinq tuiles : la grille est pleine sur cinq et trois
+                      colonnes, mais laisse une case en deux. Le motif l'occupe
+                      là — le CSS décide, comme pour `position-grid`. */}
                   <div className="position-grid-mark" aria-hidden="true">
                     <DottedH className="position-grid-mark-svg" />
                   </div>

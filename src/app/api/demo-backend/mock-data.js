@@ -553,6 +553,11 @@ function payloadFor(path) {
         // Distribution du mois, disponible au retrait.
         availableUsdc: monthlyDistribution,
         nextDistributionAt: '2026-10-01T09:00:00Z',
+        // Blocage du capital : le produit engage les fonds sur 24 mois, les
+        // intérêts restant versés mensuellement. Sans ces deux champs, l'écran
+        // ne pouvait pas dire où en est l'échéance.
+        lockupStartAt: '2026-02-10T09:00:00Z',
+        lockupMonths: 24,
         // Le dépôt reste fermé tant que l'admin ne l'a pas ouvert.
         depositUnlocked: false,
         depositRequestedAt: null,
@@ -616,27 +621,73 @@ function payloadFor(path) {
     }
   }
 
+  /*
+   * Projection Monte-Carlo à DEUX variables : le rendement de la stratégie et
+   * le cours du bitcoin.
+   *
+   * La lecture en dollars ne dépend que du rendement — c'est un capital qui
+   * compose. La lecture en bitcoin dépend AUSSI du cours, dont la volatilité
+   * (~55 % annualisés) domine tout le reste : à 24 mois, le cours seul va de
+   * ×0.27 à ×2.0 là où le rendement joue sur 15 points. Convertir les montants
+   * dollars au spot du jour aurait donc affiché une fourchette étroite là où la
+   * réalité est large — le pire mensonge possible sur une projection.
+   *
+   * Les percentiles arrivent précalculés : le front trace, il ne rejoue rien.
+   */
   if (p === '/api/v1/me/vault/projection') {
     const start = 482_000
     const months = 24
+    const BTC_VOL = 0.55
+    // Quantiles de la loi normale centrée réduite, pour p10/p25/p50/p75/p90.
+    const Z = { p10: -1.2816, p25: -0.6745, p50: 0, p75: 0.6745, p90: 1.2816 }
+    // Rendement annuel de la stratégie, par percentile.
+    const YIELD = { p10: 0.012, p25: 0.041, p50: 0.079, p75: 0.118, p90: 0.163 }
+
     const points = Array.from({ length: months + 1 }, (_, i) => {
       const t = i / 12
-      const grow = (rate) => Math.round(start * Math.pow(1 + rate, t))
+      const usd = (k) => Math.round(start * Math.pow(1 + YIELD[k], t))
+
+      /*
+       * Contrevaleur bitcoin. Le capital croît au rendement MÉDIAN — on isole
+       * l'incertitude du cours, sinon on cumulerait deux extrêmes qui ne se
+       * produisent pas ensemble. Le multiplicateur de cours suit une
+       * log-normale sans dérive : parier sur une hausse tendancielle du BTC
+       * dans une projection produit serait une prise de position, pas une
+       * mesure.
+       */
+      const sigma = BTC_VOL * Math.sqrt(t)
+      const btcAt = (k) => {
+        const capital = start * Math.pow(1 + YIELD.p50, t)
+        const priceMult = Math.exp(Z[k] * sigma - 0.5 * sigma * sigma)
+        // Percentile HAUT en bitcoin = cours BAS : moins cher le bitcoin, plus
+        // le même capital en achète. D'où le signe inversé sur `Z`.
+        return Number((capital / (BTC_SPOT_USD * priceMult)).toFixed(4))
+      }
+
       return {
         month: i,
         label: i === 0 ? 'Today' : `M+${i}`,
-        p10: grow(0.012),
-        p25: grow(0.041),
-        p50: grow(0.079),
-        p75: grow(0.118),
-        p90: grow(0.163),
+        p10: usd('p10'),
+        p25: usd('p25'),
+        p50: usd('p50'),
+        p75: usd('p75'),
+        p90: usd('p90'),
+        // Lecture bitcoin : `p10` = scénario défavorable pour le détenteur,
+        // c'est-à-dire un cours qui MONTE (le capital en dollars en achète
+        // moins). L'inversion est portée ici, pas dans l'interface.
+        btcP10: btcAt('p90'),
+        btcP50: btcAt('p50'),
+        btcP90: btcAt('p10'),
       }
     })
+
     return {
       projection: bloc({
         runs: 10_000,
         horizonMonths: months,
         startValueUsdc: start,
+        startValueBtc: Number((start / BTC_SPOT_USD).toFixed(4)),
+        btcVolAnnualPct: BTC_VOL * 100,
         points,
       }),
     }
