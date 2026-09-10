@@ -3166,6 +3166,17 @@
     height: 36px;
   }
 
+  /* Le parc passe pleine largeur sous le contenu : aligné à gauche, chaque
+     chiffre laissait un vide à sa droite. Centré, le bloc tient sur son axe. */
+  .ud-root .fleet-metrics,
+  .ud-root .fleet-uptime {
+    text-align: center;
+  }
+
+  .ud-root .fleet-uptime {
+    justify-content: center;
+  }
+
   /* Tablette portrait : trois colonnes coupaient les tuiles (chiffre tronqué
      sur une largeur de ~200px). Deux colonnes × trois rangées, la sixième case
      revenant au H pointillé — la grille reste pleine, sans trou. */
