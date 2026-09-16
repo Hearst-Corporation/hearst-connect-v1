@@ -1926,6 +1926,12 @@
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  /* Le contenu se CENTRE sur la hauteur : la rangée étire le flanc à la taille
+     du panneau central, et ce surplus se partage alors en haut et en bas plutôt
+     que de creuser un trou sous la dernière section. Les sections gardent leur
+     écart propre — c'est le bloc entier qui se centre, pas chaque élément qui
+     s'écarte de son voisin. */
+  justify-content: center;
   gap: 18px;
   /* Même retrait latéral que `.flank-heading` (8px) : sans lui, le titre était
      en retrait de 8px et le contenu collé au bord de la carte — deux verticales
@@ -2141,8 +2147,8 @@
      se colle au bas du bloc, plutôt que de laisser un tiers de colonne vide
      sous elle. Le raccourci porte la marge haute ET remet les trois autres à
      zéro — deux déclarations séparées finissaient par se contredire. */
-  margin: auto 0 0;
-  padding-top: 16px;
+  margin: 0;
+  padding-top: 4px;
   color: var(--ud-fg-3);
   font-size: var(--ud-t-micro);
 }
