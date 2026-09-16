@@ -15,7 +15,12 @@ import {
 import { AdminTable, Callout, tableCol } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
-import { loadAdminAssetScale, loadAdminClientsDirectory } from '@/lib/admin-dashboard/load'
+import {
+  loadAdminAssetScale,
+  loadAdminClientsDirectory,
+  loadAdminVaultRegistry,
+} from '@/lib/admin-dashboard/load'
+import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
 import { toBackendRole } from '@/lib/backend/auth'
 import { requireSession } from '@/lib/auth'
 import {
@@ -23,9 +28,11 @@ import {
   isAvailable,
   measuredCount,
   unavailable,
+  valueOf,
   type Availability,
   type ClientRef,
 } from '@/lib/vaults/model'
+import { formatNumber } from '@/lib/format'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
 import {
@@ -150,7 +157,13 @@ function directoryAction(view: ClientsView, showCreateLink: boolean): ReactNode 
 function ClientsMainContent({
   view,
   assetScale,
-}: Readonly<{ view: ClientsView; assetScale: AdminAssetScale | null }>) {
+  lockups,
+}: Readonly<{
+  view: ClientsView
+  assetScale: AdminAssetScale | null
+  /** Vaults dédiés, pour rattacher à chaque client son capital et son terme. */
+  lockups: readonly AdminVaultRecord[] | null
+}>) {
   if (view.kind === 'rich') {
     return <ClientsDirectory clients={view.clients} assetScale={assetScale} />
   }
@@ -170,6 +183,8 @@ function ClientsMainContent({
           <TableHead>
             <TableRow>
               <TableHeader className={tableCol.primary}>Client</TableHeader>
+              <TableHeader className={tableCol.numeric}>Capital</TableHeader>
+              <TableHeader className={tableCol.numeric}>Lockup</TableHeader>
               <TableHeader className={tableCol.hash}>Identifier</TableHeader>
             </TableRow>
           </TableHead>
@@ -182,6 +197,14 @@ function ClientsMainContent({
               >
                 <TableCell className={tableCol.primary}>
                   <div className="truncate font-medium">{client.label}</div>
+                </TableCell>
+                <TableCell className={`${tableCol.numeric} tabular-nums`}>
+                  {lockupOf(lockups, client.id)?.principalUsdc != null
+                    ? `$${formatNumber(lockupOf(lockups, client.id)!.principalUsdc!, { maximumFractionDigits: 0 })}`
+                    : '—'}
+                </TableCell>
+                <TableCell className={`${tableCol.numeric} tabular-nums`}>
+                  <LockupCell record={lockupOf(lockups, client.id)} />
                 </TableCell>
                 <TableCell className={`${tableCol.hash} text-sm text-fg-tertiary`}>{client.id}</TableCell>
               </TableRow>
@@ -203,15 +226,46 @@ function ClientsMainContent({
   )
 }
 
+/** Vault dédié d'un client, s'il en a un au registre. */
+function lockupOf(
+  records: readonly AdminVaultRecord[] | null,
+  clientId: string,
+): AdminVaultRecord | null {
+  return records?.find((r) => r.clientId === clientId) ?? null
+}
+
+/** Un terme à moins de trois mois demande une action commerciale. */
+const DUE_SOON_MONTHS = 3
+
+/**
+ * Mois restants avant la fin du blocage. Un terme proche est signalé : c'est un
+ * renouvellement à préparer, pas une ligne de tableau.
+ */
+function LockupCell({ record }: Readonly<{ record: AdminVaultRecord | null }>) {
+  if (record?.lockupMonths == null || record.lockupElapsedMonths == null) {
+    return <span className="text-fg-tertiary">—</span>
+  }
+  const left = Math.max(0, record.lockupMonths - record.lockupElapsedMonths)
+  return (
+    <span className={left <= DUE_SOON_MONTHS ? 'font-semibold text-warning-400' : 'text-fg-secondary'}>
+      {left} / {record.lockupMonths} mo
+    </span>
+  )
+}
+
 export default async function Page() {
   const session = await requireSession()
-  const [recent, registry, assetScale] = await Promise.all([
+  const [recent, registry, assetScale, vaultRegistry] = await Promise.all([
     loadAdminClientsDirectory(100),
     loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW }),
     loadAdminAssetScale(),
+    // Le blocage du capital commande la relation commerciale : il ne peut pas
+    // vivre seulement sur la fiche d'un vault.
+    loadAdminVaultRegistry(),
   ])
 
   const view = resolveClientsView(recent, registry.clients)
+  const lockups = valueOf(vaultRegistry)
   const showCreateLink = toBackendRole(session.role) === 'admin'
 
   const kpis: readonly AdminHeroKpi[] = [
@@ -254,7 +308,7 @@ export default async function Page() {
             subtitle={directorySubtitle(view)}
             action={directoryAction(view, showCreateLink)}
           >
-            <ClientsMainContent view={view} assetScale={assetScale} />
+            <ClientsMainContent view={view} assetScale={assetScale} lockups={lockups} />
           </DashCard>
         </BentoCard>
       </BentoGrid>

@@ -2,6 +2,11 @@ import 'server-only'
 
 import {
   fetchActivityTimeseries,
+  fetchApprovals,
+  fetchFleet,
+  fetchProductionCost,
+  fetchBtcReserve,
+  fetchVaultRegistry,
   fetchMarketSnapshot,
   fetchPortfolioExposure,
   fetchPortfolioOverview,
@@ -37,8 +42,11 @@ export {
   type AdminTimeseriesPoint,
 } from '@/lib/admin-dashboard/contracts'
 
+import type { ComputeFleet, ProductionCost } from '@/lib/product/readings'
 import type {
   AdminActivityEvent,
+  AdminApproval,
+  AdminBtcReserve,
   AdminExposureStrategy,
   AdminMarketSnapshot,
   AdminOperationsSurface,
@@ -48,6 +56,7 @@ import type {
   AdminRebalancingOperation,
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
+  AdminVaultRecord,
 } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 
@@ -210,6 +219,56 @@ export async function loadAdminMarketSnapshot(): Promise<Availability<AdminMarke
     res,
     res.ok ? res.data.snapshot : undefined,
     '/api/v1/admin/market/snapshot',
+  )
+}
+
+/**
+ * Décisions en attente d'un opérateur, tous clients confondus. C'est la
+ * contrepartie de tout ce que l'écran client laisse en suspens : un dépôt
+ * demandé, une distribution annoncée, un retrait sollicité.
+ */
+/** Coût de production d'un bitcoin — la mesure qui dit si miner crée de la valeur. */
+export async function loadAdminProductionCost(): Promise<Availability<ProductionCost>> {
+  const res = await fetchProductionCost()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.productionCost : undefined,
+    '/api/v1/mining/production-cost',
+  )
+}
+
+/** Parc de calcul, à l'échelle de toute l'infrastructure. */
+export async function loadAdminFleet(): Promise<Availability<ComputeFleet>> {
+  const res = await fetchFleet()
+  return fromBackendOrUnavailable(res, res.ok ? res.data.fleet : undefined, '/api/v1/mining/fleet')
+}
+
+export async function loadAdminApprovals(): Promise<Availability<readonly AdminApproval[]>> {
+  const res = await fetchApprovals()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.approvals : undefined,
+    '/api/v1/admin/approvals',
+  )
+}
+
+/** Registre des vaults dédiés — un par client, avec son échéance de blocage. */
+export async function loadAdminVaultRegistry(): Promise<Availability<readonly AdminVaultRecord[]>> {
+  const res = await fetchVaultRegistry()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.vaults : undefined,
+    '/api/v1/admin/vaults/registry',
+  )
+}
+
+/** Bilan de la réserve bitcoin : produit, retenu, vendu. */
+export async function loadAdminBtcReserve(): Promise<Availability<AdminBtcReserve>> {
+  const res = await fetchBtcReserve()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.reserve : undefined,
+    '/api/v1/admin/btc-reserve',
   )
 }
 

@@ -14,11 +14,13 @@ import {
 } from '@/components/catalyst/table'
 import { AdminTable, tableCol } from '@/components/compositions'
 import clsx from 'clsx'
+import { ProductionCostPanel } from '@/features/user-dashboard/production-cost-panel'
+import { loadAdminProductionCost } from '@/lib/admin-dashboard/load'
 import { callBackend } from '@/lib/backend/client'
 import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
 import type { ResolvedStatus } from '@/lib/resolved'
-import { available, unavailable, type Availability } from '@/lib/vaults/model'
+import { available, unavailable, valueOf, type Availability } from '@/lib/vaults/model'
 import {
   CpuChipIcon,
   BoltIcon,
@@ -157,6 +159,8 @@ const PANEL_SLOT_CLASS = {
 
 /* ── Sections ────────────────────────────────────────────────────────────── */
 
+/* Même nom que côté client : « Machine fleet » et « Compute Infrastructure »
+   désignaient la même chose sous deux vocabulaires. */
 function MachineFleetSection({
   machineCount,
   activeMachines,
@@ -170,7 +174,11 @@ function MachineFleetSection({
 
   if (!hasData) {
     return (
-      <DashCard title="Machine fleet" subtitle="Operational telemetry" className="h-full">
+      <DashCard
+        title="Compute Infrastructure"
+        subtitle="Fleet-wide capacity — the same reading the client sees"
+        className="h-full"
+      >
         <PanelState title="Fleet telemetry unavailable." />
       </DashCard>
     )
@@ -180,7 +188,11 @@ function MachineFleetSection({
     machineCount !== null && activeMachines !== null ? machineCount - activeMachines : null
 
   return (
-    <DashCard title="Machine fleet" subtitle="Operational telemetry" className="h-full">
+    <DashCard
+      title="Compute Infrastructure"
+      subtitle="Fleet-wide capacity — the same reading the client sees"
+      className="h-full"
+    >
       <div className="@container min-w-0">
         <div className="grid grid-cols-1 gap-3 @[24rem]:grid-cols-2 @[40rem]:grid-cols-4">
           <div className="min-w-0">
@@ -732,14 +744,18 @@ export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams
   const selectedStrategy = typeof params.strategy === 'string' && params.strategy !== '' ? params.strategy : null
 
-  const [miningRes, btcRes] = await Promise.all([
+  const [miningRes, btcRes, productionCost] = await Promise.all([
     callBackend<MiningAggregate>('mining'),
     callBackend<BtcAggregate>('btc'),
+    // La MÊME lecture que côté client : l'admin la regarde pour piloter, le
+    // client pour comprendre ce qu'il détient.
+    loadAdminProductionCost(),
   ])
 
   const mining = miningRes.ok ? miningRes.data : null
   const btc = btcRes.ok ? btcRes.data : null
 
+  const productionCostValue = valueOf(productionCost)
   const hashrate = mining?.hashrate?.value?.reportedHashrateTh ?? null
   const btcEarnedSats = mining?.hashrate?.value?.totalBtcEarnedSats ?? null
   const btcPrice = btc?.btcProduced?.value?.currentPriceUsdc ?? null
@@ -858,6 +874,27 @@ export default async function Page({ searchParams }: PageProps) {
         same track. Row E: two tables on ONE frozen slot height — equal at any
         row count. No voids, nothing stretches with the dataset.
       */}
+      {/* L'économie du minage passe AVANT la télémétrie : savoir combien de
+          baisse le produit encaisse commande tout le reste. Ce bloc n'existait
+          que côté client, alors que c'est une mesure de pilotage. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            title="Mining economics"
+            subtitle="What one bitcoin costs to produce, against the market"
+          >
+            {productionCostValue !== null ? (
+              <ProductionCostPanel
+                cost={productionCostValue}
+                hashprice={null}
+              />
+            ) : (
+              <PanelState title="Production cost unavailable." />
+            )}
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
+
       {/* Row A — fleet telemetry + keeper action flank. */}
       <BentoGrid>
         <BentoCard span={8} className="h-full">

@@ -1,4 +1,6 @@
 import { DashCard, DashboardShell } from '@/components/admin/dashboard'
+import { VaultClientPanel } from '@/features/admin-approvals/vault-client-panel'
+import { loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { DashboardHeader } from '@/components/admin/dashboard'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
@@ -786,6 +788,9 @@ export default async function Page({ params }: PageProps) {
   const deployedValue = amountOf(vault, deployedAtomic(vault))
   const availableValue = amountOf(vault, idleAtomic(vault))
   const client = vault.client
+  // Registre des vaults dédiés : porte le lockup et l'état des dépôts, que le
+  // read-model du vault ne publie pas.
+  const vaultRegistry = await loadAdminVaultRegistry()
 
   const rebalancingList = isAvailable(scopedRebalancing) ? scopedRebalancing.value : null
   const movementList = isAvailable(scopedMovements) ? scopedMovements.value.slice(0, 12) : null
@@ -810,6 +815,20 @@ export default async function Page({ params }: PageProps) {
         <VaultStatusBadge status={vault.status} />
         <VaultClientPresence client={client} />
       </div>
+
+      {/* À QUI ce vault appartient, et sur quel terme il est engagé. La fiche
+          ouvrait sur l'allocation — la mécanique — sans jamais le dire. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashCard
+            className="min-w-0"
+            title="Client & term"
+            subtitle="One vault per client — capital committed, lockup, deposit state."
+          >
+            <VaultClientPanel vaultId={vault.id} vaults={vaultRegistry} />
+          </DashCard>
+        </BentoCard>
+      </BentoGrid>
 
       <VaultAllocationSection scopedRebalancing={scopedRebalancing} rebalancingList={rebalancingList} />
 

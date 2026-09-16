@@ -2,7 +2,11 @@ import 'server-only'
 
 import { cache } from 'react'
 import { callBackend } from '@/lib/backend/client'
+import type { ComputeFleet, ProductionCost } from '@/lib/product/readings'
 import type {
+  AdminApproval,
+  AdminBtcReserve,
+  AdminVaultRecord,
   AdminActivityEvent,
   AdminExposureStrategy,
   AdminMarketSnapshot,
@@ -72,6 +76,31 @@ export const fetchRecentActivity = cache((limit: number) =>
 
 export const fetchMarketSnapshot = cache(() =>
   callBackend<{ snapshot: BackendResolved<AdminMarketSnapshot> }>('admin-market-snapshot'),
+)
+
+/*
+ * Le coût de production et le parc sont les MÊMES lectures que côté client :
+ * l'admin les regarde pour piloter, le client pour comprendre. Une seule
+ * définition de type (`lib/product/readings`), deux surfaces.
+ */
+export const fetchProductionCost = cache(() =>
+  callBackend<{ productionCost: BackendResolved<ProductionCost> }>('mining-production-cost'),
+)
+
+export const fetchFleet = cache(() =>
+  callBackend<{ fleet: BackendResolved<ComputeFleet> }>('mining-fleet'),
+)
+
+export const fetchApprovals = cache(() =>
+  callBackend<{ approvals: BackendResolved<readonly AdminApproval[]> }>('admin-approvals'),
+)
+
+export const fetchVaultRegistry = cache(() =>
+  callBackend<{ vaults: BackendResolved<readonly AdminVaultRecord[]> }>('admin-vaults-registry'),
+)
+
+export const fetchBtcReserve = cache(() =>
+  callBackend<{ reserve: BackendResolved<AdminBtcReserve> }>('admin-btc-reserve'),
 )
 
 export const fetchRecentClients = cache((limit: number) =>

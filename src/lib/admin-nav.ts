@@ -5,6 +5,7 @@ import {
   CommandLineIcon,
   CpuChipIcon,
   DocumentTextIcon,
+  ClockIcon,
   HomeIcon,
   IdentificationIcon,
   ShieldCheckIcon,
@@ -43,6 +44,9 @@ const VAULTS_ENTRY: NavEntry = {
 
 export const ADMIN_NAV: readonly NavEntry[] = [
   { label: 'Dashboard', href: '/admin', icon: HomeIcon },
+  // Juste après le tableau de bord : c'est la file de travail de l'opérateur,
+  // ce qui bloque des clients tant que personne ne tranche.
+  { label: 'Decisions', href: '/admin/approvals', icon: ClockIcon },
   VAULTS_ENTRY,
   CLIENTS_ENTRY,
   { label: 'Mining', href: '/admin/mining', icon: CpuChipIcon },

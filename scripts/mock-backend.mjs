@@ -16,20 +16,65 @@
  */
 
 import { createHash, randomUUID } from 'node:crypto'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { createServer } from 'node:http'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
+const PORT = Number(process.env.MOCK_PORT ?? 4106)
 
 /** Identifiants du mock local. Rien de sensible : ce serveur ne sert que des données fictives. */
 const ACCOUNTS = [
   { id: 'usr_mock_admin', email: 'admin@localhost', password: 'localdev', role: 'admin' },
 ]
 
-const TOKENS = new Map()
+/*
+ * Jetons émis, persistés sur disque.
+ *
+ * En mémoire seule, chaque redémarrage du mock déconnectait le navigateur : le
+ * cookie de session pointait vers un jeton disparu, et TOUS les appels
+ * retombaient en 401 — un symptôme qui ressemble à un bug de l'application
+ * alors que rien ne l'est. Le fichier survit au redémarrage, la session aussi.
+ *
+ * Mock de développement local : ce fichier n'a aucune valeur de sécurité et ne
+ * quitte jamais la machine. Il vit dans le dossier temporaire du système, pas
+ * dans le dépôt.
+ */
+const TOKEN_STORE = join(tmpdir(), 'hearst-mock-tokens.json')
 
-/* Cours du bitcoin — une seule valeur pour tout le mock : deux prix différents
-   sur un même écran ne se lisent pas comme deux sources, mais comme un bug. */
-const BTC_SPOT_USD = 94_820
+const TOKENS = new Map(
+  (() => {
+    try {
+      const raw = JSON.parse(readFileSync(TOKEN_STORE, 'utf8'))
+      return Array.isArray(raw) ? raw : []
+    } catch {
+      // Premier lancement, fichier illisible ou effacé : on repart à vide.
+      return []
+    }
+  })(),
+)
+
+function persistTokens() {
+  try {
+    writeFileSync(TOKEN_STORE, JSON.stringify([...TOKENS]))
+  } catch {
+    // La persistance est un confort : son échec ne doit pas casser le login.
+  }
+}
 
 const nowIso = () => new Date().toISOString()
+
+/*
+ * Cours du bitcoin — UNE seule valeur pour tout le mock.
+ *
+ * Trois définitions cohabitaient (94 820 dans le snapshot, 94 680 dans le coût
+ * de production, un aléatoire dans les séries) : l'écran affichait deux prix
+ * différents côte à côte, ce qui ne se lit pas comme deux sources mais comme un
+ * bug. Les séries oscillent AUTOUR de ce point et y reviennent sur leur dernier
+ * échantillon, pour que « dernier point de la courbe » et « prix courant »
+ * disent la même chose.
+ */
+const BTC_SPOT_USD = 94_820
 
 /**
  * Enveloppe standard `{ data, meta }`.
@@ -157,7 +202,7 @@ function payloadFor(path) {
 
   if (p === '/api/v1/btc') {
     return {
-      btcProduced: bloc({ totalSats: '312500000', currentPriceUsdc: '94820' }, 'live'),
+      btcProduced: bloc({ totalSats: '312500000', currentPriceUsdc: String(BTC_SPOT_USD) }, 'live'),
       reserve: bloc({ balanceUsdc: '2964000' }, 'chain'),
     }
   }
@@ -413,7 +458,13 @@ function payloadFor(path) {
           return {
             takenAt: new Date(Date.parse('2026-08-27T00:00:00Z') - (days - 1 - i) * 86_400_000).toISOString(),
             aumUsdc: Math.round(money(rnd, 44_000_000, 49_000_000)),
-            btcPriceUsdc: Math.round(money(rnd, 88_000, 99_000)),
+            // La courbe oscille autour du spot et y REVIENT sur son dernier
+            // point : sans cela, « dernier point » et « prix courant »
+            // affichaient deux nombres différents pour la même chose.
+            btcPriceUsdc:
+              i === days - 1
+                ? BTC_SPOT_USD
+                : Math.round(BTC_SPOT_USD * (1 + Math.sin(i / 9) * 0.06 + (rnd() - 0.5) * 0.03)),
             allocations: [
               { bucket: 'Basis carry', pct: Number((42 + drift).toFixed(2)) },
               { bucket: 'RWA T-bills', pct: Number((33 - drift).toFixed(2)) },
@@ -598,7 +649,7 @@ function payloadFor(path) {
   if (p === '/api/v1/admin/market/snapshot') {
     return {
       snapshot: bloc({
-        btcUsd: '94820.50',
+        btcUsd: String(BTC_SPOT_USD),
         btcChange24hPct: '1.24',
         hashprice: '48.20',
         hashpriceChangePct: '-0.80',
@@ -663,61 +714,16 @@ function payloadFor(path) {
       }),
     }
   }
-  // Journal de l'investisseur : `ActivityItem` = { type, amountUsdc,
-  // occurredAt, txHash }, enveloppé sous `movements`.
-  if (p === '/api/v1/me/movements') {
-    return {
-      movements: bloc(
-        Array.from({ length: 10 }, (_, i) => ({
-          id: `mv_${i}`,
-          type: i % 2 ? 'DEPOSIT' : 'WITHDRAWAL',
-          amountUsdc: Math.round(money(rnd, 5_000, 90_000)),
-          occurredAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 172_800_000).toISOString(),
-          txHash: '0x' + (i + 10).toString(16).padStart(2, '0').repeat(20),
-        })),
-      ),
-    }
-  }
-
-  if (p === '/api/v1/deployments') {
-    return {
-      deployments: bloc(
-        Array.from({ length: 6 }, (_, i) => ({
-          id: `dep_${i}`,
-          vaultId: `vault-${i % 3}`,
-          clientId: `cli_${i}`,
-          clientLabel: `Client simulé ${i + 1}`,
-          amountAtomic: atomic(money(rnd, 25_000, 900_000)),
-          strategyId: `p${i % 3}`,
-          requestedAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 172_800_000).toISOString(),
-          confirmedAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 172_800_000 + 3_600_000).toISOString(),
-          status: i === 0 ? 'PENDING' : 'CONFIRMED',
-          reference: `DEP-2026-${String(i + 1).padStart(4, '0')}`,
-        })),
-      ),
-    }
-  }
-  if (p === '/api/v1/compliance') {
-    return {
-      reviews: bloc(
-        Array.from({ length: 6 }, (_, i) => ({
-          id: `rev_${i}`,
-          clientId: `cli_${i}`,
-          clientLabel: `Client simulé ${i + 1}`,
-          kycStatus: ['APPROVED', 'PENDING', 'APPROVED'][i % 3],
-          stage: ['COMPLETE', 'DOCUMENTS', 'COMPLETE'][i % 3],
-          openedAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 604_800_000).toISOString(),
-          lastEventAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 86_400_000).toISOString(),
-        })),
-      ),
-    }
-  }
-
-  if (p.startsWith('/api/v1/ai/context')) {
-    return { context: 'Contexte généré par le mock local — jamais un fait métier.', tokens: 128, generatedAt: nowIso() }
-  }
-
-
+  /*
+   * Vault DÉDIÉ du client — le produit tel qu'il doit être : un vault par
+   * client, jamais un pool partagé. Les chiffres dérivent tous du même
+   * principal (420 000) pour rester cohérents entre eux.
+   *
+   * MAQUETTE : aucun de ces champs n'existe encore côté backend réel. Ils sont
+   * ici pour présenter le produit cible ; l'interface qui les consomme les
+   * traite comme n'importe quelle source, donc le jour où le backend les
+   * publie, rien ne change côté front.
+   */
   if (p === '/api/v1/me/vault') {
     const principal = 420_000
     const withdrawn = 96_500
@@ -745,6 +751,15 @@ function payloadFor(path) {
     }
   }
 
+  /*
+   * Parc de calcul — ce que le client a à disposition pour miner.
+   *
+   * Mesures à l'échelle de TOUTE l'infrastructure, pas de la part d'un client :
+   * c'est la capacité industrielle à laquelle le vault donne accès. Le libellé
+   * de la section le dit, sans quoi « 750 BTC » se lirait comme un solde.
+   *
+   * MAQUETTE : aucun endpoint réel ne publie encore le parc.
+   */
   if (p === '/api/v1/mining/fleet') {
     return {
       fleet: bloc({
@@ -757,9 +772,9 @@ function payloadFor(path) {
         /*
          * Part attribuée au vault du client, au prorata de son capital.
          *
-         * Un vrai backend dérive ces valeurs des machines réellement affectées
-         * et de la date d'entrée. Ici elles sont posées en dur, COHÉRENTES entre
-         * elles : 0.021 % d'un parc de 10 000 machines et 2.1 EH/s donne
+         * Un vrai backend calcule ces valeurs à partir des machines réellement
+         * affectées et de la date d'entrée. Le mock les pose en dur, cohérentes
+         * entre elles : 0.021 % d'un parc de 10 000 machines et 2.1 EH/s donne
          * ~2 machines et ~441 TH/s, pour ~0.158 BTC produits.
          */
         allocatedSharePct: 0.021,
@@ -770,6 +785,12 @@ function payloadFor(path) {
     }
   }
 
+  /*
+   * Coût de production du bitcoin miné — ce que le hashrate et la difficulté
+   * du réseau impliquent aujourd'hui, comparé au prix de marché. C'est la
+   * mesure qui compte pour un produit adossé au minage : elle dit si la
+   * production crée ou détruit de la valeur.
+   */
   if (p === '/api/v1/mining/production-cost') {
     return {
       productionCost: bloc({
@@ -787,6 +808,7 @@ function payloadFor(path) {
     }
   }
 
+  /* Rendement courant par poche, annualisé. */
   if (p === '/api/v1/vault/bucket-yields') {
     return {
       /*
@@ -884,6 +906,61 @@ function payloadFor(path) {
     }
   }
 
+  // Journal de l'investisseur : `ActivityItem` = { type, amountUsdc,
+  // occurredAt, txHash }, enveloppé sous `movements`.
+  if (p === '/api/v1/me/movements') {
+    return {
+      movements: bloc(
+        Array.from({ length: 10 }, (_, i) => ({
+          id: `mv_${i}`,
+          type: i % 2 ? 'DEPOSIT' : 'WITHDRAWAL',
+          amountUsdc: Math.round(money(rnd, 5_000, 90_000)),
+          occurredAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 172_800_000).toISOString(),
+          txHash: '0x' + (i + 10).toString(16).padStart(2, '0').repeat(20),
+        })),
+      ),
+    }
+  }
+
+  if (p === '/api/v1/deployments') {
+    return {
+      deployments: bloc(
+        Array.from({ length: 6 }, (_, i) => ({
+          id: `dep_${i}`,
+          vaultId: `vault-${i % 3}`,
+          clientId: `cli_${i}`,
+          clientLabel: `Client simulé ${i + 1}`,
+          amountAtomic: atomic(money(rnd, 25_000, 900_000)),
+          strategyId: `p${i % 3}`,
+          requestedAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 172_800_000).toISOString(),
+          confirmedAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 172_800_000 + 3_600_000).toISOString(),
+          status: i === 0 ? 'PENDING' : 'CONFIRMED',
+          reference: `DEP-2026-${String(i + 1).padStart(4, '0')}`,
+        })),
+      ),
+    }
+  }
+  if (p === '/api/v1/compliance') {
+    return {
+      reviews: bloc(
+        Array.from({ length: 6 }, (_, i) => ({
+          id: `rev_${i}`,
+          clientId: `cli_${i}`,
+          clientLabel: `Client simulé ${i + 1}`,
+          kycStatus: ['APPROVED', 'PENDING', 'APPROVED'][i % 3],
+          stage: ['COMPLETE', 'DOCUMENTS', 'COMPLETE'][i % 3],
+          openedAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 604_800_000).toISOString(),
+          lastEventAt: new Date(Date.parse('2026-08-27T00:00:00Z') - i * 86_400_000).toISOString(),
+        })),
+      ),
+    }
+  }
+
+  if (p.startsWith('/api/v1/ai/context')) {
+    return { context: 'Contexte généré par le mock local — jamais un fait métier.', tokens: 128, generatedAt: nowIso() }
+  }
+
+
   if (p === '/api/v1/mining/distributions') {
     return {
       distributions: bloc(
@@ -941,4 +1018,93 @@ function payloadFor(path) {
 
 const ENVELOPE_EXEMPT = new Set(['/health', '/ready', '/api/v1/runtime'])
 
-export { ACCOUNTS, ENVELOPE_EXEMPT, envelope, problem, bloc, payloadFor, nowIso, randomUUID }
+const readBody = (req) =>
+  new Promise((resolve) => {
+    let raw = ''
+    req.on('data', (c) => { raw += c })
+    req.on('end', () => {
+      try { resolve(JSON.parse(raw || '{}')) } catch { resolve(null) }
+    })
+  })
+
+const send = (res, status, body) => {
+  const payload = JSON.stringify(body)
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    'X-Request-Id': randomUUID(),
+    'X-RateLimit-Remaining': '999',
+  })
+  res.end(payload)
+}
+
+const server = createServer(async (req, res) => {
+  const url = new URL(req.url, `http://localhost:${PORT}`)
+  const path = url.pathname
+
+  // Authentification : vérifiée pour de bon, comme le ferait le backend.
+  if (path === '/api/v1/auth/login' && req.method === 'POST') {
+    const body = await readBody(req)
+    const email = String(body?.email ?? '').trim().toLowerCase()
+    const password = String(body?.password ?? '')
+    const account = ACCOUNTS.find((a) => a.email === email && a.password === password)
+    if (!account) {
+      return send(res, 401, problem(401, 'UNAUTHORIZED', 'Invalid email or password.'))
+    }
+    const token = randomUUID().replace(/-/g, '')
+    TOKENS.set(token, account)
+    persistTokens()
+    return send(res, 200, {
+      token,
+      tokenType: 'Bearer',
+      expiresAt: new Date(Date.now() + 12 * 3_600_000).toISOString(),
+      user: { id: account.id, email: account.email, role: account.role },
+    })
+  }
+
+  if (path === '/api/v1/auth/register' && req.method === 'POST') {
+    return send(res, 403, problem(403, 'FORBIDDEN', 'Registration is closed on this instance.'))
+  }
+
+  const isPublic = ENVELOPE_EXEMPT.has(path)
+  if (!isPublic) {
+    const auth = req.headers.authorization ?? ''
+    const token = auth.replace(/^Bearer\s+/i, '').trim()
+    if (!TOKENS.has(token)) {
+      return send(res, 401, problem(401, 'UNAUTHORIZED', 'Missing or invalid bearer token.'))
+    }
+  }
+
+  // Souscription : le backend est l'autorité, pas le formulaire. On rejoue donc
+  // ici les refus qu'un vrai back opposerait (montant, minimum, capacité) pour
+  // que les états d'erreur de l'UI soient réellement exerçables en local.
+  if (path === '/api/v1/me/deposits' && req.method === 'POST') {
+    const body = await readBody(req)
+    const amount = Number(body?.amountUsdc)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return send(res, 400, problem(400, 'INVALID_AMOUNT', 'amountUsdc must be a positive whole number of USDC.'))
+    }
+    if (amount < 100_000) {
+      return send(res, 422, problem(422, 'BELOW_MINIMUM', 'Amount is below the 100,000 USDC minimum for this vault.'))
+    }
+    if (amount > 26_750_000) {
+      return send(res, 422, problem(422, 'CAPACITY_EXCEEDED', 'Amount exceeds the capacity left in the vault.'))
+    }
+    return send(res, 200, envelope({
+      deposit: bloc({
+        id: `dep_${randomUUID().slice(0, 8)}`,
+        amountUsdc: amount,
+        status: 'PENDING_SETTLEMENT',
+        receivedAt: nowIso(),
+      }),
+    }))
+  }
+
+  const data = payloadFor(path)
+  return send(res, 200, isPublic ? data : envelope(data))
+})
+
+server.listen(PORT, () => {
+  console.log(`Mock backend Hearst Connect → http://localhost:${PORT}`)
+  console.log(`Connexion : ${ACCOUNTS[0].email} / ${ACCOUNTS[0].password}`)
+  console.log('Toutes les données sont FICTIVES — annoncées meta.status = LIVE pour peupler le front.')
+})

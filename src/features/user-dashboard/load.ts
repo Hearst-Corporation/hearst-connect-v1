@@ -1,5 +1,13 @@
 import 'server-only'
 
+import type {
+  ComputeFleet,
+  Distribution,
+  ProductionCost,
+  ProjectionPoint,
+  VaultProjection,
+} from '@/lib/product/readings'
+
 import { callBackend, statusFromMeta } from '@/lib/backend/client'
 import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/availability'
 import { measuredCount, type Availability, available, unavailable, valueOf} from '@/lib/vaults/model'
@@ -20,6 +28,19 @@ import { measuredCount, type Availability, available, unavailable, valueOf} from
  * (doctrine `check:mocks` / `check:truthful-data`). Numeric strings from the
  * backend are parsed defensively; a non-finite parse drops the point.
  */
+
+/*
+ * Ces types sont définis une seule fois, dans `lib/product/readings` : l'admin
+ * lit les mêmes faits. On les ré-exporte ici pour que les consommateurs de ce
+ * module ne changent pas d'import.
+ */
+export type {
+  ComputeFleet,
+  Distribution,
+  ProductionCost,
+  ProjectionPoint,
+  VaultProjection,
+} from '@/lib/product/readings'
 
 const DASHBOARD_ENDPOINT = '/api/v1/dashboard'
 const PORTFOLIO_ENDPOINT = '/api/v1/me/portfolio'
@@ -232,35 +253,7 @@ export type UserDashboard = {
   readonly distributions: Availability<readonly Distribution[]>
 }
 
-/**
- * Une distribution mensuelle.
- *
- * `status` sépare ce qui est PAYÉ de ce qui est seulement annoncé : une ligne
- * `pending` n'est pas de l'argent reçu, et l'écran ne doit jamais les confondre.
- */
-export type Distribution = {
-  readonly id: string
-  readonly month: string
-  readonly paidAt: string | null
-  readonly amountUsdc: number | null
-  readonly btcAmount: number | null
-  readonly btcPriceUsd: number | null
-  readonly status: 'distributed' | 'approved' | 'pending'
-}
 
-/**
- * Parc de calcul. Mesures à l'échelle de TOUTE l'infrastructure : c'est la
- * capacité industrielle à laquelle le vault donne accès, pas une quote-part.
- */
-export type ComputeFleet = {
-  readonly minersManaged: number | null
-  readonly hashrateEhs: number | null
-  /** BTC produits depuis l'origine, à l'échelle du parc. */
-  readonly btcProducedTotal: number | null
-  readonly countries: number | null
-  readonly uptimePct: number | null
-  readonly asOf: string | null
-}
 
 /**
  * Vault dédié du client. Le produit n'est PAS un pool partagé : ces montants
@@ -285,44 +278,8 @@ export type VaultAccount = {
   readonly withdrawUnlocked: boolean
 }
 
-/** Un point de la projection : la médiane et ses bandes. */
-export type ProjectionPoint = {
-  readonly label: string
-  readonly p10: number
-  readonly p25: number
-  readonly p50: number
-  readonly p75: number
-  readonly p90: number
-  /** Contrevaleur bitcoin — dépend AUSSI du cours, d'où une fourchette bien
-   *  plus large que celle en dollars. Absente si la source ne la publie pas. */
-  readonly btcP10: number | null
-  readonly btcP50: number | null
-  readonly btcP90: number | null
-}
 
-export type VaultProjection = {
-  readonly runs: number
-  readonly horizonMonths: number
-  readonly startValueUsdc: number
-  readonly startValueBtc: number | null
-  /** Volatilité annualisée retenue pour le cours, en points de pourcentage. */
-  readonly btcVolAnnualPct: number | null
-  readonly points: readonly ProjectionPoint[]
-}
 
-/**
- * Coût de production d'un bitcoin, contre son prix de marché. L'écart entre les
- * deux est la marge : c'est LUI qui dit si le minage crée de la valeur.
- */
-export type ProductionCost = {
-  readonly costPerBtcUsd: number
-  readonly marketPriceUsd: number
-  readonly marginPct: number
-  readonly electricityUsdPerKwh: number | null
-  readonly networkDifficulty: number | null
-  readonly hashrateEhs: number | null
-  readonly asOf: string | null
-}
 
 /** Rendement courant d'une poche, annualisé — un run-rate, pas un réalisé. */
 export type BucketYield = {
@@ -626,6 +583,13 @@ function fleetFrom(field: ResolvedField | null): ComputeFleet | null {
     countries: num(r.countries),
     uptimePct: num(r.uptimePct),
     asOf: typeof r.asOf === 'string' ? r.asOf : null,
+    /* Part du client. LUE, jamais dérivée : le front ne divise pas le capital
+       du vault par un encours global — voir le contrat `ComputeFleet`. Absente
+       tant que la source ne la publie pas. */
+    allocatedHashrateThs: num(r.allocatedHashrateThs),
+    allocatedMiners: num(r.allocatedMiners),
+    allocatedBtcProduced: num(r.allocatedBtcProduced),
+    allocatedSharePct: num(r.allocatedSharePct),
   }
   const readable =
     fleet.minersManaged !== null ||

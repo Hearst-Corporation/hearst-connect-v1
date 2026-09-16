@@ -15,6 +15,8 @@ import {
 import { HearstPrimaryAction } from '@/components/actions'
 import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
+import { PendingStrip } from '@/features/admin-approvals/pending-strip'
+import { loadAdminApprovals, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import {
@@ -51,6 +53,12 @@ function unavailableReason(bloc: Availability<unknown>, fallback: string): strin
 
 // Order = hierarchy: AUM is the dominant fact, then drift (pilotage angle:
 // how much, and is it drifting).
+/** Décisions en attente, chargées à part : le bandeau ne bloque pas le reste. */
+async function PendingDecisions() {
+  const [approvals, vaults] = await Promise.all([loadAdminApprovals(), loadAdminVaultRegistry()])
+  return <PendingStrip approvals={approvals} vaults={vaults} />
+}
+
 function kpisFromOverview(overview: AdminDashboardData['overview']): readonly DashboardKpi[] {
   const deployedAmount = mapAvailability(overview, (o) =>
     formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
@@ -234,7 +242,20 @@ export function AdminDashboardPage() {
         the market strip is one thin band. No frozen slots, no voids, nothing
         stretches. Links live on the card title row, not in a footer strip.
       */}
-      {/* Market strip first — one thin band of readings at the top. */}
+      {/* Ce qui ATTEND une décision passe avant les lectures de marché : un
+          tableau de bord qui n'annonce pas ce qui bloque laisse l'opérateur
+          découvrir les demandes par hasard. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashPanel title="Waiting on you">
+            <Suspense fallback={<PanelFallback />}>
+              <PendingDecisions />
+            </Suspense>
+          </DashPanel>
+        </BentoCard>
+      </BentoGrid>
+
+      {/* Market strip — one thin band of readings. */}
       <BentoGrid>
         <BentoCard span={12}>
           <DashPanel title="Market">
@@ -249,7 +270,10 @@ export function AdminDashboardPage() {
       <BentoGrid>
         <BentoCard span={8}>
           <div className="flex min-w-0 flex-col gap-6">
-            <DashPanel title="Portfolio exposure" slot="exposure">
+            {/* « Across all vaults » : chaque client a SA propre allocation — celle-ci
+                est une moyenne pondérée par le capital, pas un mix que quiconque
+                détiendrait. Sans ce libellé, le donut se lit comme un pool. */}
+            <DashPanel title="Strategy exposure across all vaults" slot="exposure">
               <Suspense fallback={<PanelFallback />}>
                 <PortfolioExposureData />
               </Suspense>

@@ -141,3 +141,55 @@ export type AdminOperationsSurface = Readonly<{
   /** On-chain rebalancing operations with swap details. */
   rebalancingOperations: Availability<readonly AdminRebalancingOperation[]>
 }>
+
+
+/**
+ * Décision en attente d'un opérateur.
+ *
+ * Les trois genres ne se valent pas et ne se fondent jamais : autoriser un
+ * dépôt engage KYC, capacité et contrat ; approuver une distribution déclenche
+ * un paiement ; traiter un retrait libère les fonds du client. Une file unique
+ * obligerait l'opérateur à relire le type avant chaque geste.
+ */
+export type AdminApprovalKind = 'deposit' | 'distribution' | 'withdrawal'
+
+export type AdminApproval = {
+  readonly id: string
+  readonly kind: AdminApprovalKind
+  readonly clientId: string
+  readonly clientLabel: string
+  readonly vaultId: string
+  readonly amountUsdc: number | null
+  readonly requestedAt: string | null
+  readonly note: string | null
+}
+
+/**
+ * Vault dédié au registre admin. UN PAR CLIENT — jamais une quote-part d'un
+ * pool. L'échéance du blocage commande la relation commerciale.
+ */
+export type AdminVaultRecord = {
+  readonly vaultId: string
+  readonly clientId: string
+  readonly clientLabel: string
+  readonly principalUsdc: number | null
+  readonly accruedUsdc: number | null
+  readonly lockupStartAt: string | null
+  readonly lockupEndAt: string | null
+  readonly lockupMonths: number | null
+  readonly lockupElapsedMonths: number | null
+  readonly depositUnlocked: boolean
+  readonly status: string
+}
+
+/**
+ * Bilan de la réserve bitcoin. `retainedSats` à zéro est AFFIRMÉ, pas déduit
+ * d'une absence : tout le bitcoin miné est vendu pour tenir le book en dollars.
+ */
+export type AdminBtcReserve = {
+  readonly producedSats: number | null
+  readonly retainedSats: number | null
+  readonly producedUsd: number | null
+  readonly electricityUsd: number | null
+  readonly asOf: string | null
+}

@@ -158,6 +158,36 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
       'Percentiles come already computed: the front draws bands, it never replays the simulation. A projection is not a forecast — the spread between p10 and p90 IS the message.',
   }),
   defineEndpoint({
+    id: 'admin-approvals',
+    path: '/api/v1/admin/approvals',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin',
+    summary: 'Decisions waiting on an operator — deposit authorisations, distribution sign-offs, withdrawal requests.',
+    caveat:
+      'The three kinds carry different instructions and are never merged into one queue: a deposit engages KYC and capacity, a distribution is a payment, a withdrawal releases client funds.',
+  }),
+  defineEndpoint({
+    id: 'admin-vaults-registry',
+    path: '/api/v1/admin/vaults/registry',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin',
+    summary: 'Dedicated vaults, one per client, with lockup term and deposit state.',
+    caveat:
+      'One vault PER CLIENT — never a share of a pool. `lockupEndAt` drives the commercial relationship: a term coming due is a renewal to prepare.',
+  }),
+  defineEndpoint({
+    id: 'admin-btc-reserve',
+    path: '/api/v1/admin/btc-reserve',
+    category: 'business',
+    auth: 'session',
+    surface: '/admin',
+    summary: 'Bitcoin reserve balance — produced, retained, sold.',
+    caveat:
+      '`retainedSats` at zero is ASSERTED, not a missing source: every satoshi mined is sold to keep the book in dollars. The product is sold as a strategic reserve — this figure is the one that would show it accumulating.',
+  }),
+  defineEndpoint({
     id: 'mining-distributions',
     path: '/api/v1/mining/distributions',
     category: 'business',

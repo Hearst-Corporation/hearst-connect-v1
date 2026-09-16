@@ -39,13 +39,13 @@ import type { SessionUser } from '@/lib/session'
 import { available, isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { StatTile, deltaOf } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
-import { ComputeFleetFlank } from './compute-fleet-flank'
+import { MiningEconomicsFlank } from './mining-economics-flank'
+import { ComputeFleetPanel } from './compute-fleet-panel'
 import { DottedH } from '@/assets/brand/dotted-h'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { InstagramIcon, LinkedInIcon, XIcon } from '@/assets/brand/social'
 import { MovementTimeline } from './movement-timeline'
 import { VaultActions } from './vault-actions'
-import { ProductionCostPanel } from './production-cost-panel'
 import { BtcPricePanel } from './btc-price-panel'
 import { HearstAllocationStackChart } from '@/components/charts/richart/allocation-stack-chart'
 import { DistributionsDonut } from './distributions-donut'
@@ -67,7 +67,7 @@ import { BtcPositionHeadline } from './btc-position'
  * Reachable only with a valid console session (login remains admin-gated today).
  */
 
-type CentralView = 'btc' | 'mining' | 'allocation' | 'value'
+type CentralView = 'btc' | 'allocation' | 'compute' | 'value'
 type Route = 'dashboard' | 'trade'
 
 /**
@@ -159,8 +159,11 @@ const CENTRAL_VIEWS: readonly {
   // du BTC n'est plus un onglet — il vit dans le flanc droit, avec son
   // historique et ses fenêtres, plutôt que d'occuper deux endroits.
   { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
-  { key: 'mining', label: 'Mining economics', icon: CpuChipIcon },
   { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
+  // Le parc en troisième : il dit ce qui PRODUIT le bitcoin, après ce que vaut
+  // le vault et comment il se répartit, avant la projection qui n'est qu'une
+  // hypothèse.
+  { key: 'compute', label: 'Compute', icon: CpuChipIcon },
   // La projection ferme la série : c'est une hypothèse, pas une mesure — elle
   // se lit après ce qui est constaté, jamais avant.
   { key: 'value', label: 'Projection', icon: PresentationChartLineIcon },
@@ -268,12 +271,14 @@ export function UserDashboardView({
     'Awaiting a verified projection source.',
   )
 
-  const productionCost = valueOf(data.productionCost)
-  const productionCostState = seriesState(
-    data.productionCost,
-    productionCost !== null,
-    'Production cost is not computable from the current network readings.',
-    'Awaiting a verified mining source.',
+  // Le parc. Son absence est NOMMÉE comme les autres : une source illisible
+  // n'affiche pas un parc vide, elle dit qu'elle n'a rien à montrer.
+  const computeFleet = valueOf(data.fleet)
+  const computeState = seriesState(
+    data.fleet,
+    computeFleet !== null,
+    'No fleet is reporting capacity yet.',
+    'Awaiting a verified fleet source.',
   )
 
   const exposurePockets = valueOf(data.exposure)
@@ -377,6 +382,22 @@ export function UserDashboardView({
       node: projection !== null ? <ProjectionTable projection={projection} /> : null,
       source: data.projection,
     },
+    compute: {
+      // Le parc industriel derrière le vault : ce qui produit réellement le
+      // bitcoin. Mesures à l'échelle de TOUTE l'infrastructure, jamais la part
+      // d'un client — le sous-titre le dit, sans quoi « 750 BTC » se lirait
+      // comme un solde personnel.
+      question: 'Compute infrastructure',
+      unit: 'fleet-wide capacity · not your own share',
+      state: computeState,
+      node: computeFleet !== null ? (
+        <ComputeFleetPanel
+          fleet={computeFleet}
+          networkHashrateEhs={valueOf(data.productionCost)?.hashrateEhs ?? null}
+        />
+      ) : null,
+      source: data.fleet,
+    },
     allocation: {
       // La composition du vault, poche par poche — plus « cbBTC vs USDC », un
       // découpage qui ne correspondait à aucune stratégie du produit.
@@ -388,21 +409,6 @@ export function UserDashboardView({
           <HearstAllocationStackChart points={[...allocationTime]} viewport="hero" />
         ) : null,
       source: data.allocationSeries,
-    },
-    mining: {
-      // Ce qui distingue ce produit : à QUEL PRIX il produit son bitcoin.
-      // L'écart au marché est la marge — elle dit si le minage crée de la valeur.
-      question: 'Cost to mine one BTC',
-      unit: 'production cost vs market · USD',
-      state: productionCostState,
-      node:
-        productionCost !== null ? (
-          <ProductionCostPanel
-            cost={productionCost}
-            hashprice={valueOf(data.marketSnapshot)?.hashprice ?? null}
-          />
-        ) : null,
-      source: data.productionCost,
     },
   }
   const active = centralChart[central]
@@ -845,7 +851,10 @@ export function UserDashboardView({
                     </div>
                   </div>
 
-                  <ComputeFleetFlank fleet={data.fleet} />
+                  <MiningEconomicsFlank
+                    cost={data.productionCost}
+                    hashprice={valueOf(data.marketSnapshot)?.hashprice ?? null}
+                  />
                 </section>
 
                 {/* Panneau unique : « Fund capacity » doublonnait le bandeau du
