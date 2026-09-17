@@ -91,7 +91,15 @@ export const ADMIN_SECONDARY: readonly SecondaryGroup[] = [
   },
   {
     title: 'Production',
-    entries: [PRODUCT_ENTRY],
+    entries: [
+      PRODUCT_ENTRY,
+      {
+        label: 'Mining note',
+        href: '/admin/mining-note',
+        icon: CpuChipIcon,
+        detail: 'Note simulations from the vault engine — presets, Monte-Carlo, mining vs. holding',
+      },
+    ],
   },
   {
     title: 'Service',

@@ -33,6 +33,15 @@ const cspDirectives = [
 
 const contentSecurityPolicy = cspDirectives.join('; ')
 
+/**
+ * Mining-note engine (hearst-vault-v2 `nextjs-vault-server`) — the API is a
+ * CPU-bound numeric engine, not an auth authority. The browser never calls it
+ * directly: Next rewrites tunnel same-origin `/api/mining-note`, `/api/mining`
+ * and `/api/simulation` to the configured origin, keeping CSP `connect-src
+ * 'self'` valid. Server-side only — no `NEXT_PUBLIC_` exposure.
+ */
+const miningNoteApiUrl = process.env.MINING_NOTE_API_URL ?? 'http://localhost:3105'
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
@@ -65,6 +74,13 @@ const nextConfig = {
       { source: '/account/bitcoin', destination: '/account', permanent: true },
       { source: '/account/activity', destination: '/account', permanent: true },
       { source: '/account/profile', destination: '/account', permanent: true },
+    ]
+  },
+  async rewrites() {
+    return [
+      { source: '/api/mining-note/:path*', destination: `${miningNoteApiUrl}/api/mining-note/:path*` },
+      { source: '/api/mining/:path*', destination: `${miningNoteApiUrl}/api/mining/:path*` },
+      { source: '/api/simulation/:path*', destination: `${miningNoteApiUrl}/api/simulation/:path*` },
     ]
   },
   async headers() {
