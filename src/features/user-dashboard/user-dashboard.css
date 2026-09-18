@@ -462,6 +462,30 @@
   line-height: 1.5;
 }
 
+/* La note ne doit JAMAIS déplacer ce qui est au-dessus d'elle.
+
+   Les deux unités n'expliquent pas la même chose — en bitcoin il faut dire que
+   le cours bouge aussi, en dollars non — et leurs textes n'occupent donc pas le
+   même nombre de lignes. Le panneau étant centré verticalement, ces quelques
+   pixels d'écart déplaçaient TOUT le tableau au changement d'unité : les
+   chiffres semblaient sauter alors que seule la note avait changé.
+
+   Une hauteur réservée en `calc()` dépendait du nombre de lignes, donc de la
+   largeur de colonne et de la police : juste à une largeur, fausse à la
+   suivante. La note est donc SORTIE DU FLUX — le conteneur garde sa place, la
+   note s'y pose en absolu, et sa longueur ne pousse plus rien. */
+.ud-root .projection-note-slot {
+  position: relative;
+  /* Deux lignes de réserve, puis le texte déborde sans rien déplacer : ce qui
+     suit dans le panneau est le padding bas, pas un autre bloc de contenu. */
+  min-height: calc(2 * 1.5 * var(--ud-t-micro));
+}
+
+.ud-root .projection-note-slot .projection-note {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
 /* ── Donut des distributions ─────────────────────────────────────────────── */
 .ud-root .dist-donut {
   display: flex;
@@ -577,6 +601,24 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px 18px;
+}
+
+/* L'en-tête garde la MÊME hauteur dans les deux unités.
+
+   « 5.08 BTC » tient sur une ligne, « $482,000 » déborde et fait passer le
+   sélecteur BTC/USDC à la ligne suivante : 46px de plus, qui déplaçaient tout
+   le tableau au changement d'unité. Les chiffres semblaient sauter alors que
+   seul l'en-tête avait replié.
+
+   Sur écran large les deux tiennent côte à côte et la règle ne change rien ;
+   elle ne mord qu'aux largeurs où le repli survient. */
+@media (max-width: 420px) {
+  .ud-root .projection-head {
+    /* Le montant occupe toute la ligne, le sélecteur la suivante — dans les
+       DEUX unités, donc plus de saut. */
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 /* Même piste que les fenêtres du cours : c'est une commande de lecture, pas

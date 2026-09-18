@@ -121,6 +121,9 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
         </tbody>
       </table>
 
+      {/* La note vit dans un emplacement de hauteur fixe : son texte change
+          avec l'unité, et sa longueur ne doit pas déplacer le tableau. */}
+      <div className="projection-note-slot">
       <p className="projection-note">
         Monte-Carlo simulation over {formatNumber(runs)} runs. Downside and upside are the 10th and
         90th percentiles: eight runs out of ten land between them.{' '}
@@ -137,6 +140,7 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
         )}{' '}
         A projection is not a forecast.
       </p>
+      </div>
     </div>
   )
 }
