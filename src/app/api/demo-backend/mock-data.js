@@ -836,13 +836,14 @@ function payloadFor(path) {
          *
          * Un vrai backend dérive ces valeurs des machines réellement affectées
          * et de la date d'entrée. Ici elles sont posées en dur, COHÉRENTES entre
-         * elles : 0.021 % d'un parc de 10 000 machines et 2.1 EH/s donne
-         * ~2 machines et ~441 TH/s, pour ~0.158 BTC produits.
+         * elles ET avec la production du client : 0.16 % d'un parc de 10 000
+         * machines et 2.1 EH/s donne 16 machines et ~3 360 TH/s, pour les
+         * 1.2 BTC que la tuile « Produced for your vault » annonce.
          */
-        allocatedSharePct: 0.021,
-        allocatedMiners: 2,
-        allocatedHashrateThs: 441,
-        allocatedBtcProduced: 0.158,
+        allocatedSharePct: 0.16,
+        allocatedMiners: 16,
+        allocatedHashrateThs: 3360,
+        allocatedBtcProduced: 1.2,
       }),
     }
   }

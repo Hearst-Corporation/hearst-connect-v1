@@ -401,12 +401,14 @@ export function UserDashboardView({
       source: data.projection,
     },
     compute: {
-      // Le parc industriel derrière le vault : ce qui produit réellement le
-      // bitcoin. Mesures à l'échelle de TOUTE l'infrastructure, jamais la part
-      // d'un client — le sous-titre le dit, sans quoi « 750 BTC » se lirait
-      // comme un solde personnel.
+      // Le parc industriel derrière le vault, et la part qui revient au client.
+      //
+      // Le sous-titre disait « not your own share » — vrai quand le panneau ne
+      // montrait que le parc, faux depuis que la bande « Allocated to your
+      // vault » l'ouvre. Il se tronquait de surcroît sur téléphone. Deux mots
+      // suffisent : le panneau distingue lui-même les deux échelles.
       question: 'Compute infrastructure',
-      unit: 'fleet-wide capacity · not your own share',
+      unit: 'your share and the fleet behind it',
       state: computeState,
       node: computeFleet !== null ? (
         <ComputeFleetPanel
@@ -769,7 +771,7 @@ export function UserDashboardView({
                        conversion. Absent si la source ne le publie pas. */
                     aside={
                       vault?.withdrawnUsdcAtPayout != null
-                        ? `≈ ${formatUsdc(vault.withdrawnUsdcAtPayout)} received`
+                        ? `≈ ${formatUsdc(vault.withdrawnUsdcAtPayout)}`
                         : null
                     }
                     signal={signalOf(data.vaultAccount)}
