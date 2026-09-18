@@ -314,6 +314,7 @@ export function UserDashboardView({
 
   const usdAside = (usdc: number | null): string | null =>
     usdc !== null && btcSpotUsd !== null && btcSpotUsd > 0 ? `≈ ${formatUsdc(usdc)}` : null
+
   // ── Vault dédié ───────────────────────────────────────────────────────────
   // Un vault PAR CLIENT : ces montants sont les siens, pas une quote-part d'un
   // pool. Les parts sont calculées ici, jamais lues — deux sources pour un même
@@ -323,6 +324,56 @@ export function UserDashboardView({
   const vaultPrincipal = vault?.principalUsdc ?? null
   const vaultWithdrawn = vault?.withdrawnUsdc ?? null
   const vaultAvailable = vault?.availableUsdc ?? null
+
+  /*
+   * ── Capital souscrit : au cours d'ENTRÉE, jamais à celui du jour ──────────
+   *
+   * Un montant versé est un fait figé. Le diviser par le spot affichait « ce que
+   * cette somme vaudrait en bitcoin aujourd'hui » — un chiffre qui bouge chaque
+   * jour alors que le principal n'a pas bougé, et qui n'est pas le bitcoin que
+   * le client a réellement acquis.
+   *
+   * Les trois fonctions ci-dessous ne rendent rien tant que la source ne publie
+   * pas `entryRateUsd` : mieux vaut les dollars seuls qu'un bitcoin inventé.
+   */
+  const entryRate = vault?.entryRateUsd ?? null
+
+  /**
+   * Bitcoin que le client aurait s'il avait simplement ACHETÉ au lieu de
+   * souscrire — le référentiel du produit, pas une conversion réelle de son
+   * capital. C'est la comparaison que porte `BtcPositionHeadline` en tête de
+   * page ; elle est reprise ici en note du capital pour situer le montant.
+   */
+  const hodlBtc = (usdc: number | null): number | null =>
+    usdc !== null && entryRate !== null && entryRate > 0 ? usdc / entryRate : null
+
+  /**
+   * Capital souscrit — en DOLLARS, tel que versé.
+   *
+   * Il n'est pas converti en bitcoin à l'entrée : il est réparti entre les trois
+   * poches (Basis carry, RWA T-bills, Mining alpha), dont deux travaillent en
+   * dollars. Afficher « 7 BTC acquis » laissait croire à un achat spot au jour
+   * de la souscription — ce que le produit ne fait pas.
+   *
+   * Le bitcoin de ce vault n'est pas un capital converti : c'est ce que le
+   * minage PRODUIT, et ce que le rebalancing accumule. Il se lit dans les tuiles
+   * qui portent cette production, pas ici.
+   */
+  const subscribedValue = (usdc: number | null): string => formatUsdc(usdc)
+
+  const subscribedAside = (): string | null => null
+
+  /**
+   * Ce que le capital aurait acheté en bitcoin au jour de la souscription.
+   *
+   * Un REPÈRE, pas un avoir : c'est la position que le client aurait s'il avait
+   * acheté au comptant. Tout l'intérêt du produit est de faire mieux, et la
+   * comparaison est portée en grand par `BtcPositionHeadline`.
+   */
+  const subscribedFootnote = (usdc: number | null): string | null => {
+    const btc = hodlBtc(usdc)
+    return btc !== null ? `${btc.toFixed(4)} BTC if simply bought at entry` : null
+  }
 
   const shareOfPrincipal = (amount: number | null): number | null =>
     amount !== null && vaultPrincipal !== null && vaultPrincipal > 0
@@ -633,7 +684,6 @@ export function UserDashboardView({
 
                 <BtcPositionHeadline
                   positionBtc={data.positionBtc}
-                  positionUsdc={positionValue}
                   accruedBtc={data.accruedBtc}
                   vsHodl={data.btcVsHodl}
                 />
@@ -642,23 +692,37 @@ export function UserDashboardView({
                   <StatTile
                     icon={ScaleIcon}
                     label="Principal"
-                    value={btcValue(positionPrincipal)}
+                    /* Les DOLLARS VERSÉS portent la tuile : c'est le fait figé.
+                       Le bitcoin acquis les accompagne, au cours d'entrée — pas
+                       au cours du jour, qui ferait bouger un montant immuable. */
+                    value={subscribedValue(positionPrincipal)}
                     signal={signalOf(data.positionPrincipal)}
-                    aside={usdAside(positionPrincipal)}
+                    footnote={subscribedFootnote(positionPrincipal)}
                   />
                   <StatTile
                     icon={ChartPieIcon}
                     label="Accrued"
                     value={btcValue(positionAccrued)}
                     signal={signalOf(data.positionAccrued)}
-                    aside={usdAside(positionAccrued)}
+                    /* Pas de contrevaleur : ce cumul s'est constitué versement
+                       par versement, chacun à SON cours. Le multiplier par le
+                       spot du jour afficherait une somme que le client n'a
+                       jamais reçue. Seule une addition des montants réellement
+                       versés dirait vrai — et la source ne la publie pas. */
                   />
                   <StatTile
                     icon={BanknotesIcon}
-                    label="Position value"
+                    label="Reserve value"
                     value={btcValue(positionValue)}
                     signal={signalOf(data.positionValue)}
-                    aside={usdAside(positionValue)}
+                    /* « Reserve », pas « Position » : le produit constitue une
+                       réserve stratégique en bitcoin, il ne verse pas un coupon
+                       sur un capital. Le montant se lit donc en BTC — ce que
+                       vaut la réserve aujourd'hui, à comparer au repère HODL
+                       porté en tête de page.
+
+                       Pas de contrevaleur en dollars : elle agrège du rendement
+                       produit mois après mois à des cours différents. */
                   />
                   <StatTile
                     icon={SignalIcon}
@@ -706,10 +770,16 @@ export function UserDashboardView({
                       répéter en tuile ajoutait un chiffre sans lecture propre. */}
                   <StatTile
                     icon={BitcoinIcon}
-                    label="BTC produced"
+                    label="Produced for your vault"
                     value={btcProduced !== null ? `${formatNumber(btcProduced, { maximumFractionDigits: 3 })} BTC` : '—'}
                     signal={signalOf(data.btcProducedTotal)}
-                    footnote={btcProduced !== null ? 'by the mining infrastructure' : null}
+                    /* « for your vault », et non « by the mining infrastructure » :
+                       la valeur vient de `/api/v1/btc`, scopée au client, alors que
+                       l'ancienne note faisait lire ce chiffre comme la production
+                       de TOUT le parc — laquelle vit dans l'onglet Compute, à son
+                       échelle propre (750 BTC). Deux ordres de grandeur pour deux
+                       faits distincts : le libellé doit les séparer. */
+                    footnote={btcProduced !== null ? 'mined for you since subscription' : null}
                   />
                   <StatTile
                     icon={ArrowDownTrayIcon}
@@ -726,6 +796,16 @@ export function UserDashboardView({
                     icon={ArrowUpTrayIcon}
                     label="Withdrawn to date"
                     value={btcValue(vaultWithdrawn)}
+                    /* Les dollars RÉELLEMENT encaissés, chaque retrait à son
+                       cours — pas le cumul reconverti au spot du jour, qui
+                       afficherait une somme que le client n'a jamais reçue.
+                       « received » le dit : c'est un historique, pas une
+                       conversion. Absent si la source ne le publie pas. */
+                    aside={
+                      vault?.withdrawnUsdcAtPayout != null
+                        ? `≈ ${formatUsdc(vault.withdrawnUsdcAtPayout)} received`
+                        : null
+                    }
                     signal={signalOf(data.vaultAccount)}
                     meter={withdrawnShare !== null ? withdrawnShare / 100 : null}
                     footnote={
@@ -752,13 +832,18 @@ export function UserDashboardView({
                   <StatTile
                     icon={BanknotesIcon}
                     label="Capital locked"
-                    value={btcValue(vaultPrincipal)}
-                    aside={usdAside(vaultPrincipal)}
+                    /* Même capital que « Principal », même lecture : les dollars
+                       versés, et le bitcoin qu'ils ont acheté à l'entrée. */
+                    value={subscribedValue(vaultPrincipal)}
                     signal={signalOf(data.vaultAccount)}
                     meter={lockup !== null ? lockup.pct / 100 : null}
+                    /* Deux faits sur une ligne : ce que le capital vaut
+                       aujourd'hui, et le temps qu'il reste bloqué. La note du
+                       blocage seule laissait le client sans réponse à « et ça
+                       vaut combien maintenant ? ». */
                     footnote={
                       lockup !== null
-                        ? `${lockup.total - lockup.elapsed} of ${lockup.total} months remaining`
+                        ? `${lockup.total - lockup.elapsed} of ${lockup.total} months locked`
                         : null
                     }
                   />

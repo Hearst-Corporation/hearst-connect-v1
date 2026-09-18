@@ -1314,6 +1314,19 @@
   background: var(--ud-line);
 }
 
+/* ── Centrage vertical de la ligne « Your position » ─────────────────────
+   Le gabarit à trois bandes de `.stat-tile` réserve la dernière au complément
+   (jauge, note, sparkline). Aucune tuile de cette rangée n'en porte — depuis que
+   `StatTile` ne rend plus la bande à vide, il ne reste que deux enfants, et une
+   troisième piste déclarée creusait un vide sous le chiffre.
+
+   Deux bandes, donc, et `align-content: center` fait le reste. Surcharge
+   LOCALE : les tuiles du vault gardent leurs trois bandes fixes, qui alignent
+   leurs jauges d'une tuile à l'autre. */
+.ud-root .position-grid .stat-tile {
+  grid-template-rows: auto auto;
+}
+
 /* Case décorative : n'existe qu'en grille à trois colonnes, où cinq tuiles
    laissent une place vide. Masquée sur cinq colonnes (rien ne manque) et sur
    une seule (elle ferait une rangée creuse). */
@@ -2066,6 +2079,13 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
+}
+
+/* Chaque borne se rétracte au lieu de pousser sa voisine hors du flanc : sur un
+   écran étroit, deux montants qui refusent de céder débordent la carte. */
+.ud-root .mining-axis-end {
+  min-width: 0;
 }
 
 .ud-root .mining-axis-end--right {
@@ -2166,6 +2186,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   width: 100%;
+  min-width: 0;
 }
 
 /* ── La part du client ───────────────────────────────────────────────────
@@ -2179,6 +2200,7 @@
 .ud-root .fleet-mine {
   grid-column: 2;
   grid-row: 1 / span 2;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: 16px 18px;
@@ -2234,8 +2256,10 @@
 .ud-root .fleet-mine-value {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 0;
+  min-width: 0;
   color: var(--ud-fg);
   font-size: 30px;
   font-weight: 560;
@@ -2272,6 +2296,11 @@
 }
 
 .ud-root .fleet-cell {
+  /* Sans `min-width: 0`, un enfant de grille refuse de descendre sous la
+     largeur de son contenu : un grand chiffre ou une trame large faisait alors
+     déborder la cellule sur sa voisine au lieu de la comprimer. C'est le défaut
+     de `min-width: auto` sur les items de grille. */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: 16px 18px;
@@ -2308,8 +2337,10 @@
 .ud-root .fleet-cell-value {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 0;
+  min-width: 0;
   color: var(--ud-fg);
   font-size: 38px;
   font-weight: 560;
@@ -2350,10 +2381,20 @@
    plancher garde la trame lisible sur un panneau étroit. */
 .ud-root .fleet-dots {
   display: grid;
-  grid-template-columns: repeat(9, minmax(22px, 34px));
+  /* `1fr` borné par `max-width`, et NON `minmax(22px, …)` : un minimum en pixels
+     impose une largeur de piste que la cellule ne peut pas toujours offrir, et
+     la grille déborde alors sur le bloc voisin au lieu de se rétracter. Avec
+     `1fr`, les neuf colonnes se partagent ce qui existe ; le plafond empêche
+     seulement les carrés de grossir sur un panneau large. */
+  grid-template-columns: repeat(9, minmax(0, 34px));
   justify-content: start;
   gap: 8px;
   margin-top: 18px;
+  /* Filet de sécurité : rien de cette trame ne sort de sa cellule, quelle que
+     soit la largeur disponible. */
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .ud-root .fleet-dots span {
@@ -3644,6 +3685,53 @@
     gap: 2px 20px;
   }
 
+  /* ── Panneau Compute sur une colonne ──────────────────────────────────
+     Les deux colonnes du desktop (machines à gauche, part du client à
+     droite) ne tiennent pas sous 768px : chacune tomberait à ~170px, où
+     « 10,000 » et « 441 TH/s » se tronquent. Tout s'empile, et l'ordre du
+     balisage — la part d'abord — devient l'ordre de lecture, ce qui est
+     justement la hiérarchie voulue. */
+  .ud-root .fleet-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Les deux blocs perdent leur placement explicite : sur une colonne, un
+     `grid-column: 2` renverrait la bande dans une deuxième colonne qui
+     n'existe plus, et `span 2` lui ferait sauter une rangée. */
+  .ud-root .fleet-mine,
+  .ud-root .fleet-cell--miners {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  /* Les trois mesures de la part reviennent côte à côte : la bande occupe
+     toute la largeur, les empiler laisserait deux tiers de vide à droite. */
+  .ud-root .fleet-mine .fleet-mine-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  /* Carrés plus serrés sur téléphone : la règle de base se rétracte déjà
+     seule (colonnes sans minimum en pixels), le gap suit. */
+  .ud-root .fleet-dots {
+    gap: 6px;
+  }
+
+  /* ── Flanc Mining economics ───────────────────────────────────────────
+     Plus de centrage vertical : pleine largeur, le flanc n'est plus étiré
+     par une rangée à trois colonnes, donc il n'y a plus de surplus à
+     répartir — `center` ajouterait un vide en haut sans raison. */
+  .ud-root .mining-flank-body {
+    justify-content: flex-start;
+  }
+
+  /* Les lignes réseau ne débordent plus : le débordement compensait le
+     retrait du corps sur un flanc étroit. Pleine largeur, il les ferait
+     mordre hors de la carte. */
+  .ud-root .mining-flank-params {
+    margin-inline: 0;
+  }
+
   /* Tablette portrait : trois colonnes coupaient les tuiles (chiffre tronqué
      sur une largeur de ~200px). Deux colonnes × trois rangées, la sixième case
      revenant au H pointillé — la grille reste pleine, sans trou. */
@@ -4283,4 +4371,31 @@
   .ud-root .deposit-input {
     flex: 1 1 100%;
   }
+
+  /* ── Très petits écrans ───────────────────────────────────────────────
+     Trois mesures côte à côte sur 320px donnent ~90px chacune, où
+     « 0.1580 BTC » se casse en deux lignes. Elles s'empilent. */
+  .ud-root .fleet-mine .fleet-mine-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  /* La pastille de part passe sous le libellé plutôt que de le serrer. */
+  .ud-root .fleet-mine-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Les deux bornes de l'axe gardent leurs montants lisibles : à cette
+     largeur, un corps de 17px les ferait se toucher au milieu. */
+  .ud-root .mining-axis-end-value {
+    font-size: 15px;
+  }
+
+  /* Les quatre paramètres repassent en pile : deux colonnes à ~140px
+     tronquaient « $0.042 / kWh ». */
+  .ud-root .mining-flank-params {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
 }

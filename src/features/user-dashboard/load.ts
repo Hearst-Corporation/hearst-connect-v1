@@ -265,6 +265,31 @@ export type VaultAccount = {
   readonly principalUsdc: number
   /** Cumul déjà retiré depuis l'ouverture. */
   readonly withdrawnUsdc: number
+  /*
+   * Dollars RÉELLEMENT ENCAISSÉS sur l'ensemble des retraits, chacun au cours
+   * du jour de son versement.
+   *
+   * Ce montant est PUBLIÉ, jamais recalculé : convertir le cumul en bitcoin au
+   * spot d'aujourd'hui afficherait une somme que le client n'a jamais reçue —
+   * s'il a touché 0.1 BTC à 60 000 $, ce ne sont pas 9 482 $ qu'il a encaissés.
+   * Seule la source connaît le cours de chaque versement.
+   *
+   * `null` tant qu'elle ne le publie pas : la tuile montre alors le bitcoin
+   * seul, plutôt qu'une contrevaleur fausse.
+   */
+  readonly withdrawnUsdcAtPayout: number | null
+  /*
+   * Cours du bitcoin AU MOMENT DE LA SOUSCRIPTION, en dollars.
+   *
+   * Sans lui, le front ne peut que diviser le principal par le cours du JOUR —
+   * ce qui affiche « ce que 420 000 $ vaudraient en bitcoin aujourd'hui », et
+   * non le bitcoin réellement acquis à l'entrée. Le chiffre bougeait alors
+   * chaque jour alors que le principal, lui, n'a pas bougé.
+   *
+   * PUBLIÉ par la source : seule elle connaît le cours de la conversion.
+   * `null` → la tuile montre les dollars seuls, plutôt qu'un bitcoin inventé.
+   */
+  readonly entryRateUsd: number | null
   /** Distribution du mois, retirable maintenant. */
   readonly availableUsdc: number
   readonly nextDistributionAt: string | null
@@ -483,6 +508,11 @@ function vaultAccountFrom(field: ResolvedField | null): VaultAccount | null {
     label: typeof r.label === 'string' ? r.label : 'Dedicated vault',
     principalUsdc,
     withdrawnUsdc,
+    /* LU, jamais dérivé du cumul BTC : seule la source connaît le cours de
+       chaque versement. Absent = la tuile montre le bitcoin seul. */
+    withdrawnUsdcAtPayout: num(r.withdrawnUsdcAtPayout),
+    /* LU, jamais deviné : le cours d'entrée est un fait historique. */
+    entryRateUsd: num(r.entryRateUsd),
     availableUsdc,
     nextDistributionAt: typeof r.nextDistributionAt === 'string' ? r.nextDistributionAt : null,
     lockupStartAt: typeof r.lockupStartAt === 'string' ? r.lockupStartAt : null,

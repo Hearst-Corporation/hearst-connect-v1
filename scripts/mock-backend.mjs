@@ -56,7 +56,24 @@ const TOKENS = new Map(
 
 function persistTokens() {
   try {
-    writeFileSync(TOKEN_STORE, JSON.stringify([...TOKENS]))
+    /*
+     * FUSION et non écrasement : deux instances du mock, ou deux démarrages
+     * successifs, se volaient mutuellement leurs jetons — le dernier à écrire
+     * effaçait les sessions de l'autre, et le navigateur retombait en 401 sur
+     * TOUS les appels alors que rien n'était cassé côté application.
+     *
+     * On relit le fichier avant d'écrire, et les jetons en mémoire priment sur
+     * ceux du disque pour une même clé.
+     */
+    let onDisk = []
+    try {
+      const raw = JSON.parse(readFileSync(TOKEN_STORE, 'utf8'))
+      if (Array.isArray(raw)) onDisk = raw
+    } catch {
+      // Fichier absent ou illisible : la mémoire fait foi.
+    }
+    const merged = new Map([...onDisk, ...TOKENS])
+    writeFileSync(TOKEN_STORE, JSON.stringify([...merged]))
   } catch {
     // La persistance est un confort : son échec ne doit pas casser le login.
   }
@@ -163,6 +180,58 @@ const POCKETS = [
   { pocket: 'p2', label: 'Mining alpha', targetBps: 2500, actualBps: 2580, driftBps: 80, isIdle: false, enabled: true, adapter: 'MiningAdapter', pocketAssets: String(Math.round(12_062_500 * 1e6)) },
 ]
 
+/*
+ * ── Économie du vault client : UNE source, des montants qui se déduisent ────
+ *
+ * Ces cinq nombres se contredisaient : le client avait « retiré » 1.0177 BTC
+ * pour 0.6539 « gagné », et la production affichée ne se raccordait à aucun des
+ * deux. Trois routes les posaient en dur, chacune dans son coin.
+ *
+ * L'identité qui les lie, du point de vue du client :
+ *
+ *     produit  =  déjà retiré  +  acquis non encore retiré
+ *
+ * Tout descend donc de `CLIENT_PRODUCED_SATS` et de ce qui a été versé. Le
+ * rendement acquis n'est plus un nombre libre : c'est un RESTE.
+ *
+ * Les dollars encaissés sur les retraits passés sont posés à part
+ * (`CLIENT_WITHDRAWN_USDC_AT_PAYOUT`) : chaque versement a eu lieu à son propre
+ * cours, et reconvertir le cumul au spot d'aujourd'hui afficherait une somme que
+ * le client n'a jamais reçue. Le cours moyen implicite (~86 600 $) est
+ * volontairement sous le spot — les retraits sont antérieurs.
+ */
+
+/** Bitcoin produit POUR CE CLIENT depuis sa souscription. */
+const CLIENT_PRODUCED_SATS = 312_500_000
+const CLIENT_PRODUCED_BTC = CLIENT_PRODUCED_SATS / 1e8
+
+/** Part déjà sortie du vault, en bitcoin. */
+const CLIENT_WITHDRAWN_BTC = 1.0177
+/** Dollars réellement encaissés sur ces retraits, à leur cours respectif. */
+const CLIENT_WITHDRAWN_USDC_AT_PAYOUT = 88_140
+
+/** Ce qui reste acquis au client, pas encore retiré. Un RESTE, jamais un choix. */
+const CLIENT_ACCRUED_BTC = CLIENT_PRODUCED_BTC - CLIENT_WITHDRAWN_BTC
+
+/** Capital engagé, tel que versé à la souscription. Un fait figé. */
+const CLIENT_PRINCIPAL_USDC = 420_000
+
+/*
+ * Cours du bitcoin au jour de la souscription (février 2026).
+ *
+ * Sous le spot d'aujourd'hui : le client a donc acquis PLUS de bitcoin que ce
+ * que 420 000 $ achèteraient maintenant, et sa position s'est appréciée. C'est
+ * précisément ce que l'ancien affichage masquait, en reconvertissant le
+ * principal au cours du jour.
+ */
+const CLIENT_ENTRY_RATE_USD = 60_000
+
+/** Distribution du mois, disponible au retrait maintenant. */
+const CLIENT_AVAILABLE_USDC = 5_250
+
+/** Le front convertit au spot : on publie donc les dollars correspondants. */
+const usdcFromBtc = (btc) => Math.round(btc * BTC_SPOT_USD)
+
 // ── Payloads par route ───────────────────────────────────────────────────────
 
 /*
@@ -202,7 +271,10 @@ function payloadFor(path) {
 
   if (p === '/api/v1/btc') {
     return {
-      btcProduced: bloc({ totalSats: '312500000', currentPriceUsdc: String(BTC_SPOT_USD) }, 'live'),
+      btcProduced: bloc(
+        { totalSats: String(CLIENT_PRODUCED_SATS), currentPriceUsdc: String(BTC_SPOT_USD) },
+        'live',
+      ),
       reserve: bloc({ balanceUsdc: '2964000' }, 'chain'),
     }
   }
@@ -702,8 +774,12 @@ function payloadFor(path) {
   // status/subscribedAt (voir features/user-dashboard/load.ts) — `value` est
   // une valeur de livre (principal + accrued), jamais un mark-to-market.
   if (p === '/api/v1/me/portfolio') {
-    const principal = 420_000
-    const accrued = 62_000
+    const principal = CLIENT_PRINCIPAL_USDC
+    /* Le rendement acquis est ce que la production a laissé après les retraits,
+       converti au spot pour les consommateurs qui lisent des dollars. Il n'est
+       plus posé librement : un `accrued` inférieur au cumul déjà retiré faisait
+       un client ayant sorti plus qu'il n'avait gagné. */
+    const accrued = usdcFromBtc(CLIENT_ACCRUED_BTC)
     return {
       position: bloc({
         principal,
@@ -725,9 +801,12 @@ function payloadFor(path) {
    * publie, rien ne change côté front.
    */
   if (p === '/api/v1/me/vault') {
-    const principal = 420_000
-    const withdrawn = 96_500
-    const monthlyDistribution = 5_250
+    const principal = CLIENT_PRINCIPAL_USDC
+    /* Le front reconvertit ce montant en bitcoin au spot : on publie donc la
+       contrevaleur AU SPOT du cumul retiré, pour que la tuile affiche bien
+       1.0177 BTC. Les dollars réellement encaissés sont un champ distinct. */
+    const withdrawn = usdcFromBtc(CLIENT_WITHDRAWN_BTC)
+    const monthlyDistribution = CLIENT_AVAILABLE_USDC
     return {
       vault: bloc({
         vaultId: 'vault-0',
@@ -735,6 +814,13 @@ function payloadFor(path) {
         principalUsdc: principal,
         // Cumul déjà sorti, et sa part du principal.
         withdrawnUsdc: withdrawn,
+        /* Dollars RÉELLEMENT encaissés, chaque retrait à son cours. Sous le
+           spot d'aujourd'hui : les versements sont antérieurs. Publié, car le
+           front ne peut pas le retrouver — il ne connaît que le cours du jour. */
+        withdrawnUsdcAtPayout: CLIENT_WITHDRAWN_USDC_AT_PAYOUT,
+        /* Cours de la conversion à l'entrée : le front en déduit le bitcoin
+           réellement acquis, au lieu de diviser par le cours du jour. */
+        entryRateUsd: CLIENT_ENTRY_RATE_USD,
         // Distribution du mois, disponible au retrait.
         availableUsdc: monthlyDistribution,
         nextDistributionAt: '2026-10-01T09:00:00Z',

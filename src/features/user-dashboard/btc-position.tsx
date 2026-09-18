@@ -2,7 +2,6 @@
 
 import type { BtcEquivalent, BtcVsHodl } from './load'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
-import { formatNumber } from '@/lib/format'
 
 /**
  * Position en bitcoin — le chiffre de tête d'un produit Bitcoin-first, mesuré
@@ -23,18 +22,15 @@ import { formatNumber } from '@/lib/format'
 /** BTC porte 8 décimales ; 6 se lisent proprement sans mentir sur la précision. */
 const btcText = (n: number) => n.toFixed(6)
 
-const usdText = (n: number) => `$${formatNumber(n, { maximumFractionDigits: 0 })}`
 
 const pctText = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)} %`
 
 export function BtcPositionHeadline({
   positionBtc,
-  positionUsdc,
   accruedBtc,
   vsHodl,
 }: Readonly<{
   positionBtc: Availability<BtcEquivalent>
-  positionUsdc: number | null
   accruedBtc: Availability<BtcEquivalent>
   vsHodl: Availability<BtcVsHodl>
 }>) {
@@ -53,10 +49,19 @@ export function BtcPositionHeadline({
                 {btcText(pos.btc)}
                 <span className="btc-block-unit">BTC</span>
               </p>
+              {/* Plus de contrevaleur en dollars : cette réserve agrège du
+                  rendement produit mois après mois à des cours différents, et la
+                  reconvertir au spot du jour afficherait une somme que le client
+                  n'a jamais reçue.
+
+                  Ce qui compte ici est la comparaison au simple achat — c'est le
+                  référentiel d'une clientèle qui, autrement, achèterait du
+                  bitcoin et le garderait. `HodlGauge`, juste en dessous, la
+                  porte déjà : la répéter en ligne ferait dire deux fois la même
+                  chose au même écran. */}
               <p className="btc-block-sub">
-                <span>{positionUsdc !== null ? usdText(positionUsdc) : '—'}</span>
                 <span className="btc-block-note">
-                  converted at {usdText(pos.rateUsd)} / BTC — not a held balance
+                  Mined and accumulated for your vault
                 </span>
               </p>
             </>

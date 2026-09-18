@@ -55,6 +55,13 @@ export function StatTile({
   const up = hasDelta && (delta as number) >= 0
   const DeltaIcon = up ? ArrowTrendingUpIcon : ArrowTrendingDownIcon
 
+  /* La bande basse n'existe que si elle a quelque chose à porter — voir plus
+     bas. Les trois conditions sont nommées ici plutôt que répétées dans le
+     rendu : elles servent à décider de la bande ET de son contenu. */
+  const showMeter = meter !== null && meter !== undefined && Number.isFinite(meter)
+  const showTrend = trend !== undefined && trend.length >= 2
+  const hasFoot = showMeter || Boolean(footnote) || showTrend
+
   return (
     <div className="stat-tile">
       <div className="stat-eyebrow">
@@ -73,20 +80,29 @@ export function StatTile({
         ) : null}
       </div>
       {/* Bande basse commune : barre, note ou sparkline occupent la MÊME rangée
-          d'une tuile à l'autre, pour que la ligne du bas soit continue. */}
-      <div className="stat-foot">
-        {meter !== null && meter !== undefined && Number.isFinite(meter) ? (
-          <div className="stat-meter" role="presentation">
-            <span style={{ width: `${Math.max(0, Math.min(100, meter * 100))}%` }} />
-          </div>
-        ) : null}
-        {footnote ? <p className="stat-footnote">{footnote}</p> : null}
-        {trend !== undefined && trend.length >= 2 ? (
-          <div className="stat-spark">
-            <RichSparkline data={[...trend]} />
-          </div>
-        ) : null}
-      </div>
+          d'une tuile à l'autre, pour que la ligne du bas soit continue.
+
+          Rendue SEULEMENT si elle porte quelque chose : vide, elle occupait
+          quand même sa rangée et poussait libellé et valeur vers le haut, ce
+          qui creusait un vide sous le chiffre — visible sur la ligne « Your
+          position », dont aucune tuile n'a de jauge. Les rangées des tuiles qui
+          ont un complément restent alignées entre elles, puisque leur bande, elle,
+          existe toujours. */}
+      {hasFoot ? (
+        <div className="stat-foot">
+          {showMeter ? (
+            <div className="stat-meter" role="presentation">
+              <span style={{ width: `${Math.max(0, Math.min(100, meter * 100))}%` }} />
+            </div>
+          ) : null}
+          {footnote ? <p className="stat-footnote">{footnote}</p> : null}
+          {showTrend ? (
+            <div className="stat-spark">
+              <RichSparkline data={[...trend]} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }

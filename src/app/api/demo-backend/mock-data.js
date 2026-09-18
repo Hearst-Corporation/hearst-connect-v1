@@ -29,6 +29,55 @@ const TOKENS = new Map()
    sur un même écran ne se lisent pas comme deux sources, mais comme un bug. */
 const BTC_SPOT_USD = 94_820
 
+/*
+ * ── Économie du vault client : UNE source, des montants qui se déduisent ────
+ *
+ * Ces nombres se contredisaient : le client avait « retiré » plus qu'il n'avait
+ * « gagné », et la production affichée ne se raccordait à aucun des deux. Trois
+ * routes les posaient en dur, chacune dans son coin.
+ *
+ * L'identité qui les lie, du point de vue du client :
+ *
+ *     produit  =  déjà retiré  +  acquis non encore retiré
+ *
+ * Le rendement acquis n'est donc plus un nombre libre : c'est un RESTE.
+ *
+ * Les dollars encaissés sur les retraits passés sont posés à part : chaque
+ * versement a eu lieu à son propre cours, et reconvertir le cumul au spot
+ * d'aujourd'hui afficherait une somme que le client n'a jamais reçue.
+ */
+
+/** Bitcoin produit POUR CE CLIENT depuis sa souscription. */
+const CLIENT_PRODUCED_SATS = 312_500_000
+const CLIENT_PRODUCED_BTC = CLIENT_PRODUCED_SATS / 1e8
+
+/** Part déjà sortie du vault, en bitcoin. */
+const CLIENT_WITHDRAWN_BTC = 1.0177
+/** Dollars réellement encaissés sur ces retraits, à leur cours respectif. */
+const CLIENT_WITHDRAWN_USDC_AT_PAYOUT = 88_140
+
+/** Ce qui reste acquis au client, pas encore retiré. Un RESTE, jamais un choix. */
+const CLIENT_ACCRUED_BTC = CLIENT_PRODUCED_BTC - CLIENT_WITHDRAWN_BTC
+
+/** Capital engagé, tel que versé à la souscription. Un fait figé. */
+const CLIENT_PRINCIPAL_USDC = 420_000
+
+/*
+ * Cours du bitcoin au jour de la souscription (février 2026).
+ *
+ * Sert de REPÈRE : « ce que le capital aurait acheté au comptant ». Le produit
+ * ne convertit pas le capital en bitcoin à l'entrée — il le répartit entre les
+ * trois poches — mais le client compare au simple achat, et ce cours donne son
+ * référentiel.
+ */
+const CLIENT_ENTRY_RATE_USD = 60_000
+
+/** Distribution du mois, disponible au retrait maintenant. */
+const CLIENT_AVAILABLE_USDC = 5_250
+
+/** Le front convertit au spot : on publie donc les dollars correspondants. */
+const usdcFromBtc = (btc) => Math.round(btc * BTC_SPOT_USD)
+
 const nowIso = () => new Date().toISOString()
 
 /**
@@ -157,7 +206,10 @@ function payloadFor(path) {
 
   if (p === '/api/v1/btc') {
     return {
-      btcProduced: bloc({ totalSats: '312500000', currentPriceUsdc: '94820' }, 'live'),
+      btcProduced: bloc(
+        { totalSats: String(CLIENT_PRODUCED_SATS), currentPriceUsdc: String(BTC_SPOT_USD) },
+        'live',
+      ),
       reserve: bloc({ balanceUsdc: '2964000' }, 'chain'),
     }
   }
@@ -651,8 +703,10 @@ function payloadFor(path) {
   // status/subscribedAt (voir features/user-dashboard/load.ts) — `value` est
   // une valeur de livre (principal + accrued), jamais un mark-to-market.
   if (p === '/api/v1/me/portfolio') {
-    const principal = 420_000
-    const accrued = 62_000
+    const principal = CLIENT_PRINCIPAL_USDC
+    /* Le rendement acquis est ce que la production a laissé après les retraits.
+       Posé librement, il faisait un client ayant sorti plus qu'il n'avait gagné. */
+    const accrued = usdcFromBtc(CLIENT_ACCRUED_BTC)
     return {
       position: bloc({
         principal,
@@ -719,9 +773,11 @@ function payloadFor(path) {
 
 
   if (p === '/api/v1/me/vault') {
-    const principal = 420_000
-    const withdrawn = 96_500
-    const monthlyDistribution = 5_250
+    const principal = CLIENT_PRINCIPAL_USDC
+    /* Le front reconvertit ce montant au spot : on publie donc la contrevaleur
+       AU SPOT du cumul retiré. Les dollars réellement encaissés sont à part. */
+    const withdrawn = usdcFromBtc(CLIENT_WITHDRAWN_BTC)
+    const monthlyDistribution = CLIENT_AVAILABLE_USDC
     return {
       vault: bloc({
         vaultId: 'vault-0',
@@ -729,6 +785,12 @@ function payloadFor(path) {
         principalUsdc: principal,
         // Cumul déjà sorti, et sa part du principal.
         withdrawnUsdc: withdrawn,
+        /* Dollars RÉELLEMENT encaissés, chaque retrait à son cours. Sous le spot
+           d'aujourd'hui : les versements sont antérieurs. Publié, car le front
+           ne connaît que le cours du jour. */
+        withdrawnUsdcAtPayout: CLIENT_WITHDRAWN_USDC_AT_PAYOUT,
+        /* Cours de la souscription : sert de repère « si vous aviez acheté ». */
+        entryRateUsd: CLIENT_ENTRY_RATE_USD,
         // Distribution du mois, disponible au retrait.
         availableUsdc: monthlyDistribution,
         nextDistributionAt: '2026-10-01T09:00:00Z',
