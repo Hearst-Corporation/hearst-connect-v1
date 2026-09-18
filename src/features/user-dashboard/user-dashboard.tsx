@@ -339,15 +339,6 @@ export function UserDashboardView({
   const entryRate = vault?.entryRateUsd ?? null
 
   /**
-   * Bitcoin que le client aurait s'il avait simplement ACHETÉ au lieu de
-   * souscrire — le référentiel du produit, pas une conversion réelle de son
-   * capital. C'est la comparaison que porte `BtcPositionHeadline` en tête de
-   * page ; elle est reprise ici en note du capital pour situer le montant.
-   */
-  const hodlBtc = (usdc: number | null): number | null =>
-    usdc !== null && entryRate !== null && entryRate > 0 ? usdc / entryRate : null
-
-  /**
    * Capital souscrit — en DOLLARS, tel que versé.
    *
    * Il n'est pas converti en bitcoin à l'entrée : il est réparti entre les trois
@@ -362,18 +353,6 @@ export function UserDashboardView({
   const subscribedValue = (usdc: number | null): string => formatUsdc(usdc)
 
   const subscribedAside = (): string | null => null
-
-  /**
-   * Ce que le capital aurait acheté en bitcoin au jour de la souscription.
-   *
-   * Un REPÈRE, pas un avoir : c'est la position que le client aurait s'il avait
-   * acheté au comptant. Tout l'intérêt du produit est de faire mieux, et la
-   * comparaison est portée en grand par `BtcPositionHeadline`.
-   */
-  const subscribedFootnote = (usdc: number | null): string | null => {
-    const btc = hodlBtc(usdc)
-    return btc !== null ? `${btc.toFixed(4)} BTC if simply bought at entry` : null
-  }
 
   const shareOfPrincipal = (amount: number | null): number | null =>
     amount !== null && vaultPrincipal !== null && vaultPrincipal > 0
@@ -697,7 +676,6 @@ export function UserDashboardView({
                        au cours du jour, qui ferait bouger un montant immuable. */
                     value={subscribedValue(positionPrincipal)}
                     signal={signalOf(data.positionPrincipal)}
-                    footnote={subscribedFootnote(positionPrincipal)}
                   />
                   <StatTile
                     icon={ChartPieIcon}

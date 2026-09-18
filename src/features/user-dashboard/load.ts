@@ -1051,7 +1051,19 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
       return unavailable({ endpoint: HISTORY_ENDPOINT, reason: 'no_btc_history' })
     }
 
-    const entryRateUsd = points[0].value
+    /*
+     * Cours de référence : celui de la SOUSCRIPTION quand la source le publie.
+     *
+     * Le premier point de l'historique ne servait que de pis-aller : cette série
+     * couvre une fenêtre glissante (trois mois ici) qui ne commence pas à
+     * l'entrée du client. La comparaison portait donc sur une période arbitraire
+     * — et affichait « +45.8 % contre un achat direct » pendant qu'un calcul au
+     * vrai cours d'entrée donnait l'inverse. Deux réponses contradictoires à la
+     * même question, sur le même écran.
+     */
+    const subscribedRate = valueOf(vaultAccount)?.entryRateUsd ?? null
+    const usesSubscriptionRate = subscribedRate !== null && subscribedRate > 0
+    const entryRateUsd = usesSubscriptionRate ? subscribedRate : points[0].value
     if (!Number.isFinite(entryRateUsd) || entryRateUsd <= 0) {
       return unavailable({ endpoint: HISTORY_ENDPOINT, reason: 'no_btc_history' })
     }
@@ -1069,7 +1081,12 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
         deltaPct: (heldBtc / hodlBtc - 1) * 100,
         entryRateUsd,
         spotRateUsd: spotUsd,
-        windowLabel: `${points[0].label} → ${points[points.length - 1].label}`,
+        /* Le libellé suit la référence réellement employée : annoncer une
+           fenêtre de trois mois alors qu'on compare depuis la souscription
+           tromperait autant que l'inverse. */
+        windowLabel: usesSubscriptionRate
+          ? 'since subscription'
+          : `${points[0].label} → ${points[points.length - 1].label}`,
       },
       // Calcul du front sur deux sources lues : ni book, ni chaîne.
       { provenance: 'unknown', stale: false, asOf: null },
