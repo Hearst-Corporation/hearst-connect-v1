@@ -202,13 +202,25 @@ const POCKETS = [
  */
 
 /** Bitcoin produit POUR CE CLIENT depuis sa souscription. */
-const CLIENT_PRODUCED_SATS = 312_500_000
+/*
+ * Production calibrée sur un scénario CRÉDIBLE : 1.2 BTC en sept mois pour
+ * 420 000 $ engagés, soit une dizaine de pour cent d'avance sur un simple achat
+ * au comptant.
+ *
+ * Les 3.125 BTC d'avant donnaient +47 % sur la même période — un rendement que
+ * rien ne justifie et qui décrédibilise la démonstration plus qu'il ne la sert.
+ * L'avantage du produit se joue en points, pas en multiples.
+ *
+ * Le retrait (0.36 BTC, 30 % du produit) et les dollars encaissés (31 180 $,
+ * ~86 600 $/BTC moyen) suivent la même échelle : tout doit rester cohérent.
+ */
+const CLIENT_PRODUCED_SATS = 120_000_000
 const CLIENT_PRODUCED_BTC = CLIENT_PRODUCED_SATS / 1e8
 
 /** Part déjà sortie du vault, en bitcoin. */
-const CLIENT_WITHDRAWN_BTC = 1.0177
+const CLIENT_WITHDRAWN_BTC = 0.36
 /** Dollars réellement encaissés sur ces retraits, à leur cours respectif. */
-const CLIENT_WITHDRAWN_USDC_AT_PAYOUT = 88_140
+const CLIENT_WITHDRAWN_USDC_AT_PAYOUT = 31_180
 
 /** Ce qui reste acquis au client, pas encore retiré. Un RESTE, jamais un choix. */
 const CLIENT_ACCRUED_BTC = CLIENT_PRODUCED_BTC - CLIENT_WITHDRAWN_BTC
@@ -219,12 +231,16 @@ const CLIENT_PRINCIPAL_USDC = 420_000
 /*
  * Cours du bitcoin au jour de la souscription (février 2026).
  *
- * Sous le spot d'aujourd'hui : le client a donc acquis PLUS de bitcoin que ce
- * que 420 000 $ achèteraient maintenant, et sa position s'est appréciée. C'est
- * précisément ce que l'ancien affichage masquait, en reconvertissant le
- * principal au cours du jour.
+ * Légèrement sous le spot (94 820 $) : le bitcoin a monté de ~8 % depuis, une
+ * dérive de marché ordinaire. L'avantage du vault sur un simple achat vient
+ * alors du MINAGE — acquérir du bitcoin sous son prix de marché — et non d'un
+ * scénario de cours favorable.
+ *
+ * Un cours d'entrée très bas (60 000 $, soit +58 % de hausse depuis) faisait
+ * l'inverse : le simple achat devenait imbattable et le vault ressortait en
+ * retard, ce que le produit ne raconte pas.
  */
-const CLIENT_ENTRY_RATE_USD = 60_000
+const CLIENT_ENTRY_RATE_USD = 88_000
 
 /** Distribution du mois, disponible au retrait maintenant. */
 const CLIENT_AVAILABLE_USDC = 5_250

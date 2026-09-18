@@ -325,34 +325,22 @@ export function UserDashboardView({
   const vaultWithdrawn = vault?.withdrawnUsdc ?? null
   const vaultAvailable = vault?.availableUsdc ?? null
 
-  /*
-   * ── Capital souscrit : au cours d'ENTRÉE, jamais à celui du jour ──────────
-   *
-   * Un montant versé est un fait figé. Le diviser par le spot affichait « ce que
-   * cette somme vaudrait en bitcoin aujourd'hui » — un chiffre qui bouge chaque
-   * jour alors que le principal n'a pas bougé, et qui n'est pas le bitcoin que
-   * le client a réellement acquis.
-   *
-   * Les trois fonctions ci-dessous ne rendent rien tant que la source ne publie
-   * pas `entryRateUsd` : mieux vaut les dollars seuls qu'un bitcoin inventé.
-   */
-  const entryRate = vault?.entryRateUsd ?? null
-
   /**
    * Capital souscrit — en DOLLARS, tel que versé.
    *
    * Il n'est pas converti en bitcoin à l'entrée : il est réparti entre les trois
    * poches (Basis carry, RWA T-bills, Mining alpha), dont deux travaillent en
-   * dollars. Afficher « 7 BTC acquis » laissait croire à un achat spot au jour
-   * de la souscription — ce que le produit ne fait pas.
+   * dollars. Afficher un montant en bitcoin laissait croire à un achat spot au
+   * jour de la souscription — ce que le produit ne fait pas.
    *
    * Le bitcoin de ce vault n'est pas un capital converti : c'est ce que le
    * minage PRODUIT, et ce que le rebalancing accumule. Il se lit dans les tuiles
    * qui portent cette production, pas ici.
+   *
+   * Le cours de souscription (`entryRateUsd`) sert ailleurs : c'est la référence
+   * de la comparaison au simple achat, calculée dans `load.ts`.
    */
   const subscribedValue = (usdc: number | null): string => formatUsdc(usdc)
-
-  const subscribedAside = (): string | null => null
 
   const shareOfPrincipal = (amount: number | null): number | null =>
     amount !== null && vaultPrincipal !== null && vaultPrincipal > 0
@@ -810,20 +798,20 @@ export function UserDashboardView({
                   <StatTile
                     icon={BanknotesIcon}
                     label="Capital locked"
-                    /* Même capital que « Principal », même lecture : les dollars
-                       versés, et le bitcoin qu'ils ont acheté à l'entrée. */
-                    value={subscribedValue(vaultPrincipal)}
+                    /* Une DURÉE, pas un montant. Le capital souscrit ne reste
+                       pas 420 000 $ : il travaille dans les trois poches, dont
+                       celle du minage produit du bitcoin — ce qui sortira au
+                       terme peut valoir plus ou moins. Afficher la somme versée
+                       laissait croire à une créance figée.
+                       
+                       Ce que le blocage dit vraiment, c'est COMBIEN DE TEMPS les
+                       fonds sont engagés. La jauge en dessous porte l'avancement. */
+                    value={
+                      lockup !== null ? `${lockup.total - lockup.elapsed} of ${lockup.total}` : '—'
+                    }
                     signal={signalOf(data.vaultAccount)}
                     meter={lockup !== null ? lockup.pct / 100 : null}
-                    /* Deux faits sur une ligne : ce que le capital vaut
-                       aujourd'hui, et le temps qu'il reste bloqué. La note du
-                       blocage seule laissait le client sans réponse à « et ça
-                       vaut combien maintenant ? ». */
-                    footnote={
-                      lockup !== null
-                        ? `${lockup.total - lockup.elapsed} of ${lockup.total} months locked`
-                        : null
-                    }
+                    footnote={lockup !== null ? 'months remaining' : null}
                   />
                   {/* Cinq tuiles : la grille est pleine sur cinq et trois
                       colonnes, mais laisse une case en deux. Le motif l'occupe
