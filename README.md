@@ -34,7 +34,7 @@ Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG —
 |---|---|
 | **Ce repo** | Vercel **`hearst-connect-v1`** — jamais `hearst-connect` / `app.hearst.app` |
 | **Backend** | GitHub `Hearst-Corporation/hearst-connect-backend` (`main`) |
-| **API prod** | `https://hearst-connect-backend-production.up.railway.app` via `HEARST_API_URL` |
+| **API prod** | `https://hearst-connect-backend-production-1da1.up.railway.app` via `HEARST_API_URL` |
 | **Déploiement back** | Push `main` → Railway |
 
 **GPU1 interdit** pour ce produit (pas de SSH, pas de `connect-api.hearst.app`). Détail : `.cursor/rules/30-no-gpu1.mdc`, `CLAUDE.md`.
