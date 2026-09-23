@@ -1,6 +1,6 @@
 'use client'
 
-import { CpuChipIcon, BoltIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
+import { BoltIcon } from '@heroicons/react/24/outline'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { formatNumber } from '@/lib/format'
 import type { ComputeFleet } from './load'
@@ -27,19 +27,18 @@ import type { ComputeFleet } from './load'
     ferme, elle n'a pas à occuper la hauteur d'un graphe. */
 const GRID_DOTS = 36
 
-const intText = (v: number | null) =>
-  v === null ? '—' : formatNumber(v, { maximumFractionDigits: 0 })
-
 export function ComputeFleetPanel({
   fleet,
   /** Hashrate du réseau bitcoin — donne l'échelle de la capacité du parc. */
   networkHashrateEhs = null,
 }: Readonly<{ fleet: ComputeFleet; networkHashrateEhs?: number | null }>) {
+  /* `minersManaged` et `countries` ne sont plus lus : le compte de machines
+     disait la même capacité que les EH/s, et l'implantation géographique a
+     quitté le panneau. Les champs restent au contrat — la source les publie,
+     d'autres surfaces peuvent les vouloir. */
   const {
-    minersManaged,
     hashrateEhs,
     btcProducedTotal,
-    countries,
     uptimePct,
     allocatedHashrateThs,
     allocatedMiners,
@@ -99,18 +98,6 @@ export function ComputeFleetPanel({
 
             <div className="fleet-mine-metric">
               <p className="fleet-mine-value">
-                {intText(allocatedMiners)}
-                {allocatedMiners !== null ? (
-                  <span className="fleet-mine-unit">
-                    {allocatedMiners > 1 ? 'miners' : 'miner'}
-                  </span>
-                ) : null}
-              </p>
-              <p className="fleet-mine-label">Machines working for you</p>
-            </div>
-
-            <div className="fleet-mine-metric">
-              <p className="fleet-mine-value">
                 {allocatedBtcProduced === null
                   ? '—'
                   : formatNumber(allocatedBtcProduced, { maximumFractionDigits: 4 })}
@@ -136,28 +123,16 @@ export function ComputeFleetPanel({
         </p>
       </section>
 
-      {/* ── Les machines ──────────────────────────────────────────────────
-          La trame n'est pas un décor : elle évoque la ferme dont la part du
-          client est extraite. Décorative pour le lecteur d'écran — le chiffre
-          à côté porte déjà l'information. */}
-      <div className="fleet-cell fleet-cell--miners">
-        <p className="fleet-cell-label">
-          <CpuChipIcon className="size-4" aria-hidden="true" />
-          Miners managed
-        </p>
-        <p className="fleet-cell-value">{intText(minersManaged)}</p>
-        <p className="fleet-cell-note">ASIC units under active management</p>
-        <div className="fleet-dots" aria-hidden="true">
-          {Array.from({ length: GRID_DOTS }, (_, i) => (
-            <span key={i} className={minersManaged !== null ? 'is-on' : undefined} />
-          ))}
-        </div>
-      </div>
+      {/* ── La capacité du parc ───────────────────────────────────────────
+          UNE seule cellule pour la puissance : le compte de machines et les
+          EH/s disaient la même capacité dans deux unités, sur deux blocs
+          voisins. Les EH/s l'emportent — c'est l'unité du métier, et celle
+          qui se compare au réseau mondial.
 
-      {/* ── La capacité ───────────────────────────────────────────────────
-          Un hashrate isolé ne se lit pas : la jauge le rapporte au réseau
-          mondial, seule échelle qui lui donne un sens. */}
-      <div className="fleet-cell fleet-cell--hashrate">
+          La trame de carrés reste : elle n'est pas un décor, elle évoque la
+          ferme dont la part du client est extraite. Décorative pour le lecteur
+          d'écran — le chiffre au-dessus porte déjà l'information. */}
+      <div className="fleet-cell fleet-cell--miners">
         <p className="fleet-cell-label">
           <BoltIcon className="size-4" aria-hidden="true" />
           Operational capacity
@@ -166,19 +141,16 @@ export function ComputeFleetPanel({
           {hashrateEhs === null ? '—' : formatNumber(hashrateEhs, { maximumFractionDigits: 1 })}
           {hashrateEhs !== null ? <span className="fleet-cell-unit">EH/s</span> : null}
         </p>
-        {networkShare !== null ? (
-          <>
-            <div className="fleet-gauge">
-              <div className="fleet-gauge-fill" style={{ width: `${Math.max(networkShare, 0.6)}%` }} />
-            </div>
-            <p className="fleet-cell-note">
-              {formatNumber(networkShare, { maximumFractionDigits: 2 })} % of the{' '}
-              {formatNumber(networkHashrateEhs ?? 0, { maximumFractionDigits: 0 })} EH/s bitcoin network
-            </p>
-          </>
-        ) : (
-          <p className="fleet-cell-note">Share of network unavailable</p>
-        )}
+        <p className="fleet-cell-note">
+          {networkShare !== null
+            ? `${formatNumber(networkShare, { maximumFractionDigits: 2 })} % of the ${formatNumber(networkHashrateEhs ?? 0, { maximumFractionDigits: 0 })} EH/s bitcoin network`
+            : 'Share of network unavailable'}
+        </p>
+        <div className="fleet-dots" aria-hidden="true">
+          {Array.from({ length: GRID_DOTS }, (_, i) => (
+            <span key={i} className={hashrateEhs !== null ? 'is-on' : undefined} />
+          ))}
+        </div>
       </div>
 
       {/* ── La production ─────────────────────────────────────────────────
@@ -195,21 +167,6 @@ export function ComputeFleetPanel({
           {btcProducedTotal !== null ? <span className="fleet-cell-unit">BTC</span> : null}
         </p>
         <p className="fleet-cell-note">Mined by the fleet since inception</p>
-      </div>
-
-      {/* ── L'implantation ────────────────────────────────────────────────
-          La dispersion géographique protège d'une panne réseau ou d'un coup de
-          réglementation local. */}
-      <div className="fleet-cell">
-        <p className="fleet-cell-label">
-          <GlobeAltIcon className="size-4" aria-hidden="true" />
-          Countries
-        </p>
-        <p className="fleet-cell-value">
-          {countries === null ? '—' : intText(countries)}
-          {countries !== null ? <span className="fleet-cell-unit">+</span> : null}
-        </p>
-        <p className="fleet-cell-note">Sites spread across multiple jurisdictions</p>
       </div>
 
       {/* ── La disponibilité ──────────────────────────────────────────────
