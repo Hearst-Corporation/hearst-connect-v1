@@ -22,10 +22,10 @@ import type { ComputeFleet } from './load'
  * place et laisse les autres, plutôt que de vider le panneau.
  */
 
-/** Points de la trame du parc : 4 rangées de 9. Six rangées étiraient la
-    cellule bien au-delà de ce que son chiffre demande — la trame évoque la
-    ferme, elle n'a pas à occuper la hauteur d'un graphe. */
-const GRID_DOTS = 36
+/** Points de la trame du parc : 3 rangées de 9. La trame évoque la ferme, elle
+    n'a pas à occuper la hauteur d'un graphe — quatre rangées étiraient la
+    cellule au-delà de ce que son chiffre demande. */
+const GRID_DOTS = 27
 
 export function ComputeFleetPanel({
   fleet,
