@@ -2,6 +2,7 @@
 
 import type { ComponentType, SVGProps } from 'react'
 import { HearstBreakdownDonut } from '@/components/charts'
+import { DottedH } from '@/assets/brand/dotted-h'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import type { AllocationBar } from './load'
 
@@ -69,6 +70,16 @@ export function BreakdownFlank({
           bouton, qu'une règle générique étirerait. */}
       <div className="flank-donut">
         <HearstBreakdownDonut slices={slices} kind={kind} unit={unit} centerCaption={centerCaption} />
+      </div>
+
+      {/* Le monogramme occupe le vide que la rangée creuse sous la légende : le
+          flanc est étiré à la hauteur du panneau central, plus haut que son
+          donut. Décoratif, donc `aria-hidden` — il ne porte aucune donnée.
+
+          `flex: 1` : il prend l'espace restant, quel qu'il soit, et disparaît
+          de lui-même quand la colonne est juste à sa hauteur. */}
+      <div className="flank-mark" aria-hidden="true">
+        <DottedH className="flank-mark-svg" />
       </div>
     </section>
   )

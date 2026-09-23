@@ -84,7 +84,9 @@ export function ComputeFleetPanel({
 
         {hasAllocation ? (
           <div className="fleet-mine-grid">
-            <div className="fleet-mine-metric">
+            {/* Le hashrate porte le bloc : c'est la puissance qui tourne pour ce
+                vault, et la mesure dont tout le reste découle. */}
+            <div className="fleet-mine-metric fleet-mine-metric--lead">
               <p className="fleet-mine-value">
                 {allocatedHashrateThs === null
                   ? '—'
@@ -94,9 +96,29 @@ export function ComputeFleetPanel({
                 ) : null}
               </p>
               <p className="fleet-mine-label">Your hashrate</p>
+
+              {/* La part du parc, DESSINÉE et non plus seulement écrite en
+                  pastille : une fraction de pour cent ne se saisit pas d'un
+                  chiffre. La piste montre le parc entier, le trait ce qui
+                  revient au vault.
+
+                  Le remplissage a un PLANCHER visible : à 0.16 %, une largeur
+                  fidèle ferait un trait d'un pixel qu'on lirait comme une barre
+                  vide. La proportion exacte reste dite par le texte, la barre
+                  en donne la nature — une petite part d'un grand ensemble. */}
+              {allocatedSharePct !== null ? (
+                <div className="fleet-mine-bar" aria-hidden="true">
+                  <span
+                    className="fleet-mine-bar-fill"
+                    style={{ width: `${Math.max(Math.min(allocatedSharePct, 100), 2.5)}%` }}
+                  />
+                </div>
+              ) : null}
             </div>
 
-            <div className="fleet-mine-metric">
+            {/* La production revient au client : elle se détache sur son propre
+                fond, comme un acquis et non comme une caractéristique du parc. */}
+            <div className="fleet-mine-metric fleet-mine-metric--produced">
               <p className="fleet-mine-value">
                 {allocatedBtcProduced === null
                   ? '—'

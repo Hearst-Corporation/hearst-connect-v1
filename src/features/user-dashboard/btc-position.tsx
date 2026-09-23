@@ -1,7 +1,10 @@
 'use client'
 
+import type { ComponentType, SVGProps } from 'react'
+import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import type { BtcEquivalent, BtcVsHodl } from './load'
-import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
+import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
+import { StatTile } from './stat-tile'
 
 /**
  * Position en bitcoin — le chiffre de tête d'un produit Bitcoin-first, mesuré
@@ -25,69 +28,86 @@ const btcText = (n: number) => n.toFixed(6)
 
 const pctText = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)} %`
 
+/** Un fait du contrat : une constante qui situe la réserve sans la commenter. */
+export type PositionTerm = {
+  readonly label: string
+  readonly value: string
+  readonly icon: ComponentType<SVGProps<SVGSVGElement>>
+  readonly signal: Signal
+}
+
 export function BtcPositionHeadline({
   positionBtc,
-  accruedBtc,
   vsHodl,
+  terms = [],
 }: Readonly<{
   positionBtc: Availability<BtcEquivalent>
-  accruedBtc: Availability<BtcEquivalent>
   vsHodl: Availability<BtcVsHodl>
+  /** Capital versé, état, date d'entrée. Déjà formatés : le bandeau les
+   *  affiche, il ne décide pas de leur écriture. */
+  terms?: readonly PositionTerm[]
 }>) {
   const pos = valueOf(positionBtc)
-  const accrued = valueOf(accruedBtc)
 
   return (
     <section className="btc-block" aria-label="Your position in bitcoin">
       <div className="btc-block-top">
         {/* Pas de libellé : le titre de section « Bitcoin position » le porte
             déjà, et le doublon poussait la métrique vers le bas. */}
-        <div className="btc-block-main">
-          {pos !== null ? (
-            <>
-              <p className="btc-block-value">
-                {btcText(pos.btc)}
-                <span className="btc-block-unit">BTC</span>
-              </p>
-              {/* Plus de contrevaleur en dollars : cette réserve agrège du
-                  rendement produit mois après mois à des cours différents, et la
-                  reconvertir au spot du jour afficherait une somme que le client
-                  n'a jamais reçue.
+        {/* Le libellé passe AU-DESSUS du chiffre, comme dans les trois faits à
+            droite : sous lui, les quatre valeurs ne tombaient pas sur la même
+            ligne de base et la rangée paraissait décalée.
 
-                  Ce qui compte ici est la comparaison au simple achat — c'est le
-                  référentiel d'une clientèle qui, autrement, achèterait du
-                  bitcoin et le garderait. `HodlGauge`, juste en dessous, la
-                  porte déjà : la répéter en ligne ferait dire deux fois la même
-                  chose au même écran. */}
-              <p className="btc-block-sub">
-                <span className="btc-block-note">
-                  Mined and accumulated for your vault
-                </span>
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="btc-block-value is-absent">
-                —<span className="btc-block-unit">BTC</span>
-              </p>
-              <p className="btc-block-sub">
-                <span className="btc-block-note">
-                  {isAvailable(positionBtc)
-                    ? 'Awaiting a verified source.'
-                    : 'No BTC rate available — nothing is shown rather than a guess.'}
-                </span>
-              </p>
-            </>
-          )}
-        </div>
+            Plus de contrevaleur en dollars : cette réserve agrège du rendement
+            produit mois après mois à des cours différents, et la reconvertir au
+            spot du jour afficherait une somme que le client n'a jamais reçue.
+            Ce qui compte ici est la comparaison au simple achat, que
+            `HodlGauge` porte juste en dessous. */}
+        {/* La réserve prend la MÊME tuile que les trois faits et que les rangées
+            du dessous : picto cerclé, pastille de fraîcheur, même graisse. Son
+            vert la distingue — c'est la mesure du produit — sans qu'un balisage
+            à part soit nécessaire.
 
-        <div className="btc-block-side">
-          <p className="btc-block-label">Earned, in bitcoin</p>
-          <p className="btc-block-side-value">
-            {accrued !== null ? `${btcText(accrued.btc)} BTC` : '—'}
-          </p>
-          <p className="btc-block-note">What the reserve would hold today</p>
-        </div>
+            Plus de contrevaleur en dollars : cette réserve agrège du rendement
+            produit mois après mois à des cours différents, et la reconvertir au
+            spot du jour afficherait une somme que le client n'a jamais reçue.
+            La comparaison qui compte est celle au simple achat, que `HodlGauge`
+            porte juste en dessous. */}
+        <StatTile
+          icon={BitcoinIcon}
+          label="Mined and accumulated for your vault"
+          value={pos !== null ? `${btcText(pos.btc)} BTC` : '—'}
+          signal={signalOf(positionBtc)}
+          footnote={
+            pos === null
+              ? isAvailable(positionBtc)
+                ? 'Awaiting a verified source.'
+                : 'No BTC rate available — nothing is shown rather than a guess.'
+              : null
+          }
+        />
+
+        {/* ── Les faits du contrat ────────────────────────────────────────
+            Capital versé, état, date d'entrée : trois constantes qui situent la
+            réserve sans la commenter.
+
+            Rendus par `StatTile`, le composant des rangées du dessous : picto
+            cerclé, pastille de fraîcheur, même graisse. Un balisage maison les
+            faisait ressembler à un bandeau à part, alors qu'elles sont du même
+            rang que la production ou les retraits.
+
+            Le rendement acquis qui vivait ici est parti : « Earned to date »,
+            dans la section du vault, porte le même montant au milieu de la
+            production et des retraits dont il se déduit. */}
+        {terms.map((t) => (
+          <StatTile
+            key={t.label}
+            icon={t.icon}
+            label={t.label}
+            value={t.value}
+            signal={t.signal}
+          />
+        ))}
       </div>
 
       <HodlGauge vsHodl={vsHodl} />

@@ -831,9 +831,25 @@
    En `1 1 auto` il réclamait en plus l'espace libre du panneau, débordait sur
    la piste des boutons et interceptait leurs clics — d'où des boutons inertes
    et un clic qui sélectionnait les graduations de l'axe. */
+/* La boîte réserve la hauteur que le graphe occupe RÉELLEMENT.
+
+   Recharts dessine un SVG de `--chart-viewport-hero` (340px), mais le div
+   intermédiaire était écrasé à la hauteur que le flex lui laissait : le graphe
+   débordait alors de 110px par le bas et passait derrière les boutons de
+   période, qui semblaient posés sur la courbe.
+
+   La hauteur vient du même jeton que le graphe — deux valeurs indépendantes
+   finiraient par diverger. */
 .ud-root .btc-price-chart {
   flex: 0 0 auto;
-  min-height: 0;
+  min-height: var(--chart-viewport-hero);
+}
+
+/* Les enfants suivent : sans cela, le div à `height: 230px` posé par le
+   composant borne encore la boîte. */
+.ud-root .btc-price-chart > *,
+.ud-root .btc-price-chart > * > * {
+  min-height: var(--chart-viewport-hero);
 }
 
 /* La piste passe au-dessus de tout ce qui pourrait déborder sur elle. */
@@ -1388,6 +1404,40 @@
   height: 100%;
   max-height: 96px;
   color: var(--hearst-green);
+}
+
+/* ── Monogramme du flanc d'allocation ────────────────────────────────────
+   Le flanc est étiré à la hauteur du panneau central, plus haut que son donut
+   et sa légende : il restait un vide sous les trois poches. Le H de marque
+   l'occupe, centré.
+
+   `flex: 1` : il prend ce qui reste, quelle que soit la hauteur, et se réduit
+   à rien quand la colonne tombe juste. `min-height: 0` l'autorise à se
+   comprimer sous la taille du tracé plutôt que de pousser le donut. */
+.ud-root .flank-mark {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px var(--ud-pad-card) 6px;
+  overflow: hidden;
+}
+
+/* Le vert de marque, comme le monogramme de la grille de position : c'est le
+   même signe, il porte la même couleur. */
+.ud-root .flank-mark-svg {
+  width: auto;
+  height: 100%;
+  max-height: 144px;
+  color: var(--hearst-green);
+}
+
+/* Sous 1024px les flancs passent pleine largeur et se règlent sur leur contenu :
+   plus de vide à combler, le monogramme n'a plus lieu d'être. */
+@media (max-width: 1024px) {
+  .ud-root .flank-mark {
+    display: none;
+  }
 }
 
 .ud-root .position-grid > * {
@@ -2289,10 +2339,41 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Deux mesures, empilées — plus trois colonnes : le bloc n'en porte plus que
+   deux depuis le retrait du compte de machines, et les laisser en grille
+   étroite bridait le chiffre principal pour rien. */
 .ud-root .fleet-mine-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── La part du parc, dessinée ───────────────────────────────────────────
+   Une fraction de pour cent ne se saisit pas d'un chiffre : la piste montre le
+   parc entier, le trait ce qui revient au vault. Le remplissage garde un
+   plancher (voir le JSX) — à 0.16 %, une largeur fidèle ferait un trait d'un
+   pixel qu'on lirait comme une barre vide. */
+.ud-root .fleet-mine-bar {
+  height: 5px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: var(--ud-radius-pill);
+  background: rgba(158, 234, 122, 0.16);
+}
+
+.ud-root .fleet-mine-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+}
+
+/* La production se détache sur son propre fond : c'est un acquis du client, pas
+   une caractéristique du parc. Le filet du haut la sépare du hashrate sans
+   ajouter une ligne de plus. */
+.ud-root .fleet-mine-metric--produced {
+  padding-top: 14px;
+  border-top: 1px solid rgba(158, 234, 122, 0.16);
 }
 
 .ud-root .fleet-mine-value {
@@ -2384,7 +2465,10 @@
   margin: 0;
   min-width: 0;
   color: var(--ud-fg);
-  font-size: 38px;
+  /* MÊME corps que les chiffres de la bande client (`.fleet-mine-value`) : les
+     deux registres cohabitent dans le panneau, et huit pixels d'écart se
+     lisaient comme une hiérarchie qui n'existe pas. */
+  font-size: 30px;
   font-weight: 560;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -2392,8 +2476,10 @@
 }
 
 /* L'unité ne pèse pas autant que le nombre : elle le suit sans le concurrencer. */
+/* L'unité suit son chiffre : calibrée sur 38px, elle pesait trop lourd une fois
+   la valeur ramenée à 30. Même corps que `.fleet-mine-unit`, comme les valeurs. */
 .ud-root .fleet-cell-unit {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -3077,21 +3163,23 @@
   border-bottom: 1px solid var(--ud-line);
 }
 
+/* QUATRE blocs égaux : la réserve, puis les trois faits du contrat.
+   `.btc-block-terms` reprend ces colonnes en `subgrid`.
+
+   Pas de `gap` sur fond de ligne ici : le bandeau n'a pas de fond propre, et un
+   fond de grille se voyait en bande grise autour des blocs. Les séparateurs
+   sont des bordures portées par les blocs eux-mêmes. */
 .ud-root .btc-block-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  /* `stretch` : la colonne de droite prend toute la hauteur, donc son filet
-     gauche court d'un bord à l'autre sans cadre autour du bandeau. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* `stretch` : chaque bloc prend toute la hauteur, donc les filets courent
+     d'un bord à l'autre sans cadre autour du bandeau. */
   align-items: stretch;
 }
 
-.ud-root .btc-block-top > * {
-  padding: var(--ud-pad-card);
-}
-
-.ud-root .btc-block-top > * + * {
-  border-left: 1px solid var(--ud-line);
-}
+/* Ni padding ni bordure ici : les quatre blocs sont des `StatTile`, qui portent
+   leur propre retrait, et le filet vient du `gap` de grille. Ces deux règles
+   dataient du bandeau à deux colonnes. */
 
 .ud-root .btc-block-label {
   margin: 0;
@@ -3105,7 +3193,10 @@
   align-items: baseline;
   gap: 10px;
   margin: 0;
-  font-size: var(--ud-t-metric-lg);
+  /* 28px, comme les trois faits qui l'accompagnent : la réserve n'est plus
+     seule dans son bandeau, et le corps de métrique principale (38px) écrasait
+     une rangée de quatre valeurs. Le vert la distingue, pas la taille. */
+  font-size: 28px;
   font-weight: 600;
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -3157,6 +3248,61 @@
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
   color: var(--ud-fg);
+}
+
+/* ── Les faits du contrat, dans le bandeau ───────────────────────────────
+   Capital versé, état, date d'entrée : trois constantes qui situent la réserve.
+
+   Elles forment avec elle QUATRE BLOCS ÉGAUX sur toute la ligne — la réserve
+   occupe le premier, les trois faits les suivants. Serrées dans une colonne au
+   bord droit, elles se lisaient comme une note de bas de page ; à parts égales,
+   chacune porte son chiffre au même rang.
+
+   Le filet vertical entre les blocs vient de la grille, comme dans les rangées
+   de tuiles : un `gap` de 1px sur fond de ligne. */
+/* Les quatre blocs sont des `StatTile`, comme les rangées du dessous : picto
+   cerclé, pastille de fraîcheur, même graisse. Le filet vertical vient du `gap`
+   de grille sur fond de ligne, exactement comme `.position-grid` et
+   `.fund-kpis`.
+
+   Plus aucun style propre au bandeau : c'était ce qui le faisait détonner. */
+.ud-root .btc-block-top {
+  gap: 1px;
+  background: var(--ud-line);
+}
+
+.ud-root .btc-block-top > .stat-tile {
+  background: var(--ud-card);
+}
+
+/* La réserve porte le vert ET un corps plus grand : c'est la mesure du produit,
+   les trois autres ne font que la situer. Un cran au-dessus suffit à établir la
+   hiérarchie sans rompre l'uniformité des tuiles. */
+.ud-root .btc-block-top > .stat-tile:first-child .stat-value {
+  color: var(--hearst-green);
+  font-size: 28px;
+}
+
+/* Le contenu se CENTRE sur la hauteur de la rangée : les tuiles n'ont ni jauge
+   ni note ici, et leur gabarit à bandes fixes les collait en haut — d'où un
+   creux sous les chiffres. Deux bandes suffisent, le libellé et la valeur. */
+.ud-root .btc-block-top > .stat-tile {
+  grid-template-rows: auto auto;
+  align-content: center;
+}
+
+/* Sous 1024px, quatre colonnes rendraient chaque tuile illisible. */
+@media (max-width: 1024px) {
+  .ud-root .btc-block-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Sur téléphone, « 420,000 USDC » ne tient pas à deux colonnes : tout s'empile. */
+@media (max-width: 640px) {
+  .ud-root .btc-block-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ── Jauge : position contre référence HODL ───────────────────────────────
@@ -3681,6 +3827,62 @@
 
 /* ── Tablette portrait ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  /* ── Onglets → liste déroulante ───────────────────────────────────────
+     Les onglets ne tiennent plus sur une ligne à cette largeur : ils passaient
+     à la ligne et la piste perdait sa forme de pilule. La bascule se faisait à
+     480px seulement, donc entre 480 et 768 on voyait des onglets repliés.
+
+     Ni empilement (une pilule sur deux lignes n'a plus de forme), ni
+     défilement (ce qui dépasse devient invisible) : un sélecteur natif. */
+  .ud-root .chart-switch {
+    display: none;
+  }
+
+  /* Même registre que la pilule active du desktop (`.switch-pill`) : aplat
+     blanc, encre sombre. Le sélecteur EST la vue courante, il porte donc la
+     même couleur qu'elle porterait dans la piste d'onglets.
+
+     `appearance: none` retire le chevron système — trop collé au bord et
+     impossible à repositionner — au profit d'un chevron dessiné en
+     `background-image`, dont on maîtrise l'écart au bord droit. Le padding
+     droit lui réserve sa place, pour qu'un libellé long ne passe pas dessous. */
+  .ud-root .chart-switch-select {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: calc(100% - 28px);
+    height: 40px;
+    margin: 13px 14px;
+    padding: 0 40px 0 16px;
+    border: 0;
+    border-radius: var(--ud-radius-pill);
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%230a0a0a' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.75 6 6.5l5-4.75'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    /* 18px du bord : le chevron respire au lieu de toucher l'arrondi. */
+    background-position: right 18px center;
+    background-size: 11px 8px;
+    color: #0a0a0a;
+    font-family: inherit;
+    font-size: var(--ud-t-label);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Le menu déroulé est dessiné par le système : il hérite des couleurs du
+     `select`, ce qui donnait une liste sombre sur gris. On le repasse en
+     surface de carte, dans le registre de la page. */
+  .ud-root .chart-switch-select option {
+    background: var(--ud-card);
+    color: var(--ud-fg);
+    font-weight: 500;
+  }
+
+  .ud-root .chart-switch-select:focus-visible {
+    outline: 2px solid var(--hearst-green);
+    outline-offset: 2px;
+  }
+
   /* Le rail devient une barre horizontale : une colonne fixe de 170px ampute
      trop le contenu à cette largeur. */
   .ud-root .shell {
@@ -4270,58 +4472,6 @@
 
 /* ── Téléphone ────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  /* Cinq onglets ne tiennent pas sur 375px : la piste cède la place à un
-     sélecteur natif. Ni empilement (une pilule sur trois lignes n'a plus de
-     forme), ni défilement (ce qui dépasse devient invisible). */
-  .ud-root .chart-switch {
-    display: none;
-  }
-
-  /* Même registre que la pilule active du desktop (`.switch-pill`) : aplat
-     blanc, encre sombre. Le sélecteur EST la vue courante, il porte donc la
-     même couleur qu'elle porterait dans la piste d'onglets.
-
-     `appearance: none` retire le chevron système — trop collé au bord et
-     impossible à repositionner — au profit d'un chevron dessiné en
-     `background-image`, dont on maîtrise l'écart au bord droit. Le padding
-     droit lui réserve sa place, pour qu'un libellé long ne passe pas dessous. */
-  .ud-root .chart-switch-select {
-    appearance: none;
-    -webkit-appearance: none;
-    display: block;
-    width: calc(100% - 28px);
-    height: 40px;
-    margin: 13px 14px;
-    padding: 0 40px 0 16px;
-    border: 0;
-    border-radius: var(--ud-radius-pill);
-    background-color: #ffffff;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%230a0a0a' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.75 6 6.5l5-4.75'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    /* 18px du bord : le chevron respire au lieu de toucher l'arrondi. */
-    background-position: right 18px center;
-    background-size: 11px 8px;
-    color: #0a0a0a;
-    font-family: inherit;
-    font-size: var(--ud-t-label);
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  /* Le menu déroulé est dessiné par le système : il hérite des couleurs du
-     `select`, ce qui donnait une liste sombre sur gris. On le repasse en
-     surface de carte, dans le registre de la page. */
-  .ud-root .chart-switch-select option {
-    background: var(--ud-card);
-    color: var(--ud-fg);
-    font-weight: 500;
-  }
-
-  .ud-root .chart-switch-select:focus-visible {
-    outline: 2px solid var(--hearst-green);
-    outline-offset: 2px;
-  }
-
   /* La VARIABLE change, pas le padding : le pied de page la suit, donc son
      retrait latéral reste aligné sur celui des blocs à tous les paliers. */
   .ud-root {

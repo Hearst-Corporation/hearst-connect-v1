@@ -67,7 +67,7 @@ import { BtcPositionHeadline } from './btc-position'
  * Reachable only with a valid console session (login remains admin-gated today).
  */
 
-type CentralView = 'btc' | 'allocation' | 'compute' | 'value'
+type CentralView = 'btc' | 'allocation' | 'compute'
 type Route = 'dashboard' | 'trade'
 
 /**
@@ -160,13 +160,14 @@ const CENTRAL_VIEWS: readonly {
   // historique et ses fenêtres, plutôt que d'occuper deux endroits.
   { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
   { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
-  // Le parc en troisième : il dit ce qui PRODUIT le bitcoin, après ce que vaut
-  // le vault et comment il se répartit, avant la projection qui n'est qu'une
-  // hypothèse.
+  // Le parc ferme la série : il dit ce qui PRODUIT le bitcoin, après ce que
+  // vaut le vault et comment il se répartit.
+  //
+  // « Projection » a quitté le panneau : des scénarios Monte-Carlo à trois
+  // horizons ajoutaient douze montants hypothétiques à un écran que l'équipe
+  // produit trouvait déjà trop chargé — et une hypothèse ne se lit pas au même
+  // rang que ce qui est constaté.
   { key: 'compute', label: 'Compute', icon: CpuChipIcon },
-  // La projection ferme la série : c'est une hypothèse, pas une mesure — elle
-  // se lit après ce qui est constaté, jamais avant.
-  { key: 'value', label: 'Projection', icon: PresentationChartLineIcon },
 ]
 
 function seriesState(
@@ -389,16 +390,6 @@ export function UserDashboardView({
       state: btcState,
       node: btcPoints !== null ? <BtcPricePanel points={[...btcPoints]} /> : null,
       source: data.btcSeries,
-    },
-    value: {
-      // Plus l'AUM du fonds : le vault est DÉDIÉ, un total mutualisé n'aurait
-      // pas de sens ici. Ce que le client veut savoir, c'est où son propre
-      // vault peut aller — d'où la projection et ses bandes.
-      question: 'Where this vault could be',
-      unit: 'Monte-Carlo scenarios · USDC',
-      state: projectionState,
-      node: projection !== null ? <ProjectionTable projection={projection} /> : null,
-      source: data.projection,
     },
     compute: {
       // Le parc industriel derrière le vault, et la part qui revient au client.
@@ -651,67 +642,41 @@ export function UserDashboardView({
                   </div>
                 ) : null}
 
+                {/* Capital, état et date d'entrée REJOIGNENT le bandeau : ce
+                    sont des constantes du contrat, pas des mesures qui bougent.
+                    En tuiles pleines sous la réserve, elles occupaient le même
+                    rang visuel que la production et les retraits — et la rangée
+                    entière a donc disparu.
+
+                    « Accrued » et « Reserve value » n'y reviennent pas : la
+                    première répétait « Earned to date », la seconde le grand
+                    chiffre du bandeau. */}
                 <BtcPositionHeadline
                   positionBtc={data.positionBtc}
-                  accruedBtc={data.accruedBtc}
                   vsHodl={data.btcVsHodl}
+                  terms={[
+                    {
+                      label: 'Principal',
+                      value: subscribedValue(positionPrincipal),
+                      icon: ScaleIcon,
+                      signal: signalOf(data.positionPrincipal),
+                    },
+                    {
+                      label: 'Status',
+                      value:
+                        positionStatus !== null ? readableSourceStateCap(positionStatus) : '—',
+                      icon: SignalIcon,
+                      signal: signalOf(data.positionStatus),
+                    },
+                    {
+                      label: 'Subscribed at',
+                      value:
+                        positionSubscribedAt !== null ? formatDate(positionSubscribedAt) : '—',
+                      icon: CalendarDaysIcon,
+                      signal: signalOf(data.positionSubscribedAt),
+                    },
+                  ]}
                 />
-
-                <div className="position-grid">
-                  <StatTile
-                    icon={ScaleIcon}
-                    label="Principal"
-                    /* Les DOLLARS VERSÉS portent la tuile : c'est le fait figé.
-                       Le bitcoin acquis les accompagne, au cours d'entrée — pas
-                       au cours du jour, qui ferait bouger un montant immuable. */
-                    value={subscribedValue(positionPrincipal)}
-                    signal={signalOf(data.positionPrincipal)}
-                  />
-                  <StatTile
-                    icon={ChartPieIcon}
-                    label="Accrued"
-                    value={btcValue(positionAccrued)}
-                    signal={signalOf(data.positionAccrued)}
-                    /* Pas de contrevaleur : ce cumul s'est constitué versement
-                       par versement, chacun à SON cours. Le multiplier par le
-                       spot du jour afficherait une somme que le client n'a
-                       jamais reçue. Seule une addition des montants réellement
-                       versés dirait vrai — et la source ne la publie pas. */
-                  />
-                  <StatTile
-                    icon={BanknotesIcon}
-                    label="Reserve value"
-                    value={btcValue(positionValue)}
-                    signal={signalOf(data.positionValue)}
-                    /* « Reserve », pas « Position » : le produit constitue une
-                       réserve stratégique en bitcoin, il ne verse pas un coupon
-                       sur un capital. Le montant se lit donc en BTC — ce que
-                       vaut la réserve aujourd'hui, à comparer au repère HODL
-                       porté en tête de page.
-
-                       Pas de contrevaleur en dollars : elle agrège du rendement
-                       produit mois après mois à des cours différents. */
-                  />
-                  <StatTile
-                    icon={SignalIcon}
-                    label="Status"
-                    value={positionStatus !== null ? readableSourceStateCap(positionStatus) : '—'}
-                    signal={signalOf(data.positionStatus)}
-                  />
-                  <StatTile
-                    icon={CalendarDaysIcon}
-                    label="Subscribed at"
-                    value={positionSubscribedAt !== null ? formatDate(positionSubscribedAt) : '—'}
-                    signal={signalOf(data.positionSubscribedAt)}
-                  />
-                  {/* La grille tombe à trois colonnes sous 1024px : cinq tuiles
-                      laissent une place vide en fin de seconde rangée. Le motif
-                      de marque l'occupe plutôt qu'un trou. Décoratif, donc
-                      `aria-hidden` — rien à annoncer à un lecteur d'écran. */}
-                  <div className="position-grid-mark" aria-hidden="true">
-                    <DottedH className="position-grid-mark-svg" />
-                  </div>
-                </div>
               </section>
 
               <section className="fund-vault" aria-label="Your vault">
