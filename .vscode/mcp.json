@@ -1,9 +1,4 @@
 {
-	"servers": {
-		"Supernova": {
-			"type": "http",
-			"url": "https://mcp.supernova.io/mcp/ds/853766"
-		}
-	},
-	"inputs": []
+	"inputs": [],
+	"servers": {}
 }

@@ -4589,6 +4589,14 @@
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
+    /* Le bouton se CENTRE sur la ligne du titre. Il mesure 24px de haut quand
+       le libellé en fait 16 : à hauts alignés, il débordait de 8px vers le bas
+       et venait mordre sur la jauge, si bien qu'il se lisait comme une
+       étiquette de la barre plutôt que comme l'action de la poche. */
+    align-self: center;
+    /* Le surplus de hauteur est repris vers le haut, pour que le texte du
+       bouton tombe sur la même ligne optique que le nom de la poche. */
+    margin-top: -4px;
   }
 
   /* Le bloc déplié part du BORD GAUCHE, pas de la colonne du libellé. Sur le
