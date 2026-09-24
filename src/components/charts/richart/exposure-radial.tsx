@@ -22,10 +22,12 @@ import { useState } from 'react'
  *
  * ── The encoding ──────────────────────────────────────────────────────────
  * Per strategy, on its own ring, same category color: a faint full-turn TRACK
- * (the 0–100 context), a SOLID arc for the actual reading, and a bright TICK at
- * the target angle. State is read from ring geometry, never from hue — green and
- * orange stay reserved for meaning. The gap between the solid arc-end and the
- * target tick IS the drift. Honest by construction: a null actual draws no arc
+ * (the 0–100 context), a SOLID arc for the actual reading, and a bright TICK
+ * closing that arc at its end. State is read from ring geometry, never from hue
+ * — green and orange stay reserved for meaning. Drift is not drawn here: the
+ * tick sat at the target angle until it read as a misplaced line rather than a
+ * measure, so the figure now shows the reading and the "Drift" column carries
+ * the gap to target. Honest by construction: a null actual draws no arc
  * (legend "—"); a genuine 0 % draws no arc either (butt caps, gated on > 0), so
  * zero exposure is never a fabricated dot; a negative reading is floored at 0 so
  * a bad datum can never become a full solid ring; an actual above 100 % caps at
@@ -120,9 +122,19 @@ export function HearstExposureRadial({
     // never become a full ring) and cap at 100 (over-allocation shows a full turn;
     // the legend keeps the exact number — the chart never fakes a share).
     const actualFrac = r.actualPct === null ? null : Math.max(0, Math.min(r.actualPct, 100)) / 100
-    const targetTick = Math.min(Math.max(r.targetPct, 0), 100)
-    const tickInner = polar(radius - thickness / 2 - 1, targetTick)
-    const tickOuter = polar(radius + thickness / 2 + 1, targetTick)
+    /* Le repère ferme l'arc : il se pose à son EXTRÉMITÉ, pas à la cible.
+       Posé sur la cible, il tombait à côté de la couleur — devant elle quand
+       la poche était sous sa cible, dedans quand elle la dépassait — et se
+       lisait comme un trait mal placé plutôt que comme une mesure. La dérive
+       n'est pas perdue pour autant : la colonne « Drift » la chiffre, et le
+       détail de chaque poche rappelle cible et réel côte à côte.
+       Repli sur la cible quand le réel est absent : il faut bien un repère. */
+    const tickPct =
+      r.actualPct === null
+        ? Math.min(Math.max(r.targetPct, 0), 100)
+        : Math.max(0, Math.min(r.actualPct, 100))
+    const tickInner = polar(radius - thickness / 2 - 1, tickPct)
+    const tickOuter = polar(radius + thickness / 2 + 1, tickPct)
     return { ...r, radius, circumference, actualFrac, tickInner, tickOuter }
   })
 
@@ -180,9 +192,9 @@ export function HearstExposureRadial({
                     <title>{`${g.label} — actual ${formatNumber(g.actualPct as number, { maximumFractionDigits: 1 })}%`}</title>
                   </circle>
                 ) : null}
-                {/* Target — a bright neutral tick across the ring at the target
-                    angle. Neutral (not the category hue) so the "target here"
-                    marker reads on every ring, even the faint neutral ones. */}
+                {/* End cap — a bright neutral tick closing the arc at its own
+                    end. Neutral (not the category hue) so it reads on every
+                    ring, even the faint neutral ones. */}
                 <line
                   x1={g.tickInner.x}
                   y1={g.tickInner.y}
