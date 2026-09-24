@@ -1,7 +1,8 @@
 'use client'
 
 import '@/styles/tailwind.css'
-import satoshiUrl from '../assets/fonts/Satoshi-Variable.woff2'
+import fkRegularUrl from '../assets/fonts/FKGrotesk-Regular.woff2'
+import fkMediumUrl from '../assets/fonts/FKGrotesk-Medium.woff2'
 
 /**
  * Global error boundary (UI-06).
@@ -19,7 +20,13 @@ export default function GlobalError({
       <head>
         <style
           dangerouslySetInnerHTML={{
-            __html: `@font-face{font-family:'Satoshi';src:url('${satoshiUrl}') format('woff2');font-weight:300 900;font-display:swap;font-style:normal}`,
+            /* Deux graisses seulement : cette page ne porte qu'un titre et un
+               paragraphe, et elle doit pouvoir s'afficher quand tout le reste
+               a échoué — moins elle charge, mieux c'est. */
+            __html:
+              `@font-face{font-family:'FK Grotesk';src:url('${fkRegularUrl}') format('woff2');font-weight:400;font-display:swap;font-style:normal}` +
+              `@font-face{font-family:'FK Grotesk';src:url('${fkMediumUrl}') format('woff2');font-weight:500;font-display:swap;font-style:normal}` +
+              `:root{--font-fk-grotesk:'FK Grotesk'}`,
           }}
         />
       </head>

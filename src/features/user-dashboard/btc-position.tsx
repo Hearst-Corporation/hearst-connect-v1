@@ -2,6 +2,7 @@
 
 import type { ComponentType, SVGProps } from 'react'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
+import { formatBtc } from '@/lib/format'
 import type { BtcEquivalent, BtcVsHodl } from './load'
 import { isAvailable, signalOf, valueOf, type Availability, type Signal } from '@/lib/vaults/model'
 import { StatTile } from './stat-tile'
@@ -22,10 +23,9 @@ import { StatTile } from './stat-tile'
  * côté backend, on change la source et le bloc tient tel quel.
  */
 
-/** BTC porte 8 décimales ; 6 se lisent proprement sans mentir sur la précision. */
-const btcText = (n: number) => n.toFixed(6)
-
-
+/* `formatBtc` partout : deux décimales, comme sur toutes les surfaces du
+   tableau de bord. Six décimales donnaient des nombres qu'on lit chiffre à
+   chiffre au lieu de les comparer. */
 const pctText = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)} %`
 
 /** Un fait du contrat : une constante qui situe la réserve sans la commenter. */
@@ -75,8 +75,13 @@ export function BtcPositionHeadline({
             porte juste en dessous. */}
         <StatTile
           icon={BitcoinIcon}
-          label="Mined and accumulated for your vault"
-          value={pos !== null ? `${btcText(pos.btc)} BTC` : '—'}
+          /* « incl. your capital » : la réserve n'est pas que du bitcoin miné —
+             elle agrège le capital souscrit et ce que la production y ajoute.
+             Sans ce rappel, le libellé laissait croire que 5.27 BTC sortent du
+             seul minage, alors que la tuile « Produced for your vault » en
+             annonce 1.20. */
+          label="Mined and accumulated, incl. your capital"
+          value={formatBtc(pos?.btc ?? null)}
           signal={signalOf(positionBtc)}
           footnote={
             pos === null
@@ -163,7 +168,7 @@ function HodlGauge({ vsHodl }: Readonly<{ vsHodl: Availability<BtcVsHodl> }>) {
           <div className="btc-gauge-track">
             <div className="btc-gauge-fill is-held" style={{ width: `${heldPct}%` }} />
           </div>
-          <p className="btc-gauge-val">{btcText(heldBtc)}</p>
+          <p className="btc-gauge-val">{formatBtc(heldBtc)}</p>
         </div>
 
         <div className="btc-gauge-row">
@@ -171,7 +176,7 @@ function HodlGauge({ vsHodl }: Readonly<{ vsHodl: Availability<BtcVsHodl> }>) {
           <div className="btc-gauge-track">
             <div className="btc-gauge-fill is-hodl" style={{ width: `${hodlPct}%` }} />
           </div>
-          <p className="btc-gauge-val">{btcText(hodlBtc)}</p>
+          <p className="btc-gauge-val">{formatBtc(hodlBtc)}</p>
         </div>
       </div>
     </div>

@@ -289,7 +289,11 @@ function PocketRow({
         style={{ background: row.fill }}
         aria-hidden="true"
       />
-      <span className="min-w-0 truncate text-fg-secondary" title={row.label}>
+      {/* Encre PLEINE : le nom de la poche est l'entrée de sa ligne, pas une
+          annotation. En gris secondaire il pesait moins que les chiffres qui
+          le suivent, alors que c'est lui qu'on cherche en parcourant la
+          liste. */}
+      <span className="min-w-0 truncate text-fg" title={row.label}>
         {row.label}
       </span>
       {/* Poids de la poche dans le vault. L'échelle est absolue (0–100 % du

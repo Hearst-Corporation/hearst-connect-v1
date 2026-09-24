@@ -13,7 +13,7 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useState, type ComponentType, type SVGProps } from 'react'
-import { formatCurrency, formatDate, formatDateTime } from '@/lib/format'
+import { formatBtc, formatCurrency, formatDate, formatDateTime } from '@/lib/format'
 import { valueOf } from '@/lib/vaults/model'
 import { useMotionReady } from './motion-guard'
 import type { UserDashboard, UserMovement } from './load'
@@ -64,7 +64,7 @@ function Row({
   // cours lisible, la colonne reste vide plutôt que d'afficher un taux supposé.
   const btc =
     movement.amountUsdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
-      ? `${(movement.amountUsdc / btcSpotUsd).toFixed(4)} BTC`
+      ? formatBtc(movement.amountUsdc / btcSpotUsd)
       : null
 
   return (

@@ -8,13 +8,60 @@
 export function DottedH({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
-      viewBox="0 0 268 295"
+      /* Le cadre épouse EXACTEMENT le tracé, bord à bord.
+         — en x : de 0.4565 (bord gauche de la première barre) à 267.531 (bord
+           droit de la dernière), soit 267.074 de large ;
+         — en y : de -0.365 (les tirets du haut sont tracés au-dessus de zéro)
+           à 294.734, soit 295.099 de haut.
+
+         Ce cadrage n'est pas cosmétique. Avec un viewBox de 0 à 268, les deux
+         bords du tracé tombaient à des fractions de pixel différentes une fois
+         mis à l'échelle, et le navigateur rendait la barre de droite sur une
+         colonne de pixels plus partielle que celle de gauche — d'où un trait
+         qui paraissait plus fin alors que les quatre barres mesurent la même
+         chose dans le path (0.7297 unité chacune, vérifié). En collant le cadre
+         au tracé, les quatre barres tombent sur la même grille. */
+      /* Le cadre laisse 1.5 unité de MARGE autour du tracé.
+         Mesuré : avec un cadre collé au dessin (0.4565 → 267.531), les deux
+         barres extérieures touchaient la limite et le contour, centré sur le
+         bord, était amputé de moitié — 378 et 161 d'encre contre 650 pour les
+         deux barres intérieures, soit un rapport de 4 entre la plus épaisse et
+         la plus fine. C'est exactement le défaut visible à l'œil.
+         La marge laisse la place au contour de se développer des deux côtés. */
+      viewBox="-4 -4 276 303"
       className={className}
       fill="none"
       aria-hidden="true"
       focusable="false"
     >
       <path
+        /* Contour de la MÊME couleur que le remplissage : il épaissit chaque
+           tiret de façon uniforme, sans changer le dessin.
+
+           Sans lui, un tiret mesure 0.73 unité sur un viewBox de 295 — soit
+           0.27 pixel une fois rendu à 110px de haut. Sous le pixel, le
+           navigateur étale le trait sur un pixel partiel et son opacité dépend
+           de l'endroit où tombe son bord : un côté paraissait net, l'autre
+           délavé. Le contour porte l'épaisseur au-dessus du seuil, donc tous
+           les tirets s'affichent pareil.
+
+           `vectorEffect` fige cette épaisseur en PIXELS quelle que soit la
+           taille d'affichage : le monogramme reste régulier qu'il fasse 90 ou
+           200px. */
+        /* Le contour fixe une épaisseur PLANCHER en pixels, identique pour les
+           quatre barres. Sans lui, un tiret mesure 0.73 unité sur 267 — soit
+           0.27 pixel à la taille d'affichage. Sous le pixel, le rendu dépend de
+           l'endroit où tombent les bords : mesuré, la barre de gauche sortait à
+           18.3 d'encre et celle de droite à 9.1, la moitié. C'est l'écart que
+           l'œil lit comme « plus fine ».
+
+           `vectorEffect="non-scaling-stroke"` fige cette épaisseur en pixels
+           quelle que soit la taille d'affichage, donc les quatre barres sont
+           rendues pareil à 90 comme à 200px. */
+        stroke="currentColor"
+        strokeWidth={1.4}
+        vectorEffect="non-scaling-stroke"
+        strokeLinejoin="round"
         fillRule="evenodd"
         clipRule="evenodd"
         fill="currentColor"

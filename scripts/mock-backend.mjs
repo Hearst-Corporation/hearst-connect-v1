@@ -175,9 +175,9 @@ const runtimeBlock = () => ({
 
 /** Pockets = stratégies pondérées, en bps (10000 = 100%). */
 const POCKETS = [
-  { pocket: 'p0', label: 'Basis carry', targetBps: 4200, actualBps: 4262, driftBps: 62, isIdle: false, enabled: true, adapter: 'BasisAdapter', pocketAssets: String(Math.round(20_265_000 * 1e6)) },
-  { pocket: 'p1', label: 'RWA T-bills', targetBps: 3300, actualBps: 3158, driftBps: -142, isIdle: false, enabled: true, adapter: 'RwaAdapter', pocketAssets: String(Math.round(15_922_500 * 1e6)) },
-  { pocket: 'p2', label: 'Mining alpha', targetBps: 2500, actualBps: 2580, driftBps: 80, isIdle: false, enabled: true, adapter: 'MiningAdapter', pocketAssets: String(Math.round(12_062_500 * 1e6)) },
+  { pocket: 'p1', label: 'Mining Alpha', targetBps: 4000, actualBps: 3858, driftBps: -142, isIdle: false, enabled: true, adapter: 'MiningAdapter', pocketAssets: String(Math.round(18614850 * 1e6)) },
+  { pocket: 'p0', label: 'Bitcoin Lending', targetBps: 2700, actualBps: 2762, driftBps: 62, isIdle: false, enabled: true, adapter: 'LendingAdapter', pocketAssets: String(Math.round(13326650 * 1e6)) },
+  { pocket: 'p2', label: 'USDC Yield', targetBps: 3300, actualBps: 3380, driftBps: 80, isIdle: false, enabled: true, adapter: 'StableAdapter', pocketAssets: String(Math.round(16308500 * 1e6)) },
 ]
 
 /*
@@ -524,9 +524,9 @@ function payloadFor(path) {
         managementFeePct: 1.5,
         allocation: {
           pockets: [
-            { pocket: 'p0', label: 'Basis carry', targetBps: 4200, actualBps: 4262 },
-            { pocket: 'p1', label: 'RWA T-bills', targetBps: 3300, actualBps: 3158 },
-            { pocket: 'p2', label: 'Mining alpha', targetBps: 2500, actualBps: 2580 },
+            { pocket: 'p1', label: 'Mining Alpha', targetBps: 4000, actualBps: 3858 },
+            { pocket: 'p0', label: 'Bitcoin Lending', targetBps: 2700, actualBps: 2762 },
+            { pocket: 'p2', label: 'USDC Yield', targetBps: 3300, actualBps: 3380 },
           ],
         },
       }),
@@ -554,9 +554,9 @@ function payloadFor(path) {
                 ? BTC_SPOT_USD
                 : Math.round(BTC_SPOT_USD * (1 + Math.sin(i / 9) * 0.06 + (rnd() - 0.5) * 0.03)),
             allocations: [
-              { bucket: 'Basis carry', pct: Number((42 + drift).toFixed(2)) },
-              { bucket: 'RWA T-bills', pct: Number((33 - drift).toFixed(2)) },
-              { bucket: 'Mining alpha', pct: 25 },
+              { bucket: 'Mining Alpha', pct: Number((40 - drift).toFixed(2)) },
+              { bucket: 'Bitcoin Lending', pct: Number((27 + drift).toFixed(2)) },
+              { bucket: 'USDC Yield', pct: 33 },
             ],
           }
         }),
@@ -578,7 +578,7 @@ function payloadFor(path) {
         deployedPct: '85.00',
         maxDriftBps: 142,
         maxDriftStrategyId: 'strat-1',
-        maxDriftStrategyLabel: 'RWA T-bills',
+        maxDriftStrategyLabel: 'Mining Alpha',
         maxDriftVaultId: 'vault-1',
       }),
     }
@@ -589,7 +589,7 @@ function payloadFor(path) {
    *
    * Chaque vault est dédié à un client et porte SA PROPRE allocation : ZAND ne
    * veut pas le mix de Rain. Le modèle précédent attribuait une stratégie
-   * unique à chaque vault (`Basis carry` = `vault-0`), ce qui revenait à dire
+   * unique à chaque vault (`Bitcoin Lending` = `vault-0`), ce qui revenait à dire
    * qu'un client ne détient qu'une poche — et faisait lire le total comme une
    * allocation commune.
    *
@@ -605,9 +605,9 @@ function payloadFor(path) {
       'vault-2': { label: 'Rain Financial', capital: 3_400_000, basis: 5500, rwa: 3500, mining: 1000 },
     }
     const POCKET = [
-      { id: 'strat-0', label: 'Basis carry', key: 'basis' },
-      { id: 'strat-1', label: 'RWA T-bills', key: 'rwa' },
-      { id: 'strat-2', label: 'Mining alpha', key: 'mining' },
+      { id: 'strat-1', label: 'Mining Alpha', key: 'mining' },
+      { id: 'strat-0', label: 'Bitcoin Lending', key: 'lending' },
+      { id: 'strat-2', label: 'USDC Yield', key: 'stable' },
     ]
     const totalCapital = Object.values(MIX).reduce((sum, m) => sum + m.capital, 0)
 
@@ -667,7 +667,7 @@ function payloadFor(path) {
         lastRebalanceTxHash: '0x' + 'ab'.repeat(32),
         indexerStatus: 'HEALTHY',
         alerts: [
-          { strategyId: 'strat-1', strategyLabel: 'RWA T-bills', vaultId: 'vault-1', driftBps: -142 },
+          { strategyId: 'strat-1', strategyLabel: 'Mining Alpha', vaultId: 'vault-1', driftBps: -142 },
         ],
       }),
     }
@@ -826,7 +826,7 @@ function payloadFor(path) {
     return {
       vault: bloc({
         vaultId: 'vault-0',
-        label: 'Dedicated vault',
+        label: 'Dedicated Vault',
         principalUsdc: principal,
         // Cumul déjà sorti, et sa part du principal.
         withdrawnUsdc: withdrawn,

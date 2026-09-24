@@ -48,7 +48,7 @@
 
   /* ── Échelle typographique (fixe) ─────────────────────────────────────── */
   --ud-t-page: 22px;             /* titre de page */
-  --ud-t-section: 16px;          /* titre de section */
+  --ud-t-section: 17px;          /* titre de section (h2) — voir plus bas */
   --ud-t-card: 14px;             /* titre de carte */
   --ud-t-body: 13px;
   --ud-t-label: 12px;
@@ -74,8 +74,8 @@
   min-height: 100dvh;
   color: var(--ud-fg);
   background: var(--ud-page);
-  /* Product typeface only — Satoshi Variable from root layout. */
-  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  /* Product typeface only — FK Grotesk from root layout. */
+  font-family: var(--font-fk-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
 .ud-root * {
@@ -199,7 +199,7 @@
 .ud-root .rail-item.active {
   color: #06110a;
   background: var(--hearst-green);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ud-root .rail-item.active:hover {
@@ -263,7 +263,7 @@
 
 .ud-root .bucket-yield-pct {
   color: var(--ud-fg);
-  font-weight: 600;
+  font-weight: 500;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -325,7 +325,7 @@
 
 .ud-root .prodcost-lead-pct {
   color: var(--hearst-green);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -350,7 +350,7 @@
   margin: 0;
   color: var(--hearst-green);
   font-size: 40px;
-  font-weight: 560;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
@@ -358,7 +358,7 @@
 
 .ud-root .prodcost-lead-strong {
   color: var(--ud-fg);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Les deux bornes encadrent la piste : coût à gauche, prix de vente à droite. */
@@ -383,7 +383,7 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: 24px;
-  font-weight: 480;
+  font-weight: 500;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -432,7 +432,7 @@
 
 .ud-root .prodcost-legend-pct {
   color: var(--hearst-green);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -518,7 +518,7 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: 21px;
-  font-weight: 560;
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -568,7 +568,7 @@
 
 .ud-root .dist-legend-value {
   color: var(--ud-fg);
-  font-weight: 600;
+  font-weight: 500;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -642,7 +642,7 @@
   color: var(--ud-fg-2);
   font-family: inherit;
   font-size: var(--ud-t-micro);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
@@ -676,7 +676,7 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: 30px;
-  font-weight: 480;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -719,14 +719,14 @@
 
 .ud-root .projection-table thead .is-median {
   color: var(--hearst-green);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ud-root .projection-amount {
   display: block;
   color: var(--ud-fg);
   font-size: var(--ud-t-label);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -797,8 +797,12 @@
 .ud-root .btc-price-value {
   margin: 0;
   color: var(--ud-fg);
-  font-size: 30px;
-  font-weight: 480;
+  /* 28px, le corps commun des valeurs du tableau de bord. Les 30px sont
+     réservés aux deux mesures du produit — la réserve et le coût de
+     production — que leur vert distingue déjà ; le cours du bitcoin est un
+     contexte de marché, pas une mesure du vault. */
+  font-size: 28px;
+  font-weight: 500;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -809,7 +813,7 @@
   gap: 7px;
   margin: 0;
   font-size: var(--ud-t-label);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -884,7 +888,7 @@
   color: var(--ud-fg-2);
   font-family: inherit;
   font-size: var(--ud-t-micro);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
@@ -957,7 +961,7 @@
   color: var(--hearst-green-ink);
   font-family: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   cursor: pointer;
   transition: filter 0.15s;
@@ -1004,7 +1008,7 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: var(--ud-t-label);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ud-root .newsletter-copy {
@@ -1055,7 +1059,7 @@
   color: var(--hearst-green-ink);
   font-family: inherit;
   font-size: var(--ud-t-micro);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: filter 0.15s;
 }
@@ -1133,7 +1137,7 @@
 .ud-root .topbar-name {
   color: var(--ud-fg);
   font-size: var(--body-copy);
-  font-weight: 550;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -1160,7 +1164,7 @@
 .ud-root .brand {
   gap: 10px;
   font-size: var(--ud-t-card);
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .ud-root .brand-mark {
@@ -1299,11 +1303,23 @@
   border-bottom: 1px solid var(--ud-line);
 }
 
+/* Le bandeau « Your position » réserve sous son texte une rangée pour le
+   formulaire de dépôt : même fermée, la gouttière de sa grille laisse ~19px de
+   plus sous le sous-titre. Ce bandeau-ci n'a pas de rangée équivalente, et sa
+   phrase tombait donc d'autant plus près du filet. On rétablit l'écart à la
+   main pour que les deux en-têtes respirent pareil.
+
+   Déclarée APRÈS `.section-heading { padding }` : à spécificité égale, c'est
+   l'ordre qui tranche, et placée plus haut elle se faisait écraser. */
+.ud-root .vault-heading {
+  padding-bottom: calc(var(--ud-pad-card) + 19px);
+}
+
 .ud-root .section-heading h2 {
   margin: 0;
   color: var(--ud-fg);
   font-size: var(--ud-t-section);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
@@ -1328,9 +1344,9 @@
   grid-template-columns: minmax(0, 62ch) auto;
   grid-template-areas: 'title cta' 'form form';
   justify-content: space-between;
-  /* `center` : sans sous-titre, le titre tient sur une ligne — le CTA se cale
-     dessus au lieu de flotter au-dessus. */
-  align-items: center;
+  /* `start`, comme `vault-heading` : le titre porte désormais son sous-titre,
+     et un CTA centré sur l'ensemble flotterait au milieu du paragraphe. */
+  align-items: start;
   gap: 20px;
 }
 
@@ -1428,7 +1444,7 @@
 .ud-root .flank-mark-svg {
   width: auto;
   height: 100%;
-  max-height: 144px;
+  max-height: 110px;
   color: var(--hearst-green);
 }
 
@@ -1458,7 +1474,7 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: 18px;
-  font-weight: 520;
+  font-weight: 500;
 }
 
 .ud-root .deposit-copy p {
@@ -1492,11 +1508,11 @@
   min-width: 0;
 }
 
-.ud-root .your-account .movements-heading h3 {
+.ud-root .your-account .movements-heading h2 {
   margin: 0;
   color: var(--ud-fg);
-  font-size: 18px;
-  font-weight: 520;
+  font-size: var(--ud-t-section);
+  font-weight: 500;
 }
 
 /* ── Fund / Vault ────────────────────────────────────────────────────────── */
@@ -1530,12 +1546,12 @@
   margin: 0 0 7px;
   color: var(--ud-fg-3);
   font-size: var(--micro);
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-/* Page titles use AdminHeroTitle (Satoshi + admin scale) — do not restyle h1 here. */
+/* Page titles use AdminHeroTitle (FK Grotesk + admin scale) — do not restyle h1 here. */
 .ud-root h1 {
   margin: 0;
 }
@@ -1590,6 +1606,24 @@
 .ud-root .stat-foot .stat-footnote,
 .ud-root .stat-foot .stat-spark {
   margin: 0;
+}
+
+/* Les légendes de bas de tuile descendent de 3px : collées sous leur jauge —
+   ou, pour celles qui n'en ont pas, calées au même rang — elles manquaient
+   d'air. Déclarée APRÈS le `margin: 0` ci-dessus, qui sinon l'écraserait.
+
+   Les QUATRE notes de la rangée bougent ensemble, jauge ou pas : elles se
+   lisent sur une même ligne d'écran, et n'en décaler que deux aurait cassé
+   cet alignement. */
+.ud-root .stat-foot .stat-footnote {
+  margin-top: 3px;
+}
+
+/* Les deux jauges remontent de 7px. Descendre les légendes les avait laissées
+   seules au milieu de la bande ; ce retrait les ramène contre le chiffre
+   qu'elles mesurent, et l'air gagné passe entièrement sous elles. */
+.ud-root .stat-foot .stat-meter {
+  margin-top: -7px;
 }
 
 .ud-root .stat-eyebrow {
@@ -1667,7 +1701,7 @@
 .ud-root .stat-value {
   color: var(--ud-fg);
   font-size: var(--ud-t-metric);
-  font-weight: 480;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 
@@ -1719,6 +1753,32 @@
   gap: 1px;
   background: var(--ud-line);
   border-bottom: 1px solid var(--ud-line);
+  /* Hauteur de rangée FIXE, indépendante de l'onglet affiché. Les trois vues
+     du panneau central ne font pas la même hauteur (le parc de machines, le
+     graphe d'allocation et la courbe du cours diffèrent d'une centaine de
+     pixels), et la rangée se redimensionnait à chaque clic : les deux flancs,
+     qui n'ont pourtant pas changé, se déplaçaient avec elle. Un bloc qui bouge
+     alors que son contenu est identique se lit comme un défaut.
+
+     Le plancher est calé sur la plus haute des trois vues, donc seule la vue
+     la plus courte laisse du vide sous elle — et ce vide reste au même endroit
+     d'un onglet à l'autre. */
+  /* 615px : la hauteur de la plus haute des trois vues centrales (Compute 590,
+     Allocation 573, BTC price 615, mesurées). Sans ce plancher, la rangée se
+     redimensionnait à chaque changement d'onglet et les deux flancs — qui
+     n'ont pourtant pas changé — se déplaçaient avec elle. */
+  grid-auto-rows: minmax(615px, auto);
+}
+
+/* Le plancher ne vaut QUE pour le gabarit à cinq colonnes, où les trois blocs
+   partagent une rangée : c'est là que changer d'onglet redimensionnait la
+   rangée et déplaçait les flancs. Sous 1024px les blocs s'empilent, chacun
+   dans sa propre rangée — imposer 615px à chacun creuserait un vide sous les
+   plus courts. */
+@media (max-width: 1024px) {
+  .ud-root .analysis {
+    grid-auto-rows: auto;
+  }
 }
 
 /* Chaque cellule repeint le fond de carte par-dessus le fond de grille. */
@@ -1772,7 +1832,7 @@
   gap: 7px;
   color: var(--ud-fg);
   font-size: 17px;
-  font-weight: 560;
+  font-weight: 500;
 }
 
 .ud-root .flank-heading h2 svg {
@@ -1949,8 +2009,8 @@
 .ud-root .center-head h2 {
   margin: 0;
   color: var(--ud-fg);
-  font-size: 16px;
-  font-weight: 560;
+  font-size: 17px;
+  font-weight: 500;
   white-space: nowrap;
   flex: 0 0 auto;
 }
@@ -2036,13 +2096,19 @@
      que de creuser un trou sous la dernière section. Les sections gardent leur
      écart propre — c'est le bloc entier qui se centre, pas chaque élément qui
      s'écarte de son voisin. */
-  justify-content: center;
-  gap: 18px;
-  /* Même retrait latéral que `.flank-heading` (8px) : sans lui, le titre était
-     en retrait de 8px et le contenu collé au bord de la carte — deux verticales
-     pour un même bloc. Le `20px` de `.flank-panel` s'y ajoute, ce qui donne
-     28px de marge réelle contre le bord. */
-  margin: 20px 14px 16px;
+  /* ANCRÉ EN HAUT. Centré, le corps flottait au milieu d'une rangée haute de
+     616px : il restait un grand vide entre le sous-titre et le coût, et un
+     autre sous la pastille. Le contenu suit son titre, le vide va en bas. */
+  justify-content: flex-start;
+  /* UN seul écart entre sections : le bloc empile cinq groupes, et des
+     intervalles de 22 / 20 / 16 / 6px faisaient respirer chaque couture
+     différemment. Un pas unique — plus large qu'avant, le bloc ayant de la
+     hauteur à revendre — et la colonne se lit comme une grille. */
+  gap: 26px;
+  /* Latéralement, le corps s'aligne EXACTEMENT sur le titre (14px) ; en haut,
+     l'écart au sous-titre reste plus serré que le pas entre sections, pour que
+     le coût se rattache à son titre plutôt que de flotter entre les deux. */
+  margin: 20px 14px 14px;
 }
 
 
@@ -2062,7 +2128,7 @@
 
 .ud-root .mining-flank-cushion strong {
   color: var(--hearst-green);
-  font-weight: 650;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2076,6 +2142,13 @@
 
 /* ── Le coût de production, en tête ──────────────────────────────────────
    LA mesure du bloc : le prix auquel le produit obtient son bitcoin. */
+/* Le coût SEUL en tête. Le prix de marché est en bas de l'axe, face à la marge
+   — c'est là qu'il se lit comme la borne dont on mesure la distance au seuil,
+   plutôt que comme un second grand chiffre en concurrence avec le coût. */
+.ud-root .mining-flank-lead {
+  min-width: 0;
+}
+
 .ud-root .mining-flank-lead-label {
   margin: 0 0 6px;
   color: var(--ud-fg-3);
@@ -2085,11 +2158,21 @@
 .ud-root .mining-flank-lead-value {
   margin: 0;
   color: var(--hearst-green);
-  font-size: 40px;
-  font-weight: 560;
+  /* 30px : deux pixels au-dessus des autres valeurs (28px), comme la réserve
+     du bandeau. Ces deux chiffres portent leur bloc — l'écart les détache
+     juste assez sans rompre l'uniformité de l'écran. */
+  font-size: 30px;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+}
+
+/* Le prix de marché porte l'encre blanche : le vert distingue LA mesure du
+   produit — le coût auquel il obtient son bitcoin — d'un cours de marché
+   commun à tous. */
+.ud-root .mining-flank-lead-value.is-market {
+  color: var(--ud-fg);
 }
 
 /* ── L'axe des prix ──────────────────────────────────────────────────────
@@ -2194,7 +2277,7 @@
   margin: 0;
   color: var(--ud-fg-2);
   font-size: 17px;
-  font-weight: 560;
+  font-weight: 500;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -2232,37 +2315,60 @@
 .ud-root .mining-flank-params {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  /* Les lignes vont chercher TOUTE la largeur de la carte : -14px annule le
-     retrait latéral du corps, -6px de plus mordent sur le padding du panneau.
-     Un cadre qui s'arrête en retrait d'un bloc de texte se lit comme un
-     alinéa ; ici il doit border la carte. */
-  margin: 0 -20px;
-  /* Pas de filet ici : la phrase sur fond vert au-dessus se détache déjà d'
-     elle-même, et une ligne collée sous un bloc coloré se lisait comme un
-     trait resté là par accident. L'écart seul sépare. */
-  padding-top: 6px;
+  /* 14px entre les quatre lignes : à 8px elles se lisaient comme un bloc
+     compact alors qu'elles sont quatre lectures distinctes. Le bloc a de la
+     hauteur disponible, autant la donner aux coutures. */
+  gap: 14px;
+  /* Les cadres s'alignent sur la MÊME verticale que le titre et le chiffre :
+     ils débordaient de 6px de plus que le retrait du corps, ce qui donnait au
+     bloc deux marges gauches pour un seul contenu. Plus de marge négative —
+     un cadre en retrait d'un bloc de texte se lit comme un alinéa seulement
+     s'il est seul à l'être. */
+  margin: 0;
+  /* Pas de padding propre : le `gap` du corps porte tous les écarts, et un
+     supplément ici rendait cette couture plus large que les autres. */
 }
 
 /* Dans ce flanc seulement, les lignes réseau sont plus hautes et plus aérées :
    elles closent le bloc et portent sa largeur. La règle de base `.term-row`
    sert au reste du dashboard et ne bouge pas. */
 .ud-root .mining-flank-params .term-row {
-  padding: 14px 18px;
+  /* 14px de retrait interne, comme le retrait latéral du corps : le contenu
+     des cadres et celui hors cadre tombent sur des verticales parentes. */
+  padding: 13px 14px;
 }
 
+/* La note de provenance prend l'encadré vert que portait la phrase du coussin
+   de sécurité, retirée : elle ferme le bloc en disant d'où viennent les quatre
+   paramètres au-dessus, ce qui vaut mieux qu'une ligne grise flottante. */
+/* Une PASTILLE, pas un bandeau : la note ne porte que trois mots, et l'encadré
+   pleine largeur lui donnait le poids d'un bloc de contenu. `inline-flex` la
+   fait tenir à la taille de son texte, et le retrait se resserre en
+   conséquence. */
 .ud-root .mining-flank-foot {
-  display: flex;
+  display: inline-flex;
+  /* CENTRÉE sur la colonne : alignée à gauche, elle pendait sous la dernière
+     ligne réseau sans s'y rattacher. Au centre, elle ferme le bloc. */
+  align-self: center;
   align-items: center;
-  gap: 6px;
-  /* `auto` en haut : la note absorbe le vide que la rangée ajoute au flanc et
-     se colle au bas du bloc, plutôt que de laisser un tiers de colonne vide
-     sous elle. Le raccourci porte la marge haute ET remet les trois autres à
-     zéro — deux déclarations séparées finissaient par se contredire. */
-  margin: 0;
-  padding-top: 4px;
-  color: var(--ud-fg-3);
-  font-size: var(--ud-t-micro);
+  gap: 8px;
+  /* 28px sous « Hashprice » — le double de l'écart entre deux lignes réseau.
+     La pastille CLÔT le bloc : au même pas que les lignes, elle se lisait
+     comme une cinquième d'entre elles. Le `gap` du corps vaut 26px : on
+     ajoute la différence. */
+  margin: 2px 0 0;
+  padding: 8px 16px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green-dim);
+  box-shadow: inset 0 0 0 1px rgba(158, 234, 122, 0.22);
+  color: var(--ud-fg-2);
+  /* Le corps des libellés, pas celui des micro-notes : à 11px la pastille
+     paraissait un reliquat plutôt qu'une mention de provenance. */
+  font-size: var(--ud-t-label);
+}
+
+.ud-root .mining-flank-foot svg {
+  color: var(--hearst-green);
 }
 
 /* ── Compute Infrastructure (panneau central) ────────────────────────────
@@ -2321,7 +2427,7 @@
   margin-right: auto;
   color: var(--hearst-green);
   font-size: var(--ud-t-micro);
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -2335,7 +2441,7 @@
   background: rgba(158, 234, 122, 0.16);
   color: var(--hearst-green);
   font-size: var(--ud-t-micro);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2384,8 +2490,9 @@
   margin: 0;
   min-width: 0;
   color: var(--ud-fg);
-  font-size: 30px;
-  font-weight: 560;
+  /* 28px : le corps commun à toutes les grandes valeurs du tableau de bord. */
+  font-size: 28px;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -2465,11 +2572,12 @@
   margin: 0;
   min-width: 0;
   color: var(--ud-fg);
-  /* MÊME corps que les chiffres de la bande client (`.fleet-mine-value`) : les
-     deux registres cohabitent dans le panneau, et huit pixels d'écart se
-     lisaient comme une hiérarchie qui n'existe pas. */
-  font-size: 30px;
-  font-weight: 560;
+  /* 28px, comme TOUTES les grandes valeurs du tableau de bord — bandeau,
+     bande client, coût de production. Ces registres cohabitent sur un même
+     écran, et quelques pixels d'écart se lisaient comme une hiérarchie qui
+     n'existe pas. */
+  font-size: 28px;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -2603,8 +2711,8 @@
   align-items: center;
   gap: 7px;
   color: var(--ud-fg);
-  font-size: 18px;
-  font-weight: 540;
+  font-size: 17px;
+  font-weight: 500;
 }
 
 .ud-root .ec-heading h2 svg {
@@ -2647,7 +2755,7 @@
 .ud-root .meter-value {
   color: var(--ud-fg);
   font-size: 31px;
-  font-weight: 460;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 
@@ -2704,7 +2812,29 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: var(--ud-t-section);
-  font-weight: 520;
+  font-weight: 500;
+}
+
+/* Le descriptif sous le titre, au même registre que ceux des flancs
+   (« Paid out, approved and pending », « Vault capital by bucket ») : ce bloc
+   était le seul de la rangée à n'en porter aucun. Le `span` de droite, lui,
+   compte les lignes — c'est une mesure, pas un descriptif. */
+.ud-root .movements-heading .movements-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--ud-fg-3);
+  font-size: var(--micro);
+}
+
+/* Picto cerclé et titre sur une ligne, comme les autres titres de bloc. */
+.ud-root .movements-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ud-root .movements-heading h2 svg {
+  color: var(--hearst-green);
 }
 
 .ud-root .movements-heading > span {
@@ -2830,7 +2960,7 @@
   background: var(--hearst-green);
   color: var(--hearst-green-ink);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   cursor: pointer;
 }
@@ -2886,7 +3016,7 @@
   margin: 0;
   color: var(--ud-fg);
   font-size: var(--small);
-  font-weight: 520;
+  font-weight: 500;
 }
 
 .ud-root .timeline-meta {
@@ -2897,7 +3027,7 @@
   justify-self: start;
   color: var(--ud-fg);
   font-size: var(--small);
-  font-weight: 560;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3052,7 +3182,7 @@
 .ud-root .deposit-block > .position-deposit-cta {
   grid-area: cta;
   justify-self: end;
-  align-self: center;
+  align-self: start;
 }
 
 .ud-root .deposit-block > .deposit-form,
@@ -3197,7 +3327,7 @@
      seule dans son bandeau, et le corps de métrique principale (38px) écrasait
      une rangée de quatre valeurs. Le vert la distingue, pas la taille. */
   font-size: 28px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.02;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -3243,7 +3373,7 @@
 .ud-root .btc-block-side-value {
   margin: 0;
   font-size: 20px;
-  font-weight: 550;
+  font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
@@ -3280,7 +3410,10 @@
    hiérarchie sans rompre l'uniformité des tuiles. */
 .ud-root .btc-block-top > .stat-tile:first-child .stat-value {
   color: var(--hearst-green);
-  font-size: 28px;
+  /* 30px : deux pixels au-dessus des trois faits qui l'accompagnent, comme le
+     coût de production dans son propre bloc. Assez pour détacher la mesure
+     principale, trop peu pour rompre l'uniformité de l'écran. */
+  font-size: 30px;
 }
 
 /* Le contenu se CENTRE sur la hauteur de la rangée : les tuiles n'ont ni jauge
@@ -3350,7 +3483,7 @@
 
 .ud-root .btc-gauge-delta-value {
   font-size: var(--ud-t-metric);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
@@ -3413,7 +3546,7 @@
 .ud-root .btc-gauge-val {
   margin: 0;
   font-size: var(--ud-t-body);
-  font-weight: 560;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--ud-fg);
 }
@@ -3476,7 +3609,7 @@
   width: fit-content;
   border-radius: var(--ud-radius-pill);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   cursor: pointer;
 }
@@ -3485,7 +3618,7 @@
   border: 0;
   background: var(--hearst-green);
   color: var(--hearst-green-ink);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ud-root .deposit-submit:hover:not(:disabled) {
@@ -3497,7 +3630,7 @@
   border: 0;
   background: var(--hearst-green);
   color: var(--hearst-green-ink);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ud-root .position-deposit-cta:hover,
@@ -3543,7 +3676,7 @@
    défaisait l'alignement de la rangée. Taille resserrée + pas de retour. */
 .ud-root .stat-value {
   font-size: 21px;
-  font-weight: 550;
+  font-weight: 500;
   letter-spacing: -0.018em;
   line-height: 1.2;
   white-space: nowrap;
@@ -3556,6 +3689,34 @@
 .ud-root .stat-eyebrow {
   font-size: var(--ud-t-micro);
   color: var(--ud-fg-3);
+}
+
+/* ── Tuile d'accent ──────────────────────────────────────────────────────
+   Aplat vert de marque, encre sombre : réservé à LA mesure qui porte la
+   promesse du produit — le bitcoin que le minage a créé pour ce vault.
+
+   Tout passe en encre sombre, y compris le picto et la pastille de fraîcheur :
+   sur un aplat clair, les gris d'origine deviennent illisibles. */
+.ud-root .stat-tile.is-accent {
+  background: var(--hearst-green);
+}
+
+.ud-root .stat-tile.is-accent .stat-value,
+.ud-root .stat-tile.is-accent .stat-eyebrow,
+.ud-root .stat-tile.is-accent .stat-eyebrow svg {
+  color: var(--hearst-green-ink);
+}
+
+/* Le libellé et la note gardent leur hiérarchie : légèrement en retrait de la
+   valeur, mais dans la même encre sombre. */
+.ud-root .stat-tile.is-accent .stat-eyebrow,
+.ud-root .stat-tile.is-accent .stat-footnote {
+  color: color-mix(in srgb, var(--hearst-green-ink) 72%, transparent);
+}
+
+/* La pastille reprend l'encre sombre : verte sur vert, elle disparaissait. */
+.ud-root .stat-tile.is-accent .stat-signal {
+  background: color-mix(in srgb, var(--hearst-green-ink) 55%, transparent);
 }
 
 /* La date tient désormais sur une ligne (sans heure) : même traitement que
@@ -3588,7 +3749,7 @@
 .ud-root .chart-switch button.active .switch-inner,
 .ud-root .chart-switch button.active .switch-inner svg {
   color: #111111;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Tableau de mouvements : lignes plus serrées, comme Transaction history. */
@@ -3649,7 +3810,7 @@
 /* Chiffre central : plus discret, l'anneau porte l'information. */
 .ud-root [data-chart-viewport] span:first-of-type {
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Légendes d'anneau : alignées, tabulaires, compactes. */
@@ -3683,9 +3844,9 @@
 /* Titres de carte — « Vault allocation », « BTC context » : même corps que
    les titres de section des maquettes, jamais plus gros. */
 .ud-root .flank-panel h3,
-.ud-root .movements-heading h3 {
+.ud-root .movements-heading h2 {
   font-size: var(--ud-t-card);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.005em;
 }
 
@@ -3865,7 +4026,7 @@
     color: #0a0a0a;
     font-family: inherit;
     font-size: var(--ud-t-label);
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
   }
 
@@ -4204,7 +4365,7 @@
   .ud-root .rail-menu-item.active {
     background: color-mix(in srgb, var(--ud-fg) 8%, transparent);
     color: var(--ud-fg);
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .ud-root .rail-menu-item.active svg {
@@ -4399,8 +4560,16 @@
 
   .ud-root .ud-pocket-share {
     display: flex;
-    gap: 0 16px;
+    /* `nowrap` : les quatre valeurs (part, montant, rendement, dérive) tiennent
+       sur UNE ligne. Par défaut elles passaient à la ligne dès que la somme
+       dépassait la largeur, et la ligne de poche occupait alors quatre rangées
+       en mobile. L'écart se resserre en conséquence. */
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: 0 10px;
     text-align: left;
+    /* Aucune ne se laisse écraser à zéro ; c'est le libellé qui cède. */
+    white-space: nowrap;
   }
 
   /* Les valeurs rejoignent la part du vault sur une ligne commune ; leurs
@@ -4420,6 +4589,21 @@
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
+  }
+
+  /* Le bloc déplié part du BORD GAUCHE, pas de la colonne du libellé. Sur le
+     gabarit large, `col-start-2` l'alignait sous le nom de la poche ; en
+     mobile, où il ne reste que trois colonnes, cette même règle le poussait
+     vers la droite et le texte pendait au milieu de la carte. */
+  .ud-root .ud-pocket-row > .col-start-2 {
+    grid-column: 1 / -1;
+  }
+
+  /* La jauge respire avant les valeurs et le bouton : à sa position d'origine
+     elle touchait « Detail », qui se lisait comme une étiquette de la barre
+     plutôt que comme une action de la ligne. */
+  .ud-root .ud-pocket-row > :nth-child(3) {
+    margin-bottom: 6px;
   }
 
   /* Mouvements : les colonnes ne tiennent plus côte à côte. Intitulé et action

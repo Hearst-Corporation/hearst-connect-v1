@@ -1,6 +1,12 @@
 'use client'
 
-import { BoltIcon, CpuChipIcon } from '@heroicons/react/24/outline'
+import {
+  BoltIcon,
+  ChartBarIcon,
+  CpuChipIcon,
+  CurrencyDollarIcon,
+  SignalIcon,
+} from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import { MetricRow, difficultyLabel, hashpriceLabel } from './metric-row'
@@ -41,9 +47,9 @@ export function MiningEconomicsFlank({
       <div className="flank-heading">
         <h2>
           <CpuChipIcon className="size-4" aria-hidden="true" />
-          Mining economics
+          Mining Economics
         </h2>
-        <span>How far bitcoin can fall before mining stops paying</span>
+        <span>What producing one BTC costs</span>
       </div>
 
       {c === null ? (
@@ -84,6 +90,10 @@ function MiningEconomicsBody({
       {/* ── LE COÛT DE PRODUCTION ─────────────────────────────────────────
           Chiffre de tête : c'est à CE prix que le produit obtient son bitcoin,
           la mesure qui distingue le minage d'un simple achat au marché. */}
+      {/* Le coût SEUL. Le prix de marché vivait ici en regard, mais le flanc
+          gauche l'affiche déjà en grand — deux fois le même montant côte à
+          côte, et le lecteur cherche la différence qu'il n'y a pas. La barre
+          en dessous porte le rapport, la marge le chiffre l'écart. */}
       <div className="mining-flank-lead">
         <p className="mining-flank-lead-label">Cost to mine one BTC</p>
         <p className="mining-flank-lead-value">{usd(costPerBtcUsd)}</p>
@@ -122,6 +132,8 @@ function MiningEconomicsBody({
             verte, et la nommer là où elle commence vaut mieux que de répéter le
             seuil, déjà écrit en grand juste au-dessus. À droite le prix de
             marché, borne de l'axe. */}
+        {/* Le prix de marché a rejoint le haut du bloc, en face du coût : il ne
+            reste ici que la marge, qui nomme la largeur verte de la barre. */}
         <div className="mining-axis-scale">
           <div className="mining-axis-end">
             <p className="mining-axis-end-label">Margin per BTC</p>
@@ -136,25 +148,14 @@ function MiningEconomicsBody({
         </div>
       </div>
 
-      {/* La marge de sécurité, en une phrase plutôt qu'en anneau : le flanc
-          gauche porte déjà un donut, et une seconde proportion dessinée face à
-          lui ajoutait une figure sans ajouter de lecture. Le pourcentage est
-          mis en avant dans le texte — il reste le fait, seule sa forme change. */}
-      <p className={`mining-flank-cushion${profitable ? '' : ' is-underwater'}`}>
-        {profitable ? (
-          <>
-            Bitcoin can fall{' '}
-            <strong>{formatNumber(filled, { maximumFractionDigits: 0 })} %</strong> before mining
-            stops being profitable.
-          </>
-        ) : (
-          <>
-            Bitcoin must rise{' '}
-            <strong>{formatNumber(filled, { maximumFractionDigits: 0 })} %</strong> before mining
-            becomes profitable again.
-          </>
-        )}
-      </p>
+      {/* « Bitcoin can fall X % » a été retiré.
+
+          Le chiffre était une PROJECTION déguisée en fait : il suppose que le
+          coût de production reste figé pendant que le cours baisse, alors que
+          la difficulté du réseau, le prix de l'électricité et le hashprice
+          bougent tous — et que leur variation est précisément ce qui déplace ce
+          seuil. L'écart entre coût et marché, lui, est constaté : la barre et
+          la marge en dollars le disent sans rien extrapoler. */}
 
       {/* Les quatre paramètres qui DÉTERMINENT le coût. Chacun porte son picto
           cerclé — `MetricRow`, le même composant que le flanc « BTC context » et
@@ -170,8 +171,12 @@ function MiningEconomicsBody({
           label="Network difficulty"
           value={difficultyLabel(cost.networkDifficulty)}
         />
+        {/* Un picto PAR LIGNE, chacun disant sa nature : la puissance du
+            réseau, le prix de l'énergie, le revenu par unité de puissance.
+            Les trois partageaient le même éclair, qui ne distinguait donc
+            rien. */}
         <MetricRow
-          icon={BoltIcon}
+          icon={ChartBarIcon}
           label="Network hashrate"
           value={
             cost.hashrateEhs !== null
@@ -188,11 +193,14 @@ function MiningEconomicsBody({
               : '—'
           }
         />
-        <MetricRow icon={BoltIcon} label="Hashprice" value={hashpriceLabel(hashprice)} />
+        <MetricRow icon={CurrencyDollarIcon} label="Hashprice" value={hashpriceLabel(hashprice)} />
       </div>
 
+      {/* Le picto dit la PROVENANCE — un signal reçu en direct — là où
+          l'éclair des lignes au-dessus dit l'énergie. Le même éclair ici
+          répétait « Hashprice » juste au-dessus sans rien ajouter. */}
       <p className="mining-flank-foot">
-        <BoltIcon className="size-3.5" aria-hidden="true" />
+        <SignalIcon className="size-3.5" aria-hidden="true" />
         Live network readings
       </p>
     </div>

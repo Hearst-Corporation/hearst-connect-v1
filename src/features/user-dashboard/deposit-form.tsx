@@ -93,9 +93,7 @@ export function DepositForm({
             </output>
           ) : null}
         </form>
-      ) : (
-        <p className="deposit-hint">Subscription request — the vault terms apply.</p>
-      )}
+      ) : null}
     </div>
   )
 }

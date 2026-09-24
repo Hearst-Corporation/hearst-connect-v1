@@ -34,6 +34,7 @@ export function StatTile({
   meter,
   footnote,
   aside,
+  tone,
 }: Readonly<{
   icon: ComponentType<SVGProps<SVGSVGElement>>
   label: string
@@ -50,6 +51,10 @@ export function StatTile({
    *  même quantité dans une autre unité (« ≈ 0.1164 BTC »), là où `footnote`
    *  porte un fait distinct. Deux rôles, deux places. */
   aside?: string | null
+  /** `accent` : aplat vert de marque, encre sombre. Pour LA mesure d'une
+   *  rangée — celle qui porte la promesse du produit — et jamais plus d'une
+   *  par écran, sans quoi l'accent cesse d'en être un. */
+  tone?: 'accent'
 }>) {
   const hasDelta = delta !== null && delta !== undefined && Number.isFinite(delta)
   const up = hasDelta && (delta as number) >= 0
@@ -63,7 +68,7 @@ export function StatTile({
   const hasFoot = showMeter || Boolean(footnote) || showTrend
 
   return (
-    <div className="stat-tile">
+    <div className={`stat-tile${tone === 'accent' ? ' is-accent' : ''}`}>
       <div className="stat-eyebrow">
         <Icon className="size-4" aria-hidden="true" />
         <span>{label}</span>

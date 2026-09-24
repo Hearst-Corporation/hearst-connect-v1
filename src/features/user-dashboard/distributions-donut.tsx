@@ -3,7 +3,7 @@
 import { BanknotesIcon } from '@heroicons/react/24/outline'
 import { categoricalColor } from '@/components/charts/core/chart-theme'
 import { useChartWidth } from '@/components/charts/core/use-chart-width'
-import { formatNumber } from '@/lib/format'
+import { formatBtc, formatNumber } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import { Pie, PieChart } from 'recharts'
 import type { Distribution } from './load'
@@ -105,7 +105,7 @@ export function DistributionsDonut({
               somme des trois états. */}
           <div className="dist-donut-center">
             <p className="dist-donut-btc">
-              {formatNumber(paidBtc, { maximumFractionDigits: 3 })} BTC
+              {formatBtc(paidBtc)}
             </p>
             <p className="dist-donut-caption">distributed</p>
           </div>
@@ -117,7 +117,7 @@ export function DistributionsDonut({
               <span className="dist-legend-key" style={{ background: s.fill }} aria-hidden="true" />
               <span className="dist-legend-label">{s.label}</span>
               <span className="dist-legend-value">
-                {formatNumber(s.value, { maximumFractionDigits: 3 })} BTC
+                {formatBtc(s.value)}
               </span>
               <span className="dist-legend-share">
                 {total > 0 ? `${formatNumber((s.value / total) * 100, { maximumFractionDigits: 0 })} %` : '—'}

@@ -1,6 +1,6 @@
 import '@/styles/tailwind.css'
 import { announceConfigurationOnce } from '@/lib/env'
-import { fontSatoshi } from '@/lib/fonts'
+import { fontFKGrotesk } from '@/lib/fonts'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import type { Metadata } from 'next'
 
@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       lang="en"
       // Dark forced on the server side + init script (purges any residual .light).
       suppressHydrationWarning
-      className={`dark ${fontSatoshi.variable} ${fontSatoshi.className} font-sans bg-console-app text-white antialiased`}
+      className={`dark ${fontFKGrotesk.variable} ${fontFKGrotesk.className} font-sans bg-console-app text-white antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

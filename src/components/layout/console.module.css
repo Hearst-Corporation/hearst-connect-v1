@@ -106,13 +106,13 @@
    * Le prototype est calibré sur les métriques d'Arial, et cette composition
    * l'a d'abord conservé pour rendre la comparaison pixel possible. Ce n'est
    * plus un laboratoire de comparaison : l'écran doit parler la langue de la
-   * marque. `--font-satoshi` est déclarée par `src/lib/fonts.ts` (Satoshi
+   * marque. `--font-fk-grotesk` est déclarée par `src/lib/fonts.ts` (FK Grotesk
    * Variable, poids 300 à 900, auto-hébergée) et exposée sur `<html>`.
    *
-   * Satoshi est plus étroite qu'Arial à taille égale : les libellés gagnent de
+   * FK Grotesk est plus étroite qu'Arial à taille égale : les libellés gagnent de
    * la place, ce qui est exactement ce qu'il fallait pour remonter les tailles.
    */
-  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-fk-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
 .viewport *,
@@ -410,7 +410,7 @@
 .brandName {
   font-size: 14px;
   line-height: 24px;
-  font-weight: 600;
+  font-weight: 500;
   color: #fff;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -491,7 +491,7 @@
   background: var(--csl-accent);
   color: var(--csl-accent-ink);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
   box-shadow: 0 0 18px rgba(167, 251, 144, 0.24);
 }
@@ -900,7 +900,7 @@
 }
 
 .decisionTitle span {
-  font-weight: 200;
+  font-weight: 300;
   opacity: 0.75;
 }
 
@@ -1258,7 +1258,7 @@
   margin: 0;
   color: var(--csl-text);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
 }
 
@@ -1306,7 +1306,7 @@
 .heroPointLabel {
   fill: #ffffff;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 

@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from 'react'
-import { formatNumber } from '@/lib/format'
+import { formatBtc, formatNumber } from '@/lib/format'
 
 /**
  * Ligne de métrique — picto cerclé, libellé, valeur.
@@ -40,9 +40,11 @@ export function difficultyLabel(raw: number | null): string {
 }
 
 export function hashpriceLabel(raw: number | null): string {
-  return raw !== null ? `$${formatNumber(raw, { maximumFractionDigits: 3 })}` : '—'
+  return raw !== null
+    ? `$${formatNumber(raw, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : '—'
 }
 
 export function producedLabel(raw: number | null): string {
-  return raw !== null ? `${formatNumber(raw, { maximumFractionDigits: 4 })} BTC` : '—'
+  return formatBtc(raw)
 }

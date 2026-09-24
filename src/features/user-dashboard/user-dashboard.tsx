@@ -32,7 +32,7 @@ import {
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
 import { logout } from '@/lib/actions'
-import { formatDateTime, formatNumber, formatPercent, formatDate} from '@/lib/format'
+import { formatBtc, formatNumber, formatPercent, formatDate } from '@/lib/format'
 import { readableSourceStateCap } from '@/lib/movements'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
 import type { SessionUser } from '@/lib/session'
@@ -228,9 +228,9 @@ function TermRow({
  * de cette table n'affiche pas de ligne, plutôt qu'un texte vague.
  */
 const POCKET_BRIEF: Record<string, string> = {
-  'Basis carry': 'Écart entre spot et futures, couvert — rendement sans pari directionnel',
-  'RWA T-bills': "Bons du Trésor tokenisés — la poche défensive de l'allocation",
-  'Mining alpha': 'Bitcoin produit par notre propre infrastructure de minage',
+  'Bitcoin Lending': 'cbBTC lent on Aave — yield without selling the bitcoin',
+  'Mining Alpha': 'Bitcoin mined by our own fleet, acquired below market price',
+  'USDC Yield': 'USDC lent on Aave and Morpho — the stable pocket of the allocation',
 }
 
 export function UserDashboardView({
@@ -312,7 +312,7 @@ export function UserDashboardView({
    */
   const btcValue = (usdc: number | null): string =>
     usdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
-      ? `${(usdc / btcSpotUsd).toFixed(4)} BTC`
+      ? formatBtc(usdc / btcSpotUsd)
       : formatUsdc(usdc)
 
   const usdAside = (usdc: number | null): string | null =>
@@ -323,7 +323,7 @@ export function UserDashboardView({
   // pool. Les parts sont calculées ici, jamais lues — deux sources pour un même
   // ratio finissent par diverger.
   const vault = valueOf(data.vaultAccount)
-  const vaultLabel = vault?.label ?? 'Dedicated vault'
+  const vaultLabel = vault?.label ?? 'Dedicated Vault'
   const vaultPrincipal = vault?.principalUsdc ?? null
   const vaultWithdrawn = vault?.withdrawnUsdc ?? null
   const vaultAvailable = vault?.availableUsdc ?? null
@@ -332,7 +332,7 @@ export function UserDashboardView({
    * Capital souscrit — en DOLLARS, tel que versé.
    *
    * Il n'est pas converti en bitcoin à l'entrée : il est réparti entre les trois
-   * poches (Basis carry, RWA T-bills, Mining alpha), dont deux travaillent en
+   * poches (Bitcoin Lending, Mining Alpha, USDC Yield), dont deux travaillent en
    * dollars. Afficher un montant en bitcoin laissait croire à un achat spot au
    * jour de la souscription — ce que le produit ne fait pas.
    *
@@ -462,11 +462,16 @@ export function UserDashboardView({
                 <span className="sr-only">Home</span>
               </button>
 
+              {/* « My vault » et non « Home » : le libellé nomme ce que le
+                  client vient voir, pas une position dans une arborescence.
+
+                  « Trade » a quitté le rail — la vue ne contenait qu'un titre
+                  et une phrase d'attente, et le produit n'expose aucune
+                  exécution au client. */}
               <nav className="rail-nav">
                 {(
                   [
-                    ['dashboard', 'Home', HomeIcon],
-                    ['trade', 'Trade', ArrowsRightLeftIcon],
+                    ['dashboard', 'My Vault', HomeIcon],
                   ] as const
                 ).map(([r, label, Icon]) => (
                   <button
@@ -535,8 +540,7 @@ export function UserDashboardView({
                 <nav className="rail-menu-nav" aria-label="Main">
                   {(
                     [
-                      ['dashboard', 'Home', HomeIcon],
-                      ['trade', 'Trade', ArrowsRightLeftIcon],
+                      ['dashboard', 'My Vault', HomeIcon],
                     ] as const
                   ).map(([r, label, Icon]) => (
                     <button
@@ -624,8 +628,11 @@ export function UserDashboardView({
                   <div className="position-heading-text">
                     <p className="eyebrow">Your position</p>
                     <h2>Bitcoin Strategic Reserve</h2>
-                    {/* Pas de sous-titre : le titre se suffit, et la
-                        jauge annonce elle-même la comparaison au HODL. */}
+                    {/* Même gabarit que « Your vault » : le sous-titre suit le
+                        titre dans sa propre colonne. Il vivait dans le bloc du
+                        dépôt, donc sur une rangée à part sous le CTA — d'où une
+                        phrase décrochée et un bandeau deux fois trop haut. */}
+                    <span>Subscription request — the vault terms apply.</span>
                   </div>
                   <DepositForm
                     minimumUsdc={minimumDeposit}
@@ -690,10 +697,11 @@ export function UserDashboardView({
                   <div className="vault-heading-text">
                     <p className="eyebrow">Your vault</p>
                     <h2>{vaultLabel}</h2>
-                    <span>
-                      Your own vault — capital, distributions and withdrawals. Nothing here is
-                      shared with another client.
-                    </span>
+                    {/* « Nothing here is shared with another client » a été
+                        retiré : le titre dit déjà « Dedicated Vault », et nier
+                        un partage que personne n'a supposé éveille le soupçon
+                        plutôt qu'il ne rassure. */}
+                    <span>Capital, distributions and withdrawals.</span>
                   </div>
                   <VaultActions vault={data.vaultAccount} onWithdraw={() => setRoute('trade')} />
                 </div>
@@ -705,8 +713,13 @@ export function UserDashboardView({
                       répéter en tuile ajoutait un chiffre sans lecture propre. */}
                   <StatTile
                     icon={BitcoinIcon}
+                    /* Aplat vert : c'est LE chiffre du produit — le bitcoin que
+                       le minage a réellement créé pour ce vault. Les autres
+                       tuiles portent des soldes ou des cumuls ; celle-ci porte
+                       la promesse tenue, et l'aplat la sort de la rangée. */
+                    tone="accent"
                     label="Produced for your vault"
-                    value={btcProduced !== null ? `${formatNumber(btcProduced, { maximumFractionDigits: 3 })} BTC` : '—'}
+                    value={formatBtc(btcProduced)}
                     signal={signalOf(data.btcProducedTotal)}
                     /* « for your vault », et non « by the mining infrastructure » :
                        la valeur vient de `/api/v1/btc`, scopée au client, alors que
@@ -792,7 +805,7 @@ export function UserDashboardView({
 
                 <section className="analysis analysis--fund" aria-label="Fund analysis">
                   <BreakdownFlank
-                    title="Vault allocation"
+                    title="Vault Allocation"
                     hint="Vault capital by bucket"
                     icon={ChartPieIcon}
                     availability={data.allocationBars}
@@ -886,7 +899,7 @@ export function UserDashboardView({
                     <div className="ec-heading">
                       <h2>
                         <PresentationChartLineIcon className="size-4" aria-hidden="true" />
-                        Strategy exposure
+                        Strategy Exposure
                       </h2>
                       <span>Target vs actual · % of vault</span>
                     </div>
@@ -917,14 +930,27 @@ export function UserDashboardView({
               <section className="your-account" aria-label="Your account">
                 <div className="section-heading">
                   <p className="eyebrow">Your account</p>
-                  <h2>Capital activity</h2>
+                  <h2>Capital Activity</h2>
                   <span>Your verified deposits, distributions and movements only</span>
                 </div>
                 <div className="your-account-body">
                   <section className="movements" aria-label="Your movements">
                     <div className="movements-heading">
+                      {/* `h2` avec picto, comme « Distributions » juste à côté
+                          et comme les titres des flancs : c'est un titre de
+                          bloc de même rang, pas une sous-partie. En `h3` sans
+                          icône, il détonnait dans une rangée où tous les
+                          voisins portent le même registre. */}
                       <div>
-                        <h3>Your movements</h3>
+                        <h2>
+                          <ArrowsRightLeftIcon className="size-4" aria-hidden="true" />
+                          Your Movements
+                        </h2>
+                        {/* Le seul titre de la rangée sans descriptif sous lui.
+                            L'angle est l'ORDRE CHRONOLOGIQUE, pas les états —
+                            « Distributions » juste à côté porte déjà « paid
+                            out, approved and pending ». */}
+                        <span className="movements-sub">Newest first</span>
                       </div>
                       <span>
                         Verified data only · {isAvailable(data.activityCount) ? data.activityCount.value : '—'} total
@@ -936,19 +962,6 @@ export function UserDashboardView({
                 </div>
               </section>
             </div>
-            ) : null}
-
-            {!isDashboard ? (
-            <section className="trade-view active">
-              <div>
-                <p className="eyebrow">Execution only</p>
-                <AdminHeroTitle>Trade terminal</AdminHeroTitle>
-                <p>
-                  This space is strictly reserved for execution. No catalog, quote or account
-                  management element is presented here.
-                </p>
-              </div>
-            </section>
             ) : null}
 
             {/* Pied de page — mobile seulement : sur desktop, le rail latéral

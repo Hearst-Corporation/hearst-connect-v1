@@ -2,7 +2,7 @@
 
 import { BoltIcon } from '@heroicons/react/24/outline'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
-import { formatNumber } from '@/lib/format'
+import { formatBtc, formatNumber } from '@/lib/format'
 import type { ComputeFleet } from './load'
 
 /**
@@ -120,9 +120,7 @@ export function ComputeFleetPanel({
                 fond, comme un acquis et non comme une caractéristique du parc. */}
             <div className="fleet-mine-metric fleet-mine-metric--produced">
               <p className="fleet-mine-value">
-                {allocatedBtcProduced === null
-                  ? '—'
-                  : formatNumber(allocatedBtcProduced, { maximumFractionDigits: 4 })}
+                {formatBtc(allocatedBtcProduced, { withUnit: false })}
                 {allocatedBtcProduced !== null ? <span className="fleet-mine-unit">BTC</span> : null}
               </p>
               <p className="fleet-mine-label">Produced for you</p>
@@ -183,9 +181,7 @@ export function ComputeFleetPanel({
           Produced to date
         </p>
         <p className="fleet-cell-value">
-          {btcProducedTotal === null
-            ? '—'
-            : formatNumber(btcProducedTotal, { maximumFractionDigits: 1 })}
+          {formatBtc(btcProducedTotal, { withUnit: false })}
           {btcProducedTotal !== null ? <span className="fleet-cell-unit">BTC</span> : null}
         </p>
         <p className="fleet-cell-note">Mined by the fleet since inception</p>

@@ -3,8 +3,8 @@
 /*
  * Design system — Hearst Connect
  * ------------------------------------------------------------------
- * TYPE — absolute rule: Satoshi Variable only (Fontshare, self-hosted).
- * font-sans · font-display · font-mono → same family (--font-satoshi).
+ * TYPE — absolute rule: FK Grotesk only (Florian Karsten, self-hosted).
+ * font-sans · font-display · font-mono → same family (--font-fk-grotesk).
  *
  * Aligned with hearstcorporation.io: navy #020611, mint #A7FB90.
  */
@@ -17,10 +17,44 @@
 }
 
 @theme {
-  /* ── Typography — Satoshi Variable only ──────────────────────────────────── */
-  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  /* ── Typography — FK Grotesk only ────────────────────────────────────────
+   *
+   * Poids STATIQUES : la famille est livrée en Thin 100, Light 300, Regular
+   * 400, Medium 500, Bold 700, Black 900. Il n'y a PAS de SemiBold, et une
+   * graisse non déclarée est synthétisée par le navigateur — un faux gras,
+   * plus lourd et mal dessiné.
+   *
+   * Correspondance appliquée depuis Satoshi (variable, donc n'importe quelle
+   * valeur intermédiaire y était rendue telle quelle) :
+   *   520 / 550 / 560 / 600  →  500 (Medium)
+   *   400                    →  400 (Regular), inchangé
+   *   700+                   →  700 (Bold), inchangé
+   *
+   * Autrement dit, tout ce qui vivait entre le Regular et le Bold tombe sur le
+   * Medium : c'est la seule graisse intermédiaire disponible, et celle qui
+   * rend le plus proche du dessin actuel.
+   */
+  --font-sans: var(--font-fk-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fk-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-fk-grotesk), ui-sans-serif, system-ui, sans-serif;
+
+  /* L'échelle de graisses est REMAPPÉE sur ce que la fonte livre réellement.
+     `font-semibold` est employé 90 fois dans le produit et vaut 600 par
+     défaut — un poids que FK Grotesk n'a pas, et que le navigateur
+     synthétiserait en faux gras. Le remapper ici corrige les 90 usages d'un
+     coup, plutôt que de réécrire chaque classe.
+
+     `font-medium` reste à 500 (poids réel) ; semibold y tombe aussi, les deux
+     graisses étant les seules intermédiaires disponibles. */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 300;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 700;
+  --font-weight-black: 900;
 
   /*
    * Retirées le 2026-08-04 (LOT E) : les familles `--color-brand-*` (8 tokens)

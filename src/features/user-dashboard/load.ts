@@ -99,8 +99,8 @@ export type AllocationBar = { readonly label: string; readonly value: number }
  * Un point de l'allocation dans le temps : la part de CHAQUE poche.
  *
  * Le modèle précédent ne portait que deux séries, cbBTC et USDC — un découpage
- * qui ne correspond à aucune poche du produit (Basis carry, RWA T-bills, Mining
- * alpha). Le filtre par nom ne trouvait rien et la vue restait vide.
+ * qui ne correspond à aucune poche du produit (Bitcoin Lending, Mining Alpha,
+ * USDC Yield). Le filtre par nom ne trouvait rien et la vue restait vide.
  */
 type AllocationTimePoint = {
   readonly label: string
@@ -505,7 +505,7 @@ function vaultAccountFrom(field: ResolvedField | null): VaultAccount | null {
   if (principalUsdc === null || withdrawnUsdc === null || availableUsdc === null) return null
   return {
     vaultId: typeof r.vaultId === 'string' ? r.vaultId : 'vault',
-    label: typeof r.label === 'string' ? r.label : 'Dedicated vault',
+    label: typeof r.label === 'string' ? r.label : 'Dedicated Vault',
     principalUsdc,
     withdrawnUsdc,
     /* LU, jamais dérivé du cumul BTC : seule la source connaît le cours de

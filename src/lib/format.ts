@@ -21,6 +21,28 @@ export function formatNumber(value: number | null | undefined, opts?: Intl.Numbe
   return value.toLocaleString(LOCALE, opts)
 }
 
+/**
+ * Montant en bitcoin — DEUX décimales, partout.
+ *
+ * Le produit se lit en BTC : les montants doivent donc s'écrire de la même
+ * façon d'un bloc à l'autre, sans quoi l'œil compare des nombres qui n'ont pas
+ * la même précision (3 décimales ici, 4 là, 6 ailleurs).
+ *
+ * `withUnit` ajoute le suffixe « BTC » : la plupart des surfaces le veulent,
+ * quelques-unes portent l'unité à côté du chiffre dans un `<span>` distinct.
+ */
+export function formatBtc(
+  value: number | null | undefined,
+  opts?: { withUnit?: boolean },
+): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return '—'
+  const n = value.toLocaleString(LOCALE, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return opts?.withUnit === false ? n : `${n} BTC`
+}
+
 export function formatPercent(
   value: number | null | undefined,
   opts?: { fromBps?: boolean; maximumFractionDigits?: number; signed?: boolean },
