@@ -155,19 +155,18 @@ const CENTRAL_VIEWS: readonly {
   readonly label: string
   readonly icon: typeof PresentationChartLineIcon
 }[] = [
-  // « Mining economics » en tête : c'est ce qui distingue le produit. Le cours
-  // du BTC n'est plus un onglet — il vit dans le flanc droit, avec son
-  // historique et ses fenêtres, plutôt que d'occuper deux endroits.
-  { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
-  { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
-  // Le parc ferme la série : il dit ce qui PRODUIT le bitcoin, après ce que
-  // vaut le vault et comment il se répartit.
+  // Le PARC en tête : c'est ce qui distingue le produit — la puissance de
+  // minage qui travaille pour ce vault. L'allocation le suit (comment le
+  // capital se répartit), puis le cours du bitcoin, qui n'est qu'un contexte
+  // de marché commun à tous les porteurs.
   //
   // « Projection » a quitté le panneau : des scénarios Monte-Carlo à trois
   // horizons ajoutaient douze montants hypothétiques à un écran que l'équipe
   // produit trouvait déjà trop chargé — et une hypothèse ne se lit pas au même
   // rang que ce qui est constaté.
   { key: 'compute', label: 'Compute', icon: CpuChipIcon },
+  { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
+  { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
 ]
 
 function seriesState(
@@ -242,7 +241,10 @@ export function UserDashboardView({
   /* Ouverture du menu mobile. Fermé à chaque navigation : laisser le panneau
      ouvert sur la vue qu'on vient d'atteindre cacherait le résultat du clic. */
   const [menuOpen, setMenuOpen] = useState(false)
-  const [central, setCentral] = useState<CentralView>('btc')
+  /* Ouvre sur le PARC, premier onglet : c'est ce qui distingue le produit. La
+     vue par défaut doit être la première de la piste, sans quoi la pilule
+     active démarre au milieu. */
+  const [central, setCentral] = useState<CentralView>('compute')
   const initials = userInitials(user.name)
 
   const isDashboard = route === 'dashboard'
