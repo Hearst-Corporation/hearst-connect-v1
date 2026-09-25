@@ -24,7 +24,7 @@ export function Subheading({ className, level = 2, ...props }: HeadingProps) {
       /* 17px, comme les titres de bloc de /account — `sm:text-sm/6` les
          rabaissait à 14px sur grand écran, si bien que la console avait une
          hiérarchie typographique différente de celle du produit. */
-      className={clsx(className, 'text-[17px] leading-tight font-medium text-ink dark:text-fg')}
+      className={clsx(className, 'text-[17px] leading-[1.3] font-medium tracking-[-0.01em] text-ink dark:text-fg')}
     />
   )
 }

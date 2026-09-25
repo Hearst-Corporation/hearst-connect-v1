@@ -30,6 +30,7 @@ export function DashCard({
   className,
   contentClassName,
   title,
+  eyebrow,
   titleLevel = 3,
   subtitle,
   action,
@@ -38,6 +39,12 @@ export function DashCard({
   className?: string
   contentClassName?: string
   title?: string
+  /**
+   * Le surtitre en CAPITALES, au-dessus du titre — « YOUR POSITION »,
+   * « YOUR VAULT » sur /account. Il dit de quoi le bloc relève, quand le
+   * titre nomme la chose elle-même.
+   */
+  eyebrow?: string
   // A card lives under a section's `h2` (SectionHeader) → its own title is an
   // `h3` by default, so the document keeps a real heading hierarchy instead of
   // a flat wall of sibling `h2`s.
@@ -48,21 +55,33 @@ export function DashCard({
 }>) {
   return (
     <section data-surface="box" className={clsx(surfaceBox, 'flex min-w-0 flex-col', className)}>
+      {/* L'en-tête de /account, à l'identique : surtitre en capitales, titre,
+          phrase descriptive — puis un filet qui le sépare du contenu. Padding
+          de 20px (`--ud-pad-card`), le même que ses cartes ; la console en
+          portait 16. */}
       {title !== undefined ? (
-        <header className="flex items-start justify-between gap-3 px-4 pt-4 pb-1">
+        <header className="flex items-start justify-between gap-3 border-b border-[var(--ud-line)] p-[var(--ud-pad-card)]">
           <div className="min-w-0">
+            {eyebrow !== undefined ? (
+              <p className="mb-[7px] text-[11px] font-medium tracking-[0.14em] text-[var(--ud-fg-3)] uppercase">
+                {eyebrow}
+              </p>
+            ) : null}
             <Subheading level={titleLevel}>{title}</Subheading>
-            {/* 11px gris, comme les sous-titres de /account : `Text` rend
-                14px par défaut, ce qui donnait au descriptif le même poids
-                qu'un contenu. */}
+            {/* 11px gris : `Text` rend 14px par défaut, ce qui donnait au
+                descriptif le même poids qu'un contenu. */}
             {subtitle !== undefined ? (
-              <p className="mt-0.5 text-[11px] leading-snug text-[var(--ud-fg-3)]">{subtitle}</p>
+              <p className="mt-[3px] text-[12px] leading-snug text-[var(--ud-fg-3)]">{subtitle}</p>
             ) : null}
           </div>
           {action}
         </header>
       ) : null}
-      <div className={clsx('flex min-h-0 min-w-0 flex-col p-4', contentClassName)}>{children}</div>
+      <div
+        className={clsx('flex min-h-0 min-w-0 flex-col p-[var(--ud-pad-card)]', contentClassName)}
+      >
+        {children}
+      </div>
     </section>
   )
 }

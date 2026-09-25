@@ -177,12 +177,15 @@ type PanelSlot = keyof typeof PANEL_SLOT_CLASS
 
 function DashPanel({
   title,
+  eyebrow,
   subtitle,
   action,
   slot,
   children,
 }: Readonly<{
   title: string
+  /** Le surtitre en capitales — de quoi le bloc relève. */
+  eyebrow?: string
   /* Chaque bloc porte une phrase qui dit CE QU'IL MONTRE, comme sur /account
      (« Mining Economics » / « What producing one BTC costs »). Un titre seul
      nomme un sujet sans dire ce qu'on en lit. */
@@ -196,6 +199,7 @@ function DashPanel({
       className="min-w-0"
       contentClassName={slot === undefined ? undefined : PANEL_SLOT_CLASS[slot]}
       title={title}
+      eyebrow={eyebrow}
       subtitle={subtitle}
       action={action}
     >
@@ -297,6 +301,7 @@ export function AdminDashboardPage() {
       <BentoGrid>
         <BentoCard span={12} bare>
           <DashPanel
+            eyebrow="Decisions"
             title="Waiting on you"
             subtitle="Deposits, distributions and withdrawals that need a decision"
           >
@@ -310,7 +315,7 @@ export function AdminDashboardPage() {
       {/* Market strip — one thin band of readings. */}
       <BentoGrid>
         <BentoCard span={12} bare>
-          <DashPanel title="Market" subtitle="Bitcoin price, hashprice and network difficulty">
+          <DashPanel eyebrow="Readings" title="Market" subtitle="Bitcoin price, hashprice and network difficulty">
             <Suspense fallback={<PanelFallback />}>
               <MarketData />
             </Suspense>
@@ -325,6 +330,7 @@ export function AdminDashboardPage() {
       <BentoGrid>
         <BentoCard span={12} bare>
           <DashPanel
+            eyebrow="Commercial"
             title="Pipeline"
             subtitle="Where each prospect stands, and what is waiting on you"
             action={<PanelHeaderLink href="/admin/offers">Open offers</PanelHeaderLink>}
@@ -345,6 +351,7 @@ export function AdminDashboardPage() {
       <BentoGrid>
         <BentoCard span={8} bare>
           <DashPanel
+            eyebrow="Clients"
             title="Vaults"
             subtitle="One vault per client, each against its own drift threshold"
             action={<PanelHeaderLink href="/admin/vaults">All vaults</PanelHeaderLink>}
@@ -356,6 +363,7 @@ export function AdminDashboardPage() {
         </BentoCard>
         <BentoCard span={4} bare>
           <DashPanel
+            eyebrow="Ledger"
             title="Recent activity"
             subtitle="The latest movements across all vaults"
             slot="timeline"
@@ -372,6 +380,7 @@ export function AdminDashboardPage() {
       <BentoGrid>
         <BentoCard span={6} bare>
           <DashPanel
+            eyebrow="Allocation"
             title="Rebalancing drift"
             subtitle="How far each vault has moved from target, over 90 days"
             action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
@@ -382,7 +391,7 @@ export function AdminDashboardPage() {
           </DashPanel>
         </BentoCard>
         <BentoCard span={6} bare>
-          <DashPanel title="Activity" subtitle="On-chain events per day">
+          <DashPanel eyebrow="Flow" title="Activity" subtitle="On-chain events per day">
             <Suspense fallback={<PanelFallback label="Activity" />}>
               <ActivityChartData />
             </Suspense>
