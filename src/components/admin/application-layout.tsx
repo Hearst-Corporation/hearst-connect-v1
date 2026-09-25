@@ -173,9 +173,16 @@ export function AdminApplicationLayout({
             />
             <span className="text-[13px] text-[var(--ud-fg-2)]">Console</span>
           </div>
+          {/* La pastille de /account : 30px, ronde, 11px — `NavbarAvatar`
+              n'emporte aucune taille et comptait sur le contexte de la
+              navbar Catalyst, absent ici : l'initiale sortait en 48px dans
+              un bloc de 92x165. */}
           <Dropdown>
             <DropdownButton as="button" className="flex items-center gap-2.5">
-              <NavbarAvatar initials={initials} />
+              <span className="avatar" title={user.email} aria-label={user.name}>
+                {initials || 'HC'}
+              </span>
+              <span className="text-[13px] font-medium text-[var(--ud-fg)]">{user.name}</span>
             </DropdownButton>
             <AccountMenu anchor="bottom end" activeAccount={activeAccount} />
           </Dropdown>
