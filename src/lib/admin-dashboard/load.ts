@@ -10,6 +10,7 @@ import {
   fetchClientDistributions,
   fetchClientMovements,
   fetchClientVault,
+  fetchOfferSimulation,
   fetchOffers,
   fetchVaultRegistry,
   fetchMarketSnapshot,
@@ -67,6 +68,7 @@ import type {
   AdminClientDistribution,
   AdminClientMovement,
   AdminClientVault,
+  OfferSimulation,
 } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 
@@ -272,6 +274,28 @@ export async function loadAdminApprovals(): Promise<Availability<readonly AdminA
 export async function loadAdminOffers(): Promise<Availability<readonly Offer[]>> {
   const res = await fetchOffers()
   return fromBackendOrUnavailable(res, res.ok ? res.data.offers : undefined, '/api/v1/admin/offers')
+}
+
+/**
+ * La simulation d'une offre. Les paramètres voyagent en query : le montant,
+ * l'horizon et l'allocation proposée.
+ */
+export async function loadOfferSimulation(
+  id: string,
+  params: Readonly<{
+    amountUsdc: number
+    months: number
+    miningBps: number
+    lendingBps: number
+    stableBps: number
+  }>,
+): Promise<Availability<OfferSimulation>> {
+  const res = await fetchOfferSimulation(id, { ...params })
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.simulation : undefined,
+    `/api/v1/admin/offers/${id}/simulate`,
+  )
 }
 
 /* ── La fiche d'un client ──────────────────────────────────────────────────

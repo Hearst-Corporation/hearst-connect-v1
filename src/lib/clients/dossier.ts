@@ -8,6 +8,7 @@ import {
   loadClientDistributions,
   loadClientMovements,
   loadClientVault,
+  loadAdminFleet,
 } from '@/lib/admin-dashboard/load'
 import type {
   AdminBucketYield,
@@ -17,6 +18,8 @@ import type {
   AdminRecentClient,
   AdminVaultRecord,
 } from '@/lib/admin-dashboard/contracts'
+import type { ComputeFleet } from '@/lib/product/readings'
+import { clientShareOfFleet, totalActiveCapital, type ClientShare } from '@/lib/mining/allocation'
 import type { Offer } from '@/lib/offers/model'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
@@ -50,6 +53,17 @@ export type ClientDossier = Readonly<{
   distributions: Availability<readonly AdminClientDistribution[]>
   /** Son journal — dépôts, retraits, distributions. */
   movements: Availability<readonly AdminClientMovement[]>
+  /** Le parc entier, dont sa part se déduit. */
+  fleet: Availability<ComputeFleet>
+  /**
+   * Sa quote-part de parc, CALCULÉE : son capital sur le capital total des
+   * vaults actifs, appliqué à la puissance, au bitcoin produit et à
+   * l'électricité. Absente quand le capital total ne se lit pas — une part de
+   * rien n'est pas zéro pour cent.
+   */
+  share: ClientShare | null
+  /** Le dénominateur de cette part, affiché pour que le calcul se refasse. */
+  totalActiveCapitalUsdc: number | null
 }>
 
 /** Repli nommé : une lecture globale disponible mais sans cette clé. */
@@ -66,7 +80,7 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
   /* Sept lectures en parallèle. Chacune dit son absence pour son propre
      compte : un client dont on ne lit pas les distributions garde son vault,
      et son identité reste affichable. */
-  const [clients, vaults, offers, vaultDetail, bucketYields, distributions, movements] =
+  const [clients, vaults, offers, vaultDetail, bucketYields, distributions, movements, fleet] =
     await Promise.all([
       loadAdminRecentClients(50),
       loadAdminVaultRegistry(),
@@ -75,6 +89,7 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
       loadClientBucketYields(clientId),
       loadClientDistributions(clientId),
       loadClientMovements(clientId),
+      loadAdminFleet(),
     ])
 
   /* L'identité : on cherche CE client dans le registre. Une liste lue mais qui
@@ -118,6 +133,19 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
       } as Availability<readonly Offer[]>)
     : offers
 
+  /* La quote-part : son capital sur celui de TOUS les vaults actifs. Un vault
+     clos ou en attente de fonds ne consomme pas de puissance — l'inclure
+     diluerait la part de tous les autres. */
+  const totalCapital = isAvailable(vaults) ? totalActiveCapital(vaults.value) : null
+  const clientCapital = isAvailable(vault) ? vault.value.principalUsdc : null
+  const share = isAvailable(fleet)
+    ? clientShareOfFleet(clientCapital, totalCapital, {
+        hashrateEhs: fleet.value.hashrateEhs,
+        btcProducedTotal: fleet.value.btcProducedTotal,
+        electricityUsd: null,
+      })
+    : null
+
   return {
     clientId,
     identity,
@@ -127,5 +155,8 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
     bucketYields,
     distributions,
     movements,
+    fleet,
+    share,
+    totalActiveCapitalUsdc: totalCapital,
   }
 }

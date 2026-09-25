@@ -85,7 +85,9 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
     }))
   }
 
-  const data = payloadFor(path)
+  // La query porte les paramètres de simulation d'une offre : sans elle,
+  // chaque propale retomberait sur les valeurs par défaut.
+  const data = payloadFor(path, new URL(req.url).searchParams.toString())
   return NextResponse.json(isPublic ? data : envelope(data))
 }
 

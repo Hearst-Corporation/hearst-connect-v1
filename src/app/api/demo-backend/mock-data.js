@@ -192,7 +192,7 @@ const POCKETS = [
  */
 const VAULTS = ['Hearst Holdings', 'ZAND Bank', 'Rain Financial']
 
-function payloadFor(path) {
+function payloadFor(path, search = '') {
   const rnd = seeded(path)
   const p = path
 
@@ -708,6 +708,108 @@ function payloadFor(path) {
 
      Le jeu couvre les six états du parcours plus un refus, pour que le
      tableau de bord ait quelque chose à montrer dans chaque colonne. */
+  /* ── SIMULATION D'UNE OFFRE ─────────────────────────────────────────────
+     Le MÊME moteur que la projection du client (`/me/vault/projection`), mais
+     paramétré par l'offre : son montant, sa durée, son allocation.
+
+     Réutiliser le moteur n'est pas une économie de code, c'est une garantie :
+     la propale et l'écran du client montrent alors LE MÊME calcul. Deux
+     moteurs auraient dérivé l'un de l'autre au premier ajustement, et le
+     client aurait découvert après signature un chiffre que la propale ne
+     promettait pas.
+
+     Le rendement médian dépend de l'allocation proposée : la poche minage
+     produit du bitcoin sous le prix du marché, la poche USDC un rendement
+     stable, le prêt quelque chose entre les deux. Le curseur de risque n'est
+     donc pas décoratif — il déplace réellement la distribution. */
+  {
+    const mSim = p.match(/^\/api\/v1\/admin\/offers\/([^/?]+)\/simulate$/)
+    if (mSim) {
+      // `payloadFor` reçoit le chemin brut : la query se parse ici.
+      const q = new URLSearchParams(search)
+      const num = (key, fallback) => {
+        const raw = q.get(key)
+        const n = raw === null ? NaN : Number(raw)
+        return Number.isFinite(n) ? n : fallback
+      }
+      const amount = num('amountUsdc', 1_000_000)
+      const months = num('months', 24)
+      const miningBps = num('miningBps', 4000)
+      const lendingBps = num('lendingBps', 2700)
+      const stableBps = num('stableBps', 3300)
+
+      /* Rendement annuel attendu par poche, en part décimale. Ces trois
+         nombres sont les seuls paramètres métier de la simulation — tout le
+         reste en découle. */
+      const POCKET_YIELD = { mining: 0.142, lending: 0.084, stable: 0.101 }
+      const blended =
+        (miningBps * POCKET_YIELD.mining +
+          lendingBps * POCKET_YIELD.lending +
+          stableBps * POCKET_YIELD.stable) /
+        10_000
+
+      /* La dispersion suit la part de minage : c'est la poche dont le résultat
+         dépend du cours, de la difficulté et du prix de l'électricité. Une
+         allocation prudente resserre donc l'éventail, une allocation offensive
+         l'ouvre — ce que p10 et p90 doivent montrer. */
+      const spread = 0.35 + (miningBps / 10_000) * 0.55
+      const YIELD = {
+        p10: blended * (1 - spread),
+        p25: blended * (1 - spread / 2),
+        p50: blended,
+        p75: blended * (1 + spread / 2),
+        p90: blended * (1 + spread),
+      }
+
+      const BTC_VOL = 0.55
+      const Z = { p10: -1.2816, p25: -0.6745, p50: 0, p75: 0.6745, p90: 1.2816 }
+
+      const points = Array.from({ length: months + 1 }, (_, i) => {
+        const t = i / 12
+        const usd = (k) => Math.round(amount * Math.pow(1 + YIELD[k], t))
+        const sigma = BTC_VOL * Math.sqrt(t)
+        const btcAt = (k) => {
+          const capital = amount * Math.pow(1 + YIELD.p50, t)
+          const priceMult = Math.exp(Z[k] * sigma - 0.5 * sigma * sigma)
+          return Number((capital / (BTC_SPOT_USD * priceMult)).toFixed(4))
+        }
+        return {
+          month: i,
+          label: i === 0 ? 'Today' : `M+${i}`,
+          p10: usd('p10'),
+          p25: usd('p25'),
+          p50: usd('p50'),
+          p75: usd('p75'),
+          p90: usd('p90'),
+          // Percentile haut en bitcoin = cours bas : l'inversion est portée
+          // ici, jamais dans l'interface.
+          btcP10: btcAt('p90'),
+          btcP50: btcAt('p50'),
+          btcP90: btcAt('p10'),
+        }
+      })
+
+      /* Le point de comparaison de la thèse : combien de bitcoin le même
+         capital aurait acheté au comptant, aujourd'hui. Sans lui, la
+         projection ne répond pas à la question que pose le produit. */
+      const hodlBtc = Number((amount / BTC_SPOT_USD).toFixed(4))
+
+      return {
+        simulation: bloc({
+          runs: 10_000,
+          horizonMonths: months,
+          startValueUsdc: amount,
+          startValueBtc: hodlBtc,
+          hodlBtc,
+          blendedYieldPct: Number((blended * 100).toFixed(2)),
+          btcVolAnnualPct: BTC_VOL * 100,
+          allocation: { miningBps, lendingBps, stableBps },
+          points,
+        }),
+      }
+    }
+  }
+
   /* ── LA FICHE D'UN CLIENT, CÔTÉ ADMIN ───────────────────────────────────
      L'inventaire de /account a montré que sept familles de chiffres montrés au
      client n'étaient vérifiables nulle part ici. Ces quatre lectures comblent

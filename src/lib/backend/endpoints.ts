@@ -203,6 +203,17 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
       '`admin/activity/recent` stays global: it reports what the book did, never what one person did.',
   }),
   defineEndpoint({
+    id: 'admin-offer-simulate',
+    path: '/api/v1/admin/offers/:id/simulate',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/offers',
+    summary:
+      'Monte-Carlo simulation for one offer — its amount, its horizon, its proposed allocation.',
+    caveat:
+      'Runs the SAME engine as the client projection. Not an economy of code but a guarantee: the proposal and the client screen then show one calculation. Two engines would drift apart at the first adjustment, and the client would discover after signing a figure the proposal never promised.',
+  }),
+  defineEndpoint({
     id: 'admin-offers',
     path: '/api/v1/admin/offers',
     category: 'business',

@@ -197,6 +197,45 @@ export type AdminVaultRecord = {
   readonly driftThresholdBps: number | null
 }
 
+/**
+ * Une simulation d'offre — le même moteur que la projection du client.
+ *
+ * `points` porte les bandes de percentiles, en dollars ET en bitcoin. La
+ * lecture bitcoin est INVERSÉE à la source : un percentile haut en dollars
+ * correspond à un cours bas, donc à plus de bitcoin pour le même capital.
+ * L'interface ne rejoue pas cette inversion, elle trace ce qu'on lui donne.
+ */
+export type OfferSimulationPoint = {
+  readonly month: number
+  readonly label: string
+  readonly p10: number
+  readonly p25: number
+  readonly p50: number
+  readonly p75: number
+  readonly p90: number
+  readonly btcP10: number
+  readonly btcP50: number
+  readonly btcP90: number
+}
+
+export type OfferSimulation = {
+  readonly runs: number
+  readonly horizonMonths: number
+  readonly startValueUsdc: number
+  readonly startValueBtc: number
+  /** Ce que le même capital achèterait au comptant aujourd'hui — la référence
+   *  de la thèse : « auriez-vous plus de bitcoin en achetant simplement ? » */
+  readonly hodlBtc: number
+  readonly blendedYieldPct: number
+  readonly btcVolAnnualPct: number
+  readonly allocation: {
+    readonly miningBps: number
+    readonly lendingBps: number
+    readonly stableBps: number
+  }
+  readonly points: readonly OfferSimulationPoint[]
+}
+
 /* ── La fiche d'un client ──────────────────────────────────────────────────
    Quatre read-models scopés par client. Les surfaces admin existantes étaient
    globales : elles disaient ce que faisait le portefeuille, jamais ce que

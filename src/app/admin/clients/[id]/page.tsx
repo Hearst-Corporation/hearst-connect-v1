@@ -15,6 +15,7 @@ import {
   available,
   isAvailable,
   unavailable,
+  valueOf,
   type Availability,
 } from '@/lib/vaults/model'
 import {
@@ -72,8 +73,18 @@ export default async function ClientDossierPage({
   const { id } = await params
 
   const dossier = await loadClientDossier(id)
-  const { identity, vault, offers, vaultDetail, bucketYields, distributions, movements } =
-    dossier
+  const {
+    identity,
+    vault,
+    offers,
+    vaultDetail,
+    bucketYields,
+    distributions,
+    movements,
+    fleet,
+    share,
+    totalActiveCapitalUsdc,
+  } = dossier
 
   const label = isAvailable(identity) ? identity.value.label : id
   const offerRows = isAvailable(offers) ? offers.value : []
@@ -305,6 +316,113 @@ export default async function ClientDossierPage({
             </DataTableShell>
           )}
         </BentoCard>
+
+        {/* ── SA PART DU PARC ───────────────────────────────────────────
+            La règle du produit : un client qui apporte un million sur dix
+            millions reçoit un dixième du parc. Une seule clé, appliquée à la
+            puissance, au bitcoin produit et à l'électricité — sinon les
+            chiffres du client cessent de se recouper entre eux.
+
+            Cette part se CALCULE, elle ne se lit pas. D'où le dénominateur en
+            clair : sans lui, le chiffre serait invérifiable. */}
+        <BentoCard span={12}>
+          {share === null ? (
+            <Callout tone="warning" title="Fleet share not computable">
+              {totalActiveCapitalUsdc === null
+                ? 'The total capital across active vaults could not be read — a share of nothing is not zero per cent.'
+                : 'The fleet reading is unavailable.'}
+            </Callout>
+          ) : (
+            <DataTableShell
+              title="Fleet share"
+              description={`This client's capital over ${usd(totalActiveCapitalUsdc)} across active vaults.`}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>What the client sees</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Value</TableHeader>
+                  <TableHeader>Endpoint</TableHeader>
+                  <TableHeader>Derivation</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TracedRow
+                  label="% of the fleet"
+                  value={available(
+                    `${formatNumber(share.sharePct, { maximumFractionDigits: 2 })} %`,
+                  )}
+                  endpoint="/api/v1/admin/vaults/registry"
+                  derivation={{
+                    kind: 'computed',
+                    formula: 'clientPrincipal ÷ Σ principal of ACTIVE vaults',
+                  }}
+                  note="The single key behind every figure below"
+                />
+                <TracedRow
+                  label="Your hashrate"
+                  value={
+                    share.hashrateThs === null
+                      ? missing('/api/v1/mining/fleet', 'fleet hashrate not read')
+                      : available(
+                          `${formatNumber(share.hashrateThs, { maximumFractionDigits: 0 })} TH/s`,
+                        )
+                  }
+                  endpoint="/api/v1/mining/fleet"
+                  derivation={{ kind: 'computed', formula: 'fleet EH/s × 1e6 × share' }}
+                />
+                <TracedRow
+                  label="Produced for you"
+                  value={
+                    share.btcProduced === null
+                      ? missing('/api/v1/mining/fleet', 'fleet production not read')
+                      : available(
+                          `${formatNumber(share.btcProduced, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BTC`,
+                        )
+                  }
+                  endpoint="/api/v1/mining/fleet"
+                  derivation={{ kind: 'computed', formula: 'fleet BTC produced × share' }}
+                  note="Pro rata to capital — compare with the figure the vault reports above"
+                />
+                <TracedRow
+                  label="Operational capacity"
+                  value={from(
+                    fleet,
+                    isAvailable(fleet) && fleet.value.hashrateEhs !== null
+                      ? `${formatNumber(fleet.value.hashrateEhs, { maximumFractionDigits: 1 })} EH/s`
+                      : '—',
+                  )}
+                  endpoint="/api/v1/mining/fleet"
+                  derivation={{ kind: 'raw' }}
+                  note="The whole fleet — not this client's share"
+                />
+              </TableBody>
+            </DataTableShell>
+          )}
+        </BentoCard>
+
+        {/* Le rapprochement qui manquait : deux chemins vers le même fait.
+            Quand ils divergent, c'est une question à poser au backend, pas un
+            détail d'affichage — l'un des deux est faux, et c'est le client qui
+            lit le premier. */}
+        {share !== null &&
+        share.btcProduced !== null &&
+        isAvailable(vaultDetail) &&
+        vaultDetail.value.producedBtc !== null &&
+        Math.abs(share.btcProduced - vaultDetail.value.producedBtc) > 0.01 ? (
+          <BentoCard span={12}>
+            <Callout tone="warning" title="Two figures disagree on what this client produced">
+              The vault reports{' '}
+              {formatNumber(vaultDetail.value.producedBtc, { maximumFractionDigits: 2 })} BTC, while
+              the fleet share ({formatNumber(share.sharePct, { maximumFractionDigits: 2 })} % of{' '}
+              {formatNumber(valueOf(fleet)?.btcProducedTotal ?? 0, { maximumFractionDigits: 1 })}{' '}
+              BTC) works out at{' '}
+              {formatNumber(share.btcProduced, { maximumFractionDigits: 2 })} BTC. The client reads
+              the first. Either the vault figure covers a shorter period than the fleet total, or
+              the share key differs from the one used upstream — worth settling before the next
+              statement goes out.
+            </Callout>
+          </BentoCard>
+        ) : null}
 
         {/* ── RENDEMENT PAR POCHE ───────────────────────────────────────
             Le client le lit dans « Strategy Exposure ». Aucune surface admin

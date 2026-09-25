@@ -21,6 +21,7 @@ import type {
   AdminClientDistribution,
   AdminClientMovement,
   AdminClientVault,
+  OfferSimulation,
 } from '@/lib/admin-dashboard/contracts'
 
 /** Backend `Resolved<T>` block as returned inside envelope data. */
@@ -111,6 +112,13 @@ export const fetchOffers = cache(() =>
 /* ── La fiche d'un client ──────────────────────────────────────────────────
    Quatre lectures scopées par client, là où les surfaces admin existantes
    étaient globales. */
+
+export const fetchOfferSimulation = cache(
+  (id: string, params: Record<string, number>) =>
+    callBackend<{ simulation: BackendResolved<OfferSimulation> }>('admin-offer-simulate', {
+      params: { id, ...params },
+    }),
+)
 
 export const fetchClientVault = cache((id: string) =>
   callBackend<{ vault: BackendResolved<AdminClientVault> }>('admin-client-vault', {
