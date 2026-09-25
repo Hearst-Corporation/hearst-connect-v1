@@ -206,7 +206,12 @@ export function SectionCard({
             {eyebrow !== undefined && eyebrow !== '' && (
               <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
             )}
-            <Tag className={csl.cardTitle}>{title}</Tag>
+            {/* 17px : le corps des titres de bloc de /account. Sans classe, un
+            `h2`/`h3` natif tombait à 16px et la console avait deux échelles
+            typographiques pour un même rang. */}
+        <Tag className={clsx(csl.cardTitle, 'text-[17px] leading-tight font-medium text-fg')}>
+          {title}
+        </Tag>
             {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
           </div>
           {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}

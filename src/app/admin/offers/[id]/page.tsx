@@ -162,7 +162,7 @@ export default async function OfferPage({
         </BentoCard>
 
         {/* ── L'ALLOCATION PROPOSÉE ─────────────────────────────────────── */}
-        <BentoCard span={6}>
+        <BentoCard span={6} bare>
           <DataTableShell
             title="Proposed allocation"
             description="What this client is offered — it becomes the vault target once signed."

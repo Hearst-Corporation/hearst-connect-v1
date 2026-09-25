@@ -60,7 +60,7 @@ export function DashboardHeader({
                   l'écran. Le chiffre reste lisible, le reste s'élide. */}
               <dd className="mt-0.5 flex min-w-0 items-baseline gap-1.5">
                 <span
-                  className={`truncate text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
+                  className={`truncate text-[30px] leading-none font-medium tracking-[-0.02em] tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
                 >
                   {available ? kpi.value.value : '—'}
                 </span>

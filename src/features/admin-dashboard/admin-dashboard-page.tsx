@@ -16,8 +16,15 @@ import { HearstPrimaryAction } from '@/components/actions'
 import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { PendingStrip } from '@/features/admin-approvals/pending-strip'
-import { loadAdminApprovals, loadAdminOffers, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
-import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
+import {
+  loadAdminApprovals,
+  loadAdminBtcReserve,
+  loadAdminOffers,
+  loadAdminProductionCost,
+  loadAdminVaultRegistry,
+} from '@/lib/admin-dashboard/load'
+import type { AdminBtcReserve, AdminDashboardData } from '@/lib/admin-dashboard/contracts'
+import type { ProductionCost } from '@/lib/product/readings'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import {
   loadAdminActivityTimeseries,
@@ -29,7 +36,7 @@ import {
   loadAdminRecentActivity,
   loadAdminAssetScale,
 } from '@/lib/admin-dashboard/load'
-import { formatCurrency, formatDriftPts } from '@/lib/format'
+import { formatCurrency, formatDriftPts, formatNumber } from '@/lib/format'
 import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
 import { Suspense, type ReactNode } from 'react'
 import { PipelineStrip } from './pipeline-strip'
@@ -61,37 +68,58 @@ async function PendingDecisions() {
   return <PendingStrip approvals={approvals} vaults={vaults} />
 }
 
-function kpisFromOverview(overview: AdminDashboardData['overview']): readonly DashboardKpi[] {
-  const deployedAmount = mapAvailability(overview, (o) =>
-    formatCurrency(o.deployedAtomic, { fromAtomic: 10 ** o.decimals }),
-  )
+/**
+ * Les trois chiffres de tête.
+ *
+ * L'en-tête portait AUM, dérive maximale, nombre de vaults et capital déployé
+ * — quatre mesures de structure, dont deux (la dérive d'une poche, le
+ * pourcentage déployé) ne disent rien de l'activité du jour et se lisent mieux
+ * vault par vault, plus bas.
+ *
+ * À la place : ce que le produit gère, ce qu'il a produit, et à quel prix.
+ * Le troisième est le cœur de la thèse — on acquiert du bitcoin sous le cours,
+ * et c'est cet écart qui fait le produit.
+ */
+function dashboardKpis(
+  overview: AdminDashboardData['overview'],
+  reserve: Availability<AdminBtcReserve>,
+  cost: Availability<ProductionCost>,
+): readonly DashboardKpi[] {
   return [
     {
       id: 'aum',
-      title: 'Total AUM',
-      value: mapAvailability(overview, (o) => formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals })),
+      title: 'Capital under management',
+      value: mapAvailability(overview, (o) =>
+        formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals }),
+      ),
       unit: isAvailable(overview) ? overview.value.asset : undefined,
       icon: BanknotesIcon,
     },
     {
-      id: 'drift',
-      title: 'Maximum drift',
-      value: mapAvailability(overview, (o) => formatDriftPts(o.maxDriftBps)),
-      unit: isAvailable(overview) ? (overview.value.maxDriftStrategyLabel ?? '—') : undefined,
-      icon: ExclamationTriangleIcon,
-    },
-    {
-      id: 'vaults',
-      title: 'Vaults',
-      value: mapAvailability(overview, (o) => String(o.activeVaults)),
-      unit: vaultsKpiUnit(overview),
+      id: 'produced',
+      title: 'Bitcoin produced',
+      value: mapAvailability(reserve, (r) =>
+        r.producedSats === null
+          ? '—'
+          : formatNumber(r.producedSats / 1e8, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+      ),
+      unit: 'BTC since inception',
       icon: CubeTransparentIcon,
     },
     {
-      id: 'deployed',
-      title: 'Deployed capital',
-      value: mapAvailability(overview, (o) => `${o.deployedPct}%`),
-      unit: isAvailable(deployedAmount) ? deployedAmount.value : undefined,
+      id: 'cost',
+      title: 'Cost to mine one BTC',
+      value: mapAvailability(cost, (c) =>
+        formatCurrency(String(Math.round(c.costPerBtcUsd)), { unit: '$', fromAtomic: 1 }),
+      ),
+      /* L'écart au marché EN UNITÉ : c'est la marge du produit, la raison pour
+         laquelle miner vaut mieux qu'acheter. Le cours seul ne la dit pas. */
+      unit: isAvailable(cost)
+        ? `vs ${formatCurrency(String(Math.round(cost.value.marketPriceUsd)), { unit: '$', fromAtomic: 1 })} market`
+        : undefined,
       icon: ArrowTrendingUpIcon,
     },
   ]
@@ -176,14 +204,17 @@ function DashPanel({
    streaming costs no extra backend calls. */
 
 async function HeaderData() {
-  const overview = await loadAdminOverview()
-  const kpis = kpisFromOverview(overview)
+  const [overview, reserve, cost] = await Promise.all([
+    loadAdminOverview(),
+    loadAdminBtcReserve(),
+    loadAdminProductionCost(),
+  ])
   return (
     <DashboardHeader
-      kpis={kpis}
+      kpis={dashboardKpis(overview, reserve, cost)}
       action={
-        <HearstPrimaryAction icon={<PlusIcon />} href="/admin/client-simulator/new">
-          Add client
+        <HearstPrimaryAction icon={<PlusIcon />} href="/admin/offers/new">
+          New offer
         </HearstPrimaryAction>
       }
     />
@@ -258,7 +289,7 @@ export function AdminDashboardPage() {
           tableau de bord qui n'annonce pas ce qui bloque laisse l'opérateur
           découvrir les demandes par hasard. */}
       <BentoGrid>
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           <DashPanel title="Waiting on you">
             <Suspense fallback={<PanelFallback />}>
               <PendingDecisions />
@@ -269,7 +300,7 @@ export function AdminDashboardPage() {
 
       {/* Market strip — one thin band of readings. */}
       <BentoGrid>
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           <DashPanel title="Market">
             <Suspense fallback={<PanelFallback />}>
               <MarketData />
@@ -283,7 +314,7 @@ export function AdminDashboardPage() {
           est en amont — des offres à finir, à relancer, des fonds à appeler,
           des vaults à ouvrir. Rien de cela n'était visible ici. */}
       <BentoGrid>
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           <DashPanel
             title="Pipeline"
             action={<PanelHeaderLink href="/admin/offers">Open offers</PanelHeaderLink>}
@@ -302,7 +333,7 @@ export function AdminDashboardPage() {
           Or on ne rééquilibre jamais « le portefeuille », on rééquilibre le
           vault de quelqu'un, contre SON seuil. */}
       <BentoGrid>
-        <BentoCard span={8}>
+        <BentoCard span={8} bare>
           <DashPanel
             title="Vaults"
             action={<PanelHeaderLink href="/admin/vaults">All vaults</PanelHeaderLink>}
@@ -312,7 +343,7 @@ export function AdminDashboardPage() {
             </Suspense>
           </DashPanel>
         </BentoCard>
-        <BentoCard span={4}>
+        <BentoCard span={4} bare>
           <DashPanel
             title="Recent activity"
             slot="timeline"
@@ -327,7 +358,7 @@ export function AdminDashboardPage() {
 
       {/* Row B — the chart pair: equal viewports, equal heights. */}
       <BentoGrid>
-        <BentoCard span={6}>
+        <BentoCard span={6} bare>
           <DashPanel
             title="Rebalancing drift"
             action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
@@ -337,7 +368,7 @@ export function AdminDashboardPage() {
             </Suspense>
           </DashPanel>
         </BentoCard>
-        <BentoCard span={6}>
+        <BentoCard span={6} bare>
           <DashPanel title="Activity">
             <Suspense fallback={<PanelFallback label="Activity" />}>
               <ActivityChartData />

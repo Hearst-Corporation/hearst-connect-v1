@@ -85,18 +85,31 @@ export function BentoCard({
   className,
   span = 6,
   as: Tag = 'div',
+  bare = false,
   ...rest
 }: Readonly<{
+  /** La cellule porte déjà sa propre carte : ne pas en ajouter une seconde. */
+  bare?: boolean
   children: React.ReactNode
   className?: string
   span?: BentoSpan
   as?: 'div' | 'section' | 'article'
 }> &
   Omit<React.HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
+  /* `bare` : une cellule qui porte déjà sa propre carte (`DashCard`,
+     `DataTableShell`) ne doit pas en recevoir une seconde — un cadre dans un
+     cadre. Partout ailleurs, la cellule EST la carte : même fond, même rayon,
+     même filet que les cartes de /account, sans quoi la console affichait du
+     contenu posé à nu sur le fond de page. */
   return (
     <Tag
       {...rest}
-      className={clsx('min-w-0', SPAN_CLASS[span], className)}
+      className={clsx(
+        'min-w-0',
+        !bare && 'rounded-xl bg-console-card p-4 ring-1 ring-console-line',
+        SPAN_CLASS[span],
+        className,
+      )}
     >
       {children}
     </Tag>

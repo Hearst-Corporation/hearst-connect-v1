@@ -127,7 +127,7 @@ export default async function ClientDossierPage({
 
       <BentoGrid>
         {/* ── IDENTITÉ ET CONTRAT ───────────────────────────────────────── */}
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           <DataTableShell
             title="Identity and contract"
             description="The facts that do not move — who they are, and on what terms."
@@ -190,7 +190,7 @@ export default async function ClientDossierPage({
         </BentoCard>
 
         {/* ── LE VAULT ──────────────────────────────────────────────────── */}
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           <DataTableShell
             title="Vault"
             description="The five tiles of the client's vault banner, and what stands behind each."
@@ -427,7 +427,7 @@ export default async function ClientDossierPage({
         {/* ── RENDEMENT PAR POCHE ───────────────────────────────────────
             Le client le lit dans « Strategy Exposure ». Aucune surface admin
             ne pouvait le recouper jusqu'ici. */}
-        <BentoCard span={6}>
+        <BentoCard span={6} bare>
           {!isAvailable(bucketYields) ? (
             <Callout tone="warning" title="Yields not available">
               {bucketYields.reason ?? 'not read'} — nothing is shown rather than a guess.
@@ -464,7 +464,7 @@ export default async function ClientDossierPage({
         {/* ── DISTRIBUTIONS ─────────────────────────────────────────────
             La chaîne exposait l'approbation mais aucune lecture : on signait
             sans voir le registre. */}
-        <BentoCard span={6}>
+        <BentoCard span={6} bare>
           {!isAvailable(distributions) ? (
             <Callout tone="warning" title="Distributions not available">
               {distributions.reason ?? 'not read'}
@@ -520,7 +520,7 @@ export default async function ClientDossierPage({
         {/* ── LE JOURNAL ────────────────────────────────────────────────
             `admin/activity/recent` reste global : il dit ce que fait le
             portefeuille, jamais ce qu'a fait une personne. */}
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           {!isAvailable(movements) ? (
             <Callout tone="warning" title="Ledger not available">
               {movements.reason ?? 'not read'}

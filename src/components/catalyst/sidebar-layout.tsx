@@ -60,7 +60,7 @@ export function SidebarLayout({
 
       {/* Sidebar — z au-dessus du main (sinon le padding lg:pl-64 du main
           capture les clics et la nav est morte). */}
-      <div className={clsx('fixed inset-y-0 left-0 z-30 w-64 max-lg:hidden', surfaceNav)}>
+      <div className={clsx('fixed inset-y-0 left-0 z-30 w-[169px] max-lg:hidden', surfaceNav)}>
         {sidebar}
       </div>
 
@@ -78,7 +78,7 @@ export function SidebarLayout({
       </header>
 
       {/* Content — sous le rail en z-index ; pl-64 réserve l’espace. */}
-      <main className="relative z-10 flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
+      <main className="relative z-10 flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-[169px]">
         {/* Content card — the page surface as GLASS (console-card + blur), so
             the glow shines through like on the account shell. Solid
             `console-surface` hid it. Cockpit density: `lg:p-5`. */}

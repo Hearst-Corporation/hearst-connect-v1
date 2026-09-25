@@ -84,35 +84,33 @@ export const SidebarItem = forwardRef(function SidebarItem(
   ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
 ) {
   let classes = clsx(
+    /* Aligné sur le rail de /account : 13px, gap de 11px, padding 10/12, et
+       surtout un ÉTAT COURANT en pastille verte pleine — le seul aplat de
+       marque de l'écran. La console portait un survol gris à peine visible sur
+       le fond noir du rail, donc rien ne signalait où l'on se trouvait. */
     // Base
-    'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium text-ink sm:py-2 sm:text-sm/5',
+    'flex w-full items-center gap-[11px] rounded-xl px-3 py-2.5 text-left text-[13px] font-normal text-fg-secondary',
     // Leading icon/icon-only
     '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:fill-fg-tertiary sm:*:data-[slot=icon]:size-5',
     // Trailing icon (down chevron or similar)
     '*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5 sm:*:last:data-[slot=icon]:size-4',
     // Avatar
     '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
-    // Hover
-    'data-hover:bg-ink/5 data-hover:*:data-[slot=icon]:fill-ink',
-    // Active
-    'data-active:bg-ink/5 data-active:*:data-[slot=icon]:fill-ink',
-    // Current
-    'data-current:*:data-[slot=icon]:fill-ink',
-    // Dark mode
-    'dark:text-fg dark:*:data-[slot=icon]:fill-fg-secondary',
-    'dark:data-hover:bg-fg/5 dark:data-hover:*:data-[slot=icon]:fill-fg',
-    'dark:data-active:bg-fg/5 dark:data-active:*:data-[slot=icon]:fill-fg',
-    'dark:data-current:*:data-[slot=icon]:fill-fg'
+    // Survol franc : un voile à 5 % ne se voit pas sur un rail presque noir.
+    'data-hover:bg-fg/8 data-hover:text-fg data-hover:*:data-[slot=icon]:fill-fg',
+    'data-active:bg-fg/8 data-active:text-fg',
+    // Courant : pastille mint pleine, encre sombre.
+    'data-current:bg-[#9eea7a] data-current:font-medium data-current:text-[#06110a]',
+    'data-current:*:data-[slot=icon]:fill-[#06110a]',
+    'data-current:data-hover:bg-[#9eea7a]',
+    '*:data-[slot=icon]:fill-fg-tertiary'
   )
 
   return (
     <span className={clsx(className, 'relative')}>
-      {current && (
-        <motion.span
-          layoutId="current-indicator"
-          className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-ink dark:bg-fg"
-        />
-      )}
+      {/* Plus de barre latérale : la pastille verte pleine marque déjà l'item
+          courant, comme sur /account. Deux repères pour un même état se
+          contredisaient visuellement. */}
       {typeof props.href === 'string' ? (
         <Headless.CloseButton
           as={Link}

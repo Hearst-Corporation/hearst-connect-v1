@@ -161,7 +161,7 @@ export default async function OffersPage() {
               Sorti en tête, avant la liste complète : c'est la seule partie
               sur laquelle on peut agir aujourd'hui. */}
           {pipeline.needsAction.length > 0 ? (
-            <BentoCard span={12}>
+            <BentoCard span={12} bare>
               <DataTableShell
                 title="Waiting on you"
                 description="Each of these is blocked until someone here moves it forward."
@@ -199,7 +199,7 @@ export default async function OffersPage() {
               L'allocation proposée est portée sur chaque ligne : c'est ce qui
               distingue deux offres d'un même montant, et c'est elle qui devient
               la cible du vault une fois l'offre signée. */}
-          <BentoCard span={12}>
+          <BentoCard span={12} bare>
             <DataTableShell
               title="All offers"
               description="The allocation shown is what was proposed to that client — it becomes the vault target once signed."

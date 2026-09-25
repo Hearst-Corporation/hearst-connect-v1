@@ -21,7 +21,10 @@ export function Subheading({ className, level = 2, ...props }: HeadingProps) {
   return (
     <Element
       {...props}
-      className={clsx(className, 'text-base/7 font-semibold text-ink sm:text-sm/6 dark:text-fg')}
+      /* 17px, comme les titres de bloc de /account — `sm:text-sm/6` les
+         rabaissait à 14px sur grand écran, si bien que la console avait une
+         hiérarchie typographique différente de celle du produit. */
+      className={clsx(className, 'text-[17px] leading-tight font-medium text-ink dark:text-fg')}
     />
   )
 }
