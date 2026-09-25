@@ -4,8 +4,19 @@ import {
   loadAdminOffers,
   loadAdminVaultRegistry,
   loadAdminRecentClients,
+  loadClientBucketYields,
+  loadClientDistributions,
+  loadClientMovements,
+  loadClientVault,
 } from '@/lib/admin-dashboard/load'
-import type { AdminRecentClient, AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
+import type {
+  AdminBucketYield,
+  AdminClientDistribution,
+  AdminClientMovement,
+  AdminClientVault,
+  AdminRecentClient,
+  AdminVaultRecord,
+} from '@/lib/admin-dashboard/contracts'
 import type { Offer } from '@/lib/offers/model'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
@@ -31,6 +42,14 @@ export type ClientDossier = Readonly<{
   vault: Availability<AdminVaultRecord>
   /** Ses offres, de la plus récente à la plus ancienne. */
   offers: Availability<readonly Offer[]>
+  /** Son vault au complet — les champs que le front client ne peut pas recalculer. */
+  vaultDetail: Availability<AdminClientVault>
+  /** Le rendement de chaque poche, que le client lit dans « Strategy Exposure ». */
+  bucketYields: Availability<readonly AdminBucketYield[]>
+  /** Ses distributions : versées, approuvées, en attente. */
+  distributions: Availability<readonly AdminClientDistribution[]>
+  /** Son journal — dépôts, retraits, distributions. */
+  movements: Availability<readonly AdminClientMovement[]>
 }>
 
 /** Repli nommé : une lecture globale disponible mais sans cette clé. */
@@ -44,11 +63,19 @@ function notInRegistry<T>(endpoint: string, what: string): Availability<T> {
 }
 
 export async function loadClientDossier(clientId: string): Promise<ClientDossier> {
-  const [clients, vaults, offers] = await Promise.all([
-    loadAdminRecentClients(50),
-    loadAdminVaultRegistry(),
-    loadAdminOffers(),
-  ])
+  /* Sept lectures en parallèle. Chacune dit son absence pour son propre
+     compte : un client dont on ne lit pas les distributions garde son vault,
+     et son identité reste affichable. */
+  const [clients, vaults, offers, vaultDetail, bucketYields, distributions, movements] =
+    await Promise.all([
+      loadAdminRecentClients(50),
+      loadAdminVaultRegistry(),
+      loadAdminOffers(),
+      loadClientVault(clientId),
+      loadClientBucketYields(clientId),
+      loadClientDistributions(clientId),
+      loadClientMovements(clientId),
+    ])
 
   /* L'identité : on cherche CE client dans le registre. Une liste lue mais qui
      ne le contient pas n'est pas la même chose qu'une liste illisible — la
@@ -91,5 +118,14 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
       } as Availability<readonly Offer[]>)
     : offers
 
-  return { clientId, identity, vault, offers: clientOffers }
+  return {
+    clientId,
+    identity,
+    vault,
+    offers: clientOffers,
+    vaultDetail,
+    bucketYields,
+    distributions,
+    movements,
+  }
 }

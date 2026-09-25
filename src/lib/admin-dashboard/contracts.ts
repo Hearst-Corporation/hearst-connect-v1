@@ -197,6 +197,69 @@ export type AdminVaultRecord = {
   readonly driftThresholdBps: number | null
 }
 
+/* ── La fiche d'un client ──────────────────────────────────────────────────
+   Quatre read-models scopés par client. Les surfaces admin existantes étaient
+   globales : elles disaient ce que faisait le portefeuille, jamais ce que
+   faisait une personne — donc un chiffre montré à un client ne se recoupait
+   nulle part. */
+
+/**
+ * Le vault d'un client, au complet.
+ *
+ * Porte les champs que le front client ne peut PAS recalculer :
+ * `withdrawnUsdcAtPayout` (les dollars réellement encaissés, chaque retrait à
+ * son cours) et `entryRateUsd` (le cours de la conversion à l'entrée). Le
+ * client ne connaît que le cours du jour ; reconvertir un cumul de retraits au
+ * spot d'aujourd'hui donnerait un montant que personne n'a touché.
+ */
+export type AdminClientVault = {
+  readonly clientId: string
+  readonly vaultId: string
+  readonly label: string
+  readonly principalUsdc: number | null
+  readonly withdrawnUsdc: number | null
+  readonly withdrawnUsdcAtPayout: number | null
+  readonly entryRateUsd: number | null
+  readonly availableUsdc: number | null
+  readonly nextDistributionAt: string | null
+  readonly lockupStartAt: string | null
+  readonly lockupMonths: number | null
+  readonly depositUnlocked: boolean
+  readonly withdrawUnlocked: boolean
+  readonly producedBtc: number | null
+  readonly accruedBtc: number | null
+}
+
+/** Rendement d'une poche, en run-rate annualisé. */
+export type AdminBucketYield = {
+  readonly bucket: string
+  readonly yieldPct: number | null
+  readonly capitalUsdc: number | null
+  readonly trendPct: number | null
+}
+
+/** Une distribution : versée, approuvée, ou en attente. */
+export type AdminClientDistribution = {
+  readonly id: string
+  readonly month: string
+  readonly status: string
+  readonly btcAmountSats: number | null
+  readonly yieldUsdc: number | null
+  /** Cours retenu POUR CETTE distribution — jamais celui du jour. */
+  readonly btcPriceUsdc: number | null
+  readonly distributionDate: string | null
+}
+
+/** Une ligne du journal d'un client. */
+export type AdminClientMovement = {
+  readonly id: string
+  readonly type: string
+  readonly amountUsdc: number | null
+  readonly occurredAt: string | null
+  readonly txHash: string | null
+  readonly status: string
+}
+
 /**
  * 5 points de pourcentage — le seuil retenu quand un vault n'en déclare pas.
  *

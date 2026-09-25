@@ -708,6 +708,89 @@ function payloadFor(path) {
 
      Le jeu couvre les six états du parcours plus un refus, pour que le
      tableau de bord ait quelque chose à montrer dans chaque colonne. */
+  /* ── LA FICHE D'UN CLIENT, CÔTÉ ADMIN ───────────────────────────────────
+     L'inventaire de /account a montré que sept familles de chiffres montrés au
+     client n'étaient vérifiables nulle part ici. Ces quatre lectures comblent
+     le trou : le vault détaillé, le rendement par poche, les distributions et
+     le journal des mouvements — tous SCOPÉS PAR CLIENT, là où les lectures
+     existantes étaient globales.
+
+     Le scope est l'essentiel : `admin/activity/recent` disait ce que faisait
+     le portefeuille, jamais ce que faisait CE client. */
+  {
+    const mVault = p.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/vault$/)
+    if (mVault) {
+      const clientId = mVault[1]
+      /* Les mêmes constantes que /api/v1/me/vault : les deux surfaces doivent
+         afficher le même chiffre, sinon l'admin ne peut rien vérifier. */
+      const principal = CLIENT_PRINCIPAL_USDC
+      const withdrawn = usdcFromBtc(CLIENT_WITHDRAWN_BTC)
+      return {
+        vault: bloc({
+          clientId,
+          vaultId: 'vault-0',
+          label: 'Dedicated Vault',
+          principalUsdc: principal,
+          withdrawnUsdc: withdrawn,
+          withdrawnUsdcAtPayout: CLIENT_WITHDRAWN_USDC_AT_PAYOUT,
+          entryRateUsd: CLIENT_ENTRY_RATE_USD,
+          availableUsdc: CLIENT_AVAILABLE_USDC,
+          nextDistributionAt: '2026-10-01T09:00:00Z',
+          lockupStartAt: '2026-02-10T09:00:00Z',
+          lockupMonths: 24,
+          depositUnlocked: false,
+          withdrawUnlocked: true,
+          producedBtc: CLIENT_PRODUCED_BTC,
+          accruedBtc: CLIENT_ACCRUED_BTC,
+        }),
+      }
+    }
+
+    const mYields = p.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/bucket-yields$/)
+    if (mYields) {
+      /* Rendement par poche, en run-rate annualisé. Le client le lit dans
+         « Strategy Exposure » sans qu'aucun écran admin ne puisse le recouper. */
+      return {
+        yields: bloc([
+          { bucket: 'Mining Alpha', yieldPct: 5.1, capitalUsdc: 162_036, trendPct: 0.4 },
+          { bucket: 'Bitcoin Lending', yieldPct: 8.4, capitalUsdc: 116_004, trendPct: -0.2 },
+          { bucket: 'USDC Yield', yieldPct: 11.6, capitalUsdc: 141_960, trendPct: 0.1 },
+        ]),
+      }
+    }
+
+    const mDist = p.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/distributions$/)
+    if (mDist) {
+      /* Les distributions de CE client, par état. Le backend expose
+         l'approbation mais aucune lecture : l'admin approuvait à l'aveugle. */
+      return {
+        distributions: bloc([
+          { id: 'dst_01', month: '2026-09', status: 'pending', btcAmountSats: 6_000_000, yieldUsdc: 5_250, btcPriceUsdc: 94_820, distributionDate: null },
+          { id: 'dst_02', month: '2026-08', status: 'approved', btcAmountSats: 5_800_000, yieldUsdc: 5_090, btcPriceUsdc: 92_400, distributionDate: null },
+          { id: 'dst_03', month: '2026-07', status: 'distributed', btcAmountSats: 12_000_000, yieldUsdc: 10_180, btcPriceUsdc: 88_600, distributionDate: '2026-07-01T09:00:00Z' },
+          { id: 'dst_04', month: '2026-06', status: 'distributed', btcAmountSats: 11_400_000, yieldUsdc: 9_840, btcPriceUsdc: 86_300, distributionDate: '2026-06-01T09:00:00Z' },
+          { id: 'dst_05', month: '2026-05', status: 'distributed', btcAmountSats: 12_600_000, yieldUsdc: 11_160, btcPriceUsdc: 88_600, distributionDate: '2026-05-01T09:00:00Z' },
+        ]),
+      }
+    }
+
+    const mMov = p.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/movements$/)
+    if (mMov) {
+      /* Le journal de CE client. `admin/activity/recent` reste global — il dit
+         ce que fait le portefeuille, jamais ce qu'a fait une personne. */
+      return {
+        movements: bloc([
+          { id: 'mv_01', type: 'distribution', amountUsdc: 5_250, occurredAt: '2026-09-01T09:00:00Z', txHash: '0x7f3a9c2e5b1d4a8f6c0e2b7d9a3f5c1e8b4d6a0f2c9e7b3d5a1f8c4e6b2d0a9f', status: 'confirmed' },
+          { id: 'mv_02', type: 'withdrawal', amountUsdc: 15_400, occurredAt: '2026-08-14T11:20:00Z', txHash: '0x2b8e4d6a0c3f9e7b1d5a8f2c6e0b4d7a9f3c5e1b8d6a2f0c4e9b7d3a5f1c8e6b', status: 'confirmed' },
+          { id: 'mv_03', type: 'distribution', amountUsdc: 5_090, occurredAt: '2026-08-01T09:00:00Z', txHash: '0x9c5e1b7d3a0f6c2e8b4d9a7f1c5e3b0d6a8f2c4e9b7d1a5f3c0e6b8d2a4f7c1e', status: 'confirmed' },
+          { id: 'mv_04', type: 'withdrawal', amountUsdc: 15_780, occurredAt: '2026-07-18T14:05:00Z', txHash: '0x4a1f7c3e9b5d0a6f2c8e4b7d1a9f5c3e0b6d8a2f4c7e1b9d5a3f0c6e8b2d4a7f', status: 'confirmed' },
+          { id: 'mv_05', type: 'distribution', amountUsdc: 10_180, occurredAt: '2026-07-01T09:00:00Z', txHash: '0x6d2a8f4c0e7b3d9a5f1c6e2b8d4a0f7c3e9b5d1a6f2c8e4b0d7a3f9c5e1b6d8a', status: 'confirmed' },
+          { id: 'mv_06', type: 'deposit', amountUsdc: 420_000, occurredAt: '2026-02-10T09:00:00Z', txHash: '0x1e9b5d3a7f0c4e6b2d8a5f1c9e3b7d0a6f4c2e8b1d5a9f3c7e0b6d2a4f8c1e5b', status: 'confirmed' },
+        ]),
+      }
+    }
+  }
+
   if (p === '/api/v1/admin/offers') {
     const day = 86_400_000
     const now = Date.parse('2026-09-25T00:00:00Z')

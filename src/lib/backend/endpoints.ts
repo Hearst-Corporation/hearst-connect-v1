@@ -157,6 +157,51 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat:
       'Percentiles come already computed: the front draws bands, it never replays the simulation. A projection is not a forecast — the spread between p10 and p90 IS the message.',
   }),
+  /* ── La fiche d'un client ────────────────────────────────────────────────
+     Quatre lectures SCOPÉES PAR CLIENT. Les surfaces admin existantes étaient
+     globales : elles disaient ce que faisait le portefeuille, jamais ce que
+     faisait une personne — donc un chiffre montré à un client ne pouvait se
+     recouper nulle part. */
+  defineEndpoint({
+    id: 'admin-client-vault',
+    path: '/api/v1/admin/clients/:id/vault',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/clients',
+    summary: "A client's vault in full — the five tiles they read, with the fields behind them.",
+    caveat:
+      'Publishes `withdrawnUsdcAtPayout` and `entryRateUsd`, which the client front cannot recompute: it only knows today’s rate. Reconciling a withdrawal at spot would overstate or understate what was actually paid.',
+  }),
+  defineEndpoint({
+    id: 'admin-client-bucket-yields',
+    path: '/api/v1/admin/clients/:id/bucket-yields',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/clients',
+    summary: 'Yield per pocket for one client, annualised run-rate.',
+    caveat:
+      'The client reads these in "Strategy Exposure". Until now no admin surface could recoup them.',
+  }),
+  defineEndpoint({
+    id: 'admin-client-distributions',
+    path: '/api/v1/admin/clients/:id/distributions',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/clients',
+    summary: 'Distributions for one client — paid, approved, pending.',
+    caveat:
+      'The chain exposed approval but no read: an operator was signing off without seeing the ledger.',
+  }),
+  defineEndpoint({
+    id: 'admin-client-movements',
+    path: '/api/v1/admin/clients/:id/movements',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/clients',
+    summary: "One client's ledger — deposits, withdrawals, distributions.",
+    caveat:
+      '`admin/activity/recent` stays global: it reports what the book did, never what one person did.',
+  }),
   defineEndpoint({
     id: 'admin-offers',
     path: '/api/v1/admin/offers',

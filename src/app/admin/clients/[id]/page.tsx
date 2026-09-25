@@ -7,7 +7,7 @@ import { Link } from '@/components/catalyst/link'
 import { TableBody, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 import { Callout, DataTableShell, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
-import { formatCurrency, formatDate, formatNumber } from '@/lib/format'
+import { formatCurrency, formatDate, formatHash, formatNumber } from '@/lib/format'
 import { driftThresholdOf, isVaultDrifting } from '@/lib/admin-dashboard/contracts'
 import { loadClientDossier } from '@/lib/clients/dossier'
 import { OFFER_STATUS_LABEL, RISK_PROFILE_LABEL } from '@/lib/offers/model'
@@ -72,7 +72,8 @@ export default async function ClientDossierPage({
   const { id } = await params
 
   const dossier = await loadClientDossier(id)
-  const { identity, vault, offers } = dossier
+  const { identity, vault, offers, vaultDetail, bucketYields, distributions, movements } =
+    dossier
 
   const label = isAvailable(identity) ? identity.value.label : id
   const offerRows = isAvailable(offers) ? offers.value : []
@@ -194,23 +195,45 @@ export default async function ClientDossierPage({
             <TableBody>
               <TracedRow
                 label="Produced for your vault"
-                value={missing('/api/v1/btc', 'not scoped per client')}
-                endpoint="/api/v1/btc"
-                derivation={{ kind: 'computed', formula: 'btcProduced.totalSats ÷ 1e8' }}
-                note="The client reads a per-vault figure; the chain publishes a fleet total"
+                value={from(
+                  vaultDetail,
+                  isAvailable(vaultDetail) && vaultDetail.value.producedBtc !== null
+                    ? `${formatNumber(vaultDetail.value.producedBtc, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BTC`
+                    : '—',
+                )}
+                endpoint="/api/v1/admin/clients/:id/vault"
+                derivation={{ kind: 'raw' }}
+                note="Mined for this client since subscription"
               />
               <TracedRow
                 label="Available to withdraw"
-                value={missing('/api/v1/me/vault', 'no admin read of this vault field')}
-                endpoint="/api/v1/me/vault"
-                derivation={{ kind: 'computed', formula: 'availableUsdc ÷ btcSpotUsd' }}
+                value={from(
+                  vaultDetail,
+                  usd(isAvailable(vaultDetail) ? vaultDetail.value.availableUsdc : null),
+                )}
+                endpoint="/api/v1/admin/clients/:id/vault"
+                derivation={{ kind: 'raw' }}
+                note="The client reads this converted to BTC at today's spot"
               />
               <TracedRow
                 label="Withdrawn to date"
-                value={missing('/api/v1/me/vault', 'no admin read of this vault field')}
-                endpoint="/api/v1/me/vault"
-                derivation={{ kind: 'computed', formula: 'withdrawnUsdc ÷ btcSpotUsd' }}
-                note="The ≈ USDC figure uses the rate AT PAYOUT, never today's spot"
+                value={from(
+                  vaultDetail,
+                  usd(isAvailable(vaultDetail) ? vaultDetail.value.withdrawnUsdcAtPayout : null),
+                )}
+                endpoint="/api/v1/admin/clients/:id/vault"
+                derivation={{ kind: 'raw' }}
+                note="Dollars ACTUALLY paid, each withdrawal at its own rate — never reconverted at today's spot"
+              />
+              <TracedRow
+                label="Entry rate"
+                value={from(
+                  vaultDetail,
+                  usd(isAvailable(vaultDetail) ? vaultDetail.value.entryRateUsd : null),
+                )}
+                endpoint="/api/v1/admin/clients/:id/vault"
+                derivation={{ kind: 'raw' }}
+                note="The reference behind « Against simply holding bitcoin »"
               />
               <TracedRow
                 label="Earned to date"
@@ -283,14 +306,136 @@ export default async function ClientDossierPage({
           )}
         </BentoCard>
 
-        {/* ── CE QUE LA CHAÎNE NE PUBLIE PAS ENCORE ─────────────────────── */}
+        {/* ── RENDEMENT PAR POCHE ───────────────────────────────────────
+            Le client le lit dans « Strategy Exposure ». Aucune surface admin
+            ne pouvait le recouper jusqu'ici. */}
+        <BentoCard span={6}>
+          {!isAvailable(bucketYields) ? (
+            <Callout tone="warning" title="Yields not available">
+              {bucketYields.reason ?? 'not read'} — nothing is shown rather than a guess.
+            </Callout>
+          ) : (
+            <DataTableShell
+              title="Yield per pocket"
+              description="Annualised run-rate, as the client reads it in Strategy Exposure."
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Pocket</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Yield</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Capital</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bucketYields.value.map((y) => (
+                  <TableRow key={y.bucket}>
+                    <td className={tableCol.primary}>{y.bucket}</td>
+                    <td className={tableCol.numeric}>
+                      {y.yieldPct === null
+                        ? '—'
+                        : `${formatNumber(y.yieldPct, { maximumFractionDigits: 1 })} %`}
+                    </td>
+                    <td className={tableCol.numeric}>{usd(y.capitalUsdc)}</td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </DataTableShell>
+          )}
+        </BentoCard>
+
+        {/* ── DISTRIBUTIONS ─────────────────────────────────────────────
+            La chaîne exposait l'approbation mais aucune lecture : on signait
+            sans voir le registre. */}
+        <BentoCard span={6}>
+          {!isAvailable(distributions) ? (
+            <Callout tone="warning" title="Distributions not available">
+              {distributions.reason ?? 'not read'}
+            </Callout>
+          ) : (
+            <DataTableShell
+              title="Distributions"
+              description="Paid, approved and pending — each at the rate retained for that month."
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Month</TableHeader>
+                  <TableHeader className={tableCol.numeric}>BTC</TableHeader>
+                  <TableHeader className={tableCol.numeric}>USDC</TableHeader>
+                  <TableHeader className={tableCol.status}>Status</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {distributions.value.map((d) => (
+                  <TableRow key={d.id}>
+                    <td className={tableCol.primary}>{d.month}</td>
+                    <td className={tableCol.numeric}>
+                      {/* Une ligne sans montant se dit absente, jamais zéro —
+                          c'est l'entorse relevée côté client dans le donut. */}
+                      {d.btcAmountSats === null
+                        ? '—'
+                        : formatNumber(d.btcAmountSats / 1e8, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                    </td>
+                    <td className={tableCol.numeric}>{usd(d.yieldUsdc)}</td>
+                    <td className={tableCol.status}>
+                      <Badge
+                        color={
+                          d.status === 'distributed'
+                            ? 'lime'
+                            : d.status === 'approved'
+                              ? 'sky'
+                              : 'amber'
+                        }
+                      >
+                        {d.status}
+                      </Badge>
+                    </td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </DataTableShell>
+          )}
+        </BentoCard>
+
+        {/* ── LE JOURNAL ────────────────────────────────────────────────
+            `admin/activity/recent` reste global : il dit ce que fait le
+            portefeuille, jamais ce qu'a fait une personne. */}
         <BentoCard span={12}>
-          <Callout tone="warning" title="Not yet verifiable from the console">
-            Four figures this client sees have no admin read at all: their movements ledger
-            (admin/activity/recent is global, not per client), the yield per pocket, their
-            distributions, and the Monte-Carlo projection. They are listed in{' '}
-            <code className="text-xs">DETTE-ADMIN.md</code> with the endpoint each would need.
-          </Callout>
+          {!isAvailable(movements) ? (
+            <Callout tone="warning" title="Ledger not available">
+              {movements.reason ?? 'not read'}
+            </Callout>
+          ) : (
+            <DataTableShell
+              title="Movements"
+              description="This client's ledger — deposits, withdrawals, distributions."
+            >
+              <TableHead>
+                <TableRow>
+                  <TableHeader className={tableCol.primary}>Type</TableHeader>
+                  <TableHeader className={tableCol.numeric}>Amount</TableHeader>
+                  <TableHeader className={tableCol.date}>Date</TableHeader>
+                  <TableHeader className={tableCol.hash}>Transaction</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {movements.value.map((m) => (
+                  <TableRow key={m.id}>
+                    <td className={tableCol.primary}>{m.type}</td>
+                    <td className={tableCol.numeric}>{usd(m.amountUsdc)}</td>
+                    <td className={tableCol.date}>{formatDate(m.occurredAt)}</td>
+                    <td className={tableCol.hash}>
+                      <code className="text-xs text-fg-tertiary">
+                        {m.txHash === null ? 'not reported' : formatHash(m.txHash)}
+                      </code>
+                    </td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </DataTableShell>
+          )}
         </BentoCard>
       </BentoGrid>
 

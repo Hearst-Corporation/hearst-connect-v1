@@ -6,6 +6,10 @@ import {
   fetchFleet,
   fetchProductionCost,
   fetchBtcReserve,
+  fetchClientBucketYields,
+  fetchClientDistributions,
+  fetchClientMovements,
+  fetchClientVault,
   fetchOffers,
   fetchVaultRegistry,
   fetchMarketSnapshot,
@@ -59,6 +63,10 @@ import type {
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
   AdminVaultRecord,
+  AdminBucketYield,
+  AdminClientDistribution,
+  AdminClientMovement,
+  AdminClientVault,
 } from '@/lib/admin-dashboard/contracts'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 
@@ -264,6 +272,52 @@ export async function loadAdminApprovals(): Promise<Availability<readonly AdminA
 export async function loadAdminOffers(): Promise<Availability<readonly Offer[]>> {
   const res = await fetchOffers()
   return fromBackendOrUnavailable(res, res.ok ? res.data.offers : undefined, '/api/v1/admin/offers')
+}
+
+/* ── La fiche d'un client ──────────────────────────────────────────────────
+   Quatre lectures scopées par client. Chacune dit son absence pour son propre
+   compte : un client dont on ne lit pas les distributions garde son vault. */
+
+export async function loadClientVault(id: string): Promise<Availability<AdminClientVault>> {
+  const res = await fetchClientVault(id)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.vault : undefined,
+    `/api/v1/admin/clients/${id}/vault`,
+  )
+}
+
+export async function loadClientBucketYields(
+  id: string,
+): Promise<Availability<readonly AdminBucketYield[]>> {
+  const res = await fetchClientBucketYields(id)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.yields : undefined,
+    `/api/v1/admin/clients/${id}/bucket-yields`,
+  )
+}
+
+export async function loadClientDistributions(
+  id: string,
+): Promise<Availability<readonly AdminClientDistribution[]>> {
+  const res = await fetchClientDistributions(id)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.distributions : undefined,
+    `/api/v1/admin/clients/${id}/distributions`,
+  )
+}
+
+export async function loadClientMovements(
+  id: string,
+): Promise<Availability<readonly AdminClientMovement[]>> {
+  const res = await fetchClientMovements(id)
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.movements : undefined,
+    `/api/v1/admin/clients/${id}/movements`,
+  )
 }
 
 /** Registre des vaults dédiés — un par client, avec son échéance de blocage. */

@@ -17,6 +17,10 @@ import type {
   AdminRebalancingOperation,
   AdminRebalancingSummary,
   AdminTimeseriesPoint,
+  AdminBucketYield,
+  AdminClientDistribution,
+  AdminClientMovement,
+  AdminClientVault,
 } from '@/lib/admin-dashboard/contracts'
 
 /** Backend `Resolved<T>` block as returned inside envelope data. */
@@ -102,6 +106,37 @@ export const fetchVaultRegistry = cache(() =>
 
 export const fetchOffers = cache(() =>
   callBackend<{ offers: BackendResolved<readonly Offer[]> }>('admin-offers'),
+)
+
+/* ── La fiche d'un client ──────────────────────────────────────────────────
+   Quatre lectures scopées par client, là où les surfaces admin existantes
+   étaient globales. */
+
+export const fetchClientVault = cache((id: string) =>
+  callBackend<{ vault: BackendResolved<AdminClientVault> }>('admin-client-vault', {
+    params: { id },
+  }),
+)
+
+export const fetchClientBucketYields = cache((id: string) =>
+  callBackend<{ yields: BackendResolved<readonly AdminBucketYield[]> }>(
+    'admin-client-bucket-yields',
+    { params: { id } },
+  ),
+)
+
+export const fetchClientDistributions = cache((id: string) =>
+  callBackend<{ distributions: BackendResolved<readonly AdminClientDistribution[]> }>(
+    'admin-client-distributions',
+    { params: { id } },
+  ),
+)
+
+export const fetchClientMovements = cache((id: string) =>
+  callBackend<{ movements: BackendResolved<readonly AdminClientMovement[]> }>(
+    'admin-client-movements',
+    { params: { id } },
+  ),
 )
 
 export const fetchBtcReserve = cache(() =>
