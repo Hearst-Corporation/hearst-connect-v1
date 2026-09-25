@@ -257,10 +257,15 @@
   --color-white: #ffffff;
 
   /*
-   * Accent mint #a7fb90 en step 400 (surfaces `bg-accent-400`), step 300 = hover.
+   * Accent mint en step 400 (surfaces `bg-accent-400`), step 300 = hover.
+   *
+   * #9eea7a — le vert de /account (`--hearst-green`), et non #a7fb90. Les deux
+   * cohabitaient : la console peignait ses aplats dans l'un, le produit dans
+   * l'autre, et l'écart se voyait dès qu'on passait d'une surface à l'autre.
+   * Un seul vert de marque.
    */
-  --color-accent-300: #c1fcb1;
-  --color-accent-400: #a7fb90;
+  --color-accent-300: #b5f097;
+  --color-accent-400: #9eea7a;
 }
 
 /*

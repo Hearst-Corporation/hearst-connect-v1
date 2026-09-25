@@ -52,7 +52,12 @@ export function DashCard({
         <header className="flex items-start justify-between gap-3 px-4 pt-4 pb-1">
           <div className="min-w-0">
             <Subheading level={titleLevel}>{title}</Subheading>
-            {subtitle !== undefined ? <Text className="mt-0.5">{subtitle}</Text> : null}
+            {/* 11px gris, comme les sous-titres de /account : `Text` rend
+                14px par défaut, ce qui donnait au descriptif le même poids
+                qu'un contenu. */}
+            {subtitle !== undefined ? (
+              <p className="mt-0.5 text-[11px] leading-snug text-[var(--ud-fg-3)]">{subtitle}</p>
+            ) : null}
           </div>
           {action}
         </header>
