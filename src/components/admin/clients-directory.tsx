@@ -157,7 +157,7 @@ export function ClientsDirectory({
                   {filtered.map((client) => (
                     <TableRow
                       key={client.id}
-                      href={`/admin/client-simulator/${client.id}`}
+                      href={`/admin/clients/${client.id}`}
                       title={`Open ${client.label}`}
                     >
                       <TableCell className={tableCol.primary}>
@@ -189,7 +189,7 @@ export function ClientsDirectory({
               {filtered.map((client) => (
                 <li key={client.id}>
                   <Link
-                    href={`/admin/client-simulator/${client.id}`}
+                    href={`/admin/clients/${client.id}`}
                     className={clsx(surfaceBox, 'block p-4')}
                   >
                     <div className="flex items-start justify-between gap-3">
