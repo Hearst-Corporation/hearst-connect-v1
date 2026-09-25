@@ -117,6 +117,14 @@ export default async function OffersPage() {
         title="Offers"
         description="One offer per prospect — from the first proposal to the vault it opens."
         kpis={kpis}
+        action={
+          <Link
+            href="/admin/offers/new"
+            className="rounded-full bg-accent-400 px-4 py-1.5 text-sm font-medium text-[#06140a]"
+          >
+            New offer
+          </Link>
+        }
       />
 
       {!isAvailable(offers) ? (

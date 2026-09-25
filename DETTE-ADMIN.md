@@ -82,3 +82,26 @@ vérifier côté console :
 | Mouvements d'un client | `admin/activity/recent` est global |
 | Allocation du vault dans le temps | aucun équivalent |
 | Comparaison au HODL | dérivé 100 % dans le front |
+
+---
+
+## 4. Un seul vault a une fiche ouvrable — CORRIGÉ EN PARTIE
+
+Le registre admin (`/api/v1/admin/vaults/registry`) publie cinq vaults, mais
+`/api/v1/vault` — la seule source que `loadAdminRegistry` sait résoudre — n'en
+publie qu'un, `31337-0x1111…1111`.
+
+Conséquence constatée le 25/09/2026 : **tous les liens vers une fiche de vault
+tombaient sur « Page not found »**, y compris depuis la page Vaults elle-même.
+Deux causes cumulées :
+
+1. Le mock publiait des identifiants `vault-0`, `vault-1`… que `parseVaultId`
+   rejette — il exige la forme `{chainId}-{adresse de 40 hexadécimaux}`. Un
+   mock qui publie une forme que le produit refuse ne teste rien. **Corrigé** :
+   les identifiants sont désormais conformes, et le premier correspond au vault
+   canonique.
+
+2. `/api/v1/vault` ne publie qu'un vault. Les quatre autres du registre
+   existent pour peupler les listes, mais leur fiche dira honnêtement qu'elle
+   ne les trouve pas. **À corriger côté backend** : soit publier les cinq, soit
+   exposer une lecture par identifiant.

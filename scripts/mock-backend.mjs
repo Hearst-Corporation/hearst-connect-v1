@@ -258,6 +258,35 @@ const usdcFromBtc = (btc) => Math.round(btc * BTC_SPOT_USD)
  */
 const VAULTS = ['Hearst Holdings', 'ZAND Bank', 'Rain Financial']
 
+/*
+ * Identifiants de vault CONFORMES au contrat : `{chainId}-{address}`.
+ *
+ * Le mock publiait vaultKey(0), vaultKey(1)… que `parseVaultId` rejette — il exige
+ * une adresse de 40 hexadécimaux. Tout lien vers la fiche d'un vault tombait
+ * donc sur « Page not found », y compris depuis la page Vaults elle-même.
+ *
+ * Les adresses sont fabriquées, mais leur FORME est celle du vrai contrat :
+ * un mock qui publie une forme que le produit refuse ne teste rien.
+ */
+const VAULT_CHAIN_ID = 31337 // même chaîne que `runtimeBlock()`
+/*
+ * La PREMIÈRE adresse est celle que publie `/api/v1/vault` : c'est le seul
+ * vault que `loadAdminRegistry` sait résoudre, et donc le seul dont la fiche
+ * s'ouvre. Les suivantes existent pour peupler le registre ; leur fiche dira
+ * honnêtement qu'elle ne les trouve pas, ce qui est le cas.
+ */
+const VAULT_ADDRESSES = [
+  '0x' + '11'.repeat(20),
+  '0x7b1d3a6f8c0e2b5d7a9f1c3e6b8d0a2f4c6e8b1d',
+  '0x9c0e2b5d7a9f1c3e6b8d0a2f4c6e8b1d3a5f7c9e',
+  '0x2b5d7a9f1c3e6b8d0a2f4c6e8b1d3a5f7c9e0b2d',
+  '0x4c6e8b1d3a5f7c9e0b2d4f6a8c0e2b4d6f8a0c2e',
+]
+/** Le n-ième vault, sous la forme que `parseVaultId` accepte. */
+function vaultKey(n) {
+  return `${VAULT_CHAIN_ID}-${VAULT_ADDRESSES[n % VAULT_ADDRESSES.length]}`
+}
+
 function payloadFor(path, search = '') {
   const rnd = seeded(path)
   const p = path
@@ -384,7 +413,7 @@ function payloadFor(path, search = '') {
           kind: 'deposit',
           clientId: 'cli_2',
           clientLabel: 'ZAND Bank',
-          vaultId: 'vault-1',
+          vaultId: vaultKey(1),
           amountUsdc: 1_500_000,
           requestedAt: '2026-09-08T14:22:00Z',
           note: 'Second tranche, board approved',
@@ -394,7 +423,7 @@ function payloadFor(path, search = '') {
           kind: 'withdrawal',
           clientId: 'cli_1',
           clientLabel: 'Hearst Holdings',
-          vaultId: 'vault-0',
+          vaultId: vaultKey(0),
           amountUsdc: 5_250,
           requestedAt: '2026-09-09T09:05:00Z',
           note: 'Monthly distribution payout',
@@ -404,7 +433,7 @@ function payloadFor(path, search = '') {
           kind: 'distribution',
           clientId: 'cli_3',
           clientLabel: 'Rain Financial',
-          vaultId: 'vault-2',
+          vaultId: vaultKey(2),
           amountUsdc: 81_951,
           requestedAt: '2026-09-05T10:00:00Z',
           note: 'August distribution, awaiting sign-off',
@@ -414,7 +443,7 @@ function payloadFor(path, search = '') {
           kind: 'distribution',
           clientId: 'cli_1',
           clientLabel: 'Hearst Holdings',
-          vaultId: 'vault-0',
+          vaultId: vaultKey(0),
           amountUsdc: 58_322,
           requestedAt: '2026-09-02T10:00:00Z',
           note: 'August distribution, awaiting sign-off',
@@ -437,11 +466,11 @@ function payloadFor(path, search = '') {
       // base. `threshold` : le seuil PROPRE à ce vault — un mandat prudent ne
       // tolère pas la même dérive qu'un mandat offensif. Null = seuil par
       // défaut (500 bps, soit 5 pt).
-      { id: 'vault-0', client: 'Hearst Holdings', clientId: 'cli_1', principal: 420_000, start: '2026-02-10', months: 24, depositUnlocked: false, drift: 142, threshold: null },
-      { id: 'vault-1', client: 'ZAND Bank', clientId: 'cli_2', principal: 12_000_000, start: '2025-11-01', months: 24, depositUnlocked: true, drift: -684, threshold: null },
-      { id: 'vault-2', client: 'Rain Financial', clientId: 'cli_3', principal: 3_400_000, start: '2026-01-15', months: 24, depositUnlocked: false, drift: 318, threshold: 250 },
-      { id: 'vault-3', client: 'Meridian Family Office', clientId: 'cli_4', principal: 850_000, start: '2024-10-20', months: 24, depositUnlocked: false, drift: 96, threshold: 800 },
-      { id: 'vault-4', client: 'Northgate Capital', clientId: 'cli_5', principal: 5_600_000, start: '2026-06-01', months: 24, depositUnlocked: false, drift: null, threshold: null },
+      { id: vaultKey(0), client: 'Hearst Holdings', clientId: 'cli_1', principal: 420_000, start: '2026-02-10', months: 24, depositUnlocked: false, drift: 142, threshold: null },
+      { id: vaultKey(1), client: 'ZAND Bank', clientId: 'cli_2', principal: 12_000_000, start: '2025-11-01', months: 24, depositUnlocked: true, drift: -684, threshold: null },
+      { id: vaultKey(2), client: 'Rain Financial', clientId: 'cli_3', principal: 3_400_000, start: '2026-01-15', months: 24, depositUnlocked: false, drift: 318, threshold: 250 },
+      { id: vaultKey(3), client: 'Meridian Family Office', clientId: 'cli_4', principal: 850_000, start: '2024-10-20', months: 24, depositUnlocked: false, drift: 96, threshold: 800 },
+      { id: vaultKey(4), client: 'Northgate Capital', clientId: 'cli_5', principal: 5_600_000, start: '2026-06-01', months: 24, depositUnlocked: false, drift: null, threshold: null },
     ]
     return {
       vaults: bloc(
@@ -585,7 +614,7 @@ function payloadFor(path, search = '') {
         maxDriftBps: 142,
         maxDriftStrategyId: 'strat-1',
         maxDriftStrategyLabel: 'Mining Alpha',
-        maxDriftVaultId: 'vault-1',
+        maxDriftVaultId: vaultKey(1),
       }),
     }
   }
@@ -595,7 +624,7 @@ function payloadFor(path, search = '') {
    *
    * Chaque vault est dédié à un client et porte SA PROPRE allocation : ZAND ne
    * veut pas le mix de Rain. Le modèle précédent attribuait une stratégie
-   * unique à chaque vault (`Bitcoin Lending` = `vault-0`), ce qui revenait à dire
+   * unique à chaque vault (`Bitcoin Lending` = vaultKey(0)), ce qui revenait à dire
    * qu'un client ne détient qu'une poche — et faisait lire le total comme une
    * allocation commune.
    *
@@ -606,9 +635,9 @@ function payloadFor(path, search = '') {
   if (p === '/api/v1/admin/portfolio/exposure') {
     // Allocation propre à chaque client, en bps. La somme fait 10000 par vault.
     const MIX = {
-      'vault-0': { label: 'Hearst Holdings', capital: 420_000, basis: 4200, rwa: 3300, mining: 2500 },
-      'vault-1': { label: 'ZAND Bank', capital: 12_000_000, basis: 2000, rwa: 2000, mining: 6000 },
-      'vault-2': { label: 'Rain Financial', capital: 3_400_000, basis: 5500, rwa: 3500, mining: 1000 },
+      [vaultKey(0)]: { label: 'Hearst Holdings', capital: 420_000, basis: 4200, rwa: 3300, mining: 2500 },
+      [vaultKey(1)]: { label: 'ZAND Bank', capital: 12_000_000, basis: 2000, rwa: 2000, mining: 6000 },
+      [vaultKey(2)]: { label: 'Rain Financial', capital: 3_400_000, basis: 5500, rwa: 3500, mining: 1000 },
     }
     const POCKET = [
       { id: 'strat-1', label: 'Mining Alpha', key: 'mining' },
@@ -673,7 +702,7 @@ function payloadFor(path, search = '') {
         lastRebalanceTxHash: '0x' + 'ab'.repeat(32),
         indexerStatus: 'HEALTHY',
         alerts: [
-          { strategyId: 'strat-1', strategyLabel: 'Mining Alpha', vaultId: 'vault-1', driftBps: -142 },
+          { strategyId: 'strat-1', strategyLabel: 'Mining Alpha', vaultId: vaultKey(1), driftBps: -142 },
         ],
       }),
     }
@@ -727,7 +756,7 @@ function payloadFor(path, search = '') {
           title: ['Dépôt client', 'Rééquilibrage exécuté', 'Retrait client'][i % 3],
           clientId: i % 3 === 1 ? null : `cli_${i % 6}`,
           clientLabel: i % 3 === 1 ? null : `Client simulé ${(i % 6) + 1}`,
-          vaultId: `vault-${i % 3}`,
+          vaultId: vaultKey(i % 3),
           amountAtomic: atomic(money(rnd, 10_000, 500_000)),
           asset: 'USDC',
           txHash: '0x' + (i + 9).toString(16).padStart(2, '0').repeat(32),
@@ -767,7 +796,7 @@ function payloadFor(path, search = '') {
           kycProvider: 'mock-kyc',
           kycStatus: ['APPROVED', 'PENDING', 'APPROVED'][i % 3],
           currentExposureAtomic: atomic(money(rnd, 25_000, 2_400_000)),
-          vaultIds: [`vault-${i % 3}`],
+          vaultIds: [vaultKey(i % 3)],
         })),
       ),
     }
@@ -902,7 +931,7 @@ function payloadFor(path, search = '') {
       return {
         vault: bloc({
           clientId,
-          vaultId: 'vault-0',
+          vaultId: vaultKey(0),
           label: 'Dedicated Vault',
           principalUsdc: principal,
           withdrawnUsdc: withdrawn,
@@ -1108,7 +1137,7 @@ function payloadFor(path, search = '') {
           updatedAt: iso(15),
           sentAt: iso(222),
           decidedAt: iso(216),
-          vaultId: 'vault-0',
+          vaultId: vaultKey(0),
           notes: null,
           questionnaire: null,
         },
@@ -1193,7 +1222,7 @@ function payloadFor(path, search = '') {
     const monthlyDistribution = CLIENT_AVAILABLE_USDC
     return {
       vault: bloc({
-        vaultId: 'vault-0',
+        vaultId: vaultKey(0),
         label: 'Dedicated Vault',
         principalUsdc: principal,
         // Cumul déjà sorti, et sa part du principal.
@@ -1397,7 +1426,7 @@ function payloadFor(path, search = '') {
       deployments: bloc(
         Array.from({ length: 6 }, (_, i) => ({
           id: `dep_${i}`,
-          vaultId: `vault-${i % 3}`,
+          vaultId: vaultKey(i % 3),
           clientId: `cli_${i}`,
           clientLabel: `Client simulé ${i + 1}`,
           amountAtomic: atomic(money(rnd, 25_000, 900_000)),

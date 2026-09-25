@@ -7,6 +7,7 @@ import { Callout, DataTableShell, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format'
 import { loadAdminOffers, loadOfferSimulation } from '@/lib/admin-dashboard/load'
+import { emailsFor } from '@/lib/offers/emails'
 import {
   OFFER_NEXT_STEP,
   OFFER_STATUS_LABEL,
@@ -288,6 +289,46 @@ export default async function OfferPage({
               </TableBody>
             </DataTableShell>
           )}
+        </BentoCard>
+
+        {/* ── LES COURRIELS DU PARCOURS ─────────────────────────────────
+            Quatre moments où le client reçoit un texte qui engage
+            l'entreprise. Celui de l'étape courante est déplié : c'est le seul
+            qu'on ait à envoyer maintenant.
+
+            Aucun envoi n'est branché — le transport et le lien Fireblocks
+            restent à raccorder. En attendant, le texte se copie d'ici plutôt
+            que de se réécrire à chaque fois. */}
+        <BentoCard span={12}>
+          <div className="flex flex-col gap-3">
+            <div>
+              <h3 className="text-[17px] font-medium">Emails</h3>
+              <p className="mt-0.5 text-xs text-fg-tertiary">
+                Each is triggered by a change of state, never sent by hand. Nothing is wired to a
+                mail service yet — copy the text for now.
+              </p>
+            </div>
+            {emailsFor(offer).map((mail) => {
+              const current = mail.trigger.startsWith(`${offer.status} →`)
+              return (
+                <details
+                  key={mail.id}
+                  open={current}
+                  className="rounded-lg border border-console-line bg-console-inset px-4 py-3"
+                >
+                  <summary className="cursor-pointer text-sm">
+                    <span className={current ? 'font-medium text-accent-400' : ''}>
+                      {mail.subject}
+                    </span>
+                    <span className="ml-2 text-xs text-fg-tertiary">{mail.trigger}</span>
+                  </summary>
+                  <pre className="mt-3 overflow-x-auto text-xs leading-relaxed whitespace-pre-wrap text-fg-secondary">
+                    {mail.body}
+                  </pre>
+                </details>
+              )
+            })}
+          </div>
         </BentoCard>
 
         {/* Le point de comparaison de la thèse, dit en toutes lettres. */}
