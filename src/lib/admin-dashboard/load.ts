@@ -6,6 +6,7 @@ import {
   fetchFleet,
   fetchProductionCost,
   fetchBtcReserve,
+  fetchOffers,
   fetchVaultRegistry,
   fetchMarketSnapshot,
   fetchPortfolioExposure,
@@ -42,6 +43,7 @@ export {
   type AdminTimeseriesPoint,
 } from '@/lib/admin-dashboard/contracts'
 
+import type { Offer } from '@/lib/offers/model'
 import type { ComputeFleet, ProductionCost } from '@/lib/product/readings'
 import type {
   AdminActivityEvent,
@@ -250,6 +252,18 @@ export async function loadAdminApprovals(): Promise<Availability<readonly AdminA
     res.ok ? res.data.approvals : undefined,
     '/api/v1/admin/approvals',
   )
+}
+
+/**
+ * Le pipeline commercial — une offre par prospect.
+ *
+ * C'est la surface qui manquait : entre le premier appel et le vault ouvert, le
+ * produit se vend sur mesure, et rien de ce travail n'était visible dans
+ * l'outil.
+ */
+export async function loadAdminOffers(): Promise<Availability<readonly Offer[]>> {
+  const res = await fetchOffers()
+  return fromBackendOrUnavailable(res, res.ok ? res.data.offers : undefined, '/api/v1/admin/offers')
 }
 
 /** Registre des vaults dédiés — un par client, avec son échéance de blocage. */

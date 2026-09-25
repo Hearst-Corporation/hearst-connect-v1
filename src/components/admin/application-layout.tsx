@@ -14,7 +14,6 @@ import {
   SidebarBody,
   SidebarFooter,
   SidebarHeader,
-  SidebarHeading,
   SidebarItem,
   SidebarLabel,
   SidebarSection,
@@ -29,7 +28,6 @@ import { HearstConnectLockupImage } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {
   ADMIN_NAV,
-  ADMIN_SECTION_HUBS,
   isAccountRoute,
   activeSecondaryGroup,
   activeHref,
@@ -113,6 +111,11 @@ export function AdminApplicationLayout({
               <div className="mb-3 px-2">
                 <HeaderClientSearch />
               </div>
+              {/* Une seule section : les six surfaces d'outillage qui formaient
+                  les hubs « Sections » sont passées sous l'entrée Settings et
+                  s'ouvrent dans son sous-menu horizontal. `activeHref` les y
+                  rattache, donc ouvrir l'explorateur d'API allume bien Settings
+                  au lieu de n'allumer personne. */}
               <SidebarSection>
                 {ADMIN_NAV.map((entry) => {
                   const Icon = entry.icon
@@ -120,27 +123,10 @@ export function AdminApplicationLayout({
                     <SidebarItem
                       key={entry.href}
                       href={entry.href}
-                      current={activeGroup === undefined && activePrimary === entry.href}
+                      current={activePrimary === entry.href}
                     >
                       <Icon />
                       <SidebarLabel>{entry.label}</SidebarLabel>
-                    </SidebarItem>
-                  )
-                })}
-              </SidebarSection>
-
-              <SidebarSection>
-                <SidebarHeading>Sections</SidebarHeading>
-                {ADMIN_SECTION_HUBS.map((hub) => {
-                  const Icon = hub.icon
-                  return (
-                    <SidebarItem
-                      key={hub.href}
-                      href={hub.href}
-                      current={activeGroup?.title === hub.title}
-                    >
-                      <Icon />
-                      <SidebarLabel>{hub.label}</SidebarLabel>
                     </SidebarItem>
                   )
                 })}

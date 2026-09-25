@@ -2,6 +2,7 @@ import 'server-only'
 
 import { cache } from 'react'
 import { callBackend } from '@/lib/backend/client'
+import type { Offer } from '@/lib/offers/model'
 import type { ComputeFleet, ProductionCost } from '@/lib/product/readings'
 import type {
   AdminApproval,
@@ -97,6 +98,10 @@ export const fetchApprovals = cache(() =>
 
 export const fetchVaultRegistry = cache(() =>
   callBackend<{ vaults: BackendResolved<readonly AdminVaultRecord[]> }>('admin-vaults-registry'),
+)
+
+export const fetchOffers = cache(() =>
+  callBackend<{ offers: BackendResolved<readonly Offer[]> }>('admin-offers'),
 )
 
 export const fetchBtcReserve = cache(() =>

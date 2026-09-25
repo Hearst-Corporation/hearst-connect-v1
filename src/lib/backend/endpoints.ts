@@ -158,6 +158,17 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
       'Percentiles come already computed: the front draws bands, it never replays the simulation. A projection is not a forecast — the spread between p10 and p90 IS the message.',
   }),
   defineEndpoint({
+    id: 'admin-offers',
+    path: '/api/v1/admin/offers',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/offers',
+    summary:
+      'Commercial pipeline — one offer per prospect, from draft to the vault it opens.',
+    caveat:
+      'An offer carries the allocation PROPOSED to that client, in basis points: it becomes the vault target once signed. Two clients on the same risk profile may still hold different allocations — the profile seeds the split, it does not fix it.',
+  }),
+  defineEndpoint({
     id: 'admin-approvals',
     path: '/api/v1/admin/approvals',
     category: 'business',
