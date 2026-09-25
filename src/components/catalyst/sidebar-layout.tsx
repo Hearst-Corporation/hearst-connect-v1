@@ -82,9 +82,11 @@ export function SidebarLayout({
         {/* Content card — the page surface as GLASS (console-card + blur), so
             the glow shines through like on the account shell. Solid
             `console-surface` hid it. Cockpit density: `lg:p-5`. */}
-        <div /* Les tokens de /account : même rayon, même fond de carte, même filet.
-            Les classes Tailwind donnaient 8px là où /account porte 12. */
-          className="grow p-6 lg:rounded-[var(--ud-radius)] lg:bg-[var(--ud-card)] lg:p-5 lg:ring-1 lg:ring-[var(--ud-line)]">
+        <div /* Le conteneur de page ne peint RIEN : il porte le fond de page
+            (`--ud-page`), sur lequel les cartes se détachent. Il était lui-même
+            peint en `--ud-card` — la couleur des cartes — si bien que les blocs
+            se fondaient dans leur propre fond et ne ressortaient plus. */
+          className="grow bg-[var(--ud-page)] p-6 lg:p-5">
           <div className="w-full min-w-0">{children}</div>
         </div>
       </main>

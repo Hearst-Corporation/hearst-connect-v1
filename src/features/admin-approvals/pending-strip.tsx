@@ -81,14 +81,17 @@ export function PendingStrip({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-px overflow-hidden rounded-lg bg-console-line-soft sm:grid-cols-2 lg:grid-cols-4">
+      <div /* Les tokens de /account : le fond de grille EST le filet, et les
+              cellules reposent dessus. `console-line-soft` est un blanc à 5 %,
+              qui éclaircissait la carte au lieu de dessiner un trait. */
+          className="grid gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] sm:grid-cols-2 lg:grid-cols-4">
         {cells.map((cell) => {
           const Icon = cell.icon
           return (
             <Link
               key={cell.id}
               href="/admin/approvals"
-              className="flex flex-col gap-1.5 bg-console-surface px-4 py-3.5 transition-colors hover:bg-console-raised"
+              className="flex flex-col gap-1.5 bg-[var(--ud-card)] px-4 py-3.5 transition-colors hover:bg-[var(--ud-card-raised)]"
             >
               <span className="flex items-center gap-2 text-xs text-fg-tertiary">
                 <Icon className="size-4 text-accent-400" aria-hidden="true" />
@@ -106,7 +109,7 @@ export function PendingStrip({
 
         <Link
           href="/admin/approvals"
-          className="flex flex-col gap-1.5 bg-console-surface px-4 py-3.5 transition-colors hover:bg-console-raised"
+          className="flex flex-col gap-1.5 bg-[var(--ud-card)] px-4 py-3.5 transition-colors hover:bg-[var(--ud-card-raised)]"
         >
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">
             <ClockIcon className="size-4 text-accent-400" aria-hidden="true" />
