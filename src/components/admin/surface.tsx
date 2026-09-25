@@ -19,16 +19,24 @@
  */
 
 /** Box — glass face (transparency + depth). The single box material. */
+/*
+ * Les surfaces de la console passent par les TOKENS de /account
+ * (`--ud-card`, `--ud-line`, `--ud-radius`), posés par `.ud-root` sur le
+ * layout admin. Les classes Tailwind équivalentes donnaient un rayon de 8px
+ * là où /account en porte 12, et il aurait fallu les resynchroniser à chaque
+ * retouche. En lisant les mêmes variables, la console suit sans rien recopier.
+ */
 export const surfaceBox =
-  'rounded-xl bg-console-card ring-1 ring-console-line'
+  'rounded-[var(--ud-radius)] bg-[var(--ud-card)] ring-1 ring-[var(--ud-line)]'
 
 /**
  * Menu / rail — same glass family, `console-glass` token (slightly denser).
  */
-export const surfaceNav = 'bg-console-glass ring-1 ring-console-line-soft'
+export const surfaceNav = 'bg-[var(--ud-rail)] ring-1 ring-[var(--ud-line)]'
 
 /** Recessed sub-surface (code, forms, metadata) — one notch denser. */
-export const surfaceInset = 'rounded-lg bg-console-inset ring-1 ring-console-line-soft'
+export const surfaceInset =
+  'rounded-[var(--ud-radius-sm)] bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]'
 
 /** Selection — mint veil (`data-selected` Headless UI state / journey). */
 export const surfaceSelect =

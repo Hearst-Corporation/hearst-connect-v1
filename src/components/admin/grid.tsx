@@ -106,7 +106,7 @@ export function BentoCard({
       {...rest}
       className={clsx(
         'min-w-0',
-        !bare && 'rounded-xl bg-console-card p-4 ring-1 ring-console-line',
+        !bare && 'rounded-[var(--ud-radius)] bg-[var(--ud-card)] p-[var(--ud-pad-card)] ring-1 ring-[var(--ud-line)]',
         SPAN_CLASS[span],
         className,
       )}
