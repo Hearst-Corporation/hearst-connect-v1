@@ -28,7 +28,7 @@ import {
   formatHash,
   formatNumber,
   formatPercent,
-  formatRelativeTime,
+  formatDate,
 } from '@/lib/format'
 import { movementLabel, movementSentence } from '@/lib/movements'
 import { roleLabel } from '@/lib/session'
@@ -134,7 +134,7 @@ function movementInvestorLabel(movement: Movement): string | null {
 
 function movementOccurredLabel(occurredAt: string | null): string {
   if (occurredAt === null) return 'Unavailable'
-  return formatRelativeTime(occurredAt)
+  return formatDate(occurredAt)
 }
 
 function TxExplorerLink({
@@ -660,7 +660,7 @@ function RebalancingEventsSection({
               return (
                 <TableRow key={`${event.txHash ?? 'event'}-${index}`}>
                   <TableCell className={`${tableCol.date} text-xs`}>
-                    {event.timestamp ? formatRelativeTime(event.timestamp) : '—'}
+                    {event.timestamp ? formatDate(event.timestamp) : '—'}
                   </TableCell>
                   <TableCell className={`${tableCol.status} text-sm`}>
                     <span

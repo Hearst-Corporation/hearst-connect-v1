@@ -15,7 +15,7 @@ import { Text } from '@/components/catalyst/text'
 import { AdminTable, Callout, DataTableShell, tableCol } from '@/components/compositions'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
-import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
+import { formatCurrency, formatDate, formatNumber, formatPercent } from '@/lib/format'
 import {
   available,
   combine,
@@ -59,7 +59,10 @@ function rebalanceLabel(vault: Vault): Availability<string> {
   if (!isAvailable(vault.rebalancing)) return absentReading(vault.rebalancing)
   const at = vault.rebalancing.value.lastRebalanceAt
   if (at === null) return unavailable({ status: 'EMPTY', reason: 'last_rebalance_not_reported' })
-  return available(formatRelativeTime(at), {
+  // Date ABSOLUE : un relatif se calcule à l'instant du rendu, donc le
+  // serveur et le navigateur n'écrivaient pas la même chose et React rejetait
+  // l'hydratation de la page entière.
+  return available(formatDate(at), {
     provenance: vault.rebalancing.provenance,
     asOf: vault.rebalancing.asOf,
     stale: vault.rebalancing.stale,
@@ -147,9 +150,14 @@ function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
             </dd>
           </div>
         </dl>
-        <p className="mt-3 text-xs text-fg-tertiary">
+        {/* `div`, pas `p` : `AdminReading` rend un `Text`, c'est-à-dire un
+            paragraphe. Un `<p>` dans un `<p>` est un imbriquement interdit —
+            le navigateur ferme le premier d'office, l'arbre rendu ne
+            correspond plus à celui du serveur et React rejette l'hydratation
+            de la page entière. */}
+        <div className="mt-3 text-xs text-fg-tertiary">
           Rebalance · <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />
-        </p>
+        </div>
       </Link>
     </li>
   )

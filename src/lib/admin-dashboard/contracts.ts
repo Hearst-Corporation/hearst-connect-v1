@@ -180,6 +180,40 @@ export type AdminVaultRecord = {
   readonly lockupElapsedMonths: number | null
   readonly depositUnlocked: boolean
   readonly status: string
+  /**
+   * Écart à la cible, en points de base, pour la poche la plus dérivée.
+   * Absent tant que l'allocation réelle n'a pas été lue — une dérive qu'on
+   * ne sait pas mesurer n'est pas une dérive nulle.
+   */
+  readonly worstDriftBps: number | null
+  /**
+   * Seuil au-delà duquel ce vault demande un arbitrage, en points de base.
+   *
+   * PAR VAULT, pas global : chaque vault est taillé pour un client, et un
+   * mandat prudent ne tolère pas la même dérive qu'un mandat offensif. Un
+   * seuil unique aurait alerté trop tôt sur les uns et trop tard sur les
+   * autres. `DEFAULT_DRIFT_THRESHOLD_BPS` sert quand le vault n'en porte pas.
+   */
+  readonly driftThresholdBps: number | null
+}
+
+/**
+ * 5 points de pourcentage — le seuil retenu quand un vault n'en déclare pas.
+ *
+ * Il ne vaut rien en soi : c'est un point de départ, que chaque vault peut
+ * relever ou abaisser selon son mandat.
+ */
+export const DEFAULT_DRIFT_THRESHOLD_BPS = 500
+
+/** Le seuil effectif d'un vault : le sien, ou le défaut. */
+export function driftThresholdOf(vault: AdminVaultRecord): number {
+  return vault.driftThresholdBps ?? DEFAULT_DRIFT_THRESHOLD_BPS
+}
+
+/** Un vault dérive quand son écart mesuré dépasse SON seuil. */
+export function isVaultDrifting(vault: AdminVaultRecord): boolean {
+  if (vault.worstDriftBps === null) return false
+  return Math.abs(vault.worstDriftBps) > driftThresholdOf(vault)
 }
 
 /**

@@ -433,11 +433,15 @@ function payloadFor(path) {
       // Les trois premiers sont les vaults que le reste du mock publie
       // (`vault-0..2`) : sans cet alignement, la fiche d'un vault ne trouverait
       // jamais son client dans le registre.
-      { id: 'vault-0', client: 'Hearst Holdings', clientId: 'cli_1', principal: 420_000, start: '2026-02-10', months: 24, depositUnlocked: false },
-      { id: 'vault-1', client: 'ZAND Bank', clientId: 'cli_2', principal: 12_000_000, start: '2025-11-01', months: 24, depositUnlocked: true },
-      { id: 'vault-2', client: 'Rain Financial', clientId: 'cli_3', principal: 3_400_000, start: '2026-01-15', months: 24, depositUnlocked: false },
-      { id: 'vault-3', client: 'Meridian Family Office', clientId: 'cli_4', principal: 850_000, start: '2024-10-20', months: 24, depositUnlocked: false },
-      { id: 'vault-4', client: 'Northgate Capital', clientId: 'cli_5', principal: 5_600_000, start: '2026-06-01', months: 24, depositUnlocked: false },
+      // `drift` : écart à la cible de la poche la plus dérivée, en points de
+      // base. `threshold` : le seuil PROPRE à ce vault — un mandat prudent ne
+      // tolère pas la même dérive qu'un mandat offensif. Null = seuil par
+      // défaut (500 bps, soit 5 pt).
+      { id: 'vault-0', client: 'Hearst Holdings', clientId: 'cli_1', principal: 420_000, start: '2026-02-10', months: 24, depositUnlocked: false, drift: 142, threshold: null },
+      { id: 'vault-1', client: 'ZAND Bank', clientId: 'cli_2', principal: 12_000_000, start: '2025-11-01', months: 24, depositUnlocked: true, drift: -684, threshold: null },
+      { id: 'vault-2', client: 'Rain Financial', clientId: 'cli_3', principal: 3_400_000, start: '2026-01-15', months: 24, depositUnlocked: false, drift: 318, threshold: 250 },
+      { id: 'vault-3', client: 'Meridian Family Office', clientId: 'cli_4', principal: 850_000, start: '2024-10-20', months: 24, depositUnlocked: false, drift: 96, threshold: 800 },
+      { id: 'vault-4', client: 'Northgate Capital', clientId: 'cli_5', principal: 5_600_000, start: '2026-06-01', months: 24, depositUnlocked: false, drift: null, threshold: null },
     ]
     return {
       vaults: bloc(
@@ -463,6 +467,8 @@ function payloadFor(path) {
             lockupElapsedMonths: elapsed,
             depositUnlocked: v.depositUnlocked,
             status: 'ACTIVE',
+            worstDriftBps: v.drift,
+            driftThresholdBps: v.threshold,
           }
         }),
       ),

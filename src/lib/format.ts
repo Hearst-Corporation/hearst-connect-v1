@@ -88,6 +88,17 @@ export function formatDate(iso: string | null | undefined): string {
   return Number.isNaN(t) ? '—' : new Date(t).toLocaleDateString(LOCALE, { dateStyle: 'medium' })
 }
 
+/**
+ * Ancienneté relative — « 3 h ago », « Yesterday ».
+ *
+ * ATTENTION : dépend de `Date.now()`, donc le serveur et le navigateur n'en
+ * produisent pas le même texte, et React rejette l'hydratation. Réservé aux
+ * composants client montés après l'hydratation (`useEffect`, interaction).
+ *
+ * Pour un rendu serveur — la grande majorité des surfaces admin — utiliser
+ * `formatDate` : une date absolue dit de toute façon mieux QUAND un fait s'est
+ * produit qu'une ancienneté approximative.
+ */
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return '—'
   const t = Date.parse(iso)

@@ -17,7 +17,7 @@ import {
 import { AdminTable, tableCol } from '@/components/compositions'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-import { formatRelativeTime } from '@/lib/format'
+import { formatDate } from '@/lib/format'
 import { useSearchParams } from 'next/navigation'
 import { kycStatusLabel } from '@/lib/labels'
 import { useMemo, useState } from 'react'
@@ -177,7 +177,7 @@ export function ClientsDirectory({
                         </AdminToneBadge>
                       </TableCell>
                       <TableCell className={`${tableCol.date} text-fg-tertiary`}>
-                        {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+                        {client.lastActivityAt ? formatDate(client.lastActivityAt) : '—'}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -211,7 +211,7 @@ export function ClientsDirectory({
                       </div>
                     </dl>
                     <p className="mt-3 text-xs text-fg-tertiary">
-                      Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
+                      Activity · {client.lastActivityAt ? formatDate(client.lastActivityAt) : '—'}
                     </p>
                   </Link>
                 </li>

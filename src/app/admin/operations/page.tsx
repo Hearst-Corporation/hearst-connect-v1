@@ -32,7 +32,7 @@ import {
   type AdminRebalancingSummary,
 } from '@/lib/admin-dashboard/load'
 import { requireSession } from '@/lib/auth'
-import { formatDateTime, formatDriftPts, formatHash, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
+import { formatDateTime, formatDriftPts, formatHash, formatNumber, formatPercent, formatDate } from '@/lib/format'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import { editorial, isAvailable, type Availability } from '@/lib/vaults/model'
 import { entityHref } from '@/components/vaults/vault-entity-link'
@@ -203,7 +203,7 @@ function RebalancingPanel({
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-tertiary">
         <span>
           Last rebalance:{' '}
-          {data.lastRebalanceAt ? formatRelativeTime(data.lastRebalanceAt) : '—'}
+          {data.lastRebalanceAt ? formatDate(data.lastRebalanceAt) : '—'}
         </span>
         {data.lastRebalanceTxHash ? (
           <span className="font-mono">{formatHash(data.lastRebalanceTxHash)}</span>
@@ -225,7 +225,7 @@ function LastRebalanceCard({
     <div data-widget="operations-last-rebalance" className="min-w-0">
       <DashCard title="Last rebalance">
         <p className="text-lg font-semibold text-fg">
-          {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
+          {snapshot.lastRebalance ? formatDate(snapshot.lastRebalance) : '—'}
         </p>
         {snapshot.lastRebalance === null ? null : snapshot.lastRebalanceTxHash ? (
           <p
@@ -569,7 +569,7 @@ function RecentOperationsCard({
                 {event.txHash ? formatHash(event.txHash) : '—'}
               </TableCell>
               <TableCell className={`${tableCol.date} text-fg-tertiary`}>
-                {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
+                {event.occurredAt ? formatDate(event.occurredAt) : '—'}
               </TableCell>
             </TableRow>
           ))}

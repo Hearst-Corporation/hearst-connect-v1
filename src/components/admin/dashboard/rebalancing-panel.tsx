@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { PanelState } from '@/components/admin/dashboard/panel-state'
-import { formatDriftPts, formatRelativeTime, pluralSuffix, strategySuffix } from '@/lib/format'
+import { formatDriftPts, formatDate, pluralSuffix, strategySuffix } from '@/lib/format'
 import type { AdminRebalancingSummary } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -19,7 +19,7 @@ function statusDetail(data: AdminRebalancingSummary): string {
 
 function footerNote(data: AdminRebalancingSummary, stable: boolean): string {
   if (data.lastRebalanceAt !== null) {
-    return `Last activity · ${formatRelativeTime(data.lastRebalanceAt)}`
+    return `Last activity · ${formatDate(data.lastRebalanceAt)}`
   }
   if (data.measuredStrategies === 0) return 'Nothing to monitor until a strategy is measured.'
   if (stable) return 'Monitoring all measured strategies.'

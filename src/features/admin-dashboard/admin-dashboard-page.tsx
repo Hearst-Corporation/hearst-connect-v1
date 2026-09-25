@@ -16,7 +16,7 @@ import { HearstPrimaryAction } from '@/components/actions'
 import { HearstActivityChart, type ActivityPoint } from '@/components/charts'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { PendingStrip } from '@/features/admin-approvals/pending-strip'
-import { loadAdminApprovals, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
+import { loadAdminApprovals, loadAdminOffers, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import type { AdminDashboardData } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import {
@@ -32,6 +32,8 @@ import {
 import { formatCurrency, formatDriftPts } from '@/lib/format'
 import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
 import { Suspense, type ReactNode } from 'react'
+import { PipelineStrip } from './pipeline-strip'
+import { VaultWatchlist } from './vault-watchlist'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
@@ -193,6 +195,16 @@ async function PortfolioExposureData() {
   return <PortfolioExposurePanel strategies={exposure} assetScale={assetScale} />
 }
 
+async function PipelineData() {
+  const offers = await loadAdminOffers()
+  return <PipelineStrip offers={offers} />
+}
+
+async function VaultWatchlistData() {
+  const vaults = await loadAdminVaultRegistry()
+  return <VaultWatchlist vaults={vaults} />
+}
+
 async function RebalancingAlertsData() {
   const rebalancing = await loadAdminRebalancingSummary()
   return <RebalancingAlertsPanel summary={rebalancing} />
@@ -266,28 +278,39 @@ export function AdminDashboardPage() {
         </BentoCard>
       </BentoGrid>
 
-      {/* Row A — pilotage + latest events rail. */}
+      {/* ── LE PIPELINE ────────────────────────────────────────────────────
+          Avant toute mesure de ce qui tourne déjà : l'essentiel d'une journée
+          est en amont — des offres à finir, à relancer, des fonds à appeler,
+          des vaults à ouvrir. Rien de cela n'était visible ici. */}
+      <BentoGrid>
+        <BentoCard span={12}>
+          <DashPanel
+            title="Pipeline"
+            action={<PanelHeaderLink href="/admin/offers">Open offers</PanelHeaderLink>}
+          >
+            <Suspense fallback={<PanelFallback />}>
+              <PipelineData />
+            </Suspense>
+          </DashPanel>
+        </BentoCard>
+      </BentoGrid>
+
+      {/* ── LES VAULTS, UN PAR LIGNE ───────────────────────────────────────
+          Remplace « Strategy exposure across all vaults ». Ce donut agrégeait
+          des mandats sur mesure en une moyenne pondérée : le code le
+          reconnaissait lui-même — « pas un mix que quiconque détiendrait ».
+          Or on ne rééquilibre jamais « le portefeuille », on rééquilibre le
+          vault de quelqu'un, contre SON seuil. */}
       <BentoGrid>
         <BentoCard span={8}>
-          <div className="flex min-w-0 flex-col gap-6">
-            {/* « Across all vaults » : chaque client a SA propre allocation — celle-ci
-                est une moyenne pondérée par le capital, pas un mix que quiconque
-                détiendrait. Sans ce libellé, le donut se lit comme un pool. */}
-            <DashPanel title="Strategy exposure across all vaults" slot="exposure">
-              <Suspense fallback={<PanelFallback />}>
-                <PortfolioExposureData />
-              </Suspense>
-            </DashPanel>
-            <DashPanel
-              title="Rebalancing & alerts"
-              slot="signal"
-              action={<PanelHeaderLink href="/admin/operations">Open operations</PanelHeaderLink>}
-            >
-              <Suspense fallback={<PanelFallback />}>
-                <RebalancingAlertsData />
-              </Suspense>
-            </DashPanel>
-          </div>
+          <DashPanel
+            title="Vaults"
+            action={<PanelHeaderLink href="/admin/vaults">All vaults</PanelHeaderLink>}
+          >
+            <Suspense fallback={<PanelFallback />}>
+              <VaultWatchlistData />
+            </Suspense>
+          </DashPanel>
         </BentoCard>
         <BentoCard span={4}>
           <DashPanel

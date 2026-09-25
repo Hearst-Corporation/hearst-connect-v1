@@ -6,7 +6,7 @@ import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
-import { formatAddress, formatHash, formatRelativeTime } from '@/lib/format'
+import { formatAddress, formatHash, formatDate } from '@/lib/format'
 import { movementLabel } from '@/lib/movements'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
@@ -78,7 +78,7 @@ export function ActivityTimelinePanel({
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
-                <span className="text-[11px] text-fg-tertiary">{formatRelativeTime(event.occurredAt)}</span>
+                <span className="text-[11px] text-fg-tertiary">{formatDate(event.occurredAt)}</span>
               </div>
             </div>
           </li>
