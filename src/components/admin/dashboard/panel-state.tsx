@@ -48,7 +48,9 @@ export function PanelHeaderLink({
   return (
     <Link
       href={href}
-      className="shrink-0 text-xs font-medium text-accent-400 underline decoration-accent-400/40 underline-offset-4 hover:text-accent-300"
+      /* Pas de `shrink-0` : sur un écran étroit, un lien d'en-tête qui
+         refuse de se replier pousse la page entière. Il passe à la ligne. */
+      className="text-xs font-medium text-accent-400 underline decoration-accent-400/40 underline-offset-4 hover:text-accent-300"
     >
       {children}
     </Link>

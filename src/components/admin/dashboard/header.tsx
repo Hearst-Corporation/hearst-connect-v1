@@ -54,9 +54,13 @@ export function DashboardHeader({
                 <kpi.icon className="size-3.5 shrink-0 text-accent-300" aria-hidden="true" />
                 <span className="truncate">{kpi.title}</span>
               </dt>
-              <dd className="mt-0.5 flex items-baseline gap-1.5">
+              {/* `min-w-0` + `truncate` : une valeur longue — l'identifiant
+                  d'un vault fait 45 caractères — s'affichait en 24px sans
+                  jamais se couper, et poussait la page entière au-delà de
+                  l'écran. Le chiffre reste lisible, le reste s'élide. */}
+              <dd className="mt-0.5 flex min-w-0 items-baseline gap-1.5">
                 <span
-                  className={`text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
+                  className={`truncate text-2xl/7 font-semibold tracking-tight tabular-nums ${available ? 'text-fg' : 'text-fg-tertiary'}`}
                 >
                   {available ? kpi.value.value : '—'}
                 </span>

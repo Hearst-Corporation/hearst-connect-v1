@@ -318,8 +318,24 @@ export const tableCol: Record<TableColRole, string> = {
  * instead of crushing. Nested cards must NOT set that floor or they blow
  * the grid (a 1/3 Bento track is ~23rem).
  */
+/**
+ * Table de la console.
+ *
+ * Le débordement horizontal est borné dans `Table` lui-même : sa marge
+ * négative n'a de sens que dans un conteneur qui la contient.
+ */
 export function AdminTable({ className, ...props }: React.ComponentProps<typeof Table>) {
-  return <Table {...props} className={clsx(csl.heroTable, 'min-w-0', className)} />
+  /* `overflow-hidden` BORNE la marge négative que `Table` porte
+     (`-mx-(--gutter)`) : elle fait délibérément sortir la table de son parent
+     pour aller chercher les bords de la carte, mais sans borne elle pousse le
+     document entier sur un écran étroit — et il faut alors faire défiler toute
+     la page pour lire une colonne. Bornée, la table défile dans sa propre
+     carte, ce qui est le comportement voulu. */
+  return (
+    <div className="overflow-hidden">
+      <Table {...props} className={clsx(csl.heroTable, 'min-w-0', className)} />
+    </div>
+  )
 }
 
 export function DataTableShell({
@@ -368,6 +384,15 @@ export function DataTableShell({
       className={className}
       actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
     >
+      {/* La table garde son plancher de 40rem — en dessous, les colonnes se
+          chevauchent. Elle défile donc horizontalement DANS sa carte.
+
+          `overflow-hidden` sur le conteneur est ce qui règle vraiment le
+          débordement : `Table` porte `-mx-(--gutter)`, une marge négative qui
+          la fait sortir de son parent pour aller chercher les bords de
+          l'écran. Sans la borner ici, cette marge poussait le document entier
+          et il fallait faire défiler tout le tableau de bord pour lire une
+          colonne. */}
       <AdminTable className="[&_table]:min-w-[40rem]">{children}</AdminTable>
     </SectionCard>
   )

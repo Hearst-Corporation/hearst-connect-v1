@@ -854,7 +854,11 @@ export default async function Page({ searchParams }: PageProps) {
       />
 
       {vaultOptions.length > 0 ? (
-        <div className={clsx(surfaceInset, 'flex items-center justify-between gap-4 p-3')}>
+        // `flex-wrap` : le sélecteur et sa légende se partageaient une ligne
+        // qui ne se repliait pas, et poussaient la page sur un écran étroit.
+        <div
+          className={clsx(surfaceInset, 'flex flex-wrap items-center justify-between gap-4 p-3')}
+        >
           <MiningVaultSwitcher options={vaultOptions} selectedId={validStrategy} />
           {validStrategy ? (
             <span className="text-xs text-fg-tertiary">

@@ -141,7 +141,7 @@ function directorySubtitle(view: ClientsView): string | undefined {
 
 function directoryAction(view: ClientsView, showCreateLink: boolean): ReactNode {
   return (
-    <span className="flex shrink-0 items-center gap-3">
+    <span className="flex flex-wrap items-center gap-3">
       {view.kind === 'thin' ? (
         <Badge color="neutral">{`${view.clients.length} client(s)`}</Badge>
       ) : null}

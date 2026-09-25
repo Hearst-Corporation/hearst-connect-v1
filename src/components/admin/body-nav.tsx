@@ -22,10 +22,21 @@ export function AdminBodyNav() {
 
   const active = activeBodyHref(pathname)
 
+  /* Le sous-menu DÉFILE horizontalement plutôt que de pousser la page. Ses
+     entrées sont en `shrink-0` — chacune garde sa largeur, ce qui est voulu :
+     un onglet dont le libellé se coupe ne se lit plus. Mais à six entrées
+     elles totalisent 720px, et sur un écran de 320px elles poussaient le
+     document entier. Le défilement latéral garde les libellés entiers ET la
+     page à sa largeur. */
   return (
-    <nav aria-label="Sub-navigation" className="mb-8 border-b border-console-line-soft">
-      <Navbar className="gap-0! flex-wrap pb-0">
-        <NavbarSection className="shrink-0">
+    <nav
+      aria-label="Sub-navigation"
+      className="mb-8 w-full max-w-full overflow-x-auto border-b border-console-line-soft"
+    >
+      {/* `min-w-0` : sans lui, `flex-1` refuse de descendre sous la
+            largeur du contenu, et le défilement du parent reste inopérant. */}
+      <Navbar className="min-w-0 gap-0! pb-0">
+        <NavbarSection className="w-max shrink-0">
           {submenus.map((entry) => (
             <NavbarItem
               key={entry.href}
