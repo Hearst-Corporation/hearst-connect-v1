@@ -21,7 +21,6 @@ import {
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
 import { AdminBodyNav } from '@/components/admin/body-nav'
-import { HeaderClientSearch } from '@/components/admin/header-client-search'
 import { ToastProvider } from '@/components/admin/toast'
 import { NavbarAvatar, SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
 import { HearstConnectLockupImage } from '@/components/logo'
@@ -100,17 +99,22 @@ export function AdminApplicationLayout({
         }
         sidebar={
           <Sidebar>
-            <SidebarHeader>
-              <SidebarItem href="/admin" className="lg:mb-2.5">
-                <HearstConnectLockupImage className="h-8 w-auto" />
-                <SidebarLabel className="sr-only">Hearst Connect</SidebarLabel>
-              </SidebarItem>
+            {/* La bande de marque de /account, à l'identique : 88px de haut,
+                20px de retrait, logo en h-10, et un filet en bas qui se
+                raccorde à celui de la page. La console portait un logo en h-8
+                dans un en-tête sans hauteur fixe, donc ni la taille ni le
+                raccord ne tombaient juste. */}
+            <SidebarHeader className="!mb-0 h-[88px] justify-center !border-b !border-[var(--ud-line)] !px-5 !py-0">
+              <a href="/admin" className="flex items-center">
+                <HearstConnectLockupImage className="h-10 w-auto" />
+                <span className="sr-only">Hearst Connect</span>
+              </a>
             </SidebarHeader>
 
-            <SidebarBody>
-              <div className="mb-3 px-2">
-                <HeaderClientSearch />
-              </div>
+            {/* Plus de champ de recherche dans le rail : /account n'en porte
+                pas, et il ouvrait une grammaire d'interaction propre à la
+                console au premier coup d'œil. */}
+            <SidebarBody className="!px-3 !pt-[22px]">
               {/* Une seule section : les six surfaces d'outillage qui formaient
                   les hubs « Sections » sont passées sous l'entrée Settings et
                   s'ouvrent dans son sous-menu horizontal. `activeHref` les y
@@ -157,6 +161,25 @@ export function AdminApplicationLayout({
           </Sidebar>
         }
       >
+        {/* La topbar de /account : 88px, filet en bas, collée aux bords — son
+            trait se raccorde à celui de la bande de marque et traverse alors
+            l'écran d'un seul tenant. La console n'en portait pas en desktop,
+            donc le filet du rail s'arrêtait net. */}
+        <header className="-mx-6 mb-6 flex h-[88px] items-center justify-between gap-4 border-b border-[var(--ud-line)] px-6 max-lg:hidden">
+          <div className="flex items-center gap-2.5">
+            <i
+              aria-hidden="true"
+              className="size-[7px] rounded-full bg-[var(--hearst-green)]"
+            />
+            <span className="text-[13px] text-[var(--ud-fg-2)]">Console</span>
+          </div>
+          <Dropdown>
+            <DropdownButton as="button" className="flex items-center gap-2.5">
+              <NavbarAvatar initials={initials} />
+            </DropdownButton>
+            <AccountMenu anchor="bottom end" activeAccount={activeAccount} />
+          </Dropdown>
+        </header>
         <AdminBodyNav />
         {children}
       </SidebarLayout>

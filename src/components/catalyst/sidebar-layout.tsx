@@ -77,16 +77,14 @@ export function SidebarLayout({
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
-      {/* Content — sous le rail en z-index ; pl-64 réserve l’espace. */}
-      <main className="relative z-10 flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-[169px]">
-        {/* Content card — the page surface as GLASS (console-card + blur), so
-            the glow shines through like on the account shell. Solid
-            `console-surface` hid it. Cockpit density: `lg:p-5`. */}
-        <div /* Le conteneur de page ne peint RIEN : il porte le fond de page
-            (`--ud-page`), sur lequel les cartes se détachent. Il était lui-même
-            peint en `--ud-card` — la couleur des cartes — si bien que les blocs
-            se fondaient dans leur propre fond et ne ressortaient plus. */
-          className="grow bg-[var(--ud-page)] p-6 lg:p-5">
+      {/* Contenu — sous le rail en z-index ; le retrait gauche réserve sa
+          place. Plus de marge autour : /account colle sa zone de contenu au
+          bord, ce qui permet au filet sous la marque de traverser l'écran
+          d'un seul trait. Avec une marge, il s'arrêtait au rail. */}
+      <main className="relative z-10 flex flex-1 flex-col lg:min-w-0 lg:pl-[169px]">
+        {/* Le conteneur de page ne peint RIEN d'autre que le fond de page
+            (`--ud-page`), sur lequel les cartes se détachent. */}
+        <div className="grow bg-[var(--ud-page)] px-6 pb-6">
           <div className="w-full min-w-0">{children}</div>
         </div>
       </main>
