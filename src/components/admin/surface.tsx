@@ -1,5 +1,5 @@
 /**
- * Design system surfaces — canonical Hearst Connect material.
+ * Shared admin surface classes.
  *
  * ── PASS 2 architecture ───────────────────────────────────────────────────
  * ONE box material: `surfaceBox` (`console-card`, OPAQUE depuis la passe UI

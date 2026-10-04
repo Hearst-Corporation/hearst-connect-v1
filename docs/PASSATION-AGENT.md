@@ -1,7 +1,6 @@
 # Passation agent — Hearst Connect V1
 
 > **DESCRIPTIVE** (runbook de reprise) — pas d’autorité d’implémentation.
-> Git / ship : `.cursor/rules/10-shared-git-lifecycle.mdc` (fédération shared).
 > Dernière mise à jour : **2026-08-22** · Branche : **`main` uniquement**
 
 ## Mission
@@ -55,10 +54,6 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 - UI graph régénéré ; panels dashboard obsolètes retirés du catalog.
 - Mineurs audit §50 : headers KPI unifiés (`DashboardHeader` + `titleAddon`), regex `:param` canonique, types `Series1Event` / `ClientMovement` / `BackendResolved`, `/espace/*` → catch-all, compteurs dynamiques, double h1 `/account` corrigé, lien « Create simulated client » sur `/admin/clients`.
 
-## UI — ligne directrice
-
-**Référence** : `/admin` (cockpit). Composants : `src/components/admin/dashboard/`, `src/components/actions/`. Charts : frontière `src/components/charts/` (les routes n'importent jamais recharts). `/admin/dashboard` redirige vers `/admin`.
-
 ## État code (mesurer `git rev-parse --short HEAD` — ne pas figer un SHA fantôme ici)
 
 - Gate : `pnpm check` (voir `package.json` — source de vérité)
@@ -96,6 +91,6 @@ railway run -- bash -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" pnpm exec tsx script
 ```
 Hearst Connect V1, branche main. Backend Railway (HEARST_API_URL, projet radiant-recreation).
 Fork EVM = Railway `hearst-chain-production` (chainId 31337, recréé 2026-09-21), vault 0xe8380935c414DB245eA6dFc30B9D2fd3D14891E0.
-GPU1 interdit. UI référence = /admin. Passation = DESCRIPTIVE.
-Autorité : AGENTS.md + .cursor/rules + CLAUDE.md.
+GPU1 interdit. Passation = DESCRIPTIVE.
+Autorité opérationnelle : README, `docs/`, `package.json`.
 ```

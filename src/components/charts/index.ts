@@ -1,17 +1,5 @@
 /**
- * Canonical dataviz boundary (doctrine §7.2).
- *
- * ── What this boundary guarantees ─────────────────────────────────────────
- * The rendering engine does not cross this limit. No route and no business
- * module imports `recharts` — they import a chart from here, which alone
- * decides how it is drawn. That is what makes swapping the engine possible
- * without touching the pages.
- *
- * ── Organization ──────────────────────────────────────────────────────────
- *   core/       the frame, the states, the theme — what every chart shares
- *   cartesian/  series on x/y axes (BTC production, reserve…)
- *   richart/    Hearst visual library (activity, allocation, curves,
- *               distribution, sparklines) — replaces MUI X Charts
+ * Chart exports (`core/`, `cartesian/`, `richart/`).
  */
 
 /* ── Core ─────────────────────────────────────────────────────────────────── */

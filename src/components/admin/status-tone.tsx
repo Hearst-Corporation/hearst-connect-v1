@@ -1,18 +1,7 @@
 import clsx from 'clsx'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-/**
- * Admin status / badge tones — semantic Hearst tokens only.
- *
- * Never pass Catalyst raw palettes (`lime` / `green` / `amber` / `red` / `rose`)
- * from product surfaces. Map the business meaning here, then render via
- * `AdminToneBadge`.
- *
- * `accent` = ordinary healthy / indexed (brand mint) — not an alarm.
- * `ok`     = positive semantic claim (LIVE freshness, KYC approved).
- * `warn`   = attention (pending, stale, simulated).
- * `bad`    = failure / denial / unavailable.
- */
+/** Admin status / badge tones mapped to semantic tokens via `AdminToneBadge`. */
 
 export type AdminBadgeTone = 'ok' | 'warn' | 'bad' | 'info' | 'neutral' | 'accent'
 

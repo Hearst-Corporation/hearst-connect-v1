@@ -22,12 +22,6 @@ Composition : `src/app/(marketing)/page.tsx` → `src/components/marketing/landi
 | 5 | **Doctrine** (3 piliers) | `landing-page.tsx` |
 | 6 | **CTA** → `/login` · `/register` | `closing-cta.tsx` |
 
-**Règles landing** : tokens `console-*` + `accent-*` · `text-white` / `text-white/50` · fond `bg-console-app`.
-Interdit dans `src/components/marketing/` : rampes Tailwind structurelles `neutral-*` / `slate-*` / `gray-*`
-(test `tests/marketing-no-zinc.test.ts`) et toute utilitaire de la palette interdite (gate `pnpm run check:no-zinc`).
-Police : Satoshi uniquement.
-Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG — pas d’URLs externes.
-
 ## Architecture
 
 | Couche | Cible |
@@ -37,7 +31,7 @@ Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG —
 | **API prod** | `https://hearst-connect-backend-production-1da1.up.railway.app` via `HEARST_API_URL` |
 | **Déploiement back** | Push `main` → Railway |
 
-**GPU1 interdit** pour ce produit (pas de SSH, pas de `connect-api.hearst.app`). Détail : `.cursor/rules/30-no-gpu1.mdc`, `CLAUDE.md`.
+**GPU1 interdit** pour ce produit (pas de SSH, pas de `connect-api.hearst.app`).
 
 ## Démarrer
 
@@ -51,12 +45,9 @@ Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Ja
 
 ## Language (2026-08-08)
 
-Product UI is **English-only** (`lang="en"`). Canonical routes use English paths (`/admin/compliance`, `/admin/product`, `/account`). User hub is a single `/account` command center (`src/features/user-dashboard/`). Legacy French URLs (`/espace/*`, `/espace-utilisateur`, legacy `/account/*` subpaths) redirect permanently via `next.config.mjs`. Gate: `pnpm run check:english-ui`.
+Product UI is **English-only** (`lang="en"`). Routes use English paths (`/admin/compliance`, `/admin/product`, `/account`). User hub is a single `/account` command center (`src/features/user-dashboard/`). Legacy French URLs (`/espace/*`, `/espace-utilisateur`, legacy `/account/*` subpaths) redirect permanently via `next.config.mjs`.
 
 ## Console admin — reference (2026-08-08)
-
-**Target style**: single dashboard at **`/admin`** + business pages aligned on
-`AdminPageHeader` — glow + H monogram + title + description + horizontal KPIs (`AdminHeroKpi`, max 4). Dark theme enforced.
 
 | Route | Role |
 |---|---|
@@ -96,7 +87,7 @@ src/
 │   ├── espace*/                legacy FR → `/account`
 │   └── admin/                  routes console
 ├── components/
-│   ├── catalyst/               kit officiel (non modifié sauf link Next)
+│   ├── catalyst/               primitives Catalyst
 │   ├── marketing/              landing shell (content, CTAs, preview, layout)
 │   ├── admin/                  page-header, hero-kpi, surfaces + dashboard/
 │   ├── actions/                boutons d'action partagés
@@ -118,27 +109,17 @@ Aucune donnée inventée : `Availability<T>`, gates `check:mocks` et `check:trut
 ## Commandes
 
 ```bash
-pnpm check               # gate canonique (typecheck → lint → guardrails → check:admin-ds → check:ui → test)
-pnpm test                # vitest
-pnpm e2e                 # Playwright (access-control, audit-closure, veracity)
-pnpm exec next build     # build prod (hors gate)
+pnpm check               # next build && tsc --noEmit
+pnpm e2e                 # Playwright (si installé)
+pnpm exec next build     # build prod
 ```
 
 Déploiement Vercel prod : `vercel --prod` (projet `hearst-connect-v1`).
-
-## Design system
-
-Tokens dans `src/styles/tailwind.css` (`@theme`). Canon surfaces (`src/components/admin/surface.tsx`) — tableau de bord = référence :
-`surfaceBox` (cards verre) · `surfaceNav` (menu verre) · `surfaceInset` (puits) · `surfaceSelect` (voile mint sélection).
-Header console partagé : `AdminPageHeader` — glow + monogramme H + titre + KPI hero. Fond : `public/brand/console-glow.png` (`consoleGlowLayer` — `fixed` + `bg-top` + masque dégradé vers le bas, HC-ADMIN-FIXED-BACKGROUND-027 ; le glow est confiné au haut de page au lieu d'être étiré sur tout le viewport). Monogramme : `public/brand/hearst-h.svg`. Lockup officiel (Hearst-Defi) : `public/brand/hearst-connect.svg` (+ `-dark` / `-official`). Favicon onglet : `src/app/icon.svg` (H mint sur fond graphite).
-Gate `check:ds` : pas de hex brut hors token dans le runtime métier.
-Gate `check:no-zinc` : palette structurelle interdite — tokens sémantiques `fg` / `ink` / `console-*` uniquement (`.cursor/rules/50-no-zinc.mdc`).
 
 ## Documentation
 
 | Fichier | Rôle |
 |---|---|
-| `CLAUDE.md` | Contrat agent (gates, secrets, pièges) |
 | `docs/ENDPOINT-MAPPING.md` | Contrat backend → front |
 | `docs/PASSATION-AGENT.md` | Reprise opérationnelle (Railway, Vercel, priorités) |
 

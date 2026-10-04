@@ -40,7 +40,8 @@ const contentSecurityPolicy = cspDirectives.join('; ')
  * and `/api/simulation` to the configured origin, keeping CSP `connect-src
  * 'self'` valid. Server-side only — no `NEXT_PUBLIC_` exposure.
  */
-const miningNoteApiUrl = process.env.MINING_NOTE_API_URL ?? 'http://localhost:3105'
+// Unset in production: no tunnel, so anonymous traffic never reaches whatever listens on the host's dev port.
+const miningNoteApiUrl = process.env.MINING_NOTE_API_URL ?? (isProd ? null : 'http://localhost:3105')
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -77,6 +78,7 @@ const nextConfig = {
     ]
   },
   async rewrites() {
+    if (!miningNoteApiUrl) return []
     return [
       { source: '/api/mining-note/:path*', destination: `${miningNoteApiUrl}/api/mining-note/:path*` },
       { source: '/api/mining/:path*', destination: `${miningNoteApiUrl}/api/mining/:path*` },

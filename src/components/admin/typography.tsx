@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
 /**
- * Admin typography — canonical scale (dark-only product).
+ * Admin typography helpers.
  * Text colors: Hearst semantic `fg` / `fg-secondary` / `fg-tertiary`.
  * KPI / amounts use `fg` (primary foreground), never raw `text-white`.
  *

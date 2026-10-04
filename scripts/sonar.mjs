@@ -6,8 +6,7 @@
  * problèmes réels :
  *
  *  1. il lançait `npm run test:coverage` dans un dépôt **pnpm-only** — la CI
- *     Hearst échoue si un `package-lock.json` apparaît (cf. CLAUDE.md,
- *     « Pièges connus ») ;
+ *     ce dépôt reste pnpm-only (pas de `package-lock.json`) ;
  *  2. il codait en dur l'URL d'un serveur privé (`SONAR_HOST_URL`), donc il ne
  *     pouvait fonctionner que depuis un seul réseau, sans le dire ;
  *  3. il supposait Docker présent et échouait sinon avec l'erreur de Docker,

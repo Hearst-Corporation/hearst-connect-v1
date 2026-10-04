@@ -102,7 +102,7 @@ export function BtcContextFlank({
         </strong>
         {trend !== undefined ? (
           // Ordinary data series — mint, like every other trend line on this
-          // page (chart-theme doctrine: hue is spent on MEANING, not on
+          // page (chart theme: hue reserved for semantic series,
           // labeling "this one is about Bitcoin").
           <div className="btc-flank-spark">
             <RichSparkline data={[...trend]} />

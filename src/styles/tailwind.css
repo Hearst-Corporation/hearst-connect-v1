@@ -1,12 +1,8 @@
 @import 'tailwindcss';
 
 /*
- * Design system — Hearst Connect
- * ------------------------------------------------------------------
- * TYPE — absolute rule: Satoshi Variable only (Fontshare, self-hosted).
- * font-sans · font-display · font-mono → same family (--font-satoshi).
- *
- * Aligned with hearstcorporation.io: navy #020611, mint #A7FB90.
+ * Theme tokens — Hearst Connect (`@theme` below).
+ * Typography uses Satoshi Variable (--font-satoshi) on font-sans, font-display, font-mono.
  */
 
 @custom-variant dark {
@@ -31,8 +27,6 @@
    * `--color-accent-*`, les surfaces sont `--color-console-*`, le texte
    * `--color-fg*` / `--color-ink`, les états sont success/warning/danger.
    *
-   * Structural Tailwind neutrals are forbidden project-wide — see the alwaysApply
-   * Cursor design rule and `pnpm run check:no-zinc`.
    */
 
   /*

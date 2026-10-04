@@ -1,8 +1,4 @@
-/**
- * Hearst actions boundary — Motion overlay + state machine on top of
- * Catalyst `<Button>` (never a homemade button, never an Aceternity example
- * imported into a route). Details and doctrine: `hearst-actions.tsx`.
- */
+/** Action buttons with loading/success states — see `hearst-actions.tsx`. */
 export {
   HearstPrimaryAction,
   HearstCriticalAction,
