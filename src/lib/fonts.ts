@@ -1,9 +1,7 @@
 import localFont from 'next/font/local'
 
 /**
- * Absolute design system rule: Satoshi Variable everywhere.
- *
- * A single family for interface, headings, and tabular data.
+ * Satoshi Variable for interface, headings, and tabular data.
  * Source: Fontshare (Indian Type Foundry) — file vendored in src/assets/fonts/.
  * No other production font (no Inter, Source Sans, Cherry Swash, JetBrains).
  */

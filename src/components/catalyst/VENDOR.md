@@ -10,9 +10,8 @@
   `catalyst-ui-kit` (typescript), synchronisé le 2026-08-05.
 - **Licence** : `src/components/catalyst/LICENSE.md` (Tailwind Labs Inc.).
 - **Import** : kit vendoré dans le dépôt (non installé via npm), tel quel.
-- **Règle absolue** : les fichiers `src/components/catalyst/**` **ne sont pas
-  modifiés**, à l’exception de `link.tsx` (intégration Next.js documentée).
-  `eslint` ignore volontairement ce dossier.
+- **Vendor** : snapshot Tailwind Plus dans le dépôt ; `eslint` ignore volontairement ce dossier. Les retouches
+  (ex. `link.tsx` pour Next.js) restent documentées ici.
 
 ## Primitives non utilisées — à conserver
 
