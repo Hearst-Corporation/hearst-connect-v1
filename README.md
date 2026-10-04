@@ -8,7 +8,7 @@ adaptée Hearst : navbar → hero split (copy + preview `console-preview.png`) �
 plateforme (6 points) → doctrine 3 piliers → CTA → footer. Preview unique en hero (`ConsolePreviewShot`,
 `aspect-16/10`). Contenu centralisé dans `landing-content.ts` ; CTAs partagés dans `marketing-cta.tsx`.
 Server component (`landing-page.tsx`) — pas de scroll hijack, pas de métriques inventées.
-Captures : `pnpm e2e` (Playwright, port 4105) ou QA manuelle sur `http://localhost:4105`.
+Captures : `pnpm e2e` (Playwright, port 4600) ou QA manuelle sur `http://localhost:4600`.
 
 Shell : `src/app/(marketing)/layout.tsx` — `SiteHeader` (sticky, blur, filet bas) · `main` · `SiteFooter` · `bg-console-app`.
 Composition : `src/app/(marketing)/page.tsx` → `src/components/marketing/landing-page.tsx`.
@@ -44,7 +44,7 @@ Assets : `public/brand/console-preview.png`, `console-glow.png`, lockups SVG —
 ```bash
 cp .env.example .env.local
 pnpm install --frozen-lockfile
-pnpm dev                    # http://localhost:4105
+pnpm dev                    # http://localhost:4600
 ```
 
 Six variables serveur — voir `.env.example`, porte unique `src/lib/env.ts`. Jamais de `NEXT_PUBLIC_*` pour les secrets.
@@ -82,7 +82,7 @@ Product UI is **English-only** (`lang="en"`). Canonical routes use English paths
 Open the dashboard locally (Chrome, signed in, dark theme):
 
 ```bash
-E2E_PORT=4105 node scripts/open-dashboard-chrome.mjs
+E2E_PORT=4600 node scripts/open-dashboard-chrome.mjs
 ```
 
 ## Structure

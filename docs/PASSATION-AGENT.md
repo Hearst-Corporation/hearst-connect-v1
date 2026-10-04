@@ -76,7 +76,7 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 ```bash
 cd "/Users/adrienbeyondcrypto/Desktop/Herst Connect V1"
 pnpm install --frozen-lockfile
-pnpm dev                              # :4105
+pnpm dev                              # :4600
 # Backend (depuis ~/Desktop/hearst-connect-backend, déjà lié Railway) :
 railway run -- bash -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" pnpm exec tsx scripts/<script>.ts'
 ```
