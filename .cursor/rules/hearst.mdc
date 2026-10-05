@@ -1,0 +1,9 @@
+---
+description: Hearst connect local doctrine pointer
+alwaysApply: true
+---
+
+- Doctrine locale: `.hearst/`.
+- Lire d'abord `.hearst/README.md`.
+- Lire uniquement les fichiers `.hearst/` pertinents selon la tache.
+- Ne pas dupliquer la doctrine hors `.hearst/`.
