@@ -57,6 +57,7 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  agentRules: false,
   poweredByHeader: false,
   transpilePackages: ['@hearst/ui'],
   // Turbopack infère mal la racine du workspace (il remonte sur src/app) : on la fixe.
