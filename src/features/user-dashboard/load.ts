@@ -515,24 +515,26 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
   // Client book values — the account's OWN money, per-client at the query layer.
   // Sourced from `me/portfolio`, never derived from the fund-wide dashboard.
   // value = principal + accrued (book), shares stay null.
+  // An unreachable or failed read keeps its own reason, so the page says offline, not "no position".
+  const positionReason = positionRF.reason ?? 'no_investor_position'
   const positionValue = availabilityFromResolved<number>(
-    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'value'), reason: 'no_investor_position' },
+    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'value'), reason: positionReason },
     PORTFOLIO_ENDPOINT,
   )
   const positionPrincipal = availabilityFromResolved<number>(
-    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'principal'), reason: 'no_investor_position' },
+    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'principal'), reason: positionReason },
     PORTFOLIO_ENDPOINT,
   )
   const positionAccrued = availabilityFromResolved<number>(
-    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'accrued'), reason: 'no_investor_position' },
+    { status: positionRF.status, value: positionBookFrom(positionRF.value, 'accrued'), reason: positionReason },
     PORTFOLIO_ENDPOINT,
   )
   const positionStatus = availabilityFromResolved<string>(
-    { status: positionRF.status, value: positionTextFrom(positionRF.value, 'status'), reason: 'no_investor_position' },
+    { status: positionRF.status, value: positionTextFrom(positionRF.value, 'status'), reason: positionReason },
     PORTFOLIO_ENDPOINT,
   )
   const positionSubscribedAt = availabilityFromResolved<string>(
-    { status: positionRF.status, value: positionTextFrom(positionRF.value, 'subscribedAt'), reason: 'no_investor_position' },
+    { status: positionRF.status, value: positionTextFrom(positionRF.value, 'subscribedAt'), reason: positionReason },
     PORTFOLIO_ENDPOINT,
   )
   const performance = availabilityFromResolved(surface(aggregate, 'performance'), DASHBOARD_ENDPOINT)
