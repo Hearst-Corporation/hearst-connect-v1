@@ -642,70 +642,6 @@
   background: var(--ds-surface-raised);
 }
 
-/* Les onglets vivent sur une PISTE : sans fond commun, les inactifs flottaient
-   sur la page et rien ne disait qu'ils étaient cliquables. La piste les
-   rassemble, la pilule active se détache dessus. */
-/* Sélecteur natif : masqué au-dessus de 480px, où les onglets tiennent. */
-.ud-root .chart-switch-select {
-  display: none;
-}
-
-.ud-root .chart-switch {
-  display: flex;
-  gap: 4px;
-  margin: 13px 16px;
-  padding: 4px;
-  flex-wrap: wrap;
-  border-radius: var(--ds-radius-pill);
-  background: var(--ds-shell);
-  box-shadow: inset 0 0 0 1px var(--ds-shell-border);
-  width: fit-content;
-  max-width: calc(100% - 32px);
-}
-
-.ud-root .chart-switch button {
-  position: relative;
-  isolation: isolate;
-  flex: 0 1 auto;
-  border: 0;
-  border-radius: var(--ds-radius-sm);
-  color: var(--ds-shell-subtle);
-  background: transparent;
-  font-size: var(--ud-t-label);
-  cursor: pointer;
-  transition: color 0.15s;
-}
-
-.ud-root .chart-switch button:hover:not(.active) {
-  color: var(--ds-text);
-  background: color-mix(in oklab, var(--ds-text) 7%, transparent);
-}
-
-.ud-root .chart-switch button.active {
-  color: var(--ds-text);
-}
-
-.ud-root .switch-pill {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: var(--ds-radius-pill);
-  background: var(--ds-text);
-}
-
-.ud-root .switch-inner {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-}
-
-.ud-root .switch-inner svg {
-  color: var(--ds-accent);
-}
-
 .ud-root .fresh-badge {
   margin-left: auto;
   padding: 2px 8px;
@@ -730,7 +666,7 @@
 }
 
 /*
- * The chart-switch header must NOT change height between modes. A longer
+ * The chart header must NOT change height between modes. A longer
  * subtitle ("Allocation over time · cbBTC vs USDC · %") used to wrap to a second
  * line where a short one ("BTC price") stayed on one, moving everything below on
  * mode switch (visible at zoom 200%). The title owns the slot; the subtitle is
@@ -1655,28 +1591,6 @@
   border-color: var(--ds-shell-border);
 }
 
-/* Onglets de graphe : compacts, l'actif sur fond relevé et texte plein. */
-.ud-root .chart-switch button {
-  height: 32px;
-  padding: 0 14px;
-  border-radius: var(--ds-radius-pill);
-  font-size: var(--ud-t-label);
-}
-
-/* Couleur au repos seulement : sans `:not(:hover)` cette règle écrasait l'état
-   de survol, déclaré plus haut dans le fichier. */
-.ud-root .chart-switch button:not(:hover):not(.active) {
-  color: var(--ds-shell-subtle);
-}
-
-/* Texte ET icône en encre sombre sur la pilule blanche — le mint sur blanc
-   serait illisible. */
-.ud-root .chart-switch button.active .switch-inner,
-.ud-root .chart-switch button.active .switch-inner svg {
-  color: var(--ds-surface);
-  font-weight: 600;
-}
-
 /* Tableau de mouvements : lignes plus serrées, comme Transaction history. */
 .ud-root .timeline-item {
   padding: 7px 0;
@@ -2000,40 +1914,6 @@
 
 /* ── Téléphone ────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  /* Cinq onglets ne tiennent pas sur 375px : la piste cède la place à un
-     sélecteur natif. Ni empilement (une pilule sur trois lignes n'a plus de
-     forme), ni défilement (ce qui dépasse devient invisible). */
-  .ud-root .chart-switch {
-    display: none;
-  }
-
-  .ud-root .chart-switch-select {
-    display: block;
-    width: calc(100% - 28px);
-    height: 40px;
-    margin: 13px 14px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: var(--ds-radius-lg);
-    background: var(--ds-shell);
-    box-shadow: inset 0 0 0 1px var(--ds-shell-border);
-    color: var(--ds-text);
-    font-family: inherit;
-    font-size: var(--ud-t-label);
-    /* `appearance: none` retirerait le chevron système sans rien mettre à la
-       place — on garde le rendu natif, qui signale déjà qu'on peut dérouler. */
-  }
-
-  .ud-root .chart-switch-select:focus-visible {
-    outline: 2px solid var(--ds-accent);
-    outline-offset: 2px;
-  }
-
-  .ud-root .dashboard-view {
-    padding: 14px;
-    gap: 18px;
-  }
-
   /* Une seule colonne : à 375px, trois tuiles laissent 100px chacune. */
   .ud-root .position-grid,
   .ud-root .fund-kpis,

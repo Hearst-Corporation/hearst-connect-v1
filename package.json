@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
-    "@hearst/ui": "github:adrien-debug/hearst-ui#v1.10.0",
+    "@hearst/ui": "github:adrien-debug/hearst-ui#v1.11.0",
     "@heroicons/react": "^2.2.0",
     "clsx": "^2.1.1",
     "motion": "^12.43.0",

@@ -118,7 +118,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       <DashboardShell>
         <DashboardHeader
           title={id}
-          back={{ href: '/admin/clients', label: 'Client directory' }}
+          back={{ href: '/admin/clients', label: 'Back to client directory' }}
           kpis={kpis}
         />
         <Callout tone="warning" title="Client not found">
@@ -144,7 +144,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       <DashboardShell>
         <DashboardHeader
           title={id}
-          back={{ href: '/admin/clients', label: 'Client directory' }}
+          back={{ href: '/admin/clients', label: 'Back to client directory' }}
           kpis={kpis}
         />
         <Callout tone="warning" title="Client detail unavailable">
@@ -173,7 +173,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
     <DashboardShell>
       <DashboardHeader
         title={title}
-        back={{ href: '/admin/clients', label: 'Client directory' }}
+        back={{ href: '/admin/clients', label: 'Back to client directory' }}
         kpis={kpis}
       />
 

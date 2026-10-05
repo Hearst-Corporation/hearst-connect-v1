@@ -70,7 +70,7 @@ export default async function Page() {
     <DashboardShell>
       <DashboardHeader
         title="New simulated client"
-        back={{ href: '/admin/clients', label: 'Client directory' }}
+        back={{ href: '/admin/clients', label: 'Back to client directory' }}
         kpis={kpis}
       />
 

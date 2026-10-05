@@ -17,8 +17,8 @@ importers:
         specifier: ^2.2.10
         version: 2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@hearst/ui':
-        specifier: github:adrien-debug/hearst-ui#v1.10.0
-        version: git+ssh://git@github.com/adrien-debug/hearst-ui.git#8d27b23462a68fcb8fb4db3c7129b8ec6ac5f474(@headlessui/react@2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@heroicons/react@2.2.0(react@19.3.0))(clsx@2.1.1)(motion@12.43.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(next@16.3.8(@playwright/test@1.62.1)(@types/node@25.9.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(recharts@3.10.1(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@17.0.2)(react@19.3.0)(redux@5.0.1))
+        specifier: github:adrien-debug/hearst-ui#v1.11.0
+        version: git+ssh://git@github.com/adrien-debug/hearst-ui.git#dfc5e13cbab96415694bfb7b902b7964a18ef4ba(@headlessui/react@2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@heroicons/react@2.2.0(react@19.3.0))(clsx@2.1.1)(motion@12.43.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(next@16.3.8(@playwright/test@1.62.1)(@types/node@25.9.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(recharts@3.10.1(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@17.0.2)(react@19.3.0)(redux@5.0.1))
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.3.0)
@@ -124,9 +124,9 @@ packages:
       react: ^18 || ^19 || ^19.0.0-rc
       react-dom: ^18 || ^19 || ^19.0.0-rc
 
-  '@hearst/ui@git+ssh://git@github.com/adrien-debug/hearst-ui.git#8d27b23462a68fcb8fb4db3c7129b8ec6ac5f474':
-    resolution: {commit: 8d27b23462a68fcb8fb4db3c7129b8ec6ac5f474, repo: git@github.com:adrien-debug/hearst-ui.git, type: git}
-    version: 1.10.0
+  '@hearst/ui@git+ssh://git@github.com/adrien-debug/hearst-ui.git#dfc5e13cbab96415694bfb7b902b7964a18ef4ba':
+    resolution: {commit: dfc5e13cbab96415694bfb7b902b7964a18ef4ba, repo: git@github.com:adrien-debug/hearst-ui.git, type: git}
+    version: 1.11.0
     engines: {node: '>=22'}
     peerDependencies:
       '@headlessui/react': ^2.2.10
@@ -1105,7 +1105,7 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
       use-sync-external-store: 1.6.0(react@19.3.0)
 
-  '@hearst/ui@git+ssh://git@github.com/adrien-debug/hearst-ui.git#8d27b23462a68fcb8fb4db3c7129b8ec6ac5f474(@headlessui/react@2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@heroicons/react@2.2.0(react@19.3.0))(clsx@2.1.1)(motion@12.43.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(next@16.3.8(@playwright/test@1.62.1)(@types/node@25.9.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(recharts@3.10.1(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@17.0.2)(react@19.3.0)(redux@5.0.1))':
+  '@hearst/ui@git+ssh://git@github.com/adrien-debug/hearst-ui.git#dfc5e13cbab96415694bfb7b902b7964a18ef4ba(@headlessui/react@2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@heroicons/react@2.2.0(react@19.3.0))(clsx@2.1.1)(motion@12.43.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(next@16.3.8(@playwright/test@1.62.1)(@types/node@25.9.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(recharts@3.10.1(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@17.0.2)(react@19.3.0)(redux@5.0.1))':
     dependencies:
       '@headlessui/react': 2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       clsx: 2.1.1

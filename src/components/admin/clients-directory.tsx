@@ -23,18 +23,6 @@ const FILTERS: readonly { id: FilterId; label: string }[] = [
   { id: 'needs-attention', label: 'Needs attention' },
 ]
 
-function isFilter(value: string | null): value is FilterId {
-  return FILTERS.some((item) => item.id === value)
-}
-
-function filterHref(id: FilterId, q: string | null): string {
-  const params = new URLSearchParams()
-  if (id !== 'all') params.set('filter', id)
-  if (q) params.set('q', q)
-  const search = params.toString()
-  return search === '' ? '/admin/clients' : `/admin/clients?${search}`
-}
-
 function hasExposure(client: AdminRecentClient): boolean {
   if (client.currentExposureAtomic === null || client.currentExposureAtomic === '') return false
   const n = Number(client.currentExposureAtomic)
@@ -82,11 +70,9 @@ export function ClientsDirectory({
   // Pre-fill from the header search (`/admin/clients?q=…`): the field stays
   // controllable afterwards. No data is fabricated — we only initialize the
   // local filter from the real data already loaded.
-  const searchParams = useSearchParams()
-  const initialQuery = searchParams.get('q') ?? ''
+  const initialQuery = useSearchParams().get('q') ?? ''
   const [query, setQuery] = useState(initialQuery)
-  const requested = searchParams.get('filter')
-  const filter: FilterId = isFilter(requested) ? requested : 'all'
+  const [filter, setFilter] = useState<FilterId>('all')
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -121,8 +107,8 @@ export function ClientsDirectory({
           label="Client filters"
           tabs={FILTERS.map((item) => ({
             label: item.label,
-            href: filterHref(item.id, searchParams.get('q')),
             current: filter === item.id,
+            onSelect: () => setFilter(item.id),
           }))}
         />
       </FilterBar>

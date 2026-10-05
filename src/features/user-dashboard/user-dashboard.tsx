@@ -8,12 +8,10 @@ import {
   BanknotesIcon,
   HomeIcon,
   QuestionMarkCircleIcon,
-  BeakerIcon,
   CalendarDaysIcon,
   ChartPieIcon,
   CircleStackIcon,
   CpuChipIcon,
-  CurrencyDollarIcon,
   PresentationChartLineIcon,
   ScaleIcon,
   SignalIcon,
@@ -30,7 +28,7 @@ import {
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
 import { Button } from '@hearst/ui/catalyst/button'
-import { PageHeader } from '@hearst/ui/page'
+import { PageHeader, PageTabs } from '@hearst/ui/page'
 import { logout } from '@/lib/actions'
 import { formatDateTime, formatNumber, formatPercent, formatDate} from '@/lib/format'
 import { readableSourceStateCap } from '@/lib/movements'
@@ -61,16 +59,12 @@ import { BtcPositionHeadline } from './btc-position'
 type CentralView = 'value' | 'allocation' | 'btc' | 'activity' | 'backtest'
 type Route = 'dashboard' | 'trade'
 
-const CENTRAL_VIEWS: readonly {
-  readonly key: CentralView
-  readonly label: string
-  readonly icon: typeof PresentationChartLineIcon
-}[] = [
-  { key: 'value', label: 'Vault AUM', icon: PresentationChartLineIcon },
-  { key: 'allocation', label: 'Fund allocation', icon: ChartPieIcon },
-  { key: 'btc', label: 'BTC price', icon: CurrencyDollarIcon },
-  { key: 'activity', label: 'Activity', icon: Squares2X2Icon },
-  { key: 'backtest', label: 'Backtest', icon: BeakerIcon },
+const CENTRAL_VIEWS: readonly { readonly key: CentralView; readonly label: string }[] = [
+  { key: 'value', label: 'Vault AUM' },
+  { key: 'allocation', label: 'Fund allocation' },
+  { key: 'btc', label: 'BTC price' },
+  { key: 'activity', label: 'Activity' },
+  { key: 'backtest', label: 'Backtest' },
 ]
 
 function seriesState(
@@ -490,47 +484,15 @@ export function UserDashboardView({
 
                   <div className="center">
                     <div className="center-panel">
-                      {/* Sur téléphone, un `select` natif remplace les cinq
-                          onglets : ils ne tiennent pas sur 375px, et le
-                          sélecteur système est plus confortable qu'un menu
-                          maison. Les deux existent dans le DOM, le CSS n'en
-                          montre qu'un — un seul état, aucune désynchronisation
-                          possible. */}
-                      <select
-                        className="chart-switch-select"
-                        aria-label="Fund chart"
-                        value={central}
-                        onChange={(e) => setCentral(e.target.value as typeof central)}
-                      >
-                        {CENTRAL_VIEWS.map((view) => (
-                          <option key={view.key} value={view.key}>
-                            {view.label}
-                          </option>
-                        ))}
-                      </select>
-
-                      <div className="chart-switch" role="group" aria-label="Fund chart">
-                        {CENTRAL_VIEWS.map((view) => {
-                          const Icon = view.icon
-                          const selected = central === view.key
-                          return (
-                            <button
-                              key={view.key}
-                              type="button"
-                              aria-pressed={selected}
-                              className={selected ? 'active' : undefined}
-                              onClick={() => setCentral(view.key)}
-                            >
-                              {selected ? (
-                                <motion.span layoutId="ud-central-pill" className="switch-pill" aria-hidden="true" />
-                              ) : null}
-                              <span className="switch-inner">
-                                <Icon className="size-4" aria-hidden="true" />
-                                {view.label}
-                              </span>
-                            </button>
-                          )
-                        })}
+                      <div className="mx-4 mt-2 border-b border-(--ds-divider)">
+                        <PageTabs
+                          label="Fund chart"
+                          tabs={CENTRAL_VIEWS.map((view) => ({
+                            label: view.label,
+                            current: central === view.key,
+                            onSelect: () => setCentral(view.key),
+                          }))}
+                        />
                       </div>
                       <div className="center-head">
                         <h2>{active.question}</h2>

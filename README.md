@@ -1,7 +1,7 @@
 # Hearst Connect (front)
 
 Next.js 16, React 19, Tailwind v4, `@hearst/ui` (Catalyst, page header, KPI band, list table, state mark, the `--ds-*`
-tokens and FK Grotesk, from `github:adrien-debug/hearst-ui#v1.10.0`, platform stylesheet) and Recharts.
+tokens and FK Grotesk, from `github:adrien-debug/hearst-ui#v1.11.0`, platform stylesheet) and Recharts.
 
 The front of Hearst Connect: a public landing page, a sign-in screen, and the administration console for the
 Connect vaults (portfolio, vaults, clients, mining, compliance, operations, keeper actions), plus an `/account` view
