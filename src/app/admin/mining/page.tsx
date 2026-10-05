@@ -3,15 +3,16 @@ import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { DashCard, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { surfaceInset } from '@/components/admin/surface'
-import { Badge } from '@/components/catalyst/badge'
-import { Text } from '@/components/catalyst/text'
+import { ResultCount } from '@hearst/ui/page'
+import { StatusMark, type StatusTone } from '@hearst/ui/status'
+import { Text } from '@hearst/ui/catalyst/text'
 import {
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/catalyst/table'
+} from '@hearst/ui/catalyst/table'
 import { AdminTable, tableCol } from '@/components/compositions'
 import clsx from 'clsx'
 import { callBackend } from '@/lib/backend/client'
@@ -19,12 +20,6 @@ import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/l
 import { requireSession } from '@/lib/auth'
 import type { ResolvedStatus } from '@/lib/resolved'
 import { available, unavailable, type Availability } from '@/lib/vaults/model'
-import {
-  CpuChipIcon,
-  BoltIcon,
-  CircleStackIcon,
-  BanknotesIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { ApproveButton } from './approve-button'
 import { MiningVaultSwitcher, type MiningVaultOption } from './mining-vault-switcher'
@@ -107,6 +102,10 @@ type CalculationRecord = {
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
+function distributionTone(status: string): StatusTone {
+  return status === 'approved' || status === 'distributed' ? 'active' : 'pending'
+}
+
 function satsToBtc(sats: string | null | undefined): string | null {
   if (sats === undefined || sats === null) return null
   const n = Number(sats)
@@ -184,32 +183,32 @@ function MachineFleetSection({
       <div className="@container min-w-0">
         <div className="grid grid-cols-1 gap-3 @[24rem]:grid-cols-2 @[40rem]:grid-cols-4">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Total machines</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
               {machineCount !== null ? formatNumber(machineCount) : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Active</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Active</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-success)">
               {activeMachines !== null ? formatNumber(activeMachines) : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Inactive</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Inactive</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-danger)">
               {inactiveMachines !== null ? formatNumber(inactiveMachines) : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Average uptime</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
               {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
             </p>
           </div>
         </div>
       </div>
-      <p className="mt-3 text-xs text-fg-tertiary">
+      <p className="mt-3 text-xs text-(--ds-shell-subtle)">
         Per-machine detail (model, location, serial) will appear once the backend exposes a fleet
         registry endpoint.
       </p>
@@ -225,7 +224,7 @@ function ReportMetricsSection() {
       className="h-full"
       contentClassName="flex-1"
     >
-      <Text className="text-sm text-fg-tertiary">
+      <Text className="text-sm text-(--ds-shell-subtle)">
         Submit hashrate and cumulative BTC earned to the backend. This is a Keeper log request — no
         transaction is signed.
       </Text>
@@ -265,20 +264,20 @@ function OpexSection({
       <div className="@container min-w-0">
         <div className="grid grid-cols-1 gap-3 @[26rem]:grid-cols-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Monthly electricity</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Monthly electricity</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
               {monthlyCost !== null ? formatCurrency(monthlyCost, { decimals: 0 }) : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Total paid</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Total paid</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
               {totalPaid !== null ? formatCurrency(totalPaid, { decimals: 0 }) : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Last payment</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Last payment</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
               {lastPayment !== null ? formatDateTime(lastPayment) : '—'}
             </p>
           </div>
@@ -289,7 +288,7 @@ function OpexSection({
           <PayElectricityButton amount={monthlyCost} />
         </div>
       ) : monthlyCost !== null ? (
-        <p className="mt-auto pt-4 text-xs text-fg-tertiary">
+        <p className="mt-auto pt-4 text-xs text-(--ds-shell-subtle)">
           {electricity.nextEligiblePayment !== null && electricity.nextEligiblePayment !== undefined
             ? `Next eligible payment: ${formatDateTime(electricity.nextEligiblePayment)}`
             : 'Payment not eligible right now.'}
@@ -332,26 +331,26 @@ function YieldCalculationSection({
       <div className="@container min-w-0">
         <div className="grid grid-cols-1 gap-3 @[26rem]:grid-cols-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Gross yield</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-accent-400">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Gross yield</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-accent)">
               {grossYield ?? '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">OPEX deduction</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">OPEX deduction</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-danger)">
               {electricityCost ? `-${formatCurrency(electricityCost, { decimals: 0 })}` : '—'}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Net yield to RWA</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
+            <p className="text-xs font-medium text-(--ds-shell-subtle)">Net yield to RWA</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-success)">
               {netYield ?? '—'}
             </p>
           </div>
         </div>
       </div>
-      <p className="mt-auto pt-3 text-xs text-fg-tertiary">
+      <p className="mt-auto pt-3 text-xs text-(--ds-shell-subtle)">
         Net yield = gross BTC value minus electricity OPEX. This is the amount available for monthly
         distribution to the RWA strategy.
       </p>
@@ -382,37 +381,27 @@ function NextDistributionCard({
           <div className="@container min-w-0">
             <div className="grid grid-cols-1 gap-3 @[20rem]:grid-cols-2">
               <div className="min-w-0">
-                <p className="text-xs font-medium text-fg-tertiary">BTC amount</p>
-                <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+                <p className="text-xs font-medium text-(--ds-shell-subtle)">BTC amount</p>
+                <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
                   {satsToBtc(distribution.btcAmountSats) ?? '—'} BTC
                 </p>
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-fg-tertiary">Value at price</p>
-                <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+                <p className="text-xs font-medium text-(--ds-shell-subtle)">Value at price</p>
+                <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
                   {btcValueUsdc(distribution.btcAmountSats, distribution.btcPriceUsdc) ?? '—'}
                 </p>
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between border-t border-console-line-soft pt-4">
+          <div className="flex items-center justify-between border-t border-(--ds-divider) pt-4">
             <div>
-              <p className="text-xs font-medium text-fg-tertiary">Target strategy</p>
-              <p className="text-sm font-medium text-fg">{distribution.rwaStrategyId}</p>
+              <p className="text-xs font-medium text-(--ds-shell-subtle)">Target strategy</p>
+              <p className="text-sm font-medium text-(--ds-text)">{distribution.rwaStrategyId}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-medium text-fg-tertiary">Status</p>
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                  distribution.status === 'approved'
-                    ? 'bg-success-400/10 text-success-400'
-                    : distribution.status === 'distributed'
-                      ? 'bg-accent-400/10 text-accent-400'
-                      : 'bg-warning-400/10 text-warning-400'
-                }`}
-              >
-                {distribution.status}
-              </span>
+              <p className="text-xs font-medium text-(--ds-shell-subtle)">Status</p>
+              <StatusMark tone={distributionTone(distribution.status)} label={distribution.status} />
             </div>
           </div>
           {distribution.status === 'pending' ? <ApproveButton distributionId={distribution.id} /> : null}
@@ -440,7 +429,7 @@ function DistributionHistory({
       title="Distribution history"
       className="h-full"
       contentClassName={PANEL_SLOT_CLASS.table}
-      action={<Badge color="neutral">{`${distributions.length}`}</Badge>}
+      action={<ResultCount>{`${distributions.length}`}</ResultCount>}
     >
       <AdminTable>
         <TableHead>
@@ -467,17 +456,7 @@ function DistributionHistory({
               </TableCell>
               <TableCell className={tableCol.hash}>{d.rwaStrategyId}</TableCell>
               <TableCell className={tableCol.status}>
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    d.status === 'approved'
-                      ? 'bg-success-400/10 text-success-400'
-                      : d.status === 'distributed'
-                        ? 'bg-accent-400/10 text-accent-400'
-                        : 'bg-warning-400/10 text-warning-400'
-                  }`}
-                >
-                  {d.status}
-                </span>
+                <StatusMark tone={distributionTone(d.status)} label={d.status} />
               </TableCell>
               <TableCell className={tableCol.date}>
                 {d.approvedAt ? formatDateTime(d.approvedAt) : '—'}
@@ -526,7 +505,7 @@ function CalculationsSection({
             <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
           </div>
         ) : (
-          <p className="text-xs text-fg-tertiary">
+          <p className="text-xs text-(--ds-shell-subtle)">
             No strategy identified — a calculation cannot be triggered without one.
           </p>
         )}
@@ -542,10 +521,10 @@ function CalculationsSection({
       subtitle="Historical yield calculations"
       className="h-full"
       contentClassName="gap-3"
-      action={<Badge color="neutral">{`${calculations.length}`}</Badge>}
+      action={<ResultCount>{`${calculations.length}`}</ResultCount>}
     >
       {incompleteCount > 0 ? (
-        <p className="text-xs text-fg-tertiary">
+        <p className="text-xs text-(--ds-shell-subtle)">
           {`${incompleteCount} calculation(s) incomplete — trigger again or check backend logs.`}
         </p>
       ) : null}
@@ -575,23 +554,15 @@ function CalculationsSection({
                   <TableCell className={tableCol.numeric}>
                     {complete ? formatCurrency(c.grossRevenueUsdc, { decimals: 0, fromAtomic: 1 }) : '—'}
                   </TableCell>
-                  <TableCell className={`${tableCol.numeric} text-danger-400`}>
+                  <TableCell className={`${tableCol.numeric} text-(--ds-danger)`}>
                     {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
                   </TableCell>
-                  <TableCell className={`${tableCol.numeric} text-success-400`}>
+                  <TableCell className={`${tableCol.numeric} text-(--ds-success)`}>
                     {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0, fromAtomic: 1 }) : '—'}
                   </TableCell>
                   <TableCell className={tableCol.hash}>{c.rwaStrategyId}</TableCell>
                   <TableCell className={tableCol.status}>
-                    {complete ? (
-                      <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
-                        complete
-                      </span>
-                    ) : (
-                      <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-400">
-                        incomplete
-                      </span>
-                    )}
+                    <StatusMark tone={complete ? 'active' : 'pending'} label={complete ? 'complete' : 'incomplete'} />
                   </TableCell>
                 </TableRow>
               )
@@ -666,7 +637,7 @@ function StrategyAllocationSection({
       subtitle="Mining yield per strategy"
       className="h-full"
       contentClassName={PANEL_SLOT_CLASS.table}
-      action={<Badge color="neutral">{`${rows.length}`}</Badge>}
+      action={<ResultCount>{`${rows.length}`}</ResultCount>}
     >
       <AdminTable>
         <TableHead>
@@ -696,15 +667,7 @@ function StrategyAllocationSection({
                 {row.totalSats > 0 ? `${satsToBtc(String(row.totalSats))} BTC` : '—'}
               </TableCell>
               <TableCell className={tableCol.status}>
-                {row.enabled ? (
-                  <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
-                    enabled
-                  </span>
-                ) : (
-                  <span className="inline-flex rounded-full bg-fg-tertiary/10 px-2 py-0.5 text-xs font-medium text-fg-tertiary">
-                    disabled
-                  </span>
-                )}
+                <StatusMark tone={row.enabled ? 'active' : 'inactive'} label={row.enabled ? 'enabled' : 'disabled'} />
               </TableCell>
             </TableRow>
           ))}
@@ -799,21 +762,18 @@ export default async function Page({ searchParams }: PageProps) {
         hashrate !== null ? `${formatNumber(Number(hashrate))} TH/s` : null,
       ),
       unit: 'reported',
-      icon: CpuChipIcon,
     },
     {
       id: 'btc-earned',
       title: 'BTC earned',
       value: kpiReading(mining?.hashrate, btcAmount !== null ? `${btcAmount} BTC` : null),
       unit: 'cumulative',
-      icon: CircleStackIcon,
     },
     {
       id: 'yield',
       title: 'Yield value',
       value: kpiReading(btc?.btcProduced, yieldValue),
       unit: 'USDC',
-      icon: BanknotesIcon,
     },
     {
       id: 'machines',
@@ -825,15 +785,13 @@ export default async function Page({ searchParams }: PageProps) {
           : null,
       ),
       unit: 'active',
-      icon: BoltIcon,
     },
   ]
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Mining operations"
-        description="Manage hashrate, OPEX, and yield distribution to RWA strategy."
         kpis={kpis}
       />
 
@@ -841,11 +799,11 @@ export default async function Page({ searchParams }: PageProps) {
         <div className={clsx(surfaceInset, 'flex items-center justify-between gap-4 p-3')}>
           <MiningVaultSwitcher options={vaultOptions} selectedId={validStrategy} />
           {validStrategy ? (
-            <span className="text-xs text-fg-tertiary">
-              Showing data for <span className="font-medium text-fg">{validStrategy}</span>
+            <span className="text-xs text-(--ds-shell-subtle)">
+              Showing data for <span className="font-medium text-(--ds-text)">{validStrategy}</span>
             </span>
           ) : (
-            <span className="text-xs text-fg-tertiary">Showing all RWA strategies</span>
+            <span className="text-xs text-(--ds-shell-subtle)">Showing all RWA strategies</span>
           )}
         </div>
       ) : null}

@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import type { ComponentType, SVGProps } from 'react'
 import { BoltIcon, CpuChipIcon, CircleStackIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
 import { RichSparkline } from '@/components/charts'
@@ -116,9 +117,9 @@ export function BtcContextFlank({
         <MetricRow icon={CircleStackIcon} label="BTC produced" value={producedLabel(produced)} />
       </div>
 
-      <button type="button" className="btc-flank-cta" onClick={onViewBtc}>
+      <Button color="accent" className="btc-flank-cta" onClick={onViewBtc}>
         View BTC chart
-      </button>
+      </Button>
     </section>
   )
 }

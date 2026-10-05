@@ -31,10 +31,6 @@ import { formatCurrency, formatDriftPts } from '@/lib/format'
 import { isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
 import { Suspense, type ReactNode } from 'react'
 import {
-  ArrowTrendingUpIcon,
-  BanknotesIcon,
-  CubeTransparentIcon,
-  ExclamationTriangleIcon,
   PlusIcon,
 } from '@heroicons/react/16/solid'
 
@@ -61,28 +57,24 @@ function kpisFromOverview(overview: AdminDashboardData['overview']): readonly Da
       title: 'Total AUM',
       value: mapAvailability(overview, (o) => formatCurrency(o.totalAumAtomic, { fromAtomic: 10 ** o.decimals })),
       unit: isAvailable(overview) ? overview.value.asset : undefined,
-      icon: BanknotesIcon,
     },
     {
       id: 'drift',
       title: 'Maximum drift',
       value: mapAvailability(overview, (o) => formatDriftPts(o.maxDriftBps)),
       unit: isAvailable(overview) ? (overview.value.maxDriftStrategyLabel ?? '—') : undefined,
-      icon: ExclamationTriangleIcon,
     },
     {
       id: 'vaults',
       title: 'Vaults',
       value: mapAvailability(overview, (o) => String(o.activeVaults)),
       unit: vaultsKpiUnit(overview),
-      icon: CubeTransparentIcon,
     },
     {
       id: 'deployed',
       title: 'Deployed capital',
       value: mapAvailability(overview, (o) => `${o.deployedPct}%`),
       unit: isAvailable(deployedAmount) ? deployedAmount.value : undefined,
-      icon: ArrowTrendingUpIcon,
     },
   ]
 }
@@ -170,6 +162,7 @@ async function HeaderData() {
   const kpis = kpisFromOverview(overview)
   return (
     <DashboardHeader
+      title="Dashboard"
       kpis={kpis}
       action={
         <HearstPrimaryAction icon={<PlusIcon />} href="/admin/client-simulator/new">
@@ -248,7 +241,7 @@ export function AdminDashboardPage() {
       {/* Row A — pilotage + latest events rail. */}
       <BentoGrid>
         <BentoCard span={8}>
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
             <DashPanel title="Portfolio exposure" slot="exposure">
               <Suspense fallback={<PanelFallback />}>
                 <PortfolioExposureData />

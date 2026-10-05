@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/catalyst/table'
+} from '@hearst/ui/catalyst/table'
 import {
   StatCard,
   StatGrid,
@@ -196,7 +196,7 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
       })
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
       <SectionHeader
         title="Data coverage"
         hint="Which product surfaces are actually served today. States are shown exactly as the backend reports them — most degraded field first."
@@ -241,7 +241,7 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
                         <div className="truncate font-medium">{surface.name}</div>
                       </TableCell>
                       <TableCell className={tableCol.status}>{TIER_TITLE[surface.tier]}</TableCell>
-                      <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{surface.reason ?? '—'}</TableCell>
+                      <TableCell className={`${tableCol.primary} text-(--ds-shell-subtle)`}>{surface.reason ?? '—'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -250,7 +250,7 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
           </DashCard>
         </BentoCard>
         <BentoCard span={4}>
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
             <ChartFrame
               question="How is coverage distributed by tier?"
               unit="number of surfaces, by tier"
@@ -299,7 +299,7 @@ export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLa
                       <div className="truncate font-medium">{source.label}</div>
                     </TableCell>
                     <TableCell className={tableCol.status}>{readableSourceState(source.status)}</TableCell>
-                    <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{source.detail ?? '—'}</TableCell>
+                    <TableCell className={`${tableCol.primary} text-(--ds-shell-subtle)`}>{source.detail ?? '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

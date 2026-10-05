@@ -1,4 +1,4 @@
-import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
@@ -6,14 +6,14 @@ import {
   DescriptionDetails,
   DescriptionList,
   DescriptionTerm,
-} from '@/components/catalyst/description-list'
+} from '@hearst/ui/catalyst/description-list'
 import {
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/catalyst/table'
+} from '@hearst/ui/catalyst/table'
 import { Callout, DataTableShell, SourceAttendue, tableCol } from '@/components/compositions'
 import { callBackend } from '@/lib/backend/client'
 import { availabilityFromResolved, type ResolvedBlock } from '@/lib/backend/availability'
@@ -27,12 +27,6 @@ import {
   unavailable,
   type Availability,
 } from '@/lib/vaults/model'
-import {
-  ArrowsRightLeftIcon,
-  BanknotesIcon,
-  RectangleStackIcon,
-  TagIcon,
-} from '@heroicons/react/16/solid'
 
 const DETAIL_ENDPOINT = '/api/v1/admin/clients/:id'
 
@@ -115,17 +109,16 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       reason: 'INVESTOR_NOT_FOUND',
     })
     const kpis: readonly AdminHeroKpi[] = [
-      { id: 'identity', title: 'Identity', value: missing, icon: TagIcon },
-      { id: 'exposure', title: 'Exposure', value: missing, icon: BanknotesIcon },
-      { id: 'positions', title: 'Positions', value: missing, icon: RectangleStackIcon },
-      { id: 'movements', title: 'Movements', value: missing, icon: ArrowsRightLeftIcon },
+      { id: 'identity', title: 'Identity', value: missing },
+      { id: 'exposure', title: 'Exposure', value: missing },
+      { id: 'positions', title: 'Positions', value: missing },
+      { id: 'movements', title: 'Movements', value: missing },
     ]
     return (
       <DashboardShell>
         <DashboardHeader
           title={id}
-          description="GET /api/v1/admin/clients/:id — named absence when the investor is not on the book."
-          titleAddon={<PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>}
+          back={{ href: '/admin/clients', label: 'Client directory' }}
           kpis={kpis}
         />
         <Callout tone="warning" title="Client not found">
@@ -142,17 +135,16 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
       reason: result.state.reason,
     })
     const kpis: readonly AdminHeroKpi[] = [
-      { id: 'identity', title: 'Identity', value: failed, icon: TagIcon },
-      { id: 'exposure', title: 'Exposure', value: failed, icon: BanknotesIcon },
-      { id: 'positions', title: 'Positions', value: failed, icon: RectangleStackIcon },
-      { id: 'movements', title: 'Movements', value: failed, icon: ArrowsRightLeftIcon },
+      { id: 'identity', title: 'Identity', value: failed },
+      { id: 'exposure', title: 'Exposure', value: failed },
+      { id: 'positions', title: 'Positions', value: failed },
+      { id: 'movements', title: 'Movements', value: failed },
     ]
     return (
       <DashboardShell>
         <DashboardHeader
           title={id}
-          description="GET /api/v1/admin/clients/:id — named absence when the 360 cannot be read."
-          titleAddon={<PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>}
+          back={{ href: '/admin/clients', label: 'Client directory' }}
           kpis={kpis}
         />
         <Callout tone="warning" title="Client detail unavailable">
@@ -171,18 +163,17 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
   const exposureKpi = mapAvailability(exposure, (value) => formatWholeUsdc(value))
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'identity', title: 'Identity', value: mapAvailability(identity, (row) => row.label), icon: TagIcon },
-    { id: 'exposure', title: 'Exposure', value: exposureKpi, icon: BanknotesIcon },
-    { id: 'positions', title: 'Positions', value: measuredCount(positions), icon: RectangleStackIcon },
-    { id: 'movements', title: 'Movements', value: measuredCount(movements), icon: ArrowsRightLeftIcon },
+    { id: 'identity', title: 'Identity', value: mapAvailability(identity, (row) => row.label) },
+    { id: 'exposure', title: 'Exposure', value: exposureKpi },
+    { id: 'positions', title: 'Positions', value: measuredCount(positions) },
+    { id: 'movements', title: 'Movements', value: measuredCount(movements) },
   ]
 
   return (
     <DashboardShell>
       <DashboardHeader
         title={title}
-        description="GET /api/v1/admin/clients/:id — identity, positions, movements, and exposure."
-        titleAddon={<PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>}
+        back={{ href: '/admin/clients', label: 'Client directory' }}
         kpis={kpis}
       />
 
@@ -222,7 +213,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
               subtitle="Sum of on-book principal. Absent principal is never shown as zero."
               titleLevel={2}
             >
-              <p className="text-2xl font-semibold tabular-nums tracking-tight text-fg">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight text-(--ds-text)">
                 {formatWholeUsdc(exposure.value)}
               </p>
             </DashCard>

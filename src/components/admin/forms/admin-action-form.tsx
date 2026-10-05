@@ -1,6 +1,6 @@
 import { surfaceInset } from '@/components/admin/surface'
 import { ProblemState, RequestMetadata } from '@/components/admin/truthful'
-import { Text } from '@/components/catalyst/text'
+import { Text } from '@hearst/ui/catalyst/text'
 import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/client'
 import clsx from 'clsx'
 
@@ -11,24 +11,15 @@ import clsx from 'clsx'
 
 export const actionFieldClass = clsx(
   surfaceInset,
-  'mt-1 w-full px-2 py-1.5 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600',
+  'mt-1 w-full px-2 py-1.5 text-sm text-(--ds-text) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--ds-focus)',
 )
-
-/** Accent submit — one class string for every hand-rolled admin action button. */
-export const actionButtonClass =
-  // Pilule pleine, aplat mint, encre sombre — le bouton primaire des maquettes
-  // Hearst. Hauteur fixe 34px : compact, mais pas riquiqui comme avant.
-  'inline-flex h-[34px] items-center justify-center gap-1.5 rounded-full bg-accent-400 px-4 ' +
-  'text-[13px] font-semibold leading-none text-accent-ink transition-colors ' +
-  'hover:bg-accent-300 disabled:cursor-default disabled:opacity-50 ' +
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400'
 
 /** Fail-closed: the operator types CONFIRM. No isolated click fires a write. */
 export function ConfirmField() {
   return (
     <label className="block">
-      <span className="text-xs text-fg-secondary">
-        Type <span className="font-mono text-warning-400">CONFIRM</span> to send the request
+      <span className="text-xs text-(--ds-text-subtle)">
+        Type <span className="font-mono text-(--ds-warning)">CONFIRM</span> to send the request
       </span>
       <input
         name="confirm"
@@ -45,11 +36,11 @@ export function KeeperMetricsFields() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="block">
-        <span className="text-xs text-fg-secondary">hashrateTh — integer ≥ 0</span>
+        <span className="text-xs text-(--ds-text-subtle)">hashrateTh — integer ≥ 0</span>
         <input name="hashrateTh" type="number" min={0} step={1} required className={actionFieldClass} />
       </label>
       <label className="block">
-        <span className="text-xs text-fg-secondary">btcEarnedSats — integer ≥ 0</span>
+        <span className="text-xs text-(--ds-text-subtle)">btcEarnedSats — integer ≥ 0</span>
         <input name="btcEarnedSats" type="number" min={0} step={1} required className={actionFieldClass} />
       </label>
     </div>
@@ -61,7 +52,7 @@ export function KeeperBodyFields({ endpointId }: Readonly<{ endpointId: string }
   if (endpointId === 'mining-distribution-approve') {
     return (
       <label className="block">
-        <span className="text-xs text-fg-secondary">id — distribution identifier</span>
+        <span className="text-xs text-(--ds-text-subtle)">id — distribution identifier</span>
         <input name="id" type="text" required className={actionFieldClass} />
       </label>
     )
@@ -70,11 +61,11 @@ export function KeeperBodyFields({ endpointId }: Readonly<{ endpointId: string }
     return (
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="text-xs text-fg-secondary">period — YYYY-MM</span>
+          <span className="text-xs text-(--ds-text-subtle)">period — YYYY-MM</span>
           <input name="period" type="text" pattern="\d{4}-\d{2}" placeholder="2026-08" required className={actionFieldClass} />
         </label>
         <label className="block">
-          <span className="text-xs text-fg-secondary">rwaStrategyId</span>
+          <span className="text-xs text-(--ds-text-subtle)">rwaStrategyId</span>
           <input name="rwaStrategyId" type="text" required className={actionFieldClass} />
         </label>
       </div>
@@ -84,7 +75,7 @@ export function KeeperBodyFields({ endpointId }: Readonly<{ endpointId: string }
     return (
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="text-xs text-fg-secondary">action</span>
+          <span className="text-xs text-(--ds-text-subtle)">action</span>
           <select name="action" required className={actionFieldClass}>
             <option value="deposit">deposit</option>
             <option value="withdraw">withdraw</option>
@@ -92,7 +83,7 @@ export function KeeperBodyFields({ endpointId }: Readonly<{ endpointId: string }
           </select>
         </label>
         <label className="block">
-          <span className="text-xs text-fg-secondary">amount — base units, integer string</span>
+          <span className="text-xs text-(--ds-text-subtle)">amount — base units, integer string</span>
           <input name="amount" type="text" pattern="(0|[1-9][0-9]*)" required className={actionFieldClass} />
         </label>
       </div>
@@ -119,15 +110,15 @@ export function ActionOutcome({ outcome }: Readonly<{ outcome: ActionOutcomeStat
   return (
     <>
       {outcome.validationError ? (
-        <Text className="text-danger-400">{outcome.validationError}</Text>
+        <Text className="text-(--ds-danger)">{outcome.validationError}</Text>
       ) : null}
       {outcome.stateReason ? (
-        <Text className="text-warning-400">{outcome.stateReason}</Text>
+        <Text className="text-(--ds-warning)">{outcome.stateReason}</Text>
       ) : null}
       {outcome.problem ? <ProblemState problem={outcome.problem} /> : null}
       {result ? (
-        <p className="font-mono text-xs text-fg-secondary">
-          Backend response: <span className="text-fg">{result.status}</span>
+        <p className="font-mono text-xs text-(--ds-text-subtle)">
+          Backend response: <span className="text-(--ds-text)">{result.status}</span>
           {result.reason ? ` · ${result.reason}` : ''}
           {result.detail ? ` — ${result.detail}` : ''}
         </p>

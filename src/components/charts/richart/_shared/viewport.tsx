@@ -38,7 +38,7 @@ export function ChartViewportEmpty({
 }: Readonly<{ viewportHeight: number; message: string }>) {
   return (
     <div
-      className="flex w-full items-center justify-center px-5 text-sm text-fg-tertiary dark:text-fg-secondary"
+      className="flex w-full items-center justify-center px-5 text-sm text-(--ds-text-subtle)"
       style={{ height: viewportHeight }}
       data-chart-viewport={viewportHeight}
     >

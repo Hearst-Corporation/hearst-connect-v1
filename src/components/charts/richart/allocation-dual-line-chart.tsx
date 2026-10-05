@@ -55,7 +55,7 @@ function AllocationTooltip({
 /** HTML legend — a swatch beside text-token labels, never colored text. */
 function AllocationLegend() {
   return (
-    <ul className="mb-2 flex items-center gap-4 px-1 text-xs text-fg-tertiary dark:text-fg-secondary">
+    <ul className="mb-2 flex items-center gap-4 px-1 text-xs text-(--ds-text-subtle)">
       <li className="flex items-center gap-1.5">
         <span aria-hidden="true" className="inline-block h-0.5 w-3 rounded-full" style={{ backgroundColor: CBBTC_COLOR }} />
         cbBTC

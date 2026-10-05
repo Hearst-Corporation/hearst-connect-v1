@@ -1,11 +1,11 @@
-import { csl, Reading } from '@/components/layout/console'
+import { metricValue, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
-import { Panel, PanelBody } from '@/components/compositions/panel'
+import { Panel, PanelBody, panelHead, panelHint, panelTitle } from '@/components/compositions/panel'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
 import { FadeIn } from '@/components/compositions/motion'
 import { RichSparkline } from '@/components/charts'
-import { Badge } from '@/components/catalyst/badge'
-import { Table } from '@/components/catalyst/table'
+import { Table } from '@hearst/ui/catalyst/table'
+import { ResultCount } from '@hearst/ui/page'
 import clsx from 'clsx'
 
 /** Shared admin KPI and section blocks. */
@@ -26,9 +26,9 @@ export type DeltaTone = 'positive' | 'negative' | 'neutral'
 const DELTA_TONE_CLASS: Record<DeltaTone, string> = {
   // The brand mint accent and danger go through their ramp tokens; the neutral
   // through the kit's secondary text gray. No hex.
-  positive: 'text-accent-400',
-  negative: 'text-danger-400',
-  neutral: 'text-fg-secondary',
+  positive: 'text-(--ds-accent)',
+  negative: 'text-(--ds-danger)',
+  neutral: 'text-(--ds-text-subtle)',
 }
 
 const DELTA_GLYPH: Record<DeltaTone, string> = {
@@ -77,14 +77,12 @@ export function StatCard({
   className?: string
 }>) {
   return (
-    // `.metricCard` (tone="metric") already carries display:flex + direction;
-    // `Reading` already applies `metricValue` — pass only what they don't own.
     <Panel tone="metric" className={clsx('gap-2', className)}>
-      <Tag className={csl.cardTitle}>{title}</Tag>
-      {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
-      <div className={csl.metricText}>
+      <Tag className="text-[0.8125rem]/5 text-(--ds-text-subtle)">{title}</Tag>
+      {hint !== undefined && hint !== '' && <p className={panelHint}>{hint}</p>}
+      <div className="flex min-w-0 flex-auto flex-col justify-between gap-1.5 overflow-hidden">
         {typeof value === 'string' ? (
-          <span className={csl.metricValue}>{value}</span>
+          <span className={metricValue}>{value}</span>
         ) : (
           <Reading value={value} showRoute={showRoute} />
         )}
@@ -176,13 +174,13 @@ export function SectionCard({
   return (
     <FadeIn>
       <Panel tone={tone} className={className}>
-        <div className={csl.heroHead}>
+        <div className={panelHead}>
           <div className="min-w-0 flex-1">
             {eyebrow !== undefined && eyebrow !== '' && (
-              <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
+              <p className="text-xs tracking-wide text-(--ds-shell-subtle) uppercase">{eyebrow}</p>
             )}
-            <Tag className={csl.cardTitle}>{title}</Tag>
-            {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
+            <Tag className={panelTitle}>{title}</Tag>
+            {hint !== undefined && hint !== '' && <p className={panelHint}>{hint}</p>}
           </div>
           {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </div>
@@ -218,13 +216,13 @@ export function SectionHeader({
   className?: string
 }>) {
   return (
-    <div className={clsx(csl.heroHead, className)}>
+    <div className={clsx(panelHead, className)}>
       <div className="min-w-0 flex-1">
         {eyebrow !== undefined && eyebrow !== '' && (
-          <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
+          <p className="text-xs tracking-wide text-(--ds-shell-subtle) uppercase">{eyebrow}</p>
         )}
-        <Tag className={csl.cardTitle}>{title}</Tag>
-        {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
+        <Tag className={panelTitle}>{title}</Tag>
+        {hint !== undefined && hint !== '' && <p className={panelHint}>{hint}</p>}
       </div>
       {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
@@ -236,7 +234,7 @@ export function SectionHeader({
 /**
  * The "premium" wrapper around a Catalyst table.
  *
- * It carries the title, a description, an optional count badge, and — this is
+ * It carries the title, a description, an optional count, and — this is
  * its point — the routing to a named state when there is nothing to show. Two
  * distinct absences, never conflated:
  * - `source`: the source does not exist yet → `SourceAttendue` (what is
@@ -294,7 +292,7 @@ export const tableCol: Record<TableColRole, string> = {
  * the grid (a 1/3 Bento track is ~23rem).
  */
 export function AdminTable({ className, ...props }: React.ComponentProps<typeof Table>) {
-  return <Table {...props} className={clsx(csl.heroTable, 'min-w-0', className)} />
+  return <Table {...props} className={clsx('w-full min-w-0 [--gutter:0]', className)} />
 }
 
 export function DataTableShell({
@@ -308,7 +306,7 @@ export function DataTableShell({
 }: Readonly<{
   title: string
   description?: string
-  /** An ALREADY-formatted count label, rendered as a badge. Never computed here. */
+  /** An ALREADY-formatted count label, shown beside the title. Never computed here. */
   count?: string
   /** The "expected source" state to render instead of the table, if supplied. */
   source?: React.ComponentProps<typeof SourceAttendue>
@@ -329,7 +327,7 @@ export function DataTableShell({
           as="h3"
           title={title}
           hint={description}
-          actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
+          actions={count !== undefined && count !== '' ? <ResultCount>{count}</ResultCount> : undefined}
         />
         {source !== undefined ? <SourceAttendue {...source} /> : <CalmState message={calme as string} />}
       </section>
@@ -341,7 +339,7 @@ export function DataTableShell({
       hint={description}
       tone="wave"
       className={className}
-      actions={count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined}
+      actions={count !== undefined && count !== '' ? <ResultCount>{count}</ResultCount> : undefined}
     >
       <AdminTable className="[&_table]:min-w-[40rem]">{children}</AdminTable>
     </SectionCard>
@@ -367,10 +365,10 @@ export type CalloutTone = 'info' | 'success' | 'warning' | 'danger'
 
 const CALLOUT_TONE_CLASS: Record<CalloutTone, string> = {
   // /10 fill, full left rule, text at the legible step of each ramp.
-  info: 'bg-fg/5 border-l-fg-tertiary text-fg',
-  success: 'bg-success-400/10 border-l-success-400 text-success-300',
-  warning: 'bg-warning-400/10 border-l-warning-400 text-warning-300',
-  danger: 'bg-danger-400/10 border-l-danger-400 text-danger-300',
+  info: 'bg-(--ds-text)/5 border-l-(--ds-shell-subtle) text-(--ds-text)',
+  success: 'bg-(--ds-success)/10 border-l-(--ds-success) text-(--ds-success)',
+  warning: 'bg-(--ds-warning)/10 border-l-(--ds-warning) text-(--ds-warning)',
+  danger: 'bg-(--ds-danger)/10 border-l-(--ds-danger) text-(--ds-danger)',
 }
 
 const CALLOUT_ROLE: Record<CalloutTone, 'status' | 'alert' | undefined> = {
@@ -395,7 +393,7 @@ export function Callout({
   return (
     <div
       role={CALLOUT_ROLE[tone]}
-      className={clsx('rounded-lg border border-l-4 border-console-line-soft px-4 py-3', CALLOUT_TONE_CLASS[tone], className)}
+      className={clsx('rounded-lg border border-l-4 border-(--ds-divider) px-4 py-3', CALLOUT_TONE_CLASS[tone], className)}
     >
       {title !== undefined && title !== '' && <p className="text-sm font-semibold">{title}</p>}
       {children !== undefined && <div className={clsx('text-sm', title !== undefined && title !== '' && 'mt-1')}>{children}</div>}

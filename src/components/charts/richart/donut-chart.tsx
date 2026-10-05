@@ -44,7 +44,7 @@ export function HearstDonutChart({
   const total = data.reduce((sum, s) => sum + s.value, 0)
 
   if (data.length === 0) {
-    return <p className="px-5 pb-5 text-sm text-fg-secondary">Nothing to break down yet.</p>
+    return <p className="px-5 pb-5 text-sm text-(--ds-text-subtle)">Nothing to break down yet.</p>
   }
 
   return (
@@ -78,22 +78,22 @@ export function HearstDonutChart({
           />
         </div>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-semibold tabular-nums text-ink dark:text-fg">
+          <span className="text-2xl font-semibold tabular-nums text-(--ds-text)">
             {formatNumber(total)}
           </span>
-          <span className="text-[11px] text-fg-tertiary">{unit}</span>
+          <span className="text-[11px] text-(--ds-shell-subtle)">{unit}</span>
         </div>
       </div>
 
       <ul aria-hidden="true" className="mt-3 flex flex-col gap-1.5">
         {data.map((s) => (
-          <li key={s.label} className="flex items-center gap-2 text-xs text-console-fill dark:text-fg">
+          <li key={s.label} className="flex items-center gap-2 text-xs text-(--ds-text)">
             <span className="size-2 shrink-0 rounded-full" style={{ background: s.fill }} />
             <span className="truncate">{s.label}</span>
-            <span className="ml-auto tabular-nums font-medium text-ink dark:text-fg">
+            <span className="ml-auto tabular-nums font-medium text-(--ds-text)">
               {formatNumber(s.value)}
             </span>
-            <span className="w-12 shrink-0 text-right tabular-nums text-fg-tertiary">
+            <span className="w-12 shrink-0 text-right tabular-nums text-(--ds-shell-subtle)">
               {formatNumber((s.value / total) * 100, { maximumFractionDigits: 1 })}%
             </span>
           </li>

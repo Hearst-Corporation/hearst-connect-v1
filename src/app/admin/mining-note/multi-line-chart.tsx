@@ -94,7 +94,7 @@ export function MultiLineChart({
     // Same rationale as FanChart: keep the measured div mounted.
     return (
       <div ref={ref} style={{ height: viewportHeight }} data-chart-viewport={viewportHeight}>
-        <div className="flex h-full w-full items-center justify-center px-5 text-sm text-fg-tertiary">
+        <div className="flex h-full w-full items-center justify-center px-5 text-sm text-(--ds-shell-subtle)">
           No scenario data available.
         </div>
       </div>

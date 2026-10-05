@@ -3,7 +3,7 @@ import { SiteHeader } from '@/components/marketing/site-header'
 
 export default function MarketingLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex min-h-dvh flex-col bg-console-app text-white">
+    <div className="flex min-h-dvh flex-col bg-(--ds-surface) text-(--ds-text)">
       <SiteHeader />
       <main className="flex flex-1 flex-col">{children}</main>
       <SiteFooter />

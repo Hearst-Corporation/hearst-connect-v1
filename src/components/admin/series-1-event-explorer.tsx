@@ -1,11 +1,11 @@
 'use client'
 
 import { DashCard, PanelState } from '@/components/admin/dashboard'
-import { Badge } from '@/components/catalyst/badge'
-import { Field, Label } from '@/components/catalyst/fieldset'
-import { Input } from '@/components/catalyst/input'
-import { Select } from '@/components/catalyst/select'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
+import { ResultCount } from '@hearst/ui/page'
+import { Field, Label } from '@hearst/ui/catalyst/fieldset'
+import { Input } from '@hearst/ui/catalyst/input'
+import { Select } from '@hearst/ui/catalyst/select'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@hearst/ui/catalyst/table'
 import { AdminTable, tableCol } from '@/components/compositions'
 import { formatNumber, pluralSuffix } from '@/lib/format'
 import { dateLisible, ilYA, movementLabel } from '@/lib/movements'
@@ -116,7 +116,7 @@ export function Series1EventExplorer({
       title="Event explorer"
       subtitle="Filter indexed Series 1 events. Vault, client, and block live in the row title / event detail."
       action={
-        count !== undefined && count !== '' ? <Badge color="neutral">{count}</Badge> : undefined
+        count !== undefined && count !== '' ? <ResultCount>{count}</ResultCount> : undefined
       }
     >
       <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -191,7 +191,7 @@ export function Series1EventExplorer({
         // inside, header sticks (the Catalyst overflow div IS the scroll
         // container, so `sticky` on the header cells holds).
         <AdminTable className="h-[420px] overflow-y-auto scrollbar-none [&_table]:min-w-[40rem]">
-          <TableHead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-console-inset">
+          <TableHead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-(--ds-surface-raised)">
             <TableRow>
               <TableHeader className={tableCol.primary}>Event</TableHeader>
               <TableHeader className={tableCol.numeric}>Amount</TableHeader>
@@ -219,7 +219,7 @@ export function Series1EventExplorer({
                       <>
                         {row.amount}
                         {row.assetLabel !== null ? (
-                          <span className="ml-1 text-fg-tertiary">{row.assetLabel}</span>
+                          <span className="ml-1 text-(--ds-shell-subtle)">{row.assetLabel}</span>
                         ) : null}
                       </>
                     ) : (
@@ -231,7 +231,7 @@ export function Series1EventExplorer({
                   </TableCell>
                   <TableCell className={tableCol.date} title={dateLisible(row.occurredAt)}>
                     <span className="block">{ilYA(row.occurredAt)}</span>
-                    <span className="text-fg-tertiary text-xs">{statusLabel(row)}</span>
+                    <span className="text-(--ds-shell-subtle) text-xs">{statusLabel(row)}</span>
                   </TableCell>
                 </TableRow>
               )

@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { requestDeposit, type DepositOutcome } from '@/lib/backend/deposit-request'
 import { useActionState, useState } from 'react'
 
@@ -33,14 +34,9 @@ export function DepositForm({
 
   return (
     <div className="deposit-block">
-      <button
-        type="button"
-        className="position-deposit-cta"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
+      <Button color="accent" className="position-deposit-cta" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         Deposit
-      </button>
+      </Button>
 
       {open ? (
         <form action={action} className="deposit-form">
@@ -63,9 +59,9 @@ export function DepositForm({
               aria-describedby="deposit-help"
             />
             <span className="deposit-unit">USDC</span>
-            <button type="submit" className="deposit-submit" disabled={pending}>
+            <Button type="submit" color="accent" disabled={pending}>
               {pending ? 'Sending…' : 'Submit'}
-            </button>
+            </Button>
           </div>
 
           <p id="deposit-help" className="deposit-help">

@@ -1,23 +1,14 @@
 'use client'
 
 import { PanelState } from '@/components/admin/dashboard/panel-state'
-import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
-import { surfaceBox } from '@/components/admin/surface'
-import clsx from 'clsx'
-import { Badge } from '@/components/catalyst/badge'
-import { Input } from '@/components/catalyst/input'
-import { Link } from '@/components/catalyst/link'
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import { AdminTable, tableCol } from '@/components/compositions'
+import { ToneMark, toneForKycStatus } from '@/components/admin/status-tone'
+import { Input, InputGroup } from '@hearst/ui/catalyst/input'
+import { FilterBar, PageTabs, ResultCount } from '@hearst/ui/page'
+import { ListTable, RowBadge } from '@hearst/ui/table'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatRelativeTime } from '@/lib/format'
+import { MagnifyingGlassIcon } from '@heroicons/react/16/solid'
 import { useSearchParams } from 'next/navigation'
 import { kycStatusLabel } from '@/lib/labels'
 import { useMemo, useState } from 'react'
@@ -31,6 +22,18 @@ const FILTERS: readonly { id: FilterId; label: string }[] = [
   { id: 'kyc-approved', label: 'KYC approved' },
   { id: 'needs-attention', label: 'Needs attention' },
 ]
+
+function isFilter(value: string | null): value is FilterId {
+  return FILTERS.some((item) => item.id === value)
+}
+
+function filterHref(id: FilterId, q: string | null): string {
+  const params = new URLSearchParams()
+  if (id !== 'all') params.set('filter', id)
+  if (q) params.set('q', q)
+  const search = params.toString()
+  return search === '' ? '/admin/clients' : `/admin/clients?${search}`
+}
 
 function hasExposure(client: AdminRecentClient): boolean {
   if (client.currentExposureAtomic === null || client.currentExposureAtomic === '') return false
@@ -69,10 +72,8 @@ function matchesFilter(client: AdminRecentClient, filter: FilterId): boolean {
 }
 
 /**
- * Directory CONTENT — the DashCard frame (title row, count, frozen height)
- * lives on the page so the box keeps the same shape across rich / thin /
- * empty / unavailable states. Here: toolbar (search + filters + live count),
- * then ONE scroll region holding the desktop table and the mobile card list.
+ * Directory content — the DashCard frame lives on the page. Here: the filter
+ * row (search, KYC filters as tabs, live count), then the list.
  */
 export function ClientsDirectory({
   clients,
@@ -81,9 +82,11 @@ export function ClientsDirectory({
   // Pre-fill from the header search (`/admin/clients?q=…`): the field stays
   // controllable afterwards. No data is fabricated — we only initialize the
   // local filter from the real data already loaded.
-  const initialQuery = useSearchParams().get('q') ?? ''
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get('q') ?? ''
   const [query, setQuery] = useState(initialQuery)
-  const [filter, setFilter] = useState<FilterId>('all')
+  const requested = searchParams.get('filter')
+  const filter: FilterId = isFilter(requested) ? requested : 'all'
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -100,126 +103,65 @@ export function ClientsDirectory({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 flex-1 sm:max-w-xs">
-          <Input
-            type="search"
-            name="client-search"
-            placeholder="Search clients"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Search clients"
-          />
+      <FilterBar actions={<ResultCount>{`${filtered.length} of ${clients.length}`}</ResultCount>}>
+        <div className="w-full sm:w-72">
+          <InputGroup>
+            <MagnifyingGlassIcon data-slot="icon" />
+            <Input
+              type="search"
+              name="client-search"
+              placeholder="Search clients"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search clients"
+            />
+          </InputGroup>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
-          <Badge color="neutral">{`${filtered.length} of ${clients.length}`}</Badge>
-          <fieldset className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
-            <legend className="sr-only">Client filters</legend>
-            {FILTERS.map((item) => {
-              const active = filter === item.id
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setFilter(item.id)}
-                  aria-pressed={active}
-                  className={
-                    active
-                      ? 'rounded-lg bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30'
-                      : 'rounded-lg px-3 py-1.5 text-xs font-medium text-fg-tertiary ring-1 ring-console-line-soft hover:text-fg'
-                  }
-                >
-                  {item.label}
-                </button>
-              )
-            })}
-          </fieldset>
-        </div>
-      </div>
+        <PageTabs
+          label="Client filters"
+          tabs={FILTERS.map((item) => ({
+            label: item.label,
+            href: filterHref(item.id, searchParams.get('q')),
+            current: filter === item.id,
+          }))}
+        />
+      </FilterBar>
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-none">
-        {filtered.length === 0 ? (
-          <PanelState title="No clients match this search or filter." />
-        ) : (
-          <>
-            <div className="hidden min-w-0 md:block">
-              <AdminTable className="[&_table]:min-w-[40rem]">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader className={tableCol.primary}>Client</TableHeader>
-                    <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
-                    <TableHeader className={tableCol.numeric}>Vaults</TableHeader>
-                    <TableHeader className={tableCol.status}>KYC</TableHeader>
-                    <TableHeader className={tableCol.date}>Activity</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filtered.map((client) => (
-                    <TableRow
-                      key={client.id}
-                      href={`/admin/client-simulator/${client.id}`}
-                      title={`Open ${client.label}`}
-                    >
-                      <TableCell className={tableCol.primary}>
-                        <div className="truncate font-medium text-fg">{client.label}</div>
-                      </TableCell>
-                      <TableCell className={tableCol.numeric}>
-                        {assetScale
-                          ? formatAdminAtomic(client.currentExposureAtomic, assetScale)
-                          : '—'}
-                      </TableCell>
-                      <TableCell className={`${tableCol.numeric} text-fg-tertiary`}>
-                        {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
-                      </TableCell>
-                      <TableCell className={tableCol.status}>
-                        <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>
-                          {kycStatusLabel(client.kycStatus)}
-                        </AdminToneBadge>
-                      </TableCell>
-                      <TableCell className={`${tableCol.date} text-fg-tertiary`}>
-                        {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </AdminTable>
-            </div>
-
-            <ul className="space-y-3 md:hidden" aria-label="Client directory">
-              {filtered.map((client) => (
-                <li key={client.id}>
-                  <Link
-                    href={`/admin/client-simulator/${client.id}`}
-                    className={clsx(surfaceBox, 'block p-4')}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="truncate text-sm font-semibold text-fg">{client.label}</p>
-                      <AdminToneBadge tone={toneForKycStatus(client.kycStatus)}>{kycStatusLabel(client.kycStatus)}</AdminToneBadge>
-                    </div>
-                    <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <dt className="text-fg-tertiary">Exposure</dt>
-                        <dd className="mt-0.5 tabular-nums text-fg">
-                          {assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-fg-tertiary">Vaults</dt>
-                        <dd className="mt-0.5 tabular-nums text-fg">
-                          {client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p className="mt-3 text-xs text-fg-tertiary">
-                      Activity · {client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : '—'}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
+      <ListTable
+        label="Client directory"
+        className="-mx-5"
+        rows={filtered}
+        rowKey={(client) => client.id}
+        href={(client) => `/admin/client-simulator/${client.id}`}
+        rowLabel={(client) => `Open ${client.label}`}
+        empty={<PanelState title="No clients match this search or filter." />}
+        identity={{
+          header: 'Client',
+          badge: (client) => <RowBadge name={client.label} />,
+          title: (client) => client.label,
+          detail: (client) => (client.lastActivityAt ? formatRelativeTime(client.lastActivityAt) : 'No activity'),
+        }}
+        columns={[
+          {
+            key: 'exposure',
+            header: 'Exposure',
+            cell: (client) => (assetScale ? formatAdminAtomic(client.currentExposureAtomic, assetScale) : '—'),
+          },
+          {
+            key: 'vaults',
+            header: 'Vaults',
+            hideBelow: 'md',
+            cell: (client) => (client.vaultIds.length === 0 ? '—' : String(client.vaultIds.length)),
+          },
+          {
+            key: 'kyc',
+            header: 'KYC',
+            cell: (client) => (
+              <ToneMark tone={toneForKycStatus(client.kycStatus)} label={kycStatusLabel(client.kycStatus)} />
+            ),
+          },
+        ]}
+      />
     </div>
   )
 }

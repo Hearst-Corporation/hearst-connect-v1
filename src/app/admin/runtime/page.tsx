@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/catalyst/table'
+} from '@hearst/ui/catalyst/table'
 import { AdminTable, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { callBackend } from '@/lib/backend/client'
@@ -24,12 +24,6 @@ import { DataCoverageSection } from '@/features/admin-runtime/data-coverage-sect
 import { FieldList, FieldRow } from '@/features/admin-runtime/field-list'
 import { DashboardHeader } from '@/components/admin/dashboard'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import {
-  CheckCircleIcon,
-  CpuChipIcon,
-  HeartIcon,
-  TagIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { Suspense, type ReactNode } from 'react'
 import { IndexerTriggerForm } from './indexer-trigger-form'
@@ -211,33 +205,29 @@ export default async function RuntimePage() {
       id: 'health',
       title: 'Health',
       value: editorial(readableSourceStateCap(health.ok ? 'LIVE' : 'UNAVAILABLE')),
-      icon: HeartIcon,
     },
     {
       id: 'ready',
       title: 'Ready',
       value: editorial(readableSourceStateCap(readyOk ? 'LIVE' : 'UNAVAILABLE')),
-      icon: CheckCircleIcon,
     },
     {
       id: 'indexer',
       title: 'Indexer',
       value: editorial(runtimeStatusLabel(r?.indexerStatus)),
-      icon: CpuChipIcon,
     },
     {
       id: 'version',
       title: 'Version',
       value: editorial(r?.serviceVersion ?? 'Not provided'),
-      icon: TagIcon,
     },
   ]
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Service"
-        description="Technical observability — dependency health, runtime, data coverage, and endpoint status."
+        path="/admin/runtime"
         kpis={kpis}
       />
 
@@ -329,7 +319,7 @@ export default async function RuntimePage() {
 
       {/* Row C — coverage: the canonical technical diagnostics, streamed. */}
       <div className="flex min-w-0 flex-col gap-4">
-        <p className="text-sm text-fg-secondary">
+        <p className="text-sm text-(--ds-text-subtle)">
           Data coverage and source activity below are the canonical technical diagnostics for
           the console. Business pages no longer repeat these blocks.
         </p>
@@ -347,7 +337,7 @@ export default async function RuntimePage() {
             subtitle="Full probe payloads for technical verification — expand a probe only when needed."
             action={<PanelHeaderLink href="/admin/api-explorer">API explorer</PanelHeaderLink>}
           >
-            <div className="divide-y divide-console-line-soft">
+            <div className="divide-y divide-(--ds-divider)">
               {(
                 [
                   ['Runtime', runtime],
@@ -356,7 +346,7 @@ export default async function RuntimePage() {
                 ] as const
               ).map(([label, result]) => (
                 <details key={label} className="group py-3 first:pt-0 last:pb-0">
-                  <summary className="cursor-pointer text-sm font-semibold text-fg">
+                  <summary className="cursor-pointer text-sm font-semibold text-(--ds-text)">
                     {label}
                   </summary>
                   <div className="mt-3">

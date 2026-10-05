@@ -78,7 +78,7 @@ function TipLabel(props: LabelProps) {
       y={y + height / 2}
       dominantBaseline="central"
       textAnchor={positive ? 'start' : 'end'}
-      className="fill-fg-secondary tabular-nums"
+      className="fill-(--ds-text-subtle) tabular-nums"
       fontSize={11}
     >
       {text}

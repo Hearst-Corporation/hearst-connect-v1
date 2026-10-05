@@ -57,7 +57,7 @@ export function FanChart({ rows }: Readonly<{ rows: readonly FanRow[] }>) {
     // consuming the ref's slot).
     return (
       <div ref={ref} style={{ height: viewportHeight }} data-chart-viewport={viewportHeight}>
-        <div className="flex h-full w-full items-center justify-center px-5 text-sm text-fg-tertiary">
+        <div className="flex h-full w-full items-center justify-center px-5 text-sm text-(--ds-shell-subtle)">
           Run a Monte-Carlo simulation to see the fan.
         </div>
       </div>

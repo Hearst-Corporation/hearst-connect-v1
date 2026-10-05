@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 /**
@@ -13,33 +14,29 @@ export default function AccountError({
   return (
     <section
       aria-labelledby="account-error-title"
-      className="w-full max-w-md rounded-xl bg-console-card p-6 ring-1 ring-console-line-soft sm:p-8"
+      className="w-full max-w-md rounded-xl bg-(--ds-surface-raised) p-6 ring-1 ring-(--ds-divider) sm:p-8"
     >
       <ExclamationTriangleIcon
-        className="size-6 shrink-0 text-warning-400"
+        className="size-6 shrink-0 text-(--ds-warning)"
         aria-hidden="true"
       />
       <h1
         id="account-error-title"
-        className="mt-4 text-xl font-semibold tracking-tight text-fg"
+        className="mt-4 text-xl font-semibold tracking-tight text-(--ds-text)"
       >
         Unable to load this page
       </h1>
-      <p className="mt-2 text-sm leading-6 text-fg-tertiary">
+      <p className="mt-2 text-sm leading-6 text-(--ds-shell-subtle)">
         Something went wrong while loading your space. Try again. If the issue continues, use the
         reference below when reporting it.
       </p>
       <div className="mt-6">
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex items-center justify-center rounded-lg border border-accent-400/40 bg-transparent px-4 py-2 text-sm font-medium text-accent-300 transition-colors hover:bg-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-console-app"
-        >
+        <Button outline onClick={reset}>
           Try again
-        </button>
+        </Button>
       </div>
       {error.digest ? (
-        <p className="mt-4 font-mono text-xs text-fg-tertiary">Reference · {error.digest}</p>
+        <p className="mt-4 font-mono text-xs text-(--ds-shell-subtle)">Reference · {error.digest}</p>
       ) : null}
     </section>
   )

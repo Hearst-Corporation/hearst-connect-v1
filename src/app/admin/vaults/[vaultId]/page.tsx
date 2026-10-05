@@ -3,9 +3,9 @@ import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { DashboardHeader } from '@/components/admin/dashboard'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminReading } from '@/components/admin/reading'
-import { Link } from '@/components/catalyst/link'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
+import { Link } from '@hearst/ui/catalyst/link'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@hearst/ui/catalyst/table'
+import { Text } from '@hearst/ui/catalyst/text'
 import { BucketSparklines, ChartFrame, HearstAllocationChart, HearstDonutChart, HearstLineChart, VaultAumCbbtcChart, type AllocationItem, type SeriesState } from '@/components/charts'
 import { callBackend } from '@/lib/backend/client'
 import type { BackendResolved } from '@/lib/admin-dashboard/cache'
@@ -16,7 +16,7 @@ import { KeeperForm } from '@/components/admin/keeper-form'
 import { RebalanceNowButton } from './rebalance-now-button'
 import clsx from 'clsx'
 import { VaultEntityLink, entityHref } from '@/components/vaults/vault-entity-link'
-import { libelleStatutVault, VaultStatusBadge } from '@/components/vaults/vault-status-badge'
+import { libelleStatutVault, VaultStatusMark } from '@/components/vaults/vault-status'
 import { requireSession } from '@/lib/auth'
 import { explorerTxUrl } from '@/lib/explorer'
 import {
@@ -48,12 +48,6 @@ import {
   type VaultId,
 } from '@/lib/vaults/model'
 import { loadVault } from '@/lib/vaults/registry'
-import {
-  ArchiveBoxIcon,
-  ArrowTrendingUpIcon,
-  BanknotesIcon,
-  ShieldCheckIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -146,7 +140,7 @@ function TxExplorerLink({
       href={txUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-accent-400"
+      className="text-(--ds-accent)"
     >
       {txShort}
     </a>
@@ -333,10 +327,10 @@ function VaultKeeperActionsSection({
           title="Keeper actions"
           subtitle="Vault-specific operational requests — no transaction is signed."
         >
-          <div className="grid items-start gap-6 md:grid-cols-2">
+          <div className="grid items-start gap-(--ds-page-gap) md:grid-cols-2">
             <div>
               <Text className="text-sm font-medium">Rebalance</Text>
-              <Text className="text-xs text-fg-tertiary">
+              <Text className="text-xs text-(--ds-shell-subtle)">
                 Trigger an on-chain rebalance of the vault allocation.
               </Text>
               <div className="mt-3">
@@ -665,16 +659,16 @@ function RebalancingEventsSection({
                       className={clsx(
                         'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
                         event.name === 'Rebalance'
-                          ? 'bg-accent-400/10 text-accent-400'
+                          ? 'bg-(--ds-accent)/10 text-(--ds-accent)'
                           : event.name === 'VaultSwapped'
-                            ? 'bg-warning-400/10 text-warning-400'
-                            : 'bg-console-inset text-fg-tertiary',
+                            ? 'bg-(--ds-warning)/10 text-(--ds-warning)'
+                            : 'bg-(--ds-surface-raised) text-(--ds-shell-subtle)',
                       )}
                     >
                       {event.name}
                     </span>
                   </TableCell>
-                  <TableCell className={`${tableCol.primary} text-xs text-fg-tertiary`}>
+                  <TableCell className={`${tableCol.primary} text-xs text-(--ds-shell-subtle)`}>
                     <div className="truncate">{event.category}</div>
                   </TableCell>
                   <TableCell className={`${tableCol.numeric} text-xs`}>
@@ -691,7 +685,7 @@ function RebalancingEventsSection({
                         href={txUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-accent-400"
+                        className="text-(--ds-accent)"
                       >
                         {txShort}
                       </a>
@@ -791,10 +785,10 @@ export default async function Page({ params }: PageProps) {
   const movementList = isAvailable(scopedMovements) ? scopedMovements.value.slice(0, 12) : null
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'status', title: 'Status', value: activeStatus, icon: ShieldCheckIcon },
-    { id: 'aum', title: 'AUM', value: aum, icon: BanknotesIcon },
-    { id: 'deployed', title: 'Deployed', value: deployedValue, icon: ArrowTrendingUpIcon },
-    { id: 'available', title: 'Available', value: availableValue, icon: ArchiveBoxIcon },
+    { id: 'status', title: 'Status', value: activeStatus },
+    { id: 'aum', title: 'AUM', value: aum },
+    { id: 'deployed', title: 'Deployed', value: deployedValue },
+    { id: 'available', title: 'Available', value: availableValue },
   ]
 
   const isAdmin = toBackendRole(session.role) === 'admin'
@@ -804,10 +798,10 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <DashboardShell>
-      <DashboardHeader title={vault.label} description="Capital, allocation, and recent activity." kpis={kpis} />
+      <DashboardHeader title={vault.label} kpis={kpis} />
 
       <div className="flex flex-wrap items-center gap-3">
-        <VaultStatusBadge status={vault.status} />
+        <VaultStatusMark status={vault.status} />
         <VaultClientPresence client={client} />
       </div>
 
@@ -830,7 +824,7 @@ export default async function Page({ params }: PageProps) {
       <VaultKeeperActionsSection isAdmin={isAdmin} disabledReason={disabledReason} />
 
       {/* Page-level provenance note — one quiet text line, not a bordered strip. */}
-      <Text className="text-sm text-fg-secondary">
+      <Text className="text-sm text-(--ds-text-subtle)">
         Source health and endpoint coverage:{' '}
         <Link href="/admin/runtime" className="underline">
           Service

@@ -1,5 +1,5 @@
 import { AdminToneBadge, toneForBackendState } from '@/components/admin/status-tone'
-import { Text } from '@/components/catalyst/text'
+import { Text } from '@hearst/ui/catalyst/text'
 import { backendStateFrom, backendStateLabel } from '@/lib/backend/reading-state'
 import { formatDateTime } from '@/lib/format'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
@@ -30,17 +30,17 @@ export function AdminReading({
 
   const signal = signalOf(value)
   if (signal === 'editorial') {
-    return <Text className="!mt-0 inline text-fg">{value.value}</Text>
+    return <Text className="!mt-0 inline text-(--ds-text)">{value.value}</Text>
   }
 
   const etat = backendStateFrom(value)
   if (compact) {
-    return <Text className="!mt-0 inline tabular-nums text-fg">{value.value}</Text>
+    return <Text className="!mt-0 inline tabular-nums text-(--ds-text)">{value.value}</Text>
   }
 
   return (
     <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
-      <Text className="!mt-0 inline text-fg">{value.value}</Text>
+      <Text className="!mt-0 inline text-(--ds-text)">{value.value}</Text>
       <AdminToneBadge
         tone={toneForBackendState(etat)}
         showDot={etat === 'LIVE'}
@@ -50,7 +50,7 @@ export function AdminReading({
         {backendStateLabel(etat)}
       </AdminToneBadge>
       {value.asOf !== null ? (
-        <Text className="!mt-0 text-xs text-fg-secondary">{formatDateTime(value.asOf)}</Text>
+        <Text className="!mt-0 text-xs text-(--ds-text-subtle)">{formatDateTime(value.asOf)}</Text>
       ) : null}
     </span>
   )

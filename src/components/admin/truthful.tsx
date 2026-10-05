@@ -49,7 +49,7 @@ export function StatusBadge({
     <span
       className={clsx(
         className,
-        'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+        'inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap',
         ADMIN_TONE_CLASS[STATUS_TONE[status]],
       )}
     >
@@ -81,7 +81,7 @@ export function DataProvenance({
       className={clsx(
         className,
         'text-xs',
-        conspicuous ? 'font-medium text-warning-400' : 'text-fg-tertiary',
+        conspicuous ? 'font-medium text-(--ds-warning)' : 'text-(--ds-shell-subtle)',
       )}
     >
       {[label, source].filter(Boolean).join(' · ')}
@@ -100,16 +100,16 @@ export function ResolvedValue({
 
   if (!displayable) {
     return (
-      <span className={clsx(className, 'text-fg-tertiary')} title={status ? STATUS_LABEL[status] : 'No value received'}>
+      <span className={clsx(className, 'text-(--ds-shell-subtle)')} title={status ? STATUS_LABEL[status] : 'No value received'}>
         —
       </span>
     )
   }
 
   return (
-    <span className={clsx(className, 'tabular-nums text-fg')}>
+    <span className={clsx(className, 'tabular-nums text-(--ds-text)')}>
       {typeof value === 'number' ? formatNumber(value) : value}
-      {unit ? <span className="ml-1 text-fg-tertiary">{unit}</span> : null}
+      {unit ? <span className="ml-1 text-(--ds-shell-subtle)">{unit}</span> : null}
     </span>
   )
 }
@@ -122,7 +122,7 @@ export function RequestMetadata({ trace }: Readonly<{ trace: CallTrace }>) {
     trace.rateLimitRemaining !== null ? `quota ${trace.rateLimitRemaining}` : null,
   ].filter(Boolean)
 
-  return <p className="font-mono text-xs break-all text-fg-tertiary">{bits.join(' · ')}</p>
+  return <p className="font-mono text-xs break-all text-(--ds-shell-subtle)">{bits.join(' · ')}</p>
 }
 
 function StateShell({
@@ -132,12 +132,10 @@ function StateShell({
   children,
 }: Readonly<{ status: ResolvedStatus; title: string; reason?: string | null; children?: React.ReactNode }>) {
   return (
-    // Dashed well — a distinct role from `surfaceInset` (whose solid ring would
-    // double the edge): inset background + ONE dashed border.
-    <div className={clsx('rounded-lg bg-console-inset border border-dashed border-console-line px-5 py-8 text-center')}>
+    <div className="rounded-(--ds-radius-sm) border border-dashed border-(--ds-shell-border) bg-(--ds-surface-raised) px-5 py-8 text-center">
       <StatusBadge status={status} />
-      <p className="mt-3 text-sm font-medium text-fg">{title}</p>
-      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-fg-secondary">{reason}</p> : null}
+      <p className="mt-3 text-sm font-medium text-(--ds-text)">{title}</p>
+      {reason ? <p className="mx-auto mt-2 max-w-xl text-sm text-(--ds-text-subtle)">{reason}</p> : null}
       {children}
     </div>
   )
@@ -151,7 +149,7 @@ export function UnavailableState({ state, children }: Readonly<{ state: Resolved
   return (
     <StateShell status={state.status} title={STATUS_LABEL[state.status]} reason={state.reason}>
       {state.provenance.route ? (
-        <p className="mt-3 font-mono text-xs break-all text-fg-secondary">
+        <p className="mt-3 font-mono text-xs break-all text-(--ds-text-subtle)">
           {state.provenance.route}
           {state.provenance.requestId ? ` · req ${state.provenance.requestId}` : null}
         </p>
@@ -168,24 +166,24 @@ export function ProblemState({ problem, keeper }: Readonly<{ problem: Problem | 
     <dl className={clsx(surfaceInset, 'mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 p-4 text-xs')}>
       {problem ? (
         <>
-          <dt className="text-fg-tertiary">Code</dt>
-          <dd className="font-mono text-fg">{problem.code}</dd>
-          <dt className="text-fg-tertiary">Title</dt>
-          <dd className="text-fg">{problem.title}</dd>
-          <dt className="text-fg-tertiary">Detail</dt>
-          <dd className="text-fg">{problem.detail}</dd>
-          <dt className="text-fg-tertiary">Request ID</dt>
-          <dd className="font-mono break-all text-fg-secondary">{problem.requestId}</dd>
+          <dt className="text-(--ds-shell-subtle)">Code</dt>
+          <dd className="font-mono text-(--ds-text)">{problem.code}</dd>
+          <dt className="text-(--ds-shell-subtle)">Title</dt>
+          <dd className="text-(--ds-text)">{problem.title}</dd>
+          <dt className="text-(--ds-shell-subtle)">Detail</dt>
+          <dd className="text-(--ds-text)">{problem.detail}</dd>
+          <dt className="text-(--ds-shell-subtle)">Request ID</dt>
+          <dd className="font-mono break-all text-(--ds-text-subtle)">{problem.requestId}</dd>
         </>
       ) : null}
       {keeper ? (
         <>
-          <dt className="text-fg-tertiary">Reason</dt>
-          <dd className="font-mono text-fg">{keeper.reason}</dd>
+          <dt className="text-(--ds-shell-subtle)">Reason</dt>
+          <dd className="font-mono text-(--ds-text)">{keeper.reason}</dd>
           {keeper.detail ? (
             <>
-              <dt className="text-fg-tertiary">Detail</dt>
-              <dd className="text-fg">{keeper.detail}</dd>
+              <dt className="text-(--ds-shell-subtle)">Detail</dt>
+              <dd className="text-(--ds-text)">{keeper.detail}</dd>
             </>
           ) : null}
         </>

@@ -7,8 +7,8 @@ import {
   DropdownItem,
   DropdownLabel,
   DropdownMenu,
-} from '@/components/catalyst/dropdown'
-import { Navbar, NavbarItem, NavbarSection, NavbarSpacer } from '@/components/catalyst/navbar'
+} from '@hearst/ui/catalyst/dropdown'
+import { Navbar, NavbarItem, NavbarSection, NavbarSpacer } from '@hearst/ui/catalyst/navbar'
 import {
   Sidebar,
   SidebarBody,
@@ -19,9 +19,8 @@ import {
   SidebarLabel,
   SidebarSection,
   SidebarSpacer,
-} from '@/components/catalyst/sidebar'
-import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
-import { AdminBodyNav } from '@/components/admin/body-nav'
+} from '@hearst/ui/catalyst/sidebar'
+import { SidebarLayout } from '@hearst/ui/catalyst/sidebar-layout'
 import { HeaderClientSearch } from '@/components/admin/header-client-search'
 import { ToastProvider } from '@/components/admin/toast'
 import { NavbarAvatar, SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
@@ -70,10 +69,7 @@ function AccountMenu({
   )
 }
 
-/**
- * Console shell — primary vertical menu on the left, horizontal submenus
- * in the body via `AdminBodyNav` when the active section provides them.
- */
+/** Console shell — the menu on the left; a section's pages are tabs in each page's header. */
 export function AdminApplicationLayout({
   user,
   children,
@@ -87,6 +83,7 @@ export function AdminApplicationLayout({
   return (
     <ToastProvider>
       <SidebarLayout
+        fluid
         navbar={
           <Navbar>
             <NavbarSpacer />
@@ -171,7 +168,6 @@ export function AdminApplicationLayout({
           </Sidebar>
         }
       >
-        <AdminBodyNav />
         {children}
       </SidebarLayout>
     </ToastProvider>

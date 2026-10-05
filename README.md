@@ -1,6 +1,7 @@
 # Hearst Connect (front)
 
-Next.js 16, React 19, Tailwind v4, the Catalyst kit (vendored in `src/components/catalyst/`) and Recharts.
+Next.js 16, React 19, Tailwind v4, `@hearst/ui` (Catalyst, page header, KPI band, list table, state mark, the `--ds-*`
+tokens and FK Grotesk, from `github:adrien-debug/hearst-ui#v1.10.0`, platform stylesheet) and Recharts.
 
 The front of Hearst Connect: a public landing page, a sign-in screen, and the administration console for the
 Connect vaults (portfolio, vaults, clients, mining, compliance, operations, keeper actions), plus an `/account` view
@@ -133,7 +134,7 @@ The backend is never called from the browser, so the Content-Security-Policy kee
 ```
 src/
 ├── app/            routes: (marketing) /, (auth) login + register, admin/**, account, api/demo-backend
-├── components/     catalyst/ (vendored kit), admin/, marketing/, charts/, compositions/, actions/, layout/, vaults/
+├── components/     admin/, marketing/, charts/, compositions/, actions/, layout/, vaults/
 ├── features/       admin-dashboard/, admin-runtime/, user-dashboard/ (/account)
 └── lib/            env.ts, session.ts, auth.ts, actions.ts, backend/ (client, registry, auth, keeper…),
                     admin-dashboard/, vaults/, mining/, mining-note.ts
@@ -151,4 +152,3 @@ The repository defines none: no `vercel.json`, Dockerfile or CI workflow (`.verc
 | `docs/BACKEND-ALIGNMENT-2026-09-08.md` | Gaps measured against the real backend and the fixes they need |
 | `docs/PASSATION-AGENT.md` | Hand-over notes: Railway backend, EVM fork, vault, what remains |
 | `docs/architecture/UI-GRAPH.md` | The generated UI graph |
-| `src/components/catalyst/VENDOR.md` | What is vendored from Catalyst |

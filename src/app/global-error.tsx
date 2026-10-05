@@ -1,7 +1,7 @@
 'use client'
 
 import '@/styles/tailwind.css'
-import satoshiUrl from '../assets/fonts/Satoshi-Variable.woff2'
+import { Button } from '@hearst/ui/catalyst/button'
 
 /**
  * Global error boundary (UI-06).
@@ -15,30 +15,17 @@ export default function GlobalError({
   reset,
 }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `@font-face{font-family:'Satoshi';src:url('${satoshiUrl}') format('woff2');font-weight:300 900;font-display:swap;font-style:normal}`,
-          }}
-        />
-      </head>
-      <body className="m-0 grid min-h-dvh place-items-center bg-console-app font-sans text-fg">
+    <html lang="en" className="dark scheme-dark antialiased">
+      <body className="ds-black m-0 grid min-h-dvh place-items-center">
         <div className="max-w-lg px-6 text-center">
-          <h1 className="m-0 mb-2 text-[1.4rem] font-semibold text-fg">Hearst Connect is temporarily unavailable</h1>
-          <p className="m-0 mb-5 text-[0.95rem] text-fg-secondary">
+          <h1 className="mb-2 text-2xl/7.5 text-(--ds-text)">Hearst Connect is temporarily unavailable</h1>
+          <p className="mb-5 text-sm/5 text-(--ds-text-subtle)">
             An unexpected error prevented the page from rendering. Try again in a moment.
           </p>
-          {error.digest ? (
-            <p className="m-0 mb-5 font-sans text-xs text-fg-tertiary">Reference: {error.digest}</p>
-          ) : null}
-          <button
-            type="button"
-            onClick={reset}
-            className="cursor-pointer rounded-lg border border-accent-300 bg-transparent px-[18px] py-2.5 font-sans text-[0.85rem] text-accent-300"
-          >
+          {error.digest ? <p className="mb-5 text-xs text-(--ds-shell-subtle)">Reference: {error.digest}</p> : null}
+          <Button outline onClick={reset}>
             Try again
-          </button>
+          </Button>
         </div>
       </body>
     </html>

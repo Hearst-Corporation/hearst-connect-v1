@@ -39,7 +39,7 @@ test.describe('audit closure — displayed truth', () => {
   test('product shows the consolidated view', async ({ page }) => {
     await page.goto('/admin/product')
     await expect(page.getByRole('heading', { name: 'Consolidated product view' })).toBeVisible()
-    await expect(page.getByText('Mining, BTC, and product factsheet readings')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Consolidated product view figures' })).toBeVisible()
   })
 })
 

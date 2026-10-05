@@ -39,7 +39,7 @@ export type ReserveBalance = {
 export function BtcReserveBalance({ balance }: Readonly<{ balance: ReserveBalance | null }>) {
   if (balance === null) {
     return (
-      <p className="text-sm text-fg-tertiary">
+      <p className="text-sm text-(--ds-shell-subtle)">
         BTC production could not be read — nothing is shown rather than a guess.
       </p>
     )
@@ -60,27 +60,27 @@ export function BtcReserveBalance({ balance }: Readonly<{ balance: ReserveBalanc
     <div className="flex min-w-0 flex-col gap-4">
       {/* La barre porte le constat : une piste presque entièrement « vendue ». */}
       <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex h-2.5 overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft">
+        <div className="flex h-2.5 overflow-hidden rounded-full bg-(--ds-surface-raised) ring-1 ring-(--ds-divider)">
           <div
-            className="h-full bg-accent-400"
+            className="h-full bg-(--ds-accent)"
             style={{ width: `${retainedPct}%` }}
             aria-hidden="true"
           />
-          <div className="h-full flex-1 bg-fg-tertiary/25" aria-hidden="true" />
+          <div className="h-full flex-1 bg-(--ds-shell-subtle)/25" aria-hidden="true" />
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-fg-tertiary">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-(--ds-shell-subtle)">
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-accent-400" aria-hidden="true" />
+            <span className="size-2 rounded-full bg-(--ds-accent)" aria-hidden="true" />
             Retained {retainedPct.toFixed(0)} %
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-fg-tertiary/40" aria-hidden="true" />
+            <span className="size-2 rounded-full bg-(--ds-shell-subtle)/40" aria-hidden="true" />
             Sold {(100 - retainedPct).toFixed(0)} %
           </span>
         </div>
       </div>
 
-      <dl className="divide-y divide-console-line-soft">
+      <dl className="divide-y divide-(--ds-divider)">
         <ReserveRow label="BTC produced (cumulative)" value={`${btcText(producedSats)} BTC`} />
         <ReserveRow label="Sold for USDC accounting" value={`${btcText(soldSats)} BTC`} />
         <ReserveRow
@@ -97,10 +97,10 @@ export function BtcReserveBalance({ balance }: Readonly<{ balance: ReserveBalanc
       </dl>
 
       {retainedSats === 0 ? (
-        <div className="flex gap-2.5 rounded-lg border border-l-4 border-console-line-soft border-l-warning-400/70 bg-warning-400/[0.04] px-3.5 py-3">
-          <CircleStackIcon className="mt-0.5 size-4 shrink-0 text-warning-400" aria-hidden="true" />
-          <p className="text-sm text-fg-secondary">
-            <span className="font-semibold text-fg">No bitcoin is being retained.</span> Every
+        <div className="flex gap-2.5 rounded-lg border border-l-4 border-(--ds-divider) border-l-(--ds-warning)/70 bg-(--ds-warning)/[0.04] px-3.5 py-3">
+          <CircleStackIcon className="mt-0.5 size-4 shrink-0 text-(--ds-warning)" aria-hidden="true" />
+          <p className="text-sm text-(--ds-text-subtle)">
+            <span className="font-semibold text-(--ds-text)">No bitcoin is being retained.</span> Every
             satoshi mined is sold to keep the book in dollars. The product is sold as a strategic
             reserve — this row is the one that would show it accumulating.
           </p>
@@ -117,10 +117,10 @@ function ReserveRow({
 }: Readonly<{ label: string; value: string; tone?: 'normal' | 'flagged' }>) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-3">
-      <dt className="min-w-0 text-xs font-medium text-fg-tertiary">{label}</dt>
+      <dt className="min-w-0 text-xs font-medium text-(--ds-shell-subtle)">{label}</dt>
       <dd
         className={`shrink-0 text-sm font-semibold tabular-nums ${
-          tone === 'flagged' ? 'text-warning-400' : 'text-fg'
+          tone === 'flagged' ? 'text-(--ds-warning)' : 'text-(--ds-text)'
         }`}
       >
         {value}

@@ -1,4 +1,4 @@
-import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { ChartFrame } from '@/components/charts'
@@ -7,11 +7,6 @@ import { requireSession } from '@/lib/auth'
 import { backendUrl } from '@/lib/env'
 import { ROLE_LABELS } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
-import {
-  PaperAirplaneIcon,
-  ServerIcon,
-  UserIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { CreateClientForm } from './create-client-form'
 
@@ -58,19 +53,16 @@ export default async function Page() {
       id: 'role',
       title: 'Your role',
       value: editorial(ROLE_LABELS[session.role]),
-      icon: UserIcon,
     },
     {
       id: 'backend',
       title: 'Backend',
       value: editorial(backendConfigured ? 'Configured' : 'Not configured'),
-      icon: ServerIcon,
     },
     {
       id: 'envoi',
       title: 'Can submit',
       value: editorial(canPost ? 'Ready' : 'Blocked'),
-      icon: PaperAirplaneIcon,
     },
   ]
 
@@ -78,8 +70,7 @@ export default async function Page() {
     <DashboardShell>
       <DashboardHeader
         title="New simulated client"
-        description="Real creation via POST /api/v1/admin/users — password never returned."
-        titleAddon={<PanelHeaderLink href="/admin/clients">Back to client directory</PanelHeaderLink>}
+        back={{ href: '/admin/clients', label: 'Client directory' }}
         kpis={kpis}
       />
 
@@ -95,16 +86,16 @@ export default async function Page() {
           </DashCard>
         </BentoCard>
         <BentoCard span={4}>
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
             <DashCard title="Request fields" subtitle="What POST /api/v1/admin/users expects." titleLevel={2}>
-              <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
+              <ul className="list-disc space-y-1 pl-5 text-sm/6 text-(--ds-shell-subtle)">
                 {CHAMPS_REQUIS.map((champ) => (
                   <li key={champ}>{champ}</li>
                 ))}
               </ul>
             </DashCard>
             <DashCard title="What is not returned" subtitle="Simulator veracity rule." titleLevel={2}>
-              <ul className="list-disc space-y-1 pl-5 text-sm/6 text-fg-tertiary">
+              <ul className="list-disc space-y-1 pl-5 text-sm/6 text-(--ds-shell-subtle)">
                 {NON_RESTITUE.map((item) => (
                   <li key={item}>{item}</li>
                 ))}

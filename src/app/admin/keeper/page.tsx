@@ -2,14 +2,14 @@ import { DashboardHeader } from '@/components/admin/dashboard'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { DashCard, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { Badge } from '@/components/catalyst/badge'
+import { Badge } from '@hearst/ui/catalyst/badge'
 import {
   DescriptionDetails,
   DescriptionList,
   DescriptionTerm,
-} from '@/components/catalyst/description-list'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
+} from '@hearst/ui/catalyst/description-list'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@hearst/ui/catalyst/table'
+import { Text } from '@hearst/ui/catalyst/text'
 import { ChartFrame } from '@/components/charts'
 import { Callout, DataTableShell, SectionHeader, tableCol } from '@/components/compositions'
 import { endpointsByCategory } from '@/lib/backend/endpoints'
@@ -20,12 +20,6 @@ import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
 import { roleLabel } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
-import {
-  CheckCircleIcon,
-  CommandLineIcon,
-  ServerIcon,
-  UserIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { KeeperForm } from '@/components/admin/keeper-form'
 
@@ -41,7 +35,7 @@ function Prerequisite({
     <>
       <DescriptionTerm>{label}</DescriptionTerm>
       <DescriptionDetails>
-        <span className={satisfait ? 'text-fg' : 'text-warning-400'}>{value}</span>
+        <span className={satisfait ? 'text-(--ds-text)' : 'text-(--ds-warning)'}>{value}</span>
       </DescriptionDetails>
     </>
   )
@@ -78,33 +72,29 @@ export default async function KeeperPage() {
       id: 'actions',
       title: 'Exposed actions',
       value: editorial(formatNumber(keeperEndpoints.length)),
-      icon: CommandLineIcon,
     },
     {
       id: 'role',
       title: 'Role',
       value: editorial(roleLabel(session.role)),
-      icon: UserIcon,
     },
     {
       id: 'service',
       title: 'Service address',
       value: editorial(backendConfigured ? 'Configured' : 'Not set'),
-      icon: ServerIcon,
     },
     {
       id: 'disponibilite',
       title: 'Availability',
       value: editorial(actionsDisponibles ? 'Actions available' : 'Actions inactive'),
-      icon: CheckCircleIcon,
     },
   ]
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Keeper actions"
-        description="Keeper routes from the registry — logging only, no on-chain signature."
+        path="/admin/keeper"
         kpis={kpis}
       />
 
@@ -117,8 +107,8 @@ export default async function KeeperPage() {
             contentClassName={INFO_SLOT_CLASS}
           >
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <Badge color="neutral">No on-chain signature</Badge>
-              <Text className="mt-0! font-medium text-fg">
+              <Badge color="zinc">No on-chain signature</Badge>
+              <Text className="mt-0! font-medium text-(--ds-text)">
                 None of these routes signs a transaction
               </Text>
             </div>
@@ -193,10 +183,10 @@ export default async function KeeperPage() {
               <TableCell className={tableCol.primary}>
                 <div className="truncate font-medium">{endpoint.summary}</div>
               </TableCell>
-              <TableCell className={`${tableCol.hash} text-xs text-fg-secondary`}>
+              <TableCell className={`${tableCol.hash} text-xs text-(--ds-text-subtle)`}>
                 {endpoint.method} {endpoint.path}
               </TableCell>
-              <TableCell className={`${tableCol.primary} text-fg-secondary`}>{endpoint.caveat ?? '—'}</TableCell>
+              <TableCell className={`${tableCol.primary} text-(--ds-text-subtle)`}>{endpoint.caveat ?? '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -212,7 +202,7 @@ export default async function KeeperPage() {
             the column. 40rem = two ~19rem form cards + the gap (the same floor
             the table shells use) — below it, one readable column. */}
         <div className="@container min-w-0">
-          <div className="grid grid-cols-1 gap-6 @[40rem]:grid-cols-2">
+          <div className="grid grid-cols-1 gap-(--ds-page-gap) @[40rem]:grid-cols-2">
             {keeperEndpoints.map((endpoint) => (
               <KeeperForm
                 key={endpoint.id}

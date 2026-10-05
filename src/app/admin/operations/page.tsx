@@ -9,17 +9,18 @@ import {
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { OperationsIndexerCard } from '@/components/admin/operations-indexer-card'
-import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
-import { Badge } from '@/components/catalyst/badge'
-import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
+import { ToneMark, toneForActivityStatus } from '@/components/admin/status-tone'
+import { Badge } from '@hearst/ui/catalyst/badge'
+import { ResultCount } from '@hearst/ui/page'
+import { Link } from '@hearst/ui/catalyst/link'
+import { Text } from '@hearst/ui/catalyst/text'
 import {
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/catalyst/table'
+} from '@hearst/ui/catalyst/table'
 import { Callout, tableCol, AdminTable } from '@/components/compositions'
 import { HearstActivityChart, HearstDonutChart } from '@/components/charts'
 import type { ActivityPoint } from '@/components/charts'
@@ -36,11 +37,6 @@ import { formatDateTime, formatDriftPts, formatHash, formatNumber, formatPercent
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import { editorial, isAvailable, type Availability } from '@/lib/vaults/model'
 import { entityHref } from '@/components/vaults/vault-entity-link'
-import {
-  ArrowsRightLeftIcon,
-  ExclamationTriangleIcon,
-  SignalIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
@@ -133,26 +129,26 @@ function RebalancingPanel({
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">
             Strategies out of target
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
             {formatNumber(data.strategiesOutOfTarget)}
           </p>
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">
             Vaults out of target
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
             {formatNumber(data.vaultsOutOfTarget)}
           </p>
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">
             Maximum drift
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
+          <p className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">
             {data.maxDriftBps === null ? '—' : formatDriftPts(data.maxDriftBps)}
           </p>
         </div>
@@ -161,8 +157,8 @@ function RebalancingPanel({
       {data.alerts.length > 0 ? (
         <div className="mt-4 space-y-2">
           <div className="flex items-center gap-2">
-            <h4 className="text-sm font-semibold text-fg">Needs attention</h4>
-            <Badge color="neutral">{data.alerts.length}</Badge>
+            <h4 className="text-panel font-semibold text-(--ds-text)">Needs attention</h4>
+            <ResultCount>{data.alerts.length}</ResultCount>
           </div>
           <AdminTable>
             <TableHead>
@@ -179,12 +175,12 @@ function RebalancingPanel({
                   <TableCell className={tableCol.primary}>
                     <div className="truncate font-medium">{alert.strategyLabel}</div>
                   </TableCell>
-                  <TableCell className={`${tableCol.numeric} text-warning-400`}>{formatDriftPts(alert.driftBps)}</TableCell>
-                  <TableCell className={`${tableCol.hash} text-xs text-fg-tertiary`}>{alert.vaultId}</TableCell>
+                  <TableCell className={`${tableCol.numeric} text-(--ds-warning)`}>{formatDriftPts(alert.driftBps)}</TableCell>
+                  <TableCell className={`${tableCol.hash} text-xs text-(--ds-shell-subtle)`}>{alert.vaultId}</TableCell>
                   <TableCell className={tableCol.action}>
                     <Link
                       href={entityHref('vault', alert.vaultId)}
-                      className="text-sm font-medium text-accent-400 underline"
+                      className="text-sm font-medium text-(--ds-accent) underline"
                     >
                       View
                     </Link>
@@ -195,12 +191,12 @@ function RebalancingPanel({
           </AdminTable>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-fg-secondary">
+        <p className="mt-4 text-sm text-(--ds-text-subtle)">
           Portfolio within target. No rebalancing action required.
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-tertiary">
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--ds-shell-subtle)">
         <span>
           Last rebalance:{' '}
           {data.lastRebalanceAt ? formatRelativeTime(data.lastRebalanceAt) : '—'}
@@ -210,7 +206,7 @@ function RebalancingPanel({
         ) : null}
       </div>
 
-      <p className="mt-4 text-xs text-fg-secondary">
+      <p className="mt-4 text-xs text-(--ds-text-subtle)">
         On-chain rebalance execution is not exposed as a safe admin action. The keeper route
         requires a low-level swap payload and does not sign transactions in this service.
       </p>
@@ -224,18 +220,18 @@ function LastRebalanceCard({
   return (
     <div data-widget="operations-last-rebalance" className="min-w-0">
       <DashCard title="Last rebalance">
-        <p className="text-lg font-semibold text-fg">
+        <p className="text-lg font-semibold text-(--ds-text)">
           {snapshot.lastRebalance ? formatRelativeTime(snapshot.lastRebalance) : '—'}
         </p>
         {snapshot.lastRebalance === null ? null : snapshot.lastRebalanceTxHash ? (
           <p
-            className="mt-1.5 truncate font-mono text-xs text-fg-tertiary"
+            className="mt-1.5 truncate font-mono text-xs text-(--ds-shell-subtle)"
             title={snapshot.lastRebalanceTxHash}
           >
             {formatHash(snapshot.lastRebalanceTxHash)}
           </p>
         ) : (
-          <p className="mt-1.5 text-xs text-fg-tertiary">No transaction hash reported.</p>
+          <p className="mt-1.5 text-xs text-(--ds-shell-subtle)">No transaction hash reported.</p>
         )}
       </DashCard>
     </div>
@@ -291,19 +287,16 @@ function kpisOperationsDe(
       id: 'attention',
       title: 'Needs attention',
       value: attentionValue,
-      icon: ExclamationTriangleIcon,
     },
     {
       id: 'out-of-target',
       title: 'Strategies out of target',
       value: outOfTargetValue,
-      icon: ArrowsRightLeftIcon,
     },
     {
       id: 'indexer',
       title: 'Indexer',
       value: editorial(snapshot.indexerStatus ?? 'Unavailable'),
-      icon: SignalIcon,
     },
   ]
 }
@@ -441,7 +434,7 @@ function RebalanceOperationsCard({
     <DashCard
       title="Rebalance operations"
       subtitle="On-chain rebalance events with allocation changes and swap details."
-      action={<Badge color="neutral">{`${rows.length}`}</Badge>}
+      action={<ResultCount>{`${rows.length}`}</ResultCount>}
       contentClassName={PANEL_SLOT_CLASS.table}
     >
       <AdminTable>
@@ -457,7 +450,7 @@ function RebalanceOperationsCard({
         <TableBody>
           {rows.map((op: AdminRebalancingOperation) => (
             <TableRow key={op.id}>
-              <TableCell className={`${tableCol.date} text-fg-tertiary`}>
+              <TableCell className={`${tableCol.date} text-(--ds-shell-subtle)`}>
                 {formatDateTime(op.occurredAt)}
               </TableCell>
               <TableCell className={`${tableCol.hash} text-xs`} title={op.txHash}>
@@ -475,14 +468,14 @@ function RebalanceOperationsCard({
               </TableCell>
               <TableCell className={tableCol.primary}>
                 {op.swaps.length === 0 ? (
-                  <Text className="text-xs text-fg-tertiary">No swaps</Text>
+                  <Text className="text-xs text-(--ds-shell-subtle)">No swaps</Text>
                 ) : (
                   <ul className="space-y-1">
                     {op.swaps.map((swap, i) => (
                       // Swap amounts are atomics of two different tokens whose
                       // decimals this surface cannot know — the raw values live
                       // on the title, never rendered as a formatted measure.
-                      <li key={i} className="text-xs text-fg-tertiary" title={`${swap.tokenIn} → ${swap.tokenOut} · in ${swap.amountIn} / out ${swap.amountOut} (raw atomics)`}>
+                      <li key={i} className="text-xs text-(--ds-shell-subtle)" title={`${swap.tokenIn} → ${swap.tokenOut} · in ${swap.amountIn} / out ${swap.amountOut} (raw atomics)`}>
                         {formatHash(swap.tokenIn)} → {formatHash(swap.tokenOut)}
                       </li>
                     ))}
@@ -535,7 +528,7 @@ function RecentOperationsCard({
     <DashCard
       title="Recent operations"
       subtitle={RECENT_OPERATIONS_SUBTITLE}
-      action={<Badge color="neutral">{`${opsEvents.length}`}</Badge>}
+      action={<ResultCount>{`${opsEvents.length}`}</ResultCount>}
       contentClassName={PANEL_SLOT_CLASS.table}
     >
       <AdminTable>
@@ -557,18 +550,18 @@ function RecentOperationsCard({
                 </div>
               </TableCell>
               <TableCell className={tableCol.status}>
-                <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
+                <ToneMark tone={toneForActivityStatus(event.status)} label={event.status} />
               </TableCell>
               <TableCell className={tableCol.numeric}>
                 {formatEventAtomic(event.amountAtomic, event.asset, assetScale)}
               </TableCell>
               <TableCell
-                className={`${tableCol.hash} text-xs text-fg-tertiary`}
+                className={`${tableCol.hash} text-xs text-(--ds-shell-subtle)`}
                 title={event.txHash ?? undefined}
               >
                 {event.txHash ? formatHash(event.txHash) : '—'}
               </TableCell>
-              <TableCell className={`${tableCol.date} text-fg-tertiary`}>
+              <TableCell className={`${tableCol.date} text-(--ds-shell-subtle)`}>
                 {event.occurredAt ? formatRelativeTime(event.occurredAt) : '—'}
               </TableCell>
             </TableRow>
@@ -592,7 +585,6 @@ export default async function Page() {
     <DashboardShell>
       <DashboardHeader
         title="Operations"
-        description="Monitor portfolio drift and run supported operational actions."
         kpis={kpis}
       />
 
@@ -602,7 +594,7 @@ export default async function Page() {
           <RebalancingPanel summary={rebalancing} />
         </BentoCard>
         <BentoCard span={4}>
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
             <LastRebalanceCard snapshot={snapshot} />
             <OperationsIndexerCard indexerStatus={snapshot.indexerStatus} />
           </div>
@@ -636,7 +628,7 @@ export default async function Page() {
         </BentoCard>
       </BentoGrid>
 
-      <Text className="text-sm text-fg-secondary">
+      <Text className="text-sm text-(--ds-text-subtle)">
         Technical probes and source coverage:{' '}
         <Link href="/admin/runtime" className="underline">
           Service status

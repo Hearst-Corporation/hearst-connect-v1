@@ -1,4 +1,3 @@
-import { csl } from '@/components/layout/console'
 import { Panel, PanelBody, PanelHeader } from '@/components/compositions/panel'
 
 /**
@@ -39,9 +38,9 @@ export function SourceAttendue({
     <Panel tone="wave">
       <PanelHeader title={quoi} />
       <PanelBody>
-        <p className={csl.cellText}>{detail}</p>
+        <p className="wrap-anywhere">{detail}</p>
         {requis.map((item) => (
-          <p key={item} className={csl.cellText}>
+          <p key={item} className="wrap-anywhere">
             {item}
           </p>
         ))}
@@ -62,7 +61,7 @@ export function CalmState({ message }: Readonly<{ message: string }>) {
   return (
     <Panel tone="wave">
       <PanelBody>
-        <p className={csl.cellText}>{message}</p>
+        <p className="wrap-anywhere">{message}</p>
       </PanelBody>
     </Panel>
   )

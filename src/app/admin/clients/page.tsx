@@ -2,17 +2,11 @@ import { ClientsDirectory } from '@/components/admin/clients-directory'
 import { DashCard, DashboardHeader, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import { Badge } from '@/components/catalyst/badge'
-import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import { AdminTable, Callout, tableCol } from '@/components/compositions'
+import { Link } from '@hearst/ui/catalyst/link'
+import { Text } from '@hearst/ui/catalyst/text'
+import { ResultCount } from '@hearst/ui/page'
+import { ListTable, RowBadge } from '@hearst/ui/table'
+import { Callout } from '@/components/compositions'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { loadAdminAssetScale, loadAdminClientsDirectory } from '@/lib/admin-dashboard/load'
@@ -28,12 +22,6 @@ import {
 } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
-import {
-  BanknotesIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  UsersIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
@@ -136,7 +124,7 @@ function directoryAction(view: ClientsView, showCreateLink: boolean): ReactNode 
   return (
     <span className="flex shrink-0 items-center gap-3">
       {view.kind === 'thin' ? (
-        <Badge color="neutral">{`${view.clients.length} client(s)`}</Badge>
+        <ResultCount>{`${view.clients.length} client(s)`}</ResultCount>
       ) : null}
       {showCreateLink ? (
         <PanelHeaderLink href="/admin/client-simulator/new">Create simulated client</PanelHeaderLink>
@@ -165,30 +153,21 @@ function ClientsMainContent({
 
   if (view.kind === 'thin') {
     return (
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-none">
-        <AdminTable className="[&_table]:min-w-[40rem]">
-          <TableHead>
-            <TableRow>
-              <TableHeader className={tableCol.primary}>Client</TableHeader>
-              <TableHeader className={tableCol.hash}>Identifier</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {view.clients.map((client) => (
-              <TableRow
-                key={client.id}
-                href={`/admin/client-simulator/${client.id}`}
-                title={`Open ${client.label}`}
-              >
-                <TableCell className={tableCol.primary}>
-                  <div className="truncate font-medium">{client.label}</div>
-                </TableCell>
-                <TableCell className={`${tableCol.hash} text-sm text-fg-tertiary`}>{client.id}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </AdminTable>
-      </div>
+      <ListTable
+        label="Client directory"
+        className="-mx-5"
+        rows={[...view.clients]}
+        rowKey={(client) => client.id}
+        href={(client) => `/admin/client-simulator/${client.id}`}
+        rowLabel={(client) => `Open ${client.label}`}
+        identity={{
+          header: 'Client',
+          badge: (client) => <RowBadge name={client.label} />,
+          title: (client) => client.label,
+          detail: (client) => client.id,
+        }}
+        columns={[]}
+      />
     )
   }
 
@@ -215,32 +194,28 @@ export default async function Page() {
   const showCreateLink = toBackendRole(session.role) === 'admin'
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'clients', title: 'Clients listed', value: view.listedCount, icon: UsersIcon },
+    { id: 'clients', title: 'Clients listed', value: view.listedCount },
     {
       id: 'with-exposure',
       title: 'With exposure',
       value: richCount(view, hasExposureAtomic),
-      icon: BanknotesIcon,
     },
     {
       id: 'kyc-pending',
       title: 'KYC pending',
       value: richCount(view, (client) => KYC_PENDING.has(kycKey(client.kycStatus))),
-      icon: ClockIcon,
     },
     {
       id: 'needs-attention',
       title: 'Needs attention',
       value: richCount(view, (client) => KYC_ATTENTION.has(kycKey(client.kycStatus))),
-      icon: ExclamationTriangleIcon,
     },
   ]
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Clients"
-        description="Manage client accounts, exposure, vault relationships, and partner KYC status."
         kpis={kpis}
       />
 
@@ -259,7 +234,7 @@ export default async function Page() {
         </BentoCard>
       </BentoGrid>
 
-      <Text className="text-sm text-fg-secondary">
+      <Text className="text-sm text-(--ds-text-subtle)">
         Som provides KYC — status is read-only here. Source health:{' '}
         <Link href="/admin/runtime" className="underline">
           Service

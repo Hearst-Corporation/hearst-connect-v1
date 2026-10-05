@@ -2,8 +2,8 @@
 
 import { surfaceInset } from '@/components/admin/surface'
 import { ActionOutcome, ConfirmField } from '@/components/admin/forms/admin-action-form'
-import { Button } from '@/components/catalyst/button'
-import { Text } from '@/components/catalyst/text'
+import { Button } from '@hearst/ui/catalyst/button'
+import { Text } from '@hearst/ui/catalyst/text'
 import { triggerIndexer, type IndexerTriggerOutcome } from '@/lib/backend/indexer-trigger'
 import clsx from 'clsx'
 import { useActionState } from 'react'
@@ -31,12 +31,12 @@ export function IndexerTriggerForm() {
         failure stays visible in the response. This does not sign vault transactions.
       </Text>
       <ConfirmField />
-      <Button type="submit" disabled={pending} color="dark/neutral">
+      <Button type="submit" disabled={pending}>
         {pending ? 'Triggering…' : 'Run indexer'}
       </Button>
       <ActionOutcome outcome={state} />
       {state.ok ? (
-        <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-fg')}>
+        <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-(--ds-text)')}>
           {state.detail ?? 'OK'}
         </pre>
       ) : null}

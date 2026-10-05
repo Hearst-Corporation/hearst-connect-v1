@@ -60,7 +60,7 @@ export function BucketSparklines({
 
   if (buckets.length === 0) {
     return (
-      <p className="px-5 pb-5 text-sm text-fg-tertiary dark:text-fg-secondary">
+      <p className="px-5 pb-5 text-sm text-(--ds-text-subtle)">
         No allocation data for this period.
       </p>
     )
@@ -88,7 +88,7 @@ export function BucketSparklines({
               const color = bucketColor(index)
               return (
                 <div key={bucket.bucket} className="flex items-center gap-3">
-                  <span className="w-20 shrink-0 truncate text-xs font-medium text-fg-tertiary" title={bucket.bucket}>
+                  <span className="w-20 shrink-0 truncate text-xs font-medium text-(--ds-shell-subtle)" title={bucket.bucket}>
                     {bucket.bucket}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -106,7 +106,7 @@ export function BucketSparklines({
                       />
                     </LineChart>
                   </div>
-                  <span className="w-12 shrink-0 text-right text-xs tabular-nums text-fg">
+                  <span className="w-12 shrink-0 text-right text-xs tabular-nums text-(--ds-text)">
                     {typeof data[data.length - 1]?.pct === 'number'
                       ? `${formatNumber(data[data.length - 1].pct, { maximumFractionDigits: 1 })}%`
                       : '—'}

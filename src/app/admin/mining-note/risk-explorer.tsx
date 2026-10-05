@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { miningNoteRoutes, type MonteCarloResult, type SensitivityResponse } from '@/lib/mining-note'
 import { formatNumber } from '@/lib/format'
 import { useState } from 'react'
@@ -14,11 +15,8 @@ import clsx from 'clsx'
  * tunnels (`next.config.mjs` rewrites).
  */
 
-const ACTION_CLASS =
-  'inline-flex items-center gap-2 rounded-md bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60'
-
-const KPI_LABEL_CLASS = 'text-[11px] font-medium text-fg-secondary'
-const KPI_VALUE_CLASS = 'mt-1 text-xl font-semibold tracking-tight text-fg tabular-nums'
+const KPI_LABEL_CLASS = 'text-[11px] font-medium text-(--ds-text-subtle)'
+const KPI_VALUE_CLASS = 'mt-1 text-xl font-semibold tracking-tight text-(--ds-text) tabular-nums'
 
 type Status = 'idle' | 'loading' | 'done' | 'error'
 
@@ -60,17 +58,17 @@ export function MonteCarloPanel() {
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-fg-tertiary">
+        <p className="text-xs text-(--ds-shell-subtle)">
           {result === null
             ? '500 GBM paths at $100k spot — bands are BTC price, not note value.'
             : `${result.params.paths} paths · drift ${result.params.drift} · vol ${result.params.volatility} · seed ${result.params.seed}`}
         </p>
-        <button type="button" className={ACTION_CLASS} onClick={() => void run()} disabled={status === 'loading'}>
+        <Button color="accent" size="sm" onClick={() => void run()} disabled={status === 'loading'}>
           {status === 'loading' ? 'Simulating…' : result === null ? 'Run Monte-Carlo' : 'Re-run'}
-        </button>
+        </Button>
       </div>
 
-      {status === 'error' ? <p className="text-xs text-danger-400">{error}</p> : null}
+      {status === 'error' ? <p className="text-xs text-(--ds-danger)">{error}</p> : null}
 
       <FanChart rows={rows} />
 
@@ -109,7 +107,7 @@ function cellColor(value: number, metric: SensitivityResponse['metric']): string
     ? value
     : Math.min(Math.max((value - 500_000) / 2_500_000, 0), 1)
   const opacity = 0.08 + raw * 0.8
-  return `color-mix(in oklab, var(--color-accent-400) ${Math.round(opacity * 100)}%, transparent)`
+  return `color-mix(in oklab, var(--ds-accent) ${Math.round(opacity * 100)}%, transparent)`
 }
 
 export function SensitivityPanel() {
@@ -141,41 +139,41 @@ export function SensitivityPanel() {
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-fg-tertiary">
+        <p className="text-xs text-(--ds-shell-subtle)">
           11 drifts × 9 volatilities — 99 simulations, expect a few seconds.
         </p>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className={ACTION_CLASS}
+          <Button
+            color="accent"
+            size="sm"
             onClick={() => void run('capitalBack')}
             disabled={status === 'loading'}
           >
             {status === 'loading' && metric === 'capitalBack' ? 'Computing…' : 'P(capital back)'}
-          </button>
-          <button
-            type="button"
-            className={ACTION_CLASS}
+          </Button>
+          <Button
+            color="accent"
+            size="sm"
             onClick={() => void run('medianReturn')}
             disabled={status === 'loading'}
           >
             {status === 'loading' && metric === 'medianReturn' ? 'Computing…' : 'Median net releasable'}
-          </button>
+          </Button>
         </div>
       </div>
 
-      {status === 'error' ? <p className="text-xs text-danger-400">{error}</p> : null}
+      {status === 'error' ? <p className="text-xs text-(--ds-danger)">{error}</p> : null}
 
       {result === null ? (
-        <p className="py-5 text-sm text-fg-tertiary">Pick a metric above to compute the grid.</p>
+        <p className="py-5 text-sm text-(--ds-shell-subtle)">Pick a metric above to compute the grid.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-0.5 text-[11px] tabular-nums">
             <thead>
               <tr>
-                <th className="px-1.5 py-1 text-left font-medium text-fg-tertiary">drift \ vol</th>
+                <th className="px-1.5 py-1 text-left font-medium text-(--ds-shell-subtle)">drift \ vol</th>
                 {result.vols.map((v) => (
-                  <th key={v} className="px-1.5 py-1 text-right font-medium text-fg-tertiary">
+                  <th key={v} className="px-1.5 py-1 text-right font-medium text-(--ds-shell-subtle)">
                     {formatNumber(v * 100, { maximumFractionDigits: 0 })}%
                   </th>
                 ))}
@@ -184,7 +182,7 @@ export function SensitivityPanel() {
             <tbody>
               {result.drifts.map((d, di) => (
                 <tr key={d}>
-                  <th className={clsx('whitespace-nowrap px-1.5 py-1 text-left font-medium text-fg-tertiary')}>
+                  <th className={clsx('whitespace-nowrap px-1.5 py-1 text-left font-medium text-(--ds-shell-subtle)')}>
                     {formatNumber(d * 100, { maximumFractionDigits: 0 })}%
                   </th>
                   {result.vols.map((v, vi) => {
@@ -197,7 +195,7 @@ export function SensitivityPanel() {
                       <td
                         key={v}
                         title={`drift ${d}, vol ${v} → ${label}`}
-                        className="rounded-sm px-1.5 py-1.5 text-right font-medium text-fg"
+                        className="rounded-sm px-1.5 py-1.5 text-right font-medium text-(--ds-text)"
                         style={{ backgroundColor: cellColor(value, result.metric) }}
                       >
                         {label}

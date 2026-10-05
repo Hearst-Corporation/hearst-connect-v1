@@ -2,17 +2,12 @@ import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/co
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminReading } from '@/components/admin/reading'
-import { Badge } from '@/components/catalyst/badge'
-import { Link } from '@/components/catalyst/link'
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
-import { AdminTable, Callout, DataTableShell, tableCol } from '@/components/compositions'
+import { ResultCount } from '@hearst/ui/page'
+import { Link } from '@hearst/ui/catalyst/link'
+import { Text } from '@hearst/ui/catalyst/text'
+import { ListTable, RowBadge } from '@hearst/ui/table'
+import { CircleStackIcon } from '@heroicons/react/20/solid'
+import { Callout, DataTableShell } from '@/components/compositions'
 import { entityHref } from '@/components/vaults/vault-entity-link'
 import { requireSession } from '@/lib/auth'
 import { formatCurrency, formatNumber, formatPercent, formatRelativeTime } from '@/lib/format'
@@ -31,7 +26,6 @@ import {
 } from '@/lib/vaults/model'
 import { activeVaultCount } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
-import { ArchiveBoxIcon, BuildingLibraryIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Vaults' }
@@ -66,154 +60,63 @@ function rebalanceLabel(vault: Vault): Availability<string> {
   })
 }
 
-/** Primary desk: six fields. Chain, strategies, activity live on vault detail. */
-function VaultPrimaryRow({ vault }: Readonly<{ vault: Vault }>) {
-  const href = entityHref('vault', vault.id)
-  const driftBps = valueOf(vault.worstDriftBps)
+function deployedCell(vault: Vault) {
   const deployedBps = valueOf(vault.deployedBps)
-
   return (
-    <TableRow href={href} title={`Open ${vault.label}`}>
-      <TableCell className={tableCol.primary}>
-        <div className="truncate font-medium">{vault.label}</div>
-      </TableCell>
-      <TableCell className={tableCol.numeric}>
-        <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} />
-      </TableCell>
-      <TableCell className={tableCol.numeric}>
-        <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
-        {deployedBps === null ? null : (
-          <div className="mt-0.5 text-xs text-fg-tertiary">
-            {formatPercent(deployedBps, { fromBps: true })}
-          </div>
-        )}
-      </TableCell>
-      <TableCell className={tableCol.numeric}>
-        <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />
-      </TableCell>
-      <TableCell className={tableCol.numeric}>
-        {!isAvailable(vault.worstDriftBps) ? (
-          <AdminReading compact value={absentReading(vault.worstDriftBps)} />
-        ) : (
-          driftPoints(driftBps!)
-        )}
-      </TableCell>
-      <TableCell className={tableCol.date}>
-        <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />
-      </TableCell>
-    </TableRow>
+    <>
+      <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
+      {deployedBps === null ? null : (
+        <div className="text-xs text-(--ds-shell-subtle)">{formatPercent(deployedBps, { fromBps: true })}</div>
+      )}
+    </>
   )
 }
 
-function VaultMobileCard({ vault }: Readonly<{ vault: Vault }>) {
-  const href = entityHref('vault', vault.id)
-  const driftBps = valueOf(vault.worstDriftBps)
-  const deployedBps = valueOf(vault.deployedBps)
-
-  return (
-    <li>
-      <Link
-        href={href}
-        className="-mx-2 block rounded-md px-2 py-3 transition-colors hover:bg-console-inset/40"
-      >
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="truncate text-sm font-semibold text-fg">{vault.label}</p>
-          <p className="shrink-0 tabular-nums text-sm text-fg">
-            {!isAvailable(vault.worstDriftBps) ? '—' : driftPoints(driftBps!)}
-          </p>
-        </div>
-        <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
-          <div>
-            <dt className="text-fg-tertiary">AUM</dt>
-            <dd className="mt-0.5 tabular-nums text-fg">
-              <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} />
-            </dd>
-          </div>
-          <div>
-            <dt className="text-fg-tertiary">Deployed</dt>
-            <dd className="mt-0.5 tabular-nums text-fg">
-              <AdminReading compact value={vaultAmount(vault, deployedAtomic(vault))} />
-              {deployedBps === null ? null : (
-                <span className="mt-0.5 block text-fg-tertiary">
-                  {formatPercent(deployedBps, { fromBps: true })}
-                </span>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-fg-tertiary">Available</dt>
-            <dd className="mt-0.5 tabular-nums text-fg">
-              <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />
-            </dd>
-          </div>
-        </dl>
-        <p className="mt-3 text-xs text-fg-tertiary">
-          Rebalance · <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />
-        </p>
-      </Link>
-    </li>
-  )
+function driftCell(vault: Vault) {
+  if (!isAvailable(vault.worstDriftBps)) return <AdminReading compact value={absentReading(vault.worstDriftBps)} />
+  return driftPoints(vault.worstDriftBps.value)
 }
 
 /**
- * FROZEN BOX — the registry table slot never resizes with the row count:
- * six rows or sixty, the card keeps the same box and taller datasets scroll
- * inside. The height is row-matched to the rail: [Parc + Source] + gap lands
- * on the same line as [table header + 312px slot] at any data state.
+ * The registry list keeps one box whatever the row count: taller datasets
+ * scroll inside, so the box ends on the rail's line.
  */
-const REGISTRY_SLOT_CLASS = 'h-[312px] overflow-y-auto scrollbar-none'
+const REGISTRY_SLOT_CLASS = 'h-[312px]'
 
 function VaultRegistryBody({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>) {
   return (
-    <>
-      <div className="hidden min-w-0 lg:block">
-        <DashCard
-          title="Vaults"
-          subtitle="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
-          action={
-            <Badge color="neutral" className="shrink-0">
-              {formatNumber(vaultList.length)} vault(s)
-            </Badge>
-          }
-          contentClassName={REGISTRY_SLOT_CLASS}
-        >
-          <AdminTable>
-            <TableHead>
-              <TableRow>
-                <TableHeader className={tableCol.primary}>Vault</TableHeader>
-                <TableHeader className={tableCol.numeric}>AUM</TableHeader>
-                <TableHeader className={tableCol.numeric}>Deployed</TableHeader>
-                <TableHeader className={tableCol.numeric}>Available</TableHeader>
-                <TableHeader className={tableCol.numeric}>Drift</TableHeader>
-                <TableHeader className={tableCol.date}>Rebalance</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {vaultList.map((vault) => (
-                <VaultPrimaryRow key={vault.id} vault={vault} />
-              ))}
-            </TableBody>
-          </AdminTable>
-        </DashCard>
-      </div>
-
-      <DashCard
-        title="Vaults"
-        subtitle="Capital and allocation drift as reported by the service."
-        className="lg:hidden"
-        action={
-          <span className="shrink-0 text-xs text-fg-tertiary">
-            {formatNumber(vaultList.length)} vault(s)
-          </span>
-        }
-      >
-        <ul className="divide-y divide-console-line-soft">
-          {vaultList.map((vault) => (
-            <VaultMobileCard key={vault.id} vault={vault} />
-          ))}
-        </ul>
-      </DashCard>
-    </>
+    <DashCard
+      title="Vaults"
+      subtitle="Capital and allocation drift as reported by the service. Open a row for chain, strategies, and activity."
+      action={<ResultCount>{formatNumber(vaultList.length)} vault(s)</ResultCount>}
+      contentClassName={REGISTRY_SLOT_CLASS}
+    >
+      <ListTable
+        label="Vault registry"
+        className="-mx-5"
+        rows={[...vaultList]}
+        rowKey={(vault) => vault.id}
+        href={(vault) => entityHref('vault', vault.id)}
+        rowLabel={(vault) => `Open ${vault.label}`}
+        identity={{
+          header: 'Vault',
+          badge: () => <RowBadge icon={CircleStackIcon} />,
+          title: (vault) => vault.label,
+          detail: (vault) => <AdminReading compact value={rebalanceLabel(vault)} emptyLabel="Not reported" />,
+        }}
+        columns={[
+          { key: 'aum', header: 'AUM', cell: (vault) => <AdminReading compact value={vaultAmount(vault, vault.totalAssetsAtomic)} /> },
+          { key: 'deployed', header: 'Deployed', hideBelow: 'md', cell: deployedCell },
+          {
+            key: 'available',
+            header: 'Available',
+            hideBelow: 'lg',
+            cell: (vault) => <AdminReading compact value={vaultAmount(vault, idleAtomic(vault))} />,
+          },
+          { key: 'drift', header: 'Drift', cell: driftCell },
+        ]}
+      />
+    </DashCard>
   )
 }
 
@@ -234,25 +137,25 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
   }, null)
 
   return (
-    <aside className="flex min-w-0 flex-col gap-6">
+    <aside className="flex min-w-0 flex-col gap-(--ds-page-gap)">
       <DashCard title="Fleet" subtitle="Registry-wide read at a glance.">
         <dl className="space-y-4">
           <div className="min-w-0">
-            <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
+            <dt className="text-xs font-medium uppercase tracking-wide text-(--ds-shell-subtle)">
               Vaults off target
             </dt>
-            <dd className="mt-1 text-2xl font-semibold tabular-nums text-fg">
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-(--ds-text)">
               {formatNumber(withDrift)}
-              <span className="ml-1 text-sm font-normal text-fg-tertiary">
+              <span className="ml-1 text-sm font-normal text-(--ds-shell-subtle)">
                 / {formatNumber(vaultList.length)}
               </span>
             </dd>
           </div>
-          <div className="min-w-0 border-t border-console-line-soft pt-4">
-            <dt className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">
+          <div className="min-w-0 border-t border-(--ds-divider) pt-4">
+            <dt className="text-xs font-medium uppercase tracking-wide text-(--ds-shell-subtle)">
               Worst drift
             </dt>
-            <dd className="mt-1 text-2xl font-semibold tabular-nums text-fg">
+            <dd className="mt-1 text-2xl font-semibold tabular-nums text-(--ds-text)">
               {worstDrift === null ? '—' : driftPoints(worstDrift)}
             </dd>
           </div>
@@ -265,7 +168,7 @@ function VaultParcRail({ vaultList }: Readonly<{ vaultList: readonly Vault[] }>)
         subtitle="Where this read comes from."
         action={<PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>}
       >
-        <Text className="text-sm text-fg-secondary">
+        <Text className="text-sm text-(--ds-text-subtle)">
           Vault capital and drift are read from the service.
         </Text>
       </DashCard>
@@ -280,7 +183,7 @@ function VaultRegistryContent({ vaultList }: Readonly<{ vaultList: readonly Vaul
         <BentoCard span={12}>
           <Callout tone="warning" title="Vault read unavailable">
             The vault read did not succeed.{' '}
-            <Link href={entityHref('source', 'vault')} className="text-accent-400">
+            <Link href={entityHref('source', 'vault')} className="text-(--ds-accent)">
               Data coverage
             </Link>
           </Callout>
@@ -326,15 +229,14 @@ export default async function Page() {
   const vaultList = valueOf(registry.vaults)
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'active', title: 'Active vaults', value: activeVaults, icon: ArchiveBoxIcon },
-    { id: 'listed', title: 'Vaults listed', value: totalVaults, icon: BuildingLibraryIcon },
+    { id: 'active', title: 'Active vaults', value: activeVaults },
+    { id: 'listed', title: 'Vaults listed', value: totalVaults },
   ]
 
   return (
     <DashboardShell>
       <DashboardHeader
         title="Vaults"
-        description="Vault capital, strategies, drift, and rebalancing status."
         kpis={kpis}
       />
 

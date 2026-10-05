@@ -15,20 +15,20 @@ const footerLinks = [
 /** Marketing footer — watermark "Connect" background, menus on top. */
 export function SiteFooter() {
   return (
-    <footer className="relative w-full overflow-hidden border-t border-console-line-soft bg-console-app">
+    <footer className="relative w-full overflow-hidden border-t border-(--ds-divider) bg-(--ds-surface)">
       <p
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-accent-300/[0.08]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-(--ds-accent)/[0.08]"
       >
         Connect
       </p>
 
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 px-6 py-10 pb-24 text-sm md:flex-row md:px-8 md:pb-28">
         <div>
-          <Link href="/" className="inline-flex text-white">
+          <Link href="/" className="inline-flex text-(--ds-text)">
             <Logo />
           </Link>
-          <p className="mt-4 max-w-[14rem] text-sm/6 text-white/60">
+          <p className="mt-4 max-w-[14rem] text-sm/6 text-(--ds-text)/60">
             © Hearst Corporation {new Date().getFullYear()}. All rights reserved.
           </p>
         </div>
@@ -37,7 +37,7 @@ export function SiteFooter() {
           <ul className="grid grid-cols-2 gap-x-10 gap-y-3 sm:grid-cols-3 md:gap-x-16">
             {footerLinks.map((link) => (
               <li key={link.title}>
-                <Link href={link.href} className="text-white/60 transition-colors hover:text-white">
+                <Link href={link.href} className="text-(--ds-text)/60 transition-colors hover:text-(--ds-text)">
                   {link.title}
                 </Link>
               </li>

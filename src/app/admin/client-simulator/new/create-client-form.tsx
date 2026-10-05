@@ -6,9 +6,9 @@ import {
   ConfirmField,
   actionFieldClass,
 } from '@/components/admin/forms/admin-action-form'
-import { Button } from '@/components/catalyst/button'
-import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
+import { Button } from '@hearst/ui/catalyst/button'
+import { Link } from '@hearst/ui/catalyst/link'
+import { Text } from '@hearst/ui/catalyst/text'
 import { Callout } from '@/components/compositions'
 import { createAdminUser, type CreateAdminUserOutcome } from '@/lib/backend/create-admin-user'
 import clsx from 'clsx'
@@ -48,12 +48,12 @@ export function CreateClientForm({
     // the full admin content-column width on large screens.
     <form action={action} className="max-w-md space-y-4">
       <label className="block">
-        <span className="text-xs text-fg-secondary">Email</span>
+        <span className="text-xs text-(--ds-text-subtle)">Email</span>
         <input name="email" type="email" required autoComplete="off" className={actionFieldClass} />
       </label>
 
       <label className="block">
-        <span className="text-xs text-fg-secondary">Password — min. 8 characters</span>
+        <span className="text-xs text-(--ds-text-subtle)">Password — min. 8 characters</span>
         <input
           name="password"
           type="password"
@@ -65,7 +65,7 @@ export function CreateClientForm({
       </label>
 
       <label className="block">
-        <span className="text-xs text-fg-secondary">Role</span>
+        <span className="text-xs text-(--ds-text-subtle)">Role</span>
         <select name="role" required defaultValue="investor" className={actionFieldClass}>
           <option value="investor">investor — simulated client</option>
           <option value="admin">admin</option>
@@ -74,7 +74,7 @@ export function CreateClientForm({
 
       <ConfirmField />
 
-      <Button type="submit" disabled={pending} color="dark/neutral">
+      <Button type="submit" disabled={pending}>
         {pending ? 'Creating…' : 'Create account'}
       </Button>
 
@@ -93,7 +93,7 @@ export function CreateClientForm({
             </Text>
           ) : null}
           {state.detail ? (
-            <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-fg')}>
+            <pre className={clsx(surfaceInset, 'overflow-x-auto p-3 text-xs/5 text-(--ds-text)')}>
               {state.detail}
             </pre>
           ) : null}

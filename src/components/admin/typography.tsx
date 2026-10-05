@@ -1,39 +1,24 @@
 import clsx from 'clsx'
 
-/**
- * Admin typography helpers.
- * Text colors: Hearst semantic `fg` / `fg-secondary` / `fg-tertiary`.
- * KPI / amounts use `fg` (primary foreground), never raw `text-white`.
- *
- * Only the consumed keys live here — hero and KPI sizes are composed inline
- * by `AdminHeroTitle` / `AdminHeroKpiMetrics` (their sizes are role-specific).
- */
-
-export const adminTypography = {
-  label: 'text-[0.6875rem]/4 font-medium uppercase tracking-[0.08em] text-fg-secondary',
-} as const
-
 type TypoProps = Readonly<{ children: React.ReactNode; className?: string }>
 
+/** The label of a figure or a field: 13/20 grey. */
 export function AdminLabel({
   children,
   className,
   as: Tag = 'p',
 }: TypoProps & { as?: 'p' | 'span' }) {
-  return <Tag className={clsx(adminTypography.label, className)}>{children}</Tag>
+  return <Tag className={clsx('text-[0.8125rem]/5 text-(--ds-text-subtle)', className)}>{children}</Tag>
 }
 
-/** Hero banner H1 title (`AdminPageHeader`) — the only h1 allowed outside routes. */
+/** A screen title outside `PageHeader`: 24/30, regular weight. */
 export function AdminHeroTitle({
   children,
   className,
   id,
 }: TypoProps & { id?: string }) {
   return (
-    <h1
-      id={id}
-      className={clsx('truncate text-xl font-semibold tracking-tight text-fg sm:text-2xl', className)}
-    >
+    <h1 id={id} className={clsx('truncate text-2xl/7.5 tracking-[-0.025em] text-(--ds-text)', className)}>
       {children}
     </h1>
   )

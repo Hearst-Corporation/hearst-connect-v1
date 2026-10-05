@@ -1,9 +1,9 @@
 import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import { Badge } from '@/components/catalyst/badge'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { Text } from '@/components/catalyst/text'
+import { ResultCount } from '@hearst/ui/page'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@hearst/ui/catalyst/table'
+import { Text } from '@hearst/ui/catalyst/text'
 import { ChartFrame, HearstDonutChart, type DonutSlice } from '@/components/charts'
 import { AdminTable, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
@@ -11,12 +11,6 @@ import { BACKEND_ENDPOINTS, pathParamNames, type BackendEndpoint, type EndpointA
 import { backendUrl } from '@/lib/env'
 import { formatNumber } from '@/lib/format'
 import { editorial, isAvailable } from '@/lib/vaults/model'
-import {
-  BoltIcon,
-  BookOpenIcon,
-  CpuChipIcon,
-  QueueListIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { ExplorerRow } from './explorer-row'
 
@@ -116,25 +110,21 @@ export default async function ApiExplorerPage() {
       id: 'total',
       title: 'Total endpoints',
       value: editorial(formatNumber(BACKEND_ENDPOINTS.length)),
-      icon: QueueListIcon,
     },
     {
       id: 'safe-reads',
       title: 'Safe reads',
       value: editorial(formatNumber(safeReadsCount)),
-      icon: BookOpenIcon,
     },
     {
       id: 'actions',
       title: 'Actions',
       value: editorial(formatNumber(actionsCount)),
-      icon: BoltIcon,
     },
     {
       id: 'ai-context',
       title: 'AI context',
       value: editorial(formatNumber(aiContextCount)),
-      icon: CpuChipIcon,
     },
   ]
 
@@ -142,7 +132,7 @@ export default async function ApiExplorerPage() {
     <DashboardShell>
       <DashboardHeader
         title="API explorer"
-        description="BACKEND_ENDPOINTS registry — safe reads, actions, and AI context."
+        path="/admin/api-explorer"
         kpis={kpis}
       />
 
@@ -159,7 +149,7 @@ export default async function ApiExplorerPage() {
           </ChartFrame>
         </BentoCard>
         <BentoCard span={6}>
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
             <DashCard title="What a row lets you do" titleLevel={2}>
               <Text>
                 A safe read can be called directly from its row. The response arrives with its HTTP status,
@@ -228,7 +218,7 @@ export default async function ApiExplorerPage() {
                 title={group.title}
                 subtitle={group.description}
                 titleLevel={2}
-                action={<Badge color="neutral">{formatNumber(endpoints.length)}</Badge>}
+                action={<ResultCount>{formatNumber(endpoints.length)}</ResultCount>}
               >
                 {endpoints.map((endpoint) => (
                   <ExplorerRow

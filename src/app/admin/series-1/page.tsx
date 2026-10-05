@@ -28,12 +28,6 @@ import {
   type Availability,
 } from '@/lib/vaults/model'
 import { movementCountTrend } from '@/lib/vaults/overview'
-import {
-  ArrowsRightLeftIcon,
-  BanknotesIcon,
-  SignalIcon,
-  Squares2X2Icon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Series 1 journal' }
@@ -142,11 +136,10 @@ function serie1Kpis(
       id: 'source',
       title: 'Source status',
       value: editorial(reponseOk ? 'Reachable' : 'Unavailable'),
-      icon: SignalIcon,
     },
-    { id: 'movements', title: 'Movements', value: movementCount, icon: ArrowsRightLeftIcon },
-    { id: 'financial', title: 'Financial entries', value: financialCount, icon: BanknotesIcon },
-    { id: 'types', title: 'Distinct types', value: typesCount, icon: Squares2X2Icon },
+    { id: 'movements', title: 'Movements', value: movementCount },
+    { id: 'financial', title: 'Financial entries', value: financialCount },
+    { id: 'types', title: 'Distinct types', value: typesCount },
   ]
 }
 
@@ -178,10 +171,9 @@ export default async function Page() {
   const kpis = serie1Kpis(reponse.ok, movementCount, financialCount, typesCount)
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Series 1 journal"
-        description="Operational event explorer for indexed Series 1 — source /api/v1/series1/events only."
         kpis={kpis}
       />
 

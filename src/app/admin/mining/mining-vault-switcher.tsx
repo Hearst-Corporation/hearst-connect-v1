@@ -1,6 +1,6 @@
 'use client'
 
-import { Select } from '@/components/catalyst/select'
+import { Select } from '@hearst/ui/catalyst/select'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useTransition } from 'react'
 
@@ -35,7 +35,7 @@ export function MiningVaultSwitcher({
 
   return (
     <div className="flex items-center gap-3">
-      <label htmlFor="mining-vault-switcher" className="text-sm font-medium text-fg-tertiary">
+      <label htmlFor="mining-vault-switcher" className="text-sm font-medium text-(--ds-shell-subtle)">
         RWA strategy
       </label>
       <Select

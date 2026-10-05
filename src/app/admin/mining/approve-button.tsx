@@ -1,8 +1,7 @@
 'use client'
 
-import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
+import { Button } from '@hearst/ui/catalyst/button'
 import { approveDistribution, type ApproveOutcome } from '@/lib/mining/actions'
-import clsx from 'clsx'
 import { useActionState } from 'react'
 
 export function ApproveButton({ distributionId }: Readonly<{ distributionId: string }>) {
@@ -14,17 +13,18 @@ export function ApproveButton({ distributionId }: Readonly<{ distributionId: str
   return (
     <form action={action} className="space-y-2">
       <input type="hidden" name="distributionId" value={distributionId} />
-      <button
+      <Button
         type="submit"
         disabled={pending}
-        className={clsx(actionButtonClass, 'w-full')}
+        color="accent"
+        className="w-full"
       >
         {pending ? 'Approving…' : 'Approve distribution'}
-      </button>
+      </Button>
       {outcome?.ok === false ? (
-        <p className="text-xs text-danger-400">{outcome.error}</p>
+        <p className="text-xs text-(--ds-danger)">{outcome.error}</p>
       ) : outcome?.ok === true ? (
-        <p className="text-xs text-success-400">Distribution approved.</p>
+        <p className="text-xs text-(--ds-success)">Distribution approved.</p>
       ) : null}
     </form>
   )

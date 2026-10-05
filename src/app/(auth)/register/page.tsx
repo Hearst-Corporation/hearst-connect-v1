@@ -1,6 +1,6 @@
-import { Button } from '@/components/catalyst/button'
-import { Strong, Text, TextLink } from '@/components/catalyst/text'
-import { Heading } from '@/components/catalyst/heading'
+import { Button } from '@hearst/ui/catalyst/button'
+import { Strong, Text, TextLink } from '@hearst/ui/catalyst/text'
+import { Heading } from '@hearst/ui/catalyst/heading'
 import { Logo } from '@/components/logo'
 import type { Metadata } from 'next'
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-ink dark:text-fg" />
+      <Logo className="text-(--ds-text)" />
       <div>
         <Heading>Invitation-only access</Heading>
         <Text className="mt-2">
@@ -20,7 +20,7 @@ export default function RegisterPage() {
         </Text>
       </div>
 
-      <Button href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20access%20request" className="w-full">
+      <Button color="accent" href="mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20access%20request" className="w-full">
         Email the team
       </Button>
 

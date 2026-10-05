@@ -46,10 +46,10 @@ export function ToastProvider({ children }: Readonly<{ children: ReactNode }>) {
               key={toast.id}
               className={`pointer-events-auto rounded-lg px-4 py-3 text-sm font-medium shadow-lg ring-1 ${
                 toast.type === 'success'
-                  ? 'bg-success-400 text-success-ink ring-success-500'
+                  ? 'bg-(--ds-success) text-(--ds-shell) ring-(--ds-success)'
                   : toast.type === 'error'
-                    ? 'bg-danger-400 text-danger-ink ring-danger-500'
-                    : 'bg-accent-400 text-accent-ink ring-accent-500'
+                    ? 'bg-(--ds-danger) text-(--ds-shell) ring-(--ds-danger)'
+                    : 'bg-(--ds-accent) text-(--ds-accent-text) ring-(--ds-focus)'
               }`}
             >
               {toast.message}

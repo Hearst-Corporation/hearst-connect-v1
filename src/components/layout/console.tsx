@@ -2,38 +2,14 @@ import { backendStateFrom, backendStateLabel } from '@/lib/backend/reading-state
 import { readableReason } from '@/lib/movements'
 import { isAvailable, signalOf, type Availability } from '@/lib/vaults/model'
 import { AdminToneBadge, toneForBackendState } from '@/components/admin/status-tone'
-import { Badge } from '@/components/catalyst/badge'
-import { Text } from '@/components/catalyst/text'
-import styles from './console.module.css'
 import clsx from 'clsx'
 
-/**
- * Shared console primitives for compositions: named absences (`Reading`) and
- * CSS module classes (`csl`). Not a route shell — account chrome uses SidebarLayout.
- */
-
-/*
- * `Panel` lives in `@/components/compositions/panel` (PASS 2): its material is
- * `surfaceBox` (Tailwind tokens), and the csl tones carry geometry only.
- * Here: the absence grammar (`Absent`, `Reading`) plus the `csl` classes (geometry /
- * metric typography / states). `.panel` CSS-module is no longer the material of the boxes.
- */
+export const metricValue = 'text-[0.9375rem]/[1.3] font-semibold tabular-nums wrap-anywhere text-(--ds-text)'
 
 /**
- * A named absence — rendered with Catalyst's `Badge`.
- *
- * ── Why the kit and not a hand-drawn pill ─────────────────────────────────
- * This used to be a `<span>` at 8px with a `::before` dot drawn in CSS: the
- * single most important string on the screen ("Unavailable", "Not exposed")
- * was also its least legible. `Badge` renders it at 12px with a real
- * background from the theme, and it is a component the whole product already
- * shares — one less pill to maintain.
- *
- * Under the badge: a readable reason when we have one, else the endpoint that
- * would answer. Never a raw snake_case reason code in the UI.
- *
- * `onAccent` still exists: on the light accent card a `neutral` badge would sit
- * light-on-light, so the ink flips there.
+ * A named absence: the state in words, then a readable reason when we have
+ * one, else the endpoint that would answer. Never a raw snake_case reason code.
+ * `onAccent` darkens the ink on the mint card.
  */
 function Absent({
   availability,
@@ -43,16 +19,17 @@ function Absent({
   if (isAvailable(availability)) return null
   const { reason, endpoint, status } = availability
   const readableMotif = readableReason(reason)
-  // Doctrine: an unknown reason → say nothing rather than leak a technical code.
   const detail = [readableMotif, endpoint].filter((part): part is string => part !== null && part !== undefined && part !== '')
   const detailLine = detail.join(' · ')
   return (
-    <span className={styles.absentBlock}>
-      <Badge color="neutral" className={clsx(onAccent && styles.absentOnAccent)}>
+    <span className="flex min-w-0 flex-col gap-0.5">
+      <span className={clsx('text-[0.8125rem]/5', onAccent ? 'text-(--ds-accent-text)/72' : 'text-(--ds-text-subtle)')}>
         {status === 'NOT_EXPOSED' ? 'Not exposed' : 'Unavailable'}
-      </Badge>
+      </span>
       {showRoute && detailLine !== '' && (
-        <Text className={clsx(styles.absentRoute, onAccent && styles.absentOnAccent)}>{detailLine}</Text>
+        <span className={clsx('block text-[0.8125rem]/5 wrap-anywhere', onAccent ? 'text-(--ds-accent-text)/72' : 'text-(--ds-shell-subtle)')}>
+          {detailLine}
+        </span>
       )}
     </span>
   )
@@ -78,12 +55,12 @@ export function Reading({
   if (!isAvailable(value)) return <Absent availability={value} onAccent={onAccent} showRoute={showRoute} />
   const signal = signalOf(value)
   if (signal === 'editorial') {
-    return <span className={clsx(styles.metricValue, className)}>{value.value}</span>
+    return <span className={clsx(metricValue, className)}>{value.value}</span>
   }
   const state = backendStateFrom(value)
   return (
     <span className="inline-flex items-center gap-2">
-      <span className={clsx(styles.metricValue, className)}>{value.value}</span>
+      <span className={clsx(metricValue, className)}>{value.value}</span>
       <AdminToneBadge
         tone={toneForBackendState(state)}
         showDot={state === 'LIVE'}
@@ -96,4 +73,3 @@ export function Reading({
   )
 }
 
-export { styles as csl }

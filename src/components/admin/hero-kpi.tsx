@@ -1,15 +1,10 @@
-import type { ComponentType, SVGProps } from 'react'
 import type { Availability } from '@/lib/vaults/model'
 
-/**
- * KPI contract for the cockpit command bar (`DashboardHeader`).
- * The glow-era hero renderer is gone — this type is the remaining contract.
- */
+/** One figure of a page's KPI band (`DashboardHeader`). */
 export type AdminHeroKpi = Readonly<{
   id: string
   title: string
   value: Availability<string>
-  /** Short unit / precision to the right of the value (optional). */
+  /** The line under the figure: its unit or scope. */
   unit?: string
-  icon: ComponentType<SVGProps<SVGSVGElement>>
 }>

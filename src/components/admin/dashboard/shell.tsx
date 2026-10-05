@@ -1,30 +1,19 @@
-import { Subheading } from '@/components/catalyst/heading'
-import { Text } from '@/components/catalyst/text'
+import { panelHint, panelTitle } from '@/components/compositions/panel'
 import { surfaceBox } from '@/components/admin/surface'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
-/**
- * Dashboard control container.
- * Card material = `surfaceBox` (PASS 2 canon) — not a second glass layer.
- */
+/** The column of a dashboard page: its blocks, spaced by the page gap. */
 export function DashboardShell({
   children,
   className,
 }: Readonly<{ children: ReactNode; className?: string }>) {
-  // Cockpit, not editorial: no reading-measure cap — the bento tracks and
-  // container queries own the geometry at every width, the shell fills the
-  // content card.
   return (
-    <div className={clsx('flex w-full min-w-0 flex-col gap-6', className)}>{children}</div>
+    <div className={clsx('flex w-full min-w-0 flex-col gap-(--ds-page-gap)', className)}>{children}</div>
   )
 }
 
-/**
- * DashCard — semantic dashboard CARD.
- *
- * Same `surfaceBox` material as `Panel`; height intrinsic to the content.
- */
+/** DashCard — a dashboard box, its height that of its content. */
 export function DashCard({
   children,
   className,
@@ -46,18 +35,19 @@ export function DashCard({
   /** Quiet link/action on the title row — replaces the bordered footer strip. */
   action?: ReactNode
 }>) {
+  const Title = titleLevel === 2 ? 'h2' : 'h3'
   return (
     <section data-surface="box" className={clsx(surfaceBox, 'flex min-w-0 flex-col', className)}>
       {title !== undefined ? (
-        <header className="flex items-start justify-between gap-3 px-4 pt-4 pb-1">
+        <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-1">
           <div className="min-w-0">
-            <Subheading level={titleLevel}>{title}</Subheading>
-            {subtitle !== undefined ? <Text className="mt-0.5">{subtitle}</Text> : null}
+            <Title className={panelTitle}>{title}</Title>
+            {subtitle !== undefined ? <p className={clsx(panelHint, 'mt-0.5')}>{subtitle}</p> : null}
           </div>
           {action}
         </header>
       ) : null}
-      <div className={clsx('flex min-h-0 min-w-0 flex-col p-4', contentClassName)}>{children}</div>
+      <div className={clsx('flex min-h-0 min-w-0 flex-col p-5', contentClassName)}>{children}</div>
     </section>
   )
 }

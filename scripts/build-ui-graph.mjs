@@ -75,34 +75,34 @@ function catalog() {
   n({
     id: 'foundation:color',
     type: 'FOUNDATION',
-    name: 'Color tokens (fg / ink / accent / status)',
+    name: 'Design tokens (@hearst/ui --ds-*)',
     domain: 'shared',
     source: 'src/styles/tailwind.css',
-    evidence: '@theme color tokens — shared by admin and account',
+    evidence: 'imports "@hearst/ui/styles/platform.css" — shared by admin and account',
   })
   n({
     id: 'foundation:console-surface',
     type: 'FOUNDATION',
-    name: 'Console surface tokens',
+    name: 'Surface tokens (--ds-surface / --ds-shell)',
     domain: 'shared',
-    source: 'src/styles/tailwind.css',
-    evidence: '--color-console-surface / console-card / console-shell',
+    source: 'src/components/admin/surface.tsx',
+    evidence: 'boxes and wells on "--ds-surface"',
   })
   n({
     id: 'foundation:console-card',
     type: 'FOUNDATION',
-    name: 'Console card token',
+    name: 'Box surface token',
     domain: 'shared',
-    source: 'src/styles/tailwind.css',
-    evidence: '--color-console-card consumed by admin surfaceBox and account CSS',
+    source: 'src/features/user-dashboard/user-dashboard.css',
+    evidence: 'cards on "--ds-surface-raised" in the account CSS',
   })
   n({
     id: 'foundation:typography',
     type: 'FOUNDATION',
-    name: 'Typography (Satoshi)',
+    name: 'Typography (FK Grotesk, @hearst/ui)',
     domain: 'shared',
     source: 'src/styles/tailwind.css',
-    evidence: '--font-satoshi / font-sans / font-display',
+    evidence: 'font-sans on "--ds-font-sans"',
   })
   n({
     id: 'foundation:charts',
@@ -179,15 +179,6 @@ function catalog() {
     surface: { kind: 'admin:surfaceInset' },
   })
   n({
-    id: 'surface:admin-nav',
-    type: 'SURFACE_PRIMITIVE',
-    name: 'surfaceNav',
-    domain: 'admin',
-    source: 'src/components/admin/surface.tsx',
-    evidence: 'export const surfaceNav',
-    surface: { kind: 'admin:surfaceNav' },
-  })
-  n({
     id: 'surface:admin-select',
     type: 'SURFACE_PRIMITIVE',
     name: 'surfaceSelect',
@@ -258,11 +249,9 @@ function catalog() {
   e('surface:admin-box', 'uses_foundation', 'foundation:console-card')
   e('surface:admin-box', 'uses_foundation', 'foundation:console-surface')
   e('surface:admin-inset', 'uses_foundation', 'foundation:console-surface')
-  e('surface:admin-nav', 'uses_foundation', 'foundation:console-surface')
   e('surface:admin-panel', 'uses_surface', 'surface:admin-box')
   e('surface:admin-dash-card', 'uses_surface', 'surface:admin-box')
   e('surface:admin-dash-card', 'uses_foundation', 'foundation:console-card')
-  e('layout:admin-application', 'uses_surface', 'surface:admin-nav')
   e('chart:chart-frame', 'uses_surface', 'surface:admin-panel')
 
   // ── Account surface / layout ──────────────────────────────────────────────

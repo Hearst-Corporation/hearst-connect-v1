@@ -10,7 +10,7 @@ export function PanelFallback({ label = 'Loading…' }: Readonly<{ label?: strin
       aria-busy="true"
       aria-live="polite"
     >
-      <p className="animate-pulse text-sm/6 tracking-wide text-fg-secondary uppercase">
+      <p className="animate-pulse text-sm/6 tracking-wide text-(--ds-text-subtle) uppercase">
         {label}
       </p>
     </div>

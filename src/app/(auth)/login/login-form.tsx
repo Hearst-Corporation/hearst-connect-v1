@@ -1,10 +1,10 @@
 'use client'
 
-import { Button } from '@/components/catalyst/button'
-import { ErrorMessage, Field, Label } from '@/components/catalyst/fieldset'
-import { Heading } from '@/components/catalyst/heading'
-import { Input } from '@/components/catalyst/input'
-import { Strong, Text, TextLink } from '@/components/catalyst/text'
+import { Button } from '@hearst/ui/catalyst/button'
+import { ErrorMessage, Field, Label } from '@hearst/ui/catalyst/fieldset'
+import { Heading } from '@hearst/ui/catalyst/heading'
+import { Input } from '@hearst/ui/catalyst/input'
+import { Strong, Text, TextLink } from '@hearst/ui/catalyst/text'
 import { Logo } from '@/components/logo'
 import { login, quickLoginOwner, type LoginState } from '@/lib/actions'
 import { useActionState } from 'react'
@@ -28,7 +28,7 @@ export function LoginForm({
 
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-ink dark:text-fg" />
+      <Logo className="text-(--ds-text)" />
       <div>
         <Heading>Sign in to your workspace</Heading>
         <Text className="mt-2">Use the professional email address linked to your organization.</Text>
@@ -36,13 +36,13 @@ export function LoginForm({
 
       <form action={formAction} className="grid grid-cols-1 gap-8">
       {notice ? (
-        <output className="block rounded-lg bg-warning-400/10 px-4 py-3 text-sm text-warning-400 ring-1 ring-warning-400/20">
+        <output className="block rounded-lg bg-(--ds-warning)/10 px-4 py-3 text-sm text-(--ds-warning) ring-1 ring-(--ds-warning)/20">
           {notice}
         </output>
       ) : null}
 
       {!loginReady ? (
-        <output className="block rounded-lg bg-fg px-4 py-3 text-sm text-console-fill-muted ring-1 ring-ink/10 dark:bg-white/5 dark:text-fg dark:ring-white/10">
+        <output className="block rounded-lg px-4 py-3 text-sm ring-1 bg-white/5 text-(--ds-text) ring-white/10">
           Authentication is not configured on this deployment: sign-in is not available right now.
         </output>
       ) : null}
@@ -73,7 +73,7 @@ export function LoginForm({
         {state.error ? <ErrorMessage role="alert">{state.error}</ErrorMessage> : null}
       </Field>
 
-      <Button type="submit" className="w-full" disabled={pending || !loginReady}>
+      <Button type="submit" color="accent" className="w-full" disabled={pending || !loginReady}>
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
 
@@ -86,7 +86,7 @@ export function LoginForm({
       </form>
 
       {devQuickLoginAvailable ? (
-        <form action={quickAction} className="border-t border-ink/10 pt-6 dark:border-white/10">
+        <form action={quickAction} className="border-t pt-6 border-white/10">
           <Field>
             <Button type="submit" outline className="w-full" disabled={quickPending}>
               {quickPending ? 'Signing in…' : 'Quick owner sign-in (local dev)'}

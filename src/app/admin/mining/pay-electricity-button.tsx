@@ -1,8 +1,7 @@
 'use client'
 
-import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
+import { Button } from '@hearst/ui/catalyst/button'
 import { payElectricity, type PayElectricityOutcome } from '@/lib/mining/actions'
-import clsx from 'clsx'
 import { useActionState } from 'react'
 
 export function PayElectricityButton({
@@ -16,17 +15,18 @@ export function PayElectricityButton({
   return (
     <form action={action} className="space-y-2">
       <input type="hidden" name="amount" value={amount} />
-      <button
+      <Button
         type="submit"
         disabled={pending}
-        className={clsx(actionButtonClass, 'w-full')}
+        color="accent"
+        className="w-full"
       >
         {pending ? 'Processing…' : 'Pay electricity'}
-      </button>
+      </Button>
       {outcome?.ok === false ? (
-        <p className="text-xs text-danger-400">{outcome.error}</p>
+        <p className="text-xs text-(--ds-danger)">{outcome.error}</p>
       ) : outcome?.ok === true ? (
-        <p className="text-xs text-success-400">Payment recorded.</p>
+        <p className="text-xs text-(--ds-success)">Payment recorded.</p>
       ) : null}
     </form>
   )

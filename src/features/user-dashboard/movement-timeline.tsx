@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { motion, type Variants } from 'motion/react'
 import {
   ArrowDownTrayIcon,
@@ -93,14 +94,9 @@ function Row({
           {/* Piste vide : écarte l'action de l'ancienneté sans padding ad hoc. */}
           <span aria-hidden="true" />
 
-          <button
-            type="button"
-            className="timeline-detail"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
+          <Button color="accent" size="xs" className="timeline-detail" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             {open ? 'Hide' : 'Detail'}
-          </button>
+          </Button>
         </div>
 
         {/* Le dépli ne charge rien : il montre ce que la ligne ne peut pas tenir
@@ -165,9 +161,9 @@ export function MovementTimeline({
 
   const toggle =
     hidden > 0 ? (
-      <button type="button" className="timeline-toggle" onClick={() => setExpanded((v) => !v)}>
+      <Button color="accent" className="timeline-toggle" onClick={() => setExpanded((v) => !v)}>
         {expanded ? 'Show less' : `Show ${hidden} more`}
-      </button>
+      </Button>
     ) : null
 
   if (!animate) {

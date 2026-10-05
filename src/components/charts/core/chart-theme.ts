@@ -34,14 +34,13 @@ export const chartTheme = {
   /* Live height flows through `chartViewport(role)` — not dataset length. */
   margin: { top: 8, right: 16, bottom: 8, left: 8 },
   axisFontSize: 11,
-  // Doctrine §7.5: the grid and axes speak the `--chart-*` tokens.
-  grid: 'var(--chart-grid, var(--color-fg-tertiary))',
+  grid: 'var(--ds-shell-subtle)',
   /** Restrained: grid lines situate a value, they are not part of the data. */
   gridOpacity: 0.06,
-  tick: 'var(--chart-axis, var(--color-fg-tertiary))',
-  cursor: 'color-mix(in oklab, var(--chart-axis, var(--color-fg-tertiary)) 8%, transparent)',
+  tick: 'var(--ds-shell-subtle)',
+  cursor: 'color-mix(in oklab, var(--ds-shell-subtle) 8%, transparent)',
   /** Surface under the plot — the active-dot ring "cuts" the dot out of the line. */
-  plotSurface: 'var(--color-console-surface)',
+  plotSurface: 'var(--ds-surface)',
 
   /**
    * Ordinary data. Mint and neutral, nothing else.
@@ -51,18 +50,18 @@ export const chartTheme = {
    * between mint and grey is what the reader decodes — not hue against hue.
    */
   dataSeries: {
-    brandPrimary: 'var(--color-accent-400)',
-    brandSecondary: 'var(--color-accent-700)',
-    dataReference: 'var(--chart-neutral, var(--color-fg-tertiary))',
-    neutralSurface: 'var(--color-console-raised)',
-    neutralRaised: 'var(--color-console-fill-muted)',
+    brandPrimary: 'var(--ds-accent)',
+    brandSecondary: 'var(--ds-accent-deep)',
+    dataReference: 'var(--ds-shell-subtle)',
+    neutralSurface: 'var(--ds-surface-raised)',
+    neutralRaised: 'var(--ds-surface-sunken)',
   },
 
   /** Reserved for meaning. Using one of these is a claim about state. */
   semantic: {
-    positive: 'var(--chart-positive, var(--color-success-400))',
-    warning: 'var(--chart-warning, var(--color-warning-400))',
-    critical: 'var(--chart-negative, var(--color-danger-400))',
+    positive: 'var(--ds-success)',
+    warning: 'var(--ds-warning)',
+    critical: 'var(--ds-danger)',
   },
 } as const
 
@@ -76,17 +75,12 @@ export const chartTheme = {
  * neutral graphite. A six-category chart therefore has one green bar, not six
  * shades of green pretending to be six different meanings.
  */
-// Doctrine §7.5: a SERIES ramp via the `--chart-1..5` tokens (a grammar
-// distinct from the status colors). The fallbacks mirror the live token
-// values in `src/styles/tailwind.css` (`--chart-2: fg-secondary`,
-// `--chart-3: fg-tertiary`, `--chart-4: fg-muted`) — same colors whether or
-// not the CSS vars resolve.
 const CATEGORICAL_RAMP = [
-  'var(--chart-1, var(--color-accent-400))',
-  'var(--chart-2, var(--color-fg-secondary))',
-  'var(--chart-3, var(--color-fg-tertiary))',
-  'var(--chart-4, var(--color-fg-muted))',
-  'var(--chart-5, var(--color-console-fill))',
+  'var(--ds-accent)',
+  'var(--ds-text-subtle)',
+  'var(--ds-shell-subtle)',
+  'var(--ds-chart-4)',
+  'var(--ds-surface-sunken)',
 ] as const
 
 export function categoricalColor(index: number): string {
@@ -105,10 +99,7 @@ export type ChartKind =
   /** Categorical donut — fixed square-ish viewport; slice count does not resize. */
   | 'donut'
 
-/**
- * Semantic viewport roles. Values match CSS tokens in `src/styles/tailwind.css`
- * (`--chart-viewport-*` / `--chart-donut-viewport-block-size`) at 16px root.
- */
+/** Semantic viewport roles, in px. */
 export type ChartViewportRole = 'compact' | 'standard' | 'hero' | 'donut'
 
 export const CHART_VIEWPORT_PX = {

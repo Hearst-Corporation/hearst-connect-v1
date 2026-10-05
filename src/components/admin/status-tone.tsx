@@ -1,17 +1,18 @@
+import { StatusMark } from '@hearst/ui/status'
 import clsx from 'clsx'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-/** Admin status / badge tones mapped to semantic tokens via `AdminToneBadge`. */
+/** An item's state written in its colour, without a fill. */
 
 export type AdminBadgeTone = 'ok' | 'warn' | 'bad' | 'info' | 'neutral' | 'accent'
 
 export const ADMIN_TONE_CLASS: Record<AdminBadgeTone, string> = {
-  ok: 'bg-success-400/15 text-success-400 ring-success-400/30',
-  warn: 'bg-warning-400/15 text-warning-400 ring-warning-400/30',
-  bad: 'bg-danger-400/20 text-danger-400 ring-danger-400/40',
-  info: 'bg-white/5 text-fg ring-console-line-strong',
-  neutral: 'bg-white/5 text-fg-secondary ring-console-line-strong',
-  accent: 'bg-accent-400/15 text-accent-400 ring-accent-400/30',
+  ok: 'text-(--ds-success)',
+  warn: 'text-(--ds-warning)',
+  bad: 'text-(--ds-danger)',
+  info: 'text-(--ds-text)',
+  neutral: 'text-(--ds-text-subtle)',
+  accent: 'text-(--ds-accent)',
 }
 
 export function AdminToneBadge({
@@ -29,16 +30,30 @@ export function AdminToneBadge({
   ComponentPropsWithoutRef<'span'>) {
   return (
     <span
-      className={clsx(
-        'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-        ADMIN_TONE_CLASS[tone],
-        className,
-      )}
+      className={clsx('inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap', ADMIN_TONE_CLASS[tone], className)}
       {...rest}
     >
       {showDot ? <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" /> : null}
       {children}
     </span>
+  )
+}
+
+const MARK_TONE = {
+  ok: 'active',
+  accent: 'active',
+  warn: 'pending',
+  info: 'pending',
+  neutral: 'pending',
+  bad: 'inactive',
+} as const satisfies Record<AdminBadgeTone, string>
+
+/** A row's state as the round mark, its word on hover; `children` stays written beside (a date). */
+export function ToneMark({ tone, label, children }: Readonly<{ tone: AdminBadgeTone; label: string; children?: ReactNode }>) {
+  return (
+    <StatusMark tone={MARK_TONE[tone]} label={label}>
+      {children}
+    </StatusMark>
   )
 }
 

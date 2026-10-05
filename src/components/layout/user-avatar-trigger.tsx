@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar } from '@/components/catalyst/avatar'
+import { Avatar } from '@hearst/ui/catalyst/avatar'
 
 export function userInitials(name: string): string {
   return name
@@ -24,8 +24,8 @@ export function SidebarFooterIdentity({
     <span className="flex min-w-0 items-center gap-3">
       <Avatar initials={initials || 'HC'} className="size-10" square alt="" />
       <span className="min-w-0">
-        <span className="block truncate text-sm/5 font-medium text-ink dark:text-fg">{name}</span>
-        <span className="block truncate text-xs/5 font-normal text-fg-tertiary dark:text-fg-secondary">
+        <span className="block truncate text-sm/5 font-medium text-(--ds-text)">{name}</span>
+        <span className="block truncate text-xs/5 font-normal text-(--ds-text-subtle)">
           {email}
         </span>
       </span>

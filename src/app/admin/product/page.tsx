@@ -3,7 +3,7 @@ import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { DashboardHeader } from '@/components/admin/dashboard'
 import { BtcReserveBalance, type ReserveBalance } from '@/components/admin/btc-reserve-balance'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@hearst/ui/catalyst/table'
 import { HearstCurveChart, ReserveExposureChart, type BitcoinItem } from '@/components/charts'
 import { AdminTable, Callout, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
@@ -13,12 +13,6 @@ import { formatCurrency, formatNumber } from '@/lib/format'
 import { readableSourceState } from '@/lib/movements'
 import { seriesStateFrom } from '@/lib/series-state'
 import { editorial } from '@/lib/vaults/model'
-import {
-  CircleStackIcon,
-  CpuChipIcon,
-  SignalIcon,
-  Square3Stack3DIcon,
-} from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
@@ -223,8 +217,8 @@ function ProductPanel({
 function ReadingRow({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-3">
-      <dt className="min-w-0 text-xs font-medium text-fg-tertiary">{label}</dt>
-      <dd className="shrink-0 text-sm font-semibold tabular-nums text-fg">{value}</dd>
+      <dt className="min-w-0 text-xs font-medium text-(--ds-shell-subtle)">{label}</dt>
+      <dd className="shrink-0 text-sm font-semibold tabular-nums text-(--ds-text)">{value}</dd>
     </div>
   )
 }
@@ -245,7 +239,7 @@ function CapitalReserveSection({
   if (soleItem !== undefined) {
     return (
       <>
-        <dl className="divide-y divide-console-line-soft">
+        <dl className="divide-y divide-(--ds-divider)">
           <ReadingRow
             label={soleItem.item}
             value={formatCurrency(soleItem.amount, { fromAtomic: 1, decimals: 0 })}
@@ -262,12 +256,12 @@ function CapitalReserveSection({
   return (
     <>
       <ReserveExposureChart items={chartItems} />
-      <div className="mt-2 border-t border-console-line-soft pt-3">
+      <div className="mt-2 border-t border-(--ds-divider) pt-3">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="text-xs font-semibold text-fg">Capital allocation</p>
-          <p className="text-[11px] text-fg-tertiary">{items.length} positions</p>
+          <p className="text-xs font-semibold text-(--ds-text)">Capital allocation</p>
+          <p className="text-[11px] text-(--ds-shell-subtle)">{items.length} positions</p>
         </div>
-        <p className="mt-0.5 text-[11px] text-fg-tertiary">
+        <p className="mt-0.5 text-[11px] text-(--ds-shell-subtle)">
           in dollars — idle reserve vs exposed value · Reserve and exposure read on-chain — the exact figures the
           chart positions.
         </p>
@@ -355,14 +349,13 @@ function productKpisFrom(
   )
 
   return [
-    { id: 'hashrate', title: 'Hashrate', value: hashrateCell, unit: 'TH/s', icon: CpuChipIcon },
-    { id: 'btc-produced', title: 'BTC produced', value: btcProducedCell, unit: 'BTC', icon: CircleStackIcon },
-    { id: 'cap', title: 'Cap', value: capCell, icon: Square3Stack3DIcon },
+    { id: 'hashrate', title: 'Hashrate', value: hashrateCell, unit: 'TH/s' },
+    { id: 'btc-produced', title: 'BTC produced', value: btcProducedCell, unit: 'BTC' },
+    { id: 'cap', title: 'Cap', value: capCell },
     {
       id: 'source-btc',
       title: 'BTC source',
       value: editorial(b === null ? 'Unavailable' : 'Reachable'),
-      icon: SignalIcon,
     },
   ]
 }
@@ -406,10 +399,10 @@ export default async function Page() {
   const kpis = productKpisFrom(mining, btc, factsheet, m, b, f)
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Consolidated product view"
-        description="Mining, BTC, and product factsheet readings — no invented values."
+        path="/admin/product"
         kpis={kpis}
       />
 
@@ -428,7 +421,7 @@ export default async function Page() {
             slot="production"
             action={<PanelHeaderLink href="/admin/mining">Open mining</PanelHeaderLink>}
           >
-            <dl className="divide-y divide-console-line-soft">
+            <dl className="divide-y divide-(--ds-divider)">
               <ReadingRow
                 label="Reported hashrate"
                 value={hashrate ? `${formatNumber(Number(hashrate.reportedHashrateTh))} TH/s` : '—'}
@@ -484,7 +477,7 @@ export default async function Page() {
             subtitle={curveExplanation(points, curveConfigured, f?.vendingCurve)}
             slot="curve"
           >
-            <p className="text-[11px] text-fg-tertiary">as a percentage, per product milestone</p>
+            <p className="text-[11px] text-(--ds-shell-subtle)">as a percentage, per product milestone</p>
             {curveState.type === 'plotted' ? (
               <HearstCurveChart points={points} />
             ) : (
@@ -502,7 +495,7 @@ export default async function Page() {
             slot="milestones"
             action={
               points.length > 0 ? (
-                <span className="shrink-0 text-xs text-fg-tertiary">{points.length} milestones</span>
+                <span className="shrink-0 text-xs text-(--ds-shell-subtle)">{points.length} milestones</span>
               ) : undefined
             }
           >
@@ -541,7 +534,7 @@ export default async function Page() {
             subtitle="Three views whose question, axis, and unit are already decided. None charts until the service provides its series — the displayed state is what the source announces."
             action={
               <div className="flex shrink-0 items-center gap-3">
-                <span className="text-xs text-fg-tertiary">{pendingReadings.length} readings</span>
+                <span className="text-xs text-(--ds-shell-subtle)">{pendingReadings.length} readings</span>
                 <PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>
               </div>
             }
@@ -560,7 +553,7 @@ export default async function Page() {
                     <TableCell className={tableCol.primary}>
                       <div className="truncate font-medium">{reading.label}</div>
                     </TableCell>
-                    <TableCell className={`${tableCol.primary} text-fg-tertiary`}>{reading.explanation}</TableCell>
+                    <TableCell className={`${tableCol.primary} text-(--ds-shell-subtle)`}>{reading.explanation}</TableCell>
                     <TableCell className={tableCol.status}>
                       {reading.status ? readableSourceState(reading.status) : 'Not reported'}
                     </TableCell>

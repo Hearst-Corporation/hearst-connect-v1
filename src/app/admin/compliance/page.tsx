@@ -1,9 +1,9 @@
 import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
-import { Badge } from '@/components/catalyst/badge'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
+import { ToneMark, toneForKycStatus } from '@/components/admin/status-tone'
+import { ResultCount } from '@hearst/ui/page'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@hearst/ui/catalyst/table'
 import { AdminTable, tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
@@ -12,7 +12,6 @@ import { dateLisible } from '@/lib/movements'
 import { isAvailable, mapAvailability, measuredCount } from '@/lib/vaults/model'
 import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
 import { loadAdminRegistry } from '@/lib/vaults/registry'
-import { DocumentTextIcon, QueueListIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Compliance' }
@@ -44,15 +43,14 @@ export default async function Page() {
   const reviews = isAvailable(registry.compliance) ? registry.compliance.value : null
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'files', title: 'Som KYC records', value: dossierCount, icon: DocumentTextIcon },
-    { id: 'stages', title: 'Distinct stages', value: stages, icon: QueueListIcon },
+    { id: 'files', title: 'Som KYC records', value: dossierCount },
+    { id: 'stages', title: 'Distinct stages', value: stages },
   ]
 
   return (
     <DashboardShell>
       <DashboardHeader
         title="Compliance"
-        description="Partner KYC status from Som — read only. Hearst does not review or decide KYC here."
         kpis={kpis}
       />
 
@@ -67,7 +65,7 @@ export default async function Page() {
             action={
               <div className="flex shrink-0 items-center gap-4">
                 {reviews !== null && reviews.length > 0 ? (
-                  <Badge color="neutral">{`${reviews.length} record(s)`}</Badge>
+                  <ResultCount>{`${reviews.length} record(s)`}</ResultCount>
                 ) : null}
                 <PanelHeaderLink href="/admin/clients">Client directory</PanelHeaderLink>
                 <PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>
@@ -101,9 +99,7 @@ export default async function Page() {
                         <div className="truncate">{kycStepLabel(review.stage)}</div>
                       </TableCell>
                       <TableCell className={tableCol.status}>
-                        <AdminToneBadge tone={toneForKycStatus(review.kycStatus)}>
-                          {kycStatusLabel(review.kycStatus)}
-                        </AdminToneBadge>
+                        <ToneMark tone={toneForKycStatus(review.kycStatus)} label={kycStatusLabel(review.kycStatus)} />
                       </TableCell>
                       <TableCell className={tableCol.date}>{dateLisible(review.lastEventAt)}</TableCell>
                     </TableRow>

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repo": "Hearst-Corporation/hearst-connect-v1",
-  "sourceSha": "6103253d0d526c8ec6d3fb196f2bd0297fc0700e",
-  "generatedAt": "2026-08-22T01:11:48.613Z",
+  "sourceSha": "f5e8a472883993c00489a89e45e87460735cc084",
+  "generatedAt": "2026-10-05T05:20:20.527Z",
   "doctrine": "CODE = truth. GRAPH = derived observation map.",
   "nodes": [
     {
@@ -208,26 +208,26 @@
     {
       "id": "foundation:color",
       "type": "FOUNDATION",
-      "name": "Color tokens (fg / ink / accent / status)",
+      "name": "Design tokens (@hearst/ui --ds-*)",
       "domain": "shared",
       "source": "src/styles/tailwind.css",
-      "evidence": "@theme color tokens — shared by admin and account"
+      "evidence": "imports \"@hearst/ui/styles/platform.css\" — shared by admin and account"
     },
     {
       "id": "foundation:console-card",
       "type": "FOUNDATION",
-      "name": "Console card token",
+      "name": "Box surface token",
       "domain": "shared",
-      "source": "src/styles/tailwind.css",
-      "evidence": "--color-console-card consumed by admin surfaceBox and account CSS"
+      "source": "src/features/user-dashboard/user-dashboard.css",
+      "evidence": "cards on \"--ds-surface-raised\" in the account CSS"
     },
     {
       "id": "foundation:console-surface",
       "type": "FOUNDATION",
-      "name": "Console surface tokens",
+      "name": "Surface tokens (--ds-surface / --ds-shell)",
       "domain": "shared",
-      "source": "src/styles/tailwind.css",
-      "evidence": "--color-console-surface / console-card / console-shell"
+      "source": "src/components/admin/surface.tsx",
+      "evidence": "boxes and wells on \"--ds-surface\""
     },
     {
       "id": "foundation:motion",
@@ -240,10 +240,10 @@
     {
       "id": "foundation:typography",
       "type": "FOUNDATION",
-      "name": "Typography (Satoshi)",
+      "name": "Typography (FK Grotesk, @hearst/ui)",
       "domain": "shared",
       "source": "src/styles/tailwind.css",
-      "evidence": "--font-satoshi / font-sans / font-display"
+      "evidence": "font-sans on \"--ds-font-sans\""
     },
     {
       "id": "layout:account-session-guard",
@@ -825,17 +825,6 @@
       }
     },
     {
-      "id": "surface:admin-nav",
-      "type": "SURFACE_PRIMITIVE",
-      "name": "surfaceNav",
-      "domain": "admin",
-      "source": "src/components/admin/surface.tsx",
-      "evidence": "export const surfaceNav",
-      "surface": {
-        "kind": "admin:surfaceNav"
-      }
-    },
-    {
       "id": "surface:admin-panel",
       "type": "SURFACE_PRIMITIVE",
       "name": "Panel",
@@ -1083,11 +1072,6 @@
       "from": "layout:admin-application",
       "to": "foundation:typography",
       "type": "uses_foundation"
-    },
-    {
-      "from": "layout:admin-application",
-      "to": "surface:admin-nav",
-      "type": "uses_surface"
     },
     {
       "from": "layout:admin-session",
@@ -1551,11 +1535,6 @@
     },
     {
       "from": "surface:admin-inset",
-      "to": "foundation:console-surface",
-      "type": "uses_foundation"
-    },
-    {
-      "from": "surface:admin-nav",
       "to": "foundation:console-surface",
       "type": "uses_foundation"
     },

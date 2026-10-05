@@ -42,15 +42,15 @@ export function RebalancingAlertsPanel({
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex items-start gap-3">
           {!measured ? (
-            <ExclamationTriangleIcon className="size-6 shrink-0 text-fg-tertiary" aria-hidden="true" />
+            <ExclamationTriangleIcon className="size-6 shrink-0 text-(--ds-shell-subtle)" aria-hidden="true" />
           ) : stable ? (
-            <CheckCircleIcon className="size-6 shrink-0 text-accent-500" aria-hidden="true" />
+            <CheckCircleIcon className="size-6 shrink-0 text-(--ds-accent)" aria-hidden="true" />
           ) : (
-            <ExclamationTriangleIcon className="size-6 shrink-0 text-warning-500" aria-hidden="true" />
+            <ExclamationTriangleIcon className="size-6 shrink-0 text-(--ds-warning)" aria-hidden="true" />
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-fg">{statusHeadline(data, stable)}</p>
-            <p className="mt-1 text-xs text-fg-tertiary">{statusDetail(data)}</p>
+            <p className="text-sm font-semibold text-(--ds-text)">{statusHeadline(data, stable)}</p>
+            <p className="mt-1 text-xs text-(--ds-shell-subtle)">{statusDetail(data)}</p>
           </div>
         </div>
 
@@ -59,10 +59,10 @@ export function RebalancingAlertsPanel({
             {data.alerts.map((alert) => (
               <li
                 key={alert.strategyId}
-                className="flex min-w-0 items-center justify-between gap-2 border-t border-console-line-soft py-2 text-sm first:border-t-0"
+                className="flex min-w-0 items-center justify-between gap-2 border-t border-(--ds-divider) py-2 text-sm first:border-t-0"
               >
-                <span className="min-w-0 truncate font-medium text-fg">{alert.strategyLabel}</span>
-                <span className="shrink-0 tabular-nums text-warning-400">
+                <span className="min-w-0 truncate font-medium text-(--ds-text)">{alert.strategyLabel}</span>
+                <span className="shrink-0 tabular-nums text-(--ds-warning)">
                   {formatDriftPts(alert.driftBps)}
                 </span>
               </li>
@@ -72,11 +72,11 @@ export function RebalancingAlertsPanel({
       </div>
 
       {footerNote(data, stable) !== '' ? (
-        <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
+        <p className="text-xs text-(--ds-shell-subtle)">{footerNote(data, stable)}</p>
       ) : (
         <Link
           href="/admin/operations"
-          className="text-xs font-medium text-accent-400 hover:text-accent-300"
+          className="text-xs font-medium text-(--ds-accent) hover:text-(--ds-accent-hover)"
         >
           Review drift alerts in Operations
         </Link>

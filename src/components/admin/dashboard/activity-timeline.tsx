@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelState } from '@/components/admin/dashboard/panel-state'
-import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
+import { ToneMark, toneForActivityStatus } from '@/components/admin/status-tone'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
@@ -51,20 +51,20 @@ export function ActivityTimelinePanel({
         The card's fixed slot owns the height (row-matched); the list fills it
         and scrolls inside — dataset never owns geometry.
       */}
-      <ul className="relative min-h-0 flex-1 space-y-4 overflow-y-auto border-l border-console-line pl-4 scrollbar-none">
+      <ul className="relative min-h-0 flex-1 space-y-4 overflow-y-auto border-l border-(--ds-shell-border) pl-4 scrollbar-none">
         {events.value.map((event) => (
           <li key={event.id} className="relative">
             <span
               aria-hidden="true"
-              className="absolute top-1.5 left-[-1.3rem] size-2 rounded-full bg-accent-400 ring-2 ring-console-card"
+              className="absolute top-1.5 left-[-1.3rem] size-2 rounded-full bg-(--ds-accent) ring-2 ring-(--ds-surface-raised)"
             />
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 {/* English vocabulary from the movement type (backend fact); the
                     backend `title` is localized copy and is not rendered here. */}
-                <p className="text-sm font-semibold text-fg">{movementLabel(event.type)}</p>
+                <p className="text-sm font-semibold text-(--ds-text)">{movementLabel(event.type)}</p>
                 <p
-                  className="mt-0.5 truncate text-xs text-fg-tertiary"
+                  className="mt-0.5 truncate text-xs text-(--ds-shell-subtle)"
                   title={eventClientTitle(event, assetScale)}
                 >
                   {formatAddress(event.clientLabel) ?? event.clientLabel ?? '—'}
@@ -73,13 +73,12 @@ export function ActivityTimelinePanel({
                     : null}
                 </p>
                 {event.txHash !== null ? (
-                  <p className="mt-0.5 truncate font-mono text-[11px] text-fg-secondary">{formatHash(event.txHash)}</p>
+                  <p className="mt-0.5 truncate font-mono text-[11px] text-(--ds-text-subtle)">{formatHash(event.txHash)}</p>
                 ) : null}
               </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
-                <span className="text-[11px] text-fg-tertiary">{formatRelativeTime(event.occurredAt)}</span>
-              </div>
+              <ToneMark tone={toneForActivityStatus(event.status)} label={event.status}>
+                {formatRelativeTime(event.occurredAt)}
+              </ToneMark>
             </div>
           </li>
         ))}

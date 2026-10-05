@@ -1,8 +1,7 @@
 'use client'
 
-import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
+import { Button } from '@hearst/ui/catalyst/button'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
-import clsx from 'clsx'
 import { useToast } from '@/components/admin/toast'
 import { useRouter } from 'next/navigation'
 import { useTransition, useState, useCallback } from 'react'
@@ -49,23 +48,24 @@ export function RebalanceNowButton({ disabled, disabledReason }: Readonly<{ disa
 
   return (
     <div className="space-y-2">
-      <button
+      <Button
         type="button"
         onClick={handleClick}
         disabled={disabled || isPending}
         title={disabledReason ?? undefined}
-        className={clsx(actionButtonClass, 'w-full')}
+        color="accent"
+        className="w-full"
       >
         {isPending ? 'Logging…' : 'Request rebalance'}
-      </button>
+      </Button>
       {disabled && disabledReason ? (
-        <p className="text-xs text-fg-tertiary">{disabledReason}</p>
+        <p className="text-xs text-(--ds-shell-subtle)">{disabledReason}</p>
       ) : lastOutcome?.ok && lastOutcome.result?.status === 'success' ? (
-        <p className="text-xs text-success-400">Keeper request logged. Data will refresh shortly.</p>
+        <p className="text-xs text-(--ds-success)">Keeper request logged. Data will refresh shortly.</p>
       ) : lastOutcome?.ok && lastOutcome.result?.status === 'blocked' ? (
-        <p className="text-xs text-warning-400">Blocked: {lastOutcome.result.detail ?? lastOutcome.result.reason}</p>
+        <p className="text-xs text-(--ds-warning)">Blocked: {lastOutcome.result.detail ?? lastOutcome.result.reason}</p>
       ) : lastOutcome && (!lastOutcome.ok || lastOutcome.result?.status !== 'success') ? (
-        <p className="text-xs text-danger-400">
+        <p className="text-xs text-(--ds-danger)">
           {lastOutcome.validationError ?? lastOutcome.problem?.detail ?? lastOutcome.stateReason ?? lastOutcome.result?.reason ?? 'Failed'}
         </p>
       ) : null}

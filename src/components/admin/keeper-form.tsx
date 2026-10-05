@@ -1,12 +1,12 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { surfaceBox, surfaceInset } from '@/components/admin/surface'
 import {
   ActionOutcome,
   ConfirmField,
   KeeperBodyFields,
   KeeperMetricsFields,
-  actionButtonClass,
 } from '@/components/admin/forms/admin-action-form'
 import { StatusBadge } from '@/components/admin/truthful'
 import { Callout } from '@/components/compositions'
@@ -40,8 +40,8 @@ export function KeeperForm({
     >
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-fg">{endpoint.summary}</h2>
-          <p className="mt-0.5 font-mono text-xs text-fg-secondary">
+          <h2 className="text-panel font-semibold text-(--ds-text)">{endpoint.summary}</h2>
+          <p className="mt-0.5 font-mono text-xs text-(--ds-text-subtle)">
             {endpoint.method} {endpoint.path}
           </p>
         </div>
@@ -56,20 +56,20 @@ export function KeeperForm({
         ) : null}
 
         {disabled ? (
-          <p className={clsx(surfaceInset, 'p-3 text-xs text-fg-secondary')}>{disabledReason}</p>
+          <p className={clsx(surfaceInset, 'p-3 text-xs text-(--ds-text-subtle)')}>{disabledReason}</p>
         ) : (
           <form action={formAction} className="space-y-3">
             <input type="hidden" name="endpointId" value={endpoint.id} />
             {needsMetrics ? <KeeperMetricsFields /> : null}
             <KeeperBodyFields endpointId={endpoint.id} />
             <ConfirmField />
-            <button
+            <Button
               type="submit"
               disabled={pending}
-              className={actionButtonClass}
+              color="accent"
             >
               {pending ? 'Sending…' : 'Send request'}
-            </button>
+            </Button>
           </form>
         )}
 

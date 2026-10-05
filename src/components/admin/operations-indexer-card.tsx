@@ -1,14 +1,14 @@
 'use client'
 
 import { DashCard } from '@/components/admin/dashboard'
-import { Button } from '@/components/catalyst/button'
+import { Button } from '@hearst/ui/catalyst/button'
 import {
   Dialog,
   DialogActions,
   DialogBody,
   DialogDescription,
   DialogTitle,
-} from '@/components/catalyst/dialog'
+} from '@hearst/ui/catalyst/dialog'
 import { ActionOutcome } from '@/components/admin/forms/admin-action-form'
 import { triggerIndexer, type IndexerTriggerOutcome } from '@/lib/backend/indexer-trigger'
 import { useActionState, useState } from 'react'
@@ -49,14 +49,14 @@ export function OperationsIndexerCard({
       <DashCard title="Indexer">
         <div className="flex flex-col gap-3">
           <div>
-            <p className="text-xs text-fg-tertiary">Status: {indexerLabel(indexerStatus)}</p>
-            <p className="mt-2 text-sm text-fg-secondary">
+            <p className="text-xs text-(--ds-shell-subtle)">Status: {indexerLabel(indexerStatus)}</p>
+            <p className="mt-2 text-sm text-(--ds-text-subtle)">
               Refresh indexed blockchain activity. This does not sign or submit vault transactions.
             </p>
           </div>
 
           <div>
-            <Button type="button" color="dark/neutral" onClick={() => setOpen(true)} disabled={pending}>
+            <Button type="button" onClick={() => setOpen(true)} disabled={pending}>
               {pending ? 'Running…' : 'Run indexer'}
             </Button>
           </div>
@@ -69,7 +69,7 @@ export function OperationsIndexerCard({
               a visible failure.
             </DialogDescription>
             <DialogBody>
-              <p className="text-sm text-fg-tertiary">
+              <p className="text-sm text-(--ds-shell-subtle)">
                 Continue only if you intend to refresh indexed activity.
               </p>
             </DialogBody>
@@ -84,7 +84,7 @@ export function OperationsIndexerCard({
                 }}
               >
                 <input type="hidden" name="confirm" value="CONFIRM" />
-                <Button type="submit" color="dark/neutral" disabled={pending}>
+                <Button type="submit" disabled={pending}>
                   {pending ? 'Running…' : 'Confirm run'}
                 </Button>
               </form>
@@ -93,7 +93,7 @@ export function OperationsIndexerCard({
 
           <ActionOutcome outcome={state} />
           {state.ok ? (
-            <pre className="max-h-40 overflow-auto border-t border-console-line-soft pt-2 font-mono text-xs/5 text-fg scrollbar-none">
+            <pre className="max-h-40 overflow-auto border-t border-(--ds-divider) pt-2 font-mono text-xs/5 text-(--ds-text) scrollbar-none">
               {state.detail ?? 'OK'}
             </pre>
           ) : null}

@@ -1,12 +1,11 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import {
   ActionOutcome,
   ConfirmField,
   KeeperMetricsFields,
-  actionButtonClass,
 } from '@/components/admin/forms/admin-action-form'
-import clsx from 'clsx'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
 import { useActionState } from 'react'
 
@@ -21,13 +20,14 @@ export function ReportMetricsButton() {
       <input type="hidden" name="endpointId" value="keeper-mining-report" />
       <KeeperMetricsFields />
       <ConfirmField />
-      <button
+      <Button
         type="submit"
         disabled={pending}
-        className={clsx(actionButtonClass, 'w-full')}
+        color="accent"
+        className="w-full"
       >
         {pending ? 'Sending…' : 'Report metrics'}
-      </button>
+      </Button>
       {outcome ? <ActionOutcome outcome={outcome} /> : null}
     </form>
   )

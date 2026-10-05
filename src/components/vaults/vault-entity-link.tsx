@@ -89,14 +89,14 @@ export function VaultEntityLink({
       title={sub === undefined ? label : `${label} · ${sub}`}
       className={clsx(
         className,
-        'group block min-w-0 max-w-full rounded-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500',
+        'group block min-w-0 max-w-full rounded-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--ds-focus)',
       )}
     >
-      <span className="block truncate text-sm font-medium text-ink group-hover:text-accent-700 dark:text-white dark:group-hover:text-accent-400">
+      <span className="block truncate text-sm font-medium text-(--ds-text) group-hover:text-(--ds-accent)">
         {label}
       </span>
       {sub === undefined ? null : (
-        <span className="block truncate text-xs text-fg-tertiary dark:text-fg-secondary">{sub}</span>
+        <span className="block truncate text-xs text-(--ds-text-subtle)">{sub}</span>
       )}
     </Link>
   )

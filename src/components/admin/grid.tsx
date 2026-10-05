@@ -1,4 +1,3 @@
-import { gridGap } from '@/lib/layout-tokens'
 import clsx from 'clsx'
 
 /**
@@ -49,7 +48,7 @@ export function BentoGrid({
           // with empty space next to a data-driven list — the dataset would then
           // own the row geometry (rule 60: DATASET SIZE DOES NOT OWN PAGE GEOMETRY).
           'grid min-w-0 grid-cols-1 items-start @[56rem]:grid-cols-12',
-          gridGap,
+          'gap-(--ds-page-gap)',
           className,
         )}
       >

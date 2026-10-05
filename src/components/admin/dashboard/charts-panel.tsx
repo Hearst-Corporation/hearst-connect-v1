@@ -28,8 +28,8 @@ export function ChartPlaceholder({
       style={{ height: viewportPx, minHeight: viewportPx }}
       aria-label={title}
     >
-      <p className="text-sm font-semibold text-fg">{title}</p>
-      <p className="text-xs text-fg-tertiary">{detail ?? 'No history available'}</p>
+      <p className="text-sm font-semibold text-(--ds-text)">{title}</p>
+      <p className="text-xs text-(--ds-shell-subtle)">{detail ?? 'No history available'}</p>
     </output>
   )
 }

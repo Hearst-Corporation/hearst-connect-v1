@@ -29,6 +29,8 @@ import {
 } from '@/components/charts'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
+import { Button } from '@hearst/ui/catalyst/button'
+import { PageHeader } from '@hearst/ui/page'
 import { logout } from '@/lib/actions'
 import { formatDateTime, formatNumber, formatPercent, formatDate} from '@/lib/format'
 import { readableSourceStateCap } from '@/lib/movements'
@@ -272,14 +274,8 @@ export function UserDashboardView({
   return (
     <MotionConfig reducedMotion="user">
       <div className="ud-root">
-        {/* Pas de couche de halo ici : les maquettes /account posent des gris
-            neutres et opaques. Le glow mint reste le matériau de /admin, où le
-            shell est en verre. */}
         <main className="page">
           <div className="shell">
-            {/* Rail latéral — structure des maquettes Hearst : marque en haut,
-                navigation au centre, support en pied. Le rail est opaque : il
-                ancre l'écran, le contenu à droite porte le verre. */}
             <aside className="rail" aria-label="Account sections">
               <div className="rail-brand">
                 <HearstConnectLockupImage className="h-10 w-auto" />
@@ -327,25 +323,22 @@ export function UserDashboardView({
                     {initials || 'HC'}
                   </span>
                   <span className="topbar-name">{user.name}</span>
-                  <button
-                    type="button"
-                    className="sign-out"
+                  <Button
+                    plain
+                    size="sm"
                     onClick={() => {
                       void logout()
                     }}
                   >
-                    <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
-                    <span>Sign out</span>
-                  </button>
+                    <ArrowRightStartOnRectangleIcon data-slot="icon" aria-hidden="true" />
+                    Sign out
+                  </Button>
                 </div>
               </header>
 
             {isDashboard ? (
             <div className="dashboard-view">
-              <header className="page-intro">
-                <p className="eyebrow">Account</p>
-                <AdminHeroTitle>Command center</AdminHeroTitle>
-              </header>
+              <PageHeader title="Command center" />
 
               <section className="your-position" aria-label="Your position">
                 <div className="section-heading position-heading">
@@ -639,7 +632,6 @@ export function UserDashboardView({
             {!isDashboard ? (
             <section className="trade-view active">
               <div>
-                <p className="eyebrow">Execution only</p>
                 <AdminHeroTitle>Trade terminal</AdminHeroTitle>
                 <p>
                   This space is strictly reserved for execution. No catalog, quote or account

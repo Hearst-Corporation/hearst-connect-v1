@@ -1,6 +1,6 @@
 'use client'
 
-import { Input, InputGroup } from '@/components/catalyst/input'
+import { Input, InputGroup } from '@hearst/ui/catalyst/input'
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -26,7 +26,7 @@ export function HeaderClientSearch() {
   return (
     <form onSubmit={submit} role="search" className="w-full">
       <InputGroup>
-        <MagnifyingGlassIcon />
+        <MagnifyingGlassIcon data-slot="icon" />
         <Input
           type="search"
           name="header-client-search"

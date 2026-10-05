@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { AdminProbeResult } from '@/components/admin/admin-probe-result'
 import { surfaceInset } from '@/components/admin/surface'
 import type { BackendEndpoint } from '@/lib/backend/endpoints'
@@ -14,13 +15,9 @@ function authLabelFor(auth: BackendEndpoint['auth']): string {
 
 function CopyButton({ text }: Readonly<{ text: string }>) {
   return (
-    <button
-      type="button"
-      onClick={() => navigator.clipboard.writeText(text)}
-      className="rounded border border-console-line px-2 py-0.5 text-xs text-fg-secondary hover:bg-console-inset hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
-    >
+    <Button outline size="xs" onClick={() => navigator.clipboard.writeText(text)}>
       Copy
-    </button>
+    </Button>
   )
 }
 
@@ -51,38 +48,34 @@ export function ExplorerRow({
   const blockedLabel = unrunnableLabel(endpoint.method, pathParams)
 
   return (
-    <div className="border-b border-console-line-soft py-3 last:border-b-0">
+    <div className="border-b border-(--ds-divider) py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="rounded bg-console-inset px-1.5 py-0.5 font-mono text-xs font-medium text-fg">{endpoint.method}</span>
-        <span className="font-mono text-xs break-all text-fg">{endpoint.path}</span>
-        <span className="text-xs text-fg-secondary">{endpoint.category}</span>
-        <span className="text-xs text-fg-secondary">· {authLabel}</span>
+        <span className="rounded bg-(--ds-surface-raised) px-1.5 py-0.5 font-mono text-xs font-medium text-(--ds-text)">{endpoint.method}</span>
+        <span className="font-mono text-xs break-all text-(--ds-text)">{endpoint.path}</span>
+        <span className="text-xs text-(--ds-text-subtle)">{endpoint.category}</span>
+        <span className="text-xs text-(--ds-text-subtle)">· {authLabel}</span>
 
         <form action={formAction} className="ml-auto">
           <input type="hidden" name="endpointId" value={endpoint.id} />
           {blockedLabel !== null ? (
-            <span className="text-xs text-fg-secondary">{blockedLabel}</span>
+            <span className="text-xs text-(--ds-text-subtle)">{blockedLabel}</span>
           ) : (
-            <button
-              type="submit"
-              disabled={pending}
-              className="rounded border border-console-line px-2 py-1 text-xs text-fg-secondary hover:bg-console-inset hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
-            >
+            <Button type="submit" outline size="xs" disabled={pending}>
               {pending ? 'Calling…' : 'Run'}
-            </button>
+            </Button>
           )}
         </form>
       </div>
 
-      <p className="mt-1 text-xs text-fg-secondary">{endpoint.summary}</p>
-      {endpoint.caveat ? <p className="mt-1 text-xs text-warning-400">{endpoint.caveat}</p> : null}
+      <p className="mt-1 text-xs text-(--ds-text-subtle)">{endpoint.summary}</p>
+      {endpoint.caveat ? <p className="mt-1 text-xs text-(--ds-warning)">{endpoint.caveat}</p> : null}
 
       {outcome ? (
         <div className="mt-3">
           <div className="mb-2 flex items-center gap-2">
             <CopyButton text={outcome.rawJson} />
             {outcome.metaStatus ? (
-              <span className="text-xs text-fg-secondary">envelope: {outcome.metaStatus}</span>
+              <span className="text-xs text-(--ds-text-subtle)">envelope: {outcome.metaStatus}</span>
             ) : null}
           </div>
           <AdminProbeResult
@@ -95,12 +88,12 @@ export function ExplorerRow({
       ) : null}
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-fg-secondary hover:text-fg">cURL (token redacted)</summary>
-        <pre className={`${surfaceInset} mt-1 overflow-x-auto p-2 font-mono text-xs text-fg-secondary`}>{curl}</pre>
+        <summary className="cursor-pointer text-xs text-(--ds-text-subtle) hover:text-(--ds-text)">cURL (token redacted)</summary>
+        <pre className={`${surfaceInset} mt-1 overflow-x-auto p-2 font-mono text-xs text-(--ds-text-subtle)`}>{curl}</pre>
       </details>
 
       {isKeeper ? (
-        <p className="mt-2 text-xs text-warning-400">
+        <p className="mt-2 text-xs text-(--ds-warning)">
           Side-effect action — run and confirm from /admin/keeper only.
         </p>
       ) : null}

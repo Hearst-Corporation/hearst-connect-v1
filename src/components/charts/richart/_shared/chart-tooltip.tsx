@@ -26,12 +26,12 @@ export function ChartTooltipShell({
   return (
     <div
       className={clsx(
-        'rounded-lg bg-white text-xs shadow-lg ring-1 ring-console-line dark:bg-console-raised dark:ring-console-line',
+        'rounded-lg text-xs shadow-lg ring-1 bg-(--ds-surface-raised) ring-(--ds-shell-border)',
         compact ? 'px-2 py-1' : 'px-3 py-2',
       )}
     >
       {title !== undefined && title !== '' ? (
-        <p className="font-medium text-ink dark:text-fg">{title}</p>
+        <p className="font-medium text-(--ds-text)">{title}</p>
       ) : null}
       {children}
     </div>
@@ -49,7 +49,7 @@ export function TooltipRow({
       className={clsx(
         first ? 'mt-1' : 'mt-0.5',
         'tabular-nums',
-        color === undefined && 'text-fg-tertiary dark:text-fg-secondary',
+        color === undefined && 'text-(--ds-text-subtle)',
       )}
       style={color === undefined ? undefined : { color }}
     >

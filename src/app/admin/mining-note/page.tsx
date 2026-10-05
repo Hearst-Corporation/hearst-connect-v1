@@ -1,4 +1,5 @@
-import { DashboardHeader, DashCard, PanelState } from '@/components/admin/dashboard'
+import { DashboardHeader, DashCard, PanelState, type DashboardKpi } from '@/components/admin/dashboard'
+import { FilterBar } from '@hearst/ui/page'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import {
   TableBody,
@@ -6,13 +7,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/catalyst/table'
+} from '@hearst/ui/catalyst/table'
 import { AdminTable, tableCol } from '@/components/compositions'
 import { chartTheme, categoricalColor } from '@/components/charts/core/chart-theme'
 import { formatNumber } from '@/lib/format'
 import { miningNoteServer, type ScenarioKey, type VsHoldingResult } from '@/lib/mining-note'
-import { available, unavailable, type Availability } from '@/lib/vaults/model'
-import { CircleStackIcon, CpuChipIcon, ScaleIcon, BanknotesIcon } from '@heroicons/react/16/solid'
+import { available, unavailable } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import { MultiLineChart, type ChartSeries } from './multi-line-chart'
 import { MonteCarloPanel, SensitivityPanel } from './risk-explorer'
@@ -71,13 +71,7 @@ export default async function MiningNotePage({
   const scenarios = scenariosR.status === 'fulfilled' ? scenariosR.value : null
   const vsHolding = vsHoldingR.status === 'fulfilled' ? vsHoldingR.value : null
 
-  const kpis: ReadonlyArray<{
-    id: string
-    title: string
-    value: Availability<string>
-    unit?: string
-    icon: typeof CpuChipIcon
-  }> = [
+  const kpis: readonly DashboardKpi[] = [
     {
       id: 'source',
       title: 'Engine',
@@ -85,7 +79,6 @@ export default async function MiningNotePage({
         projections !== null
           ? available('Connected', { provenance: 'live' })
           : unavailable({ reason: 'Engine unreachable', endpoint: '/api/mining-note/projections', status: 'UNAVAILABLE' }),
-      icon: CpuChipIcon,
     },
     ...(vsHolding !== null
       ? [
@@ -93,32 +86,34 @@ export default async function MiningNotePage({
             id: 'alpha',
             title: 'Mining vs holding α',
             value: available(usdCompact(vsHolding.summary.finalAlphaUsd), { provenance: 'live' }),
-            icon: ScaleIcon,
           },
           {
             id: 'mined',
             title: 'Total BTC mined',
             value: available(formatNumber(vsHolding.summary.totalBtcMined, { maximumFractionDigits: 2 }), { provenance: 'live' }),
             unit: 'BTC',
-            icon: CircleStackIcon,
           },
           {
             id: 'elec',
             title: 'Electricity paid',
             value: available(usdCompact(vsHolding.summary.costBasis.totalElecPaid), { provenance: 'live' }),
-            icon: BanknotesIcon,
           },
         ]
       : []),
   ]
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-(--ds-page-gap)">
       <DashboardHeader
         title="Mining note"
-        description={`Simulations from the vault-v2 engine · capital ${usd(req.capital)} · start ${usd(req.btcPriceStart)} · ${req.months} months`}
+        path="/admin/mining-note"
         kpis={kpis}
       />
+      <FilterBar>
+        <span className="text-[0.8125rem]/5 text-(--ds-text-subtle) tabular-nums">
+          Simulations from the vault-v2 engine · capital {usd(req.capital)} · start {usd(req.btcPriceStart)} · {req.months} months
+        </span>
+      </FilterBar>
 
       {projections === null && scenarios === null && vsHolding === null ? (
         <PanelState
@@ -179,7 +174,7 @@ export default async function MiningNotePage({
                         <TableCell>{p.name}</TableCell>
                         <TableCell className={tableCol.numeric}>{usd(p.netReleasable)}</TableCell>
                         <TableCell className={tableCol.numeric}>
-                          <span className={p.returnPct >= 0 ? 'text-success-400' : 'text-danger-400'}>
+                          <span className={p.returnPct >= 0 ? 'text-(--ds-success)' : 'text-(--ds-danger)'}>
                             {p.returnPct >= 0 ? '+' : ''}
                             {formatNumber(p.returnPct, { maximumFractionDigits: 1 })}%
                           </span>
@@ -270,8 +265,8 @@ function VsHoldingChart({ vsHolding }: Readonly<{ vsHolding: VsHoldingResult }>)
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      <p className="text-xs text-fg-tertiary">
-        <span className={miningWins ? 'font-semibold text-success-400' : 'font-semibold text-danger-400'}>
+      <p className="text-xs text-(--ds-shell-subtle)">
+        <span className={miningWins ? 'font-semibold text-(--ds-success)' : 'font-semibold text-(--ds-danger)'}>
           Mining {miningWins ? 'outperforms' : 'underperforms'} holding
         </span>{' '}
         by {fracPct(vsHolding.summary.finalAlphaPct)} ({usdCompact(vsHolding.summary.finalAlphaUsd)})
@@ -300,15 +295,15 @@ function CostBasisList({ vsHolding }: Readonly<{ vsHolding: VsHoldingResult }>) 
   ]
 
   return (
-    <dl className="flex flex-col divide-y divide-console-line-soft">
+    <dl className="flex flex-col divide-y divide-(--ds-divider)">
       {rows.map((r) => (
         <div key={r.label} className="flex items-baseline justify-between gap-3 py-2">
-          <dt className="text-xs text-fg-secondary">{r.label}</dt>
+          <dt className="text-xs text-(--ds-text-subtle)">{r.label}</dt>
           <dd
             className={
               r.tone === 'accent'
-                ? 'text-sm font-semibold text-accent-400 tabular-nums'
-                : 'text-sm font-medium text-fg tabular-nums'
+                ? 'text-sm font-semibold text-(--ds-accent) tabular-nums'
+                : 'text-sm font-medium text-(--ds-text) tabular-nums'
             }
           >
             {r.value}

@@ -1,40 +1,13 @@
 import { surfaceBox } from '@/components/admin/surface'
-import { csl } from '@/components/layout/console'
 import clsx from 'clsx'
 
-/**
- * Panel layout wrapper.
- *
- * ── Material ──────────────────────────────────────────────────────────────
- * Always `surfaceBox` (`src/components/admin/surface.tsx`). No more
- * `csl.panel` as a second CSS-module glass layer. One box = one material.
- *
- * ── Tones ─────────────────────────────────────────────────────────────────
- * The `tone` values do NOT change the glass: they add geometry / density
- * (flex, overflow, intrinsic KPI padding). They are not palettes.
- *
- * | tone    | Rule 60 semantic role         | csl geometry         |
- * |---------|-------------------------------|----------------------|
- * | wave    | PANEL / CARD default          | wavePanel            |
- * | chart   | DATA PANEL (chart chrome)     | heroChart            |
- * | metric  | COMPACT CARD (KPI)            | metricCard           |
- * | signal  | UTILITY / compact signal      | signalCard           |
- * | plain   | material only, caller geometry | —                  |
- *
- * ── Contract ──────────────────────────────────────────────────────────────
- * - one surface, a single border: no panel-in-panel to frame itself ;
- * - height = content (no decorative stretching) ;
- * - the HTML element is chosen by the caller (`as`).
- */
-
-/** Panel geometry — not an alternative material. */
-export type PanelTone = 'wave' | 'chart' | 'metric' | 'signal' | 'plain'
+/** Panel geometry — the material stays `surfaceBox`. */
+export type PanelTone = 'wave' | 'chart' | 'metric' | 'plain'
 
 const TONE_GEOMETRY: Record<PanelTone, string | undefined> = {
-  wave: csl.wavePanel,
-  chart: csl.heroChart,
-  metric: csl.metricCard,
-  signal: csl.signalCard,
+  wave: 'flex min-h-0 flex-col overflow-hidden',
+  chart: 'flex min-h-0 flex-col overflow-x-hidden',
+  metric: 'flex flex-col px-5 pt-4.5 pb-4',
   plain: undefined,
 }
 
@@ -62,11 +35,13 @@ export function Panel({
   )
 }
 
-/**
- * PanelHeader — the title block of a panel.
- *
- * `hint` is optional: several panels have only a title.
- */
+export const panelHead = 'flex min-w-0 flex-none flex-wrap items-baseline gap-3 px-5 pt-4 pb-2'
+
+export const panelTitle = 'text-lg/6 font-semibold tracking-[-0.015em] text-(--ds-text)'
+
+export const panelHint = 'text-[0.8125rem]/5 wrap-anywhere text-(--ds-text-subtle)'
+
+/** The title block of a panel; `hint` is optional. */
 export function PanelHeader({
   title,
   hint,
@@ -79,18 +54,18 @@ export function PanelHeader({
   as?: 'h2' | 'h3' | 'h4'
 }>) {
   return (
-    <div className={csl.heroHead}>
-      <Tag className={csl.cardTitle}>{title}</Tag>
-      {hint === undefined || hint === '' ? null : <p className={csl.cellText}>{hint}</p>}
+    <div className={panelHead}>
+      <Tag className={panelTitle}>{title}</Tag>
+      {hint === undefined || hint === '' ? null : <p className={panelHint}>{hint}</p>}
       {action}
     </div>
   )
 }
 
-/** The body of a panel — the internal spacing, declared once. */
+/** The body of a panel. */
 export function PanelBody({
   children,
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <div className={clsx(csl.heroBody, className)}>{children}</div>
+  return <div className={clsx('flex min-h-0 min-w-0 flex-col overflow-y-auto px-5 pb-4', className)}>{children}</div>
 }

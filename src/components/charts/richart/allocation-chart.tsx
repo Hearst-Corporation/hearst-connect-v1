@@ -25,11 +25,11 @@ function driftOf(item: AllocationItem): number | null {
 }
 
 function driftTone(drift: number | null): string {
-  if (drift === null) return 'text-fg-tertiary'
+  if (drift === null) return 'text-(--ds-shell-subtle)'
   const abs = Math.abs(drift)
-  if (abs < 1) return 'text-fg-tertiary'
-  if (abs < 5) return 'text-warning-400'
-  return 'text-danger-400'
+  if (abs < 1) return 'text-(--ds-shell-subtle)'
+  if (abs < 5) return 'text-(--ds-warning)'
+  return 'text-(--ds-danger)'
 }
 
 function driftLabel(drift: number | null): string {
@@ -61,7 +61,7 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
           const actual = item.actualPct
           return (
             <li key={item.label} className="flex min-w-0 items-center gap-4">
-              <span className="w-24 shrink-0 truncate text-xs font-medium text-fg-secondary">
+              <span className="w-24 shrink-0 truncate text-xs font-medium text-(--ds-text-subtle)">
                 {item.label}
               </span>
 
@@ -83,12 +83,12 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
                   className="absolute top-1/2 h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
                   style={{
                     left: `${Math.min(100, Math.max(0, item.targetPct))}%`,
-                    background: 'var(--color-fg)',
+                    background: 'var(--ds-text)',
                   }}
                 />
               </span>
 
-              <span className="w-14 shrink-0 text-right text-xs tabular-nums text-fg">
+              <span className="w-14 shrink-0 text-right text-xs tabular-nums text-(--ds-text)">
                 {actual === null ? '—' : formatChartPercent(actual)}
               </span>
               <span
@@ -101,7 +101,7 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
         })}
       </ul>
 
-      <p aria-hidden="true" className="mt-3 flex items-center gap-4 text-[11px] text-fg-tertiary">
+      <p aria-hidden="true" className="mt-3 flex items-center gap-4 text-[11px] text-(--ds-shell-subtle)">
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-2 w-2 rounded-full"
@@ -110,7 +110,7 @@ export function HearstAllocationChart({ items }: Readonly<{ items: readonly Allo
           Exposure
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-0.5 rounded-full" style={{ background: 'var(--color-fg)' }} />
+          <span className="inline-block h-3 w-0.5 rounded-full" style={{ background: 'var(--ds-text)' }} />
           Target
         </span>
       </p>

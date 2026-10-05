@@ -1,4 +1,4 @@
-import { Text } from '@/components/catalyst/text'
+import { Text } from '@hearst/ui/catalyst/text'
 
 /**
  * Account loading — named status inside the shared shell slot.
@@ -11,7 +11,7 @@ export default function AccountLoading() {
       aria-busy="true"
       aria-live="polite"
     >
-      <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide text-fg-tertiary uppercase dark:text-fg-secondary">
+      <Text className="animate-pulse !mt-0 text-sm/6 tracking-wide uppercase text-(--ds-text-subtle)">
         Loading…
       </Text>
     </div>

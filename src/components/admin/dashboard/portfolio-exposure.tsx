@@ -18,30 +18,30 @@ function StrategyDetail({
   assetScale,
 }: Readonly<{ row: AdminExposureStrategy; assetScale: AdminAssetScale }>) {
   return (
-    <div className="border-t border-console-line-soft pt-4">
-      <p className="truncate text-sm font-semibold text-fg">{row.strategyLabel}</p>
+    <div className="border-t border-(--ds-divider) pt-4">
+      <p className="truncate text-sm font-semibold text-(--ds-text)">{row.strategyLabel}</p>
       <dl className="mt-3 flex min-w-0 flex-wrap gap-x-6 gap-y-2 text-xs">
         <div>
-          <dt className="text-fg-tertiary">Actual</dt>
-          <dd className="font-semibold tabular-nums text-fg">
+          <dt className="text-(--ds-shell-subtle)">Actual</dt>
+          <dd className="font-semibold tabular-nums text-(--ds-text)">
             {formatPercent(row.actualBps, { fromBps: true })}
           </dd>
         </div>
         <div>
-          <dt className="text-fg-tertiary">Target</dt>
-          <dd className="font-semibold tabular-nums text-fg">
+          <dt className="text-(--ds-shell-subtle)">Target</dt>
+          <dd className="font-semibold tabular-nums text-(--ds-text)">
             {formatPercent(row.targetBps, { fromBps: true })}
           </dd>
         </div>
         <div>
-          <dt className="text-fg-tertiary">Drift</dt>
-          <dd className="font-semibold tabular-nums text-warning-400">
+          <dt className="text-(--ds-shell-subtle)">Drift</dt>
+          <dd className="font-semibold tabular-nums text-(--ds-warning)">
             {formatDriftPts(row.driftBps)}
           </dd>
         </div>
         <div>
-          <dt className="text-fg-tertiary">Exposure</dt>
-          <dd className="font-semibold tabular-nums text-fg">
+          <dt className="text-(--ds-shell-subtle)">Exposure</dt>
+          <dd className="font-semibold tabular-nums text-(--ds-text)">
             {formatAdminAtomic(row.exposureAtomic, assetScale)}
           </dd>
         </div>
@@ -108,20 +108,20 @@ export function PortfolioExposurePanel({
                 key={row.strategyId}
                 className={clsx(
                   'flex min-w-0 flex-col items-center rounded-lg px-2 py-3 text-center outline-none transition-colors',
-                  'focus-visible:ring-2 focus-visible:ring-accent-500',
+                  'focus-visible:ring-2 focus-visible:ring-(--ds-focus)',
                   surfaceSelect,
                 )}
               >
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-(--ds-surface-raised) text-(--ds-accent) ring-1 ring-(--ds-divider)">
                   <ChartBarSquareIcon className="size-5" aria-hidden="true" />
                 </span>
-                <span className="mt-2 w-full truncate text-xs font-semibold text-fg" title={row.strategyLabel}>
+                <span className="mt-2 w-full truncate text-xs font-semibold text-(--ds-text)" title={row.strategyLabel}>
                   {row.strategyLabel}
                 </span>
-                <span className="mt-0.5 text-lg font-semibold tabular-nums text-fg">
+                <span className="mt-0.5 text-lg font-semibold tabular-nums text-(--ds-text)">
                   {formatPercent(row.actualBps, { fromBps: true })}
                 </span>
-                <span className="mt-0.5 truncate text-[11px] text-fg-tertiary">
+                <span className="mt-0.5 truncate text-[11px] text-(--ds-shell-subtle)">
                   target {formatPercent(row.targetBps, { fromBps: true })}
                 </span>
               </Tab>

@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@hearst/ui/catalyst/button'
 import { categoricalColor, chartTheme } from '@/components/charts/core/chart-theme'
 import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/chart-accessibility-table'
 import { formatNumber } from '@/lib/format'
@@ -48,7 +49,7 @@ const CENTER = 50
 const R_OUTER = 46
 const R_INNER = 21 // leaves a center hole for the metric
 const RING_GAP = 2.6
-// Track sits OFF the categorical ramp (categoricalColor(4) is console-fill), so a
+// Track sits OFF the categorical ramp (categoricalColor(4) is the sunken surface), so a
 // 5th strategy's arc never collides with its own background track.
 const TRACK = chartTheme.dataSeries.neutralRaised
 
@@ -94,7 +95,7 @@ export function HearstExposureRadial({
   }))
 
   if (rows.length === 0) {
-    return <p className="py-6 text-center text-sm text-fg-tertiary">No pockets to plot yet.</p>
+    return <p className="py-6 text-center text-sm text-(--ds-shell-subtle)">No pockets to plot yet.</p>
   }
 
   // Worst absolute drift — the figure that decides rebalancing (sign-only, no
@@ -180,7 +181,7 @@ export function HearstExposureRadial({
                   y1={g.tickInner.y}
                   x2={g.tickOuter.x}
                   y2={g.tickOuter.y}
-                  stroke="var(--color-fg)"
+                  stroke="var(--ds-text)"
                   strokeOpacity={0.9}
                   strokeWidth={1.8}
                   strokeLinecap="round"
@@ -192,17 +193,17 @@ export function HearstExposureRadial({
             {worst !== null ? (
               <>
                 <span
-                  className={`text-2xl font-semibold tabular-nums ${worst.d >= 0 ? 'text-accent-400' : 'text-fg'}`}
+                  className={`text-2xl font-semibold tabular-nums ${worst.d >= 0 ? 'text-(--ds-accent)' : 'text-(--ds-text)'}`}
                 >
                   {worst.d >= 0 ? '+' : ''}
                   {formatNumber(worst.d, { maximumFractionDigits: 1 })}
                 </span>
-                <span className="text-[11px] text-fg-tertiary">worst drift · pt</span>
+                <span className="text-[11px] text-(--ds-shell-subtle)">worst drift · pt</span>
               </>
             ) : (
               <>
-                <span className="text-2xl font-semibold text-fg-tertiary">—</span>
-                <span className="text-[11px] text-fg-tertiary">actual unread</span>
+                <span className="text-2xl font-semibold text-(--ds-shell-subtle)">—</span>
+                <span className="text-[11px] text-(--ds-shell-subtle)">actual unread</span>
               </>
             )}
           </div>
@@ -210,7 +211,7 @@ export function HearstExposureRadial({
 
         {/* Legend = exact numbers (the rings are the visual comparison). */}
         <div className="min-w-[20rem] flex-[1_1_32rem]">
-          <p className="mb-4 text-[11px] text-fg-tertiary">
+          <p className="mb-4 text-[11px] text-(--ds-shell-subtle)">
             Share of vault · value · drift from target
           </p>
           <ul className="flex flex-col gap-6">
@@ -261,7 +262,7 @@ function PocketRow({
       : `${row.drift >= 0 ? '+' : ''}${formatNumber(row.drift, { maximumFractionDigits: 1 })} pt`
 
   const driftClass =
-    row.drift === null ? 'text-fg-tertiary' : row.drift >= 0 ? 'text-accent-400' : 'text-fg-secondary'
+    row.drift === null ? 'text-(--ds-shell-subtle)' : row.drift >= 0 ? 'text-(--ds-accent)' : 'text-(--ds-text-subtle)'
 
   return (
     // Sept colonnes réclament ~30rem : sous 40rem la ligne passe en deux
@@ -274,13 +275,13 @@ function PocketRow({
         style={{ background: row.fill }}
         aria-hidden="true"
       />
-      <span className="min-w-0 truncate text-fg-secondary" title={row.label}>
+      <span className="min-w-0 truncate text-(--ds-text-subtle)" title={row.label}>
         {row.label}
       </span>
       {/* Poids de la poche dans le vault. L'échelle est absolue (0–100 % du
           fonds), comme les anneaux : une barre pleine dirait « tout le vault »,
           jamais « la plus grosse des trois ». */}
-      <span className="h-1.5 self-center overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft @max-2xl:col-span-full @max-2xl:mt-1">
+      <span className="h-1.5 self-center overflow-hidden rounded-full bg-(--ds-surface-raised) ring-1 ring-(--ds-divider) @max-2xl:col-span-full @max-2xl:mt-1">
         <span
           className="block h-full rounded-full"
           style={{
@@ -289,47 +290,45 @@ function PocketRow({
           }}
         />
       </span>
-      <span className="text-right tabular-nums text-fg-tertiary @max-2xl:col-span-full @max-2xl:flex @max-2xl:gap-x-4 @max-2xl:text-left">
+      <span className="text-right tabular-nums text-(--ds-shell-subtle) @max-2xl:col-span-full @max-2xl:flex @max-2xl:gap-x-4 @max-2xl:text-left">
         <span>
           {row.actualPct === null
             ? '—'
             : `${formatNumber(row.actualPct, { maximumFractionDigits: 1 })} %`}
         </span>
-        <span className="hidden text-fg-secondary @max-2xl:inline">{amount}</span>
+        <span className="hidden text-(--ds-text-subtle) @max-2xl:inline">{amount}</span>
         <span className={`hidden @max-2xl:inline ${driftClass}`}>{driftText}</span>
       </span>
 
-      <span className="text-right tabular-nums text-fg-secondary @max-2xl:hidden">{amount}</span>
+      <span className="text-right tabular-nums text-(--ds-text-subtle) @max-2xl:hidden">{amount}</span>
       <span className={`text-right tabular-nums @max-2xl:hidden ${driftClass}`}>{driftText}</span>
-      {/* Mêmes tokens que le bouton « Detail » des mouvements : `bg-accent-400`
-          (#a7fb90) et `text-accent-ink` (#000) divergeaient de `--hearst-green`
-          (#9eea7a) et `--hearst-green-ink` (#06140a). */}
-      <button
-        type="button"
+      <Button
+        color="accent"
+        size="xs"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="ud-detail-btn @max-2xl:col-start-3 @max-2xl:row-start-1"
+        className="shrink-0 self-center @max-2xl:col-start-3 @max-2xl:row-start-1"
       >
         {open ? 'Hide' : 'Detail'}
-      </button>
+      </Button>
 
       {/* Description et détail restent dans la grille, alignés sur le libellé —
           pas d'indentation supplémentaire qui créerait un troisième niveau. La
           description n'apparaît qu'au dépli : repliée, la ligne se lit d'un coup
           d'œil et les trois poches tiennent sur trois lignes. */}
       {open ? (
-        <span className="col-start-2 -col-end-1 flex flex-col gap-1.5 text-[11px] text-fg-tertiary">
+        <span className="col-start-2 -col-end-1 flex flex-col gap-1.5 text-[11px] text-(--ds-shell-subtle)">
           {brief !== undefined ? <span className="leading-snug">{brief}</span> : null}
           <span className="flex flex-wrap gap-x-6 gap-y-1">
           <span>
             Target{' '}
-            <span className="tabular-nums text-fg-secondary">
+            <span className="tabular-nums text-(--ds-text-subtle)">
               {formatNumber(row.targetPct, { maximumFractionDigits: 1 })} %
             </span>
           </span>
           <span>
             Actual{' '}
-            <span className="tabular-nums text-fg-secondary">
+            <span className="tabular-nums text-(--ds-text-subtle)">
               {row.actualPct === null
                 ? 'not read'
                 : `${formatNumber(row.actualPct, { maximumFractionDigits: 1 })} %`}

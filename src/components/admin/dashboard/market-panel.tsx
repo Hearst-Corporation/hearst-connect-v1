@@ -55,30 +55,30 @@ export function MarketSnapshotPanel({
       className="@container grid grid-cols-1 gap-x-6 gap-y-5 @[16rem]:grid-cols-2 @[40rem]:grid-cols-4 @[40rem]:gap-y-0"
     >
       <div className="min-w-0">
-        <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
-        <dd className="mt-1 text-xl font-semibold tabular-nums text-fg">{btc}</dd>
+        <dt className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">BTC / USD</dt>
+        <dd className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">{btc}</dd>
         {btcChange !== null ? (
-          <dd className="mt-0.5 text-xs text-fg-tertiary">
+          <dd className="mt-0.5 text-xs text-(--ds-shell-subtle)">
             {formatPercent(btcChange)} 24h
           </dd>
         ) : null}
       </div>
       <div className="min-w-0">
-        <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Hashprice</dt>
-        <dd className="mt-1 text-xl font-semibold tabular-nums text-fg">{hashprice}</dd>
+        <dt className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">Hashprice</dt>
+        <dd className="mt-1 text-xl font-semibold tabular-nums text-(--ds-text)">{hashprice}</dd>
         {hashpriceChange !== null ? (
-          <dd className="mt-0.5 text-xs text-fg-tertiary">
+          <dd className="mt-0.5 text-xs text-(--ds-shell-subtle)">
             {formatPercent(hashpriceChange, { signed: true })}
           </dd>
         ) : null}
       </div>
       <div className="min-w-0">
-        <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Energy</dt>
-        <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{energy}</dd>
+        <dt className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">Energy</dt>
+        <dd className="mt-1 text-lg font-semibold tabular-nums text-(--ds-text)">{energy}</dd>
       </div>
       <div className="min-w-0">
-        <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Margin</dt>
-        <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{margin}</dd>
+        <dt className="text-[11px] font-medium uppercase tracking-wide text-(--ds-shell-subtle)">Margin</dt>
+        <dd className="mt-1 text-lg font-semibold tabular-nums text-(--ds-text)">{margin}</dd>
       </div>
     </dl>
   )

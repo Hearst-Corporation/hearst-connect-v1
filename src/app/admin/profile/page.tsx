@@ -1,17 +1,16 @@
 import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import { Badge } from '@/components/catalyst/badge'
+import { Badge } from '@hearst/ui/catalyst/badge'
 import {
   DescriptionDetails,
   DescriptionList,
   DescriptionTerm,
-} from '@/components/catalyst/description-list'
+} from '@hearst/ui/catalyst/description-list'
 import { Callout } from '@/components/compositions'
 import { formatDateTime } from '@/lib/format'
 import { getSession, ROLE_LABELS } from '@/lib/session'
 import { editorial } from '@/lib/vaults/model'
-import { KeyIcon, UserIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Your account' }
@@ -30,12 +29,11 @@ export default async function Page() {
     session === null ? '—' : formatDateTime(new Date(session.expiresAt * 1000).toISOString())
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'session', title: 'Session', value: editorial(sessionState), icon: KeyIcon },
+    { id: 'session', title: 'Session', value: editorial(sessionState) },
     {
       id: 'role',
       title: 'Role',
       value: editorial(session === null ? '—' : ROLE_LABELS[session.role]),
-      icon: UserIcon,
     },
   ]
 
@@ -43,7 +41,6 @@ export default async function Page() {
     <DashboardShell>
       <DashboardHeader
         title="Your account"
-        description="Signed-in administrator identity and session."
         kpis={kpis}
       />
 
@@ -55,7 +52,7 @@ export default async function Page() {
             title="Signed in as"
             subtitle="Read from your encrypted session cookie."
             titleLevel={2}
-            action={session === null ? undefined : <Badge color="neutral">{sessionState}</Badge>}
+            action={session === null ? undefined : <Badge color="zinc">{sessionState}</Badge>}
           >
             {session === null ? (
               <Callout tone="warning" title="No valid session">

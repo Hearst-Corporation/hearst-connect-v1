@@ -1,7 +1,7 @@
 import { AdminLabel } from '@/components/admin/typography'
 import { RequirementList, surfaceInset } from '@/components/admin/surface'
 import { AdminToneBadge } from '@/components/admin/status-tone'
-import { Text } from '@/components/catalyst/text'
+import { Text } from '@hearst/ui/catalyst/text'
 import {
   type ChartViewportRole,
   resolveChartViewport,
@@ -67,14 +67,14 @@ function StateVisual({
         className={clsx(
           'flex size-14 items-center justify-center rounded-2xl ring-1',
           danger
-            ? 'bg-danger-400/10 text-danger-500 ring-danger-400/20 dark:text-danger-400'
-            : clsx(surfaceInset, 'text-fg-tertiary'),
+            ? 'bg-(--ds-danger)/10 ring-(--ds-danger)/20 text-(--ds-danger)'
+            : clsx(surfaceInset, 'text-(--ds-shell-subtle)'),
         )}
       >
         <Icon className="size-7" aria-hidden="true" />
       </span>
       <AdminToneBadge tone={danger ? 'bad' : 'neutral'}>{STATE_LABEL[state.type]}</AdminToneBadge>
-      <Text className="max-w-sm text-sm leading-relaxed text-fg-secondary">{state.explanation}</Text>
+      <Text className="max-w-sm text-sm leading-relaxed text-(--ds-text-subtle)">{state.explanation}</Text>
       {expectedSource?.length ? (
         <div className="w-full max-w-xs text-left">
           <AdminLabel>Expected source</AdminLabel>
@@ -85,7 +85,7 @@ function StateVisual({
         <button
           type="button"
           onClick={onRetry}
-          className="text-xs font-medium text-accent-400 underline underline-offset-4 hover:text-accent-300"
+          className="text-xs font-medium text-(--ds-accent) underline underline-offset-4 hover:text-(--ds-accent-hover)"
         >
           {retryLabel}
         </button>
@@ -120,7 +120,7 @@ function ChartFrameContent({
           <AdminToneBadge tone={state.type === 'unavailable' ? 'bad' : 'neutral'}>
             {STATE_LABEL[state.type]}
           </AdminToneBadge>
-          <Text className="max-w-prose text-xs leading-relaxed text-fg-secondary">
+          <Text className="max-w-prose text-xs leading-relaxed text-(--ds-text-subtle)">
             {state.explanation}
           </Text>
         </div>

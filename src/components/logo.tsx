@@ -25,7 +25,7 @@ export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsW
 export function Logo({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'span'>>) {
   return (
     <span {...props} className={clsx(className, 'inline-flex items-center gap-2.5')}>
-      <LogoMark className="size-8 text-accent-300" />
+      <LogoMark className="size-8 text-(--ds-accent)" />
       <span className="text-base font-semibold tracking-tight whitespace-nowrap">Hearst Connect</span>
     </span>
   )

@@ -4,11 +4,7 @@ import type { CallTrace, KeeperActionResult, Problem } from '@/lib/backend/clien
 import type { ResolvedStatus } from '@/lib/resolved'
 import clsx from 'clsx'
 
-/**
- * Hearst Connect admin surface wrappers.
- * Material = `surfaceInset` (PASS 2 canon) — not a second glass layer.
- * Every component here renders what the backend gives it — none of them fabricate data.
- */
+/** A probe's outcome as the backend gave it, in a well. */
 
 export function AdminProbeResult({
   status,
@@ -30,14 +26,14 @@ export function AdminProbeResult({
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={status} />
       </div>
-      {reason ? <p className="mt-2 text-xs text-fg-secondary">{reason}</p> : null}
+      {reason ? <p className="mt-2 text-xs text-(--ds-text-subtle)">{reason}</p> : null}
       <div className="mt-2">
         <RequestMetadata trace={trace} />
       </div>
       {rawJson ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-fg-secondary hover:text-fg">Raw JSON</summary>
-          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-fg/80">{rawJson}</pre>
+          <summary className="cursor-pointer text-xs text-(--ds-text-subtle) hover:text-(--ds-text)">Raw JSON</summary>
+          <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs text-(--ds-text)/80">{rawJson}</pre>
         </details>
       ) : null}
       <ProblemState problem={problem ?? null} keeper={keeper ?? null} />

@@ -68,7 +68,7 @@ export function HearstBreakdownDonut({
 
   // All-zero breakdown: a named absence, never a fabricated "0" over an empty ring.
   if (ranked.length === 0 || total <= 0) {
-    return <p className="py-6 text-center text-sm text-fg-tertiary">Nothing to break down yet.</p>
+    return <p className="py-6 text-center text-sm text-(--ds-shell-subtle)">Nothing to break down yet.</p>
   }
 
   const totalText =
@@ -120,14 +120,14 @@ export function HearstBreakdownDonut({
           </PieChart>
         ) : null}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-semibold tabular-nums text-fg">{totalText}</span>
-          <span className="text-[11px] text-fg-tertiary">{caption}</span>
+          <span className="text-2xl font-semibold tabular-nums text-(--ds-text)">{totalText}</span>
+          <span className="text-[11px] text-(--ds-shell-subtle)">{caption}</span>
         </div>
       </div>
 
       <ul className="mt-5 flex flex-col gap-1.5">
         {ranked.map((s, index) => (
-          <li key={`${s.label}-${index}`} className="flex items-center gap-2.5 text-xs text-fg-secondary">
+          <li key={`${s.label}-${index}`} className="flex items-center gap-2.5 text-xs text-(--ds-text-subtle)">
             <span
               className="size-2.5 shrink-0 rounded-[3px]"
               style={{ background: s.fill }}
@@ -138,13 +138,13 @@ export function HearstBreakdownDonut({
             </span>
             <span className="shrink-0 tabular-nums">
               {kind === 'percent' ? (
-                <span className="font-medium text-fg">
+                <span className="font-medium text-(--ds-text)">
                   {formatNumber(s.value, { maximumFractionDigits: 1 })}%
                 </span>
               ) : (
                 <>
-                  <span className="font-medium text-fg">{formatNumber(s.value)}</span>
-                  <span className="text-fg-tertiary">
+                  <span className="font-medium text-(--ds-text)">{formatNumber(s.value)}</span>
+                  <span className="text-(--ds-shell-subtle)">
                     {' · '}
                     {sharePct(s.value)}%
                   </span>
