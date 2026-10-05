@@ -1,11 +1,13 @@
 # Passation agent — Hearst Connect V1
 
 > **DESCRIPTIVE** (runbook de reprise) — pas d’autorité d’implémentation.
-> Dernière mise à jour : **2026-08-22** · Branche : **`main` uniquement**
+> Dernière mise à jour : **2026-08-22** (chemins locaux et outillage corrigés le 2026-10-05) · Branche : **`main` uniquement**
 
 ## Mission
 
 Maintenir le front `hearst-connect-v1` branché sur le backend **GitHub → Railway**, sans GPU1.
+
+Hearst Connect est mis de côté pour la première mise en ligne (2026-10-05) et n'est pas relié à l'Operations Platform : ni `/handoff`, ni lien client Platform, ni contrôle de l'entitlement `connect`. Il garde ses propres comptes et sa connexion email + mot de passe.
 
 ## Règle absolue — GPU1 interdit
 
@@ -15,11 +17,11 @@ Pas de SSH GPU1, pas de `connect-api.hearst.app`, pas de workflow `deploy.yml` G
 
 | Quoi | Où | Accès local |
 |---|---|---|
-| Front | Vercel **`hearst-connect-v1`** → https://hearst-connect-v1.vercel.app | `.vercel/project.json` lié, `vercel --prod` |
-| Backend | repo `Hearst-Corporation/hearst-connect-backend` → Railway projet **`radiant-recreation`**, service `hearst-connect-backend` → `https://hearst-connect-backend-production-1da1.up.railway.app` (recréé 2026-09-21 après expiration du trial) | `railway link -p b04cc5e6-ce50-4dfd-abec-d37675d8ea5d` |
+| Front | Vercel **`hearst-connect-v1`** → https://hearst-connect-v1.vercel.app | pas de `.vercel/` sur ce poste (gitignoré) : `vercel link` avant `vercel --prod` |
+| Backend | repo `Hearst-Corporation/hearst-connect-backend` → Railway projet **`radiant-recreation`**, service `hearst-connect-backend` → `https://hearst-connect-backend-production-1da1.up.railway.app` (recréé 2026-09-21 après expiration du trial) | `railway link -p b04cc5e6-ce50-4dfd-abec-d37675d8ea5d` (le clone `~/Dev/active/hearst-connect-backend` n'est pas lié) ; en local `pnpm dev` sur 4610 |
 | DB | Postgres dans le même projet Railway (`radiant-recreation`) | `railway run -- bash -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" …'` — `DATABASE_URL` interne ne passe pas depuis l'extérieur |
 | Fork EVM | Anvil Base-mainnet fork → `https://hearst-chain-production.up.railway.app` (chainId 31337) — recréé 2026-09-21 ; l'ancien `hearst-base-fork-app-production` est mort avec le trial | même compte Railway (`adrien@hearstcorporation.io`) |
-| Contrats | `~/Dev/Hearst/Corporation/connect — Hearst Defi/contracts` (Foundry, `script/DeployDynaVault.s.sol`) | `forge` installé |
+| Contrats | Foundry, `script/DeployDynaVault.s.sol` — le dépôt de contrats n'est plus sur ce poste | `forge` installé |
 | Vault actuel | `PermissionedDynaVault` @ **`0xe8380935c414DB245eA6dFc30B9D2fd3D14891E0`** (déployé 2026-08-22) | variable Railway `DYNAVAULT_ADDRESS` |
 
 **Le fork n'est PLUS sur Fly.io** (`hearst-chain.fly.dev` est mort — docs backend corrigées). L'ancien vault `0xeDDf…4A17` a disparu avec l'ancien fork ; l'historique indexé en DB lui reste lié.
@@ -50,7 +52,7 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 
 ### Traité (2026-08-22, passe front)
 
-- Gate `pnpm check` restaurée (`next build && tsc --noEmit`) ; `e2e/` exclu du tsconfig (Playwright non installé).
+- Gate `pnpm check` restaurée (`next build && tsc --noEmit`) ; `e2e/` exclu du tsconfig. `@playwright/test` est depuis en devDependency, mais aucune config ni script ne lance les specs.
 - UI graph régénéré ; panels dashboard obsolètes retirés du catalog.
 - Mineurs audit §50 : headers KPI unifiés (`DashboardHeader` + `titleAddon`), regex `:param` canonique, types `Series1Event` / `ClientMovement` / `BackendResolved`, `/espace/*` → catch-all, compteurs dynamiques, double h1 `/account` corrigé, lien « Create simulated client » sur `/admin/clients`.
 
@@ -58,7 +60,7 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 
 - Gate : `pnpm check` (voir `package.json` — source de vérité)
 - e2e utiles : `access-control`, `audit-closure`, `veracity`
-- `docs/` : `ENDPOINT-MAPPING.md`, `PASSATION-AGENT.md`, `architecture/UI-GRAPH.md` + `ui-graph.{json,mmd}`
+- `docs/` : `ENDPOINT-MAPPING.md`, `BACKEND-ALIGNMENT-2026-09-08.md`, `PASSATION-AGENT.md`, `architecture/UI-GRAPH.md` + `ui-graph.{json,mmd}`
 
 ## Déploiement
 
@@ -69,10 +71,11 @@ Volume `/data` attaché au service, Anvil `--state /data/anvil-state.json --stat
 ## Commandes
 
 ```bash
-cd "/Users/adrienbeyondcrypto/Desktop/Herst Connect V1"
+cd ~/Dev/active/hearst-connect-v1
 pnpm install --frozen-lockfile
 pnpm dev                              # :4600
-# Backend (depuis ~/Desktop/hearst-connect-backend, déjà lié Railway) :
+# Backend local : cd ~/Dev/active/hearst-connect-backend && pnpm dev   (:4610)
+# Scripts contre la base Railway (depuis un clone lié au projet Railway) :
 railway run -- bash -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" pnpm exec tsx scripts/<script>.ts'
 ```
 
@@ -80,11 +83,10 @@ railway run -- bash -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" pnpm exec tsx script
 
 1. GPU1 / connect-api ≠ Railway
 2. `pnpm` only (pas `npm install`)
-3. Ship Git : gouvernance workspace (`10-shared-git-lifecycle.mdc`) — STOP explicite seulement sur instruction courante
-4. Pas de données inventées — états `unavailable`/`empty` nommés, montants atomiques via `formatAdminAtomic`/`formatEventAtomic`, **jamais** le défaut `fromAtomic: 1_000_000` de `formatCurrency` sur une valeur déjà en USD entiers (convention backend : `*Usdc` = entiers, atomiques = on-chain 6dp)
-5. Vercel : **`hearst-connect-v1`** uniquement
-6. Le backend rate-limite (429) — espacer les appels, ne pas spammer les rechargements
-7. Le fork Railway dort quand idle — un 404/« unavailable » transitoire au réveil n'est pas une régression
+3. Pas de données inventées — états `unavailable`/`empty` nommés, montants atomiques via `formatAdminAtomic`/`formatEventAtomic`, **jamais** le défaut `fromAtomic: 1_000_000` de `formatCurrency` sur une valeur déjà en USD entiers (convention backend : `*Usdc` = entiers, atomiques = on-chain 6dp)
+4. Vercel : **`hearst-connect-v1`** uniquement
+5. Le backend rate-limite (429) — espacer les appels, ne pas spammer les rechargements
+6. Le fork Railway dort quand idle — un 404/« unavailable » transitoire au réveil n'est pas une régression
 
 ## Prompt court
 

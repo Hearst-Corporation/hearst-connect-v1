@@ -1,7 +1,7 @@
 # Catalyst — kit vendoré
 
 > Documentation du kit de primitives interactives Catalyst (Tailwind Plus).
-> Ce fichier décrit ce qui est vendoré et les règles d'usage. Il ne
+> Ce fichier décrit ce qui est vendoré et où il sert. Il ne
 > modifie aucun composant du kit.
 
 ## Source & licence
@@ -9,21 +9,19 @@
 - **Origine** : Tailwind Plus — Catalyst (composants React + Tailwind), zip
   `catalyst-ui-kit` (typescript), synchronisé le 2026-08-05.
 - **Licence** : `src/components/catalyst/LICENSE.md` (Tailwind Labs Inc.).
-- **Import** : kit vendoré dans le dépôt (non installé via npm), tel quel.
-- **Vendor** : snapshot Tailwind Plus dans le dépôt ; `eslint` ignore volontairement ce dossier. Les retouches
-  (ex. `link.tsx` pour Next.js) restent documentées ici.
+- **Import** : kit vendoré dans le dépôt (non installé via npm).
+- **Vendor** : snapshot Tailwind Plus dans le dépôt. Retouche connue : `link.tsx` rend `next/link`.
 
-## Primitives non utilisées — à conserver
+## Primitives présentes
 
-Le kit est importé **en entier**. Les primitives sans import runtime à ce jour
-restent vendorées dans le dépôt :
+Le kit n'est plus importé en entier : les primitives sans usage (`alert`,
+`checkbox`, `combobox`, `divider`, `listbox`, `pagination`, `radio`,
+`stacked-layout`, `switch`, `textarea`) ont été retirées (commit `0a097c5`).
+Restent 17 primitives, toutes importées :
 
-`alert` · `checkbox` · `combobox` · `dialog` · `divider` · `listbox` ·
-`pagination` · `radio` · `select` · `stacked-layout` · `switch` · `textarea`
-
-**Ne pas les supprimer** pour faire taire `pnpm quality:dead` (knip) ou toute
-autre détection de code mort : elles font partie du kit officiel et seront
-réutilisées au besoin sans re-synchronisation.
+`auth-layout` · `avatar` · `badge` · `button` · `description-list` · `dialog` ·
+`dropdown` · `fieldset` · `heading` · `input` · `link` · `navbar` · `select` ·
+`sidebar` · `sidebar-layout` · `table` · `text`
 
 ## Usage console (rebuild 2026-08-05)
 
