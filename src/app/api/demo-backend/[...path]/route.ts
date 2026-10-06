@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, problem, bloc, payloadFor, nowIso, randomUUID } from '../mock-data.js'
+import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, handleWrite, payloadFor, problem, randomUUID } from '../mock-data.js'
 
 /**
  * Backend de DÉMONSTRATION — données entièrement fictives.
@@ -63,26 +63,12 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
     }
   }
 
-  if (path === '/api/v1/me/deposits' && req.method === 'POST') {
+  // Les écritures sont celles du mock local, au caractère près. Leur effet
+  // reste propre à l'instance serverless qui les reçoit.
+  if (req.method !== 'GET') {
     const body = await req.json().catch(() => null)
-    const amount = Number(body?.amountUsdc)
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return NextResponse.json(problem(400, 'INVALID_AMOUNT', 'amountUsdc must be a positive whole number of USDC.'), { status: 400 })
-    }
-    if (amount < 100_000) {
-      return NextResponse.json(problem(422, 'BELOW_MINIMUM', 'Amount is below the 100,000 USDC minimum for this vault.'), { status: 422 })
-    }
-    if (amount > 26_750_000) {
-      return NextResponse.json(problem(422, 'CAPACITY_EXCEEDED', 'Amount exceeds the capacity left in the vault.'), { status: 422 })
-    }
-    return NextResponse.json(envelope({
-      deposit: bloc({
-        id: `dep_${String(randomUUID()).slice(0, 8)}`,
-        amountUsdc: amount,
-        status: 'PENDING_SETTLEMENT',
-        receivedAt: nowIso(),
-      }),
-    }))
+    const write = handleWrite(req.method, path, body) as { status: number; body: unknown } | null
+    if (write) return NextResponse.json(write.body, { status: write.status })
   }
 
   // La query porte les paramètres de simulation d'une offre : sans elle,
