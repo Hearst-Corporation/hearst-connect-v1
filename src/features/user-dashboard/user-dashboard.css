@@ -5204,9 +5204,12 @@
 /* Les tableaux se replient en TUILES jusqu'à 1439px : le rail latéral prend
    169px, et sur un portable (1280, 1366) un tableau à six colonnes défilait
    encore dans sa carte — le bouton « Open » sortait de l'écran. L'intitulé de
-   chaque valeur vient de `data-label`, recopié de l'en-tête par <TableLabels />. */
+   chaque valeur vient de `data-label`, recopié de l'en-tête par <TableLabels />.
+   Sauf la projection (horizon × P10 / médiane / P90) : une petite matrice de
+   chiffres qui tient en largeur et se lit en comparant les lignes — elle reste
+   un tableau, comme sur /account. */
 @media (max-width: 1439px) {
-  .ud-admin table {
+  .ud-admin table:not(.projection-table) {
     display: block;
     width: 100% !important;
     min-width: 0 !important;
@@ -5217,7 +5220,7 @@
     display: block;
   }
 
-  .ud-admin table thead {
+  .ud-admin table:not(.projection-table) thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -5227,13 +5230,13 @@
   }
 
   /* Les tuiles se suivent, espacées : chacune se détache du fond de la carte. */
-  .ud-admin table tbody {
+  .ud-admin table:not(.projection-table) tbody {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .ud-admin table tfoot {
+  .ud-admin table:not(.projection-table) tfoot {
     display: block;
   }
 
@@ -5244,7 +5247,7 @@
      Flex et non grille : `tr::before`, une ligne vide pleine largeur placée
      juste après l'action (`order`), force le retour à la ligne — le nom garde
      toute la place que l'action lui laisse, quelle que soit sa largeur. */
-  .ud-admin table tbody tr {
+  .ud-admin table:not(.projection-table) tbody tr {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
@@ -5254,7 +5257,7 @@
     background: var(--ud-card-raised);
   }
 
-  .ud-admin table tbody tr::before {
+  .ud-admin table:not(.projection-table) tbody tr::before {
     content: '';
     order: -1;
     flex: 0 0 100%;
@@ -5263,7 +5266,7 @@
 
   /* Une case : l'intitulé au-dessus, la valeur et sa note dessous. Deux par
      rangée ; une case seule en fin de grille prend toute la largeur. */
-  .ud-admin table tbody td {
+  .ud-admin table:not(.projection-table) tbody td {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -5282,12 +5285,12 @@
   /* Le filet vertical : sur chaque case de la colonne de droite. Les cases
      de valeurs sont les enfants 2, 3, 4… (le 1er est le nom) : la colonne de
      droite tombe sur les rangs impairs. */
-  .ud-admin table tbody td:nth-child(odd):not(:first-child):not([data-label='']) {
+  .ud-admin table:not(.projection-table) tbody td:nth-child(odd):not(:first-child):not([data-label='']) {
     flex-basis: calc(50% - 1px);
     border-left: 1px solid var(--ud-line) !important;
   }
 
-  .ud-admin table tbody td::before {
+  .ud-admin table:not(.projection-table) tbody td::before {
     content: attr(data-label);
     font-size: 11px;
     font-weight: 600;
@@ -5298,14 +5301,14 @@
 
   /* Une valeur longue (adresse, appel de contrat) se coupe plutôt que de
      sortir de sa case. */
-  .ud-admin table tbody td > * {
+  .ud-admin table:not(.projection-table) tbody td > * {
     max-width: 100%;
     overflow-wrap: anywhere;
   }
 
   /* Une jauge prend la dernière rangée, entière : les valeurs qui
      l'entouraient (« Now », « Drift ») se retrouvent côte à côte au-dessus. */
-  .ud-admin table tbody td:not(:first-child):has(> .relative.block) {
+  .ud-admin table:not(.projection-table) tbody td:not(:first-child):has(> .relative.block) {
     order: 1;
     flex-basis: 100% !important;
     align-items: stretch;
@@ -5314,18 +5317,18 @@
 
   /* Après la jauge, les rangs se décalent d'un cran : la colonne de droite
      tombe sur les rangs pairs. */
-  .ud-admin table tbody td:has(> .relative.block) ~ td:nth-child(even):not([data-label='']) {
+  .ud-admin table:not(.projection-table) tbody td:has(> .relative.block) ~ td:nth-child(even):not([data-label='']) {
     flex-basis: calc(50% - 1px);
     border-left: 1px solid var(--ud-line) !important;
   }
 
-  .ud-admin table tbody td:has(> .relative.block) ~ td:nth-child(odd):not([data-label='']) {
+  .ud-admin table:not(.projection-table) tbody td:has(> .relative.block) ~ td:nth-child(odd):not([data-label='']) {
     border-left: 0 !important;
   }
 
   /* Le nom, en tête. Il garde au moins 8rem : si l'action (deux boutons) ne
      tient pas à côté, c'est elle qui passe dessous, à droite. */
-  .ud-admin table tbody td:first-child {
+  .ud-admin table:not(.projection-table) tbody td:first-child {
     display: block;
     order: -3;
     flex: 1 1 8rem;
@@ -5336,7 +5339,7 @@
   }
 
   /* L'action, en haut à droite. */
-  .ud-admin table tbody td[data-label='']:not(:first-child):not([colspan]) {
+  .ud-admin table:not(.projection-table) tbody td[data-label='']:not(:first-child):not([colspan]) {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -5347,13 +5350,13 @@
     border-top: 0 !important;
   }
 
-  .ud-admin table tbody td:first-child::before,
-  .ud-admin table tbody td[data-label='']::before,
-  .ud-admin table tbody td[colspan]::before {
+  .ud-admin table:not(.projection-table) tbody td:first-child::before,
+  .ud-admin table:not(.projection-table) tbody td[data-label='']::before,
+  .ud-admin table:not(.projection-table) tbody td[colspan]::before {
     content: none;
   }
 
-  .ud-admin table tbody td[colspan] {
+  .ud-admin table:not(.projection-table) tbody td[colspan] {
     display: block;
     flex-basis: 100%;
     border-top: 0 !important;

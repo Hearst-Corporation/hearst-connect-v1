@@ -103,7 +103,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
         <img src="/brand/proposal-cube.png" alt="" aria-hidden="true" className="proposal-cover-art" />
         <div className="mt-auto">
           <p className="text-[11px] font-medium tracking-[0.2em] text-[#9eea7a] uppercase">Confidential proposal</p>
-          <h1 className="mt-4 text-[44px] leading-[1.05] font-medium tracking-[-0.02em]">
+          <h1 className="mt-4 text-[44px] leading-[1.05] font-medium tracking-[-0.02em] max-sm:text-[32px]">
             Bitcoin Strategic
             <br />
             Reserve
@@ -111,7 +111,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
           <p className="mt-6 text-lg text-white/70">A dedicated vault, prepared for</p>
           <p className="mt-1 text-3xl font-medium">{offer.clientName}</p>
         </div>
-        <dl className="mt-16 grid grid-cols-4 gap-6 border-t border-white/15 pt-6 text-sm">
+        <dl className="mt-16 grid grid-cols-4 gap-6 border-t border-white/15 pt-6 text-sm max-sm:grid-cols-2">
           <CoverFact label="Amount" value={offer.amountUsdc !== null ? `${usd(offer.amountUsdc)} USDC` : '—'} />
           <CoverFact label="Computing power" value={ths !== null ? power(ths) : '—'} accent />
           <CoverFact label="Lockup" value={`${offer.lockupMonths} months`} />
@@ -141,7 +141,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
           The split below becomes the target of your dedicated vault once the proposal is signed. It is
           rebalanced back to target whenever it drifts beyond its tolerance.
         </p>
-        <div className="mt-6 flex items-center gap-10">
+        <div className="mt-6 flex items-center gap-10 max-sm:flex-col max-sm:items-stretch max-sm:gap-6">
           <StaticDonut allocation={offer.allocation} />
           <ul className="flex flex-1 flex-col gap-4">
             {POCKETS.map((p) => (
@@ -180,7 +180,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
           the electricity is charged at cost.
         </p>
         {sim && ths !== null ? (
-          <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10">
+          <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10 max-sm:grid-cols-1">
             <Term label="Hashrate allocated" value={power(ths)} accent />
             <Term label="Share of the vault in mining" value={pct(offer.allocation.miningBps)} />
             <Term
@@ -214,7 +214,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
 
         {sim && last ? (
           <>
-            <div className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10">
+            <div className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10 max-sm:grid-cols-1">
               <Term label="Median value at term" value={usdCompact(last.p50)} />
               <Term label="Median, in bitcoin" value={btc(last.btcP50)} />
               <Term
@@ -299,7 +299,7 @@ function CoverFact({ label, value, accent }: Readonly<{ label: string; value: st
 
 function SheetHead({ step, title, subtitle }: Readonly<{ step: string; title: string; subtitle: string }>) {
   return (
-    <header className="flex items-start justify-between gap-6 border-b border-white/10 pb-5">
+    <header className="flex items-start justify-between gap-6 border-b border-white/10 pb-5 max-sm:flex-col max-sm:gap-3">
       <div>
         <p className="text-[11px] font-medium tracking-[0.2em] text-white/40 uppercase">{step}</p>
         <h2 className="mt-2 text-[26px] leading-tight font-medium tracking-[-0.01em]">{title}</h2>

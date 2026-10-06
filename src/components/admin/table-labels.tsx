@@ -46,6 +46,8 @@ export function TableLabels() {
         // Les tableaux pour lecteur d'écran (données des graphiques) ne se
         // replient pas : rien à étiqueter.
         if (table.closest('.sr-only')) continue
+        // La projection reste un tableau partout, comme sur /account.
+        if (table.classList.contains('projection-table')) continue
         // `textContent` et non `innerText` : l'en-tête est masqué en mode
         // cartes, et `innerText` dépend du rendu. Une colonne d'actions n'a
         // qu'un intitulé pour lecteur d'écran (`.sr-only`) : pas d'étiquette.
