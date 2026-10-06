@@ -7,9 +7,9 @@ const styles = {
   base: [
     // Base — cockpit density: a button is a control, not a banner. Compact
     // text + tight padding (TouchTarget keeps the hit area on touch).
-    'relative isolate inline-flex h-[34px] items-center justify-center gap-x-1.5 rounded-full border text-[13px] font-semibold leading-none',
+    'relative isolate inline-flex h-[36px] items-center justify-center gap-x-1.5 rounded-full border text-[13px] font-medium leading-none',
     // Sizing
-    'px-4 sm:px-4',
+    'px-5 sm:px-5',
     // Focus
     'focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
     // Disabled
@@ -58,6 +58,14 @@ const styles = {
     '[--btn-icon:var(--color-fg-tertiary)] data-active:[--btn-icon:var(--color-console-fill-muted)] data-hover:[--btn-icon:var(--color-console-fill-muted)] dark:[--btn-icon:var(--color-fg-tertiary)] dark:data-active:[--btn-icon:var(--color-fg-secondary)] dark:data-hover:[--btn-icon:var(--color-fg-secondary)]',
   ],
   colors: {
+    /* Le bouton « Deposit » de /account : aplat vert de marque, encre sombre.
+       C'est la couleur PAR DÉFAUT — un bouton d'action de la console est vert,
+       pas gris ; le gris se lisait comme un bouton désactivé. */
+    hearst: [
+      'text-[#06140a] [--btn-bg:#9eea7a] [--btn-border:#9eea7a] [--btn-hover-overlay:var(--color-white)]/12',
+      'dark:text-[#06140a] dark:[--btn-bg:#9eea7a] dark:border-transparent dark:[--btn-hover-overlay:var(--color-white)]/12',
+      '[--btn-icon:#06140a] data-active:[--btn-icon:#06140a] data-hover:[--btn-icon:#06140a]',
+    ],
     'dark/neutral': [
       'text-white [--btn-bg:var(--color-console-shell)] [--btn-border:var(--color-ink)]/90 [--btn-hover-overlay:var(--color-white)]/10',
       'dark:text-white dark:[--btn-bg:var(--color-console-fill)] dark:[--btn-hover-overlay:var(--color-white)]/5',
@@ -175,7 +183,7 @@ export const Button = forwardRef(function Button(
   let classes = clsx(
     className,
     styles.base,
-    outline ? styles.outline : plain ? styles.plain : clsx(styles.solid, styles.colors[color ?? 'dark/neutral'])
+    outline ? styles.outline : plain ? styles.plain : clsx(styles.solid, styles.colors[color ?? 'hearst'])
   )
 
   return typeof props.href === 'string' ? (

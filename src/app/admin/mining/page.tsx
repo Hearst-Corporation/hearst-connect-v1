@@ -1,23 +1,12 @@
+import { formatBtcValue } from '@/lib/admin-dashboard/amounts'
 import { DashboardHeader } from '@/components/admin/dashboard'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { DashCard, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { surfaceInset } from '@/components/admin/surface'
-import { Badge } from '@/components/catalyst/badge'
-import { Text } from '@/components/catalyst/text'
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import { AdminTable, tableCol } from '@/components/compositions'
-import clsx from 'clsx'
 import { ProductionCostPanel } from '@/features/user-dashboard/production-cost-panel'
-import { loadAdminProductionCost } from '@/lib/admin-dashboard/load'
+import { loadAdminMarketSnapshot, loadAdminProductionCost } from '@/lib/admin-dashboard/load'
 import { callBackend } from '@/lib/backend/client'
-import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '@/lib/format'
+import { formatNumber } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
 import type { ResolvedStatus } from '@/lib/resolved'
 import { available, unavailable, valueOf, type Availability } from '@/lib/vaults/model'
@@ -28,10 +17,11 @@ import {
   BanknotesIcon,
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
-import { ApproveButton } from './approve-button'
-import { MiningVaultSwitcher, type MiningVaultOption } from './mining-vault-switcher'
+import type { MiningVaultOption } from './mining-vault-switcher'
+import { FleetMachines, type Machine } from './fleet-machines'
+import { MonthlyClose, type CloseMonth } from './monthly-close'
 import { MonthlyBtcChart } from './monthly-btc-chart'
-import { PayElectricityButton } from './pay-electricity-button'
+import { ElectricityByVault } from './electricity-by-vault'
 import { ReportMetricsButton } from './report-metrics-button'
 import { TriggerCalculationButton } from './trigger-calculation-button'
 
@@ -109,28 +99,6 @@ type CalculationRecord = {
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
-function satsToBtc(sats: string | null | undefined): string | null {
-  if (sats === undefined || sats === null) return null
-  const n = Number(sats)
-  if (!Number.isFinite(n)) return null
-  return formatNumber(n / 100_000_000, { maximumFractionDigits: 4 })
-}
-
-/** Numeric whole-USD value of a sats amount at a whole-USD BTC price. */
-function btcValueUsdcNumeric(sats: string | null, price: string | null): number | null {
-  if (sats === null || price === null) return null
-  const btc = Number(sats) / 100_000_000
-  const p = Number(price)
-  if (!Number.isFinite(btc) || !Number.isFinite(p)) return null
-  return btc * p
-}
-
-function btcValueUsdc(sats: string | null, price: string | null): string | null {
-  const value = btcValueUsdcNumeric(sats, price)
-  // Already whole USD — `fromAtomic: 1` opts out of the 6dp default.
-  return value === null ? null : formatCurrency(value, { decimals: 0, fromAtomic: 1 })
-}
-
 /**
  * Hero KPI reading — an ALREADY-formatted value when the backend carried one,
  * a named absence (status + reason from the Resolved bloc) when it did not.
@@ -146,587 +114,56 @@ function kpiReading(
   })
 }
 
-/**
- * Frozen panel slots — the box is FROZEN whether data is loading, absent, or
- * plentiful; taller content scrolls inside (`scrollbar-none`). Paired tables
- * share ONE slot height, so a row's columns end on the same line at any data
- * state; flanks chain `h-full` down to a scrolling content area instead.
- */
-const PANEL_SLOT_CLASS = {
-  table: 'h-[320px] overflow-y-auto scrollbar-none',
-  fill: 'flex-1 min-h-0 overflow-y-auto scrollbar-none',
-} as const
 
 /* ── Sections ────────────────────────────────────────────────────────────── */
 
 /* Même nom que côté client : « Machine fleet » et « Compute Infrastructure »
    désignaient la même chose sous deux vocabulaires. */
-function MachineFleetSection({
-  machineCount,
-  activeMachines,
-  averageUptimePct,
-}: Readonly<{
-  machineCount: number | null
-  activeMachines: number | null
-  averageUptimePct: number | null
-}>) {
-  const hasData = machineCount !== null || activeMachines !== null || averageUptimePct !== null
-
-  if (!hasData) {
-    return (
-      <DashCard
-        title="Compute Infrastructure"
-        subtitle="Fleet-wide capacity — the same reading the client sees"
-        className="h-full"
-      >
-        <PanelState title="Fleet telemetry unavailable." />
-      </DashCard>
-    )
-  }
-
-  const inactiveMachines =
-    machineCount !== null && activeMachines !== null ? machineCount - activeMachines : null
-
+/**
+ * La déclaration Keeper du parc : ce qui a été déclaré la dernière fois, face à
+ * ce que mesure le registre des machines aujourd'hui — l'écart dit s'il faut
+ * déclarer à nouveau. Le formulaire part pré-rempli avec le registre.
+ */
+function ReportMetricsSection({
+  reportedThs,
+  reportedSats,
+  fleetThs,
+}: Readonly<{ reportedThs: number | null; reportedSats: number | null; fleetThs: number }>) {
+  const gap = reportedThs !== null && reportedThs > 0 ? ((fleetThs - reportedThs) / reportedThs) * 100 : null
+  const eh = (ths: number) => `${formatNumber(ths / 1e6, { maximumFractionDigits: 2 })} EH/s`
   return (
     <DashCard
-      title="Compute Infrastructure"
-      subtitle="Fleet-wide capacity — the same reading the client sees"
-      className="h-full"
+      eyebrow="Keeper"
+      title="Report fleet metrics"
+      subtitle="What the fleet declares to the backend — a log request, nothing is signed"
     >
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 gap-3 @[24rem]:grid-cols-2 @[40rem]:grid-cols-4">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Total machines</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {machineCount !== null ? formatNumber(machineCount) : '—'}
-            </p>
+      {/* Une bande : ce qui a été déclaré à gauche, la nouvelle déclaration à
+          droite — compacte, sans hauteur à combler. */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)]">
+          <div className="flex flex-col gap-1 bg-[var(--ud-card)] px-4 py-3.5">
+            <dt className="text-xs text-fg-tertiary">Last reported hashrate</dt>
+            <dd className="text-2xl font-medium tabular-nums text-fg">{reportedThs !== null ? eh(reportedThs) : '—'}</dd>
+            <dd className={`text-xs ${gap !== null && Math.abs(gap) > 1 ? 'text-amber-400' : 'text-fg-tertiary'}`}>
+              Registry today {eh(fleetThs)}
+              {gap !== null ? ` · ${formatNumber(gap, { maximumFractionDigits: 1, signDisplay: 'exceptZero' })} %` : ''}
+            </dd>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Active</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
-              {activeMachines !== null ? formatNumber(activeMachines) : '—'}
-            </p>
+          <div className="flex flex-col gap-1 bg-[var(--ud-card)] px-4 py-3.5">
+            <dt className="text-xs text-fg-tertiary">BTC earned, reported</dt>
+            <dd className="text-2xl font-medium tabular-nums text-fg">
+              {reportedSats !== null ? `${formatBtcValue(reportedSats / 1e8)} BTC` : '—'}
+            </dd>
+            <dd className="text-xs text-fg-tertiary">Cumulative, since inception</dd>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Inactive</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
-              {inactiveMachines !== null ? formatNumber(inactiveMachines) : '—'}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Average uptime</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {averageUptimePct !== null ? formatPercent(averageUptimePct / 100) : '—'}
-            </p>
-          </div>
+        </dl>
+        <div>
+          <ReportMetricsButton defaultThs={fleetThs > 0 ? fleetThs : reportedThs} defaultSats={reportedSats} />
         </div>
       </div>
-      <p className="mt-3 text-xs text-fg-tertiary">
-        Per-machine detail (model, location, serial) will appear once the backend exposes a fleet
-        registry endpoint.
-      </p>
     </DashCard>
   )
 }
-
-function ReportMetricsSection() {
-  return (
-    <DashCard
-      title="Report metrics"
-      subtitle="Keeper action"
-      className="h-full"
-      contentClassName="flex-1"
-    >
-      <Text className="text-sm text-fg-tertiary">
-        Submit hashrate and cumulative BTC earned to the backend. This is a Keeper log request — no
-        transaction is signed.
-      </Text>
-      <div className="mt-auto pt-4">
-        <ReportMetricsButton />
-      </div>
-    </DashCard>
-  )
-}
-
-function OpexSection({
-  electricity,
-}: Readonly<{
-  electricity: MiningAggregate['electricity'] extends Resolved<infer T> | undefined ? T | null : never
-}>) {
-  // All amounts are on-chain USDC atomics (6dp) — the formatCurrency default applies.
-  const monthlyCost = electricity?.monthlyCost ?? null
-  const totalPaid = electricity?.totalPaid ?? null
-  const lastPayment = electricity?.lastPayment ?? null
-  const canPay = electricity?.canPay === true
-
-  if (electricity === null || electricity === undefined) {
-    return (
-      <DashCard title="OPEX" subtitle="Operational expenses" className="h-full">
-        <PanelState title="Electricity data unavailable." />
-      </DashCard>
-    )
-  }
-
-  return (
-    <DashCard
-      title="OPEX"
-      subtitle="Operational expenses"
-      className="h-full"
-      contentClassName="flex-1"
-    >
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 gap-3 @[26rem]:grid-cols-3">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Monthly electricity</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {monthlyCost !== null ? formatCurrency(monthlyCost, { decimals: 0 }) : '—'}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Total paid</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {totalPaid !== null ? formatCurrency(totalPaid, { decimals: 0 }) : '—'}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Last payment</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-              {lastPayment !== null ? formatDateTime(lastPayment) : '—'}
-            </p>
-          </div>
-        </div>
-      </div>
-      {canPay && monthlyCost !== null ? (
-        <div className="mt-auto max-w-xs pt-4">
-          <PayElectricityButton amount={monthlyCost} />
-        </div>
-      ) : monthlyCost !== null ? (
-        <p className="mt-auto pt-4 text-xs text-fg-tertiary">
-          {electricity.nextEligiblePayment !== null && electricity.nextEligiblePayment !== undefined
-            ? `Next eligible payment: ${formatDateTime(electricity.nextEligiblePayment)}`
-            : 'Payment not eligible right now.'}
-        </p>
-      ) : null}
-    </DashCard>
-  )
-}
-
-function YieldCalculationSection({
-  btcEarnedSats,
-  btcPrice,
-  electricityCost,
-}: Readonly<{
-  btcEarnedSats: string | null
-  btcPrice: string | null
-  electricityCost: string | null
-}>) {
-  const grossNumeric = btcValueUsdcNumeric(btcEarnedSats, btcPrice)
-  const grossYield =
-    grossNumeric === null ? null : formatCurrency(grossNumeric, { decimals: 0, fromAtomic: 1 })
-  // `electricityCost` is the on-chain monthlyElecCost — a 6-decimal USDC
-  // atomic — while the gross yield is whole USD. Convert before subtracting.
-  const electricityNumeric = numericValue(electricityCost)
-  const netYield =
-    grossNumeric !== null && electricityNumeric !== null
-      ? formatCurrency(grossNumeric - electricityNumeric / 1_000_000, {
-          decimals: 0,
-          fromAtomic: 1,
-        })
-      : null
-
-  return (
-    <DashCard
-      title="Yield calculation"
-      subtitle="Gross vs net for RWA distribution"
-      className="h-full"
-      contentClassName="flex-1"
-    >
-      <div className="@container min-w-0">
-        <div className="grid grid-cols-1 gap-3 @[26rem]:grid-cols-3">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Gross yield</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-accent-400">
-              {grossYield ?? '—'}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">OPEX deduction</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-danger-400">
-              {electricityCost ? `-${formatCurrency(electricityCost, { decimals: 0 })}` : '—'}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-fg-tertiary">Net yield to RWA</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-success-400">
-              {netYield ?? '—'}
-            </p>
-          </div>
-        </div>
-      </div>
-      <p className="mt-auto pt-3 text-xs text-fg-tertiary">
-        Net yield = gross BTC value minus electricity OPEX. This is the amount available for monthly
-        distribution to the RWA strategy.
-      </p>
-    </DashCard>
-  )
-}
-
-function NextDistributionCard({
-  distribution,
-}: Readonly<{
-  distribution: DistributionRecord | null
-}>) {
-  return (
-    <DashCard
-      title="Next distribution"
-      subtitle={
-        distribution !== null
-          ? `Scheduled for ${formatDateTime(distribution.distributionDate)}`
-          : 'Upcoming monthly yield'
-      }
-      className="h-full"
-      contentClassName={PANEL_SLOT_CLASS.fill}
-    >
-      {distribution === null ? (
-        <PanelState title="No pending distribution scheduled." />
-      ) : (
-        <div className="space-y-4">
-          <div className="@container min-w-0">
-            <div className="grid grid-cols-1 gap-3 @[20rem]:grid-cols-2">
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-fg-tertiary">BTC amount</p>
-                <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-                  {satsToBtc(distribution.btcAmountSats) ?? '—'} BTC
-                </p>
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-fg-tertiary">Value at price</p>
-                <p className="mt-1 text-xl font-semibold tabular-nums text-fg">
-                  {btcValueUsdc(distribution.btcAmountSats, distribution.btcPriceUsdc) ?? '—'}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between border-t border-console-line-soft pt-4">
-            <div>
-              <p className="text-xs font-medium text-fg-tertiary">Target strategy</p>
-              <p className="text-sm font-medium text-fg">{distribution.rwaStrategyId}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-medium text-fg-tertiary">Status</p>
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                  distribution.status === 'approved'
-                    ? 'bg-success-400/10 text-success-400'
-                    : distribution.status === 'distributed'
-                      ? 'bg-accent-400/10 text-accent-400'
-                      : 'bg-warning-400/10 text-warning-400'
-                }`}
-              >
-                {distribution.status}
-              </span>
-            </div>
-          </div>
-          {distribution.status === 'pending' ? <ApproveButton distributionId={distribution.id} /> : null}
-        </div>
-      )}
-    </DashCard>
-  )
-}
-
-function DistributionHistory({
-  distributions,
-}: Readonly<{
-  distributions: readonly DistributionRecord[]
-}>) {
-  if (distributions.length === 0) {
-    return (
-      <DashCard title="Distribution history" className="h-full">
-        <PanelState title="No previous distributions recorded." />
-      </DashCard>
-    )
-  }
-
-  return (
-    <DashCard
-      title="Distribution history"
-      className="h-full"
-      contentClassName={PANEL_SLOT_CLASS.table}
-      action={<Badge color="neutral">{`${distributions.length}`}</Badge>}
-    >
-      <AdminTable>
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.date}>Month</TableHeader>
-            <TableHeader className={tableCol.date}>Date</TableHeader>
-            <TableHeader className={tableCol.numeric}>BTC</TableHeader>
-            <TableHeader className={tableCol.numeric}>Value</TableHeader>
-            <TableHeader className={tableCol.hash}>Strategy</TableHeader>
-            <TableHeader className={tableCol.status}>Status</TableHeader>
-            <TableHeader className={tableCol.date}>Approved</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {distributions.map((d) => (
-            <TableRow key={d.id}>
-              <TableCell className={tableCol.date}>{d.month}</TableCell>
-              <TableCell className={tableCol.date}>{formatDateTime(d.distributionDate)}</TableCell>
-              <TableCell className={tableCol.numeric}>
-                {satsToBtc(d.btcAmountSats) ?? '—'} BTC
-              </TableCell>
-              <TableCell className={tableCol.numeric}>
-                {btcValueUsdc(d.btcAmountSats, d.btcPriceUsdc) ?? '—'}
-              </TableCell>
-              <TableCell className={tableCol.hash}>{d.rwaStrategyId}</TableCell>
-              <TableCell className={tableCol.status}>
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    d.status === 'approved'
-                      ? 'bg-success-400/10 text-success-400'
-                      : d.status === 'distributed'
-                        ? 'bg-accent-400/10 text-accent-400'
-                        : 'bg-warning-400/10 text-warning-400'
-                  }`}
-                >
-                  {d.status}
-                </span>
-              </TableCell>
-              <TableCell className={tableCol.date}>
-                {d.approvedAt ? formatDateTime(d.approvedAt) : '—'}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </AdminTable>
-    </DashCard>
-  )
-}
-
-function numericValue(v: string | null | undefined): number | null {
-  if (v === undefined || v === null || v === '' || v === 'null' || v === 'undefined') return null
-  const n = Number(v)
-  // 0 is a legitimate measurement (a period can mine nothing) — only reject
-  // the unparseable and the negative.
-  if (!Number.isFinite(n) || n < 0) return null
-  return n
-}
-
-function isCalculationComplete(c: CalculationRecord): boolean {
-  return numericValue(c.totalBtcMinedSats) !== null && numericValue(c.grossRevenueUsdc) !== null
-}
-
-function CalculationsSection({
-  calculations,
-  nextPeriod,
-  defaultStrategyId,
-}: Readonly<{
-  calculations: readonly CalculationRecord[]
-  nextPeriod: string
-  defaultStrategyId: string | null
-}>) {
-  if (calculations.length === 0) {
-    return (
-      <DashCard
-        title="Calculations"
-        subtitle="Historical yield calculations"
-        className="h-full"
-        contentClassName="gap-3"
-      >
-        <PanelState title="No calculations recorded yet." />
-        {defaultStrategyId !== null ? (
-          <div className="max-w-xs">
-            <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
-          </div>
-        ) : (
-          <p className="text-xs text-fg-tertiary">
-            No strategy identified — a calculation cannot be triggered without one.
-          </p>
-        )}
-      </DashCard>
-    )
-  }
-
-  const incompleteCount = calculations.filter((c) => !isCalculationComplete(c)).length
-
-  return (
-    <DashCard
-      title="Calculation history"
-      subtitle="Historical yield calculations"
-      className="h-full"
-      contentClassName="gap-3"
-      action={<Badge color="neutral">{`${calculations.length}`}</Badge>}
-    >
-      {incompleteCount > 0 ? (
-        <p className="text-xs text-fg-tertiary">
-          {`${incompleteCount} calculation(s) incomplete — trigger again or check backend logs.`}
-        </p>
-      ) : null}
-      <div className={PANEL_SLOT_CLASS.table}>
-        <AdminTable>
-          <TableHead>
-            <TableRow>
-              <TableHeader className={tableCol.date}>Period</TableHeader>
-              <TableHeader className={tableCol.numeric}>BTC</TableHeader>
-              <TableHeader className={tableCol.numeric}>Gross yield</TableHeader>
-              <TableHeader className={tableCol.numeric}>OPEX</TableHeader>
-              <TableHeader className={tableCol.numeric}>Net yield</TableHeader>
-              <TableHeader className={tableCol.hash}>Strategy</TableHeader>
-              <TableHeader className={tableCol.status}>Status</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {calculations.map((c) => {
-              const complete = isCalculationComplete(c)
-              const opexValue = formatCurrency(c.opexUsdc, { decimals: 0, fromAtomic: 1 })
-              return (
-                <TableRow key={c.id}>
-                  <TableCell className={tableCol.date}>{c.period}</TableCell>
-                  <TableCell className={tableCol.numeric}>
-                    {complete ? `${satsToBtc(c.totalBtcMinedSats)} BTC` : '—'}
-                  </TableCell>
-                  <TableCell className={tableCol.numeric}>
-                    {complete ? formatCurrency(c.grossRevenueUsdc, { decimals: 0, fromAtomic: 1 }) : '—'}
-                  </TableCell>
-                  <TableCell className={`${tableCol.numeric} text-danger-400`}>
-                    {complete && opexValue !== '—' ? `-${opexValue}` : '—'}
-                  </TableCell>
-                  <TableCell className={`${tableCol.numeric} text-success-400`}>
-                    {complete ? formatCurrency(c.netYieldUsdc, { decimals: 0, fromAtomic: 1 }) : '—'}
-                  </TableCell>
-                  <TableCell className={tableCol.hash}>{c.rwaStrategyId}</TableCell>
-                  <TableCell className={tableCol.status}>
-                    {complete ? (
-                      <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
-                        complete
-                      </span>
-                    ) : (
-                      <span className="inline-flex rounded-full bg-warning-400/10 px-2 py-0.5 text-xs font-medium text-warning-400">
-                        incomplete
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </AdminTable>
-      </div>
-      {defaultStrategyId !== null ? (
-        <div className="max-w-xs">
-          <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
-        </div>
-      ) : null}
-    </DashCard>
-  )
-}
-
-function StrategyAllocationSection({
-  distributions,
-  rwaPockets,
-}: Readonly<{
-  distributions: readonly DistributionRecord[]
-  rwaPockets: readonly RwaPocket[]
-}>) {
-  const strategyTotals = new Map<string, number>()
-  for (const d of distributions) {
-    const sats = Number(d.btcAmountSats)
-    if (!Number.isFinite(sats)) continue
-    const existing = strategyTotals.get(d.rwaStrategyId)
-    strategyTotals.set(d.rwaStrategyId, existing === undefined ? sats : existing + sats)
-  }
-
-  const hasPockets = rwaPockets.length > 0
-  const hasDistributions = strategyTotals.size > 0
-
-  if (!hasPockets && !hasDistributions) {
-    return (
-      <DashCard
-        title="RWA strategy allocation"
-        subtitle="Mining yield per strategy"
-        className="h-full"
-      >
-        <PanelState title="No strategy allocation data available." />
-      </DashCard>
-    )
-  }
-
-  const rows = hasPockets
-    ? rwaPockets.map((p) => {
-        const key = p.label ?? p.pocket
-        const totalSats = strategyTotals.get(key)
-        return {
-          id: p.pocket,
-          label: key,
-          targetBps: p.targetBps,
-          actualBps: p.actualBps,
-          enabled: p.enabled,
-          totalSats: totalSats === undefined ? 0 : totalSats,
-        }
-      })
-    : Array.from(strategyTotals.entries()).map(([strategyId, totalSats]) => ({
-        id: strategyId,
-        label: strategyId,
-        targetBps: null,
-        actualBps: null,
-        enabled: true,
-        totalSats,
-      }))
-
-  return (
-    <DashCard
-      title="RWA strategy allocation"
-      subtitle="Mining yield per strategy"
-      className="h-full"
-      contentClassName={PANEL_SLOT_CLASS.table}
-      action={<Badge color="neutral">{`${rows.length}`}</Badge>}
-    >
-      <AdminTable>
-        <TableHead>
-          <TableRow>
-            <TableHeader className={tableCol.primary}>Strategy</TableHeader>
-            <TableHeader className={tableCol.numeric}>Target</TableHeader>
-            <TableHeader className={tableCol.numeric}>Actual</TableHeader>
-            <TableHeader className={tableCol.numeric}>BTC received</TableHeader>
-            <TableHeader className={tableCol.status}>Status</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className={tableCol.primary}>{row.label}</TableCell>
-              <TableCell className={tableCol.numeric}>
-                {row.targetBps !== null
-                  ? formatPercent(row.targetBps, { fromBps: true, maximumFractionDigits: 2 })
-                  : '—'}
-              </TableCell>
-              <TableCell className={tableCol.numeric}>
-                {row.actualBps !== null
-                  ? formatPercent(row.actualBps, { fromBps: true, maximumFractionDigits: 2 })
-                  : '—'}
-              </TableCell>
-              <TableCell className={tableCol.numeric}>
-                {row.totalSats > 0 ? `${satsToBtc(String(row.totalSats))} BTC` : '—'}
-              </TableCell>
-              <TableCell className={tableCol.status}>
-                {row.enabled ? (
-                  <span className="inline-flex rounded-full bg-success-400/10 px-2 py-0.5 text-xs font-medium text-success-400">
-                    enabled
-                  </span>
-                ) : (
-                  <span className="inline-flex rounded-full bg-fg-tertiary/10 px-2 py-0.5 text-xs font-medium text-fg-tertiary">
-                    disabled
-                  </span>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </AdminTable>
-    </DashCard>
-  )
-}
-
-/* ── Page ────────────────────────────────────────────────────────────────── */
 
 type PageProps = {
   readonly searchParams: Promise<{ readonly [key: string]: string | string[] | undefined }>
@@ -758,13 +195,16 @@ export default async function Page({ searchParams }: PageProps) {
   const productionCostValue = valueOf(productionCost)
   const hashrate = mining?.hashrate?.value?.reportedHashrateTh ?? null
   const btcEarnedSats = mining?.hashrate?.value?.totalBtcEarnedSats ?? null
-  const btcPrice = btc?.btcProduced?.value?.currentPriceUsdc ?? null
   const machineCount = mining?.operationalTelemetry?.value?.machineCount ?? null
   const activeMachines = mining?.operationalTelemetry?.value?.activeMachines ?? null
-  const electricityCost = mining?.electricity?.value?.monthlyCost ?? null
-  const electricity = mining?.electricity?.value ?? null
 
-  const [distRes, calcRes, rwaRes] = await Promise.all([
+  /* Le hashprice vient du snapshot marché : la ligne restait vide alors que la
+     donnée existe, et le bloc Market du tableau de bord l'affiche. */
+  const market = await loadAdminMarketSnapshot()
+  const hashpriceRaw = valueOf(market)?.hashprice ?? null
+  const hashpriceValue = hashpriceRaw !== null && Number.isFinite(Number(hashpriceRaw)) ? Number(hashpriceRaw) : null
+
+  const [distRes, calcRes, rwaRes, machinesRes, closeRes] = await Promise.all([
     callBackend<{
       readonly distributions: Resolved<readonly DistributionRecord[]>
     }>('mining-distributions'),
@@ -774,11 +214,15 @@ export default async function Page({ searchParams }: PageProps) {
     callBackend<{
       readonly pockets: Resolved<readonly RwaPocket[]>
     }>('rwa-vault'),
+    callBackend<{ readonly machines: Resolved<readonly Machine[]> }>('mining-machines'),
+    callBackend<{ readonly months: Resolved<readonly CloseMonth[]> }>('admin-mining-monthly-close'),
   ])
 
   const allDistributions = distRes.ok && distRes.data.distributions.value ? distRes.data.distributions.value : []
   const allCalculations = calcRes.ok && calcRes.data.calculations.value ? calcRes.data.calculations.value : []
   const rwaPockets = rwaRes.ok && rwaRes.data.pockets.value ? rwaRes.data.pockets.value : []
+  const monthlyClose = closeRes.ok && closeRes.data.months?.value ? closeRes.data.months.value : []
+  const machines = machinesRes.ok && machinesRes.data.machines?.value ? machinesRes.data.machines.value : null
 
   const vaultOptions = buildVaultOptions(rwaPockets)
   const validStrategy = selectedStrategy && vaultOptions.some((v) => v.id === selectedStrategy) ? selectedStrategy : null
@@ -786,23 +230,20 @@ export default async function Page({ searchParams }: PageProps) {
   const distributions = validStrategy
     ? allDistributions.filter((d) => d.rwaStrategyId === validStrategy)
     : allDistributions
-  const calculations = validStrategy
-    ? allCalculations.filter((c) => c.rwaStrategyId === validStrategy)
-    : allCalculations
-  const filteredPockets = validStrategy
-    ? rwaPockets.filter((p) => p.pocket === validStrategy)
-    : rwaPockets
 
   const nextDistribution = distributions.find((d) => d.status === 'pending') ?? null
-  const history = distributions.filter((d) => d.status !== 'pending')
 
   const nextPeriod = nextDistribution?.month ?? new Date().toISOString().slice(0, 7)
   // No fabricated strategy id: without a real source (selection, pending
   // distribution, or vault pocket), there is no default — the trigger stays off.
   const defaultStrategyId = validStrategy ?? nextDistribution?.rwaStrategyId ?? vaultOptions[0]?.id ?? null
 
-  const btcAmount = satsToBtc(btcEarnedSats)
-  const yieldValue = btcValueUsdc(btcEarnedSats, btcPrice)
+  const uptimePct =
+    machines !== null && machines.length > 0 ? machines.reduce((t, m) => t + m.uptime30dPct, 0) / machines.length : null
+  /* La part du parc affectée aux vaults des clients — le reste est libre. */
+  const fleetThs = (machines ?? []).reduce((t, m) => t + m.hashrateThs, 0)
+  const allocatedThs = (machines ?? []).filter((m) => m.vaultId != null).reduce((t, m) => t + m.hashrateThs, 0)
+  const allocatedPct = fleetThs > 0 ? (allocatedThs / fleetThs) * 100 : null
 
   // Hero KPI band (cockpit header) — hashrate is the dominant fact, the other
   // readings support it. Same titles, values, and units as the former strip.
@@ -812,23 +253,31 @@ export default async function Page({ searchParams }: PageProps) {
       title: 'Hashrate',
       value: kpiReading(
         mining?.hashrate,
-        hashrate !== null ? `${formatNumber(Number(hashrate))} TH/s` : null,
+        hashrate !== null ? `${formatNumber(Number(hashrate) / 1e6, { maximumFractionDigits: 2 })} EH/s` : null,
       ),
       unit: 'reported',
       icon: CpuChipIcon,
     },
     {
-      id: 'btc-earned',
-      title: 'BTC earned',
-      value: kpiReading(mining?.hashrate, btcAmount !== null ? `${btcAmount} BTC` : null),
-      unit: 'cumulative',
+      /* L'uptime remplace « BTC earned » : le cumul déclaré est déjà dans
+         « Report fleet metrics », et la production dans le graphe du parc. */
+      id: 'uptime',
+      title: 'Uptime, 30 days',
+      value: kpiReading(
+        mining?.operationalTelemetry,
+        uptimePct !== null ? `${formatNumber(uptimePct, { maximumFractionDigits: 1 })} %` : null,
+      ),
+      unit: 'fleet average',
       icon: CircleStackIcon,
     },
     {
-      id: 'yield',
-      title: 'Yield value',
-      value: kpiReading(btc?.btcProduced, yieldValue),
-      unit: 'USDC',
+      id: 'allocated',
+      title: 'Allocated to client vaults',
+      value: kpiReading(
+        btc?.btcProduced,
+        allocatedPct !== null ? `${formatNumber(allocatedPct, { maximumFractionDigits: 1 })} %` : null,
+      ),
+      unit: allocatedThs > 0 ? `${formatNumber(allocatedThs / 1000, { maximumFractionDigits: 1 })} PH/s` : undefined,
       icon: BanknotesIcon,
     },
     {
@@ -837,7 +286,7 @@ export default async function Page({ searchParams }: PageProps) {
       value: kpiReading(
         mining?.operationalTelemetry,
         machineCount !== null && activeMachines !== null
-          ? `${activeMachines} / ${machineCount}`
+          ? `${formatNumber(activeMachines)} / ${formatNumber(machineCount)}`
           : null,
       ),
       unit: 'active',
@@ -849,26 +298,10 @@ export default async function Page({ searchParams }: PageProps) {
     <div className="flex min-w-0 flex-col gap-6">
       <DashboardHeader
         title="Mining operations"
-        description="Manage hashrate, OPEX, and yield distribution to RWA strategy."
+        description="The fleet, its costs, and the bitcoin it pays to each client vault."
         kpis={kpis}
       />
 
-      {vaultOptions.length > 0 ? (
-        // `flex-wrap` : le sélecteur et sa légende se partageaient une ligne
-        // qui ne se repliait pas, et poussaient la page sur un écran étroit.
-        <div
-          className={clsx(surfaceInset, 'flex flex-wrap items-center justify-between gap-4 p-3')}
-        >
-          <MiningVaultSwitcher options={vaultOptions} selectedId={validStrategy} />
-          {validStrategy ? (
-            <span className="text-xs text-fg-tertiary">
-              Showing data for <span className="font-medium text-fg">{validStrategy}</span>
-            </span>
-          ) : (
-            <span className="text-xs text-fg-tertiary">Showing all RWA strategies</span>
-          )}
-        </div>
-      ) : null}
 
       {/*
         Rows whose heights MATCH by construction. Row A: the fleet card owns the
@@ -884,13 +317,14 @@ export default async function Page({ searchParams }: PageProps) {
       <BentoGrid>
         <BentoCard span={12}>
           <DashCard
+            eyebrow="Economics"
             title="Mining economics"
             subtitle="What one bitcoin costs to produce, against the market"
           >
             {productionCostValue !== null ? (
               <ProductionCostPanel
                 cost={productionCostValue}
-                hashprice={null}
+                hashprice={hashpriceValue}
               />
             ) : (
               <PanelState title="Production cost unavailable." />
@@ -899,61 +333,57 @@ export default async function Page({ searchParams }: PageProps) {
         </BentoCard>
       </BentoGrid>
 
-      {/* Row A — fleet telemetry + keeper action flank. */}
+      {/* Row A — le parc, machine par machine, sur toute la largeur. */}
       <BentoGrid>
-        <BentoCard span={8} className="h-full">
-          <MachineFleetSection
-            machineCount={machineCount}
-            activeMachines={activeMachines}
-            averageUptimePct={mining?.operationalTelemetry?.value?.averageUptimePct ?? null}
-          />
-        </BentoCard>
-        <BentoCard span={4} className="h-full">
-          <ReportMetricsSection />
+        <BentoCard span={12} bare>
+          <FleetMachines machines={machines} />
         </BentoCard>
       </BentoGrid>
 
-      {/* Row B — OPEX + yield: symmetric halves. */}
+      {/* Row B — ce que coûte le parc, et l'action Keeper qui déclare sa
+          production. Tout ceci est COMMUN : un seul parc pour tous les vaults. */}
       <BentoGrid>
-        <BentoCard span={6} className="h-full">
-          <OpexSection electricity={electricity} />
+        <BentoCard span={12} bare>
+          <ElectricityByVault months={monthlyClose} />
         </BentoCard>
-        <BentoCard span={6} className="h-full">
-          <YieldCalculationSection
-            btcEarnedSats={btcEarnedSats}
-            btcPrice={btcPrice}
-            electricityCost={electricityCost}
+      </BentoGrid>
+      <BentoGrid>
+        <BentoCard span={12} bare>
+          <ReportMetricsSection
+            reportedThs={hashrate !== null && Number.isFinite(Number(hashrate)) ? Number(hashrate) : null}
+            reportedSats={btcEarnedSats !== null && Number.isFinite(Number(btcEarnedSats)) ? Number(btcEarnedSats) : null}
+            fleetThs={fleetThs}
           />
         </BentoCard>
       </BentoGrid>
 
-      {/* Row C — monthly production: frameless header + bare ChartFrame band. */}
-      <MonthlyBtcChart distributions={distributions} />
+      {/* Row C — la production du parc, avant sa répartition. */}
+      <MonthlyBtcChart months={monthlyClose} />
 
-      {/* Row D — calculation history (frozen table) + next distribution flank. */}
+      {/* Row D — LA CLÔTURE DU MOIS, vault par vault : la production et
+          l'électricité du parc réparties entre les clients, chacun selon le
+          capital de SA poche Mining, et chaque distribution validée pour son
+          vault. Remplace cinq blocs qui calculaient un rendement global vers
+          une « stratégie » commune — sans dire à quel client allait l'argent. */}
       <BentoGrid>
-        <BentoCard span={8} className="h-full">
-          <CalculationsSection
-            calculations={calculations}
-            nextPeriod={nextPeriod}
-            defaultStrategyId={defaultStrategyId}
-          />
-        </BentoCard>
-        <BentoCard span={4} className="h-full">
-          <NextDistributionCard distribution={nextDistribution} />
-        </BentoCard>
-      </BentoGrid>
-
-      {/* Row E — distribution history + strategy allocation: paired frozen tables. */}
-      <BentoGrid>
-        <BentoCard span={8} className="h-full">
-          <DistributionHistory distributions={history} />
-        </BentoCard>
-        <BentoCard span={4} className="h-full">
-          <StrategyAllocationSection
-            distributions={distributions}
-            rwaPockets={filteredPockets}
-          />
+        <BentoCard span={12} bare>
+          <DashCard
+            eyebrow="Monthly close"
+            title="Split by client vault"
+            subtitle="The fleet’s output and electricity, split by each vault’s mining capital — one distribution per client"
+          >
+            <MonthlyClose
+              months={monthlyClose}
+              action={
+                nextPeriod !== null && defaultStrategyId !== null ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-fg-tertiary">Next to compute: {nextPeriod}</span>
+                    <TriggerCalculationButton period={nextPeriod} rwaStrategyId={defaultStrategyId} />
+                  </div>
+                ) : null
+              }
+            />
+          </DashCard>
         </BentoCard>
       </BentoGrid>
     </div>

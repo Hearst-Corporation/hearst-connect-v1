@@ -1,325 +1,185 @@
-import { ClientsDirectory } from '@/components/admin/clients-directory'
-import { DashCard, DashboardHeader, PanelHeaderLink } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
-import { Badge } from '@/components/catalyst/badge'
-import { Link } from '@/components/catalyst/link'
-import { Text } from '@/components/catalyst/text'
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import { AdminTable, Callout, tableCol } from '@/components/compositions'
-import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
-import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
-import {
-  loadAdminAssetScale,
-  loadAdminClientsDirectory,
-  loadAdminVaultRegistry,
-} from '@/lib/admin-dashboard/load'
-import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
-import { toBackendRole } from '@/lib/backend/auth'
+import { HearstPrimaryAction } from '@/components/actions'
+import { HearstBreakdownDonut } from '@/components/charts'
+import { Callout } from '@/components/compositions'
+import { ClientBookTable, type ClientRow } from '@/features/admin-clients/client-book-table'
+import { btcFromSats } from '@/lib/admin-dashboard/amounts'
+import { isVaultDrifting } from '@/lib/admin-dashboard/contracts'
 import { requireSession } from '@/lib/auth'
+import { loadClientBook, PIPELINE_STAGES, STAGE_LABEL, type ClientEntry } from '@/lib/clients/book'
+import { loadAdminOffers } from '@/lib/admin-dashboard/load'
+import { PIPELINE_STATUSES } from '@/lib/offers/model'
+import { formatCurrency, formatDate } from '@/lib/format'
+import { kycStatusLabel } from '@/lib/labels'
+import { available, valueOf } from '@/lib/vaults/model'
 import {
-  available,
-  isAvailable,
-  measuredCount,
-  unavailable,
-  valueOf,
-  type Availability,
-  type ClientRef,
-} from '@/lib/vaults/model'
-import { formatNumber } from '@/lib/format'
-import { MOVEMENT_WINDOW } from '@/lib/vaults/overview'
-import { loadAdminRegistry } from '@/lib/vaults/registry'
-import {
+  ArchiveBoxIcon,
   BanknotesIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  UsersIcon,
+  InboxArrowDownIcon,
+  PlusIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
-import type { ReactNode } from 'react'
 
 export const metadata: Metadata = { title: 'Clients' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Clients — operational directory.
- * Prefer GET /api/v1/admin/clients/recent (exposure + Som KYC).
- * Fall back to GET /api/v1/clients (id + label) when the rich read is empty/unavailable.
- * Simulated client creation lives at /admin/client-simulator/new (admin role only).
+ * Clients — LA page de travail.
+ *
+ * Elle remplace trois menus (Offers, Clients, Vaults) qui découpaient un même
+ * parcours en trois morceaux. Un client y a une ligne, quelle que soit son
+ * étape : prospect, offre en cours, fonds attendus, vault actif, clos. Les
+ * anciens menus sont devenus des filtres de cette liste.
+ *
+ * En tête, les quatre chiffres qui pilotent la journée : ce qui tourne, ce qui
+ * arrive, ce qui attend NOTRE geste, et ce que le KYC bloque.
  */
 
-type ClientsView =
-  | Readonly<{ kind: 'rich'; listedCount: Availability<string>; clients: readonly AdminRecentClient[] }>
-  | Readonly<{ kind: 'thin'; listedCount: Availability<string>; clients: readonly ClientRef[] }>
-  | Readonly<{ kind: 'thin-empty'; listedCount: Availability<string> }>
-  | Readonly<{ kind: 'unavailable'; listedCount: Availability<string> }>
+const usd = (v: number) => formatCurrency(String(Math.round(v)), { unit: '$', fromAtomic: 1 })
+const KYC_OK = new Set(['APPROVED', 'VERIFIED'])
 
-function resolveClientsView(
-  recent: Availability<readonly AdminRecentClient[]>,
-  registryClients: Availability<readonly ClientRef[]>,
-): ClientsView {
-  const richRows = isAvailable(recent) ? recent.value : null
-  const thinRows = isAvailable(registryClients) ? registryClients.value : null
+function kycTone(status: string | null): ClientRow['kycTone'] {
+  const k = (status ?? '').toUpperCase()
+  if (KYC_OK.has(k)) return 'lime'
+  if (k === 'REJECTED' || k === 'DENIED' || k === 'HIGH_RISK') return 'red'
+  if (k === '' || k === 'NOT_STARTED') return 'neutral'
+  return 'amber'
+}
 
-  if (richRows !== null && richRows.length > 0) {
-    return { kind: 'rich', listedCount: measuredCount(recent), clients: richRows }
+/** Ce que la colonne « Vault » dit d'un client : l'état de son vault, ou rien. */
+function vaultCell(e: ClientEntry): Pick<ClientRow, 'vaultBadge' | 'vaultTone' | 'vaultLine'> {
+  const v = e.vault
+  if (e.stage !== 'active' || v === null) return { vaultBadge: null, vaultTone: null, vaultLine: null }
+  const term =
+    v.lockupMonths !== null && v.lockupElapsedMonths !== null
+      ? `Month ${Math.min(v.lockupElapsedMonths, v.lockupMonths)} of ${v.lockupMonths}`
+      : v.lockupEndAt !== null
+        ? `Unlocks ${formatDate(v.lockupEndAt)}`
+        : null
+  if (v.worstDriftBps === null) return { vaultBadge: 'Drift unread', vaultTone: 'neutral', vaultLine: term }
+  if (isVaultDrifting(v)) return { vaultBadge: 'Rebalance', vaultTone: 'amber', vaultLine: term }
+  return { vaultBadge: 'Within band', vaultTone: 'lime', vaultLine: term }
+}
+
+function toRow(e: ClientEntry): ClientRow {
+  return {
+    clientId: e.clientId,
+    // Un client que seule une offre connaît (sans identifiant) s'ouvre par son offre.
+    href: e.clientId.startsWith('offer:') ? `/admin/offers/${e.clientId.slice(6)}` : `/admin/clients/${e.clientId}`,
+    name: e.name,
+    kind: e.kind,
+    stage: e.stage,
+    stageLabel: e.stage === 'closed' && e.closedReason !== null ? (e.closedReason === 'declined' ? 'Declined' : 'Expired') : STAGE_LABEL[e.stage],
+    amountUsdc: e.amountUsdc,
+    reserveBtcSats:
+      e.stage === 'active' && e.vault !== null && (e.vault.capitalBtcSats != null || e.vault.accruedBtcSats != null)
+        ? (e.vault.capitalBtcSats ?? 0) + (e.vault.accruedBtcSats ?? 0)
+        : null,
+    accruedBtcSats: e.stage === 'active' ? (e.vault?.accruedBtcSats ?? null) : null,
+    kycLabel: e.kycStatus === null ? 'Not started' : kycStatusLabel(e.kycStatus),
+    kycTone: kycTone(e.kycStatus),
+    ...vaultCell(e),
+    nextAction: e.nextAction,
+    onUs: e.onUs,
   }
-
-  if (thinRows !== null) {
-    const listedCount = measuredCount(registryClients)
-    if (thinRows.length === 0) {
-      return { kind: 'thin-empty', listedCount }
-    }
-    return { kind: 'thin', listedCount, clients: thinRows }
-  }
-
-  const listedCount =
-    richRows !== null ? measuredCount(recent) : measuredCount(registryClients)
-  return { kind: 'unavailable', listedCount }
 }
 
-/* ── Command-bar KPIs ────────────────────────────────────────────────────────
-   Same status vocabulary as the directory filters, so the strip reads as the
-   filter rail's summary. Counts are derived from the rows ALREADY loaded —
-   rich-only KPIs render '—' when the directory falls back to the thin read. */
+export default async function ClientsPage() {
+  await requireSession()
+  const [book, offers] = await Promise.all([loadClientBook(), loadAdminOffers()])
+  /* Le pipeline : les offres OUVERTES — la même règle que le tableau de bord,
+     nouvelles tranches de clients actifs comprises. */
+  const openOffers = (valueOf(offers) ?? []).filter((o) => PIPELINE_STATUSES.includes(o.status))
+  const entries = book.entries
 
-const KYC_PENDING = new Set(['PENDING', 'EN_ATTENTE', 'IN_REVIEW', 'IN_PROGRESS'])
-const KYC_ATTENTION = new Set([
-  'PENDING',
-  'EN_ATTENTE',
-  'IN_REVIEW',
-  'IN_PROGRESS',
-  'REJECTED',
-  'DENIED',
-  'REQUIRED',
-  'EXPIRED',
-  'HIGH_RISK',
-])
-
-function kycKey(status: string): string {
-  return status.trim().toUpperCase()
-}
-
-function hasExposureAtomic(client: AdminRecentClient): boolean {
-  if (client.currentExposureAtomic === null || client.currentExposureAtomic === '') return false
-  const n = Number(client.currentExposureAtomic)
-  return Number.isFinite(n) && n > 0
-}
-
-function richCount(
-  view: ClientsView,
-  match: (client: AdminRecentClient) => boolean,
-): Availability<string> {
-  if (view.kind !== 'rich') return unavailable()
-  return available(String(view.clients.filter(match).length))
-}
-
-/** The command bar is the shared `DashboardHeader` — no local copy. */
-
-/* ── Directory card ──────────────────────────────────────────────────────────
-   ONE frozen box for every view: rich table, thin fallback, empty and
-   unavailable states all render inside the same 592px slot, so the page
-   geometry never jumps with the data. The link lives on the title row. */
-
-const DIRECTORY_SLOT = 'h-[592px]'
-
-function directorySubtitle(view: ClientsView): string | undefined {
-  if (view.kind === 'rich') {
-    return 'Partner KYC via Som — read only. Vault membership and created date live on the client record when available.'
-  }
-  if (view.kind === 'thin') {
-    return 'Identity from the client directory. Exposure and Som KYC appear when the admin read model returns them.'
-  }
-  return undefined
-}
-
-function directoryAction(view: ClientsView, showCreateLink: boolean): ReactNode {
-  return (
-    <span className="flex flex-wrap items-center gap-3">
-      {view.kind === 'thin' ? (
-        <Badge color="neutral">{`${view.clients.length} client(s)`}</Badge>
-      ) : null}
-      {showCreateLink ? (
-        <PanelHeaderLink href="/admin/client-simulator/new">Create simulated client</PanelHeaderLink>
-      ) : null}
-      <PanelHeaderLink href="/admin/compliance">Compliance</PanelHeaderLink>
-      <PanelHeaderLink href="/admin/runtime">Source health</PanelHeaderLink>
-    </span>
+  const active = entries.filter((e) => e.stage === 'active')
+  const pipeline = entries.filter((e) => PIPELINE_STAGES.includes(e.stage))
+  const onUs = entries.filter((e) => e.onUs)
+  const decisions = entries.reduce((n, e) => n + e.decisions.length, 0)
+  const kycBlocking = pipeline.filter(
+    (e) => ['accepted', 'funding', 'funded'].includes(e.stage) && !KYC_OK.has((e.kycStatus ?? '').toUpperCase()),
   )
-}
-
-function ClientsMainContent({
-  view,
-  assetScale,
-  lockups,
-}: Readonly<{
-  view: ClientsView
-  assetScale: AdminAssetScale | null
-  /** Vaults dédiés, pour rattacher à chaque client son capital et son terme. */
-  lockups: readonly AdminVaultRecord[] | null
-}>) {
-  if (view.kind === 'rich') {
-    return <ClientsDirectory clients={view.clients} assetScale={assetScale} />
-  }
-
-  if (view.kind === 'thin-empty') {
-    return (
-      <Callout tone="info" title="No clients yet">
-        No client records were returned for this directory.
-      </Callout>
-    )
-  }
-
-  if (view.kind === 'thin') {
-    return (
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-none">
-        <AdminTable className="[&_table]:min-w-[40rem]">
-          <TableHead>
-            <TableRow>
-              <TableHeader className={tableCol.primary}>Client</TableHeader>
-              <TableHeader className={tableCol.numeric}>Capital</TableHeader>
-              <TableHeader className={tableCol.numeric}>Lockup</TableHeader>
-              <TableHeader className={tableCol.hash}>Identifier</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {view.clients.map((client) => (
-              <TableRow
-                key={client.id}
-                href={`/admin/client-simulator/${client.id}`}
-                title={`Open ${client.label}`}
-              >
-                <TableCell className={tableCol.primary}>
-                  <div className="truncate font-medium">{client.label}</div>
-                </TableCell>
-                <TableCell className={`${tableCol.numeric} tabular-nums`}>
-                  {lockupOf(lockups, client.id)?.principalUsdc != null
-                    ? `$${formatNumber(lockupOf(lockups, client.id)!.principalUsdc!, { maximumFractionDigits: 0 })}`
-                    : '—'}
-                </TableCell>
-                <TableCell className={`${tableCol.numeric} tabular-nums`}>
-                  <LockupCell record={lockupOf(lockups, client.id)} />
-                </TableCell>
-                <TableCell className={`${tableCol.hash} text-sm text-fg-tertiary`}>{client.id}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </AdminTable>
-      </div>
-    )
-  }
-
-  return (
-    <Callout tone="warning" title="Client directory unavailable">
-      Client records could not be read. Technical detail lives under{' '}
-      <Link href="/admin/runtime" className="underline">
-        Service
-      </Link>
-      .
-    </Callout>
-  )
-}
-
-/** Vault dédié d'un client, s'il en a un au registre. */
-function lockupOf(
-  records: readonly AdminVaultRecord[] | null,
-  clientId: string,
-): AdminVaultRecord | null {
-  return records?.find((r) => r.clientId === clientId) ?? null
-}
-
-/** Un terme à moins de trois mois demande une action commerciale. */
-const DUE_SOON_MONTHS = 3
-
-/**
- * Mois restants avant la fin du blocage. Un terme proche est signalé : c'est un
- * renouvellement à préparer, pas une ligne de tableau.
- */
-function LockupCell({ record }: Readonly<{ record: AdminVaultRecord | null }>) {
-  if (record?.lockupMonths == null || record.lockupElapsedMonths == null) {
-    return <span className="text-fg-tertiary">—</span>
-  }
-  const left = Math.max(0, record.lockupMonths - record.lockupElapsedMonths)
-  return (
-    <span className={left <= DUE_SOON_MONTHS ? 'font-semibold text-warning-400' : 'text-fg-secondary'}>
-      {left} / {record.lockupMonths} mo
-    </span>
-  )
-}
-
-export default async function Page() {
-  const session = await requireSession()
-  const [recent, registry, assetScale, vaultRegistry] = await Promise.all([
-    loadAdminClientsDirectory(100),
-    loadAdminRegistry(session.name, { movementLimit: MOVEMENT_WINDOW }),
-    loadAdminAssetScale(),
-    // Le blocage du capital commande la relation commerciale : il ne peut pas
-    // vivre seulement sur la fiche d'un vault.
-    loadAdminVaultRegistry(),
-  ])
-
-  const view = resolveClientsView(recent, registry.clients)
-  const lockups = valueOf(vaultRegistry)
-  const showCreateLink = toBackendRole(session.role) === 'admin'
+  const kycOpen = entries.filter((e) => e.stage !== 'closed' && !KYC_OK.has((e.kycStatus ?? '').toUpperCase()))
 
   const kpis: readonly AdminHeroKpi[] = [
-    { id: 'clients', title: 'Clients listed', value: view.listedCount, icon: UsersIcon },
     {
-      id: 'with-exposure',
-      title: 'With exposure',
-      value: richCount(view, hasExposureAtomic),
+      id: 'active',
+      title: 'Active vaults',
+      value: available(String(active.length)),
+      icon: ArchiveBoxIcon,
+      footnote: `${btcFromSats(active.reduce((s, e) => s + (e.vault?.capitalBtcSats ?? 0) + (e.vault?.accruedBtcSats ?? 0), 0))} in reserves · from ${usd(active.reduce((s, e) => s + (e.amountUsdc ?? 0), 0))} USDC`,
+    },
+    {
+      id: 'pipeline',
+      title: 'Pipeline',
+      value: available(usd(openOffers.reduce((s, o) => s + (o.amountUsdc ?? 0), 0))),
       icon: BanknotesIcon,
+      footnote: `USDC proposed · ${openOffers.length} open offer${openOffers.length === 1 ? '' : 's'}`,
     },
     {
-      id: 'kyc-pending',
-      title: 'KYC pending',
-      value: richCount(view, (client) => KYC_PENDING.has(kycKey(client.kycStatus))),
-      icon: ClockIcon,
+      id: 'onus',
+      title: 'Waiting on you',
+      value: available(String(onUs.length)),
+      icon: InboxArrowDownIcon,
+      footnote: `${decisions} decision${decisions === 1 ? '' : 's'} · ${onUs.length - entries.filter((e) => e.decisions.length > 0).length} journey step${onUs.length === 1 ? '' : 's'}`,
     },
     {
-      id: 'needs-attention',
-      title: 'Needs attention',
-      value: richCount(view, (client) => KYC_ATTENTION.has(kycKey(client.kycStatus))),
-      icon: ExclamationTriangleIcon,
+      id: 'kyc',
+      title: 'KYC open',
+      value: available(String(kycOpen.length)),
+      icon: ShieldCheckIcon,
+      footnote:
+        kycBlocking.length > 0
+          ? `${kycBlocking.length} blocking a funding call`
+          : 'None blocking a funding call',
     },
   ]
 
+  /* Les clients par étape — la forme du portefeuille en un anneau. */
+  const byStage = [...entries.reduce((m, e) => m.set(STAGE_LABEL[e.stage], (m.get(STAGE_LABEL[e.stage]) ?? 0) + 1), new Map<string, number>())].map(
+    ([label, value]) => ({ label, value }),
+  )
+
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <DashboardShell>
       <DashboardHeader
         title="Clients"
-        description="Manage client accounts, exposure, vault relationships, and partner KYC status."
+        description="Every client on one page — the offers on the way in (Pipeline), the live vaults and their bitcoin reserves (Active), and the next move."
         kpis={kpis}
+        aside={
+          <DashCard className="min-w-0" eyebrow="Book" title="Clients by stage" subtitle="Where each relationship stands">
+            <HearstBreakdownDonut slices={byStage} kind="count" unit="clients" centerCaption="clients" layout="side" />
+          </DashCard>
+        }
+        action={
+          <HearstPrimaryAction icon={<PlusIcon />} href="/admin/offers/new">
+            New offer
+          </HearstPrimaryAction>
+        }
       />
 
+      {!book.complete ? (
+        <Callout tone="warning" title="Part of the book could not be read">
+          Not read: {book.missing.join(', ')}. The list below shows what the other sources returned — a client may
+          appear without its offer, its vault or its KYC.
+        </Callout>
+      ) : null}
+
       <BentoGrid>
-        <BentoCard span={12}>
+        <BentoCard span={12} bare>
           <DashCard
             className="min-w-0"
-            contentClassName={DIRECTORY_SLOT}
-            title="Directory"
-            titleLevel={2}
-            subtitle={directorySubtitle(view)}
-            action={directoryAction(view, showCreateLink)}
+            eyebrow="Book"
+            title="All clients"
+            subtitle="Sorted by what needs us first, then by how far each client has come"
           >
-            <ClientsMainContent view={view} assetScale={assetScale} lockups={lockups} />
+            <ClientBookTable rows={entries.map(toRow)} />
           </DashCard>
         </BentoCard>
       </BentoGrid>
-
-      <Text className="text-sm text-fg-secondary">
-        Som provides KYC — status is read-only here. Source health:{' '}
-        <Link href="/admin/runtime" className="underline">
-          Service
-        </Link>
-        .
-      </Text>
-    </div>
+    </DashboardShell>
   )
 }

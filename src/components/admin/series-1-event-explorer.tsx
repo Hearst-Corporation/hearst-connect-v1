@@ -1,12 +1,13 @@
 'use client'
 
+import { PaginatedTable } from '@/components/admin/paginated-table'
 import { DashCard, PanelState } from '@/components/admin/dashboard'
 import { Badge } from '@/components/catalyst/badge'
 import { Field, Label } from '@/components/catalyst/fieldset'
 import { Input } from '@/components/catalyst/input'
 import { Select } from '@/components/catalyst/select'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { AdminTable, tableCol } from '@/components/compositions'
+import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
+import { tableCol } from '@/components/compositions'
 import { formatNumber, pluralSuffix } from '@/lib/format'
 import { dateLisible, ilYA, movementLabel } from '@/lib/movements'
 import { useMemo, useState } from 'react'
@@ -187,20 +188,18 @@ export function Series1EventExplorer({
       {calmMessage !== undefined ? (
         <PanelState title={calmMessage} />
       ) : filtered.length > 0 ? (
-        // Frozen slot: the box never grows with the dataset — rows scroll
-        // inside, header sticks (the Catalyst overflow div IS the scroll
-        // container, so `sticky` on the header cells holds).
-        <AdminTable className="h-[420px] overflow-y-auto scrollbar-none [&_table]:min-w-[40rem]">
-          <TableHead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-console-inset">
+        <PaginatedTable
+          className="[&_table]:w-full [&_table]:min-w-[40rem] [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0"
+          noun="events"
+          head={
             <TableRow>
               <TableHeader className={tableCol.primary}>Event</TableHeader>
               <TableHeader className={tableCol.numeric}>Amount</TableHeader>
               <TableHeader className={tableCol.hash}>Transaction</TableHeader>
               <TableHeader className={tableCol.date}>When</TableHeader>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map((row) => {
+          }
+          rows={filtered.map((row) => {
               const tx = txShort(row.txHash)
               const detailBits = [
                 row.vaultId !== null ? `Vault ${row.vaultId}` : null,
@@ -236,8 +235,13 @@ export function Series1EventExplorer({
                 </TableRow>
               )
             })}
-          </TableBody>
-        </AdminTable>
+          exportData={{
+            filename: 'hearst-onchain-events',
+            title: 'On-chain events',
+            columns: ['Event', 'Vault', 'Client', 'Amount', 'Asset', 'Tx', 'Block', 'Occurred', 'Indexed'],
+            data: filtered.map((r) => [r.eventName, r.vaultId, r.client, r.amount, r.assetLabel, r.txHash, r.blockNumber, r.occurredAt, r.indexedAt]),
+          }}
+        />
       ) : null}
     </DashCard>
   )

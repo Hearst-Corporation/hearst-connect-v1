@@ -21,6 +21,8 @@ import { Pie, PieChart, Tooltip } from 'recharts'
  *    100 % that would hide a small idle remainder.
  *  - `count` : each value is a raw count. Here the count and its share of the
  *    total are two different facts, so the legend shows both (`9 · 45%`).
+ *  - `usd` : each value is a dollar amount. Same as `count`, written in
+ *    compact dollars (`$12.0M · 54%`) — capital by client type, by client…
  *
  * ── Geometry ──────────────────────────────────────────────────────────────
  * The ring lives in the shared `donut` viewport (CSS tokens, 220px block). The
@@ -32,6 +34,21 @@ import { Pie, PieChart, Tooltip } from 'recharts'
  * (`categoricalColor`) — never a rainbow, never green-as-success spent on an
  * ordinary bucket. `paddingAngle` separates adjacent arcs without a white stroke.
  */
+
+export type BreakdownKind = 'percent' | 'count' | 'usd' | 'btc'
+
+/** Dollars compacts : « $12.0M », « $850K ». */
+function usdCompact(value: number): string {
+  return `$${formatNumber(value, { notation: 'compact', maximumFractionDigits: 1 })}`
+}
+
+/** La valeur d'une part, écrite selon son genre. */
+function valueText(kind: BreakdownKind, value: number): string {
+  if (kind === 'percent') return `${formatNumber(value, { maximumFractionDigits: 1 })}%`
+  if (kind === 'usd') return usdCompact(value)
+  if (kind === 'btc') return `${formatNumber(value, { maximumFractionDigits: value >= 100 ? 0 : 1 })} BTC`
+  return formatNumber(value)
+}
 
 export type BreakdownSlice = {
   readonly label: string
@@ -47,14 +64,18 @@ export function HearstBreakdownDonut({
   kind,
   unit,
   centerCaption,
+  layout = 'stacked',
 }: Readonly<{
   slices: readonly BreakdownSlice[]
-  /** `percent` → value is already a %; `count` → value is a raw count. */
-  kind: 'percent' | 'count'
+  /** `percent` → value is already a %; `count` → raw count; `usd` → dollars. */
+  kind: BreakdownKind
   /** Legend/center unit word (e.g. "events"). */
   unit: string
   /** Sub-line under the center metric (e.g. "allocated"). Defaults to `unit`. */
   centerCaption?: string
+  /** `side` : l'anneau à gauche, la légende à droite — un bloc moins haut,
+   *  pour une carte posée à côté d'un bandeau de chiffres. */
+  layout?: 'stacked' | 'side'
 }>) {
   // Hooks before any early return (rules-of-hooks).
   const { ref, width } = useChartWidth()
@@ -71,13 +92,14 @@ export function HearstBreakdownDonut({
     return <p className="py-6 text-center text-sm text-fg-tertiary">Nothing to break down yet.</p>
   }
 
-  const totalText =
-    kind === 'percent' ? `${formatNumber(total, { maximumFractionDigits: 1 })}%` : formatNumber(total)
+  const totalText = valueText(kind, total)
   const caption = centerCaption ?? unit
+  /* Côte à côte, l'anneau rétrécit pour laisser la légende lisible en entier. */
+  const blockPx = layout === 'side' ? 164 : DONUT_BLOCK_PX
   const sharePct = (value: number) => formatNumber((value / total) * 100, { maximumFractionDigits: 0 })
 
   return (
-    <div className="w-full">
+    <div className={layout === 'side' ? 'donut-side flex w-full flex-col items-center gap-5 sm:flex-row' : 'w-full'}>
       <ChartAccessibilityTable
         caption={`Breakdown (${unit})`}
         columns={
@@ -88,8 +110,8 @@ export function HearstBreakdownDonut({
           label: s.label,
           cells:
             kind === 'percent'
-              ? [`${formatNumber(s.value, { maximumFractionDigits: 1 })}%`]
-              : [formatNumber(s.value), `${sharePct(s.value)}%`],
+              ? [valueText(kind, s.value)]
+              : [valueText(kind, s.value), `${sharePct(s.value)}%`],
         }))}
         footer={{
           label: 'Total',
@@ -100,12 +122,12 @@ export function HearstBreakdownDonut({
       <div
         ref={ref}
         aria-hidden="true"
-        className="relative mx-auto w-full"
-        style={{ maxWidth: DONUT_MAX_INLINE_PX, height: DONUT_BLOCK_PX }}
-        data-chart-viewport={DONUT_BLOCK_PX}
+        className={layout === 'side' ? 'relative w-[164px] shrink-0' : 'relative mx-auto w-full'}
+        style={{ maxWidth: DONUT_MAX_INLINE_PX, height: blockPx }}
+        data-chart-viewport={blockPx}
       >
         {width > 0 ? (
-          <PieChart width={width} height={DONUT_BLOCK_PX}>
+          <PieChart width={width} height={blockPx}>
             <Pie
               data={ranked}
               dataKey="value"
@@ -125,7 +147,7 @@ export function HearstBreakdownDonut({
         </div>
       </div>
 
-      <ul className="mt-5 flex flex-col gap-1.5">
+      <ul className={layout === 'side' ? 'flex w-full min-w-0 flex-1 flex-col gap-2' : 'mt-5 flex flex-col gap-1.5'}>
         {ranked.map((s, index) => (
           <li key={`${s.label}-${index}`} className="flex items-center gap-2.5 text-xs text-fg-secondary">
             <span
@@ -143,7 +165,7 @@ export function HearstBreakdownDonut({
                 </span>
               ) : (
                 <>
-                  <span className="font-medium text-fg">{formatNumber(s.value)}</span>
+                  <span className="font-medium text-fg">{valueText(kind, s.value)}</span>
                   <span className="text-fg-tertiary">
                     {' · '}
                     {sharePct(s.value)}%
@@ -168,7 +190,7 @@ function BreakdownTooltip({
 }: Readonly<{
   active?: boolean
   payload?: readonly { name?: string; value?: number | null }[]
-  kind: 'percent' | 'count'
+  kind: BreakdownKind
   unit: string
   total: number
 }>) {
@@ -183,7 +205,7 @@ function BreakdownTooltip({
         value={
           kind === 'percent'
             ? `${formatNumber(value, { maximumFractionDigits: 1 })}%`
-            : `${formatNumber(value)} ${unit} · ${formatNumber((value / total) * 100, { maximumFractionDigits: 0 })}%`
+            : `${valueText(kind, value)}${kind === 'usd' ? '' : ` ${unit}`} · ${formatNumber((value / total) * 100, { maximumFractionDigits: 0 })}%`
         }
       />
     </ChartTooltipShell>

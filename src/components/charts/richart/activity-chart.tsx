@@ -47,12 +47,16 @@ export function HearstActivityChart({
   color = SERIE,
   height,
   viewport,
+  yTickFormatter,
 }: Readonly<{
   points: readonly ActivityPoint[]
   unit: string
   color?: string
   height?: number
   viewport?: ChartViewportRole
+  /** Graduations de l'axe Y. Sans lui, un montant à six chiffres se coupait
+   *  dans les 40px de l'axe (« 00,000 »). */
+  yTickFormatter?: (v: number) => string
 }>) {
   const count = points.length
   const { ref, width, viewportHeight } = useChartViewport({ height, viewport, kind: 'columns' })
@@ -109,9 +113,11 @@ export function HearstActivityChart({
               tick={{ fill: chartTheme.tick, fontSize: chartTheme.axisFontSize }}
               tickLine={false}
               axisLine={false}
-              width={40}
-              allowDecimals={false}
-              tickFormatter={(v: number) => formatNumber(v, { maximumFractionDigits: 0 })}
+              width={yTickFormatter === undefined ? 40 : 56}
+              /* Décimales permises dès qu'un format est fourni : sur des mois
+                 à moins d'un BTC, l'axe entier montait à 4 et écrasait les barres. */
+              allowDecimals={yTickFormatter !== undefined}
+              tickFormatter={yTickFormatter ?? ((v: number) => formatNumber(v, { maximumFractionDigits: 0 }))}
             />
             <Tooltip
               content={<RichTooltip unit={unit} />}

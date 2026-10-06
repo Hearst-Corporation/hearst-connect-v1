@@ -283,3 +283,21 @@
 .dark [data-focus] {
   outline-color: var(--color-accent-500) !important;
 }
+
+/* ── Champs auto-remplis ─────────────────────────────────────────────────────
+ * Chrome peint les champs qu'il remplit lui-même (email, nom, mot de passe)
+ * d'un fond clair qui ignore nos styles : un champ rempli devenait blanc au
+ * milieu d'un formulaire sombre. Une ombre intérieure de la couleur du champ
+ * recouvre ce fond, et l'encre reste claire. La transition très longue
+ * empêche Chrome de repeindre le fond au survol. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-fg, #f2f2f2);
+  caret-color: var(--color-fg, #f2f2f2);
+  -webkit-box-shadow: 0 0 0 1000px var(--ud-inset, #161616) inset;
+  box-shadow: 0 0 0 1000px var(--ud-inset, #161616) inset;
+  transition: background-color 9999s ease-out 0s;
+}

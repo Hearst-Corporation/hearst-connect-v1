@@ -1,5 +1,8 @@
 'use client'
 
+import { InboxBell } from '@/features/admin-inbox/inbox-bell'
+import type { InboxItem } from '@/lib/notifications/inbox'
+
 import {
   Dropdown,
   DropdownButton,
@@ -73,8 +76,9 @@ function AccountMenu({
  */
 export function AdminApplicationLayout({
   user,
+  inbox,
   children,
-}: Readonly<{ user: SessionUser; children: React.ReactNode }>) {
+}: Readonly<{ user: SessionUser; inbox: readonly InboxItem[]; children: React.ReactNode }>) {
   const pathname = usePathname()
   const activeGroup = activeSecondaryGroup(pathname)
   const activePrimary = activeHref(pathname)
@@ -88,6 +92,7 @@ export function AdminApplicationLayout({
           <Navbar>
             <NavbarSpacer />
             <NavbarSection>
+              <InboxBell initial={inbox} />
               <Dropdown>
                 <DropdownButton as={NavbarItem}>
                   <NavbarAvatar initials={initials} />
@@ -177,6 +182,10 @@ export function AdminApplicationLayout({
               n'emporte aucune taille et comptait sur le contexte de la
               navbar Catalyst, absent ici : l'initiale sortait en 48px dans
               un bloc de 92x165. */}
+          {/* La cloche à gauche de l'avatar, comme dans toute application :
+              ce qui attend l'admin, et ce qui vient de se passer. */}
+          <div className="flex items-center gap-4">
+          <InboxBell initial={inbox} />
           <Dropdown>
             <DropdownButton as="button" className="flex items-center gap-2.5">
               <span className="avatar" title={user.email} aria-label={user.name}>
@@ -186,6 +195,7 @@ export function AdminApplicationLayout({
             </DropdownButton>
             <AccountMenu anchor="bottom end" activeAccount={activeAccount} />
           </Dropdown>
+          </div>
         </header>
         <AdminBodyNav />
         {children}

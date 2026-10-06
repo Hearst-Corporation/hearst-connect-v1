@@ -28,7 +28,17 @@ const usd = (v: number) => `$${formatNumber(v, { maximumFractionDigits: 0 })}`
 /** Échéances retenues, en mois. Bornées à l'horizon réellement publié. */
 const HORIZONS = [6, 12, 24] as const
 
-export function ProjectionTable({ projection }: Readonly<{ projection: VaultProjection }>) {
+export function ProjectionTable({
+  projection,
+  leadLabel = 'Vault value today',
+  horizons = HORIZONS,
+}: Readonly<{
+  projection: VaultProjection
+  /** Libellé du montant de départ — « Proposed capital » pour une offre. */
+  leadLabel?: string
+  /** Échéances affichées, en mois — l'admin y ajoute le terme du lockup. */
+  horizons?: readonly number[]
+}>) {
   const { points, startValueUsdc, startValueBtc, runs, btcVolAnnualPct } = projection
 
   // La lecture bitcoin n'est proposée que si la source la publie.
@@ -38,7 +48,7 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
   const [unit, setUnit] = useState<'usd' | 'btc'>('btc')
   const showBtc = hasBtc && unit === 'btc'
 
-  const rows = HORIZONS.filter((m) => m < points.length).map((m) => ({
+  const rows = horizons.filter((m) => m < points.length).map((m) => ({
     months: m,
     point: points[m],
   }))
@@ -72,7 +82,7 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
     <div className="projection">
       <div className="projection-head">
         <div>
-          <p className="projection-lead-label">Vault value today</p>
+          <p className="projection-lead-label">{leadLabel}</p>
           <p className="projection-lead-value">{fmt(base)}</p>
         </div>
 
@@ -133,7 +143,7 @@ export function ProjectionTable({ projection }: Readonly<{ projection: VaultProj
             {btcVolAnnualPct !== null
               ? ` (${formatNumber(btcVolAnnualPct, { maximumFractionDigits: 0 })} % annualised volatility)`
               : ''}
-            : a vault paying a dollar yield does not protect against a rising bitcoin.
+            . The reserve is counted in bitcoin: what the vault adds each month is bitcoin, whatever the price does.
           </>
         ) : (
           'In dollars only the strategy is uncertain — the bitcoin price is not modelled here.'

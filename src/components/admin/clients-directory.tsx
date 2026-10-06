@@ -1,5 +1,6 @@
 'use client'
 
+import { PaginatedTable } from '@/components/admin/paginated-table'
 import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { surfaceBox } from '@/components/admin/surface'
@@ -8,13 +9,11 @@ import { Badge } from '@/components/catalyst/badge'
 import { Input } from '@/components/catalyst/input'
 import { Link } from '@/components/catalyst/link'
 import {
-  TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { AdminTable, tableCol } from '@/components/compositions'
+import { tableCol } from '@/components/compositions'
 import type { AdminRecentClient } from '@/lib/admin-dashboard/contracts'
 import { formatAdminAtomic, type AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatDate } from '@/lib/format'
@@ -113,7 +112,9 @@ export function ClientsDirectory({
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
           <Badge color="neutral">{`${filtered.length} of ${clients.length}`}</Badge>
-          <fieldset className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
+          {/* Le sélecteur du bloc vault de /account : piste sombre, choix actif
+              en aplat blanc. */}
+          <fieldset className="ud-seg m-0 min-w-0 border-0">
             <legend className="sr-only">Client filters</legend>
             {FILTERS.map((item) => {
               const active = filter === item.id
@@ -123,11 +124,7 @@ export function ClientsDirectory({
                   type="button"
                   onClick={() => setFilter(item.id)}
                   aria-pressed={active}
-                  className={
-                    active
-                      ? 'rounded-lg bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-300 ring-1 ring-accent-400/30'
-                      : 'rounded-lg px-3 py-1.5 text-xs font-medium text-fg-tertiary ring-1 ring-console-line-soft hover:text-fg'
-                  }
+                  className={`ud-seg-btn${active ? ' active' : ''}`}
                 >
                   {item.label}
                 </button>
@@ -137,31 +134,36 @@ export function ClientsDirectory({
         </div>
       </div>
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-none">
+      <div className="min-w-0">
         {filtered.length === 0 ? (
           <PanelState title="No clients match this search or filter." />
         ) : (
           <>
             <div className="hidden min-w-0 md:block">
-              <AdminTable className="[&_table]:min-w-[40rem]">
-                <TableHead>
+              {/* Le gabarit du tableau des vaults du tableau de bord : pleine
+                  largeur, colonnes aérées, bords calés sur la carte pour que les
+                  boutons « Open » tombent sous ceux de l'en-tête. */}
+              <PaginatedTable
+                className="[&_table]:w-full [&_table]:min-w-[40rem] [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0"
+                noun="clients"
+                collapsed={10}
+                head={
                   <TableRow>
                     <TableHeader className={tableCol.primary}>Client</TableHeader>
                     <TableHeader className={tableCol.numeric}>Exposure</TableHeader>
                     <TableHeader className={tableCol.numeric}>Vaults</TableHeader>
                     <TableHeader className={tableCol.status}>KYC</TableHeader>
-                    <TableHeader className={tableCol.date}>Activity</TableHeader>
+                    <TableHeader className={tableCol.date}>Last activity</TableHeader>
+                    <TableHeader className={tableCol.action}>
+                      <span className="sr-only">Open</span>
+                    </TableHeader>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filtered.map((client) => (
-                    <TableRow
-                      key={client.id}
-                      href={`/admin/clients/${client.id}`}
-                      title={`Open ${client.label}`}
-                    >
+                }
+                rows={filtered.map((client) => (
+                    <TableRow key={client.id}>
                       <TableCell className={tableCol.primary}>
                         <div className="truncate font-medium text-fg">{client.label}</div>
+                        <div className="text-xs text-fg-tertiary">Client since {formatDate(client.createdAt)}</div>
                       </TableCell>
                       <TableCell className={tableCol.numeric}>
                         {assetScale
@@ -179,10 +181,26 @@ export function ClientsDirectory({
                       <TableCell className={`${tableCol.date} text-fg-tertiary`}>
                         {client.lastActivityAt ? formatDate(client.lastActivityAt) : '—'}
                       </TableCell>
+                      {/* Le bouton vert de /account : la ligne n'est plus un
+                          lien invisible, le bouton dit où l'on clique. */}
+                      <TableCell className={tableCol.action}>
+                        <Link
+                          href={`/admin/clients/${client.id}`}
+                          className="ud-detail-btn inline-flex items-center no-underline"
+                          aria-label={`Open ${client.label}`}
+                        >
+                          Open
+                        </Link>
+                      </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </AdminTable>
+                exportData={{
+                  filename: 'hearst-client-directory',
+                  title: 'Client directory',
+                  columns: ['Client', 'Exposure (atomic)', 'Vaults', 'KYC', 'Last activity', 'Client since'],
+                  data: filtered.map((c) => [c.label, c.currentExposureAtomic, c.vaultIds.length, kycStatusLabel(c.kycStatus), c.lastActivityAt, c.createdAt]),
+                }}
+              />
             </div>
 
             <ul className="space-y-3 md:hidden" aria-label="Client directory">

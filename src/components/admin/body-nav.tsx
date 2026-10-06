@@ -1,6 +1,6 @@
 'use client'
 
-import { Navbar, NavbarItem, NavbarLabel, NavbarSection } from '@/components/catalyst/navbar'
+import { Link } from '@/components/catalyst/link'
 import { activeBodyHref, bodySubmenus } from '@/lib/admin-nav'
 import { usePathname } from 'next/navigation'
 
@@ -28,28 +28,26 @@ export function AdminBodyNav() {
      elles totalisent 720px, et sur un écran de 320px elles poussaient le
      document entier. Le défilement latéral garde les libellés entiers ET la
      page à sa largeur. */
+  /* Le sélecteur du bloc vault de /account (`.ud-seg`) : piste sombre,
+     destination courante en aplat blanc — le même que les filtres de la
+     console. Une rangée de liens nus se lisait comme du texte, pas comme une
+     navigation. La piste défile latéralement sur petit écran plutôt que de
+     pousser la page. */
   return (
-    <nav
-      aria-label="Sub-navigation"
-      className="mb-8 w-full max-w-full overflow-x-auto border-b border-console-line-soft"
-    >
-      {/* `min-w-0` : sans lui, `flex-1` refuse de descendre sous la
-            largeur du contenu, et le défilement du parent reste inopérant. */}
-      <Navbar className="min-w-0 gap-0! pb-0">
-        <NavbarSection className="w-max shrink-0">
-          {submenus.map((entry) => (
-            <NavbarItem
-              key={entry.href}
-              href={entry.href}
-              current={active === entry.href}
-              title={entry.detail}
-              className="shrink-0 rounded-none px-3 py-2.5 sm:px-4"
-            >
-              <NavbarLabel>{entry.label}</NavbarLabel>
-            </NavbarItem>
-          ))}
-        </NavbarSection>
-      </Navbar>
+    <nav aria-label="Sub-navigation" className="mb-8 w-full max-w-full overflow-x-auto">
+      <div className="ud-seg flex-nowrap!">
+        {submenus.map((entry) => (
+          <Link
+            key={entry.href}
+            href={entry.href}
+            title={entry.detail}
+            aria-current={active === entry.href ? 'page' : undefined}
+            className={`ud-seg-btn inline-flex shrink-0 items-center no-underline${active === entry.href ? ' active' : ''}`}
+          >
+            {entry.label}
+          </Link>
+        ))}
+      </div>
     </nav>
   )
 }

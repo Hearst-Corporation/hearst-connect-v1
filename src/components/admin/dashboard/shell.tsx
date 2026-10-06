@@ -34,6 +34,7 @@ export function DashCard({
   titleLevel = 3,
   subtitle,
   action,
+  tone,
 }: Readonly<{
   children?: ReactNode
   className?: string
@@ -52,9 +53,15 @@ export function DashCard({
   subtitle?: string
   /** Quiet link/action on the title row — replaces the bordered footer strip. */
   action?: ReactNode
+  /** `accent` : la carte entière en aplat vert de marque, encre sombre. */
+  tone?: 'accent'
 }>) {
   return (
-    <section data-surface="box" className={clsx(surfaceBox, 'flex min-w-0 flex-col', className)}>
+    <section
+      data-surface="box"
+      data-tone={tone}
+      className={clsx(surfaceBox, 'flex min-w-0 flex-col', className)}
+    >
       {/* L'en-tête de /account, à l'identique : surtitre en capitales, titre,
           phrase descriptive — puis un filet qui le sépare du contenu. Padding
           de 20px (`--ud-pad-card`), le même que ses cartes ; la console en

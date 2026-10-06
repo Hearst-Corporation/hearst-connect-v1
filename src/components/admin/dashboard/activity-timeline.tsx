@@ -1,12 +1,20 @@
 'use client'
 
 import { PanelState } from '@/components/admin/dashboard/panel-state'
-import { AdminToneBadge, toneForActivityStatus } from '@/components/admin/status-tone'
+import { toneForActivityStatus } from '@/components/admin/status-tone'
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ArrowUpTrayIcon,
+  BanknotesIcon,
+  BoltIcon,
+} from '@heroicons/react/16/solid'
 import type { AdminAssetScale } from '@/lib/admin-dashboard/format-atomic'
 import { formatEventAtomic } from '@/lib/admin-dashboard/format-atomic'
+import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import type { AdminActivityEvent } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
-import { formatAddress, formatHash, formatDate } from '@/lib/format'
+import { formatAddress, formatDate } from '@/lib/format'
 import { movementLabel } from '@/lib/movements'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
@@ -15,8 +23,32 @@ function eventClientTitle(
   assetScale: AdminAssetScale | null,
 ): string | undefined {
   if (event.clientLabel === null || event.clientLabel === '') return undefined
+  if (event.amountBtcSats != null) return `${event.clientLabel} · ${btcFromSats(event.amountBtcSats)}`
   if (event.amountAtomic === null) return event.clientLabel
   return `${event.clientLabel} · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
+}
+
+/** Le libellé du mouvement, en casse de phrase : « DEPOSIT » criait. */
+function readableType(type: string): string {
+  const label = movementLabel(type)
+  if (label !== label.toUpperCase()) return label
+  const lower = label.toLowerCase().replaceAll('_', ' ')
+  return lower.charAt(0).toUpperCase() + lower.slice(1)
+}
+
+/** Un nom de client s'affiche en entier ; seule une adresse brute s'abrège. */
+function clientName(label: string | null): string | null {
+  if (label === null || label === '') return null
+  return /^0x[0-9a-f]{8,}$/i.test(label) ? formatAddress(label) : label
+}
+
+function iconFor(type: string) {
+  const key = type.toUpperCase()
+  if (key.includes('DEPOSIT')) return ArrowDownTrayIcon
+  if (key.includes('WITHDRAW')) return ArrowUpTrayIcon
+  if (key.includes('REBALANCE')) return ArrowPathIcon
+  if (key.includes('DISTRIBUT') || key.includes('YIELD')) return BanknotesIcon
+  return BoltIcon
 }
 
 function TimelineState({ title, detail }: Readonly<{ title: string; detail: string }>) {
@@ -48,41 +80,44 @@ export function ActivityTimelinePanel({
   return (
     <div className="flex h-full min-h-0 flex-col" data-widget="activity-timeline">
       {/*
+        Un registre, pas une frise : le type et le client à gauche, le montant
+        à droite, en chiffres pleins. Le hash de transaction et le statut
+        « confirmé » répétés à chaque ligne n'aidaient pas à lire — seul un
+        statut ANORMAL (en attente, échoué) est encore affiché.
+
         The card's fixed slot owns the height (row-matched); the list fills it
         and scrolls inside — dataset never owns geometry.
       */}
-      <ul className="relative min-h-0 flex-1 space-y-4 overflow-y-auto border-l border-console-line pl-4 scrollbar-none">
-        {events.value.map((event) => (
-          <li key={event.id} className="relative">
-            <span
-              aria-hidden="true"
-              className="absolute top-1.5 left-[-1.3rem] size-2 rounded-full bg-accent-400 ring-2 ring-console-card"
-            />
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                {/* English vocabulary from the movement type (backend fact); the
-                    backend `title` is localized copy and is not rendered here. */}
-                <p className="text-sm font-semibold text-fg">{movementLabel(event.type)}</p>
-                <p
-                  className="mt-0.5 truncate text-xs text-fg-tertiary"
-                  title={eventClientTitle(event, assetScale)}
-                >
-                  {formatAddress(event.clientLabel) ?? event.clientLabel ?? '—'}
-                  {event.amountAtomic !== null
-                    ? ` · ${formatEventAtomic(event.amountAtomic, event.asset, assetScale)}`
-                    : null}
+      <ul className="min-h-0 flex-1 divide-y divide-[var(--ud-line)] overflow-y-auto scrollbar-none">
+        {events.value.map((event) => {
+          const Icon = iconFor(event.type)
+          const tone = toneForActivityStatus(event.status)
+          const client = clientName(event.clientLabel)
+          return (
+            <li key={event.id} className="flex items-center gap-3 py-3 first:pt-0">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]">
+                <Icon className="size-4 text-[var(--hearst-green)]" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-fg">{readableType(event.type)}</p>
+                <p className="truncate text-xs text-fg-tertiary" title={eventClientTitle(event, assetScale)}>
+                  {client ?? 'Vault not reported'}
+                  {tone !== 'accent' ? ` · ${event.status.toLowerCase()}` : null}
                 </p>
-                {event.txHash !== null ? (
-                  <p className="mt-0.5 truncate font-mono text-[11px] text-fg-secondary">{formatHash(event.txHash)}</p>
-                ) : null}
               </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <AdminToneBadge tone={toneForActivityStatus(event.status)}>{event.status}</AdminToneBadge>
-                <span className="text-[11px] text-fg-tertiary">{formatDate(event.occurredAt)}</span>
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-medium tabular-nums text-fg">
+                  {event.amountBtcSats != null
+                    ? btcFromSats(event.amountBtcSats)
+                    : event.amountAtomic !== null
+                    ? formatEventAtomic(event.amountAtomic, event.asset, assetScale)
+                    : '—'}
+                </p>
+                <p className="text-[11px] text-fg-tertiary">{formatDate(event.occurredAt)}</p>
               </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

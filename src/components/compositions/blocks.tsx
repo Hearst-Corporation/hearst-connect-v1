@@ -1,12 +1,12 @@
 import { csl, Reading } from '@/components/layout/console'
 import type { Availability } from '@/lib/vaults/model'
-import { Panel, PanelBody } from '@/components/compositions/panel'
+import { Panel } from '@/components/compositions/panel'
 import { SourceAttendue, CalmState } from '@/components/compositions/empty-state'
-import { FadeIn } from '@/components/compositions/motion'
 import { RichSparkline } from '@/components/charts'
 import { Badge } from '@/components/catalyst/badge'
 import { Table } from '@/components/catalyst/table'
 import clsx from 'clsx'
+import { DashCard } from '@/components/admin/dashboard/shell'
 
 /**
  * "Premium" composition blocks — tier 2bis of the doctrine.
@@ -198,27 +198,23 @@ export function SectionCard({
   as?: 'h2' | 'h3'
   className?: string
 }>) {
+  /* La carte du tableau de bord (`DashCard`) : surtitre, titre 17px, phrase
+     grise, filet, puis le contenu. Une seule grammaire de carte pour toute la
+     console — `SectionCard` avait la sienne (sous-titre blanc et gros, pas de
+     filet), et chaque page intermédiaire avait l'air d'une autre application.
+     `tone` reste accepté pour compatibilité ; il ne change plus le rendu. */
+  void tone
   return (
-    <FadeIn>
-      <Panel tone={tone} className={className}>
-        <div className={csl.heroHead}>
-          <div className="min-w-0 flex-1">
-            {eyebrow !== undefined && eyebrow !== '' && (
-              <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
-            )}
-            {/* 17px : le corps des titres de bloc de /account. Sans classe, un
-            `h2`/`h3` natif tombait à 16px et la console avait deux échelles
-            typographiques pour un même rang. */}
-        <Tag className={clsx(csl.cardTitle, 'text-[17px] leading-tight font-medium text-fg')}>
-          {title}
-        </Tag>
-            {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
-          </div>
-          {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
-        </div>
-        {children !== undefined && <PanelBody>{children}</PanelBody>}
-      </Panel>
-    </FadeIn>
+    <DashCard
+      className={clsx('min-w-0', className)}
+      eyebrow={eyebrow !== undefined && eyebrow !== '' ? eyebrow : undefined}
+      title={title}
+      titleLevel={Tag === 'h2' ? 2 : 3}
+      subtitle={hint !== undefined && hint !== '' ? hint : undefined}
+      action={actions !== undefined ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : undefined}
+    >
+      {children}
+    </DashCard>
   )
 }
 
@@ -248,13 +244,17 @@ export function SectionHeader({
   className?: string
 }>) {
   return (
-    <div className={clsx(csl.heroHead, className)}>
+    /* La typographie de l'en-tête des cartes du tableau de bord, sans la
+       carte : surtitre 11px en capitales, titre 17px, phrase 12px grise. */
+    <div className={clsx('flex items-start justify-between gap-3', className)}>
       <div className="min-w-0 flex-1">
         {eyebrow !== undefined && eyebrow !== '' && (
-          <p className={clsx(csl.cellText, 'text-xs uppercase tracking-wide text-fg-tertiary')}>{eyebrow}</p>
+          <p className="mb-[7px] text-[11px] font-medium tracking-[0.14em] text-[var(--ud-fg-3)] uppercase">{eyebrow}</p>
         )}
-        <Tag className={csl.cardTitle}>{title}</Tag>
-        {hint !== undefined && hint !== '' && <p className={csl.cellText}>{hint}</p>}
+        <Tag className="text-[17px] leading-[1.3] font-medium tracking-[-0.01em] text-fg">{title}</Tag>
+        {hint !== undefined && hint !== '' && (
+          <p className="mt-[3px] text-[12px] leading-snug text-[var(--ud-fg-3)]">{hint}</p>
+        )}
       </div>
       {actions !== undefined && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
@@ -344,6 +344,7 @@ export function AdminTable({ className, ...props }: React.ComponentProps<typeof 
 }
 
 export function DataTableShell({
+  eyebrow,
   title,
   description,
   count,
@@ -352,6 +353,8 @@ export function DataTableShell({
   children,
   className,
 }: Readonly<{
+  /** Le surtitre en capitales, comme les cartes du tableau de bord. */
+  eyebrow?: string
   title: string
   description?: string
   /** An ALREADY-formatted count label, rendered as a badge. Never computed here. */
@@ -383,6 +386,7 @@ export function DataTableShell({
   }
   return (
     <SectionCard
+      eyebrow={eyebrow}
       title={title}
       hint={description}
       tone="wave"
@@ -398,7 +402,11 @@ export function DataTableShell({
           l'écran. Sans la borner ici, cette marge poussait le document entier
           et il fallait faire défiler tout le tableau de bord pour lire une
           colonne. */}
-      <AdminTable className="[&_table]:min-w-[40rem]">{children}</AdminTable>
+      {/* Pleine largeur, colonnes aérées, bords calés sur la carte — le
+          gabarit des tableaux du tableau de bord. */}
+      <AdminTable className="[&_table]:w-full [&_table]:min-w-[40rem] [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
+        {children}
+      </AdminTable>
     </SectionCard>
   )
 }
@@ -449,6 +457,7 @@ export function Callout({
 }>) {
   return (
     <div
+      data-surface="box"
       role={CALLOUT_ROLE[tone]}
       className={clsx('rounded-lg border border-l-4 border-console-line-soft px-4 py-3', CALLOUT_TONE_CLASS[tone], className)}
     >

@@ -1,7 +1,6 @@
 import {
   BanknotesIcon,
   BuildingOffice2Icon,
-  CircleStackIcon,
   CommandLineIcon,
   CpuChipIcon,
   DocumentTextIcon,
@@ -27,7 +26,8 @@ import {
  *   Decisions   → la file de validations vit dans le Dashboard, où elle est
  *                 la première chose à traiter, et sur chaque fiche client.
  *   Compliance  → un onglet de la fiche client : le KYC concerne UN client.
- *   Operations  → le rebalancing se décide par vault, il rejoint Vaults.
+ *   Operations  → le rebalancing se décide par vault ; l'écran global reste
+ *                 accessible depuis le tableau de bord (activité, contrat).
  *
  * Réglages rassemble ce qui était éparpillé en trois groupes secondaires
  * (Product, Service, API explorer, Keeper, Series 1) : des surfaces d'outillage,
@@ -46,9 +46,11 @@ export const ADMIN_NAV: readonly NavEntry[] = [
   { label: 'Dashboard', href: '/admin', icon: HomeIcon },
   // Les clients AVANT les vaults : un vault n'existe pas sans le client pour
   // qui il a été taillé, et le travail commence toujours par une offre.
+  /* UNE entrée, UNE page pour tout le parcours client. Les anciennes pages
+     Offers et Vaults répétaient la même liste (un client = une offre = un
+     vault, et « Open » menait à la même fiche) : ce sont devenus les filtres
+     « Pipeline » et « Active » de Clients. */
   { label: 'Clients', href: '/admin/clients', icon: BuildingOffice2Icon },
-  { label: 'Offers', href: '/admin/offers', icon: DocumentTextIcon },
-  { label: 'Vaults', href: '/admin/vaults', icon: CircleStackIcon },
   { label: 'Mining', href: '/admin/mining', icon: CpuChipIcon },
   { label: 'Settings', href: '/admin/settings', icon: WrenchScrewdriverIcon },
 ]
@@ -82,37 +84,37 @@ export const ADMIN_SECONDARY: readonly SecondaryGroup[] = [
         label: 'Product',
         href: '/admin/product',
         icon: DocumentTextIcon,
-        detail: 'Réserve, production et backtests — faits portés par le backend',
+        detail: 'Reserve, production and backtests — facts carried by the backend',
       },
       {
         label: 'Compliance',
         href: '/admin/compliance',
         icon: ShieldCheckIcon,
-        detail: 'File KYC en lecture seule — la décision appartient au partenaire',
+        detail: 'Read-only KYC queue — the decision belongs to the partner',
       },
       {
         label: 'Journal',
         href: '/admin/series-1',
         icon: Squares2X2Icon,
-        detail: 'Explorateur des événements indexés, filtrable',
+        detail: 'Explorer of indexed events, filterable',
       },
       {
         label: 'Service',
         href: '/admin/runtime',
         icon: SignalIcon,
-        detail: 'Sondes, runtime, couverture et réponses brutes',
+        detail: 'Probes, runtime, coverage and raw responses',
       },
       {
         label: 'API explorer',
         href: '/admin/api-explorer',
         icon: CommandLineIcon,
-        detail: 'Endpoints du backend, leur méthode, leur accès, un curl prêt à copier',
+        detail: 'Backend endpoints, their method, their access, a curl ready to copy',
       },
       {
         label: 'Keeper',
         href: '/admin/keeper',
         icon: BanknotesIcon,
-        detail: 'Requêtes Keeper à effet de bord, chacune sous confirmation explicite',
+        detail: 'Keeper requests with side effects, each behind an explicit confirmation',
       },
     ],
   },
@@ -123,7 +125,7 @@ export const ADMIN_SECONDARY: readonly SecondaryGroup[] = [
         label: 'Your account',
         href: '/admin/profile',
         icon: IdentificationIcon,
-        detail: 'Identité de la session administrateur',
+        detail: 'Identity of the administrator session',
       },
     ],
   },
@@ -199,14 +201,16 @@ export function activeBodyHref(pathname: string): string | undefined {
  */
 const NAV_ALIASES: Readonly<Record<string, string>> = {
   '/admin/client-simulator': '/admin/clients',
+  '/admin/offers': '/admin/clients',
+  '/admin/vaults': '/admin/clients',
   '/admin/product': '/admin/settings',
   '/admin/compliance': '/admin/settings',
   '/admin/series-1': '/admin/settings',
   '/admin/runtime': '/admin/settings',
   '/admin/api-explorer': '/admin/settings',
   '/admin/keeper': '/admin/settings',
-  // Le rebalancing se décide vault par vault : l'écran global rejoint Vaults.
-  '/admin/operations': '/admin/vaults',
+  // L'activité et le contrat on-chain : un écran d'exploitation, rattaché à Clients.
+  '/admin/operations': '/admin/clients',
   // La file de validations est le premier bloc du tableau de bord.
   '/admin/approvals': '/admin',
 }

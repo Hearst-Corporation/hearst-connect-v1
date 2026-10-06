@@ -13,6 +13,8 @@ import {
   fetchOfferSimulation,
   fetchOffers,
   fetchVaultRegistry,
+  fetchAumHistory,
+  fetchMiningDistributions,
   fetchMarketSnapshot,
   fetchPortfolioExposure,
   fetchPortfolioOverview,
@@ -54,6 +56,8 @@ import type {
   AdminActivityEvent,
   AdminApproval,
   AdminBtcReserve,
+  AdminAumSnapshot,
+  AdminMiningDistribution,
   AdminExposureStrategy,
   AdminMarketSnapshot,
   AdminOperationsSurface,
@@ -242,11 +246,25 @@ export async function loadAdminMarketSnapshot(): Promise<Availability<AdminMarke
 /** Coût de production d'un bitcoin — la mesure qui dit si miner crée de la valeur. */
 export async function loadAdminProductionCost(): Promise<Availability<ProductionCost>> {
   const res = await fetchProductionCost()
-  return fromBackendOrUnavailable(
+  const read = fromBackendOrUnavailable(
     res,
     res.ok ? res.data.productionCost : undefined,
     '/api/v1/mining/production-cost',
   )
+  /* La marge est RECALCULÉE, comme sur /account : la source ne la publie pas,
+     et une marge lue à 0 affichait « 0% » sous un écart de 32 000 $. */
+  return isAvailable(read)
+    ? {
+        ...read,
+        value: {
+          ...read.value,
+          marginPct:
+            read.value.marketPriceUsd > 0
+              ? ((read.value.marketPriceUsd - read.value.costPerBtcUsd) / read.value.marketPriceUsd) * 100
+              : 0,
+        },
+      }
+    : read
 }
 
 /** Parc de calcul, à l'échelle de toute l'infrastructure. */
@@ -351,6 +369,24 @@ export async function loadAdminVaultRegistry(): Promise<Availability<readonly Ad
     res,
     res.ok ? res.data.vaults : undefined,
     '/api/v1/admin/vaults/registry',
+  )
+}
+
+/** L'AUM total dans le temps, un point par jour (90 jours). */
+export async function loadAdminAumHistory(): Promise<Availability<readonly AdminAumSnapshot[]>> {
+  const res = await fetchAumHistory()
+  return fromBackendOrUnavailable(res, res.ok ? res.data.snapshots : undefined, '/api/v1/vault/history')
+}
+
+/** Les distributions mensuelles du minage. */
+export async function loadAdminMiningDistributions(): Promise<
+  Availability<readonly AdminMiningDistribution[]>
+> {
+  const res = await fetchMiningDistributions()
+  return fromBackendOrUnavailable(
+    res,
+    res.ok ? res.data.distributions : undefined,
+    '/api/v1/mining/distributions',
   )
 }
 

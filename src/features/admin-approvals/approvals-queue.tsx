@@ -1,8 +1,13 @@
+import Link from 'next/link'
+import { approvalAmount } from '@/lib/admin-dashboard/amounts'
 import {
   ArrowDownTrayIcon,
+  ArrowPathIcon,
   ArrowUpTrayIcon,
   BanknotesIcon,
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
+import { DecisionButtons } from './decision-buttons'
 import type { ComponentType, SVGProps } from 'react'
 import { formatDate, formatNumber } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
@@ -48,17 +53,35 @@ const KINDS: Record<AdminApprovalKind, KindMeta> = {
   },
   withdrawal: {
     label: 'Withdrawal requests',
-    hint: 'Client-initiated. Processing releases funds out of the vault.',
+    hint: 'Client-initiated. Processing releases bitcoin out of the reserve.',
     icon: ArrowUpTrayIcon,
     action: 'Process',
   },
+  rebalance: {
+    label: 'Rebalances to approve',
+    hint: 'A vault has left its band. Approving lets the keeper move capital back to its target.',
+    icon: ArrowPathIcon,
+    action: 'Approve',
+  },
+  protocol: {
+    label: 'Protocol changes',
+    hint: 'Moving a bucket to another protocol changes where the client’s capital works — it needs a sign-off.',
+    icon: ArrowsRightLeftIcon,
+    action: 'Approve',
+  },
+}
+
+/** La section de la fiche client où chaque décision a son contexte. */
+const SECTION_OF: Record<AdminApprovalKind, string> = {
+  distribution: '#rewards',
+  rebalance: '#allocation',
+  protocol: '#allocation',
+  deposit: '#decisions',
+  withdrawal: '#decisions',
 }
 
 /** Ordre FIXE : l'opérateur retrouve les mêmes groupes à la même place. */
-const KIND_ORDER: readonly AdminApprovalKind[] = ['withdrawal', 'distribution', 'deposit']
-
-const usd = (v: number | null) =>
-  v === null ? '—' : `$${formatNumber(v, { maximumFractionDigits: 0 })}`
+const KIND_ORDER: readonly AdminApprovalKind[] = ['withdrawal', 'rebalance', 'protocol', 'distribution', 'deposit']
 
 export function ApprovalsQueue({
   approvals,
@@ -90,7 +113,7 @@ export function ApprovalsQueue({
       {groups.map(({ kind, meta, items }) => {
         const Icon = meta.icon
         return (
-          <section key={kind} aria-label={meta.label} className="flex flex-col gap-3">
+          <section key={kind} id={kind} aria-label={meta.label} className="flex scroll-mt-24 flex-col gap-3">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
                 <Icon className="size-4 text-accent-400" aria-hidden="true" />
@@ -109,40 +132,44 @@ export function ApprovalsQueue({
                   className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3.5"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-fg">{item.clientLabel}</p>
+                    {/* Le nom mène à la fiche du client, à la section de cette décision. */}
+                    <Link
+                      href={`/admin/clients/${item.clientId}${SECTION_OF[item.kind]}`}
+                      className="truncate text-sm font-medium text-fg hover:underline"
+                    >
+                      {item.clientLabel}
+                    </Link>
                     <p className="truncate text-xs text-fg-tertiary">
                       {item.note ?? item.vaultId}
                     </p>
+                    {item.rebalance ? (
+                      <p className="mt-0.5 text-xs text-fg-secondary">
+                        Move {item.rebalance.fromBucket} → {item.rebalance.toBucket} · drift M{' '}
+                        {formatNumber(item.rebalance.driftBps.mining / 100, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })} · L{' '}
+                        {formatNumber(item.rebalance.driftBps.lending / 100, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })} · U{' '}
+                        {formatNumber(item.rebalance.driftBps.stable / 100, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })} pt
+                      </p>
+                    ) : null}
+                    {item.protocol ? (
+                      <p className="mt-0.5 text-xs text-fg-secondary">
+                        {item.protocol.bucket}: {item.protocol.fromProtocol} {formatNumber(item.protocol.fromApyPct, { maximumFractionDigits: 1 })} % →{' '}
+                        <span className="text-[var(--hearst-green)]">
+                          {item.protocol.toProtocol} {formatNumber(item.protocol.toApyPct, { maximumFractionDigits: 1 })} %
+                        </span>{' '}
+                        · {item.protocol.reason}
+                      </p>
+                    ) : null}
                   </div>
 
                   <p className="shrink-0 text-sm font-semibold tabular-nums text-fg">
-                    {usd(item.amountUsdc)}
+                    {approvalAmount(item)}
                   </p>
 
                   <p className="shrink-0 text-xs tabular-nums text-fg-tertiary">
                     {item.requestedAt !== null ? formatDate(item.requestedAt) : '—'}
                   </p>
 
-                  {/* Désactivés : aucun endpoint de décision n'existe. Le titre
-                      dit pourquoi, plutôt que de laisser un bouton inerte. */}
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      disabled
-                      title="No decision endpoint is exposed by the backend yet"
-                      className="h-7 cursor-not-allowed rounded-full bg-console-inset px-3.5 text-xs font-semibold text-fg-tertiary ring-1 ring-console-line-soft"
-                    >
-                      {meta.action}
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      title="No decision endpoint is exposed by the backend yet"
-                      className="h-7 cursor-not-allowed rounded-full px-3.5 text-xs font-medium text-fg-tertiary ring-1 ring-console-line-soft"
-                    >
-                      Decline
-                    </button>
-                  </div>
+                  <DecisionButtons id={item.id} action={meta.action} />
                 </li>
               ))}
             </ul>

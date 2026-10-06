@@ -40,6 +40,7 @@ const KYC_STATUS: Record<string, string> = {
   EXPIRED: 'Expired',
   HIGH_RISK: 'High risk',
   DONE: 'Completed',
+  NOT_STARTED: 'Not started',
 }
 
 export function kycStatusLabel(code: string | null | undefined): string {

@@ -56,7 +56,7 @@ export function OperationsIndexerCard({
           </div>
 
           <div>
-            <Button type="button" color="dark/neutral" onClick={() => setOpen(true)} disabled={pending}>
+            <Button type="button" onClick={() => setOpen(true)} disabled={pending}>
               {pending ? 'Running…' : 'Run indexer'}
             </Button>
           </div>
@@ -84,7 +84,7 @@ export function OperationsIndexerCard({
                 }}
               >
                 <input type="hidden" name="confirm" value="CONFIRM" />
-                <Button type="submit" color="dark/neutral" disabled={pending}>
+                <Button type="submit" disabled={pending}>
                   {pending ? 'Running…' : 'Confirm run'}
                 </Button>
               </form>

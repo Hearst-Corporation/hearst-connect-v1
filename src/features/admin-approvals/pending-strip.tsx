@@ -1,5 +1,13 @@
+import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import Link from 'next/link'
-import { ArrowDownTrayIcon, ArrowUpTrayIcon, BanknotesIcon, ClockIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ArrowUpTrayIcon,
+  ArrowsRightLeftIcon,
+  BanknotesIcon,
+  ClockIcon,
+} from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import type { AdminApproval, AdminApprovalKind } from '@/lib/admin-dashboard/contracts'
@@ -40,12 +48,24 @@ export function PendingStrip({
     )
   }
 
+  /* Un dépôt se compte en USDC (le versement d'entrée) ; une distribution ou un
+     retrait, en bitcoin — c'est ce qui sort de la réserve. */
   const sumOf = (kind: AdminApprovalKind) =>
-    rows.filter((r) => r.kind === kind).reduce((sum, r) => sum + (r.amountUsdc ?? 0), 0)
+    kind === 'deposit'
+      ? `${usd(rows.filter((r) => r.kind === kind).reduce((sum, r) => sum + (r.amountUsdc ?? 0), 0))} USDC`
+      : btcFromSats(rows.filter((r) => r.kind === kind).reduce((sum, r) => sum + (r.amountBtcSats ?? 0), 0))
 
   const countOf = (kind: AdminApprovalKind) => rows.filter((r) => r.kind === kind).length
 
-  const dueSoon =
+  /** Où mène « Details » : la fiche quand il n'y a qu'un client, sinon le groupe de la page Decisions. */
+  const detailsHref = (kind: AdminApprovalKind) => {
+    const items = rows.filter((r) => r.kind === kind)
+    const clients = new Set(items.map((r) => r.clientId))
+    if (items.length > 0 && clients.size === 1) return `/admin/clients/${items[0].clientId}${SECTION_OF[kind]}`
+    return `/admin/approvals#${kind}`
+  }
+
+  const ending =
     registry === null
       ? null
       : registry.filter(
@@ -53,7 +73,11 @@ export function PendingStrip({
             v.lockupMonths !== null &&
             v.lockupElapsedMonths !== null &&
             v.lockupMonths - v.lockupElapsedMonths <= DUE_SOON_MONTHS,
-        ).length
+        )
+  const dueSoon = ending === null ? null : ending.length
+  // Un seul lockup qui arrive à terme : sa fiche ; plusieurs : la liste des vaults actifs.
+  const lockupHref =
+    ending !== null && ending.length === 1 ? `/admin/clients/${ending[0].clientId}` : '/admin/clients?view=active'
 
   const cells = [
     {
@@ -77,6 +101,20 @@ export function PendingStrip({
       amount: sumOf('deposit'),
       icon: ArrowDownTrayIcon,
     },
+    {
+      id: 'rebalance',
+      label: 'Rebalances to approve',
+      count: countOf('rebalance'),
+      amount: `${countOf('rebalance')} vault${countOf('rebalance') === 1 ? '' : 's'} out of band`,
+      icon: ArrowPathIcon,
+    },
+    {
+      id: 'protocol',
+      label: 'Protocol changes',
+      count: countOf('protocol'),
+      amount: 'to sign off',
+      icon: ArrowsRightLeftIcon,
+    },
   ]
 
   return (
@@ -84,45 +122,69 @@ export function PendingStrip({
       <div /* Les tokens de /account : le fond de grille EST le filet, et les
               cellules reposent dessus. `console-line-soft` est un blanc à 5 %,
               qui éclaircissait la carte au lieu de dessiner un trait. */
-          className="grid gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] sm:grid-cols-2 lg:grid-cols-4">
+          className="grid gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] sm:grid-cols-2 lg:grid-cols-3">
         {cells.map((cell) => {
           const Icon = cell.icon
           return (
-            <Link
-              key={cell.id}
-              href="/admin/approvals"
-              className="flex flex-col gap-1.5 bg-[var(--ud-card)] px-4 py-3.5 transition-colors hover:bg-[var(--ud-card-raised)]"
-            >
+            <div key={cell.id} className={CELL}>
               <span className="flex items-center gap-2 text-xs text-fg-tertiary">
                 <Icon className="size-4 text-accent-400" aria-hidden="true" />
-                {cell.label}
+                <span className="min-w-0 truncate">{cell.label}</span>
               </span>
               <span className="text-2xl font-semibold tabular-nums text-fg">{cell.count}</span>
               {/* Le montant qualifie l'attente : trois demandes à 5 000 $ ne
                   pèsent pas comme une seule à 1,5 M$. */}
-              <span className="text-xs tabular-nums text-fg-tertiary">
-                {cell.count > 0 ? usd(cell.amount) : 'nothing pending'}
+              <span className="flex items-center gap-2 text-xs tabular-nums text-fg-tertiary">
+                {cell.count > 0 ? cell.amount : 'nothing pending'}
+                {/* Une seule demande : on va droit à la fiche du client, à la
+                    bonne section. Plusieurs : le groupe de la page Decisions. */}
+                <DetailsLink label={cell.label} href={detailsHref(cell.id as AdminApprovalKind)} />
               </span>
-            </Link>
+            </div>
           )
         })}
 
-        <Link
-          href="/admin/approvals"
-          className="flex flex-col gap-1.5 bg-[var(--ud-card)] px-4 py-3.5 transition-colors hover:bg-[var(--ud-card-raised)]"
-        >
+        <div className={CELL}>
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">
             <ClockIcon className="size-4 text-accent-400" aria-hidden="true" />
-            Lockups ending soon
+            <span className="min-w-0 truncate">Lockups ending soon</span>
           </span>
           <span className="text-2xl font-semibold tabular-nums text-fg">
             {dueSoon === null ? '—' : dueSoon}
           </span>
-          <span className="text-xs text-fg-tertiary">
+          <span className="flex items-center gap-2 text-xs text-fg-tertiary">
             {dueSoon === null ? 'registry unread' : `within ${DUE_SOON_MONTHS} months`}
+            <DetailsLink label="Lockups ending soon" href={lockupHref} />
           </span>
-        </Link>
+        </div>
       </div>
     </div>
+  )
+}
+
+const CELL = 'flex flex-col gap-1.5 bg-[var(--ud-card)] px-4 py-3.5'
+
+/** La section de la fiche client où se prend chaque décision. */
+const SECTION_OF: Record<AdminApprovalKind, string> = {
+  distribution: '#rewards',
+  rebalance: '#allocation',
+  protocol: '#allocation',
+  deposit: '#decisions',
+  withdrawal: '#decisions',
+}
+
+/**
+ * Le bouton vert « Details » de /account (`.ud-detail-btn`), sur la ligne du
+ * montant. La case entière n'est plus un lien : le bouton dit où l'on clique.
+ */
+function DetailsLink({ label, href = '/admin/approvals' }: Readonly<{ label: string; href?: string }>) {
+  return (
+    <Link
+      href={href}
+      className="ud-detail-btn ml-auto inline-flex items-center"
+      aria-label={`Details — ${label}`}
+    >
+      Details
+    </Link>
   )
 }

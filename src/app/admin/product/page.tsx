@@ -166,13 +166,13 @@ function curveChartState(factsheetOk: boolean, curveConfigured: boolean): CurveC
   if (!factsheetOk) {
     return {
       type: 'unavailable',
-      explanation: 'The product factsheet did not respond — the yield curve cannot be read.',
+      explanation: 'The product factsheet did not respond — the growth curve cannot be read.',
     }
   }
   if (!curveConfigured) {
     return {
       type: 'pending',
-      explanation: 'The yield curve is not configured yet.',
+      explanation: 'The growth curve is not configured yet.',
     }
   }
   return { type: 'plotted' }
@@ -185,10 +185,10 @@ function curveChartState(factsheetOk: boolean, curveConfigured: boolean): CurveC
  * two columns end on the same line at any data state.
  */
 const PANEL_SLOT_CLASS = {
-  production: 'h-[304px] overflow-y-auto scrollbar-none',
-  capital: 'h-[304px] overflow-y-auto scrollbar-none',
-  curve: 'h-[304px] overflow-y-auto scrollbar-none',
-  milestones: 'h-[304px] overflow-y-auto scrollbar-none',
+  production: 'max-h-[304px] overflow-y-auto scrollbar-none',
+  capital: 'max-h-[304px] overflow-y-auto scrollbar-none',
+  curve: 'max-h-[304px] overflow-y-auto scrollbar-none',
+  milestones: 'max-h-[304px] overflow-y-auto scrollbar-none',
 } as const
 
 type PanelSlot = keyof typeof PANEL_SLOT_CLASS
@@ -318,8 +318,8 @@ function pendingReadingsFrom(
     },
     {
       key: 'attribution',
-      label: 'Yield breakdown',
-      explanation: seriesExplanation(b?.attribution, 'The yield breakdown has not been calculated yet.'),
+      label: 'Reserve breakdown by bucket',
+      explanation: seriesExplanation(b?.attribution, 'The breakdown by bucket has not been calculated yet.'),
       status: b?.attribution?.status,
     },
     {
@@ -451,8 +451,8 @@ export default async function Page() {
         </BentoCard>
         <BentoCard span={8}>
           <ProductPanel
-            title="Where is the fund's capital?"
-            subtitle="Reserve and yield · The two readings the product is actually measured on today."
+            title="Where is the book's capital?"
+            subtitle="The bitcoin reserve · The readings the product is actually measured on today."
             slot="capital"
           >
             <CapitalReserveSection items={items} soleItem={soleItem} chartItems={chartItems} />
@@ -480,7 +480,7 @@ export default async function Page() {
       <BentoGrid>
         <BentoCard span={8}>
           <ProductPanel
-            title="How does yield evolve over time?"
+            title="How does the reserve grow over time?"
             subtitle={curveExplanation(points, curveConfigured, f?.vendingCurve)}
             slot="curve"
           >
@@ -497,8 +497,8 @@ export default async function Page() {
         </BentoCard>
         <BentoCard span={4}>
           <ProductPanel
-            title="Yield curve"
-            subtitle="Reserve and yield · Rate recorded per milestone — the exact figures the curve positions."
+            title="Reserve growth curve"
+            subtitle="Bitcoin reserve · Rate recorded per milestone — the exact figures the curve positions."
             slot="milestones"
             action={
               points.length > 0 ? (

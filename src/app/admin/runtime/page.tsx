@@ -155,9 +155,9 @@ function jsonLisible(data: unknown): string {
  *   row B: three span-4 cards share one 192 slot (4 field rows ≈ the form).
  */
 const PANEL_SLOT_CLASS = {
-  matrix: 'h-[292px] overflow-y-auto scrollbar-none',
-  runtime: 'h-[292px] overflow-y-auto scrollbar-none',
-  detail: 'h-[192px] overflow-y-auto scrollbar-none',
+  matrix: 'max-h-[292px] overflow-y-auto scrollbar-none',
+  runtime: 'max-h-[292px] overflow-y-auto scrollbar-none',
+  detail: 'max-h-[192px] overflow-y-auto scrollbar-none',
 } as const
 
 type PanelSlot = keyof typeof PANEL_SLOT_CLASS

@@ -3,6 +3,7 @@
 import { BoltIcon } from '@heroicons/react/24/outline'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { formatBtc, formatNumber } from '@/lib/format'
+import { useEffect, useRef, useState } from 'react'
 import type { ComputeFleet } from './load'
 
 /**
@@ -22,16 +23,59 @@ import type { ComputeFleet } from './load'
  * place et laisse les autres, plutôt que de vider le panneau.
  */
 
-/** Points de la trame du parc : 3 rangées de 9. La trame évoque la ferme, elle
-    n'a pas à occuper la hauteur d'un graphe — quatre rangées étiraient la
-    cellule au-delà de ce que son chiffre demande. */
-const GRID_DOTS = 27
+/** Trame du parc : 3 rangées, autant de colonnes que la cellule en contient.
+    Neuf colonnes fixes laissaient un vide à droite sur un bloc large ; la
+    trame va désormais d'un bord à l'autre. */
+const DOT_ROWS = 3
+const DOT_SIZE = 34
+const DOT_GAP = 8
+
+function FleetDots({ on }: Readonly<{ on: boolean }>) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [cols, setCols] = useState(9)
+  useEffect(() => {
+    const el = ref.current
+    if (el === null) return
+    const fit = () => {
+      const gap = Number.parseFloat(getComputedStyle(el).columnGap) || DOT_GAP
+      setCols(Math.max(1, Math.floor((el.clientWidth + gap) / (DOT_SIZE + gap))))
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className="fleet-dots" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+      {Array.from({ length: cols * DOT_ROWS }, (_, i) => (
+        <span key={i} className={on ? 'is-on' : undefined} />
+      ))}
+    </div>
+  )
+}
+
+/** Les libellés de la bande de droite. Le client lit « your vault » ; la console
+ *  réutilise le MÊME panneau pour un vault donné ou pour l'ensemble des vaults. */
+export type ComputeFleetCopy = Readonly<{
+  eyebrow: string
+  hashrate: string
+  produced: string
+  note: string
+}>
+
+const CLIENT_COPY: ComputeFleetCopy = {
+  eyebrow: 'Allocated to your vault',
+  hashrate: 'Your hashrate',
+  produced: 'Produced for you',
+  note: 'Allocated pro rata to your capital in the vault, and updated as the fleet grows.',
+}
 
 export function ComputeFleetPanel({
   fleet,
   /** Hashrate du réseau bitcoin — donne l'échelle de la capacité du parc. */
   networkHashrateEhs = null,
-}: Readonly<{ fleet: ComputeFleet; networkHashrateEhs?: number | null }>) {
+  copy = CLIENT_COPY,
+}: Readonly<{ fleet: ComputeFleet; networkHashrateEhs?: number | null; copy?: ComputeFleetCopy }>) {
   /* `minersManaged` et `countries` ne sont plus lus : le compte de machines
      disait la même capacité que les EH/s, et l'implantation géographique a
      quitté le panneau. Les champs restent au contrat — la source les publie,
@@ -74,10 +118,11 @@ export function ComputeFleetPanel({
           ensuite — et le CSS les met côte à côte. */}
       <section className="fleet-mine" aria-label="Your allocated capacity">
         <div className="fleet-mine-head">
-          <p className="fleet-mine-eyebrow">Allocated to your vault</p>
+          <p className="fleet-mine-eyebrow">{copy.eyebrow}</p>
           {allocatedSharePct !== null ? (
             <p className="fleet-mine-share">
-              {formatNumber(allocatedSharePct, { maximumFractionDigits: 3 })} % of the fleet
+              {formatNumber(allocatedSharePct, { maximumFractionDigits: allocatedSharePct >= 1 ? 1 : 3 })} % of the
+              fleet
             </p>
           ) : null}
         </div>
@@ -88,14 +133,17 @@ export function ComputeFleetPanel({
                 vault, et la mesure dont tout le reste découle. */}
             <div className="fleet-mine-metric fleet-mine-metric--lead">
               <p className="fleet-mine-value">
+                {/* En PH/s au-delà de 10 000 TH/s : « 209,802 TH/s » ne se lit pas. */}
                 {allocatedHashrateThs === null
                   ? '—'
-                  : formatNumber(allocatedHashrateThs, { maximumFractionDigits: 0 })}
+                  : allocatedHashrateThs >= 10_000
+                    ? formatNumber(allocatedHashrateThs / 1000, { maximumFractionDigits: 1 })
+                    : formatNumber(allocatedHashrateThs, { maximumFractionDigits: 0 })}
                 {allocatedHashrateThs !== null ? (
-                  <span className="fleet-mine-unit">TH/s</span>
+                  <span className="fleet-mine-unit">{allocatedHashrateThs >= 10_000 ? 'PH/s' : 'TH/s'}</span>
                 ) : null}
               </p>
-              <p className="fleet-mine-label">Your hashrate</p>
+              <p className="fleet-mine-label">{copy.hashrate}</p>
 
               {/* La part du parc, DESSINÉE et non plus seulement écrite en
                   pastille : une fraction de pour cent ne se saisit pas d'un
@@ -123,7 +171,7 @@ export function ComputeFleetPanel({
                 {formatBtc(allocatedBtcProduced, { withUnit: false })}
                 {allocatedBtcProduced !== null ? <span className="fleet-mine-unit">BTC</span> : null}
               </p>
-              <p className="fleet-mine-label">Produced for you</p>
+              <p className="fleet-mine-label">{copy.produced}</p>
             </div>
           </div>
         ) : (
@@ -138,9 +186,7 @@ export function ComputeFleetPanel({
 
         {/* Prorata : la règle, dite en clair. Sans elle, « 2 machines » sonne
             comme une dotation arbitraire. */}
-        <p className="fleet-mine-note">
-          Allocated pro rata to your capital in the vault, and updated as the fleet grows.
-        </p>
+        <p className="fleet-mine-note">{copy.note}</p>
       </section>
 
       {/* ── La capacité du parc ───────────────────────────────────────────
@@ -166,11 +212,7 @@ export function ComputeFleetPanel({
             ? `${formatNumber(networkShare, { maximumFractionDigits: 2 })} % of the ${formatNumber(networkHashrateEhs ?? 0, { maximumFractionDigits: 0 })} EH/s bitcoin network`
             : 'Share of network unavailable'}
         </p>
-        <div className="fleet-dots" aria-hidden="true">
-          {Array.from({ length: GRID_DOTS }, (_, i) => (
-            <span key={i} className={hashrateEhs !== null ? 'is-on' : undefined} />
-          ))}
-        </div>
+        <FleetDots on={hashrateEhs !== null} />
       </div>
 
       {/* ── La production ─────────────────────────────────────────────────

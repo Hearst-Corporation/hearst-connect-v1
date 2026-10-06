@@ -123,8 +123,8 @@ function coverageChartState(
  * Taller content scrolls inside the box; the row never jumps with the data.
  */
 const PANEL_SLOT_CLASS = {
-  surfaces: 'h-[496px] overflow-y-auto scrollbar-none',
-  sources: 'h-[288px] overflow-y-auto scrollbar-none',
+  surfaces: 'max-h-[496px] overflow-y-auto scrollbar-none',
+  sources: 'max-h-[288px] overflow-y-auto scrollbar-none',
 } as const
 
 export async function DataCoverageSection({ accountLabel }: Readonly<{ accountLabel: string }>) {

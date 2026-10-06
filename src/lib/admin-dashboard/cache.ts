@@ -6,6 +6,8 @@ import type { Offer } from '@/lib/offers/model'
 import type { ComputeFleet, ProductionCost } from '@/lib/product/readings'
 import type {
   AdminApproval,
+  AdminAumSnapshot,
+  AdminMiningDistribution,
   AdminBtcReserve,
   AdminVaultRecord,
   AdminActivityEvent,
@@ -103,6 +105,20 @@ export const fetchApprovals = cache(() =>
 
 export const fetchVaultRegistry = cache(() =>
   callBackend<{ vaults: BackendResolved<readonly AdminVaultRecord[]> }>('admin-vaults-registry'),
+)
+
+/** Instantanés du book : AUM total et cours du BTC, un point par jour. */
+export const fetchAumHistory = cache(() =>
+  callBackend<{ snapshots: BackendResolved<readonly AdminAumSnapshot[]> }>('vault-history', {
+    params: { limit: 90 },
+  }),
+)
+
+/** Distributions mensuelles du minage : BTC produit et rendement versé. */
+export const fetchMiningDistributions = cache(() =>
+  callBackend<{ distributions: BackendResolved<readonly AdminMiningDistribution[]> }>(
+    'mining-distributions',
+  ),
 )
 
 export const fetchOffers = cache(() =>

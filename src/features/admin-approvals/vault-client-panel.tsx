@@ -1,3 +1,4 @@
+import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import { formatDate, formatNumber, formatPercent } from '@/lib/format'
 import { valueOf, type Availability } from '@/lib/vaults/model'
 import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
@@ -48,8 +49,12 @@ export function VaultClientPanel({
     <div className="flex flex-col gap-5">
       <div className="grid gap-4 sm:grid-cols-3">
         <Figure label="Client" value={record.clientLabel} />
-        <Figure label="Capital committed" value={usd(record.principalUsdc)} numeric />
-        <Figure label="Earned to date" value={usd(record.accruedUsdc)} numeric />
+        <Figure
+          label="Bitcoin reserve"
+          value={btcFromSats((record.capitalBtcSats ?? 0) + (record.accruedBtcSats ?? 0))}
+          numeric
+        />
+        <Figure label="Accumulated since entry" value={`+${btcFromSats(record.accruedBtcSats)}`} numeric />
       </div>
 
       {/* Le blocage : c'est lui qui commande la relation commerciale. */}

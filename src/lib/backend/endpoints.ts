@@ -214,6 +214,28 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
       'Runs the SAME engine as the client projection. Not an economy of code but a guarantee: the proposal and the client screen then show one calculation. Two engines would drift apart at the first adjustment, and the client would discover after signing a figure the proposal never promised.',
   }),
   defineEndpoint({
+    id: 'admin-approval-decide',
+    method: 'POST',
+    path: '/api/v1/admin/approvals/:id/decision',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/approvals',
+    summary: 'Records an operator decision on a pending item — approve or decline.',
+    caveat:
+      'One decision per item. A rebalance or a protocol change is EXECUTED by the keeper only once approved here; declining leaves the vault untouched.',
+  }),
+  defineEndpoint({
+    id: 'admin-offer-create',
+    method: 'POST',
+    path: '/api/v1/admin/offers',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/offers/new',
+    summary: 'Creates a draft offer — client, amount, lockup and the proposed allocation.',
+    caveat:
+      'The offer is born a DRAFT: nothing reaches the client until it is sent. The backend owns validation — the allocation must total 10,000 bps, the amount must be positive — the form only pre-validates.',
+  }),
+  defineEndpoint({
     id: 'admin-offers',
     path: '/api/v1/admin/offers',
     category: 'business',
@@ -478,6 +500,26 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'admin',
     surface: '/admin/mining',
     summary: 'Mining yield distributions — monthly history and pending.',
+  }),
+  defineEndpoint({
+    id: 'admin-mining-monthly-close',
+    path: '/api/v1/admin/mining/monthly-close',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/mining',
+    summary: 'Monthly close, vault by vault — fleet output and electricity split by each vault’s mining capital.',
+    caveat:
+      'The split key is the capital each vault holds in its Mining pocket (capital × its own mining share), never its total capital: vaults are bespoke, so two vaults of the same size can hold very different mining weights. Each line is one client’s distribution and is approved on its own.',
+  }),
+  defineEndpoint({
+    id: 'mining-machines',
+    path: '/api/v1/mining/machines',
+    category: 'business',
+    auth: 'admin',
+    surface: '/admin/mining',
+    summary: 'The fleet machine by machine — model, site, date plugged, hashrate, 30-day uptime and output.',
+    caveat:
+      'The aggregate counters of `/api/v1/mining` must equal the sum of this list — the two are read side by side on the mining page.',
   }),
   defineEndpoint({
     id: 'mining-calculations',

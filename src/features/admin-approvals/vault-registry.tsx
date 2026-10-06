@@ -1,3 +1,4 @@
+import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import { formatDate, formatNumber, formatPercent } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
@@ -58,8 +59,8 @@ export function VaultRegistry({
           <thead>
             <tr className="text-left text-xs text-fg-tertiary">
               <th scope="col" className="py-2.5 pr-4 font-medium">Client</th>
-              <th scope="col" className="py-2.5 pr-4 text-right font-medium">Capital</th>
-              <th scope="col" className="py-2.5 pr-4 text-right font-medium">Earned</th>
+              <th scope="col" className="py-2.5 pr-4 text-right font-medium">Bitcoin reserve</th>
+              <th scope="col" className="py-2.5 pr-4 text-right font-medium">Accumulated</th>
               <th scope="col" className="py-2.5 pr-4 font-medium">Lockup</th>
               <th scope="col" className="py-2.5 pr-4 text-right font-medium">Term ends</th>
               <th scope="col" className="py-2.5 text-right font-medium">Deposits</th>
@@ -78,13 +79,20 @@ export function VaultRegistry({
                 <tr key={v.vaultId}>
                   <td className="py-3 pr-4">
                     <p className="font-medium text-fg">{v.clientLabel}</p>
-                    <p className="text-xs text-fg-tertiary">{v.vaultId}</p>
+                    {/* Le mois de blocage plutôt que l'identifiant de 45 caractères,
+                        qui ne se lisait pas. */}
+                    {v.lockupMonths !== null && v.lockupElapsedMonths !== null ? (
+                      <p className="text-xs text-fg-tertiary">
+                        Month {Math.min(v.lockupElapsedMonths, v.lockupMonths)} of {v.lockupMonths}
+                      </p>
+                    ) : null}
                   </td>
-                  <td className="py-3 pr-4 text-right font-semibold tabular-nums text-fg">
-                    {usd(v.principalUsdc)}
+                  <td className="py-3 pr-4 text-right tabular-nums text-fg">
+                    <p className="font-semibold">{btcFromSats((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0))}</p>
+                    <p className="text-xs text-fg-tertiary">from {usd(v.principalUsdc)} USDC</p>
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums text-fg-secondary">
-                    {usd(v.accruedUsdc)}
+                  <td className="py-3 pr-4 text-right tabular-nums text-[var(--hearst-green)]">
+                    +{btcFromSats(v.accruedBtcSats)}
                   </td>
                   <td className="py-3 pr-4">
                     {progress !== null ? (

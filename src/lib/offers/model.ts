@@ -18,6 +18,9 @@ import type { Availability } from '@/lib/vaults/model'
    L'intitulé exact du formulaire est conservé : un libellé traduit ici et pas
    là ferait deux vocabulaires pour une même réponse. */
 
+/** Le ticket minimum d'un vault dédié, en USDC. En dessous, l'offre ne se crée pas. */
+export const MIN_VAULT_USDC = 100_000
+
 export const CLIENT_KINDS = [
   'Crypto company',
   'Crypto exchange',
@@ -163,6 +166,12 @@ export type OfferId = string & { readonly __brand: 'OfferId' }
 
 export type Offer = Readonly<{
   id: OfferId
+  /**
+   * Le client à qui l'offre est faite — LA clé qui relie l'offre au KYC et au
+   * vault. Facultative le temps que le backend la porte partout : à défaut, le
+   * rattachement retombe sur le vault ouvert, puis sur le nom.
+   */
+  clientId?: string | null
   /** Nom court donné à l'offre, pour la retrouver. */
   reference: string
   clientName: string

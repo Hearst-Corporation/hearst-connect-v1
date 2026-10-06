@@ -2,7 +2,6 @@
 
 import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
 import { approveDistribution, type ApproveOutcome } from '@/lib/mining/actions'
-import clsx from 'clsx'
 import { useActionState } from 'react'
 
 export function ApproveButton({ distributionId }: Readonly<{ distributionId: string }>) {
@@ -17,7 +16,7 @@ export function ApproveButton({ distributionId }: Readonly<{ distributionId: str
       <button
         type="submit"
         disabled={pending}
-        className={clsx(actionButtonClass, 'w-full')}
+        className={actionButtonClass}
       >
         {pending ? 'Approving…' : 'Approve distribution'}
       </button>

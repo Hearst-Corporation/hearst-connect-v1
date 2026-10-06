@@ -38,13 +38,21 @@ export default async function SettingsPage() {
         {entries.map((entry) => {
           const Icon = entry.icon
           return (
-            <BentoCard key={entry.href} span={6}>
-              <Link href={entry.href} className="group block">
-                <div className="flex items-center gap-2">
-                  <Icon className="size-4 text-accent-400" />
-                  <span className="font-medium group-hover:text-accent-400">{entry.label}</span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-fg-tertiary">{entry.detail}</p>
+            <BentoCard key={entry.href} span={4} bare>
+              {/* Aplat vert citrus, encre sombre : les six surfaces d'outillage
+                  se lisent comme des portes d'entrée, pas comme du texte. */}
+              <Link
+                href={entry.href}
+                className="group flex h-full flex-col gap-3 rounded-[var(--ud-radius)] bg-[var(--hearst-green)] p-5 text-[var(--hearst-green-ink)] no-underline transition-[filter] hover:brightness-[1.04]"
+              >
+                <span className="flex items-center justify-between">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-[var(--hearst-green-ink)]/10">
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="text-sm opacity-60 transition-transform group-hover:translate-x-0.5">→</span>
+                </span>
+                <span className="text-[17px] font-medium">{entry.label}</span>
+                <span className="text-xs leading-relaxed opacity-75">{entry.detail}</span>
               </Link>
             </BentoCard>
           )

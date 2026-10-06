@@ -1,10 +1,11 @@
+import { PaginatedTable } from '@/components/admin/paginated-table'
 import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { Badge } from '@/components/catalyst/badge'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { AdminTable, tableCol } from '@/components/compositions'
+import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
+import { tableCol } from '@/components/compositions'
 import { requireSession } from '@/lib/auth'
 import { formatNumber } from '@/lib/format'
 import { kycStatusLabel, kycStepLabel } from '@/lib/labels'
@@ -31,7 +32,7 @@ export const dynamic = 'force-dynamic'
  * Fixed panel slot (content area, px) — the box is FROZEN whether data is
  * loading, absent, or listed; taller queues scroll inside the box.
  */
-const QUEUE_SLOT_CLASS = 'h-[592px] overflow-y-auto scrollbar-none'
+const QUEUE_SLOT_CLASS = 'max-h-[592px] overflow-y-auto scrollbar-none'
 
 export default async function Page() {
   const session = await requireSession()
@@ -82,17 +83,17 @@ export default async function Page() {
             ) : reviews.length === 0 ? (
               <PanelState title="No Som KYC exceptions in queue." />
             ) : (
-              <AdminTable>
-                <TableHead>
+              <PaginatedTable
+                noun="reviews"
+                head={
                   <TableRow>
                     <TableHeader className={tableCol.primary}>Client</TableHeader>
                     <TableHeader className={tableCol.primary}>Stage</TableHeader>
                     <TableHeader className={tableCol.status}>KYC</TableHeader>
                     <TableHeader className={tableCol.date}>Updated</TableHeader>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {reviews.map((review) => (
+                }
+                rows={reviews.map((review) => (
                     <TableRow key={review.id} title={review.openedAt ? `Opened ${dateLisible(review.openedAt)}` : undefined}>
                       <TableCell className={tableCol.primary}>
                         <div className="truncate font-medium">{review.clientLabel}</div>
@@ -108,8 +109,13 @@ export default async function Page() {
                       <TableCell className={tableCol.date}>{dateLisible(review.lastEventAt)}</TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </AdminTable>
+                exportData={{
+                  filename: 'hearst-kyc-reviews',
+                  title: 'KYC reviews',
+                  columns: ['Client', 'Stage', 'KYC', 'Opened', 'Updated'],
+                  data: reviews.map((r) => [r.clientLabel, kycStepLabel(r.stage), kycStatusLabel(r.kycStatus), r.openedAt, r.lastEventAt]),
+                }}
+              />
             )}
           </DashCard>
         </BentoCard>

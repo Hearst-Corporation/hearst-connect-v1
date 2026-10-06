@@ -1,8 +1,10 @@
+import { btcFromSats } from '@/lib/admin-dashboard/amounts'
+import { PaginatedTable } from '@/components/admin/paginated-table'
 import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { AdminTable, CalmState, tableCol } from '@/components/compositions'
-import { formatCurrency, formatNumber } from '@/lib/format'
+import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
+import { CalmState, tableCol } from '@/components/compositions'
+import { formatCurrency, formatDate, formatNumber } from '@/lib/format'
 import {
   driftThresholdOf,
   isVaultDrifting,
@@ -37,7 +39,12 @@ function usd(amount: number | null): string {
 
 export function VaultWatchlist({
   vaults,
-}: Readonly<{ vaults: Availability<readonly AdminVaultRecord[]> }>) {
+  showUnlock = true,
+}: Readonly<{
+  vaults: Availability<readonly AdminVaultRecord[]>
+  /** Masquée sur le tableau de bord : « Unlock schedule », à côté, porte déjà les échéances. */
+  showUnlock?: boolean
+}>) {
   if (!isAvailable(vaults)) {
     return (
       <CalmState message="The vault registry could not be read — no vault is shown rather than an empty list." />
@@ -59,43 +66,74 @@ export function VaultWatchlist({
   ]
 
   return (
-    <AdminTable className="[&_table]:min-w-[44rem]">
-      <TableHead>
+    /* Colonnes aérées (`px-5`), et les bords du tableau calés sur ceux de la
+       carte (`pl-0` / `pr-0`) : le bouton « Open » de chaque ligne tombe sous
+       le bouton « All vaults » de l'en-tête. */
+    <PaginatedTable
+      className="[&_table]:w-full [&_table]:min-w-[44rem] [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0"
+      noun="vaults"
+      head={
         <TableRow>
           <TableHeader className={tableCol.primary}>Client</TableHeader>
-          <TableHeader className={tableCol.numeric}>Capital</TableHeader>
+          <TableHeader className={tableCol.numeric}>Bitcoin reserve</TableHeader>
+          <TableHeader className={tableCol.numeric}>Accumulated</TableHeader>
           <TableHeader className={tableCol.numeric}>Drift</TableHeader>
-          <TableHeader className={tableCol.numeric}>Threshold</TableHeader>
+          {showUnlock ? <TableHeader className={tableCol.date}>Unlocks</TableHeader> : null}
           <TableHeader className={tableCol.status}>State</TableHeader>
+          <TableHeader className={tableCol.action}>
+            <span className="sr-only">Open</span>
+          </TableHeader>
         </TableRow>
-      </TableHead>
-      <TableBody>
-        {ordered.map((vault) => {
+      }
+      rows={ordered.map((vault) => {
           const threshold = driftThresholdOf(vault)
           const alerting = isVaultDrifting(vault)
           return (
             <TableRow key={vault.vaultId}>
               <TableCell className={tableCol.primary}>
-                <Link href={`/admin/vaults/${vault.vaultId}`} className="font-medium">
+                <Link href={`/admin/clients/${vault.clientId}`} className="font-medium">
                   {vault.clientLabel}
                 </Link>
-                <div className="text-xs text-fg-tertiary">{vault.vaultId}</div>
+                {/* Plus d'identifiant de 45 caractères sous le nom : il ne se lit
+                    pas, et la ligne mène déjà à la page du vault. */}
+                {vault.lockupMonths !== null && vault.lockupElapsedMonths !== null ? (
+                  <div className="text-xs text-fg-tertiary">
+                    Month {Math.min(vault.lockupElapsedMonths, vault.lockupMonths)} of {vault.lockupMonths}
+                  </div>
+                ) : null}
               </TableCell>
-              <TableCell className={tableCol.numeric}>{usd(vault.principalUsdc)}</TableCell>
+              {/* La réserve : le versement converti à l'entrée + ce qui s'y est ajouté. */}
               <TableCell className={tableCol.numeric}>
-                {/* Une dérive non lue n'est pas une dérive nulle : elle se dit
-                    absente plutôt que de s'afficher à zéro. */}
+                <div className="font-medium">
+                  {btcFromSats((vault.capitalBtcSats ?? 0) + (vault.accruedBtcSats ?? 0))}
+                </div>
+                <div className="text-xs text-fg-tertiary">from {usd(vault.principalUsdc)} USDC</div>
+              </TableCell>
+              {/* Ce que les trois poches ont ajouté depuis l'entrée, en bitcoin. */}
+              <TableCell className={tableCol.numeric}>
+                <span className={vault.accruedBtcSats == null ? 'text-fg-tertiary' : 'text-[var(--hearst-green)]'}>
+                  {vault.accruedBtcSats == null ? '—' : `+${btcFromSats(vault.accruedBtcSats)}`}
+                </span>
+              </TableCell>
+              {/* La dérive et, dessous, la bande que CE vault tolère : les deux se
+                  lisent ensemble, et une colonne de moins laisse respirer les
+                  autres. Une dérive non lue n'est pas une dérive nulle. */}
+              <TableCell className={tableCol.numeric}>
                 {vault.worstDriftBps === null ? (
                   <span className="text-fg-tertiary">not read</span>
                 ) : (
                   pts(vault.worstDriftBps)
                 )}
+                <div className="text-xs text-fg-tertiary">band {pts(threshold).replace('+', '±')}</div>
               </TableCell>
-              <TableCell className={tableCol.numeric}>
-                <span className={vault.driftThresholdBps === null ? 'text-fg-tertiary' : undefined}>
-                  {pts(threshold).replace('+', '±')}
-                </span>
-              </TableCell>
+              {/* La date à laquelle le capital redevient retirable. */}
+              {showUnlock ? (
+                <TableCell className={tableCol.date}>
+                  <span className={vault.lockupEndAt === null ? 'text-fg-tertiary' : undefined}>
+                    {formatDate(vault.lockupEndAt)}
+                  </span>
+                </TableCell>
+              ) : null}
               <TableCell className={tableCol.status}>
                 {vault.worstDriftBps === null ? (
                   <Badge color="neutral">Unread</Badge>
@@ -105,10 +143,34 @@ export function VaultWatchlist({
                   <Badge color="lime">Within band</Badge>
                 )}
               </TableCell>
+              {/* Le bouton vert de /account : chaque ligne mène à SON vault. */}
+              <TableCell className={tableCol.action}>
+                <Link
+                  href={`/admin/clients/${vault.clientId}`}
+                  className="ud-detail-btn inline-flex items-center no-underline"
+                  aria-label={`Open ${vault.clientLabel}'s vault`}
+                >
+                  Open
+                </Link>
+              </TableCell>
             </TableRow>
           )
         })}
-      </TableBody>
-    </AdminTable>
+      exportData={{
+        filename: 'hearst-vaults',
+        title: 'Client vaults',
+        columns: ['Client', 'Vault', 'Deposit (USDC)', 'Deposit (BTC)', 'Accumulated (BTC)', 'Reserve (BTC)', 'Drift (bps)', 'Lockup end'],
+        data: ordered.map((v) => [
+          v.clientLabel,
+          v.vaultId,
+          v.principalUsdc,
+          v.capitalBtcSats != null ? v.capitalBtcSats / 1e8 : null,
+          v.accruedBtcSats != null ? v.accruedBtcSats / 1e8 : null,
+          ((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)) / 1e8,
+          v.worstDriftBps,
+          v.lockupEndAt,
+        ]),
+      }}
+    />
   )
 }

@@ -71,6 +71,8 @@ export type AdminRebalancingOperationSwap = Readonly<{
 
 export type AdminRebalancingOperation = Readonly<{
   id: string
+  /** Le vault rééquilibré — chaque rééquilibrage concerne UN client. */
+  vaultId?: string | null
   blockNumber: string
   txHash: string
   logIndex: number
@@ -78,6 +80,11 @@ export type AdminRebalancingOperation = Readonly<{
   indexedAt: string
   allocations: readonly string[]
   swaps: readonly AdminRebalancingOperationSwap[]
+  /** L'écart de chaque poche à sa cible AVANT le rééquilibrage, en bps. */
+  driftBeforeBps?: Readonly<{ mining: number; lending: number; stable: number }> | null
+  worstDriftBeforeBps?: number | null
+  /** Ce qui a été déplacé d'une poche à l'autre. */
+  moved?: Readonly<{ fromBucket: string; toBucket: string; usd: number }> | null
 }>
 
 export type AdminMarketSnapshot = Readonly<{
@@ -111,6 +118,8 @@ export type AdminActivityEvent = Readonly<{
   clientLabel: string | null
   vaultId: string | null
   amountAtomic: string | null
+  /** Distribution ou retrait : le bitcoin qui entre dans la réserve ou en sort. */
+  amountBtcSats?: number | null
   asset: string | null
   txHash: string | null
   blockNumber: string | null
@@ -151,7 +160,29 @@ export type AdminOperationsSurface = Readonly<{
  * un paiement ; traiter un retrait libère les fonds du client. Une file unique
  * obligerait l'opérateur à relire le type avant chaque geste.
  */
-export type AdminApprovalKind = 'deposit' | 'distribution' | 'withdrawal'
+export type AdminApprovalKind = 'deposit' | 'distribution' | 'withdrawal' | 'rebalance' | 'protocol'
+
+/** Un rééquilibrage PROPOSÉ : l'écart par poche, et ce qu'il déplacerait. */
+export type AdminRebalanceProposal = Readonly<{
+  driftBps: Readonly<{ mining: number; lending: number; stable: number }>
+  bandBps: number
+  fromBucket: string
+  toBucket: string
+  usd: number
+  btcSats: number
+}>
+
+/** Un changement de protocole PROPOSÉ pour une poche : d'où, vers où, à quel taux. */
+export type AdminProtocolProposal = Readonly<{
+  bucket: string
+  fromProtocol: string
+  fromApyPct: number
+  toProtocol: string
+  toApyPct: number
+  /** Le capital de la poche concerné. */
+  amountUsd: number
+  reason: string
+}>
 
 export type AdminApproval = {
   readonly id: string
@@ -159,9 +190,14 @@ export type AdminApproval = {
   readonly clientId: string
   readonly clientLabel: string
   readonly vaultId: string
+  /** Un dépôt arrive en USDC. */
   readonly amountUsdc: number | null
+  /** Une distribution ou un retrait part en bitcoin. */
+  readonly amountBtcSats?: number | null
   readonly requestedAt: string | null
   readonly note: string | null
+  readonly rebalance?: AdminRebalanceProposal | null
+  readonly protocol?: AdminProtocolProposal | null
 }
 
 /**
@@ -172,7 +208,23 @@ export type AdminVaultRecord = {
   readonly vaultId: string
   readonly clientId: string
   readonly clientLabel: string
+  /**
+   * Typologie du client (Fund, Family office…), quand le backend la porte.
+   * Absente, le vault est compté en « Not recorded » — jamais rangé d'office
+   * dans une catégorie.
+   */
+  readonly clientKind?: string | null
+  /**
+   * L'allocation cible PROPRE à ce vault, en points de base. Chaque client a la
+   * sienne : c'est elle qui fixe sa part du minage, de la dérive, du rendement.
+   */
+  readonly allocation?: Readonly<{ miningBps: number; lendingBps: number; stableBps: number }> | null
   readonly principalUsdc: number | null
+  /** La réserve accumulée depuis l'entrée, en bitcoin — LE chiffre du produit. */
+  readonly accruedBtcSats?: number | null
+  /** Le versement d'entrée, converti en bitcoin à l'entrée. */
+  readonly capitalBtcSats?: number | null
+  /** Sa contre-valeur, aux cours de chaque mois — un repère, jamais le titre. */
   readonly accruedUsdc: number | null
   readonly lockupStartAt: string | null
   readonly lockupEndAt: string | null
@@ -233,6 +285,13 @@ export type OfferSimulation = {
     readonly lendingBps: number
     readonly stableBps: number
   }
+  /** Le capital placé dans la poche Mining. */
+  readonly miningCapitalUsdc?: number
+  /** Le prix du TH/s (machine, hébergement, mise en service) retenu par la simulation. */
+  readonly usdPerThs?: number
+  /** La puissance de calcul que ce capital achète — calculée par le backend,
+   *  jamais dérivée par le front. */
+  readonly hashrateThs?: number
   readonly points: readonly OfferSimulationPoint[]
 }
 
@@ -275,6 +334,12 @@ export type AdminBucketYield = {
   readonly yieldPct: number | null
   readonly capitalUsdc: number | null
   readonly trendPct: number | null
+  /** Le protocole où la poche est placée aujourd'hui (Morpho, Aave, la flotte Hearst…). */
+  readonly protocol?: string | null
+  /** La part CIBLE de cette poche dans le vault, en points de base. */
+  readonly targetBps?: number | null
+  /** L'écart actuel à la cible, en points de base (100 = 1 pt). */
+  readonly driftBps?: number | null
 }
 
 /** Une distribution : versée, approuvée, ou en attente. */
@@ -287,13 +352,25 @@ export type AdminClientDistribution = {
   /** Cours retenu POUR CETTE distribution — jamais celui du jour. */
   readonly btcPriceUsdc: number | null
   readonly distributionDate: string | null
+  /** Ce que chaque poche a rapporté ce mois-là, et sa conversion en bitcoin. */
+  readonly byBucket?: readonly AdminBucketGain[]
+}
+
+export type AdminBucketGain = {
+  readonly bucket: string
+  readonly usd: number
+  readonly btcSats: number
 }
 
 /** Une ligne du journal d'un client. */
 export type AdminClientMovement = {
   readonly id: string
   readonly type: string
+  /** Le montant en bitcoin : ce qui entre dans la réserve ou en sort. */
+  readonly amountBtcSats?: number | null
+  /** Sa contre-valeur — le montant versé, pour un dépôt en USDC. */
   readonly amountUsdc: number | null
+  readonly btcPriceUsd?: number | null
   readonly occurredAt: string | null
   readonly txHash: string | null
   readonly status: string
@@ -329,3 +406,25 @@ export type AdminBtcReserve = {
   readonly electricityUsd: number | null
   readonly asOf: string | null
 }
+
+/** Un instantané du book (`/api/v1/vault/history`) — AUM total à une date. */
+export type AdminAumSnapshot = Readonly<{
+  takenAt: string
+  aumUsdc: number | null
+  btcPriceUsdc: number | null
+}>
+
+/** Une distribution mensuelle du minage (`/api/v1/mining/distributions`). */
+export type AdminMiningDistribution = Readonly<{
+  id: string
+  /** `YYYY-MM`. */
+  month: string
+  btcAmountSats: string
+  btcPriceUsdc: string
+  yieldUsdc: string
+  status: 'pending' | 'approved' | 'distributed'
+  /** Ce que chaque poche a ajouté ce mois-là, tous vaults confondus. */
+  byBucket?: readonly AdminBucketGain[]
+  /** Ce que chaque vault a reçu ce mois-là. */
+  byVault?: readonly Readonly<{ vaultId: string; clientLabel: string; btcSats: number }>[]
+}>

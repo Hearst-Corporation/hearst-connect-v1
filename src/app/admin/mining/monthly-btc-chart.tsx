@@ -1,62 +1,59 @@
 'use client'
 
-import { ChartFrame, HearstLineChart, type LinePoint } from '@/components/charts'
-import { SectionHeader } from '@/components/compositions'
+import { DashCard, PanelState } from '@/components/admin/dashboard'
+import { HearstActivityChart } from '@/components/charts'
+import { formatBtcValue } from '@/lib/admin-dashboard/amounts'
 import { formatNumber } from '@/lib/format'
+import type { CloseMonth } from './monthly-close'
 
-type DistributionRecord = {
-  readonly id: string
-  readonly month: string
-  readonly distributionDate: string
-  readonly btcAmountSats: string
-  readonly btcPriceUsdc: string
-  readonly yieldUsdc: string
-  readonly rwaStrategyId: string
-  readonly status: 'pending' | 'approved' | 'distributed'
-  readonly approvedAt: string | null
-  readonly approvedBy: string | null
-}
-
-export function MonthlyBtcChart({
-  distributions,
-}: Readonly<{
-  distributions: readonly DistributionRecord[]
-}>) {
-  const byMonth = new Map<string, number>()
-  for (const d of distributions) {
-    const btc = Number(d.btcAmountSats) / 100_000_000
-    if (!Number.isFinite(btc)) continue
-    const existing = byMonth.get(d.month)
-    byMonth.set(d.month, existing === undefined ? btc : existing + btc)
-  }
-
-  const points: LinePoint[] = Array.from(byMonth.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, value]) => ({
-      label: month,
-      value,
-      detail: month,
-    }))
-
-  const state =
-    points.length === 0
-      ? ({ type: 'empty', explanation: 'No distribution data available for this period.' } as const)
-      : ({ type: 'plotted' } as const)
+/**
+ * Ce que le PARC a miné chaque mois — et la part qui en revient aux vaults
+ * des clients (leur puissance allouée, électricité déduite). Lu dans la
+ * clôture mensuelle : le même chiffre que le tableau « Split by client vault »
+ * juste en dessous, jamais une deuxième source.
+ */
+export function MonthlyBtcChart({ months }: Readonly<{ months: readonly CloseMonth[] }>) {
+  const ordered = [...months].sort((a, b) => a.month.localeCompare(b.month))
+  const fleet = ordered.reduce((t, m) => t + m.fleetBtcSats, 0) / 1e8
+  const toVaults =
+    ordered.reduce(
+      (t, m) =>
+        t +
+        m.lines.reduce(
+          (s, l) => s + l.btcSats - (m.btcPriceUsd > 0 ? Math.round((l.electricityUsd / m.btcPriceUsd) * 1e8) : 0),
+          0,
+        ),
+      0,
+    ) / 1e8
+  const monthLabel = (ym: string) =>
+    new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })
 
   return (
-    <section className="flex flex-col gap-4">
-      <SectionHeader title="Monthly BTC earned" hint="Yield produced per month" />
-      <ChartFrame
-        question="How much BTC does the fleet produce each month?"
-        unit="in BTC"
-        state={state}
-      >
-        <HearstLineChart
-          points={points}
-          unit="BTC"
-          yTickFormatter={(v) => formatNumber(v, { maximumFractionDigits: 4 })}
-        />
-      </ChartFrame>
-    </section>
+    <DashCard
+      className="min-w-0"
+      eyebrow="Production"
+      title="Bitcoin mined by the fleet"
+      subtitle="Each month, the whole fleet — and the net share that goes to client reserves"
+    >
+      {ordered.length === 0 ? (
+        <PanelState title="No monthly close recorded yet." />
+      ) : (
+        <div className="min-w-0 pb-10">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-[28px] leading-none font-medium tracking-[-0.03em] tabular-nums text-fg">
+              {formatBtcValue(fleet)} BTC
+            </span>
+            <span className="text-xs text-fg-tertiary">
+              mined over {ordered.length} months · {formatBtcValue(toVaults)} BTC net to client reserves
+            </span>
+          </div>
+          <HearstActivityChart
+            points={ordered.map((m) => ({ label: monthLabel(m.month), value: m.fleetBtcSats / 1e8, detail: m.month }))}
+            unit="BTC"
+            yTickFormatter={(v) => formatNumber(v, { maximumFractionDigits: 0 })}
+          />
+        </div>
+      )}
+    </DashCard>
   )
 }

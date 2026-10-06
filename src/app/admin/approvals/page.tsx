@@ -3,7 +3,6 @@ import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/da
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { ApprovalsQueue } from '@/features/admin-approvals/approvals-queue'
-import { VaultRegistry } from '@/features/admin-approvals/vault-registry'
 import { requireSession } from '@/lib/auth'
 import {
   loadAdminApprovals,
@@ -90,16 +89,6 @@ export default async function Page() {
             subtitle="Each kind carries its own commitment — they are never merged into one queue."
           >
             <ApprovalsQueue approvals={approvals} />
-          </DashCard>
-        </BentoCard>
-
-        <BentoCard span={12}>
-          <DashCard
-            className="min-w-0"
-            title="Dedicated vaults"
-            subtitle="Sorted by nearest term: a lockup coming due is a renewal to prepare."
-          >
-            <VaultRegistry vaults={vaults} />
           </DashCard>
         </BentoCard>
 

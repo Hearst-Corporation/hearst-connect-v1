@@ -16,11 +16,12 @@ export const actionFieldClass = clsx(
 
 /** Accent submit — one class string for every hand-rolled admin action button. */
 export const actionButtonClass =
-  // Pilule pleine, aplat mint, encre sombre — le bouton primaire des maquettes
-  // Hearst. Hauteur fixe 34px : compact, mais pas riquiqui comme avant.
-  'inline-flex h-[34px] items-center justify-center gap-1.5 rounded-full bg-accent-400 px-4 ' +
-  'text-[13px] font-semibold leading-none text-accent-ink transition-colors ' +
-  'hover:bg-accent-300 disabled:cursor-default disabled:opacity-50 ' +
+  // La géométrie EXACTE de « Deposit » sur /account : 36px, 20px de marge,
+  // 13px semi-gras, aplat vert de marque, encre sombre.
+  'inline-flex h-[36px] w-fit items-center justify-center gap-1.5 rounded-full bg-[#9eea7a] px-5 ' +
+  'text-[13px] font-medium leading-none text-[#06140a] transition-[filter] ' +
+  'hover:brightness-[1.06] ' +
+  'disabled:cursor-default disabled:opacity-50 ' +
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400'
 
 /** Fail-closed: the operator types CONFIRM. No isolated click fires a write. */

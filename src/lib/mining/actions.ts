@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { callBackend } from '@/lib/backend/client'
 import { getSession } from '@/lib/session'
 import { toBackendRole } from '@/lib/backend/auth'
@@ -103,13 +104,22 @@ export async function payElectricity(
     return { ok: false, error: 'Administrator role required.' }
   }
 
+  // L'électricité se paie pour UN vault et UN mois — jamais pour « le parc ».
+  const vaultId = formData.get('vaultId')
+  const month = formData.get('month')
   const response = await callBackend<{ status: string; reason: string }>('keeper-electricity-pay', {
-    body: { amount },
+    body: {
+      amount,
+      ...(typeof vaultId === 'string' && vaultId !== '' ? { vaultId } : {}),
+      ...(typeof month === 'string' && month !== '' ? { month } : {}),
+    },
   })
 
   if (!response.ok) {
     return { ok: false, error: response.state.reason ?? 'Payment failed.' }
   }
 
+  // La clôture mensuelle et la fiche client relisent le statut payé.
+  revalidatePath('/admin', 'layout')
   return { ok: true, error: null }
 }

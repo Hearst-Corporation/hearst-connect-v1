@@ -102,7 +102,11 @@ export const SidebarItem = forwardRef(function SidebarItem(
     // Courant : pastille mint pleine, encre sombre.
     'data-current:bg-[#9eea7a] data-current:font-medium data-current:text-[#06110a]',
     'data-current:*:data-[slot=icon]:fill-[#06110a]',
-    'data-current:data-hover:bg-[#9eea7a]',
+    // Survolée ou pressée, l'entrée courante GARDE son encre sombre : le survol
+    // général passait texte et icône en blanc, illisibles sur le vert.
+    'data-current:data-hover:bg-[#9eea7a] data-current:data-hover:text-[#06110a]',
+    'data-current:data-hover:*:data-[slot=icon]:fill-[#06110a]',
+    'data-current:data-active:bg-[#9eea7a] data-current:data-active:text-[#06110a]',
     '*:data-[slot=icon]:fill-fg-tertiary'
   )
 

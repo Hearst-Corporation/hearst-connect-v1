@@ -74,7 +74,7 @@ export function CreateClientForm({
 
       <ConfirmField />
 
-      <Button type="submit" disabled={pending} color="dark/neutral">
+      <Button type="submit" disabled={pending}>
         {pending ? 'Creating…' : 'Create account'}
       </Button>
 

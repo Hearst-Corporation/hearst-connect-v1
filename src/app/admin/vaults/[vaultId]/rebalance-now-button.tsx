@@ -2,7 +2,6 @@
 
 import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
 import { runKeeperAction, type KeeperOutcome } from '@/lib/backend/keeper'
-import clsx from 'clsx'
 import { useToast } from '@/components/admin/toast'
 import { useRouter } from 'next/navigation'
 import { useTransition, useState, useCallback } from 'react'
@@ -54,7 +53,7 @@ export function RebalanceNowButton({ disabled, disabledReason }: Readonly<{ disa
         onClick={handleClick}
         disabled={disabled || isPending}
         title={disabledReason ?? undefined}
-        className={clsx(actionButtonClass, 'w-full')}
+        className={actionButtonClass}
       >
         {isPending ? 'Logging…' : 'Request rebalance'}
       </button>

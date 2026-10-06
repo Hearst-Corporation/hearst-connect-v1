@@ -1,0 +1,104 @@
+/* ══ Proposition imprimable ═══════════════════════════════════════════════
+ * Une page A4 par section : la couverture en sombre (marque), le reste sur
+ * fond blanc, lisible à l'écran comme sur papier. `print-color-adjust` garde
+ * les aplats à l'impression — sans lui, le navigateur les supprime.
+ */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.proposal-root {
+  min-height: 100vh;
+  background: #e9e9e6;
+  color: #111;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.proposal-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 24px auto;
+  padding: 18mm 18mm 16mm;
+  /* Les quatre pages sur fond noir, comme la couverture : une seule identité
+     du premier au dernier feuillet. */
+  background: #0b0b0b;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  page-break-after: always;
+  break-after: page;
+}
+
+.proposal-sheet.is-cover {
+  /* Noir pur, comme le fond de l'illustration du cube. */
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background-color: #000;
+}
+
+/* La trame de points, sur sa propre couche : fine (rayon 0,7 px), espacée de
+   7 mm, arrêtée sous le cube pour que le titre et les conditions restent
+   parfaitement lisibles. */
+.proposal-sheet.is-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #9eea7a 0.75px, transparent 1.05px);
+  background-size: 7mm 7mm;
+  background-position: 3.5mm 3.5mm;
+  /* Arrêt NET sous le cube : les rangées qui s'estompaient au-dessus du
+     titre faisaient des points à moitié visibles. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 56%, transparent 56%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 56%, transparent 56%);
+}
+
+.proposal-sheet.is-cover > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* L'illustration, découpée au contour EXACT du cube et de ses barres : les
+   points propres à l'image (plus petits, mal alignés sur la trame) sont
+   retirés — seule la trame de la page porte le motif. */
+.proposal-cover-art {
+  display: block;
+  width: 120mm;
+  height: 120mm;
+  margin: 6mm auto 0;
+  clip-path: polygon(23.5% 25.5%, 50.2% 19.8%, 76.8% 25.8%, 74.8% 60.8%, 49.6% 75%, 46% 75.5%, 23.6% 63.5%);
+}
+
+.proposal-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: #111;
+  color: #fff;
+}
+
+@media print {
+  .proposal-root {
+    background: #0b0b0b;
+  }
+
+  .proposal-toolbar {
+    display: none;
+  }
+
+  .proposal-sheet {
+    margin: 0;
+    box-shadow: none;
+  }
+}

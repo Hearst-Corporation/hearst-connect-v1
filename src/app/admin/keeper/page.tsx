@@ -51,7 +51,7 @@ function Prerequisite({
    line at any gate state (warning callout vs ok text). The settled Scope copy
    measures ≈ 236px at the 56rem container threshold (the narrowest half-track);
    240px covers it — anything taller scrolls inside, the row never moves. */
-const INFO_SLOT_CLASS = 'h-[240px] overflow-y-auto scrollbar-none'
+const INFO_SLOT_CLASS = 'max-h-[240px] overflow-y-auto scrollbar-none'
 
 /**
  * Keeper actions — cockpit composition around the client forms.

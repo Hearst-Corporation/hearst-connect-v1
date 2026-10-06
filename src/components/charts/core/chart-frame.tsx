@@ -6,7 +6,7 @@ import {
   type ChartViewportRole,
   resolveChartViewport,
 } from '@/components/charts/core/chart-theme'
-import { Panel, PanelHeader } from '@/components/compositions/panel'
+import { DashCard } from '@/components/admin/dashboard/shell'
 import { ChartBarIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
@@ -171,9 +171,10 @@ export function ChartFrame({
   })
 
   return (
-    <Panel tone="chart" className="flex h-full flex-col">
-      <PanelHeader title={question} hint={unit} />
-
+    /* La carte du tableau de bord (`DashCard`) : question en titre 17px, unité
+       en phrase grise, filet, puis le graphique. `pb-10` en bas : les axes se
+       posent SOUS la zone de tracé et débordaient du cadre. */
+    <DashCard className="flex h-full min-w-0 flex-col" title={question} subtitle={unit} contentClassName="pb-10">
       <ChartFrameContent
         state={state}
         expectedSource={expectedSource}
@@ -183,6 +184,6 @@ export function ChartFrame({
       >
         {children}
       </ChartFrameContent>
-    </Panel>
+    </DashCard>
   )
 }

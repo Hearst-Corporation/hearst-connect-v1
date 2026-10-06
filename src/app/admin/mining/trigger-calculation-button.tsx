@@ -2,7 +2,6 @@
 
 import { actionButtonClass } from '@/components/admin/forms/admin-action-form'
 import { triggerCalculation, type TriggerCalculationOutcome } from '@/lib/mining/actions'
-import clsx from 'clsx'
 import { useActionState } from 'react'
 
 export function TriggerCalculationButton({
@@ -21,7 +20,7 @@ export function TriggerCalculationButton({
       <button
         type="submit"
         disabled={pending}
-        className={clsx(actionButtonClass, 'w-full')}
+        className={actionButtonClass}
       >
         {pending ? 'Triggering…' : 'Trigger calculation'}
       </button>

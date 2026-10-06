@@ -2,7 +2,7 @@ import { PanelState } from '@/components/admin/dashboard/panel-state'
 import type { AdminMarketSnapshot } from '@/lib/admin-dashboard/contracts'
 import { isAdminNotConfigured } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
-import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
+import { formatCurrency, formatPercent } from '@/lib/format'
 
 export function MarketSnapshotPanel({
   snapshot,
@@ -32,12 +32,12 @@ export function MarketSnapshotPanel({
     m.btcUsd !== null
       ? formatCurrency(m.btcUsd, { unit: '$', fromAtomic: 1, decimals: 0 })
       : '—'
+  // Le hashprice n'a de sens qu'avec son unité : dollars par PH et par jour.
   const hashprice = m.hashprice !== null ? `$${m.hashprice}` : '—'
   const energy = m.energyCostUsdKwh !== null ? `$${m.energyCostUsdKwh} / kWh` : '—'
-  const margin =
-    m.miningMarginScore !== null
-      ? formatNumber(m.miningMarginScore, { maximumFractionDigits: 0 })
-      : '—'
+  /* La difficulté réseau, annoncée par le sous-titre du bloc, remplace un
+     « score de marge » sans unité ni définition, qui ne se lisait pas. */
+  const difficulty = m.difficulty !== null && m.difficulty.trim() !== '' ? m.difficulty : '—'
 
   // A change field is only a real number when it parses finite. An empty string
   // must NOT become 0% (Number('') === 0) — it stays absent.
@@ -52,7 +52,9 @@ export function MarketSnapshotPanel({
   return (
     <dl
       data-widget="market-snapshot"
-      className="@container grid grid-cols-1 gap-x-6 gap-y-5 @[16rem]:grid-cols-2 @[40rem]:grid-cols-4 @[40rem]:gap-y-0"
+      /* Sur une rangée de quatre, un filet vertical sépare chaque lecture ;
+         empilées, l'espace suffit. */
+      className="@container grid grid-cols-1 gap-x-6 gap-y-5 @[16rem]:grid-cols-2 @[40rem]:grid-cols-4 @[40rem]:gap-y-0 [&>div]:border-[var(--ud-line)] @[40rem]:[&>div+div]:border-l @[40rem]:[&>div+div]:pl-6"
     >
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">BTC / USD</dt>
@@ -65,7 +67,12 @@ export function MarketSnapshotPanel({
       </div>
       <div className="min-w-0">
         <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Hashprice</dt>
-        <dd className="mt-1 text-xl font-semibold tabular-nums text-fg">{hashprice}</dd>
+        <dd className="mt-1 text-xl font-semibold tabular-nums text-fg">
+          {hashprice}
+          {m.hashprice !== null ? (
+            <span className="ml-1 text-xs font-normal text-fg-tertiary">/ PH / day</span>
+          ) : null}
+        </dd>
         {hashpriceChange !== null ? (
           <dd className="mt-0.5 text-xs text-fg-tertiary">
             {formatPercent(hashpriceChange, { signed: true })}
@@ -77,8 +84,8 @@ export function MarketSnapshotPanel({
         <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{energy}</dd>
       </div>
       <div className="min-w-0">
-        <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Margin</dt>
-        <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{margin}</dd>
+        <dt className="text-[11px] font-medium uppercase tracking-wide text-fg-tertiary">Network difficulty</dt>
+        <dd className="mt-1 text-lg font-semibold tabular-nums text-fg">{difficulty}</dd>
       </div>
     </dl>
   )

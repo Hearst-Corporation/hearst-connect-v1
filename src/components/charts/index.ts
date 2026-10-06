@@ -36,6 +36,11 @@ export { HearstDonutChart, type DonutSlice } from '@/components/charts/richart/d
 export { HearstLineChart, type LinePoint } from '@/components/charts/richart/line-chart'
 export { SignedBarChart } from '@/components/charts/richart/signed-bar-chart'
 export { RichSparkline } from '@/components/charts/richart/sparkline'
+export {
+  HearstStackedBarChart,
+  type StackPoint,
+  type StackSeries,
+} from '@/components/charts/richart/stacked-bar-chart'
 export { VaultAumCbbtcChart } from '@/components/charts/richart/vault-aum-cbbtc-chart'
 export {
   AllocationDualLineChart,

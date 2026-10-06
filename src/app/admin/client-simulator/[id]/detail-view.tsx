@@ -273,7 +273,7 @@ export async function ClientSimulatorDetailView({ id }: Readonly<{ id: string }>
 
       <DataTableShell
         title="Movements"
-        description="Ledger movements for this investor. An absent block is named; an empty list is empty."
+        description="Movements for this investor. An absent block is named; an empty list is empty."
         count={
           isAvailable(movements) && movements.value.length > 0
             ? `${movements.value.length} movement(s)`

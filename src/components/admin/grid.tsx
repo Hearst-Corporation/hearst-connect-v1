@@ -44,11 +44,10 @@ export function BentoGrid({
         {...rest}
         className={clsx(
           // 1 column when narrow → 12 composable tracks when the container has room.
-          // items-start: each card keeps its intrinsic role height. Stretching a
-          // row to its tallest card made a fixed-height chart (176px) get punched
-          // with empty space next to a data-driven list — the dataset would then
-          // own the row geometry (rule 60: DATASET SIZE DOES NOT OWN PAGE GEOMETRY).
-          'grid min-w-0 grid-cols-1 items-start @[56rem]:grid-cols-12',
+          // items-stretch : deux cartes côte à côte ont TOUJOURS la même hauteur —
+          // une carte plus courte à côté d'une plus haute laissait un trou sous
+          // elle, et la rangée se lisait comme cassée.
+          'grid min-w-0 grid-cols-1 items-stretch @[56rem]:grid-cols-12',
           gridGap,
           className,
         )}
@@ -107,6 +106,14 @@ export function BentoCard({
       className={clsx(
         'min-w-0',
         !bare && 'rounded-[var(--ud-radius)] bg-[var(--ud-card)] p-[var(--ud-pad-card)] ring-1 ring-[var(--ud-line)]',
+        /* Une cellule dont l'enfant direct est DÉJÀ une carte (`DashCard`,
+           `data-surface="box"`) perd son propre cadre : sans cela, chaque page
+           qui oubliait `bare` affichait une carte dans une carte. */
+        !bare &&
+          'has-[>[data-surface=box]]:bg-transparent has-[>[data-surface=box]]:p-0 has-[>[data-surface=box]]:ring-0',
+        // Une cellule `bare` porte sa propre carte : la carte prend toute la
+        // hauteur de la rangée.
+        bare && '[&>*]:h-full',
         SPAN_CLASS[span],
         className,
       )}

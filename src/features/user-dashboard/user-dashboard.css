@@ -82,8 +82,15 @@
   box-sizing: border-box;
 }
 
-.ud-root button {
-  font: inherit;
+/* Remise à zéro des boutons, DANS la couche `base` de Tailwind : hors couche,
+   elle l'emportait sur toutes les classes utilitaires — un bouton qui demandait
+   `text-[13px] font-medium` sortait en 16px normal, et les boutons verts de la
+   console n'avaient ni la taille ni la graisse de « Deposit ». En `base`, elle
+   reste le défaut, et une classe explicite passe devant. */
+@layer base {
+  .ud-root button {
+    font: inherit;
+  }
 }
 
 .ud-root .page {
@@ -622,8 +629,10 @@
 }
 
 /* Même piste que les fenêtres du cours : c'est une commande de lecture, pas
-   une navigation. */
-.ud-root .projection-units {
+   une navigation. `.ud-seg` / `.ud-seg-btn` en sont l'alias générique, repris
+   par la console pour tous ses sélecteurs (filtres, profils de risque). */
+.ud-root .projection-units,
+.ud-root .ud-seg {
   display: flex;
   gap: 3px;
   padding: 3px;
@@ -632,7 +641,20 @@
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
-.ud-root .projection-unit {
+/* Dans la console, la piste épouse ses choix et passe à la ligne si besoin. */
+.ud-root .ud-seg {
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* Filtres de la console : à la hauteur des boutons d'action (36px, comme
+   « Deposit ») — au format compact du sélecteur BTC/USDC, la piste paraissait
+   étroite au-dessus d'un tableau pleine largeur. Déclarée APRÈS la règle
+   partagée plus bas : voir `.ud-root .ud-seg-btn` en fin de bloc. */
+
+.ud-root .projection-unit,
+.ud-root .ud-seg-btn {
   min-width: 4rem;
   height: 28px;
   padding: 0 14px;
@@ -647,21 +669,25 @@
   transition: color 0.15s, background 0.15s;
 }
 
-.ud-root .projection-unit:hover:not(.active) {
+.ud-root .projection-unit:hover:not(.active),
+.ud-root .ud-seg-btn:hover:not(.active) {
   color: var(--ud-fg);
   background: color-mix(in srgb, var(--ud-fg) 7%, transparent);
 }
 
-.ud-root .projection-unit.active {
+.ud-root .projection-unit.active,
+.ud-root .ud-seg-btn.active {
   background: #ffffff;
   color: #0a0a0a;
 }
 
-.ud-root .projection-unit:focus {
+.ud-root .projection-unit:focus,
+.ud-root .ud-seg-btn:focus {
   outline: none;
 }
 
-.ud-root .projection-unit:focus-visible {
+.ud-root .projection-unit:focus-visible,
+.ud-root .ud-seg-btn:focus-visible {
   outline: 2px solid var(--hearst-green);
   outline-offset: -2px;
 }
@@ -965,6 +991,35 @@
   line-height: 1;
   cursor: pointer;
   transition: filter 0.15s;
+}
+
+/* Bouton d'action de la console, à la géométrie EXACTE de « Deposit » : 36px,
+   20px de marge, 13px semi-gras, aplat vert. Pour les boutons d'en-tête de
+   carte (« All vaults », « Open offers »…) ; les boutons de ligne gardent le
+   format compact de « Detail » (`.ud-detail-btn`). */
+.ud-root .ud-cta {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: filter 0.15s;
+}
+
+.ud-root .ud-cta:hover {
+  filter: brightness(1.06);
+}
+
+.ud-root .ud-cta:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: 2px;
 }
 
 .ud-root .vault-action:hover:not(:disabled) {
@@ -1552,6 +1607,117 @@
 }
 
 /* Page titles use AdminHeroTitle (FK Grotesk + admin scale) — do not restyle h1 here. */
+/* ── Carte en aplat vert ────────────────────────────────────────────────
+   Toute la carte passe au vert de marque. Plutôt que de surcharger chaque
+   classe, on redéfinit les jetons d'encre dans sa portée : titres, libellés,
+   valeurs et filets basculent d'un coup vers l'encre sombre. */
+.ud-root [data-tone='accent'] {
+  --ud-card: var(--hearst-green);
+  --ud-line: color-mix(in srgb, var(--hearst-green-ink) 14%, transparent);
+  --ud-fg: var(--hearst-green-ink);
+  --ud-fg-2: color-mix(in srgb, var(--hearst-green-ink) 78%, transparent);
+  --ud-fg-3: color-mix(in srgb, var(--hearst-green-ink) 62%, transparent);
+  --color-fg: var(--hearst-green-ink);
+  --color-fg-secondary: color-mix(in srgb, var(--hearst-green-ink) 78%, transparent);
+  --color-fg-tertiary: color-mix(in srgb, var(--hearst-green-ink) 62%, transparent);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+}
+
+/* ── Bandeau KPI de la console ───────────────────────────────────────────
+   Même gabarit que `.btc-block-top` : tuiles égales sur TOUTE la largeur,
+   filet de 1px porté par la grille, chiffres calés à gauche. Le nombre de
+   colonnes vient du composant (`--kpi-cols`, quatre au plus). */
+.ud-root .kpi-band {
+  display: grid;
+  grid-template-columns: repeat(var(--kpi-cols, 4), minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--ud-line);
+  border-radius: var(--ud-radius);
+  background: var(--ud-line);
+}
+
+.ud-root .kpi-band > .stat-tile {
+  grid-template-rows: 16px auto;
+  align-content: start;
+  gap: 12px;
+  padding: 22px var(--ud-pad-card);
+  background: var(--ud-card);
+}
+
+/* À côté d'un bloc (donut) : le bandeau prend la hauteur de ce bloc et ses
+   tuiles se partagent la hauteur, chiffres centrés. */
+.ud-root .kpi-band.is-stretched {
+  grid-auto-rows: 1fr;
+  height: 100%;
+}
+
+.ud-root .kpi-band.is-stretched > .stat-tile {
+  align-content: center;
+}
+
+.ud-root .kpi-band.has-foot > .stat-tile {
+  grid-template-rows: 16px auto auto;
+}
+
+.ud-root .kpi-band dd {
+  margin: 0;
+}
+
+.ud-root .kpi-band .stat-foot {
+  height: auto;
+  min-height: 16px;
+  margin-top: -4px;
+}
+
+/* Corps d'affichage : c'est l'écran d'accueil de la console, les chiffres
+   portent la page. La première mesure prend le vert de marque, comme la
+   réserve dans le bloc position de /account. */
+.ud-root .kpi-band .stat-value {
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ud-root .kpi-band > .stat-tile:first-child .stat-value {
+  color: var(--hearst-green);
+}
+
+.ud-root .kpi-band .stat-tile .stat-value.is-absent {
+  color: var(--ud-fg-3);
+}
+
+/* La jauge monte à 6px : c'est ici l'élément graphique de la rangée, pas un
+   simple repère. */
+.ud-root .kpi-band .stat-foot .stat-meter {
+  height: 6px;
+  margin: 0 0 8px;
+}
+
+.ud-root .kpi-band .stat-foot .stat-footnote {
+  margin: 0;
+  font-size: var(--micro);
+  color: var(--ud-fg-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1024px) {
+  .ud-root .kpi-band {
+    grid-template-columns: repeat(min(var(--kpi-cols, 4), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ud-root .kpi-band {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .ud-root h1 {
   margin: 0;
 }
@@ -3797,8 +3963,12 @@
  * diamètre, qui mangeait la hauteur de carte.
  */
 .ud-root [data-chart-viewport] > div > div[style*='conic-gradient'] {
-  width: 74% !important;
+  /* Un anneau reste un CERCLE : en pourcentage de largeur ET de hauteur, il
+     devenait ovale dès que son cadre n'était pas carré (page Operations).
+     La hauteur commande, la largeur suit au ratio 1. */
+  width: auto !important;
   height: 74% !important;
+  aspect-ratio: 1;
   -webkit-mask: radial-gradient(closest-side, transparent 74%, black 75%) !important;
   mask: radial-gradient(closest-side, transparent 74%, black 75%) !important;
 }
@@ -3860,6 +4030,26 @@
    que la légende locale. */
 .ud-root [data-chart-viewport] ~ ul {
   margin-top: 22px;
+}
+
+/* Anneau et légende côte à côte : ni hauteur forcée ni marge haute, sans quoi
+   l'anneau et la légende ne partagent plus le même centre vertical. */
+.ud-root .donut-side [data-chart-viewport] {
+  height: 164px !important;
+}
+
+.ud-root .donut-side [data-chart-viewport] ~ ul {
+  margin-top: 0;
+}
+
+/* Anneau plus petit : le chiffre central et sa légende rétrécissent avec lui,
+   sinon ils mordent sur l'anneau. */
+.ud-root .donut-side [data-chart-viewport] span:first-of-type {
+  font-size: 17px;
+}
+
+.ud-root .donut-side [data-chart-viewport] span:last-of-type {
+  font-size: 9px;
 }
 
 
@@ -4791,4 +4981,183 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+}
+
+
+/* ── Filtres de la console, format large ─────────────────────────────────── */
+.ud-root .ud-seg {
+  padding: 4px;
+  gap: 4px;
+}
+
+.ud-root .ud-seg-btn {
+  height: 36px;
+  padding: 0 20px;
+  font-size: 13px;
+}
+
+/* Un onglet fait d'un LIEN (le sommaire d'une fiche) se centre comme un
+   bouton : sans cela, son texte collait au haut de la pastille. */
+.ud-root a.ud-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* ── En-têtes de tableau de la console ─────────────────────────────────────
+   Un intitulé de colonne doit se lire comme un intitulé, pas comme une ligne
+   de plus : petites capitales espacées, encre secondaire, sur un BANDEAU plus
+   sombre que la carte. Même traitement sur toutes les pages de la console.
+
+   Le bandeau déborde de 12px à gauche et à droite par une ombre portée, sans
+   padding : le texte reste aligné sur les cellules (et les boutons « Open »
+   sous ceux des en-têtes de carte). Portée `.ud-admin` : /account garde ses
+   propres tableaux. */
+.ud-admin table thead th {
+  background: var(--ud-inset);
+  color: var(--ud-fg-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 0;
+  white-space: nowrap;
+}
+
+/* Le bandeau commence 10px AVANT l'intitulé : collé au bord, la première
+   lettre touchait le fond sombre. La même marge sur la première cellule de
+   chaque ligne garde la colonne alignée. */
+.ud-admin table thead th:first-child,
+.ud-admin table tbody td:first-child {
+  padding-left: 10px;
+}
+
+.ud-admin table thead th:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.ud-admin table thead th:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 10px 0 0 var(--ud-inset);
+}
+
+/* Le filet sous chaque ligne de données reste, le bandeau suffit à séparer
+   l'en-tête du corps. */
+.ud-admin table tbody tr:first-child td {
+  border-top: 0;
+}
+
+/* ── Lectures de marché de la console, en aplat vert ───────────────────────
+   Les quatre lectures de « Mining economics » (difficulté, hashrate réseau,
+   électricité, hashprice) prennent le vert de marque, comme le bloc Market du
+   tableau de bord : ce sont les données du marché qui commandent la marge.
+   Portée `.ud-admin` : /account garde ses lignes neutres. */
+.ud-admin .prodcost-rows {
+  gap: 10px;
+  border-top: 0;
+  padding-top: 16px;
+}
+
+.ud-admin .prodcost-rows .term-row {
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--ud-radius-sm);
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+}
+
+.ud-admin .prodcost-rows .term-row .term-label,
+.ud-admin .prodcost-rows .term-row .term-icon,
+.ud-admin .prodcost-rows .term-row .term-icon svg {
+  color: color-mix(in srgb, var(--hearst-green-ink) 72%, transparent);
+}
+
+.ud-admin .prodcost-rows .term-row .term-value {
+  color: var(--hearst-green-ink);
+  font-weight: 600;
+}
+
+
+/* ── Chiffres de tête en aplat vert citrus ─────────────────────────────────
+   Sur toutes les pages de la console sauf le tableau de bord (dont le bloc
+   Market, juste dessous, porte déjà le vert) : le bandeau de chiffres prend
+   l'aplat de marque, encre sombre. Les filets entre tuiles passent en vert
+   plus profond pour rester visibles. */
+.ud-admin .kpi-band.is-accent {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--hearst-green-ink) 18%, var(--hearst-green));
+}
+
+.ud-admin .kpi-band.is-accent > .stat-tile {
+  background: var(--hearst-green);
+}
+
+.ud-admin .kpi-band.is-accent .stat-value,
+.ud-admin .kpi-band.is-accent > .stat-tile:first-child .stat-value,
+.ud-admin .kpi-band.is-accent .stat-eyebrow svg {
+  color: var(--hearst-green-ink);
+}
+
+.ud-admin .kpi-band.is-accent .stat-eyebrow,
+.ud-admin .kpi-band.is-accent .stat-aside,
+.ud-admin .kpi-band.is-accent .stat-foot .stat-footnote {
+  color: color-mix(in srgb, var(--hearst-green-ink) 70%, transparent);
+}
+
+.ud-admin .kpi-band.is-accent .stat-signal,
+.ud-admin .kpi-band.is-accent .stat-signal[data-signal] {
+  background: color-mix(in srgb, var(--hearst-green-ink) 55%, transparent);
+}
+
+.ud-admin .kpi-band.is-accent .stat-value.is-absent {
+  color: color-mix(in srgb, var(--hearst-green-ink) 50%, transparent);
+}
+
+/* ── Tableaux de la console : une seule règle d'alignement ─────────────────
+   Tout se cale à GAUCHE — intitulés et contenus, montants compris. Certaines
+   colonnes étaient à droite, d'autres à gauche, et l'œil ne savait plus quel
+   intitulé allait avec quelle valeur. Les chiffres gardent leurs chasses fixes
+   (tabular-nums), donc ils restent comparables d'une ligne à l'autre.
+
+   Même espacement partout : 16px de part et d'autre de chaque cellule.
+
+   Seule exception : la colonne des boutons (« Open », « Decide »), qui reste
+   à droite, sous les boutons de l'en-tête de carte. */
+.ud-admin table th,
+.ud-admin table td {
+  text-align: left;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.ud-admin table thead th:first-child,
+.ud-admin table tbody td:first-child {
+  padding-left: 10px;
+}
+
+.ud-admin table td,
+.ud-admin table td * {
+  justify-content: flex-start;
+}
+
+.ud-admin table th:last-child:has(.sr-only),
+.ud-admin table td:last-child:has(.ud-detail-btn),
+.ud-admin table td:last-child:has(.ud-cta) {
+  text-align: right;
+  padding-right: 0;
+}
+
+.ud-admin table td:last-child:has(.ud-detail-btn) *,
+.ud-admin table td:last-child:has(.ud-cta) * {
+  justify-content: center;
+}
+
+.ud-root .ud-seg-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }

@@ -124,10 +124,12 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
     ? ({
         ...offers,
         value: offers.value
-          .filter(
-            (o) =>
-              (vaultId !== null && o.vaultId === vaultId) ||
-              (clientLabel !== null && o.clientName === clientLabel),
+          .filter((o) =>
+            // L'identifiant client d'abord ; le vault, puis le nom, en repli.
+            o.clientId != null
+              ? o.clientId === clientId
+              : (vaultId !== null && o.vaultId === vaultId) ||
+                (clientLabel !== null && o.clientName === clientLabel),
           )
           .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)),
       } as Availability<readonly Offer[]>)

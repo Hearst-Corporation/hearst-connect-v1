@@ -1,5 +1,6 @@
 import { AdminApplicationLayout } from '@/components/admin/application-layout'
 import { requireSession } from '@/lib/auth'
+import { loadAdminInbox } from '@/lib/notifications/inbox'
 import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
@@ -28,9 +29,14 @@ export const metadata: Metadata = {
 
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await requireSession()
+  // La boîte de réception de la cloche : lue ici une fois, puis rafraîchie
+  // par la cloche elle-même (la mise en page ne se recalcule pas à chaque page).
+  const inbox = await loadAdminInbox().catch(() => [])
   return (
-    <div className="ud-root">
-      <AdminApplicationLayout user={publicUser(session)}>{children}</AdminApplicationLayout>
+    <div className="ud-root ud-admin">
+      <AdminApplicationLayout user={publicUser(session)} inbox={inbox}>
+        {children}
+      </AdminApplicationLayout>
     </div>
   )
 }

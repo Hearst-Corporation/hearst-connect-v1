@@ -31,7 +31,7 @@ export function IndexerTriggerForm() {
         failure stays visible in the response. This does not sign vault transactions.
       </Text>
       <ConfirmField />
-      <Button type="submit" disabled={pending} color="dark/neutral">
+      <Button type="submit" disabled={pending}>
         {pending ? 'Triggering…' : 'Run indexer'}
       </Button>
       <ActionOutcome outcome={state} />
