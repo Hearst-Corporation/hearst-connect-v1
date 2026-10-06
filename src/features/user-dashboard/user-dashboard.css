@@ -5237,16 +5237,18 @@
     display: block;
   }
 
-  /* LA TUILE : en tête le nom et l'action, dessous les valeurs deux par deux.
+  /* LA TUILE : en tête le nom et l'action, dessous une GRILLE de cases à
+     deux colonnes, chacune cernée d'un filet — le registre des chiffres de la
+     clôture mensuelle. Chaque élément (intitulé, valeur, note) a sa case.
+
      Flex et non grille : `tr::before`, une ligne vide pleine largeur placée
      juste après l'action (`order`), force le retour à la ligne — le nom garde
      toute la place que l'action lui laisse, quelle que soit sa largeur. */
   .ud-admin table tbody tr {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 14px 12px;
-    padding: 16px;
+    align-items: stretch;
+    overflow: hidden;
     border: 1px solid var(--ud-line);
     border-radius: var(--ud-radius);
     background: var(--ud-card-raised);
@@ -5257,62 +5259,92 @@
     order: -1;
     flex: 0 0 100%;
     height: 0;
-    margin-top: -14px;
   }
 
-  /* Une valeur : son intitulé au-dessus, comme dans les tuiles de chiffres. */
+  /* Une case : l'intitulé au-dessus, la valeur et sa note dessous. Deux par
+     rangée ; une case seule en fin de grille prend toute la largeur. */
   .ud-admin table tbody td {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
-    flex: 0 0 calc(50% - 6px);
+    gap: 4px;
+    flex: 1 0 50%;
+    max-width: 100%;
     min-width: 0;
     width: auto !important;
-    padding: 0 !important;
+    padding: 12px 16px !important;
     border: 0 !important;
+    border-top: 1px solid var(--ud-line) !important;
     white-space: normal;
     text-align: left !important;
   }
 
-  /* Une valeur longue (adresse, appel de contrat) se coupe dans la tuile
-     plutôt que d'en sortir. */
+  /* Le filet vertical : sur chaque case de la colonne de droite. Les cases
+     de valeurs sont les enfants 2, 3, 4… (le 1er est le nom) : la colonne de
+     droite tombe sur les rangs impairs. */
+  .ud-admin table tbody td:nth-child(odd):not(:first-child):not([data-label='']) {
+    flex-basis: calc(50% - 1px);
+    border-left: 1px solid var(--ud-line) !important;
+  }
+
+  .ud-admin table tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ud-fg-3);
+  }
+
+  /* Une valeur longue (adresse, appel de contrat) se coupe plutôt que de
+     sortir de sa case. */
   .ud-admin table tbody td > * {
     max-width: 100%;
     overflow-wrap: anywhere;
   }
 
-  .ud-admin table tbody td::before {
-    content: attr(data-label);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ud-fg-3);
-  }
-
-  /* Une jauge prend toute la largeur de la tuile. */
+  /* Une jauge prend la dernière rangée, entière : les valeurs qui
+     l'entouraient (« Now », « Drift ») se retrouvent côte à côte au-dessus. */
   .ud-admin table tbody td:not(:first-child):has(> .relative.block) {
-    flex-basis: 100%;
+    order: 1;
+    flex-basis: 100% !important;
     align-items: stretch;
+    border-left: 0 !important;
   }
 
-  /* Le nom, en tête. */
-  /* Le nom garde au moins 8rem : si l'action (deux boutons) ne tient pas à
-     côté, c'est elle qui passe dessous, toujours calée à droite. */
+  /* Après la jauge, les rangs se décalent d'un cran : la colonne de droite
+     tombe sur les rangs pairs. */
+  .ud-admin table tbody td:has(> .relative.block) ~ td:nth-child(even):not([data-label='']) {
+    flex-basis: calc(50% - 1px);
+    border-left: 1px solid var(--ud-line) !important;
+  }
+
+  .ud-admin table tbody td:has(> .relative.block) ~ td:nth-child(odd):not([data-label='']) {
+    border-left: 0 !important;
+  }
+
+  /* Le nom, en tête. Il garde au moins 8rem : si l'action (deux boutons) ne
+     tient pas à côté, c'est elle qui passe dessous, à droite. */
   .ud-admin table tbody td:first-child {
+    display: block;
     order: -3;
     flex: 1 1 8rem;
     min-width: 8rem;
+    padding: 14px 16px !important;
+    border-top: 0 !important;
     font-size: 15px;
   }
 
   /* L'action, en haut à droite. */
   .ud-admin table tbody td[data-label='']:not(:first-child):not([colspan]) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     order: -2;
     flex: 0 0 auto;
-    align-items: flex-end;
     margin-left: auto;
+    padding: 12px 16px !important;
+    border-top: 0 !important;
   }
 
   .ud-admin table tbody td:first-child::before,
@@ -5322,7 +5354,9 @@
   }
 
   .ud-admin table tbody td[colspan] {
+    display: block;
     flex-basis: 100%;
+    border-top: 0 !important;
   }
 }
 
@@ -5361,16 +5395,18 @@
     display: block;
   }
 
-  /* LA TUILE : en tête le nom et l'action, dessous les valeurs deux par deux.
+  /* LA TUILE : en tête le nom et l'action, dessous une GRILLE de cases à
+     deux colonnes, chacune cernée d'un filet — le registre des chiffres de la
+     clôture mensuelle. Chaque élément (intitulé, valeur, note) a sa case.
+
      Flex et non grille : `tr::before`, une ligne vide pleine largeur placée
      juste après l'action (`order`), force le retour à la ligne — le nom garde
      toute la place que l'action lui laisse, quelle que soit sa largeur. */
   .ud-admin table[data-stack] tbody tr {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 14px 12px;
-    padding: 16px;
+    align-items: stretch;
+    overflow: hidden;
     border: 1px solid var(--ud-line);
     border-radius: var(--ud-radius);
     background: var(--ud-card-raised);
@@ -5381,62 +5417,92 @@
     order: -1;
     flex: 0 0 100%;
     height: 0;
-    margin-top: -14px;
   }
 
-  /* Une valeur : son intitulé au-dessus, comme dans les tuiles de chiffres. */
+  /* Une case : l'intitulé au-dessus, la valeur et sa note dessous. Deux par
+     rangée ; une case seule en fin de grille prend toute la largeur. */
   .ud-admin table[data-stack] tbody td {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
-    flex: 0 0 calc(50% - 6px);
+    gap: 4px;
+    flex: 1 0 50%;
+    max-width: 100%;
     min-width: 0;
     width: auto !important;
-    padding: 0 !important;
+    padding: 12px 16px !important;
     border: 0 !important;
+    border-top: 1px solid var(--ud-line) !important;
     white-space: normal;
     text-align: left !important;
   }
 
-  /* Une valeur longue (adresse, appel de contrat) se coupe dans la tuile
-     plutôt que d'en sortir. */
+  /* Le filet vertical : sur chaque case de la colonne de droite. Les cases
+     de valeurs sont les enfants 2, 3, 4… (le 1er est le nom) : la colonne de
+     droite tombe sur les rangs impairs. */
+  .ud-admin table[data-stack] tbody td:nth-child(odd):not(:first-child):not([data-label='']) {
+    flex-basis: calc(50% - 1px);
+    border-left: 1px solid var(--ud-line) !important;
+  }
+
+  .ud-admin table[data-stack] tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ud-fg-3);
+  }
+
+  /* Une valeur longue (adresse, appel de contrat) se coupe plutôt que de
+     sortir de sa case. */
   .ud-admin table[data-stack] tbody td > * {
     max-width: 100%;
     overflow-wrap: anywhere;
   }
 
-  .ud-admin table[data-stack] tbody td::before {
-    content: attr(data-label);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ud-fg-3);
-  }
-
-  /* Une jauge prend toute la largeur de la tuile. */
+  /* Une jauge prend la dernière rangée, entière : les valeurs qui
+     l'entouraient (« Now », « Drift ») se retrouvent côte à côte au-dessus. */
   .ud-admin table[data-stack] tbody td:not(:first-child):has(> .relative.block) {
-    flex-basis: 100%;
+    order: 1;
+    flex-basis: 100% !important;
     align-items: stretch;
+    border-left: 0 !important;
   }
 
-  /* Le nom, en tête. */
-  /* Le nom garde au moins 8rem : si l'action (deux boutons) ne tient pas à
-     côté, c'est elle qui passe dessous, toujours calée à droite. */
+  /* Après la jauge, les rangs se décalent d'un cran : la colonne de droite
+     tombe sur les rangs pairs. */
+  .ud-admin table[data-stack] tbody td:has(> .relative.block) ~ td:nth-child(even):not([data-label='']) {
+    flex-basis: calc(50% - 1px);
+    border-left: 1px solid var(--ud-line) !important;
+  }
+
+  .ud-admin table[data-stack] tbody td:has(> .relative.block) ~ td:nth-child(odd):not([data-label='']) {
+    border-left: 0 !important;
+  }
+
+  /* Le nom, en tête. Il garde au moins 8rem : si l'action (deux boutons) ne
+     tient pas à côté, c'est elle qui passe dessous, à droite. */
   .ud-admin table[data-stack] tbody td:first-child {
+    display: block;
     order: -3;
     flex: 1 1 8rem;
     min-width: 8rem;
+    padding: 14px 16px !important;
+    border-top: 0 !important;
     font-size: 15px;
   }
 
   /* L'action, en haut à droite. */
   .ud-admin table[data-stack] tbody td[data-label='']:not(:first-child):not([colspan]) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     order: -2;
     flex: 0 0 auto;
-    align-items: flex-end;
     margin-left: auto;
+    padding: 12px 16px !important;
+    border-top: 0 !important;
   }
 
   .ud-admin table[data-stack] tbody td:first-child::before,
@@ -5446,7 +5512,9 @@
   }
 
   .ud-admin table[data-stack] tbody td[colspan] {
+    display: block;
     flex-basis: 100%;
+    border-top: 0 !important;
   }
 }
 
