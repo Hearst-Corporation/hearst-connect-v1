@@ -55,7 +55,7 @@ export function VaultRegistry({
       </p>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[46rem] border-collapse text-sm">
+        <table suppressHydrationWarning className="w-full min-w-[46rem] border-collapse text-sm">
           <thead>
             <tr className="text-left text-xs text-fg-tertiary">
               <th scope="col" className="py-2.5 pr-4 font-medium">Client</th>
@@ -77,7 +77,7 @@ export function VaultRegistry({
 
               return (
                 <tr key={v.vaultId}>
-                  <td className="py-3 pr-4">
+                  <td suppressHydrationWarning className="py-3 pr-4">
                     <p className="font-medium text-fg">{v.clientLabel}</p>
                     {/* Le mois de blocage plutôt que l'identifiant de 45 caractères,
                         qui ne se lisait pas. */}
@@ -87,14 +87,14 @@ export function VaultRegistry({
                       </p>
                     ) : null}
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums text-fg">
+                  <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-fg">
                     <p className="font-semibold">{btcFromSats((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0))}</p>
                     <p className="text-xs text-fg-tertiary">from {usd(v.principalUsdc)} USDC</p>
                   </td>
-                  <td className="py-3 pr-4 text-right tabular-nums text-[var(--hearst-green)]">
+                  <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-[var(--hearst-green)]">
                     +{btcFromSats(v.accruedBtcSats)}
                   </td>
-                  <td className="py-3 pr-4">
+                  <td suppressHydrationWarning className="py-3 pr-4">
                     {progress !== null ? (
                       <div className="flex min-w-[8rem] items-center gap-2.5">
                         <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-console-inset ring-1 ring-console-line-soft">
@@ -111,7 +111,7 @@ export function VaultRegistry({
                       <span className="text-xs text-fg-tertiary">—</span>
                     )}
                   </td>
-                  <td className="py-3 pr-4 text-right">
+                  <td suppressHydrationWarning className="py-3 pr-4 text-right">
                     <p className="text-xs tabular-nums text-fg-secondary">
                       {v.lockupEndAt !== null ? formatDate(v.lockupEndAt) : '—'}
                     </p>
@@ -125,7 +125,7 @@ export function VaultRegistry({
                       </p>
                     ) : null}
                   </td>
-                  <td className="py-3 text-right">
+                  <td suppressHydrationWarning className="py-3 text-right">
                     {/* Le drapeau REFLÈTE la décision de l'admin, il ne la prend
                         pas : c'est la file d'approbations qui l'accorde. */}
                     <span

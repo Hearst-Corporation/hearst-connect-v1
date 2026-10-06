@@ -120,7 +120,7 @@ export function AllocationRebalancing({
             trait blanc la cible, le point la part actuelle. Point dans la zone :
             rien à faire. Point dehors : ambre, relié à la zone par l'excédent. */}
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[46rem] text-sm">
+          <table suppressHydrationWarning className="w-full min-w-[46rem] text-sm">
             <thead>
               <tr className="text-left text-[11px] tracking-[0.08em] text-fg-tertiary uppercase">
                 <th className="py-2 pr-4 font-medium">Bucket</th>
@@ -138,32 +138,34 @@ export function AllocationRebalancing({
                 const at = (bps: number) => `${Math.min(100, Math.max(0, bps / 100))}%`
                 return (
                   <tr key={r.key}>
-                    <td className="py-3 pr-4">
+                    <td suppressHydrationWarning className="py-3 pr-4">
                       <span className="flex items-center gap-2 font-medium text-fg">
                         <span className="size-2 rounded-[3px]" style={{ background: r.color }} aria-hidden="true" />
                         {r.label}
                       </span>
                     </td>
-                    <td className="py-3 pr-4 text-fg-secondary">
+                    <td suppressHydrationWarning className="py-3 pr-4 text-fg-secondary">
                       {r.protocol ?? '—'}
                       {r.apy !== null ? (
                         <span className="ml-1.5 text-xs text-fg-tertiary">{formatNumber(r.apy, { maximumFractionDigits: 1 })} %</span>
                       ) : null}
                     </td>
-                    <td className="py-3 pr-4 text-right tabular-nums text-fg-tertiary">{r.target !== null ? pct(r.target) : '—'}</td>
-                    <td className="py-3 pr-4 text-right tabular-nums text-fg">{r.current !== null ? pct(r.current) : '—'}</td>
-                    <td className="w-[30%] py-3 pr-4">
+                    <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-fg-tertiary">{r.target !== null ? pct(r.target) : '—'}</td>
+                    <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-fg">{r.current !== null ? pct(r.current) : '—'}</td>
+                    <td suppressHydrationWarning className="w-[30%] py-3 pr-4">
                       {r.target !== null && now !== null ? (
                         <span className="relative block h-2 rounded-full bg-[var(--ud-inset)]" aria-hidden="true">
                           {/* La plage autorisée : cible ± bande. */}
                           <span
-                            className="absolute -inset-y-1 rounded-sm bg-white/[0.12] ring-1 ring-white/20"
+                            className={`absolute -inset-y-1 rounded-sm ring-1 ${
+                              over ? 'bg-white/[0.08] ring-white/20' : 'bg-[var(--hearst-green)]/20 ring-[var(--hearst-green)]/50'
+                            }`}
                             style={{ left: at(r.target - band), width: `calc(${at(Math.min(10_000, r.target + band))} - ${at(r.target - band)})` }}
                           />
                           {/* Hors plage : l'excédent, de la borne jusqu'au point. */}
                           {over ? (
                             <span
-                              className="absolute inset-y-0.5 bg-amber-400/60"
+                              className="absolute inset-y-0.5 bg-amber-400/70"
                               style={
                                 now > r.target
                                   ? { left: at(r.target + band), width: `calc(${at(now)} - ${at(r.target + band)})` }
@@ -175,7 +177,7 @@ export function AllocationRebalancing({
                           <span className="absolute -inset-y-1.5 w-0.5 -translate-x-1/2 rounded bg-fg" style={{ left: at(r.target) }} />
                           {/* La part actuelle. */}
                           <span
-                            className={`absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-[var(--ud-card)] ${over ? 'bg-amber-400' : 'bg-fg'}`}
+                            className={`absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-[var(--ud-card)] ${over ? 'bg-amber-400' : 'bg-[var(--hearst-green)]'}`}
                             style={{ left: at(now) }}
                           />
                         </span>
@@ -183,10 +185,10 @@ export function AllocationRebalancing({
                         <span className="text-fg-tertiary">—</span>
                       )}
                     </td>
-                    <td className="py-3 text-right tabular-nums">
+                    <td suppressHydrationWarning className="py-3 text-right tabular-nums">
                       <span className={`block font-medium ${over ? 'text-amber-400' : 'text-fg'}`}>{r.drift !== null ? pts(r.drift) : '—'}</span>
                       {r.drift !== null ? (
-                        <span className={`block text-xs ${over ? 'text-amber-400/80' : 'text-fg-tertiary'}`}>
+                        <span className={`block text-xs ${over ? 'text-amber-400' : 'text-[var(--hearst-green)]'}`}>
                           {over ? 'Out of band' : 'Within band'}
                         </span>
                       ) : null}

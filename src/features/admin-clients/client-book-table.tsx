@@ -1,6 +1,7 @@
 'use client'
 
 import { PaginatedTable } from '@/components/admin/paginated-table'
+import { SegSelect } from '@/components/admin/seg-select'
 import { Badge } from '@/components/catalyst/badge'
 import { Input } from '@/components/catalyst/input'
 import { Link } from '@/components/catalyst/link'
@@ -107,7 +108,13 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
             aria-label="Search clients"
           />
         </div>
-        <div className="ud-seg" role="group" aria-label="Client view">
+        <SegSelect
+          label="Client view"
+          value={view}
+          options={VIEWS.map((v) => ({ value: v.id, label: `${v.label} (${counts[v.id]})` }))}
+          onChange={setView}
+        />
+        <div className="ud-seg seg-collapsible" role="group" aria-label="Client view">
           {VIEWS.map((v) => (
             <button
               key={v.id}

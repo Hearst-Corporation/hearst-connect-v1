@@ -5161,3 +5161,309 @@
   opacity: 0.35;
   cursor: default;
 }
+
+/* ══ Console sur mobile (sous 768px, le seuil de /account) ═══════════════════
+ *
+ * Tableaux : une carte par ligne, comme /account — rien ne défile en largeur.
+ * La première cellule devient le titre de la carte ; chaque autre cellule une
+ * ligne « intitulé — valeur », l'intitulé venant de `data-label` (recopié de
+ * l'en-tête par <TableLabels />). La cellule d'action (« Open », « Decide »),
+ * sans intitulé, se cale en haut à droite, à hauteur du titre.
+ *
+ * Sélecteurs `.ud-seg` trop longs pour une ligne : la piste (`seg-collapsible`)
+ * cède la place au `select` blanc de /account (<SegSelect />).
+ */
+@media (max-width: 768px) {
+  .ud-admin .seg-collapsible {
+    display: none !important;
+  }
+
+  /* La barre mobile de /account vit dans une grille chez elle ; ici dans une
+     colonne flex, où l'`align-self: start` du rail la réduisait à son contenu
+     — le fond s'arrêtait au burger. */
+  .ud-admin .rail {
+    align-self: stretch;
+  }
+
+  /* La note d'une tuile passe à la ligne au lieu de se couper : sur une
+     colonne, « … + 30.54 BT… » perdait justement le chiffre. */
+  .ud-admin .stat-footnote {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* Le select de /account porte une marge de 13/14px pensée pour sa carte de
+     graphe ; dans la console il occupe la ligne de la piste qu'il remplace. */
+  .ud-admin .seg-select {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* Les tableaux se replient en TUILES jusqu'à 1439px : le rail latéral prend
+   169px, et sur un portable (1280, 1366) un tableau à six colonnes défilait
+   encore dans sa carte — le bouton « Open » sortait de l'écran. L'intitulé de
+   chaque valeur vient de `data-label`, recopié de l'en-tête par <TableLabels />. */
+@media (max-width: 1439px) {
+  .ud-admin table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .ud-admin .inline-block.min-w-full:has(> table),
+  .ud-admin .overflow-x-auto:has(> .inline-block > table) {
+    display: block;
+  }
+
+  .ud-admin table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Les tuiles se suivent, espacées : chacune se détache du fond de la carte. */
+  .ud-admin table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ud-admin table tfoot {
+    display: block;
+  }
+
+  /* LA TUILE : en tête le nom et l'action, dessous les valeurs deux par deux.
+     Flex et non grille : `tr::before`, une ligne vide pleine largeur placée
+     juste après l'action (`order`), force le retour à la ligne — le nom garde
+     toute la place que l'action lui laisse, quelle que soit sa largeur. */
+  .ud-admin table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 14px 12px;
+    padding: 16px;
+    border: 1px solid var(--ud-line);
+    border-radius: var(--ud-radius);
+    background: var(--ud-card-raised);
+  }
+
+  .ud-admin table tbody tr::before {
+    content: '';
+    order: -1;
+    flex: 0 0 100%;
+    height: 0;
+    margin-top: -14px;
+  }
+
+  /* Une valeur : son intitulé au-dessus, comme dans les tuiles de chiffres. */
+  .ud-admin table tbody td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    flex: 0 0 calc(50% - 6px);
+    min-width: 0;
+    width: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: normal;
+    text-align: left !important;
+  }
+
+  /* Une valeur longue (adresse, appel de contrat) se coupe dans la tuile
+     plutôt que d'en sortir. */
+  .ud-admin table tbody td > * {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .ud-admin table tbody td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ud-fg-3);
+  }
+
+  /* Une jauge prend toute la largeur de la tuile. */
+  .ud-admin table tbody td:not(:first-child):has(> .relative.block) {
+    flex-basis: 100%;
+    align-items: stretch;
+  }
+
+  /* Le nom, en tête. */
+  /* Le nom garde au moins 8rem : si l'action (deux boutons) ne tient pas à
+     côté, c'est elle qui passe dessous, toujours calée à droite. */
+  .ud-admin table tbody td:first-child {
+    order: -3;
+    flex: 1 1 8rem;
+    min-width: 8rem;
+    font-size: 15px;
+  }
+
+  /* L'action, en haut à droite. */
+  .ud-admin table tbody td[data-label='']:not(:first-child):not([colspan]) {
+    order: -2;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    margin-left: auto;
+  }
+
+  .ud-admin table tbody td:first-child::before,
+  .ud-admin table tbody td[data-label='']::before,
+  .ud-admin table tbody td[colspan]::before {
+    content: none;
+  }
+
+  .ud-admin table tbody td[colspan] {
+    flex-basis: 100%;
+  }
+}
+
+/* Au-delà de 1440px, un tableau reste un tableau — sauf s'il ne tient pas
+   dans sa carte (carte étroite d'une grille, colonnes nombreuses) : <TableLabels />
+   le mesure et le marque `data-stack`, et il prend le même repli en cartes. */
+@media (min-width: 1440px) {
+  .ud-admin table[data-stack] {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .ud-admin .inline-block.min-w-full:has(> table[data-stack]),
+  .ud-admin .overflow-x-auto:has(> .inline-block > table[data-stack]) {
+    display: block;
+  }
+
+  .ud-admin table[data-stack] thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Les tuiles se suivent, espacées : chacune se détache du fond de la carte. */
+  .ud-admin table[data-stack] tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ud-admin table[data-stack] tfoot {
+    display: block;
+  }
+
+  /* LA TUILE : en tête le nom et l'action, dessous les valeurs deux par deux.
+     Flex et non grille : `tr::before`, une ligne vide pleine largeur placée
+     juste après l'action (`order`), force le retour à la ligne — le nom garde
+     toute la place que l'action lui laisse, quelle que soit sa largeur. */
+  .ud-admin table[data-stack] tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 14px 12px;
+    padding: 16px;
+    border: 1px solid var(--ud-line);
+    border-radius: var(--ud-radius);
+    background: var(--ud-card-raised);
+  }
+
+  .ud-admin table[data-stack] tbody tr::before {
+    content: '';
+    order: -1;
+    flex: 0 0 100%;
+    height: 0;
+    margin-top: -14px;
+  }
+
+  /* Une valeur : son intitulé au-dessus, comme dans les tuiles de chiffres. */
+  .ud-admin table[data-stack] tbody td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    flex: 0 0 calc(50% - 6px);
+    min-width: 0;
+    width: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: normal;
+    text-align: left !important;
+  }
+
+  /* Une valeur longue (adresse, appel de contrat) se coupe dans la tuile
+     plutôt que d'en sortir. */
+  .ud-admin table[data-stack] tbody td > * {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .ud-admin table[data-stack] tbody td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ud-fg-3);
+  }
+
+  /* Une jauge prend toute la largeur de la tuile. */
+  .ud-admin table[data-stack] tbody td:not(:first-child):has(> .relative.block) {
+    flex-basis: 100%;
+    align-items: stretch;
+  }
+
+  /* Le nom, en tête. */
+  /* Le nom garde au moins 8rem : si l'action (deux boutons) ne tient pas à
+     côté, c'est elle qui passe dessous, toujours calée à droite. */
+  .ud-admin table[data-stack] tbody td:first-child {
+    order: -3;
+    flex: 1 1 8rem;
+    min-width: 8rem;
+    font-size: 15px;
+  }
+
+  /* L'action, en haut à droite. */
+  .ud-admin table[data-stack] tbody td[data-label='']:not(:first-child):not([colspan]) {
+    order: -2;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    margin-left: auto;
+  }
+
+  .ud-admin table[data-stack] tbody td:first-child::before,
+  .ud-admin table[data-stack] tbody td[data-label='']::before,
+  .ud-admin table[data-stack] tbody td[colspan]::before {
+    content: none;
+  }
+
+  .ud-admin table[data-stack] tbody td[colspan] {
+    flex-basis: 100%;
+  }
+}
+
+/* Téléphone : les quatre lectures vertes de « Mining economics » sur une
+   colonne — à deux, libellé et valeur se chevauchaient dans 160px. */
+@media (max-width: 480px) {
+  .ud-admin .prodcost-rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* La barre mobile de la console (`.rail`) n'existe qu'en dessous de 768px.
+   `md:hidden` ne suffit pas : la règle `.ud-root .rail` de /account, hors
+   couche, l'emporte sur l'utilitaire Tailwind — la barre s'affichait alors en
+   colonne à gauche du contenu sur desktop. */
+@media (min-width: 768px) {
+  .ud-admin .rail {
+    display: none;
+  }
+}

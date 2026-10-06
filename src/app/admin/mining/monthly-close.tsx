@@ -6,6 +6,7 @@ import { Badge } from '@/components/catalyst/badge'
 import { Link } from '@/components/catalyst/link'
 import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
 import { PaginatedTable } from '@/components/admin/paginated-table'
+import { SegSelect } from '@/components/admin/seg-select'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { useState } from 'react'
 
@@ -71,7 +72,13 @@ export function MonthlyClose({ months, action }: Readonly<{ months: readonly Clo
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="ud-seg" role="group" aria-label="Month">
+        <SegSelect
+          label="Month"
+          value={selected}
+          options={ordered.map((x) => ({ value: x.month, label: monthLabel(x.month) }))}
+          onChange={setSelected}
+        />
+        <div className="ud-seg seg-collapsible" role="group" aria-label="Month">
           {ordered.map((x) => (
             <button
               key={x.month}

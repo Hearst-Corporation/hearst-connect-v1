@@ -66,7 +66,7 @@ export default async function Page() {
             title="Som KYC status"
             subtitle="Provider: Som. No Hearst approval actions. Opened date is on the Updated title when relevant."
             action={
-              <div className="flex shrink-0 items-center gap-4">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 {reviews !== null && reviews.length > 0 ? (
                   <Badge color="neutral">{`${reviews.length} record(s)`}</Badge>
                 ) : null}

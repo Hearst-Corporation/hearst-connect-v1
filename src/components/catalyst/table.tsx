@@ -24,9 +24,12 @@ export function Table({
   return (
     <TableContext.Provider value={{ bleed, dense, grid, striped } as React.ContextType<typeof TableContext>}>
       <div className="flow-root">
-        <div {...props} className={clsx(className, '-mx-(--gutter) overflow-x-auto whitespace-nowrap')}>
+        <div {...props} className={clsx(className, 'relative -mx-(--gutter) overflow-x-auto whitespace-nowrap')}>
           <div className={clsx('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}>
-            <table className="min-w-full text-left text-sm/6 text-ink dark:text-fg">{children}</table>
+            {/* <TableLabels /> peut le marquer `data-stack` (repli en cartes). */}
+            <table suppressHydrationWarning className="min-w-full text-left text-sm/6 text-ink dark:text-fg">
+              {children}
+            </table>
           </div>
         </div>
       </div>
@@ -98,6 +101,9 @@ export function TableCell({ className, children, ...props }: React.ComponentProp
   return (
     <td
       ref={href ? setCellRef : undefined}
+      // <TableLabels /> pose `data-label` sur la cellule (repli mobile) : il peut
+      // passer avant l'hydratation d'un bloc en streaming, sans que ce soit un écart.
+      suppressHydrationWarning
       {...props}
       className={clsx(
         className,

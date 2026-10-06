@@ -1,4 +1,5 @@
 import { AdminApplicationLayout } from '@/components/admin/application-layout'
+import { TableLabels } from '@/components/admin/table-labels'
 import { requireSession } from '@/lib/auth'
 import { loadAdminInbox } from '@/lib/notifications/inbox'
 import { publicUser } from '@/lib/session'
@@ -37,6 +38,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
       <AdminApplicationLayout user={publicUser(session)} inbox={inbox}>
         {children}
       </AdminApplicationLayout>
+      <TableLabels />
     </div>
   )
 }

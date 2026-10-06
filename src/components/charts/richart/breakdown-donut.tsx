@@ -99,7 +99,7 @@ export function HearstBreakdownDonut({
   const sharePct = (value: number) => formatNumber((value / total) * 100, { maximumFractionDigits: 0 })
 
   return (
-    <div className={layout === 'side' ? 'donut-side flex w-full flex-col items-center gap-5 sm:flex-row' : 'w-full'}>
+    <div className={layout === 'side' ? 'donut-side flex w-full flex-col items-center gap-5 sm:flex-row sm:flex-wrap sm:justify-center' : 'w-full'}>
       <ChartAccessibilityTable
         caption={`Breakdown (${unit})`}
         columns={
@@ -147,7 +147,7 @@ export function HearstBreakdownDonut({
         </div>
       </div>
 
-      <ul className={layout === 'side' ? 'flex w-full min-w-0 flex-1 flex-col gap-2' : 'mt-5 flex flex-col gap-1.5'}>
+      <ul className={layout === 'side' ? 'flex w-full min-w-0 flex-1 flex-col gap-2 sm:min-w-[13rem]' : 'mt-5 flex flex-col gap-1.5'}>
         {ranked.map((s, index) => (
           <li key={`${s.label}-${index}`} className="flex items-center gap-2.5 text-xs text-fg-secondary">
             <span

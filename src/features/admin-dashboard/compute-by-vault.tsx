@@ -37,7 +37,7 @@ export function ComputeByVault({ rows }: Readonly<{ rows: readonly VaultComputeR
           <span className="font-medium text-fg">{formatNumber(allocatedPct, { maximumFractionDigits: 1 })} %</span> of
           the fleet allocated to client vaults
         </span>
-        <div className="grid h-8 grid-cols-[minmax(0,1fr)_14rem] items-center gap-4">
+        <div className="grid h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:grid-cols-[minmax(0,1fr)_14rem]">
           <span className="flex h-2.5 overflow-hidden rounded-full bg-[var(--ud-inset)]" aria-hidden="true">
             {rows
               .filter((r) => r.vaultId !== null)
@@ -61,7 +61,12 @@ export function ComputeByVault({ rows }: Readonly<{ rows: readonly VaultComputeR
 
       <ul className="flex flex-col gap-1.5">
         {rows.map((r) => (
-          <li key={r.vaultId ?? 'free'} className="grid h-8 grid-cols-[13rem_minmax(0,1fr)_14rem] items-center gap-4">
+          // Sur téléphone, la barre passe sous le nom et les chiffres : trois
+          // colonnes fixes (13 + 14 rem) ne tiennent pas dans 390px.
+          <li
+            key={r.vaultId ?? 'free'}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 py-1 sm:h-8 sm:grid-cols-[13rem_minmax(0,1fr)_14rem] sm:py-0"
+          >
             {r.clientId ? (
               <Link href={`/admin/clients/${r.clientId}`} className="truncate text-sm font-medium text-fg">
                 {r.label}
@@ -69,7 +74,7 @@ export function ComputeByVault({ rows }: Readonly<{ rows: readonly VaultComputeR
             ) : (
               <span className="truncate text-sm text-fg-tertiary">{r.label}</span>
             )}
-            <span className="h-2 rounded-full bg-[var(--ud-inset)]">
+            <span className="col-span-2 row-start-2 h-2 rounded-full bg-[var(--ud-inset)] sm:col-span-1 sm:row-start-auto">
               <span
                 className={`block h-full rounded-full ${r.vaultId === null ? 'bg-white/25' : 'bg-[var(--hearst-green)]'}`}
                 style={{ width: `${Math.max((r.sharePct / max) * 100, 1.5)}%` }}

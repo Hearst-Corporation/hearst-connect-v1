@@ -1,5 +1,6 @@
 'use client'
 
+import { SegSelect } from '@/components/admin/seg-select'
 import { useEffect, useState } from 'react'
 
 /**
@@ -33,7 +34,17 @@ export function SectionNav({ sections }: Readonly<{ sections: readonly SectionLi
 
   return (
     <nav aria-label="Sections" className="sticky top-0 z-20 -my-2 flex overflow-x-auto bg-[var(--ud-page)]/90 py-2 backdrop-blur">
-      <div className="ud-seg" role="tablist">
+      {/* Sous 768px : la section courante dans un select ; choisir y amène. */}
+      <SegSelect
+        label="Section"
+        value={active}
+        options={sections.map((s) => ({ value: s.id, label: s.badge > 0 ? `${s.label} (${s.badge})` : s.label }))}
+        onChange={(id) => {
+          setActive(id)
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
+      />
+      <div className="ud-seg seg-collapsible" role="tablist">
         {sections.map((s) => (
           <a
             key={s.id}

@@ -11,7 +11,6 @@ import {
   DropdownLabel,
   DropdownMenu,
 } from '@/components/catalyst/dropdown'
-import { Navbar, NavbarItem, NavbarSection, NavbarSpacer } from '@/components/catalyst/navbar'
 import {
   Sidebar,
   SidebarBody,
@@ -25,7 +24,7 @@ import {
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
 import { AdminBodyNav } from '@/components/admin/body-nav'
 import { ToastProvider } from '@/components/admin/toast'
-import { NavbarAvatar, SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
+import { SidebarFooterIdentity, userInitials } from '@/components/layout/user-avatar-trigger'
 import { HearstConnectLockupImage } from '@/components/logo'
 import { logout } from '@/lib/actions'
 import {
@@ -40,8 +39,10 @@ import {
   ChevronUpIcon,
   UserCircleIcon,
 } from '@heroicons/react/16/solid'
-import { WalletIcon } from '@heroicons/react/20/solid'
+import { WalletIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 function AccountMenu({
   anchor,
@@ -70,6 +71,101 @@ function AccountMenu({
   )
 }
 
+
+/**
+ * La barre mobile de /account, à l'identique : logo à gauche, cloche, puis le
+ * burger vert ; son panneau descend de la barre, opaque, sur toute la largeur.
+ * Mêmes classes que /account (`rail`, `rail-burger`, `rail-menu`…) — le CSS
+ * ne les montre que sous 768px, et une retouche là-bas se répercute ici.
+ */
+function AdminMobileBar({
+  user,
+  inbox,
+  activePrimary,
+  activeAccount,
+}: Readonly<{ user: SessionUser; inbox: readonly InboxItem[]; activePrimary: string | undefined; activeAccount: boolean }>) {
+  const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  // Une navigation referme le panneau : il ne doit pas rester ouvert sur la page d'arrivée.
+  useEffect(() => setOpen(false), [pathname])
+
+  return (
+    <div className="rail md:hidden">
+      <Link href="/admin" className="rail-brand">
+        <HearstConnectLockupImage className="h-9 w-auto" />
+        <span className="sr-only">Hearst Connect</span>
+      </Link>
+
+      <div className="ml-auto flex items-center gap-1">
+        <InboxBell initial={inbox} />
+        <button
+          type="button"
+          className="rail-burger"
+          aria-expanded={open}
+          aria-controls="admin-mobile-nav"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="rail-burger-bars" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        </button>
+      </div>
+
+      <div className="rail-menu" id="admin-mobile-nav" hidden={!open}>
+        <button type="button" className="rail-menu-close" aria-label="Close menu" onClick={() => setOpen(false)}>
+          <XMarkIcon className="size-5" aria-hidden="true" />
+        </button>
+
+        <nav className="rail-menu-nav" aria-label="Main">
+          {ADMIN_NAV.map((entry) => {
+            const Icon = entry.icon
+            const current = activePrimary === entry.href
+            return (
+              <Link
+                key={entry.href}
+                href={entry.href}
+                className={`rail-menu-item${current ? ' active' : ''}`}
+                aria-current={current ? 'page' : undefined}
+              >
+                <Icon className="size-5" aria-hidden="true" />
+                <span>{entry.label}</span>
+              </Link>
+            )
+          })}
+          <Link href="/account" className="rail-menu-item">
+            <WalletIcon className="size-5" aria-hidden="true" />
+            <span>Account</span>
+          </Link>
+          <Link
+            href="/admin/profile"
+            className={`rail-menu-item${activeAccount ? ' active' : ''}`}
+            aria-current={activeAccount ? 'page' : undefined}
+          >
+            <UserCircleIcon className="size-5" aria-hidden="true" />
+            <span>Your account</span>
+            <span className="ml-auto truncate text-xs text-[var(--ud-fg-3)]">{user.email}</span>
+          </Link>
+        </nav>
+
+        {/* Détaché du groupe, comme sur /account : sortir n'est pas une destination. */}
+        <button
+          type="button"
+          className="rail-menu-signout"
+          onClick={() => {
+            void logout()
+          }}
+        >
+          <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
+          <span>Sign out</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /**
  * Console shell — primary vertical menu on the left, horizontal submenus
  * in the body via `AdminBodyNav` when the active section provides them.
@@ -88,19 +184,8 @@ export function AdminApplicationLayout({
   return (
     <ToastProvider>
       <SidebarLayout
-        navbar={
-          <Navbar>
-            <NavbarSpacer />
-            <NavbarSection>
-              <InboxBell initial={inbox} />
-              <Dropdown>
-                <DropdownButton as={NavbarItem}>
-                  <NavbarAvatar initials={initials} />
-                </DropdownButton>
-                <AccountMenu anchor="bottom end" activeAccount={activeAccount} />
-              </Dropdown>
-            </NavbarSection>
-          </Navbar>
+        mobileBar={
+          <AdminMobileBar user={user} inbox={inbox} activePrimary={activePrimary} activeAccount={activeAccount} />
         }
         sidebar={
           <Sidebar>
@@ -154,7 +239,7 @@ export function AdminApplicationLayout({
               </SidebarSection>
             </SidebarBody>
 
-            <SidebarFooter className="max-lg:hidden">
+            <SidebarFooter>
               <Dropdown>
                 <DropdownButton as={SidebarItem}>
                   <SidebarFooterIdentity initials={initials} name={user.name} email={user.email} />
@@ -170,7 +255,7 @@ export function AdminApplicationLayout({
             trait se raccorde à celui de la bande de marque et traverse alors
             l'écran d'un seul tenant. La console n'en portait pas en desktop,
             donc le filet du rail s'arrêtait net. */}
-        <header className="-mx-6 mb-6 flex h-[88px] items-center justify-between gap-4 border-b border-[var(--ud-line)] px-6 max-lg:hidden">
+        <header className="-mx-6 mb-6 flex h-[88px] items-center justify-between gap-4 border-b border-[var(--ud-line)] px-6 max-md:hidden">
           <div className="flex items-center gap-2.5">
             <i
               aria-hidden="true"

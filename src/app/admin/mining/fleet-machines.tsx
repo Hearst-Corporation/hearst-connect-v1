@@ -66,9 +66,9 @@ export function FleetMachines({ machines }: Readonly<{ machines: readonly Machin
               libellé de droite ne passe plus sur deux lignes. */}
           <ul className="flex flex-col gap-1.5">
             {sites.map(([name, v]) => (
-              <li key={name} className="grid h-7 grid-cols-[14rem_minmax(0,1fr)_11rem] items-center gap-4">
+              <li key={name} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 py-1 sm:h-7 sm:grid-cols-[14rem_minmax(0,1fr)_11rem] sm:py-0">
                 <span className="truncate text-sm text-fg">{name}</span>
-                <span className="h-2 rounded-full bg-[var(--ud-inset)]">
+                <span className="col-span-2 row-start-2 h-2 rounded-full bg-[var(--ud-inset)] sm:col-span-1 sm:row-start-auto">
                   <span className="block h-full rounded-full bg-[var(--hearst-green)]" style={{ width: `${(v.ths / maxSite) * 100}%` }} />
                 </span>
                 <span className="text-right text-xs whitespace-nowrap tabular-nums text-fg-tertiary">

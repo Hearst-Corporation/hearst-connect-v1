@@ -1,6 +1,7 @@
 'use client'
 
 import { PaginatedTable } from '@/components/admin/paginated-table'
+import { SegSelect } from '@/components/admin/seg-select'
 import { PanelState } from '@/components/admin/dashboard/panel-state'
 import { AdminToneBadge, toneForKycStatus } from '@/components/admin/status-tone'
 import { surfaceBox } from '@/components/admin/surface'
@@ -114,7 +115,13 @@ export function ClientsDirectory({
           <Badge color="neutral">{`${filtered.length} of ${clients.length}`}</Badge>
           {/* Le sélecteur du bloc vault de /account : piste sombre, choix actif
               en aplat blanc. */}
-          <fieldset className="ud-seg m-0 min-w-0 border-0">
+          <SegSelect
+            label="Client filters"
+            value={filter}
+            options={FILTERS.map((item) => ({ value: item.id, label: item.label }))}
+            onChange={setFilter}
+          />
+          <fieldset className="ud-seg seg-collapsible m-0 min-w-0 border-0">
             <legend className="sr-only">Client filters</legend>
             {FILTERS.map((item) => {
               const active = filter === item.id

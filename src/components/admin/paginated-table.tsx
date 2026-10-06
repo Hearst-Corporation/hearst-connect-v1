@@ -218,7 +218,8 @@ export function TableFooter({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <span>{pager}</span>
-      <span className="flex flex-wrap items-center gap-2">
+      {/* À droite même quand la ligne se replie (téléphone) : `ml-auto`. */}
+      <span className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {exportData ? <ExportButtons data={exportData} /> : null}
         {/* Toujours là, au même endroit — un bouton SECONDAIRE, en gris comme les
             exports : déplier un tableau n'est pas une action métier. */}

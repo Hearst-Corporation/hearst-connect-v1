@@ -1,8 +1,9 @@
 'use client'
 
+import { SegSelect } from '@/components/admin/seg-select'
 import { Link } from '@/components/catalyst/link'
 import { activeBodyHref, bodySubmenus } from '@/lib/admin-nav'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 /**
  * Horizontal submenus — rendered only when the active section carries at least
@@ -17,6 +18,7 @@ import { usePathname } from 'next/navigation'
  */
 export function AdminBodyNav() {
   const pathname = usePathname()
+  const router = useRouter()
   const submenus = bodySubmenus(pathname)
   if (submenus === undefined) return null
 
@@ -35,7 +37,14 @@ export function AdminBodyNav() {
      pousser la page. */
   return (
     <nav aria-label="Sub-navigation" className="mb-8 w-full max-w-full overflow-x-auto">
-      <div className="ud-seg flex-nowrap!">
+      {/* Sous 768px : la destination courante dans un select, comme /account. */}
+      <SegSelect
+        label="Settings section"
+        value={active ?? ''}
+        options={submenus.map((e) => ({ value: e.href, label: e.label }))}
+        onChange={(href) => router.push(href)}
+      />
+      <div className="ud-seg seg-collapsible flex-nowrap!">
         {submenus.map((entry) => (
           <Link
             key={entry.href}

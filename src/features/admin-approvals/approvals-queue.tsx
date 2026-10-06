@@ -131,7 +131,9 @@ export function ApprovalsQueue({
                   key={item.id}
                   className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3.5"
                 >
-                  <div className="min-w-0 flex-1">
+                  {/* Sur téléphone le texte prend la ligne ; montant, date et
+                      boutons passent dessous, les boutons calés à droite. */}
+                  <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                     {/* Le nom mène à la fiche du client, à la section de cette décision. */}
                     <Link
                       href={`/admin/clients/${item.clientId}${SECTION_OF[item.kind]}`}
@@ -169,7 +171,9 @@ export function ApprovalsQueue({
                     {item.requestedAt !== null ? formatDate(item.requestedAt) : '—'}
                   </p>
 
-                  <DecisionButtons id={item.id} action={meta.action} />
+                  <span className="ml-auto sm:ml-0">
+                    <DecisionButtons id={item.id} action={meta.action} />
+                  </span>
                 </li>
               ))}
             </ul>

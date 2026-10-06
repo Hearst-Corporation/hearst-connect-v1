@@ -43,7 +43,7 @@ export function ElectricityByVault({ months }: Readonly<{ months: readonly Close
       className="h-full"
     >
       <div className="flex flex-col gap-5">
-        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)]">
+        <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] sm:grid-cols-3">
           {[
             ['Due this month', usdRound(dueUsd), `≈ ${btcFromSats(toSats(dueUsd))}`],
             ['Vaults to pay', `${due.length} / ${lines.length}`, due.length === 0 ? 'All paid' : 'Pay from each client page'],

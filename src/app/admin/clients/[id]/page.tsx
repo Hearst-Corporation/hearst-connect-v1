@@ -427,7 +427,9 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
               <ul className="flex flex-col divide-y divide-[var(--ud-line)]">
                 {decisions.map((d) => (
                   <li key={d.id} className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 first:pt-0 last:pb-0">
-                    <div className="min-w-0 flex-1">
+                    {/* Sur téléphone le libellé prend la ligne ; montant, date et
+                        action passent dessous, l'action calée à droite. */}
+                    <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                       <p className="text-sm font-medium text-fg">{DECISION_LABEL[d.kind] ?? d.kind}</p>
                       <p className="text-xs text-fg-tertiary">{d.note ?? '—'}</p>
                     </div>
@@ -435,13 +437,15 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
                     <p className="text-xs tabular-nums text-fg-tertiary">{d.requestedAt ? formatDate(d.requestedAt) : '—'}</p>
                     {/* Une décision qui a SA section (reward, rééquilibrage, protocole)
                         s'y prend, avec son contexte ; les autres, ici. */}
-                    {DECISION_SECTION[d.kind] ? (
-                      <a href={DECISION_SECTION[d.kind]} className="ud-detail-btn inline-flex items-center no-underline">
-                        Review
-                      </a>
-                    ) : (
-                      <DecisionButtons id={d.id} action={DECISION_ACTION[d.kind] ?? 'Approve'} />
-                    )}
+                    <span className="ml-auto sm:ml-0">
+                      {DECISION_SECTION[d.kind] ? (
+                        <a href={DECISION_SECTION[d.kind]} className="ud-detail-btn inline-flex items-center no-underline">
+                          Review
+                        </a>
+                      ) : (
+                        <DecisionButtons id={d.id} action={DECISION_ACTION[d.kind] ?? 'Approve'} />
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>

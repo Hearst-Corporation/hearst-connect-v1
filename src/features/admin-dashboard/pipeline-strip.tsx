@@ -119,7 +119,7 @@ export function PipelineStrip({
       {pipeline.needsAction.length > 0 ? (
         <ul className="flex flex-col divide-y divide-[var(--ud-line)] border-t border-[var(--ud-line)]">
           {pipeline.needsAction.slice(0, 4).map((offer) => (
-            <li key={offer.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1.2fr)_8rem_minmax(0,1fr)_auto]">
+            <li key={offer.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1.2fr)_8rem_minmax(0,1fr)_auto]">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-fg">{offer.clientName}</p>
                 <p className="text-xs text-fg-tertiary">{OFFER_STATUS_LABEL[offer.status]}</p>
