@@ -1499,7 +1499,7 @@ function payloadFor(path, search = '') {
     return {
       settings: bloc({
         values: v,
-        changes: (WORLD.changes ?? []).map(changeView).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        changes: changesOf().map(changeView).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
         approverRoles: Object.fromEntries(['settings', 'risk', 'treasury'].map((k) => [k, policyOf(k).roles])),
       }),
     }
@@ -1513,7 +1513,7 @@ function payloadFor(path, search = '') {
     const out = []
     const push = (at, actor, action, target, detail, category) => at && out.push({ id: `${category}:${out.length}`, at, actor, action, target, detail, category })
     const nameOf = (email) => SETTINGS_BASE.team.find((m) => m.email === email)?.name ?? email
-    for (const c of WORLD.changes ?? []) {
+    for (const c of changesOf()) {
       const title = SETTINGS_TITLES[c.section] ?? c.section
       push(c.createdAt, nameOf(c.author), 'Requested a change', title, c.reason || null, 'settings')
       for (const a of c.approvals ?? []) push(a.at, nameOf(a.by), 'Approved a change', title, null, 'settings')
@@ -1533,7 +1533,7 @@ function payloadFor(path, search = '') {
       push(o.openedAt, 'Admin (you)', 'Opened the vault', o.reference, null, 'offer')
     }
     for (const e of WORLD.emails ?? []) push(e.sentAt, 'Admin (you)', 'Sent an email', e.subject || e.emailId, `to ${e.to.join(', ')} · logged in HubSpot`, 'email')
-    for (const t of WORLD.txs ?? []) push(t.createdAt, 'Fireblocks', `Created a ${t.kind} transaction`, t.note ?? t.kind, `${t.amount ?? ''} ${t.asset}`.trim(), 'payment')
+    for (const t of WORLD.txs ?? []) push(t.createdAt, 'Fireblocks', `Executed ${({ withdrawal: 'a withdrawal', release: 'a reserve release', electricity: 'an electricity payment', rebalance: 'a rebalancing', protocol: 'a protocol switch', deposit: 'a deposit', conversion: 'a conversion' })[t.kind] ?? 'a transaction'}`, t.note ?? t.kind, `${t.amount ?? ''} ${t.asset}`.trim(), 'payment')
     for (const w of WORLD.withdrawals ?? []) push(w.at, vaultLabel(w.v) ?? 'Client', 'Requested a withdrawal', `${(w.sats / 1e8).toFixed(4)} BTC`, null, 'client')
     for (const [id, k] of Object.entries(WORLD.kyc ?? {})) push(k.at ?? null, 'Sumsub', `KYC ${String(k.kyc).toLowerCase()} · AML ${String(k.aml ?? '—').toLowerCase()}`, allClients().find((c) => c.id === id)?.label ?? id, null, 'compliance')
     return { audit: bloc(out.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)) }
@@ -2703,7 +2703,7 @@ function emptyWorld() {
     withdrawals: [], // retraits demandés depuis /account : { id, v, sats, usd, at }
     txs: [], // transactions Fireblocks : { id, kind, clientId, vaultId, asset, amount, … }
     emails: [], // courriels envoyés (Gmail) et consignés (HubSpot) : { offerId, emailId, … }
-    changes: [], // demandes de changement des réglages : { id, section, after, approvals, … }
+    changes: null, // demandes de changement des réglages ; null = le jeu de démonstration (`seedChanges`)
     decidedAt: {}, // approvalId → date de la décision (pour le journal d'audit)
     wallets: [], // portefeuilles ajoutés par les clients : { id, clientId, label, asset, network, address, addedAt }
     prefs: {}, // clientId → { endOfTerm: { vaultId: choice }, notifications: { … } }
@@ -2814,11 +2814,46 @@ const SETTINGS_TITLES = {
   strategies: 'Strategies & protocols', limits: 'Risk limits', addressBook: 'Address book', payees: 'Payees',
   compliance: 'KYC & AML', templates: 'Email templates', notifications: 'Notifications',
 }
+/*
+ * Le jeu de démonstration : trois demandes faites par d'AUTRES membres, que
+ * l'admin peut décider — sans elles, l'écran de gouvernance s'ouvrirait vide.
+ * Sarah (Risk) propose un protocole, Marc (Finance) un fournisseur ; une
+ * baisse de frais, déjà approuvée, attend la fin de son délai.
+ */
+function seedChanges() {
+  const at = (h) => new Date(mockNow().getTime() + h * 3_600_000).toISOString()
+  const base = SETTINGS_BASE
+  return [
+    {
+      id: 'chg_s1', section: 'strategies', author: 'sarah.klein@hearst.test', createdAt: at(-5), status: 'pending', required: 1,
+      reason: 'Add Ethena sUSDe to the USDC pocket — 14 % for six months, capped at $5M', approvals: [], rejectedBy: null, effectiveAt: null,
+      before: base.strategies,
+      after: [...base.strategies, { id: 's_ethena', pocket: 'USDC Yield', protocol: 'Ethena (sUSDe)', status: 'enabled', capUsd: 5_000_000, apyPct: 14, apySource: 'Ethena API', risk: 'medium' }],
+    },
+    {
+      id: 'chg_s2', section: 'payees', author: 'marc.dubois@hearst.test', createdAt: at(-26), status: 'pending', required: 1,
+      reason: 'New hosting contract in Québec — first invoice due next month', approvals: [], rejectedBy: null, effectiveAt: null,
+      before: base.payees,
+      after: [...base.payees, { id: 'p_qc', name: 'Hydro-Québec Hosting', purpose: 'Hosting & electricity — Québec sites', asset: 'USDC', address: '0x4b7a00ffee0000000000000000000000000c0de3', schedule: 'monthly' }],
+    },
+    {
+      id: 'chg_s3', section: 'terms', author: 'sarah.klein@hearst.test', createdAt: at(-30), status: 'scheduled', required: 1,
+      reason: 'Lower the management fee to 1.25 % for 2027 offers', approvals: [{ by: 'admin@localhost', at: at(-4) }], rejectedBy: null, effectiveAt: at(20),
+      before: base.terms,
+      after: { ...base.terms, managementFeeBps: 125 },
+    },
+  ]
+}
+/** Les demandes de changement : celles de la session, ou le jeu de démonstration. */
+function changesOf() {
+  if (!WORLD.changes || WORLD.changes.length === 0) WORLD.changes = seedChanges()
+  return WORLD.changes
+}
 const changeEffective = (c) => c.status === 'applied' || (c.status === 'scheduled' && c.effectiveAt && Date.parse(c.effectiveAt) <= mockNow().getTime())
 /** Les réglages courants : le socle, plus chaque changement dont le délai est passé. */
 function currentSettings() {
   const v = JSON.parse(JSON.stringify(SETTINGS_BASE))
-  for (const c of (WORLD.changes ?? []).filter(changeEffective).sort((a, b) => (a.appliedAt ?? a.effectiveAt).localeCompare(b.appliedAt ?? b.effectiveAt))) {
+  for (const c of changesOf().filter(changeEffective).sort((a, b) => (a.appliedAt ?? a.effectiveAt).localeCompare(b.appliedAt ?? b.effectiveAt))) {
     v[c.section] = c.after
   }
   return v
@@ -3380,15 +3415,15 @@ function handleWrite(method, path, body) {
     if (after === undefined || JSON.stringify(after) === JSON.stringify(before)) {
       return reply(400, problem(400, 'NO_CHANGE', 'Nothing changed in this section.'))
     }
-    if ((WORLD.changes ?? []).some((c) => c.section === section && c.status === 'pending')) {
+    if (changesOf().some((c) => c.section === section && c.status === 'pending')) {
       return reply(409, problem(409, 'CHANGE_PENDING', 'A change to this section is already waiting for approval — decide it first.'))
     }
     if (section === 'profiles' && Array.isArray(after) && after.some((r) => Number(r.miningBps) + Number(r.lendingBps) + Number(r.stableBps) !== 10_000)) {
       return reply(422, problem(422, 'ALLOCATION_NOT_100', 'Each profile must total 100 %.'))
     }
-    const n = (WORLD.changes ?? []).length + 1
+    const n = changesOf().length + 1
     WORLD.changes = [
-      ...(WORLD.changes ?? []),
+      ...changesOf(),
       {
         id: `chg_${String(n).padStart(3, '0')}`,
         section,
@@ -3409,7 +3444,7 @@ function handleWrite(method, path, body) {
   }
   const mChg = path.match(/^\/api\/v1\/admin\/settings\/changes\/([^/]+)\/decision$/)
   if (mChg && method === 'POST') {
-    const c = (WORLD.changes ?? []).find((x) => x.id === mChg[1])
+    const c = changesOf().find((x) => x.id === mChg[1])
     if (!c) return reply(404, problem(404, 'NOT_FOUND', 'No such change.'))
     const by = String(body?.by ?? '')
     const member = currentSettings().team.find((m) => m.email === by)

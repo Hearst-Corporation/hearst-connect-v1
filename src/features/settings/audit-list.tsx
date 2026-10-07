@@ -15,15 +15,24 @@ export const AUDIT_TONE: Record<AuditEntry['category'], { label: string; dot: st
 export function AuditList({ entries, compact = false }: Readonly<{ entries: readonly AuditEntry[] | null; compact?: boolean }>) {
   if (entries === null) return <p className="text-sm text-fg-tertiary">The audit log could not be read.</p>
   if (entries.length === 0) return <p className="text-sm text-fg-tertiary">Nothing has happened yet.</p>
+  /* Les gestes identiques consécutifs (un paiement groupé de huit vaults) se
+     lisent en UNE ligne « ×8 » : huit fois la même phrase noyait le reste. */
+  const groups: { e: AuditEntry; n: number }[] = []
+  for (const e of entries) {
+    const last = groups[groups.length - 1]
+    if (last && last.e.actor === e.actor && last.e.action === e.action && last.e.target === e.target) last.n += 1
+    else groups.push({ e, n: 1 })
+  }
   return (
     <ol className="flex flex-col divide-y divide-[var(--ud-line)]">
-      {entries.map((e) => (
+      {groups.map(({ e, n }) => (
         <li key={e.id} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
           <span className={`mt-1.5 size-2 shrink-0 rounded-full ${AUDIT_TONE[e.category]?.dot ?? 'bg-white/40'}`} aria-hidden="true" />
           <div className="flex min-w-0 flex-1 flex-col">
             <p className="text-sm text-fg">
               <span className="font-medium">{e.actor}</span> <span className="text-fg-secondary">{e.action.toLowerCase()}</span>{' '}
               <span className="break-words">{e.target}</span>
+              {n > 1 ? <span className="ml-1.5 rounded-full bg-white/[0.08] px-1.5 text-[11px] tabular-nums text-fg-secondary">×{n}</span> : null}
             </p>
             <p className="text-xs text-fg-tertiary">
               {formatDateTime(e.at)}
