@@ -6260,7 +6260,7 @@
 /* Hauteur commune ramenée à 590 px : onglet + en-tête tiennent dans 790 px. */
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body {
-    height: 600px;
+    height: 610px;
   }
   .ud-root .analysis--fund .center-plot {
     height: 425px;
@@ -6364,15 +6364,26 @@
 /* Overview : 5 px de plus au-dessus et au-dessous des en-têtes et de la
    rangée BTC ; l'écart entre les deux sections se resserre d'autant. */
 .ud-root .vault-tab-body--overview .section-heading {
-  padding-top: 21px;
-  padding-bottom: 21px;
+  padding-top: 26px;
+  padding-bottom: 26px;
 }
 .ud-root .vault-tab-body--overview .btc-block-top .stat-tile {
-  padding-top: 19px;
-  padding-bottom: 19px;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body--overview {
-    gap: 16px;
+    gap: 12px;
+  }
+  .ud-root .vault-tab-body--overview .btc-gauge {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+
+/* Sous la barre d'onglets, 10 px d'écart visible au lieu de 20 (la barre porte une marge de -8 px). */
+@media (min-width: 1025px) {
+  .ud-root .dashboard-view:has(> .vault-tabs-row) {
+    row-gap: 18px;
   }
 }
