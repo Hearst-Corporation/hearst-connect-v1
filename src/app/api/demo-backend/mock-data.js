@@ -326,7 +326,9 @@ const calIndex = (ym) => {
 }
 const priceOf = (ym) => {
   const k = calIndex(ym)
-  return k >= 0 ? monthPrice(k) : Math.round(BTC_SPOT_USD + -k * 900 + ((-k * 7919) % 4_000) - 2_000)
+  // Le mois en cours EST le cours affiché : un vault ouvert aujourd'hui convertit au spot, pas au-dessus.
+  if (k === -1) return BTC_SPOT_USD
+  return k >= 0 ? monthPrice(k) : Math.round(BTC_SPOT_USD + (-k - 1) * 900 + ((-k * 7919) % 4_000) - 2_000)
 }
 const wobbleOf = (ym) => monthWobble(Math.abs(calIndex(ym)))
 /** Le rendement du parc ce mois-là (uptime, difficulté) — le même pour tous. */
@@ -2541,7 +2543,12 @@ function baseOffers() {
 /** Toutes les offres : le socle avec ses étapes franchies, puis celles créées depuis la console. */
 function allOffers() {
   // Chaque offre porte ses courriels envoyés (Gmail) et consignés (HubSpot).
-  const withEmails = (o) => ({ ...o, sentEmails: (WORLD.emails ?? []).filter((e) => e.offerId === o.id) })
+  const withEmails = (o) => ({
+    ...o,
+    sentEmails: (WORLD.emails ?? []).filter((e) => e.offerId === o.id),
+    // Le deal HubSpot de l'offre : créé avec elle, il avance avec ses étapes.
+    hubspotDealUrl: `https://app.hubspot.com/contacts/48210735/record/0-3/${parseInt(createHash('sha256').update(`deal:${o.id}`).digest('hex').slice(0, 8), 16)}`,
+  })
   return [...baseOffers().map((o) => ({ ...o, ...(WORLD.patch[o.id] ?? {}) })), ...WORLD.offers].map(withEmails)
 }
 

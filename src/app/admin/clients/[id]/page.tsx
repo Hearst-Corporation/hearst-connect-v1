@@ -1,6 +1,5 @@
-import { SectionNav } from '@/features/admin-clients/section-nav'
 import { Link } from '@/components/catalyst/link'
-import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { Badge } from '@/components/catalyst/badge'
@@ -23,6 +22,10 @@ import { TrancheSwitcher } from '@/features/admin-clients/tranche-switcher'
 import { OfferSteps } from '@/features/admin-offers/offer-steps'
 import { loadTransactions } from '@/features/fireblocks/load'
 import { FireblocksTransactions } from '@/features/fireblocks/transactions-list'
+import { ClientTabs } from '@/features/admin-clients/client-tabs'
+import { FireblocksLogo, HubSpotLogo, SumsubLogo } from '@/components/brand-logos'
+import { AuditList } from '@/features/settings/audit-list'
+import { loadAudit } from '@/lib/settings/load'
 import { ReleaseVaultButton } from '@/features/admin-offers/release-vault-button'
 import { DecisionButtons } from '@/features/admin-approvals/decision-buttons'
 import { requireSession } from '@/lib/auth'
@@ -92,9 +95,9 @@ const REWARD_TONE: Record<string, 'amber' | 'lime' | 'sky' | 'red'> = {
 }
 /** Les décisions qui se prennent dans une section de la fiche, pas dans la liste. */
 const DECISION_SECTION: Record<string, string> = {
-  distribution: '#rewards',
-  rebalance: '#allocation',
-  protocol: '#allocation',
+  distribution: 'rewards',
+  rebalance: 'allocation',
+  protocol: 'allocation',
 }
 
 const DECISION_ACTION: Record<string, string> = {
@@ -108,18 +111,19 @@ const DECISION_ACTION: Record<string, string> = {
 export default async function ClientPage({
   params,
   searchParams,
-}: Readonly<{ params: Promise<{ id: string }>; searchParams: Promise<{ vault?: string }> }>) {
+}: Readonly<{ params: Promise<{ id: string }>; searchParams: Promise<{ vault?: string; tab?: string }> }>) {
   await requireSession()
   const { id } = await params
   // Le vault affiché : un client détient un vault par tranche ; `?vault=` choisit lequel.
-  const { vault: vaultParam } = await searchParams
+  const { vault: vaultParam, tab: tabParam } = await searchParams
 
-  const [book, dossier, compute, rebalancing, transactions] = await Promise.all([
+  const [book, dossier, compute, rebalancing, transactions, audit] = await Promise.all([
     loadClientBook(),
     loadClientDossier(id, vaultParam ?? null),
     loadFleetCompute(),
     loadAdminRebalancingOperations(200),
     loadTransactions(id),
+    loadAudit(500),
   ])
   const entry = book.entries.find((e) => e.clientId === id)
   if (entry === undefined) notFound()
@@ -315,16 +319,20 @@ export default async function ClientPage({
   /* Les sections présentes sur CETTE fiche, dans l'ordre de la page — avec le
      nombre de décisions qui attendent dans chacune. */
   const waitingIn = (kinds: readonly string[]) => vaultDecisions.filter((d) => kinds.includes(d.kind)).length
-  const sections = [
-    offer !== null ? { id: 'offer', label: 'Offer', badge: 0 } : null,
-    shownDecisions.length > 0 ? { id: 'decisions', label: 'Waiting on you', badge: shownDecisions.length } : null,
-    !isActive && sim !== null ? { id: 'projection', label: 'Projection', badge: 0 } : null,
+  const tabs = [
+    { id: 'overview', label: 'Overview', badge: shownDecisions.length },
+    offer !== null ? { id: 'offer', label: 'Offer & emails', badge: 0 } : null,
     isActive ? { id: 'rewards', label: 'Rewards', badge: waitingIn(['distribution']) } : null,
     isActive && vault !== null ? { id: 'allocation', label: 'Allocation', badge: waitingIn(['rebalance', 'protocol']) } : null,
+    { id: 'payments', label: 'Payments', badge: 0 },
     isActive && vault !== null ? { id: 'compute', label: 'Compute', badge: 0 } : null,
-    isActive ? { id: 'moves', label: 'Deposits & withdrawals', badge: 0 } : null,
     { id: 'kyc', label: 'KYC', badge: 0 },
+    { id: 'activity', label: 'Activity', badge: 0 },
   ].filter((x): x is { id: string; label: string; badge: number } => x !== null)
+  /* L'onglet ouvert : celui de l'URL, sinon l'offre pour un prospect, la vue d'ensemble pour un client actif. */
+  const tab = tabs.some((t) => t.id === tabParam) ? (tabParam as string) : !isActive && offer !== null ? 'offer' : 'overview'
+  const show = (id: string) => tab === id
+  const tabBase = `/admin/clients/${entry.clientId}${vaultParam ? `?vault=${encodeURIComponent(vaultParam)}` : ''}`
 
   /* « New tranche » ouvre une offre pré-remplie avec l'allocation de la tranche
      la plus récente : un nouveau versement ouvrira un NOUVEAU vault. */
@@ -383,7 +391,33 @@ export default async function ClientPage({
           )
         }
         action={
-          <span className="flex flex-wrap gap-2">
+          <span className="flex flex-wrap items-center justify-end gap-2">
+            {/* Le même client chez les trois partenaires : un clic, pas une recherche. */}
+            <span className="flex items-center gap-1">
+              {(() => {
+                const sumsub = valueOf(dossier.identity)?.sumsub ?? null
+                const fb = (offerOfVault ?? offer)?.fireblocks ?? null
+                const deal = (offerOfVault ?? offer)?.hubspotDealUrl ?? null
+                const links = [
+                  sumsub ? { href: `https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(sumsub.applicantId)}/basicInfo`, label: 'Sumsub', Logo: SumsubLogo } : null,
+                  fb ? { href: `https://console.fireblocks.io/v2/accounts/vault/${encodeURIComponent(fb.vaultAccountId)}`, label: 'Fireblocks', Logo: FireblocksLogo } : null,
+                  deal ? { href: deal, label: 'HubSpot', Logo: HubSpotLogo } : null,
+                ].filter((x): x is NonNullable<typeof x> => x !== null)
+                return links.map(({ href, label, Logo }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`Open in ${label}`}
+                    aria-label={`Open in ${label}`}
+                    className="flex size-9 items-center justify-center rounded-full text-fg ring-1 ring-[var(--ud-line)] hover:bg-white/5"
+                  >
+                    <Logo className="size-4" />
+                  </a>
+                ))
+              })()}
+            </span>
             {offer !== null && !isActive && entry.stage !== 'closed' ? (
               <Link href={`/proposal/${offer.id}`} className="ud-cta">
                 Proposal (PDF)
@@ -396,9 +430,12 @@ export default async function ClientPage({
         }
       />
 
-      {/* Le sommaire de la fiche : le sélecteur de la console, section active en blanc. */}
-      <SectionNav sections={sections} />
+      {/* Les onglets de la fiche : une vue à la fois, chacune avec son URL. */}
+      <ClientTabs tabs={tabs} active={tab} base={tabBase} />
 
+      {/* ── OVERVIEW : le parcours, la fin du blocage, ce qui attend ───── */}
+      {show('overview') ? (
+      <>
       {/* ── 1. LE PARCOURS ─────────────────────────────────────────────── */}
       <BentoGrid>
         <BentoCard span={12} bare>
@@ -459,8 +496,58 @@ export default async function ClientPage({
         </BentoGrid>
       ) : null}
 
+      {/* ── 3. CE QUI ATTEND UNE DÉCISION (sous l'offre : on lit ce qui a été
+          proposé, puis ce qui attend notre geste) ──────────────────────────────── */}
+      {shownDecisions.length > 0 ? (
+        <BentoGrid>
+          <BentoCard span={12} bare id="decisions" className="scroll-mt-24">
+            <DashCard
+              className="min-w-0"
+              eyebrow="Decisions"
+              title="Waiting on you"
+              subtitle="Each one blocks this client’s money until someone here decides"
+            >
+              <ul className="flex flex-col divide-y divide-[var(--ud-line)]">
+                {shownDecisions.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 first:pt-0 last:pb-0">
+                    {/* Sur téléphone le libellé prend la ligne ; montant, date et
+                        action passent dessous, l'action calée à droite. */}
+                    <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
+                      <p className="text-sm font-medium text-fg">
+                        {DECISION_LABEL[d.kind] ?? d.kind}
+                        {trancheLabel(d.vaultId) ? <span className="ml-2 text-xs text-fg-tertiary">{trancheLabel(d.vaultId)}</span> : null}
+                      </p>
+                      <p className="text-xs text-fg-tertiary">{d.note ?? '—'}</p>
+                    </div>
+                    <p className="text-sm font-medium tabular-nums text-fg">{approvalAmount(d)}</p>
+                    <p className="text-xs tabular-nums text-fg-tertiary">{d.requestedAt ? formatDate(d.requestedAt) : '—'}</p>
+                    {/* Une décision qui a SA section (reward, rééquilibrage, protocole)
+                        s'y prend, avec son contexte ; les autres, ici. */}
+                    <span className="ml-auto sm:ml-0">
+                      {DECISION_SECTION[d.kind] ? (
+                        <a
+                          href={`?${d.vaultId ? `vault=${encodeURIComponent(d.vaultId)}&` : ''}tab=${DECISION_SECTION[d.kind]}`}
+                          className="ud-detail-btn inline-flex items-center no-underline"
+                        >
+                          Review
+                        </a>
+                      ) : (
+                        <DecisionButtons id={d.id} action={DECISION_ACTION[d.kind] ?? 'Approve'} />
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </DashCard>
+          </BentoCard>
+        </BentoGrid>
+      ) : null}
+
+      </>
+      ) : null}
+
       {/* ── 2. L'OFFRE ─────────────────────────────────────────────────── */}
-      {offer !== null ? (
+      {show('offer') && offer !== null ? (
         <BentoGrid>
           <BentoCard id="offer" span={isActive || sim === null ? 12 : 8} bare className="scroll-mt-24 self-stretch">
             <DashCard
@@ -539,53 +626,6 @@ export default async function ClientPage({
         </BentoGrid>
       ) : null}
 
-      {/* ── 3. CE QUI ATTEND UNE DÉCISION (sous l'offre : on lit ce qui a été
-          proposé, puis ce qui attend notre geste) ──────────────────────────────── */}
-      {shownDecisions.length > 0 ? (
-        <BentoGrid>
-          <BentoCard span={12} bare id="decisions" className="scroll-mt-24">
-            <DashCard
-              className="min-w-0"
-              eyebrow="Decisions"
-              title="Waiting on you"
-              subtitle="Each one blocks this client’s money until someone here decides"
-            >
-              <ul className="flex flex-col divide-y divide-[var(--ud-line)]">
-                {shownDecisions.map((d) => (
-                  <li key={d.id} className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 first:pt-0 last:pb-0">
-                    {/* Sur téléphone le libellé prend la ligne ; montant, date et
-                        action passent dessous, l'action calée à droite. */}
-                    <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
-                      <p className="text-sm font-medium text-fg">
-                        {DECISION_LABEL[d.kind] ?? d.kind}
-                        {trancheLabel(d.vaultId) ? <span className="ml-2 text-xs text-fg-tertiary">{trancheLabel(d.vaultId)}</span> : null}
-                      </p>
-                      <p className="text-xs text-fg-tertiary">{d.note ?? '—'}</p>
-                    </div>
-                    <p className="text-sm font-medium tabular-nums text-fg">{approvalAmount(d)}</p>
-                    <p className="text-xs tabular-nums text-fg-tertiary">{d.requestedAt ? formatDate(d.requestedAt) : '—'}</p>
-                    {/* Une décision qui a SA section (reward, rééquilibrage, protocole)
-                        s'y prend, avec son contexte ; les autres, ici. */}
-                    <span className="ml-auto sm:ml-0">
-                      {DECISION_SECTION[d.kind] ? (
-                        <a
-                          href={`${d.vaultId ? `?vault=${encodeURIComponent(d.vaultId)}` : ''}${DECISION_SECTION[d.kind]}`}
-                          className="ud-detail-btn inline-flex items-center no-underline"
-                        >
-                          Review
-                        </a>
-                      ) : (
-                        <DecisionButtons id={d.id} action={DECISION_ACTION[d.kind] ?? 'Approve'} />
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </DashCard>
-          </BentoCard>
-        </BentoGrid>
-      ) : null}
-
       {/* ── 4. LE VAULT ────────────────────────────────────────────────── */}
       {isActive ? (
         <>
@@ -595,6 +635,7 @@ export default async function ClientPage({
               Les trois poches du vault, mois par mois : leur gain en dollars,
               sa conversion en bitcoin au cours du mois, et le total qui nourrit
               la réserve (« Bitcoin produced », en tête de fiche). */}
+          {show('rewards') ? (
           <BentoGrid>
             <BentoCard span={12} bare id="rewards" className="scroll-mt-24">
               <DashCard
@@ -731,9 +772,10 @@ export default async function ClientPage({
               </DashCard>
             </BentoCard>
           </BentoGrid>
+          ) : null}
 
           {/* Son allocation en points, poche par poche, et ses rééquilibrages. */}
-          {vault !== null ? (
+          {show('allocation') && vault !== null ? (
             <BentoGrid>
               <BentoCard span={12} bare id="allocation" className="scroll-mt-24">
                 <AllocationRebalancing
@@ -750,7 +792,7 @@ export default async function ClientPage({
           ) : null}
 
           {/* Sa puissance de calcul : ce que le client lit dans « Compute ». */}
-          {vault !== null ? <div id="compute" className="scroll-mt-24"><ClientCompute
+          {show('compute') && vault !== null ? <div id="compute" className="scroll-mt-24"><ClientCompute
               vaultId={vault.vaultId}
               clientName={`${entry.name}${ofTranche}`}
               fleet={vaultCompute}
@@ -759,9 +801,10 @@ export default async function ClientPage({
               months={compute.months}
             /></div> : null}
 
+          {show('payments') ? (
           <BentoGrid>
             <BentoCard id="moves" span={12} bare className="scroll-mt-24">
-              <DashCard className="min-w-0" eyebrow="Reserve" title={`Deposits & withdrawals${ofTranche}`} subtitle="What entered and left the reserve on-chain — the deposit converted at entry, each bitcoin withdrawal. Monthly rewards are above">
+              <DashCard className="min-w-0" eyebrow="Reserve" title={`Deposits & withdrawals${ofTranche}`} subtitle="What entered and left the reserve on-chain — the deposit converted at entry, each bitcoin withdrawal. Monthly rewards are in Rewards">
                 {cashMoves.length === 0 ? (
                   <p className="text-sm text-fg-tertiary">No movement recorded.</p>
                 ) : (
@@ -806,6 +849,7 @@ export default async function ClientPage({
               </DashCard>
             </BentoCard>
           </BentoGrid>
+          ) : null}
         </>
       ) : null}
 
@@ -813,7 +857,7 @@ export default async function ClientPage({
           La console décide ; Fireblocks exécute et signe. Chaque geste qui
           déplace de l'argent pour ce client a sa ligne ici, avec le statut
           de Fireblocks. */}
-      {transactions === null || transactions.length > 0 ? (
+      {show('payments') && (transactions === null || transactions.length > 0 || !isActive) ? (
         <BentoGrid>
           <BentoCard id="transactions" span={12} bare className="scroll-mt-24">
             <DashCard
@@ -829,6 +873,7 @@ export default async function ClientPage({
       ) : null}
 
       {/* ── 5. QUI EST-IL ──────────────────────────────────────────────── */}
+      {show('kyc') ? (
       <BentoGrid>
         <BentoCard id="kyc" span={12} bare className="scroll-mt-24">
           <DashCard className="min-w-0" tone="accent" eyebrow="Client" title="Qualification and KYC" subtitle="What the client answered, and where Sumsub stands on their KYC">
@@ -873,6 +918,30 @@ export default async function ClientPage({
           </DashCard>
         </BentoCard>
       </BentoGrid>
+      ) : null}
+
+      {/* ── ACTIVITY : le journal d'audit de CE client ─────────────────── */}
+      {show('activity') ? (
+        <DashCard
+          className="min-w-0"
+          eyebrow="Audit"
+          title="Activity"
+          subtitle="Everything that happened for this client — who, what, when"
+          action={<PanelHeaderLink href="/admin/settings/audit">Full audit log</PanelHeaderLink>}
+        >
+          <AuditList
+            entries={
+              audit === null
+                ? null
+                : audit.filter((e) => {
+                    const hay = `${e.actor} ${e.target} ${e.detail ?? ''}`.toLowerCase()
+                    const refs = [entry.name, ...(valueOf(dossier.offers) ?? []).map((o) => o.reference)].filter(Boolean)
+                    return refs.some((r) => hay.includes(String(r).toLowerCase()))
+                  })
+            }
+          />
+        </DashCard>
+      ) : null}
 
       {!book.complete ? (
         <Callout tone="warning" title="Part of this file could not be read">

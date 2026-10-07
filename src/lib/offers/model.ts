@@ -219,6 +219,8 @@ export type Offer = Readonly<{
    * passe ensuite par Fireblocks.
    */
   fireblocks?: Readonly<{ vaultAccountId: string; asset: string; network: string; depositAddress: string }> | null
+  /** Le deal HubSpot de l'offre, quand le CRM est branché. */
+  hubspotDealUrl?: string | null
   /** Les courriels du parcours déjà envoyés (Gmail) et consignés dans HubSpot. */
   sentEmails?: readonly SentEmail[]
   /** Le vault ouvert au terme du parcours, quand il existe. */
