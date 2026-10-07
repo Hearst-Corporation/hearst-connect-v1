@@ -112,7 +112,7 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
   const edited = draft.subject !== email.subject || draft.body !== email.body
 
   return (
-    <details open={email.current} className="group rounded-lg bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]">
+    <details className="group rounded-lg bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hearst-green)] [&::-webkit-details-marker]:hidden">
         <span className="text-[var(--hearst-green)] transition-transform group-open:rotate-90" aria-hidden="true">
           ▸
