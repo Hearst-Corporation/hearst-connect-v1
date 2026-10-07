@@ -876,7 +876,7 @@ export default async function ClientPage({
       {show('kyc') ? (
       <BentoGrid>
         <BentoCard id="kyc" span={12} bare className="scroll-mt-24">
-          <DashCard className="min-w-0" tone="accent" eyebrow="Client" title="Qualification and KYC" subtitle="What the client answered, and where Sumsub stands on their KYC">
+          <DashCard className="min-w-0" eyebrow="Client" title="Qualification and KYC" subtitle="What the client answered, and where Sumsub stands on their KYC">
             <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 ['KYC (Sumsub)', entry.kycStatus === null ? 'Not started' : kycStatusLabel(entry.kycStatus)],
