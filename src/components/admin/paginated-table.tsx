@@ -51,28 +51,69 @@ function downloadCsv(x: TableExport) {
 const esc = (v: string | number | null) =>
   v === null ? '' : String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-/** PDF : une page imprimable, sobre, que le navigateur enregistre en PDF. */
+/** Les @font-face de la page : le PDF reprend FK Grotesk, la fonte de l'app. */
+function fontFaces(): string {
+  const out: string[] = []
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      for (const rule of Array.from(sheet.cssRules)) if (rule instanceof CSSFontFaceRule) out.push(rule.cssText)
+    } catch {
+      // Feuille d'une autre origine : illisible, on s'en passe.
+    }
+  }
+  return out.join('\n')
+}
+
+/**
+ * PDF : une page imprimable aux couleurs de Hearst, que le navigateur
+ * enregistre en PDF. Bandeau sombre et logo Hearst Connect en tête, en-têtes de
+ * colonnes en vert de marque, FK Grotesk, pied de page confidentiel.
+ */
 function printPdf(x: TableExport) {
   const w = window.open('', '_blank')
   if (w === null) return
   const generated = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(x.filename)}</title>
+  const family = getComputedStyle(document.body).fontFamily
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"><title>${esc(x.filename)}</title>
 <style>
-  @page { size: A4 landscape; margin: 14mm; }
-  body { font: 11px/1.4 -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #111; }
-  h1 { font-size: 16px; margin: 0 0 2px; }
-  p { margin: 0 0 14px; color: #666; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: #555; background: #f1f1ee; padding: 7px 8px; }
-  td { padding: 6px 8px; border-bottom: 1px solid #e5e5e0; font-variant-numeric: tabular-nums; }
+  ${fontFaces()}
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font: 10.5px/1.45 ${family}, -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #121512; }
+  .band { display: flex; align-items: center; justify-content: space-between; padding: 18px 14mm; background: #0d100d; }
+  .band img { height: 26px; }
+  .band .meta { text-align: right; color: #9aa39a; font-size: 9px; letter-spacing: .04em; }
+  .band .meta b { display: block; color: #fff; font-size: 10px; font-weight: 500; letter-spacing: 0; }
+  .rule { height: 3px; background: #a7fb90; }
+  main { padding: 10mm 14mm 18mm; }
+  h1 { margin: 0 0 2px; font-size: 20px; font-weight: 500; letter-spacing: -.01em; }
+  .sub { margin: 0 0 16px; color: #6b736b; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  th { text-align: left; font-size: 8.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: #a7fb90; background: #0d100d; padding: 8px 10px; }
+  th:first-child { border-radius: 6px 0 0 6px; }
+  th:last-child { border-radius: 0 6px 6px 0; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e6eae4; font-variant-numeric: tabular-nums; }
+  tbody tr:nth-child(even) td { background: #f5f8f3; }
+  tr { break-inside: avoid; }
+  thead { display: table-header-group; }
+  footer { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: 8px 14mm; border-top: 1px solid #e6eae4; color: #8a928a; font-size: 8.5px; background: #fff; }
+  footer span:first-child::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #a7fb90; }
 </style></head><body>
-<h1>${esc(x.title)}</h1><p>Hearst Connect · ${x.data.length} rows · generated ${esc(generated)}</p>
+<div class="band"><img src="/brand/hearst-connect.svg" alt="Hearst Connect"><div class="meta"><b>${esc(x.title)}</b>Generated ${esc(generated)}</div></div>
+<div class="rule"></div>
+<main>
+<h1>${esc(x.title)}</h1><p class="sub">${x.data.length} rows · Hearst Connect</p>
 <table><thead><tr>${x.columns.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead>
 <tbody>${x.data.map((r) => `<tr>${r.map((v) => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+</main>
+<footer><span>Hearst Connect · Confidential</span><span>hearstcorporation.io</span></footer>
 </body></html>`)
   w.document.close()
   w.focus()
-  setTimeout(() => w.print(), 250)
+  // Le logo et la fonte doivent être chargés avant l'impression.
+  const go = () => setTimeout(() => w.print(), 150)
+  if (w.document.fonts?.ready) void w.document.fonts.ready.then(() => (w.document.readyState === 'complete' ? go() : w.addEventListener('load', go)))
+  else setTimeout(() => w.print(), 600)
 }
 
 /** Le bouton SECONDAIRE de la console : gris, contour fin. Le vert reste aux actions. */

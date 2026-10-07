@@ -444,7 +444,13 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               value={formatBtc(vault.availableBtc)}
               aside={`≈ ${usd(vault.availableBtc * spotUsd)}`}
               signal={sig}
-              footnote={vault.pendingWithdrawalBtc > 0 ? `${formatBtc(vault.pendingWithdrawalBtc)} being withdrawn` : 'ready now'}
+              footnote={
+                released
+                  ? 'returned with the reserve'
+                  : vault.pendingWithdrawalBtc > 0
+                    ? `${formatBtc(vault.pendingWithdrawalBtc)} being withdrawn`
+                    : 'ready now'
+              }
             />
             <StatTile
               icon={ArrowUpTrayIcon}

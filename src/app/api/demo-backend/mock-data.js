@@ -3051,7 +3051,8 @@ function vaultEconomy(v) {
     withdrawnUsdAtPayout: done.reduce((t, w) => t + w.usd, 0),
     pendingSats,
     accruedSats,
-    availableSats: Math.max(0, accruedSats - pendingSats),
+    // Un vault restitué a tout rendu avec sa réserve : plus rien à retirer.
+    availableSats: isReleased(v) ? 0 : Math.max(0, accruedSats - pendingSats),
     entryRate: firstPrice,
     capitalSats,
     // LA réserve : le versement converti, plus les rewards validés, moins ce qui est sorti.
