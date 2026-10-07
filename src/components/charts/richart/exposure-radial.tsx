@@ -99,7 +99,7 @@ export function HearstExposureRadial({
   expanded?: boolean
   /** Ce que dit le centre du cadran, à la place de la « worst drift » : pour
    *  un client, un statut en mots (« On target ») se lit mieux qu'un écart. */
-  center?: { readonly value: string; readonly label: string; readonly ok: boolean } | null
+  center?: { readonly value: string; readonly label: string; readonly tag: string; readonly ok: boolean } | null
 }>) {
   const rows: Row[] = items.map((p, index) => ({
     ...p,
@@ -219,8 +219,15 @@ export function HearstExposureRadial({
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             {center !== null ? (
               <>
-                <span className={`text-lg font-semibold ${center.ok ? 'text-accent-400' : 'text-fg'}`}>{center.value}</span>
+                <span className="text-2xl font-semibold tabular-nums text-accent-400">{center.value}</span>
                 <span className="text-[11px] text-fg-tertiary">{center.label}</span>
+                <span
+                  className={`mt-2 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ${
+                    center.ok ? 'text-accent-400 ring-accent-400/30' : 'text-fg-secondary ring-white/15'
+                  }`}
+                >
+                  {center.tag}
+                </span>
               </>
             ) : worst !== null ? (
               <>

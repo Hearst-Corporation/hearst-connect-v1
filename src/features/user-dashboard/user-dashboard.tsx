@@ -511,9 +511,15 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                     center={(() => {
                       const band = vault.allocation.bandBps / 100
                       const ok = exposure.every((e) => e.actualPct === null || Math.abs(e.actualPct - e.targetPct) <= band)
-                      return ok
-                        ? { value: 'On target', label: `all within ±${band} pt`, ok }
-                        : { value: 'Rebalancing', label: `beyond ±${band} pt`, ok }
+                      // Le rendement des trois poches ensemble, pondéré par leur poids.
+                      const weight = vault.pockets.reduce((t, p) => t + p.capitalUsd, 0)
+                      const blended = weight > 0 ? vault.pockets.reduce((t, p) => t + p.apyPct * p.capitalUsd, 0) / weight : null
+                      return {
+                        value: blended === null ? '—' : `${blended.toFixed(1)} %`,
+                        label: 'blended yield',
+                        tag: ok ? 'On target' : 'Rebalancing',
+                        ok,
+                      }
                     })()}
                   />
                 ) : null}
