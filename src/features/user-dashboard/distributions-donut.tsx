@@ -18,7 +18,7 @@ import type { Distribution } from './load'
 
 const DONUT_PX = 200
 
-const STATUS_ORDER = ['Paid', 'Approved', 'Pending'] as const
+const STATUS_ORDER = ['Added', 'Approved', 'Pending'] as const
 
 export function DistributionsDonut({
   distributions,
@@ -32,7 +32,7 @@ export function DistributionsDonut({
         <BanknotesIcon className="size-4" aria-hidden="true" />
         Distributions
       </h2>
-      <span>Paid out, approved and pending</span>
+      <span>Added to your reserve, approved and pending</span>
     </div>
   )
 
@@ -62,7 +62,7 @@ export function DistributionsDonut({
   let paidBtc = 0
   for (const d of rows) {
     const label =
-      d.status === 'distributed' ? 'Paid' : d.status === 'approved' ? 'Approved' : 'Pending'
+      d.status === 'distributed' ? 'Added' : d.status === 'approved' ? 'Approved' : 'Pending'
     buckets.set(label, (buckets.get(label) ?? 0) + (d.btcAmount ?? 0))
     if (d.status === 'distributed') paidBtc += d.btcAmount ?? 0
   }
