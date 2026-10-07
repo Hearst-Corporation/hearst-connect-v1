@@ -23,19 +23,21 @@ function hrefOf(d: PortalDocument): string {
 /** Une tuile de document : ce qu'il est, pour quoi, et l'ouvrir. */
 function DocTile({ doc, sub }: Readonly<{ doc: PortalDocument; sub: string }>) {
   return (
+    // Aplat vert, encre sombre : les deux documents qu'on cherche ressortent
+    // du reste de la page, comme la tuile mise en avant de My Vault.
     <Link
       href={hrefOf(doc)}
-      className="group flex items-center gap-4 rounded-[var(--ud-radius)] bg-white/[0.03] p-5 no-underline ring-1 ring-[var(--ud-line)] transition-colors hover:bg-white/[0.06]"
+      className="group flex items-center gap-4 rounded-[var(--ud-radius)] bg-[var(--hearst-green)] p-5 no-underline transition hover:brightness-105"
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--hearst-green)]/10 text-[var(--hearst-green)]">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--hearst-green-ink)]/10 text-[var(--hearst-green-ink)]">
         <DocumentTextIcon className="size-5" aria-hidden="true" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-sm font-medium text-fg">{doc.title}</span>
-        <span className="truncate text-xs text-fg-tertiary">{sub}</span>
+        <span className="truncate text-sm font-medium text-[var(--hearst-green-ink)]">{doc.title}</span>
+        <span className="truncate text-xs text-[var(--hearst-green-ink)]/70">{sub}</span>
       </span>
       <ChevronRightIcon
-        className="size-4 shrink-0 text-[var(--hearst-green)] opacity-60 transition group-hover:translate-x-0.5 group-hover:opacity-100"
+        className="size-4 shrink-0 text-[var(--hearst-green-ink)] opacity-70 transition group-hover:translate-x-0.5 group-hover:opacity-100"
         aria-hidden="true"
       />
     </Link>
