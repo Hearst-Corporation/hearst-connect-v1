@@ -61,7 +61,11 @@ export function ClientTabs({
           >
             {t.label}
             {t.badge > 0 ? (
-              <span className="ml-1.5 rounded-full bg-amber-300/20 px-1.5 text-[10px] font-semibold text-amber-300 tabular-nums">
+              <span
+                className={`ml-1.5 rounded-full px-1.5 text-[10px] font-semibold tabular-nums ${
+                  active === t.id ? 'bg-[#1a1a1a] text-amber-300' : 'bg-amber-300/20 text-amber-300'
+                }`}
+              >
                 {t.badge}
               </span>
             ) : null}

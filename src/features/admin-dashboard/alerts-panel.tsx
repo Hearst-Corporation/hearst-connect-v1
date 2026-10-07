@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { AlertsList, type Alert } from './alerts-list'
 import { isVaultDrifting, driftThresholdOf } from '@/lib/admin-dashboard/contracts'
 import { loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import { formatDate } from '@/lib/format'
@@ -12,9 +12,6 @@ import { isAvailable } from '@/lib/vaults/model'
  * du gardien. Chaque alerte mène à l'écran où l'on agit.
  */
 
-type Alert = Readonly<{ tone: 'red' | 'amber' | 'sky'; title: string; detail: string; href: string }>
-
-const DOT: Record<Alert['tone'], string> = { red: 'bg-red-400', amber: 'bg-amber-300', sky: 'bg-sky-300' }
 const DAY = 86_400_000
 
 export async function AlertsPanel() {
@@ -33,10 +30,15 @@ export async function AlertsPanel() {
     alerts.push({ tone: 'amber', title: 'Integrations could not be read', detail: 'Their health is unknown', href: '/admin/settings/integrations' })
   }
   if (isAvailable(vaults)) {
+    /* Un client à plusieurs tranches : on dit laquelle, sinon « ZAND Bank » apparaît deux fois sans qu'on sache pourquoi. */
+    const count = new Map<string, number>()
+    for (const v of vaults.value) count.set(v.clientId, (count.get(v.clientId) ?? 0) + 1)
+    const nameOf = (v: (typeof vaults.value)[number]) =>
+      (count.get(v.clientId) ?? 0) > 1 ? `${v.clientLabel} · Tranche ${v.tranche ?? 1}` : v.clientLabel
     for (const v of vaults.value.filter((x) => x.status.toUpperCase() === 'ACTIVE' && isVaultDrifting(x))) {
       alerts.push({
         tone: 'amber',
-        title: `${v.clientLabel} out of band`,
+        title: `${nameOf(v)} out of band`,
         detail: `${((v.worstDriftBps ?? 0) / 100).toFixed(2)} pt vs ±${driftThresholdOf(v) / 100} pt`,
         href: `/admin/clients/${v.clientId}?vault=${encodeURIComponent(v.vaultId)}&tab=allocation`,
       })
@@ -46,7 +48,7 @@ export async function AlertsPanel() {
       const ended = Date.parse(v.lockupEndAt as string) <= Date.now()
       alerts.push({
         tone: ended ? 'amber' : 'sky',
-        title: `${v.clientLabel} — lockup ${ended ? 'ended' : 'ends soon'}`,
+        title: `${nameOf(v)} — lockup ${ended ? 'ended' : 'ends soon'}`,
         detail: `${formatDate(v.lockupEndAt)} · release or renew`,
         href: `/admin/clients/${v.clientId}?vault=${encodeURIComponent(v.vaultId)}`,
       })
@@ -61,23 +63,5 @@ export async function AlertsPanel() {
     return <p className="text-sm text-fg-tertiary">All clear — every vault within its band, every integration answering.</p>
   }
   const order = { red: 0, amber: 1, sky: 2 }
-  return (
-    <ul className="flex flex-col divide-y divide-[var(--ud-line)]">
-      {[...alerts]
-        .sort((a, b) => order[a.tone] - order[b.tone])
-        .slice(0, 8)
-        .map((a, i) => (
-          <li key={i}>
-            <Link href={a.href} className="group flex items-start gap-3 py-2.5 no-underline">
-              <span className={`mt-1.5 size-2 shrink-0 rounded-full ${DOT[a.tone]}`} aria-hidden="true" />
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm text-fg group-hover:underline">{a.title}</span>
-                <span className="truncate text-xs text-fg-tertiary">{a.detail}</span>
-              </span>
-              <span className="text-sm text-fg-tertiary">→</span>
-            </Link>
-          </li>
-        ))}
-    </ul>
-  )
+  return <AlertsList alerts={[...alerts].sort((a, b) => order[a.tone] - order[b.tone])} />
 }

@@ -4,7 +4,6 @@ import { PaginatedTable } from '@/components/admin/paginated-table'
 import { SegSelect } from '@/components/admin/seg-select'
 import { Badge } from '@/components/catalyst/badge'
 import { Input } from '@/components/catalyst/input'
-import { Link } from '@/components/catalyst/link'
 import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
 import { tableCol } from '@/components/compositions'
 import { btcFromSats } from '@/lib/admin-dashboard/amounts'
@@ -154,11 +153,11 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
             </TableRow>
           }
           rows={filtered.map((r) => (
-              <TableRow key={r.clientId}>
+              /* Toute la ligne ouvre la fiche (survol, curseur, ⌘-clic, clavier) :
+                 le nom n'a plus besoin d'être souligné pour se lire comme un lien. */
+              <TableRow key={r.clientId} href={r.href} title={`Open ${r.name}`} className="group cursor-pointer transition-colors hover:bg-white/[0.035]">
                 <TableCell className={tableCol.primary}>
-                  <Link href={r.href} className="block truncate font-medium text-fg hover:underline">
-                    {r.name}
-                  </Link>
+                  <span className="block truncate font-medium text-fg">{r.name}</span>
                   <div className="text-xs text-fg-tertiary">
                     {r.kind ?? 'Kind not recorded'}
                     {/* Qui suit ce client : la personne à qui demander. */}
@@ -204,7 +203,7 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
                 </TableCell>
                 <TableCell>
                   {r.nextAction !== null ? (
-                    <span className="flex items-center gap-2 text-sm">
+                    <span className="flex items-center gap-2 pr-6 text-sm">
                       <span
                         className={`size-2 shrink-0 rounded-full ${r.onUs ? 'bg-[var(--hearst-green)]' : 'bg-[var(--ud-fg-3)]'}`}
                         aria-hidden="true"
@@ -214,6 +213,13 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
                   ) : (
                     <span className="text-fg-tertiary">—</span>
                   )}
+                  {/* La flèche n'apparaît qu'au survol : elle dit « ça s'ouvre » sans charger la ligne. */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-fg-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    →
+                  </span>
                 </TableCell>
               </TableRow>
             ))}

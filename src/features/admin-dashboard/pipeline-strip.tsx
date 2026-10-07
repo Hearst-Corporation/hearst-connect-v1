@@ -113,30 +113,46 @@ export function PipelineStrip({
         })}
       </div>
 
-      {/* Les offres qui attendent un geste, nommées, avec leur montant et le
-          geste attendu. Un compteur seul oblige à ouvrir un autre écran pour
-          savoir de qui il s'agit. */}
-      {pipeline.needsAction.length > 0 ? (
-        <ul className="flex flex-col divide-y divide-[var(--ud-line)] border-t border-[var(--ud-line)]">
-          {pipeline.needsAction.slice(0, 4).map((offer) => (
-            <li key={offer.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1.2fr)_8rem_minmax(0,1fr)_auto]">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-fg">{offer.clientName}</p>
-                <p className="text-xs text-fg-tertiary">{OFFER_STATUS_LABEL[offer.status]}</p>
-              </div>
-              <span className="text-sm tabular-nums text-fg sm:text-right">
-                {offer.amountUsdc !== null ? usd(offer.amountUsdc) : '—'}
-              </span>
-              <span className="hidden truncate text-xs text-fg-secondary sm:block">
-                {OFFER_NEXT_STEP[offer.status]}
-              </span>
-              <Link href={`/admin/offers/${offer.id}`} className="ud-detail-btn inline-flex items-center">
-                Open
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {/* TOUTES les offres en cours, nommées : celles qui attendent un geste
+          d'abord (en clair), puis celles qui attendent le client ou un
+          partenaire (en gris). Un compteur seul oblige à ouvrir un autre écran
+          pour savoir de qui il s'agit. */}
+      {(() => {
+        const mine = new Set(pipeline.needsAction.map((o) => o.id))
+        const open = offers.value
+          .filter((o) => (PIPELINE_STATUSES as readonly string[]).includes(o.status))
+          .sort((a, b) => Number(mine.has(b.id)) - Number(mine.has(a.id)) || (b.amountUsdc ?? 0) - (a.amountUsdc ?? 0))
+          .slice(0, 6)
+        if (open.length === 0) return null
+        return (
+          <ul className="flex flex-col divide-y divide-[var(--ud-line)] border-t border-[var(--ud-line)]">
+            {open.map((offer) => {
+              const onUs = mine.has(offer.id)
+              return (
+                <li key={offer.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-1 py-3 sm:grid-cols-[minmax(0,1.2fr)_8rem_minmax(0,1fr)_auto]">
+                  <div className="min-w-0">
+                    <p className={`truncate text-sm font-medium ${onUs ? 'text-fg' : 'text-fg-secondary'}`}>{offer.clientName}</p>
+                    <p className="text-xs text-fg-tertiary">{OFFER_STATUS_LABEL[offer.status]}</p>
+                  </div>
+                  <span className={`text-sm tabular-nums sm:text-right ${onUs ? 'text-fg' : 'text-fg-secondary'}`}>
+                    {offer.amountUsdc !== null ? usd(offer.amountUsdc) : '—'}
+                  </span>
+                  <span className={`hidden items-center gap-2 truncate text-xs sm:flex ${onUs ? 'text-fg-secondary' : 'text-fg-tertiary'}`}>
+                    <span className={`size-1.5 shrink-0 rounded-full ${onUs ? 'bg-[var(--hearst-green)]' : 'bg-[var(--ud-fg-3)]'}`} aria-hidden="true" />
+                    {onUs ? OFFER_NEXT_STEP[offer.status] : offer.status === 'sent' ? 'Waiting on the client’s answer' : 'Waiting on the client or a partner'}
+                  </span>
+                  <Link
+                    href={offer.clientId ? `/admin/clients/${offer.clientId}?tab=offer` : `/admin/offers/${offer.id}`}
+                    className={onUs ? 'ud-detail-btn inline-flex items-center' : 'inline-flex h-7 items-center rounded-full px-3 text-xs text-fg-secondary ring-1 ring-[var(--ud-line)] hover:text-fg'}
+                  >
+                    Open
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )
+      })()}
     </div>
   )
 }

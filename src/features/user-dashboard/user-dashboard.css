@@ -1712,9 +1712,22 @@
   }
 }
 
+/* Téléphone : deux tuiles par ligne plutôt qu'une — quatre chiffres tiennent
+   dans un demi-écran au lieu d'un écran entier. Chiffres et marges resserrés. */
 @media (max-width: 640px) {
   .ud-root .kpi-band {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(min(var(--kpi-cols, 4), 2), minmax(0, 1fr));
+  }
+  .ud-root .kpi-band > .stat-tile {
+    padding: 16px 14px;
+    gap: 8px;
+  }
+  .ud-root .kpi-band .stat-value,
+  .ud-root .kpi-band > .stat-tile:first-child .stat-value {
+    font-size: 22px;
+  }
+  .ud-root .kpi-band .stat-foot .stat-footnote {
+    font-size: 11px;
   }
 }
 
@@ -5543,4 +5556,37 @@
   .ud-admin .rail {
     display: none;
   }
+}
+
+/* ── TABLEAUX : DES COLONNES QUI NE BOUGENT PAS ─────────────────────────────
+   En mise en page automatique, la largeur d'une colonne suit son contenu :
+   changer de filtre (All / Active…), d'unité (BTC / USDC) ou de mois faisait
+   glisser toutes les colonnes. En mise en page FIXE, les largeurs viennent de
+   l'en-tête (ou se partagent également) : seul le contenu change.
+   Les tableaux pour lecteur d'écran (données des graphiques) restent libres. */
+.ud-root table:not(.sr-only table) {
+  table-layout: fixed;
+  width: 100%;
+  /* Le conteneur Catalyst interdit le retour à la ligne ; en colonnes fixes un
+     texte long doit pouvoir passer à la ligne. Les cellules qui le refusent
+     (montants, statuts : `whitespace-nowrap`) gardent leur classe. */
+  white-space: normal;
+}
+.ud-root table:not(.sr-only table) td,
+.ud-root table:not(.sr-only table) th {
+  overflow-wrap: anywhere;
+}
+
+/* ── LISTES DÉROULANTES : UNE SEULE FLÈCHE, PARTOUT ─────────────────────────
+   La flèche native collait au bord droit et changeait d'un navigateur à
+   l'autre. Une flèche dessinée, 14 px, à 14 px du bord, et la place pour le
+   texte qui s'arrête avant elle. */
+.ud-root select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a3a3a3' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  background-size: 14px 14px;
+  padding-right: 2.5rem;
 }

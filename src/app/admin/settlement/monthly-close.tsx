@@ -240,6 +240,7 @@ export function MonthlyClose({
             </TableCell>
           </TableRow>
         ))}
+        note="Split key = the capital each vault holds in its Mining pocket (its capital × its own mining share), over the mining capital of all vaults. One vault per deposit tranche: two tranches of the same client are split separately."
         exportData={{
           filename: `hearst-settlement-${m.month}`,
           title: `Settlement — ${monthLabel(m.month)}`,
@@ -274,11 +275,6 @@ export function MonthlyClose({
         }}
       />
 
-      <p className="text-[11px] leading-relaxed text-fg-tertiary">
-        Split key = the capital each vault holds in its Mining pocket (its capital × its own mining share), over the
-        mining capital of all vaults. One vault per deposit tranche: two tranches of the same client are split
-        separately.
-      </p>
     </div>
   )
 }

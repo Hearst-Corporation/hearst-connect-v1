@@ -148,7 +148,10 @@ export function PaginatedTable({
   noun = 'rows',
   className,
   exportData,
+  note,
 }: Readonly<{
+  /** Une note de lecture, au pied, à gauche — centrée sur la ligne des boutons. */
+  note?: ReactNode
   /** La `<TableRow>` d'en-tête. */
   head: ReactNode
   /** Une `<TableRow>` par ligne, dans l'ordre d'affichage. */
@@ -188,6 +191,7 @@ export function PaginatedTable({
           }}
           pager={expanded && pages > 1 ? <Pager page={page} pages={pages} onPage={(p) => setPage(Math.min(pages - 1, Math.max(0, p)))} /> : null}
           exportData={exportData}
+          note={note}
         />
       ) : null}
     </div>
@@ -204,7 +208,9 @@ export function TableFooter({
   onToggle,
   pager,
   exportData,
+  note,
 }: Readonly<{
+  note?: ReactNode
   from?: number
   to?: number
   total: number
@@ -217,7 +223,10 @@ export function TableFooter({
 }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <span>{pager}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-4">
+        {pager}
+        {note ? <span className="max-w-3xl text-[11px] leading-relaxed text-fg-tertiary">{note}</span> : null}
+      </span>
       {/* À droite même quand la ligne se replie (téléphone) : `ml-auto`. */}
       <span className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {exportData ? <ExportButtons data={exportData} /> : null}

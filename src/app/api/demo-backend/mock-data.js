@@ -2547,6 +2547,17 @@ function allOffers() {
   // Chaque offre porte ses courriels envoyés (Gmail) et consignés (HubSpot).
   const withEmails = (o) => ({
     ...o,
+    // Toute offre acceptée (ou au-delà) a son compte Fireblocks — les offres du socle aussi.
+    fireblocks:
+      o.fireblocks ??
+      (['accepted', 'funding', 'funded', 'active'].includes(o.status)
+        ? {
+            vaultAccountId: String(1000 + (parseInt(createHash('sha256').update(`va:${o.id}`).digest('hex').slice(0, 6), 16) % 9000)),
+            asset: 'USDC',
+            network: 'Ethereum',
+            depositAddress: '0x' + createHash('sha256').update(`deposit:${o.id}`).digest('hex').slice(0, 40),
+          }
+        : null),
     sentEmails: (WORLD.emails ?? []).filter((e) => e.offerId === o.id),
     // Le deal HubSpot de l'offre : créé avec elle, il avance avec ses étapes.
     hubspotDealUrl: `https://app.hubspot.com/contacts/48210735/record/0-3/${parseInt(createHash('sha256').update(`deal:${o.id}`).digest('hex').slice(0, 8), 16)}`,

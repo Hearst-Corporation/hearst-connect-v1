@@ -78,25 +78,27 @@ export function CloseActions({
   ]
 
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--ud-radius-sm)] p-4 ring-1 ring-[var(--ud-line)]">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <ol className="flex flex-wrap items-center gap-x-6 gap-y-2">
+    <div className="flex flex-col overflow-hidden rounded-[var(--ud-radius-sm)] ring-1 ring-[var(--ud-line)]">
+      {/* Quatre étapes égales, séparées d'un trait : la clôture se lit comme une frise. */}
+      <ol className="grid grid-cols-2 gap-px bg-[var(--ud-line)] lg:grid-cols-4">
           {steps.map((s, i) => (
-            <li key={s.label} className="flex items-center gap-2.5">
+            <li key={s.label} className="flex items-center gap-3 bg-[var(--ud-card)] px-5 py-4">
               <span
-                className={`flex size-6 items-center justify-center rounded-full text-[11px] font-semibold ${
+                className={`flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
                   s.done ? 'bg-[var(--hearst-green)] text-[var(--hearst-green-ink)]' : 'text-fg-tertiary ring-1 ring-[var(--ud-line)]'
                 }`}
               >
                 {s.done ? '✓' : i + 1}
               </span>
-              <span className="flex flex-col">
+              <span className="flex min-w-0 flex-col">
                 <span className={`text-sm ${s.done ? 'text-fg-secondary' : 'font-medium text-fg'}`}>{s.label}</span>
                 <span className="text-[11px] text-fg-tertiary">{s.detail}</span>
               </span>
             </li>
           ))}
-        </ol>
+      </ol>
+      {rewardIds.length > 0 || dues.length > 0 || progress || error ? (
+      <div className="flex flex-wrap items-center gap-3 border-t border-[var(--ud-line)] px-5 py-3">
         <div className="flex flex-wrap gap-2">
           {rewardIds.length > 0 ? (
             <button type="button" disabled={running} onClick={approveAll} className="ud-cta inline-flex h-9 items-center disabled:opacity-50">
@@ -114,9 +116,10 @@ export function CloseActions({
             </button>
           ) : null}
         </div>
+        {progress ? <p className="text-xs text-fg-tertiary">{progress}</p> : null}
+        {error ? <p className="text-xs text-amber-300">{error}</p> : null}
       </div>
-      {progress ? <p className="text-xs text-fg-tertiary">{progress}</p> : null}
-      {error ? <p className="text-xs text-amber-300">{error}</p> : null}
+      ) : null}
     </div>
   )
 }

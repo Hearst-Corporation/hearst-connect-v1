@@ -319,13 +319,17 @@ export default async function ClientPage({
   /* Les sections présentes sur CETTE fiche, dans l'ordre de la page — avec le
      nombre de décisions qui attendent dans chacune. */
   const waitingIn = (kinds: readonly string[]) => vaultDecisions.filter((d) => kinds.includes(d.kind)).length
+  /* L'électricité du dernier mois clos de CE vault : due tant qu'elle n'est pas payée. */
+  const latestClose = [...compute.months].sort((x, y) => y.month.localeCompare(x.month))[0]
+  const electricityDue =
+    vault !== null && latestClose?.lines.some((l) => l.vaultId === vault.vaultId && l.electricityStatus !== 'paid') ? 1 : 0
   const tabs = [
     { id: 'overview', label: 'Overview', badge: shownDecisions.length },
     offer !== null ? { id: 'offer', label: 'Offer & emails', badge: 0 } : null,
     isActive ? { id: 'rewards', label: 'Rewards', badge: waitingIn(['distribution']) } : null,
     isActive && vault !== null ? { id: 'allocation', label: 'Allocation', badge: waitingIn(['rebalance', 'protocol']) } : null,
     { id: 'payments', label: 'Payments', badge: 0 },
-    isActive && vault !== null ? { id: 'compute', label: 'Compute', badge: 0 } : null,
+    isActive && vault !== null ? { id: 'compute', label: 'Compute', badge: electricityDue } : null,
     { id: 'kyc', label: 'KYC', badge: 0 },
     { id: 'activity', label: 'Activity', badge: 0 },
   ].filter((x): x is { id: string; label: string; badge: number } => x !== null)
@@ -398,9 +402,10 @@ export default async function ClientPage({
                 const sumsub = valueOf(dossier.identity)?.sumsub ?? null
                 const fb = (offerOfVault ?? offer)?.fireblocks ?? null
                 const deal = (offerOfVault ?? offer)?.hubspotDealUrl ?? null
+                // Fireblocks d'abord : c'est là qu'est l'argent. Puis la conformité, puis le CRM.
                 const links = [
-                  sumsub ? { href: `https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(sumsub.applicantId)}/basicInfo`, label: 'Sumsub', Logo: SumsubLogo } : null,
                   fb ? { href: `https://console.fireblocks.io/v2/accounts/vault/${encodeURIComponent(fb.vaultAccountId)}`, label: 'Fireblocks', Logo: FireblocksLogo } : null,
+                  sumsub ? { href: `https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(sumsub.applicantId)}/basicInfo`, label: 'Sumsub', Logo: SumsubLogo } : null,
                   deal ? { href: deal, label: 'HubSpot', Logo: HubSpotLogo } : null,
                 ].filter((x): x is NonNullable<typeof x> => x !== null)
                 return links.map(({ href, label, Logo }) => (
@@ -877,44 +882,72 @@ export default async function ClientPage({
       <BentoGrid>
         <BentoCard id="kyc" span={12} bare className="scroll-mt-24">
           <DashCard className="min-w-0" eyebrow="Client" title="Qualification and KYC" subtitle="What the client answered, and where Sumsub stands on their KYC">
-            <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                ['KYC (Sumsub)', entry.kycStatus === null ? 'Not started' : kycStatusLabel(entry.kycStatus)],
-                ['AML (Sumsub)', (() => {
-                  const aml = valueOf(dossier.identity)?.amlStatus ?? null
-                  return aml === null ? 'Not run' : aml === 'CLEAR' ? 'Clear' : aml === 'FLAGGED' ? 'Flagged' : aml
-                })()],
-                ['Sumsub file', (() => {
-                  const file = valueOf(dossier.identity)?.sumsub ?? null
-                  if (file === null) return 'Not opened yet'
-                  return (
-                    <a
-                      href={`https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(file.applicantId)}/basicInfo`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[var(--hearst-green)] no-underline hover:underline"
-                    >
-                      {file.levelName ?? 'Applicant'}
-                      {file.reviewedAt ? ` · reviewed ${formatDate(file.reviewedAt)}` : ''} · Open in Sumsub ↗
-                    </a>
-                  )
-                })()],
-                ['Contact', offer?.contactEmail ?? '—'],
-                ['Platform', questionnaire?.platformKind ?? entry.kind ?? '—'],
-                // Ce que le client GÈRE chez lui, déclaré au questionnaire — pas ce qu'il a versé ici.
-                ['Their own AUM (declared)', questionnaire?.assetsUnderManagement ?? '—'],
-                ['Funds today', questionnaire?.fundsIdleOrEarning ?? '—'],
-                ['Product live', questionnaire?.hasProductToday ?? '—'],
-                ['Interest', questionnaire?.productInterest ?? '—'],
-                ['First vault size', questionnaire?.firstVaultSize ?? '—'],
-                ['Timeline', questionnaire?.launchTimeline ?? '—'],
-              ].map(([k, v]) => (
-                <div key={String(k)} className="flex justify-between gap-4 border-b border-[var(--ud-line)] pb-2">
-                  <dt className="text-sm text-fg-tertiary">{k}</dt>
-                  <dd className="text-right text-sm text-fg">{v}</dd>
-                </div>
+            {/* Trois colonnes thématiques, séparées d'un trait : la conformité,
+                le contact, ce que le client a déclaré au questionnaire. */}
+            <div className="grid grid-cols-1 gap-y-6 lg:grid-cols-3 lg:divide-x lg:divide-[var(--ud-line)]">
+              {(
+                [
+                  [
+                    'Compliance',
+                    [
+                      ['KYC (Sumsub)', entry.kycStatus === null ? 'Not started' : kycStatusLabel(entry.kycStatus)],
+                      ['AML (Sumsub)', (() => {
+                        const aml = valueOf(dossier.identity)?.amlStatus ?? null
+                        return aml === null ? 'Not run' : aml === 'CLEAR' ? 'Clear' : aml === 'FLAGGED' ? 'Flagged' : aml
+                      })()],
+                      ['Sumsub file', (() => {
+                        const file = valueOf(dossier.identity)?.sumsub ?? null
+                        if (file === null) return 'Not opened yet'
+                        return (
+                          <a
+                            href={`https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(file.applicantId)}/basicInfo`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[var(--hearst-green)] no-underline hover:underline"
+                          >
+                            Open in Sumsub ↗
+                          </a>
+                        )
+                      })()],
+                      ['Level', (() => {
+                        const file = valueOf(dossier.identity)?.sumsub ?? null
+                        return file === null ? '—' : `${file.levelName ?? 'Applicant'}${file.reviewedAt ? ` · ${formatDate(file.reviewedAt)}` : ''}`
+                      })()],
+                    ],
+                  ],
+                  [
+                    'Contact',
+                    [
+                      ['Email', offer?.contactEmail ?? '—'],
+                      ['Platform', questionnaire?.platformKind ?? entry.kind ?? '—'],
+                      ['Owner', entry.owner ?? '—'],
+                      // Ce que le client GÈRE chez lui, déclaré au questionnaire — pas ce qu'il a versé ici.
+                      ['Their own AUM (declared)', questionnaire?.assetsUnderManagement ?? '—'],
+                    ],
+                  ],
+                  [
+                    'Qualification',
+                    [
+                      ['Funds today', questionnaire?.fundsIdleOrEarning ?? '—'],
+                      ['Product live', questionnaire?.hasProductToday ?? '—'],
+                      ['Interest', questionnaire?.productInterest ?? '—'],
+                      ['First vault size', questionnaire?.firstVaultSize ?? '—'],
+                      ['Timeline', questionnaire?.launchTimeline ?? '—'],
+                    ],
+                  ],
+                ] as const
+              ).map(([title, rows], ci) => (
+                <dl key={title} className={`flex flex-col ${ci > 0 ? 'lg:pl-8' : ''} ${ci < 2 ? 'lg:pr-8' : ''}`}>
+                  <p className="mb-1 text-[11px] tracking-[0.12em] text-fg-tertiary uppercase">{title}</p>
+                  {rows.map(([k, v]) => (
+                    <div key={String(k)} className="flex items-baseline justify-between gap-4 border-b border-[var(--ud-line)] py-2.5 last:border-b-0">
+                      <dt className="shrink-0 text-sm text-fg-tertiary">{k}</dt>
+                      <dd className="min-w-0 truncate text-right text-sm text-fg">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
               ))}
-            </dl>
+            </div>
           </DashCard>
         </BentoCard>
       </BentoGrid>

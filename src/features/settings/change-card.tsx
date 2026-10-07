@@ -133,7 +133,7 @@ export function ChangeCard({
                   <select
                     value={approver}
                     onChange={(e) => setApprover(e.target.value)}
-                    className="h-8 rounded-full bg-[var(--ud-inset)] px-3 text-xs text-fg ring-1 ring-[var(--ud-line)] outline-none"
+                    className="h-8 rounded-full bg-[var(--ud-inset)] pl-3 text-xs text-fg ring-1 ring-[var(--ud-line)] outline-none"
                   >
                     {eligible.map((m) => (
                       <option key={m.email} value={m.email}>

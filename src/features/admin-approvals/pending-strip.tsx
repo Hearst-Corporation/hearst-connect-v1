@@ -125,8 +125,10 @@ export function PendingStrip({
           className="grid gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] sm:grid-cols-2 lg:grid-cols-3">
         {cells.map((cell) => {
           const Icon = cell.icon
+          /* Toute la tuile s'ouvre : une demande → sa fiche, plusieurs → leur
+             groupe dans la file juste dessous (toutes, avec leurs boutons). */
           return (
-            <div key={cell.id} className={CELL}>
+            <Tile key={cell.id} href={cell.count > 0 ? detailsHref(cell.id as AdminApprovalKind) : null} count={cell.count}>
               <span className="flex items-center gap-2 text-xs text-fg-tertiary">
                 <Icon className="size-4 text-accent-400" aria-hidden="true" />
                 <span className="min-w-0 truncate">{cell.label}</span>
@@ -134,17 +136,12 @@ export function PendingStrip({
               <span className="text-2xl font-semibold tabular-nums text-fg">{cell.count}</span>
               {/* Le montant qualifie l'attente : trois demandes à 5 000 $ ne
                   pèsent pas comme une seule à 1,5 M$. */}
-              <span className="flex items-center gap-2 text-xs tabular-nums text-fg-tertiary">
-                {cell.count > 0 ? cell.amount : 'nothing pending'}
-                {/* Une seule demande : on va droit à la fiche du client, à la
-                    bonne section. Plusieurs : le groupe de la page Decisions. */}
-                <DetailsLink label={cell.label} href={detailsHref(cell.id as AdminApprovalKind)} />
-              </span>
-            </div>
+              <span className="text-xs tabular-nums text-fg-tertiary">{cell.count > 0 ? cell.amount : 'nothing pending'}</span>
+            </Tile>
           )
         })}
 
-        <div className={CELL}>
+        <Tile href={dueSoon ? lockupHref : null} count={dueSoon ?? 0}>
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">
             <ClockIcon className="size-4 text-accent-400" aria-hidden="true" />
             <span className="min-w-0 truncate">Lockups ending soon</span>
@@ -152,11 +149,10 @@ export function PendingStrip({
           <span className="text-2xl font-semibold tabular-nums text-fg">
             {dueSoon === null ? '—' : dueSoon}
           </span>
-          <span className="flex items-center gap-2 text-xs text-fg-tertiary">
+          <span className="text-xs text-fg-tertiary">
             {dueSoon === null ? 'registry unread' : `within ${DUE_SOON_MONTHS} months`}
-            <DetailsLink label="Lockups ending soon" href={lockupHref} />
           </span>
-        </div>
+        </Tile>
       </div>
     </div>
   )
@@ -174,17 +170,18 @@ const SECTION_OF: Record<AdminApprovalKind, string> = {
 }
 
 /**
- * Le bouton vert « Details » de /account (`.ud-detail-btn`), sur la ligne du
- * montant. La case entière n'est plus un lien : le bouton dit où l'on clique.
+ * Une tuile du résumé. Avec quelque chose dedans, TOUTE la tuile s'ouvre :
+ * survol, curseur, et au survol ce qu'elle ouvre (« Review 7 », « Open »).
+ * Vide, elle se lit sans inviter au clic.
  */
-function DetailsLink({ label, href = '/admin#decisions' }: Readonly<{ label: string; href?: string }>) {
+function Tile({ href, count, children }: Readonly<{ href: string | null; count: number; children: React.ReactNode }>) {
+  if (href === null) return <div className={CELL}>{children}</div>
   return (
-    <Link
-      href={href}
-      className="ud-detail-btn ml-auto inline-flex items-center"
-      aria-label={`Details — ${label}`}
-    >
-      Details
+    <Link href={href} className={`${CELL} group relative no-underline transition-colors hover:bg-white/[0.035]`}>
+      {children}
+      <span className="pointer-events-none absolute right-4 bottom-3.5 text-xs text-fg-tertiary opacity-0 transition-opacity group-hover:opacity-100">
+        {count > 1 ? `Review ${count}` : 'Open'} →
+      </span>
     </Link>
   )
 }

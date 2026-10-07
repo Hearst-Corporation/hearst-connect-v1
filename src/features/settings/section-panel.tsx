@@ -30,9 +30,10 @@ function FieldInput({ field, value, onChange }: Readonly<{ field: Field; value: 
           role="switch"
           aria-checked={Boolean(value)}
           onClick={() => onChange(!value)}
-          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${value ? 'bg-[var(--hearst-green)]' : 'bg-white/15'}`}
+          className={`relative h-6 w-11 shrink-0 rounded-full p-0 transition-colors ${value ? 'bg-[var(--hearst-green)]' : 'bg-white/15'}`}
         >
-          <span className={`absolute top-0.5 size-5 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          {/* Ancrée à gauche, la pastille glisse de 20 px : elle reste dans son rail (44 px). */}
+          <span className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow-sm transition-transform ${value ? 'translate-x-5' : 'translate-x-0'}`} />
         </button>
       )
     case 'select':
@@ -175,11 +176,17 @@ export function SectionPanel({
             <thead>
               <tr className="text-left text-[11px] tracking-[0.08em] text-fg-tertiary uppercase">
                 {section.fields.map((f) => (
-                  <th key={f.key} className={`px-3 py-2 font-medium ${f.wide ? 'min-w-[14rem]' : ''}`} title={f.help}>
+                  /* Colonnes fixes (elles ne bougent pas en passant en édition) : les
+                     champs larges prennent plus, l'interrupteur le strict nécessaire. */
+                  <th
+                    key={f.key}
+                    className={`px-3 py-2 font-medium ${f.wide ? 'w-[26%]' : f.type === 'bool' ? 'w-20' : ''}`}
+                    title={f.help}
+                  >
                     {f.label}
                   </th>
                 ))}
-                {editing && !section.fixedRows ? <th className="w-10" /> : null}
+                {!section.fixedRows ? <th className="w-10" aria-hidden="true" /> : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--ud-line)]">
@@ -190,6 +197,7 @@ export function SectionPanel({
                       {editing ? <FieldInput field={f} value={r[f.key]} onChange={(v) => setRow(i, f.key, v)} /> : formatValue(f, r[f.key])}
                     </td>
                   ))}
+                  {!section.fixedRows && !editing ? <td aria-hidden="true" /> : null}
                   {editing && !section.fixedRows ? (
                     <td className="px-2 text-right">
                       <button

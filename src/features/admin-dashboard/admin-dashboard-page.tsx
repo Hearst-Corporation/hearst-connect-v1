@@ -10,6 +10,7 @@ import {
 import { HearstPrimaryAction } from '@/components/actions'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { PendingStrip } from '@/features/admin-approvals/pending-strip'
+import { OldestWaiting } from '@/features/admin-approvals/oldest-waiting'
 import { AlertsPanel } from './alerts-panel'
 import { AuditList } from '@/features/settings/audit-list'
 import { loadAudit } from '@/lib/settings/load'
@@ -62,6 +63,8 @@ async function PendingDecisions() {
   return (
     <>
       <PendingStrip approvals={approvals} vaults={vaults} />
+      {/* Par où commencer : les demandes les plus anciennes, une ligne chacune. */}
+      <OldestWaiting approvals={approvals} />
       <DecisionsDisclosure count={valueOf(approvals)?.length ?? 0}>
         <ApprovalsQueue approvals={approvals} />
       </DecisionsDisclosure>
@@ -227,7 +230,6 @@ async function HeaderData() {
   ])
   return (
     <DashboardHeader
-      tone="neutral"
       kpis={dashboardKpis(cost, vaults)}
       /* À côté des chiffres : à qui appartient ce capital. */
       aside={
