@@ -2,7 +2,7 @@ import { DashCard } from '@/components/admin/dashboard'
 import { formatBtcValue } from '@/lib/admin-dashboard/amounts'
 import { callBackend } from '@/lib/backend/client'
 import { formatNumber } from '@/lib/format'
-import { ReportMetricsButton } from '../mining/report-metrics-button'
+import { ReportMetricsButton } from '../settlement/report-metrics-button'
 
 /**
  * La déclaration Keeper du parc : ce qui a été déclaré la dernière fois, face à

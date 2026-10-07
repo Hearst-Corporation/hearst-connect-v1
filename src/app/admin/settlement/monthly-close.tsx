@@ -232,8 +232,8 @@ export function MonthlyClose({
           </TableRow>
         ))}
         exportData={{
-          filename: `hearst-monthly-close-${m.month}`,
-          title: `Monthly close — ${monthLabel(m.month)}`,
+          filename: `hearst-settlement-${m.month}`,
+          title: `Settlement — ${monthLabel(m.month)}`,
           columns: [
             'Vault',
             'Vault id',

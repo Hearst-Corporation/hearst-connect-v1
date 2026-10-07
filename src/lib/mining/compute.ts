@@ -1,7 +1,7 @@
 import 'server-only'
 
-import type { Machine } from '@/app/admin/mining/fleet-machines'
-import type { CloseMonth } from '@/app/admin/mining/monthly-close'
+import type { Machine } from '@/app/admin/settlement/fleet-machines'
+import type { CloseMonth } from '@/app/admin/settlement/monthly-close'
 import type { BackendResolved } from '@/lib/admin-dashboard/cache'
 import { callBackend } from '@/lib/backend/client'
 import type { ComputeFleet } from '@/lib/product/readings'

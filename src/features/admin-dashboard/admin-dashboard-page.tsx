@@ -497,7 +497,7 @@ export function AdminDashboardPage() {
             eyebrow="Compute"
             title="Compute infrastructure"
             subtitle="The fleet, what is allocated to each client vault, and what is still available"
-            action={<PanelHeaderLink href="/admin/mining">Monthly close</PanelHeaderLink>}
+            action={<PanelHeaderLink href="/admin/settlement">Settlement</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
               <ComputeData />
@@ -525,7 +525,7 @@ export function AdminDashboardPage() {
             eyebrow="Reserves"
             title="Added each month, by bucket"
             subtitle="What Mining, Lending and USDC added to client reserves, converted into bitcoin"
-            action={<PanelHeaderLink href="/admin/mining">Monthly close</PanelHeaderLink>}
+            action={<PanelHeaderLink href="/admin/settlement">Settlement</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
               <BucketsByMonthData />
