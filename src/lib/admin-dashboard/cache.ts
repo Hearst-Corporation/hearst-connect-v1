@@ -136,30 +136,34 @@ export const fetchOfferSimulation = cache(
     }),
 )
 
-export const fetchClientVault = cache((id: string) =>
+/* Les lectures par client acceptent un `vaultId` : un client détient un vault
+   par tranche. Sans lui, le backend sert la première tranche. */
+const scoped = (id: string, vaultId?: string | null): Record<string, string> => (vaultId ? { id, vaultId } : { id })
+
+export const fetchClientVault = cache((id: string, vaultId?: string | null) =>
   callBackend<{ vault: BackendResolved<AdminClientVault> }>('admin-client-vault', {
-    params: { id },
+    params: scoped(id, vaultId),
   }),
 )
 
-export const fetchClientBucketYields = cache((id: string) =>
+export const fetchClientBucketYields = cache((id: string, vaultId?: string | null) =>
   callBackend<{ yields: BackendResolved<readonly AdminBucketYield[]> }>(
     'admin-client-bucket-yields',
-    { params: { id } },
+    { params: scoped(id, vaultId) },
   ),
 )
 
-export const fetchClientDistributions = cache((id: string) =>
+export const fetchClientDistributions = cache((id: string, vaultId?: string | null) =>
   callBackend<{ distributions: BackendResolved<readonly AdminClientDistribution[]> }>(
     'admin-client-distributions',
-    { params: { id } },
+    { params: scoped(id, vaultId) },
   ),
 )
 
-export const fetchClientMovements = cache((id: string) =>
+export const fetchClientMovements = cache((id: string, vaultId?: string | null) =>
   callBackend<{ movements: BackendResolved<readonly AdminClientMovement[]> }>(
     'admin-client-movements',
-    { params: { id } },
+    { params: scoped(id, vaultId) },
   ),
 )
 

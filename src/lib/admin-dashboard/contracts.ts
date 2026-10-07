@@ -189,7 +189,8 @@ export type AdminApproval = {
   readonly kind: AdminApprovalKind
   readonly clientId: string
   readonly clientLabel: string
-  readonly vaultId: string
+  /** Null pour un dépôt de nouvelle tranche : il OUVRIRA un vault, qui n'existe pas encore. */
+  readonly vaultId: string | null
   /** Un dépôt arrive en USDC. */
   readonly amountUsdc: number | null
   /** Une distribution ou un retrait part en bitcoin. */
@@ -201,13 +202,17 @@ export type AdminApproval = {
 }
 
 /**
- * Vault dédié au registre admin. UN PAR CLIENT — jamais une quote-part d'un
- * pool. L'échéance du blocage commande la relation commerciale.
+ * Vault dédié au registre admin — jamais une quote-part d'un pool. UN PAR
+ * TRANCHE : un client qui verse une deuxième fois ouvre un deuxième vault, avec
+ * son prix d'entrée, son blocage et son allocation. L'échéance du blocage
+ * commande la relation commerciale.
  */
 export type AdminVaultRecord = {
   readonly vaultId: string
   readonly clientId: string
   readonly clientLabel: string
+  /** Le rang du versement chez ce client : 1 pour son premier vault. Absent = 1. */
+  readonly tranche?: number | null
   /**
    * Typologie du client (Fund, Family office…), quand le backend la porte.
    * Absente, le vault est compté en « Not recorded » — jamais rangé d'office

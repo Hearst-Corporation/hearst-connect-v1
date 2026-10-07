@@ -36,11 +36,14 @@ function onOffersChanged(fn) {
  * l'offre de « Orbit Markets » et le vault de « Hearst Holdings » étaient le
  * même client. Un mock qui ne relie rien ne teste rien.
  *
- * `vault` : l'index du vault dédié (vaultKey), null tant qu'il n'est pas ouvert.
+ * `vault` : l'index du PREMIER vault du client (vaultKey), null tant qu'aucun
+ * n'est ouvert. `vaults` : tous ses vaults, un par tranche, du plus ancien au
+ * plus récent — un nouveau versement ouvre un nouveau vault, il ne s'ajoute
+ * jamais à un vault existant (prix d'entrée, blocage et allocation propres).
  */
 const CLIENT_BOOK = [
   { id: 'cli_1', label: 'Hearst Holdings', kyc: 'APPROVED', vault: 0, since: '2025-08-20' },
-  { id: 'cli_2', label: 'ZAND Bank', kyc: 'APPROVED', vault: 1, since: '2025-02-10' },
+  { id: 'cli_2', label: 'ZAND Bank', kyc: 'APPROVED', vault: 1, vaults: [1, 5], since: '2025-02-10' },
   { id: 'cli_3', label: 'Rain Financial', kyc: 'APPROVED', vault: 2, since: '2025-06-01' },
   { id: 'cli_4', label: 'Meridian Family Office', kyc: 'APPROVED', vault: 3, since: '2024-10-10' },
   { id: 'cli_5', label: 'Northgate Capital', kyc: 'APPROVED', vault: 4, since: '2025-12-20' },
@@ -51,21 +54,46 @@ const CLIENT_BOOK = [
   { id: 'cli_10', label: 'Kestrel Partners', kyc: 'NOT_STARTED', vault: null, since: '2026-06-15' },
 ]
 
-/** Capital du vault dédié de chaque client — le même que le registre des vaults. */
+/** Le type de chaque client — sert la répartition de l'AUM par type. */
+const CLIENT_KIND = { cli_1: 'Crypto company', cli_2: 'Crypto company', cli_3: 'Fund', cli_4: 'Family office', cli_5: 'Crypto exchange' }
+/** Les vaults d'un client, un par tranche, du plus ancien au plus récent. */
+const vaultsOf = (c) => c.vaults ?? (c.vault === null || c.vault === undefined ? [] : [c.vault])
+/** Le client qui détient un vault. */
+const ownerOf = (v) => CLIENT_BOOK.find((c) => vaultsOf(c).includes(v)) ?? null
+/** Le rang de la tranche d'un vault chez son client (1 = premier versement). */
+const trancheOf = (v) => {
+  const c = ownerOf(v)
+  return c ? vaultsOf(c).indexOf(v) + 1 : 1
+}
+/** La clé des décisions d'un vault : `cli_2` pour la première tranche (les
+ *  identifiants existants ne bougent pas), `cli_2_t2` pour la suivante. */
+const vaultTag = (v) => {
+  const t = trancheOf(v)
+  return t === 1 ? ownerOf(v).id : `${ownerOf(v).id}_t${t}`
+}
+/** Le libellé d'un vault : le client, et sa tranche quand il en a plusieurs. */
+const vaultLabel = (v) => {
+  const c = ownerOf(v)
+  if (c === null) return null
+  return vaultsOf(c).length > 1 ? `${c.label} · Tranche ${trancheOf(v)}` : c.label
+}
+/** Tous les vaults ouverts, avec leur client et leur rang de tranche. */
+const ALL_VAULTS = () => CLIENT_BOOK.flatMap((c) => vaultsOf(c).map((v, i) => ({ v, c, tranche: i + 1 })))
 /** Les décisions de l'admin, `approvalId → approved|declined` — en mémoire, le temps du mock. */
 const DECISIONS = new Map()
 /** Le protocole de chaque poche, par vault — modifié quand un changement est approuvé. */
-const VAULT_PROTOCOLS = [0, 1, 2, 3, 4].map(() => ({
+const VAULT_PROTOCOLS = [0, 1, 2, 3, 4, 5].map(() => ({
   mining: { name: 'Hearst fleet', apy: 14.2 },
   lending: { name: 'Aave (cbBTC)', apy: 8.4 },
   stable: { name: 'Morpho (USDC)', apy: 10.1 },
 }))
 /** Les électricités déjà payées, `vaultId:YYYY-MM` — en mémoire, le temps du mock. */
 const PAID_ELECTRICITY = new Set()
-const VAULT_PRINCIPAL = [420_000, 12_000_000, 3_400_000, 850_000, 5_600_000]
+// L'index 5 est la DEUXIÈME tranche de ZAND Bank : un nouveau versement, donc un nouveau vault.
+const VAULT_PRINCIPAL = [420_000, 12_000_000, 3_400_000, 850_000, 5_600_000, 2_000_000]
 /** Date d'ouverture de chaque vault — la même que le registre. */
 // Des ouvertures étalées : un book qui grandit client après client, pas un an à vide.
-const VAULT_START = ['2025-09-10', '2025-03-01', '2025-06-15', '2024-10-20', '2026-01-15']
+const VAULT_START = ['2025-09-10', '2025-03-01', '2025-06-15', '2024-10-20', '2026-01-15', '2026-02-02']
 /** L'allocation de chaque vault (bps) — la même que le registre. */
 const VAULT_ALLOC = [
   { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
@@ -73,6 +101,8 @@ const VAULT_ALLOC = [
   { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
   { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
   { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
+  // La tranche 2 reprend l'allocation de la tranche 1 : c'est le pré-remplissage d'une nouvelle tranche.
+  { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
 ]
 /**
  * L'écart ACTUEL de chaque poche à sa cible, en points de base (100 = 1 pt),
@@ -86,9 +116,10 @@ const VAULT_DRIFT = [
   { mining: -200, lending: -118, stable: 318 },
   { mining: 96, lending: -40, stable: -56 },
   null,
+  { mining: 118, lending: -48, stable: -70 },
 ]
 /** La bande que le mandat de chaque vault tolère, en bps (même que le registre ; 500 par défaut). */
-const VAULT_BAND = [500, 500, 250, 800, 500]
+const VAULT_BAND = [500, 500, 250, 800, 500, 500]
 /** La part réelle de chaque poche aujourd'hui = cible + écart. */
 const vaultCurrentBps = (v) => {
   const a = VAULT_ALLOC[v]
@@ -190,7 +221,7 @@ const MACHINES = Array.from({ length: FLEET_SIZE }, (_, i) => {
    simulation d'offre utilise le même. */
 const USD_PER_THS = 50
 /** Capital de la poche Mining de chaque vault (capital × sa propre part de minage). */
-const VAULT_MINING_BPS = [4000, 6000, 2000, 2000, 4000]
+const VAULT_MINING_BPS = [4000, 6000, 2000, 2000, 4000, 6000]
 const VAULT_MINING_CAPITAL = VAULT_PRINCIPAL.map((p, i) => (p * VAULT_MINING_BPS[i]) / 10_000)
 /* Chaque machine est AFFECTÉE à un vault jusqu'à ce que ce vault ait la
    puissance que son capital a achetée ; le reste du parc est LIBRE — capacité
@@ -308,8 +339,7 @@ function vaultMonths(v) {
 }
 /** La décision de l'admin sur le reward en attente d'un vault, s'il y en a une. */
 function rewardDecision(v) {
-  const c = CLIENT_BOOK.find((x) => x.vault === v)
-  return c ? DECISIONS.get(`apr_dist_${c.id}`) : undefined
+  return ownerOf(v) ? DECISIONS.get(`apr_dist_${vaultTag(v)}`) : undefined
 }
 
 /** Le bitcoin accumulé par un vault depuis son ouverture. */
@@ -506,6 +536,7 @@ const VAULT_ADDRESSES = [
   '0x9c0e2b5d7a9f1c3e6b8d0a2f4c6e8b1d3a5f7c9e',
   '0x2b5d7a9f1c3e6b8d0a2f4c6e8b1d3a5f7c9e0b2d',
   '0x4c6e8b1d3a5f7c9e0b2d4f6a8c0e2b4d6f8a0c2e',
+  '0x6e8b1d3a5f7c9e0b2d4f6a8c0e2b4d6f8a0c2e4a',
 ]
 /** Le n-ième vault, sous la forme que `parseVaultId` accepte. */
 function vaultKey(n) {
@@ -645,10 +676,11 @@ function payloadFor(path, search = '') {
           kind: 'deposit',
           clientId: 'cli_2',
           clientLabel: 'ZAND Bank',
-          vaultId: vaultKey(1),
+          // Une nouvelle tranche ouvre un NOUVEAU vault : il n'existe pas encore.
+          vaultId: null,
           amountUsdc: 1_500_000,
           requestedAt: '2026-09-08T14:22:00Z',
-          note: 'Second tranche, board approved',
+          note: 'Third tranche, board approved — opens a new vault',
         },
         {
           id: 'apr_2',
@@ -663,26 +695,26 @@ function payloadFor(path, search = '') {
         },
         // Un rééquilibrage PROPOSÉ pour chaque vault sorti de sa bande : rien
         // ne bouge tant que l'admin ne l'a pas approuvé.
-        ...CLIENT_BOOK.filter((c) => c.vault !== null && VAULT_DRIFT[c.vault] !== null).flatMap((c) => {
-          const d = VAULT_DRIFT[c.vault]
+        ...ALL_VAULTS().filter(({ v }) => VAULT_DRIFT[v] !== null).flatMap(({ v, c }) => {
+          const d = VAULT_DRIFT[v]
           const worst = Math.max(Math.abs(d.mining), Math.abs(d.lending), Math.abs(d.stable))
-          if (worst <= VAULT_BAND[c.vault]) return []
+          if (worst <= VAULT_BAND[v]) return []
           const entries = Object.entries(d).sort((a, b) => a[1] - b[1])
           const name = { mining: 'Mining Alpha', lending: 'Bitcoin Lending', stable: 'USDC Yield' }
-          const usd = Math.round((VAULT_PRINCIPAL[c.vault] * worst) / 10_000)
+          const usd = Math.round((VAULT_PRINCIPAL[v] * worst) / 10_000)
           return [{
-            id: `apr_reb_${c.id}`,
+            id: `apr_reb_${vaultTag(v)}`,
             kind: 'rebalance',
             clientId: c.id,
-            clientLabel: c.label,
-            vaultId: vaultKey(c.vault),
+            clientLabel: vaultLabel(v),
+            vaultId: vaultKey(v),
             amountUsdc: null,
             amountBtcSats: Math.round((usd / BTC_SPOT_USD) * 1e8),
             requestedAt: '2026-09-04T08:00:00Z',
-            note: `${name[entries[entries.length - 1][0]]} over target, ${name[entries[0][0]]} under — outside the ±${VAULT_BAND[c.vault] / 100} pt band`,
+            note: `${name[entries[entries.length - 1][0]]} over target, ${name[entries[0][0]]} under — outside the ±${VAULT_BAND[v] / 100} pt band`,
             rebalance: {
               driftBps: d,
-              bandBps: VAULT_BAND[c.vault],
+              bandBps: VAULT_BAND[v],
               fromBucket: name[entries[entries.length - 1][0]],
               toBucket: name[entries[0][0]],
               usd,
@@ -714,14 +746,14 @@ function payloadFor(path, search = '') {
             }]
           : []),
         // Une distribution à signer PAR VAULT : le mois clos qui attend.
-        ...CLIENT_BOOK.filter((c) => c.vault !== null).map((c) => {
-          const m = vaultMonths(c.vault).find((x) => x.status === 'pending')
+        ...ALL_VAULTS().map(({ v, c }) => {
+          const m = vaultMonths(v).find((x) => x.status === 'pending')
           return {
-            id: `apr_dist_${c.id}`,
+            id: `apr_dist_${vaultTag(v)}`,
             kind: 'distribution',
             clientId: c.id,
-            clientLabel: c.label,
-            vaultId: vaultKey(c.vault),
+            clientLabel: vaultLabel(v),
+            vaultId: vaultKey(v),
             amountUsdc: null,
             amountBtcSats: m?.sats ?? 0,
             requestedAt: '2026-09-02T10:00:00Z',
@@ -738,20 +770,25 @@ function payloadFor(path, search = '') {
    * terme est un renouvellement à préparer, pas une ligne de tableau.
    */
   if (p === '/api/v1/admin/vaults/registry') {
-    const vaults = [
-      // Les trois premiers sont les vaults que le reste du mock publie
-      // (`vault-0..2`) : sans cet alignement, la fiche d'un vault ne trouverait
-      // jamais son client dans le registre.
-      // `drift` : écart à la cible de la poche la plus dérivée, en points de
-      // base. `threshold` : le seuil PROPRE à ce vault — un mandat prudent ne
-      // tolère pas la même dérive qu'un mandat offensif. Null = seuil par
-      // défaut (500 bps, soit 5 pt).
-      { id: vaultKey(0), client: 'Hearst Holdings', allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 }, kind: 'Crypto company', clientId: 'cli_1', principal: 420_000, start: '2025-09-10', months: 24, depositUnlocked: false, drift: 142, threshold: null },
-      { id: vaultKey(1), client: 'ZAND Bank', allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 }, kind: 'Crypto company', clientId: 'cli_2', principal: 12_000_000, start: '2025-03-01', months: 24, depositUnlocked: true, drift: -684, threshold: null },
-      { id: vaultKey(2), client: 'Rain Financial', allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 }, kind: 'Fund', clientId: 'cli_3', principal: 3_400_000, start: '2025-06-15', months: 24, depositUnlocked: false, drift: 318, threshold: 250 },
-      { id: vaultKey(3), client: 'Meridian Family Office', allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 }, kind: 'Family office', clientId: 'cli_4', principal: 850_000, start: '2024-10-20', months: 24, depositUnlocked: false, drift: 96, threshold: 800 },
-      { id: vaultKey(4), client: 'Northgate Capital', allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 }, kind: 'Crypto exchange', clientId: 'cli_5', principal: 5_600_000, start: '2026-01-15', months: 24, depositUnlocked: false, drift: null, threshold: null },
-    ]
+    /* UN VAULT PAR TRANCHE : un client qui verse une deuxième fois ouvre un
+       deuxième vault (son prix d'entrée, son blocage, son allocation). Le
+       registre en publie une ligne chacun, avec son rang de tranche.
+       `drift` : écart de la poche la plus dérivée ; `threshold` : la bande
+       PROPRE au vault, null = défaut (500 bps, soit 5 pt). */
+    const vaults = ALL_VAULTS().map(({ v, c, tranche }) => ({
+      v,
+      id: vaultKey(v),
+      client: c.label,
+      allocation: VAULT_ALLOC[v],
+      kind: CLIENT_KIND[c.id] ?? null,
+      clientId: c.id,
+      tranche,
+      principal: VAULT_PRINCIPAL[v],
+      start: VAULT_START[v],
+      months: 24,
+      depositUnlocked: v === 1,
+      threshold: VAULT_BAND[v] === 500 ? null : VAULT_BAND[v],
+    }))
     return {
       vaults: bloc(
         vaults.map((v) => {
@@ -767,6 +804,8 @@ function payloadFor(path, search = '') {
             vaultId: v.id,
             clientId: v.clientId,
             clientLabel: v.client,
+            // Le rang du versement chez ce client : 1 pour le premier vault, 2 pour le suivant…
+            tranche: v.tranche,
             // Typologie du client (liste de `CLIENT_KINDS`) — sert la
             // répartition de l'AUM par type sur le tableau de bord.
             clientKind: v.kind,
@@ -776,13 +815,13 @@ function payloadFor(path, search = '') {
             principalUsdc: v.principal,
             // Rendement accru : ~14.8 % du principal, comme le vault client.
             // Le cumul de la réserve : la somme de ses mois, en bitcoin.
-            accruedBtcSats: vaultReserveSats(VAULT_PRINCIPAL.indexOf(v.principal)),
+            accruedBtcSats: vaultReserveSats(v.v),
             // Le versement d'entrée, converti en bitcoin au cours du premier mois.
             capitalBtcSats: (() => {
-              const ms = vaultMonths(VAULT_PRINCIPAL.indexOf(v.principal))
+              const ms = vaultMonths(v.v)
               return Math.round((v.principal / (ms[ms.length - 1]?.price ?? BTC_SPOT_USD)) * 1e8)
             })(),
-            accruedUsdc: vaultMonths(VAULT_PRINCIPAL.indexOf(v.principal))
+            accruedUsdc: vaultMonths(v.v)
               .filter((m) => m.status === 'distributed')
               .reduce((t, m) => t + m.usd, 0),
             lockupStartAt: start.toISOString(),
@@ -793,7 +832,7 @@ function payloadFor(path, search = '') {
             status: 'ACTIVE',
             // La dérive vient de l'état ACTUEL du vault : un rééquilibrage approuvé la remet à zéro.
             worstDriftBps: (() => {
-              const d = VAULT_DRIFT[VAULT_PRINCIPAL.indexOf(v.principal)]
+              const d = VAULT_DRIFT[v.v]
               if (d === null) return null
               return [d.mining, d.lending, d.stable].reduce((w, x) => (Math.abs(x) > Math.abs(w) ? x : w), 0)
             })(),
@@ -1072,26 +1111,27 @@ function payloadFor(path, search = '') {
        les retraits en bitcoin, les rééquilibrages sans montant (ils déplacent
        du capital entre poches, rien n'entre ni ne sort). */
     const events = []
-    CLIENT_BOOK.filter((c) => c.vault !== null).forEach((c) => {
-      const months = vaultMonths(c.vault)
+    ALL_VAULTS().forEach(({ v, c }) => {
+      const months = vaultMonths(v)
       const paid = months.filter((m) => m.status === 'distributed')[0]
       if (paid) {
         events.push({
           type: 'DISTRIBUTION',
           title: 'Bitcoin distributed',
           c,
+          v,
           amountBtcSats: paid.sats,
           occurredAt: `${paid.month}-01T09:00:00Z`,
         })
       }
     })
     // Les rééquilibrages : le dernier de chaque vault, tiré de SON historique.
-    CLIENT_BOOK.filter((c) => c.vault !== null).forEach((c) => {
-      const r = vaultRebalances(c.vault)[0]
-      if (r) events.push({ type: 'REBALANCE', title: 'Rebalanced to target', c, amountBtcSats: null, occurredAt: r.at })
+    ALL_VAULTS().forEach(({ v, c }) => {
+      const r = vaultRebalances(v)[0]
+      if (r) events.push({ type: 'REBALANCE', title: 'Rebalanced to target', c, v, amountBtcSats: null, occurredAt: r.at })
     })
-    const w = CLIENT_BOOK.find((x) => x.vault === 1)
-    events.push({ type: 'WITHDRAWAL', title: 'Bitcoin withdrawn', c: w, amountBtcSats: Math.round(vaultMonths(1)[3].sats * 1.6), occurredAt: '2026-06-14T11:20:00Z' })
+    const w = ownerOf(1)
+    events.push({ type: 'WITHDRAWAL', title: 'Bitcoin withdrawn', c: w, v: 1, amountBtcSats: Math.round(vaultMonths(1)[3].sats * 1.6), occurredAt: '2026-06-14T11:20:00Z' })
     return {
       events: bloc(
         events
@@ -1101,8 +1141,8 @@ function payloadFor(path, search = '') {
             type: e.type,
             title: e.title,
             clientId: e.c.id,
-            clientLabel: e.c.label,
-            vaultId: vaultKey(e.c.vault),
+            clientLabel: vaultLabel(e.v),
+            vaultId: vaultKey(e.v),
             amountAtomic: null,
             amountBtcSats: e.amountBtcSats,
             asset: e.amountBtcSats !== null ? 'BTC' : null,
@@ -1142,8 +1182,8 @@ function payloadFor(path, search = '') {
           lastActivityAt: new Date(Date.parse('2026-09-28T00:00:00Z') - i * 86_400_000).toISOString(),
           kycProvider: 'Som',
           kycStatus: c.kyc,
-          currentExposureAtomic: c.vault === null ? '0' : atomic(VAULT_PRINCIPAL[c.vault]),
-          vaultIds: c.vault === null ? [] : [vaultKey(c.vault)],
+          currentExposureAtomic: atomic(vaultsOf(c).reduce((t, v) => t + VAULT_PRINCIPAL[v], 0)),
+          vaultIds: vaultsOf(c).map(vaultKey),
         })),
       ),
     }
@@ -1281,30 +1321,39 @@ function payloadFor(path, search = '') {
        voit des montants à l'échelle de SON capital, pas des 420 000 $ de
        Hearst Holdings pour tout le monde. */
     const scopedClient = (id) => allClients().find((c) => c.id === id) ?? null
-    const scaleOf = (c) => (c === null || c.vault === null ? 0 : VAULT_PRINCIPAL[c.vault] / 420_000)
+    /* Un client peut détenir plusieurs vaults (un par tranche) : `?vaultId=`
+       choisit lequel ; sans lui, la première tranche — le contrat d'avant. */
+    const wanted = new URLSearchParams(search).get('vaultId')
+    const pick = (c) => {
+      if (c === null) return null
+      const vs = vaultsOf(c)
+      return vs.find((v) => vaultKey(v) === wanted) ?? vs[0] ?? null
+    }
+    const scaleOf = (c) => (pick(c) === null ? 0 : VAULT_PRINCIPAL[pick(c)] / 420_000)
     const scaled = (v, k) => Math.round(v * k)
 
     const mVault = p.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/vault$/)
     if (mVault) {
       const clientId = mVault[1]
       const c = scopedClient(clientId)
-      if (c === null || c.vault === null) return { vault: bloc(null) }
+      const v = pick(c)
+      if (v === null) return { vault: bloc(null) }
       /* Hearst Holdings garde les constantes de /api/v1/me/vault (c'est le
          client de démonstration de /account) ; les autres sont à l'échelle. */
-      const principal = c.vault === 0 ? CLIENT_PRINCIPAL_USDC : VAULT_PRINCIPAL[c.vault]
+      const principal = v === 0 ? CLIENT_PRINCIPAL_USDC : VAULT_PRINCIPAL[v]
       const withdrawn = usdcFromBtc(CLIENT_WITHDRAWN_BTC)
       return {
         vault: bloc({
           clientId,
-          vaultId: vaultKey(c.vault),
-          label: 'Dedicated Vault',
+          vaultId: vaultKey(v),
+          label: vaultsOf(c).length > 1 ? `Tranche ${trancheOf(v)}` : 'Dedicated Vault',
           principalUsdc: principal,
           withdrawnUsdc: withdrawn,
           withdrawnUsdcAtPayout: CLIENT_WITHDRAWN_USDC_AT_PAYOUT,
           entryRateUsd: CLIENT_ENTRY_RATE_USD,
           availableUsdc: CLIENT_AVAILABLE_USDC,
           nextDistributionAt: '2026-10-01T09:00:00Z',
-          lockupStartAt: `${VAULT_START[c.vault]}T09:00:00Z`,
+          lockupStartAt: `${VAULT_START[v]}T09:00:00Z`,
           lockupMonths: 24,
           depositUnlocked: false,
           withdrawUnlocked: true,
@@ -1321,7 +1370,7 @@ function payloadFor(path, search = '') {
       /* Rendement par poche, en run-rate annualisé. Le client le lit dans
          « Strategy Exposure » sans qu'aucun écran admin ne puisse le recouper. */
       // La répartition RÉELLE de CE vault : sa cible, plus l'écart depuis le dernier rééquilibrage.
-      const v = scopedClient(mYields[1]).vault
+      const v = pick(scopedClient(mYields[1]))
       const cur = vaultCurrentBps(v)
       const capital = (bps) => Math.round((VAULT_PRINCIPAL[v] * bps) / 10_000)
       return {
@@ -1341,7 +1390,7 @@ function payloadFor(path, search = '') {
          l'approbation mais aucune lecture : l'admin approuvait à l'aveugle. */
       return {
         distributions: bloc(
-          vaultMonths(scopedClient(mDist[1]).vault).map((m) => ({
+          vaultMonths(pick(scopedClient(mDist[1]))).map((m) => ({
             id: `dst_${m.month}`,
             month: m.month,
             status: m.status,
@@ -1367,7 +1416,7 @@ function payloadFor(path, search = '') {
            retraits — part en bitcoin. */
         movements: bloc(
           (() => {
-            const v = scopedClient(mMov[1]).vault
+            const v = pick(scopedClient(mMov[1]))
             const months = vaultMonths(v)
             const hash = (n) => `0x${((n + 7) * 2654435761).toString(16).padStart(8, '0').repeat(8).slice(0, 64)}`
             const paid = months.filter((m) => m.status === 'distributed').slice(0, 4)
@@ -1605,6 +1654,28 @@ function payloadFor(path, search = '') {
           vaultId: vaultKey(1),
           notes: null,
           questionnaire: { platformKind: 'Bank', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Yes', productInterest: 'Growth-oriented', firstVaultSize: '$5M+', launchTimeline: 'ASAP', submittedAt: iso(605) },
+        },
+        // La DEUXIÈME tranche de ZAND : une nouvelle offre, qui a ouvert un nouveau vault.
+        {
+          id: 'off_008b',
+          reference: 'ZAND-02',
+          clientId: 'cli_2',
+          clientName: 'ZAND Bank',
+          clientKind: 'Crypto company',
+          contactEmail: 'treasury@zand.test',
+          amountUsdc: 2_000_000,
+          riskProfile: 'growth',
+          // L'allocation de la tranche 1, reprise telle quelle.
+          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+          lockupMonths: 24,
+          status: 'active',
+          createdAt: iso(250),
+          updatedAt: iso(235),
+          sentAt: iso(246),
+          decidedAt: iso(240),
+          vaultId: vaultKey(5),
+          notes: 'Second tranche — a new vault, its own entry price and lockup.',
+          questionnaire: null,
         },
         {
           id: 'off_009',
@@ -1963,14 +2034,13 @@ function payloadFor(path, search = '') {
                 const prev = buckets[b.bucket] ?? { usd: 0, btcSats: 0 }
                 buckets[b.bucket] = { usd: prev.usd + b.usd, btcSats: prev.btcSats + b.btcSats }
               }
-              const c = CLIENT_BOOK.find((x) => x.vault === v)
               byMonth.set(m.month, {
                 sats: cur.sats + m.sats,
                 usd: cur.usd + m.usd,
                 price: m.price,
                 status: m.status,
                 buckets,
-                vaults: [...cur.vaults, { vaultId: vaultKey(v), clientLabel: c?.label ?? vaultKey(v), btcSats: m.sats }],
+                vaults: [...cur.vaults, { vaultId: vaultKey(v), clientLabel: vaultLabel(v) ?? vaultKey(v), btcSats: m.sats }],
               })
             }
           })
@@ -2027,13 +2097,14 @@ function payloadFor(path, search = '') {
    * séparément : c'est la distribution DE CE client.
    */
   if (p === '/api/v1/admin/mining/monthly-close') {
-    const vaults = [
-      { idx: 0, clientId: 'cli_1', client: 'Hearst Holdings', principal: 420_000, miningBps: 4000 },
-      { idx: 1, clientId: 'cli_2', client: 'ZAND Bank', principal: 12_000_000, miningBps: 6000 },
-      { idx: 2, clientId: 'cli_3', client: 'Rain Financial', principal: 3_400_000, miningBps: 2000 },
-      { idx: 3, clientId: 'cli_4', client: 'Meridian Family Office', principal: 850_000, miningBps: 2000 },
-      { idx: 4, clientId: 'cli_5', client: 'Northgate Capital', principal: 5_600_000, miningBps: 4000 },
-    ]
+    // Une ligne par VAULT (une tranche = un vault), pas par client.
+    const vaults = ALL_VAULTS().map(({ v, c }) => ({
+      idx: v,
+      clientId: c.id,
+      client: vaultLabel(v),
+      principal: VAULT_PRINCIPAL[v],
+      miningBps: VAULT_MINING_BPS[v],
+    }))
     const miningCapital = vaults.map((v) => (v.principal * v.miningBps) / 10_000)
     const months = Array.from({ length: 6 }, (_, k) => {
       const d = new Date(Date.UTC(2026, 2 + k, 1))
@@ -2153,8 +2224,9 @@ function handleWrite(method, path, body) {
     const id = mDecide[1]
     DECISIONS.set(id, decision)
     if (decision === 'approved' && id.startsWith('apr_reb_')) {
-      const c = CLIENT_BOOK.find((x) => `apr_reb_${x.id}` === id)
-      if (c && c.vault !== null && VAULT_DRIFT[c.vault]) {
+      const hit = ALL_VAULTS().find(({ v }) => `apr_reb_${vaultTag(v)}` === id)
+      const c = hit ? { vault: hit.v } : null
+      if (c && VAULT_DRIFT[c.vault]) {
         // Le keeper exécute : l'écart corrigé entre dans l'historique, le vault revient à sa cible.
         const before = { ...VAULT_DRIFT[c.vault] }
         const worst = Math.max(Math.abs(before.mining), Math.abs(before.lending), Math.abs(before.stable))

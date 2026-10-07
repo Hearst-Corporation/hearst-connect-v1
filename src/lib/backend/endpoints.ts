@@ -145,7 +145,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/account',
     summary: "Dedicated vault of the connected investor — principal, withdrawn to date, amount available this month, and whether deposit is unlocked.",
     caveat:
-      "The product is one vault PER CLIENT, never a shared pool: nothing here is fund-wide. `depositUnlocked` is the admin's decision — the interface reflects it, it never grants it.",
+      "The product is one vault PER DEPOSIT TRANCHE (a client may hold several), never a shared pool: nothing here is fund-wide. `depositUnlocked` is the admin's decision — the interface reflects it, it never grants it.",
   }),
   defineEndpoint({
     id: 'me-vault-projection',
@@ -168,7 +168,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     category: 'business',
     auth: 'admin',
     surface: '/admin/clients',
-    summary: "A client's vault in full — the five tiles they read, with the fields behind them.",
+    summary: "A client's vault in full — the five tiles they read, with the fields behind them. Optional `vaultId` query param picks one tranche (a client holds one vault per tranche); without it, the first.",
     caveat:
       'Publishes `withdrawnUsdcAtPayout` and `entryRateUsd`, which the client front cannot recompute: it only knows today’s rate. Reconciling a withdrawal at spot would overstate or understate what was actually paid.',
   }),
@@ -178,7 +178,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     category: 'business',
     auth: 'admin',
     surface: '/admin/clients',
-    summary: 'Yield per pocket for one client, annualised run-rate.',
+    summary: 'Yield per pocket for one client, annualised run-rate. Optional `vaultId` query param picks one tranche (a client holds one vault per tranche); without it, the first.',
     caveat:
       'The client reads these in "Strategy Exposure". Until now no admin surface could recoup them.',
   }),
@@ -188,7 +188,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     category: 'business',
     auth: 'admin',
     surface: '/admin/clients',
-    summary: 'Distributions for one client — paid, approved, pending.',
+    summary: 'Distributions for one client — paid, approved, pending. Optional `vaultId` query param picks one tranche (a client holds one vault per tranche); without it, the first.',
     caveat:
       'The chain exposed approval but no read: an operator was signing off without seeing the ledger.',
   }),
@@ -198,7 +198,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     category: 'business',
     auth: 'admin',
     surface: '/admin/clients',
-    summary: "One client's ledger — deposits, withdrawals, distributions.",
+    summary: "One client's ledger — deposits, withdrawals, distributions. Optional `vaultId` query param picks one tranche (a client holds one vault per tranche); without it, the first.",
     caveat:
       '`admin/activity/recent` stays global: it reports what the book did, never what one person did.',
   }),
@@ -264,7 +264,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     surface: '/admin',
     summary: 'Dedicated vaults, one per client, with lockup term and deposit state.',
     caveat:
-      'One vault PER CLIENT — never a share of a pool. `lockupEndAt` drives the commercial relationship: a term coming due is a renewal to prepare.',
+      'One vault PER DEPOSIT TRANCHE — a client may hold several, each with its own entry price and lockup; never a share of a pool. `lockupEndAt` drives the commercial relationship: a term coming due is a renewal to prepare.',
   }),
   defineEndpoint({
     id: 'admin-btc-reserve',

@@ -2,6 +2,7 @@ import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import { formatDate, formatNumber, formatPercent } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
+import { vaultDisplayName } from '@/lib/clients/vaults'
 
 /**
  * Registre des vaults dédiés — un par client.
@@ -78,7 +79,7 @@ export function VaultRegistry({
               return (
                 <tr key={v.vaultId}>
                   <td suppressHydrationWarning className="py-3 pr-4">
-                    <p className="font-medium text-fg">{v.clientLabel}</p>
+                    <p className="font-medium text-fg">{vaultDisplayName(v, rows)}</p>
                     {/* Le mois de blocage plutôt que l'identifiant de 45 caractères,
                         qui ne se lisait pas. */}
                     {v.lockupMonths !== null && v.lockupElapsedMonths !== null ? (

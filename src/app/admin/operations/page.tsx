@@ -19,6 +19,7 @@ import { VaultWatchlist } from '@/features/admin-dashboard/vault-watchlist'
 import { isVaultDrifting, type AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
 import { loadAdminApprovals, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import type { Metadata } from 'next'
+import { vaultDisplayName } from '@/lib/clients/vaults'
 
 export const metadata: Metadata = { title: 'Operations' }
 export const dynamic = 'force-dynamic'
@@ -166,8 +167,11 @@ function RebalanceOperationsCard({
             <TableRow key={op.id}>
               <TableCell className={tableCol.primary}>
                 {op.vaultId && clientOfVault.has(op.vaultId) ? (
-                  <Link href={`/admin/clients/${clientOfVault.get(op.vaultId)!.clientId}`} className="font-medium text-fg">
-                    {clientOfVault.get(op.vaultId)!.clientLabel}
+                  <Link
+                    href={`/admin/clients/${clientOfVault.get(op.vaultId)!.clientId}?vault=${encodeURIComponent(op.vaultId)}`}
+                    className="font-medium text-fg"
+                  >
+                    {vaultDisplayName(clientOfVault.get(op.vaultId)!, [...clientOfVault.values()])}
                   </Link>
                 ) : (
                   <span className="text-fg-tertiary">Vault not reported</span>
@@ -212,7 +216,7 @@ function RebalanceOperationsCard({
           title: 'Rebalance operations',
           columns: ['Client vault', 'Occurred', 'Tx', 'Block', 'Allocations (bps)'],
           data: rows.map((op) => [
-            op.vaultId && clientOfVault.has(op.vaultId) ? clientOfVault.get(op.vaultId)!.clientLabel : null,
+            op.vaultId && clientOfVault.has(op.vaultId) ? vaultDisplayName(clientOfVault.get(op.vaultId)!, [...clientOfVault.values()]) : null,
             op.occurredAt,
             op.txHash,
             op.blockNumber,
@@ -255,14 +259,14 @@ export default async function Page() {
       title: 'Vaults out of their band',
       value: editorial(`${drifting.length} / ${registry.length}`),
       icon: ExclamationTriangleIcon,
-      footnote: drifting.length > 0 ? drifting.map((v) => v.clientLabel).join(', ') : 'Every vault within its band',
+      footnote: drifting.length > 0 ? drifting.map((v) => vaultDisplayName(v, registry)).join(', ') : 'Every vault within its band',
     },
     {
       id: 'worst',
       title: 'Largest drift',
       value: editorial(worst ? `${formatNumber((worst.worstDriftBps ?? 0) / 100, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })} pt` : '—'),
       icon: ArrowsRightLeftIcon,
-      footnote: worst ? worst.clientLabel : null,
+      footnote: worst ? vaultDisplayName(worst, registry) : null,
     },
     {
       id: 'rebalances',

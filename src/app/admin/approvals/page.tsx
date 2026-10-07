@@ -77,7 +77,7 @@ export default async function Page() {
     <DashboardShell>
       <DashboardHeader
         title="Decisions"
-        description="What clients are waiting on: deposit authorisations, distribution sign-offs, withdrawal requests. One vault per client — nothing is pooled."
+        description="What clients are waiting on: deposit authorisations, distribution sign-offs, withdrawal requests. One vault per deposit tranche — nothing is pooled."
         kpis={kpis}
       />
 

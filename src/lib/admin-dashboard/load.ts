@@ -320,8 +320,11 @@ export async function loadOfferSimulation(
    Quatre lectures scopées par client. Chacune dit son absence pour son propre
    compte : un client dont on ne lit pas les distributions garde son vault. */
 
-export async function loadClientVault(id: string): Promise<Availability<AdminClientVault>> {
-  const res = await fetchClientVault(id)
+export async function loadClientVault(
+  id: string,
+  vaultId?: string | null,
+): Promise<Availability<AdminClientVault>> {
+  const res = await fetchClientVault(id, vaultId)
   return fromBackendOrUnavailable(
     res,
     res.ok ? res.data.vault : undefined,
@@ -331,8 +334,9 @@ export async function loadClientVault(id: string): Promise<Availability<AdminCli
 
 export async function loadClientBucketYields(
   id: string,
+  vaultId?: string | null,
 ): Promise<Availability<readonly AdminBucketYield[]>> {
-  const res = await fetchClientBucketYields(id)
+  const res = await fetchClientBucketYields(id, vaultId)
   return fromBackendOrUnavailable(
     res,
     res.ok ? res.data.yields : undefined,
@@ -342,8 +346,9 @@ export async function loadClientBucketYields(
 
 export async function loadClientDistributions(
   id: string,
+  vaultId?: string | null,
 ): Promise<Availability<readonly AdminClientDistribution[]>> {
-  const res = await fetchClientDistributions(id)
+  const res = await fetchClientDistributions(id, vaultId)
   return fromBackendOrUnavailable(
     res,
     res.ok ? res.data.distributions : undefined,
@@ -353,8 +358,9 @@ export async function loadClientDistributions(
 
 export async function loadClientMovements(
   id: string,
+  vaultId?: string | null,
 ): Promise<Availability<readonly AdminClientMovement[]>> {
-  const res = await fetchClientMovements(id)
+  const res = await fetchClientMovements(id, vaultId)
   return fromBackendOrUnavailable(
     res,
     res.ok ? res.data.movements : undefined,

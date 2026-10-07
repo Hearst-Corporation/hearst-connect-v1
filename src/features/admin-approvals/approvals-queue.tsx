@@ -142,7 +142,7 @@ export function ApprovalsQueue({
                       {item.clientLabel}
                     </Link>
                     <p className="truncate text-xs text-fg-tertiary">
-                      {item.note ?? item.vaultId}
+                      {item.note ?? item.vaultId ?? '—'}
                     </p>
                     {item.rebalance ? (
                       <p className="mt-0.5 text-xs text-fg-secondary">

@@ -23,10 +23,11 @@ import { DecisionButtons } from '@/features/admin-approvals/decision-buttons'
 import { requireSession } from '@/lib/auth'
 import { loadClientBook, STAGE_LABEL } from '@/lib/clients/book'
 import { loadClientDossier } from '@/lib/clients/dossier'
+import { reserveSats, trancheOf } from '@/lib/clients/vaults'
 import { formatCurrency, formatDate, formatHash, formatNumber } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { emailsFor } from '@/lib/offers/emails'
-import { OFFER_STATUS_LABEL, RISK_PROFILE_LABEL } from '@/lib/offers/model'
+import { OFFER_STATUS_LABEL, RISK_PROFILE_LABEL, isTerminal } from '@/lib/offers/model'
 import { available, isAvailable, unavailable, valueOf, type Availability } from '@/lib/vaults/model'
 import {
   ArrowTrendingUpIcon,
@@ -99,20 +100,46 @@ const DECISION_ACTION: Record<string, string> = {
   protocol: 'Approve',
 }
 
-export default async function ClientPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
+export default async function ClientPage({
+  params,
+  searchParams,
+}: Readonly<{ params: Promise<{ id: string }>; searchParams: Promise<{ vault?: string }> }>) {
   await requireSession()
   const { id } = await params
+  // Le vault affiché : un client détient un vault par tranche ; `?vault=` choisit lequel.
+  const { vault: vaultParam } = await searchParams
 
   const [book, dossier, compute, rebalancing] = await Promise.all([
     loadClientBook(),
-    loadClientDossier(id),
+    loadClientDossier(id, vaultParam ?? null),
     loadFleetCompute(),
     loadAdminRebalancingOperations(200),
   ])
   const entry = book.entries.find((e) => e.clientId === id)
   if (entry === undefined) notFound()
 
-  const { offer, vault, decisions } = entry
+  const { decisions } = entry
+  const vaults = entry.vaults
+  const multi = vaults.length > 1
+  /* Le vault dont les sections détaillées parlent (rendements, allocation,
+     compute, mouvements) — le premier tant qu'on n'en a pas choisi un autre. */
+  const vault = valueOf(dossier.vault) ?? entry.vault
+  /* L'offre montrée : une offre EN COURS d'abord (une nouvelle tranche qui se
+     prépare, c'est le geste attendu) ; sinon celle qui a ouvert le vault
+     affiché — la tranche 1 ne se raconte pas avec l'offre de la tranche 2. */
+  const openOffer = entry.offer !== null && !isTerminal(entry.offer.status) ? entry.offer : null
+  const offerOfVault = vault !== null ? (valueOf(dossier.offers) ?? []).find((o) => o.vaultId === vault.vaultId) ?? null : null
+  const offer = openOffer ?? offerOfVault ?? entry.offer
+  const tranche = vault !== null ? trancheOf(vault) : 1
+  /* Le suffixe des sections d'un vault : sans lui, deux tranches afficheraient
+     deux sections « Monthly rewards » indiscernables. */
+  const ofTranche = multi ? ` · Tranche ${tranche}` : ''
+  // Les décisions qui portent sur CE vault (les autres restent dans « Waiting on you »).
+  const vaultDecisions = decisions.filter((d) => vault !== null && d.vaultId === vault.vaultId)
+  const trancheLabel = (vaultId: string | null) => {
+    const v = vaults.find((x) => x.vaultId === vaultId)
+    return multi && v ? `Tranche ${trancheOf(v)}` : null
+  }
   const isActive = entry.stage === 'active'
   const bucketYields = valueOf(dossier.bucketYields) ?? []
   const distributions = valueOf(dossier.distributions) ?? []
@@ -132,6 +159,9 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
   const sim = simulation !== null && isAvailable(simulation) ? simulation.value : null
 
   const shown = (text: string | null): Availability<string> => (text === null ? unavailable() : available(text))
+  // La décision du reward en attente pour CE vault (une par tranche).
+  const rewardDecisionId =
+    vaultDecisions.find((d) => d.kind === 'distribution')?.id ?? `apr_dist_${entry.clientId}`
 
   /* Le bandeau dépend de l'étape : un vault actif se lit par sa RÉSERVE de
      bitcoin ; un client en route, par l'offre qui le fait avancer. */
@@ -151,54 +181,76 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
   const btcFmt = (v: number) => `${formatBtcValue(v)} BTC`
   const termPoint = sim?.points[sim.points.length - 1] ?? null
 
+  /* Le bandeau d'un client actif parle de TOUS ses vaults : sa réserve est la
+     somme de ses tranches, sa dérive la pire d'entre elles, son échéance la
+     plus proche. Le détail d'une tranche vit dans le bloc « Vaults ». */
+  const sumCapital = vaults.reduce((t, v) => t + (v.capitalBtcSats ?? 0), 0) / 1e8
+  const sumAccrued = vaults.reduce((t, v) => t + (v.accruedBtcSats ?? 0), 0) / 1e8
+  const sumDeposits = vaults.reduce((t, v) => t + (v.principalUsdc ?? 0), 0)
+  const worst = [...vaults]
+    .filter((v) => v.worstDriftBps != null)
+    .sort((a, b) => Math.abs(b.worstDriftBps ?? 0) - Math.abs(a.worstDriftBps ?? 0))[0]
+  const unlocks = [...vaults].filter((v) => v.lockupEndAt !== null).sort((a, b) => (a.lockupEndAt ?? '').localeCompare(b.lockupEndAt ?? ''))
+  const lead = vaults[0] ?? null
+
   const kpis: readonly AdminHeroKpi[] = isActive
     ? [
         {
           id: 'reserve-total',
           title: 'Bitcoin reserve',
-          value: shown(totalReserveBtc !== null ? btcFmt(totalReserveBtc) : null),
+          value: shown(vaults.length > 0 ? btcFmt(sumCapital + sumAccrued) : totalReserveBtc !== null ? btcFmt(totalReserveBtc) : null),
           icon: BitcoinIcon,
-          footnote:
-            capitalBtc !== null
-              ? `${btcFmt(capitalBtc)} from the ${usd(vault?.principalUsdc)} USDC deposit + ${btcFmt(reserveBtc ?? 0)} accumulated`
-              : `Capital ${usd(vault?.principalUsdc)} USDC`,
+          footnote: multi
+            ? `${vaults.length} vaults · ${btcFmt(sumCapital)} from ${usd(sumDeposits)} USDC deposited + ${btcFmt(sumAccrued)} accumulated`
+            : capitalBtc !== null
+              ? `${btcFmt(capitalBtc)} from the ${usd(lead?.principalUsdc)} USDC deposit + ${btcFmt(reserveBtc ?? 0)} accumulated`
+              : `Capital ${usd(lead?.principalUsdc)} USDC`,
         },
-        {
-          id: 'lockup',
-          title: 'Lockup',
-          value: shown(
-            vault?.lockupMonths != null && vault.lockupElapsedMonths != null
-              ? `${Math.min(vault.lockupElapsedMonths, vault.lockupMonths)} of ${vault.lockupMonths} mo`
-              : null,
-          ),
-          icon: LockClosedIcon,
-          footnote:
-            vault?.lockupStartAt && vault?.lockupEndAt
-              ? `${formatDate(vault.lockupStartAt)} → ${formatDate(vault.lockupEndAt)}`
-              : vault?.lockupEndAt
-                ? `Unlocks ${formatDate(vault.lockupEndAt)}`
+        multi
+          ? {
+              id: 'lockup',
+              title: 'Next unlock',
+              value: shown(unlocks[0]?.lockupEndAt ? formatDate(unlocks[0].lockupEndAt) : null),
+              icon: LockClosedIcon,
+              footnote: unlocks[0]
+                ? `Tranche ${trancheOf(unlocks[0])}${unlocks[1]?.lockupEndAt ? ` · then ${formatDate(unlocks[1].lockupEndAt)}` : ''}`
                 : null,
-        },
+            }
+          : {
+              id: 'lockup',
+              title: 'Lockup',
+              value: shown(
+                lead?.lockupMonths != null && lead.lockupElapsedMonths != null
+                  ? `${Math.min(lead.lockupElapsedMonths, lead.lockupMonths)} of ${lead.lockupMonths} mo`
+                  : null,
+              ),
+              icon: LockClosedIcon,
+              footnote:
+                lead?.lockupStartAt && lead?.lockupEndAt
+                  ? `${formatDate(lead.lockupStartAt)} → ${formatDate(lead.lockupEndAt)}`
+                  : lead?.lockupEndAt
+                    ? `Unlocks ${formatDate(lead.lockupEndAt)}`
+                    : null,
+            },
         {
           /* LA promesse du produit, comme en tête de /account et du tableau de
-             bord : combien de bitcoin EN PLUS de ce que le dépôt a acheté. */
+             bord : combien de bitcoin EN PLUS de ce que les dépôts ont acheté. */
           id: 'vs-hodl',
           title: 'Ahead of simply holding',
-          value: shown(
-            capitalBtc !== null && reserveBtc !== null
-              ? `+${formatNumber((reserveBtc / capitalBtc) * 100, { maximumFractionDigits: 1 })} %`
-              : null,
-          ),
+          value: shown(sumCapital > 0 ? `+${formatNumber((sumAccrued / sumCapital) * 100, { maximumFractionDigits: 1 })} %` : null),
           icon: ArrowTrendingUpIcon,
-          footnote: reserveBtc !== null ? `+${btcFmt(reserveBtc)} more than the deposit bought at entry` : null,
+          footnote:
+            sumCapital > 0
+              ? `+${btcFmt(sumAccrued)} more than the deposit${multi ? 's' : ''} bought at entry`
+              : null,
         },
         {
           id: 'drift',
           title: 'Allocation drift',
-          value: shown(vault?.worstDriftBps != null ? pts(vault.worstDriftBps) : 'Not read'),
+          value: shown(worst?.worstDriftBps != null ? pts(worst.worstDriftBps) : 'Not read'),
           icon: ChartPieIcon,
-          footnote: vault
-            ? `Band ±${formatNumber(driftThresholdOf(vault) / 100, { maximumFractionDigits: 1 })} pt${isVaultDrifting(vault) ? ' — rebalance' : ''}`
+          footnote: worst
+            ? `${multi ? `Tranche ${trancheOf(worst)} · ` : ''}Band ±${formatNumber(driftThresholdOf(worst) / 100, { maximumFractionDigits: 1 })} pt${isVaultDrifting(worst) ? ' — rebalance' : ''}`
             : null,
         },
       ]
@@ -271,8 +323,9 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
 
   /* Les sections présentes sur CETTE fiche, dans l'ordre de la page — avec le
      nombre de décisions qui attendent dans chacune. */
-  const waitingIn = (kinds: readonly string[]) => decisions.filter((d) => kinds.includes(d.kind)).length
+  const waitingIn = (kinds: readonly string[]) => vaultDecisions.filter((d) => kinds.includes(d.kind)).length
   const sections = [
+    multi ? { id: 'vaults', label: 'Vaults', badge: 0 } : null,
     offer !== null ? { id: 'offer', label: 'Offer', badge: 0 } : null,
     decisions.length > 0 ? { id: 'decisions', label: 'Waiting on you', badge: decisions.length } : null,
     !isActive && sim !== null ? { id: 'projection', label: 'Projection', badge: 0 } : null,
@@ -283,7 +336,14 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
     { id: 'kyc', label: 'KYC', badge: 0 },
   ].filter((x): x is { id: string; label: string; badge: number } => x !== null)
 
-  const offerHref = `/admin/offers/new?clientId=${encodeURIComponent(entry.clientId)}&client=${encodeURIComponent(entry.name)}`
+  /* « New tranche » ouvre une offre pré-remplie avec l'allocation de la tranche
+     la plus récente : un nouveau versement ouvrira un NOUVEAU vault. */
+  const latest = vaults[vaults.length - 1] ?? null
+  const offerHref = `/admin/offers/new?clientId=${encodeURIComponent(entry.clientId)}&client=${encodeURIComponent(entry.name)}${
+    isActive && latest?.allocation
+      ? `&tranche=${vaults.length + 1}&mining=${latest.allocation.miningBps}&lending=${latest.allocation.lendingBps}&stable=${latest.allocation.stableBps}`
+      : ''
+  }`
 
   return (
     <DashboardShell>
@@ -339,10 +399,73 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
       <BentoGrid>
         <BentoCard span={12} bare>
           <DashCard className="min-w-0" eyebrow="Journey" title="Where this client stands" subtitle="From the first offer to a live vault">
-            <Journey entry={entry} />
+            <Journey entry={{ ...entry, offer: offerOfVault ?? entry.offer, vault }} />
           </DashCard>
         </BentoCard>
       </BentoGrid>
+
+      {/* ── LES VAULTS DU CLIENT — un par tranche ───────────────────────────
+          Chaque versement a ouvert son vault : son prix d'entrée, son blocage,
+          sa dérive. Choisir une tranche règle les sections qui suivent. */}
+      {multi ? (
+        <BentoGrid>
+          <BentoCard id="vaults" span={12} bare className="scroll-mt-24">
+            <DashCard
+              className="min-w-0"
+              eyebrow="Vaults"
+              title={`${vaults.length} vaults, one per tranche`}
+              subtitle="Each deposit opened its own vault — its entry price, its lockup, its drift. Pick one to read it below"
+            >
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {vaults.map((v) => {
+                  const selected = vault !== null && v.vaultId === vault.vaultId
+                  const reserve = reserveSats(v) / 1e8
+                  const capital = (v.capitalBtcSats ?? 0) / 1e8
+                  const accrued = (v.accruedBtcSats ?? 0) / 1e8
+                  return (
+                    <li key={v.vaultId}>
+                      <Link
+                        href={`/admin/clients/${entry.clientId}?vault=${encodeURIComponent(v.vaultId)}#rewards`}
+                        aria-current={selected ? 'true' : undefined}
+                        className={`flex h-full flex-col gap-3 rounded-[var(--ud-radius)] p-4 no-underline ring-1 transition-colors ${
+                          selected
+                            ? 'bg-[var(--hearst-green)]/[0.08] ring-[var(--hearst-green)]/60'
+                            : 'bg-[var(--ud-card-raised)] ring-[var(--ud-line)] hover:ring-white/25'
+                        }`}
+                      >
+                        <span className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium text-fg">Tranche {trancheOf(v)}</span>
+                          {selected ? (
+                            <Badge color="lime">Shown below</Badge>
+                          ) : (
+                            <span className="text-xs text-fg-tertiary">View →</span>
+                          )}
+                        </span>
+                        <span className="text-2xl font-medium tabular-nums text-fg">{btcFmt(reserve)}</span>
+                        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] text-xs">
+                          {[
+                            ['Deposit', `${usd(v.principalUsdc)} USDC`],
+                            ['Accumulated', `+${btcFmt(accrued)}`],
+                            ['Opened', formatDate(v.lockupStartAt)],
+                            ['Unlocks', formatDate(v.lockupEndAt)],
+                            ['Ahead of holding', capital > 0 ? `+${formatNumber((accrued / capital) * 100, { maximumFractionDigits: 1 })} %` : '—'],
+                            ['Drift', v.worstDriftBps != null ? `${pts(v.worstDriftBps)}${isVaultDrifting(v) ? ' · out of band' : ''}` : 'Not read'],
+                          ].map(([k, val]) => (
+                            <div key={k} className="flex flex-col gap-0.5 bg-[var(--ud-card)] px-3 py-2">
+                              <dt className="text-fg-tertiary">{k}</dt>
+                              <dd className={`tabular-nums ${k === 'Drift' && isVaultDrifting(v) ? 'text-amber-400' : 'text-fg'}`}>{val}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </DashCard>
+          </BentoCard>
+        </BentoGrid>
+      ) : null}
 
       {/* ── 2. L'OFFRE ─────────────────────────────────────────────────── */}
       {offer !== null ? (
@@ -430,7 +553,10 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
                     {/* Sur téléphone le libellé prend la ligne ; montant, date et
                         action passent dessous, l'action calée à droite. */}
                     <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
-                      <p className="text-sm font-medium text-fg">{DECISION_LABEL[d.kind] ?? d.kind}</p>
+                      <p className="text-sm font-medium text-fg">
+                        {DECISION_LABEL[d.kind] ?? d.kind}
+                        {trancheLabel(d.vaultId) ? <span className="ml-2 text-xs text-fg-tertiary">{trancheLabel(d.vaultId)}</span> : null}
+                      </p>
                       <p className="text-xs text-fg-tertiary">{d.note ?? '—'}</p>
                     </div>
                     <p className="text-sm font-medium tabular-nums text-fg">{approvalAmount(d)}</p>
@@ -439,7 +565,10 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
                         s'y prend, avec son contexte ; les autres, ici. */}
                     <span className="ml-auto sm:ml-0">
                       {DECISION_SECTION[d.kind] ? (
-                        <a href={DECISION_SECTION[d.kind]} className="ud-detail-btn inline-flex items-center no-underline">
+                        <a
+                          href={`${d.vaultId ? `?vault=${encodeURIComponent(d.vaultId)}` : ''}${DECISION_SECTION[d.kind]}`}
+                          className="ud-detail-btn inline-flex items-center no-underline"
+                        >
                           Review
                         </a>
                       ) : (
@@ -468,7 +597,7 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
               <DashCard
                 className="min-w-0 scroll-mt-24"
                 eyebrow="Rewards"
-                title="Monthly rewards"
+                title={`Monthly rewards${ofTranche}`}
                 subtitle="What each bucket earned each month, converted into bitcoin — validated here before it reaches the client"
               >
                 {distributions.length === 0 ? (
@@ -498,7 +627,7 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
                           Converted at {usd(pendingReward.btcPriceUsdc)} / BTC · reaches the client’s reserve once approved
                         </p>
                       </div>
-                      <DecisionButtons id={`apr_dist_${entry.clientId}`} action="Approve reward" />
+                      <DecisionButtons id={rewardDecisionId} action="Approve reward" />
                     </div>
                   ) : (
                     <p className="text-sm text-fg-tertiary">
@@ -565,7 +694,7 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
                             fois approuvé ici. */}
                         <TableCell className="text-right">
                           {d.status === 'pending' ? (
-                            <DecisionButtons id={`apr_dist_${entry.clientId}`} action="Approve" />
+                            <DecisionButtons id={rewardDecisionId} action="Approve" />
                           ) : null}
                         </TableCell>
                       </TableRow>
@@ -610,8 +739,8 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
                   operations={(valueOf(rebalancing) ?? [])
                     .filter((op) => op.vaultId === vault.vaultId)
                     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))}
-                  clientName={entry.name}
-                  pending={decisions.filter((d) => d.kind === 'rebalance' || d.kind === 'protocol')}
+                  clientName={`${entry.name}${ofTranche}`}
+                  pending={vaultDecisions.filter((d) => d.kind === 'rebalance' || d.kind === 'protocol')}
                 />
               </BentoCard>
             </BentoGrid>
@@ -620,7 +749,7 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
           {/* Sa puissance de calcul : ce que le client lit dans « Compute ». */}
           {vault !== null ? <div id="compute" className="scroll-mt-24"><ClientCompute
               vaultId={vault.vaultId}
-              clientName={entry.name}
+              clientName={`${entry.name}${ofTranche}`}
               fleet={vaultCompute}
               networkEhs={compute.networkEhs}
               machines={compute.machines}
@@ -629,7 +758,7 @@ export default async function ClientPage({ params }: Readonly<{ params: Promise<
 
           <BentoGrid>
             <BentoCard id="moves" span={12} bare className="scroll-mt-24">
-              <DashCard className="min-w-0" eyebrow="Reserve" title="Deposits & withdrawals" subtitle="What entered and left the reserve on-chain — the deposit converted at entry, each bitcoin withdrawal. Monthly rewards are above">
+              <DashCard className="min-w-0" eyebrow="Reserve" title={`Deposits & withdrawals${ofTranche}`} subtitle="What entered and left the reserve on-chain — the deposit converted at entry, each bitcoin withdrawal. Monthly rewards are above">
                 {cashMoves.length === 0 ? (
                   <p className="text-sm text-fg-tertiary">No movement recorded.</p>
                 ) : (

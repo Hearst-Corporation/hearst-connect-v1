@@ -11,6 +11,7 @@ import {
   type AdminVaultRecord,
 } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { vaultDisplayName } from '@/lib/clients/vaults'
 
 /**
  * Les vaults, un par ligne — avec SA dérive contre SON seuil.
@@ -91,8 +92,8 @@ export function VaultWatchlist({
           return (
             <TableRow key={vault.vaultId}>
               <TableCell className={tableCol.primary}>
-                <Link href={`/admin/clients/${vault.clientId}`} className="font-medium">
-                  {vault.clientLabel}
+                <Link href={`/admin/clients/${vault.clientId}?vault=${encodeURIComponent(vault.vaultId)}`} className="font-medium">
+                  {vaultDisplayName(vault, rows)}
                 </Link>
                 {/* Plus d'identifiant de 45 caractères sous le nom : il ne se lit
                     pas, et la ligne mène déjà à la page du vault. */}
@@ -146,9 +147,9 @@ export function VaultWatchlist({
               {/* Le bouton vert de /account : chaque ligne mène à SON vault. */}
               <TableCell className={tableCol.action}>
                 <Link
-                  href={`/admin/clients/${vault.clientId}`}
+                  href={`/admin/clients/${vault.clientId}?vault=${encodeURIComponent(vault.vaultId)}`}
                   className="ud-detail-btn inline-flex items-center no-underline"
-                  aria-label={`Open ${vault.clientLabel}'s vault`}
+                  aria-label={`Open ${vaultDisplayName(vault, rows)}`}
                 >
                   Open
                 </Link>
@@ -161,7 +162,7 @@ export function VaultWatchlist({
         title: 'Client vaults',
         columns: ['Client', 'Vault', 'Deposit (USDC)', 'Deposit (BTC)', 'Accumulated (BTC)', 'Reserve (BTC)', 'Drift (bps)', 'Lockup end'],
         data: ordered.map((v) => [
-          v.clientLabel,
+          vaultDisplayName(v, rows),
           v.vaultId,
           v.principalUsdc,
           v.capitalBtcSats != null ? v.capitalBtcSats / 1e8 : null,

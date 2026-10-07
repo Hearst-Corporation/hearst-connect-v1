@@ -8,6 +8,7 @@ import { ClientBookTable, type ClientRow } from '@/features/admin-clients/client
 import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import { isVaultDrifting } from '@/lib/admin-dashboard/contracts'
 import { requireSession } from '@/lib/auth'
+import { reserveSats } from '@/lib/clients/vaults'
 import { loadClientBook, PIPELINE_STAGES, STAGE_LABEL, type ClientEntry } from '@/lib/clients/book'
 import { loadAdminOffers } from '@/lib/admin-dashboard/load'
 import { PIPELINE_STATUSES } from '@/lib/offers/model'
@@ -53,14 +54,20 @@ function kycTone(status: string | null): ClientRow['kycTone'] {
 function vaultCell(e: ClientEntry): Pick<ClientRow, 'vaultBadge' | 'vaultTone' | 'vaultLine'> {
   const v = e.vault
   if (e.stage !== 'active' || v === null) return { vaultBadge: null, vaultTone: null, vaultLine: null }
+  /* Plusieurs vaults (une tranche chacun) : le compte, et l'état du PIRE —
+     il suffit qu'une tranche sorte de sa bande pour qu'il y ait un geste. */
   const term =
-    v.lockupMonths !== null && v.lockupElapsedMonths !== null
-      ? `Month ${Math.min(v.lockupElapsedMonths, v.lockupMonths)} of ${v.lockupMonths}`
-      : v.lockupEndAt !== null
-        ? `Unlocks ${formatDate(v.lockupEndAt)}`
-        : null
-  if (v.worstDriftBps === null) return { vaultBadge: 'Drift unread', vaultTone: 'neutral', vaultLine: term }
-  if (isVaultDrifting(v)) return { vaultBadge: 'Rebalance', vaultTone: 'amber', vaultLine: term }
+    e.vaults.length > 1
+      ? `${e.vaults.length} vaults · next unlock ${formatDate(
+          [...e.vaults].map((x) => x.lockupEndAt).filter((d): d is string => d !== null).sort()[0] ?? null,
+        )}`
+      : v.lockupMonths !== null && v.lockupElapsedMonths !== null
+        ? `Month ${Math.min(v.lockupElapsedMonths, v.lockupMonths)} of ${v.lockupMonths}`
+        : v.lockupEndAt !== null
+          ? `Unlocks ${formatDate(v.lockupEndAt)}`
+          : null
+  if (e.vaults.some(isVaultDrifting)) return { vaultBadge: 'Rebalance', vaultTone: 'amber', vaultLine: term }
+  if (e.vaults.every((x) => x.worstDriftBps === null)) return { vaultBadge: 'Drift unread', vaultTone: 'neutral', vaultLine: term }
   return { vaultBadge: 'Within band', vaultTone: 'lime', vaultLine: term }
 }
 
@@ -74,11 +81,13 @@ function toRow(e: ClientEntry): ClientRow {
     stage: e.stage,
     stageLabel: e.stage === 'closed' && e.closedReason !== null ? (e.closedReason === 'declined' ? 'Declined' : 'Expired') : STAGE_LABEL[e.stage],
     amountUsdc: e.amountUsdc,
+    // Toutes ses tranches : la réserve d'un client est la somme de ses vaults.
     reserveBtcSats:
-      e.stage === 'active' && e.vault !== null && (e.vault.capitalBtcSats != null || e.vault.accruedBtcSats != null)
-        ? (e.vault.capitalBtcSats ?? 0) + (e.vault.accruedBtcSats ?? 0)
+      e.stage === 'active' && e.vaults.some((v) => v.capitalBtcSats != null || v.accruedBtcSats != null)
+        ? e.vaults.reduce((t, v) => t + reserveSats(v), 0)
         : null,
-    accruedBtcSats: e.stage === 'active' ? (e.vault?.accruedBtcSats ?? null) : null,
+    accruedBtcSats:
+      e.stage === 'active' && e.vaults.length > 0 ? e.vaults.reduce((t, v) => t + (v.accruedBtcSats ?? 0), 0) : null,
     kycLabel: e.kycStatus === null ? 'Not started' : kycStatusLabel(e.kycStatus),
     kycTone: kycTone(e.kycStatus),
     ...vaultCell(e),
@@ -108,9 +117,10 @@ export default async function ClientsPage() {
     {
       id: 'active',
       title: 'Active vaults',
-      value: available(String(active.length)),
+      // Un vault par tranche : le compte des vaults, pas des clients.
+      value: available(String(active.reduce((n, e) => n + e.vaults.length, 0))),
       icon: ArchiveBoxIcon,
-      footnote: `${btcFromSats(active.reduce((s, e) => s + (e.vault?.capitalBtcSats ?? 0) + (e.vault?.accruedBtcSats ?? 0), 0))} in reserves · from ${usd(active.reduce((s, e) => s + (e.amountUsdc ?? 0), 0))} USDC`,
+      footnote: `${active.length} client${active.length === 1 ? '' : 's'} · ${btcFromSats(active.reduce((s, e) => s + e.vaults.reduce((t, v) => t + reserveSats(v), 0), 0))} in reserves · from ${usd(active.reduce((s, e) => s + (e.amountUsdc ?? 0), 0))} USDC`,
     },
     {
       id: 'pipeline',

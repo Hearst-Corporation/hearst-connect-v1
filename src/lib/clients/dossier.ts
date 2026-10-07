@@ -20,6 +20,7 @@ import type {
 } from '@/lib/admin-dashboard/contracts'
 import type { ComputeFleet } from '@/lib/product/readings'
 import { clientShareOfFleet, totalActiveCapital, type ClientShare } from '@/lib/mining/allocation'
+import { clientVaults } from '@/lib/clients/vaults'
 import type { Offer } from '@/lib/offers/model'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
@@ -41,7 +42,10 @@ export type ClientDossier = Readonly<{
   clientId: string
   /** Identité, telle que le registre la publie. */
   identity: Availability<AdminRecentClient>
-  /** Son vault dédié — un seul par client, par construction du produit. */
+  /** Tous ses vaults, un par tranche, du premier versement au plus récent. */
+  vaults: readonly AdminVaultRecord[]
+  /** Le vault affiché — celui demandé, sinon la première tranche. Les lectures
+   *  détaillées (rendements, distributions, mouvements) portent sur lui. */
   vault: Availability<AdminVaultRecord>
   /** Ses offres, de la plus récente à la plus ancienne. */
   offers: Availability<readonly Offer[]>
@@ -76,19 +80,20 @@ function notInRegistry<T>(endpoint: string, what: string): Availability<T> {
   } as Availability<T>
 }
 
-export async function loadClientDossier(clientId: string): Promise<ClientDossier> {
+export async function loadClientDossier(clientId: string, vaultId?: string | null): Promise<ClientDossier> {
   /* Sept lectures en parallèle. Chacune dit son absence pour son propre
      compte : un client dont on ne lit pas les distributions garde son vault,
-     et son identité reste affichable. */
+     et son identité reste affichable. Les lectures détaillées portent sur le
+     vault demandé (`vaultId`) — sans lui, sur la première tranche. */
   const [clients, vaults, offers, vaultDetail, bucketYields, distributions, movements, fleet] =
     await Promise.all([
       loadAdminRecentClients(50),
       loadAdminVaultRegistry(),
       loadAdminOffers(),
-      loadClientVault(clientId),
-      loadClientBucketYields(clientId),
-      loadClientDistributions(clientId),
-      loadClientMovements(clientId),
+      loadClientVault(clientId, vaultId),
+      loadClientBucketYields(clientId, vaultId),
+      loadClientDistributions(clientId, vaultId),
+      loadClientMovements(clientId, vaultId),
       loadAdminFleet(),
     ])
 
@@ -104,9 +109,10 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
       })()
     : (clients as unknown as Availability<AdminRecentClient>)
 
+  const own = isAvailable(vaults) ? clientVaults(vaults.value, clientId) : []
   const vault: Availability<AdminVaultRecord> = isAvailable(vaults)
     ? (() => {
-        const found = vaults.value.find((v) => v.clientId === clientId)
+        const found = own.find((v) => v.vaultId === vaultId) ?? own[0]
         return found !== undefined
           ? ({ ...vaults, value: found } as Availability<AdminVaultRecord>)
           : notInRegistry<AdminVaultRecord>('/api/v1/admin/vaults/registry', 'vault')
@@ -118,7 +124,7 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
      FAIBLE et le restera tant que l'offre ne portera pas d'identifiant client :
      c'est une limite du modèle actuel, pas une heuristique à étendre. */
   const clientLabel = isAvailable(identity) ? identity.value.label : null
-  const vaultId = isAvailable(vault) ? vault.value.vaultId : null
+  const ownIds = new Set(own.map((v) => v.vaultId))
 
   const clientOffers: Availability<readonly Offer[]> = isAvailable(offers)
     ? ({
@@ -128,7 +134,7 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
             // L'identifiant client d'abord ; le vault, puis le nom, en repli.
             o.clientId != null
               ? o.clientId === clientId
-              : (vaultId !== null && o.vaultId === vaultId) ||
+              : (o.vaultId != null && ownIds.has(o.vaultId)) ||
                 (clientLabel !== null && o.clientName === clientLabel),
           )
           .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)),
@@ -139,7 +145,8 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
      clos ou en attente de fonds ne consomme pas de puissance — l'inclure
      diluerait la part de tous les autres. */
   const totalCapital = isAvailable(vaults) ? totalActiveCapital(vaults.value) : null
-  const clientCapital = isAvailable(vault) ? vault.value.principalUsdc : null
+  // La part du CLIENT : tous ses vaults.
+  const clientCapital = own.length > 0 ? own.reduce((t, v) => t + (v.principalUsdc ?? 0), 0) : null
   const share = isAvailable(fleet)
     ? clientShareOfFleet(clientCapital, totalCapital, {
         hashrateEhs: fleet.value.hashrateEhs,
@@ -151,6 +158,7 @@ export async function loadClientDossier(clientId: string): Promise<ClientDossier
   return {
     clientId,
     identity,
+    vaults: own,
     vault,
     offers: clientOffers,
     vaultDetail,

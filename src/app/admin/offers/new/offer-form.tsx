@@ -46,15 +46,21 @@ function clampPct(raw: string): number {
 }
 
 export function OfferForm() {
-  const [profile, setProfile] = useState<ProfileChoice>('balanced')
-  const [mining, setMining] = useState(DEFAULT_ALLOCATION.balanced.miningBps / 100)
-  const [lending, setLending] = useState(DEFAULT_ALLOCATION.balanced.lendingBps / 100)
-  const [stable, setStable] = useState(DEFAULT_ALLOCATION.balanced.stableBps / 100)
   /* Ouverte depuis une fiche client (« New tranche », « New version ») : le
      client est déjà connu, l'offre lui sera rattachée par son identifiant. */
   const params = useSearchParams()
   const presetClientId = params.get('clientId')
   const presetClient = params.get('client') ?? ''
+  /* Une NOUVELLE TRANCHE reprend l'allocation du vault le plus récent du
+     client : c'est le mandat qu'il a déjà signé. Elle ouvrira son propre vault,
+     modifiable ici comme toute offre. */
+  const tranche = Number(params.get('tranche')) || null
+  const inherited = ['mining', 'lending', 'stable'].map((k) => Number(params.get(k)))
+  const inherits = tranche !== null && inherited.every((v) => Number.isFinite(v) && v >= 0) && inherited.reduce((a, b) => a + b, 0) === 10_000
+  const [profile, setProfile] = useState<ProfileChoice>(inherits ? 'custom' : 'balanced')
+  const [mining, setMining] = useState(inherits ? inherited[0] / 100 : DEFAULT_ALLOCATION.balanced.miningBps / 100)
+  const [lending, setLending] = useState(inherits ? inherited[1] / 100 : DEFAULT_ALLOCATION.balanced.lendingBps / 100)
+  const [stable, setStable] = useState(inherits ? inherited[2] / 100 : DEFAULT_ALLOCATION.balanced.stableBps / 100)
   const [amount, setAmount] = useState('')
   const [months, setMonths] = useState(24)
   const [state, submit, submitting] = useActionState(createOffer, { error: null })
@@ -115,6 +121,14 @@ export function OfferForm() {
 
   return (
     <form action={submit} className="flex flex-col gap-6">
+      {tranche !== null ? (
+        <Callout tone="info" title={`Tranche ${tranche} — a new vault`}>
+          {presetClient || 'This client'} already holds {tranche - 1} vault{tranche - 1 > 1 ? 's' : ''}. This deposit
+          opens its own vault, with its own entry price and lockup — it is never added to an existing one.
+          {inherits ? ' The allocation is taken from their latest vault; adjust it if the mandate changes.' : ''}
+        </Callout>
+      ) : null}
+
       {/* ── LE CLIENT ────────────────────────────────────────────────── */}
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-xs text-fg-tertiary">Client</legend>

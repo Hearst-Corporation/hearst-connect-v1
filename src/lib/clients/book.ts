@@ -12,6 +12,7 @@ import {
   type AdminRecentClient,
   type AdminVaultRecord,
 } from '@/lib/admin-dashboard/contracts'
+import { clientVaults, trancheOf } from '@/lib/clients/vaults'
 import { OFFER_NEXT_STEP, isTerminal, type Offer, type OfferStatus } from '@/lib/offers/model'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
 
@@ -65,12 +66,15 @@ export type ClientEntry = Readonly<{
   stage: ClientStage
   /** Pour un client sorti du parcours : déclinée ou expirée. */
   closedReason: 'declined' | 'expired' | null
-  /** Le capital du vault s'il tourne, sinon le montant de l'offre en cours. */
+  /** Le capital de ses vaults s'ils tournent (toutes tranches), sinon le montant de l'offre en cours. */
   amountUsdc: number | null
   kycStatus: string | null
   /** L'offre la plus récente — celle qui fait avancer le client. */
   offer: Offer | null
+  /** Son PREMIER vault (tranche 1) — l'ouverture du parcours. */
   vault: AdminVaultRecord | null
+  /** Tous ses vaults, un par tranche, du premier versement au plus récent. */
+  vaults: readonly AdminVaultRecord[]
   decisions: readonly AdminApproval[]
   /** Ce qui doit se passer maintenant. */
   nextAction: string | null
@@ -111,7 +115,7 @@ function stageOf(vault: AdminVaultRecord | null, offer: Offer | null): Pick<Clie
 function nextActionOf(
   stage: ClientStage,
   offer: Offer | null,
-  vault: AdminVaultRecord | null,
+  vaults: readonly AdminVaultRecord[],
   decisions: readonly AdminApproval[],
   kycStatus: string | null,
 ): Pick<ClientEntry, 'nextAction' | 'onUs'> {
@@ -119,11 +123,20 @@ function nextActionOf(
     const n = decisions.length
     return { nextAction: `${n} decision${n > 1 ? 's' : ''} waiting on you`, onUs: true }
   }
-  if (stage === 'active' && vault !== null) {
-    if (isVaultDrifting(vault)) return { nextAction: 'Rebalance — drift beyond its band', onUs: true }
-    const left = monthsLeft(vault)
-    if (left !== null && left <= DUE_SOON_MONTHS) {
-      return { nextAction: left <= 0 ? 'Lockup ended — renew or release' : 'Lockup ends soon — prepare renewal', onUs: true }
+  if (stage === 'active' && vaults.length > 0) {
+    // Chaque vault se suit pour son compte : il suffit qu'UNE tranche demande un geste.
+    const which = (v: AdminVaultRecord) => (vaults.length > 1 ? ` (tranche ${trancheOf(v)})` : '')
+    const drifting = vaults.find(isVaultDrifting)
+    if (drifting) return { nextAction: `Rebalance — drift beyond its band${which(drifting)}`, onUs: true }
+    const ending = vaults
+      .map((v) => ({ v, left: monthsLeft(v) }))
+      .filter((x): x is { v: AdminVaultRecord; left: number } => x.left !== null && x.left <= DUE_SOON_MONTHS)
+      .sort((a, b) => a.left - b.left)[0]
+    if (ending) {
+      return {
+        nextAction: `${ending.left <= 0 ? 'Lockup ended — renew or release' : 'Lockup ends soon — prepare renewal'}${which(ending.v)}`,
+        onUs: true,
+      }
     }
     // Une deuxième offre en préparation (tranche supplémentaire, renouvellement).
     if (offer !== null && !isTerminal(offer.status) && OFFER_NEXT_STEP[offer.status] !== null) {
@@ -184,7 +197,8 @@ export function buildClientBook(
   }
 
   const entries: ClientEntry[] = [...ids].map(([clientId, ident]) => {
-    const vault = vaultRows.find((v) => v.clientId === clientId) ?? null
+    const vaults = clientVaults(vaultRows, clientId)
+    const vault = vaults[0] ?? null
     const clientOffers = offerRows
       .filter((o) => clientIdOfOffer(o) === clientId)
       .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
@@ -192,17 +206,19 @@ export function buildClientBook(
     const offer = clientOffers.find((o) => !isTerminal(o.status)) ?? clientOffers[0] ?? null
     const decisions = decisionRows.filter((d) => d.clientId === clientId)
     const { stage, closedReason } = stageOf(vault, offer)
-    const { nextAction, onUs } = nextActionOf(stage, offer, vault, decisions, ident.kyc)
+    const { nextAction, onUs } = nextActionOf(stage, offer, vaults, decisions, ident.kyc)
+    const vaultCapital = vaults.reduce((t, v) => t + (v.principalUsdc ?? 0), 0)
     return {
       clientId,
       name: ident.name,
       kind: vault?.clientKind ?? offer?.clientKind ?? null,
       stage,
       closedReason,
-      amountUsdc: stage === 'active' ? (vault?.principalUsdc ?? offer?.amountUsdc ?? null) : (offer?.amountUsdc ?? null),
+      amountUsdc: stage === 'active' ? (vaults.length > 0 ? vaultCapital : (offer?.amountUsdc ?? null)) : (offer?.amountUsdc ?? null),
       kycStatus: ident.kyc,
       offer,
       vault,
+      vaults,
       decisions,
       nextAction,
       onUs,

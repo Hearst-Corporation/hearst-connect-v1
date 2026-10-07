@@ -4,6 +4,7 @@ import { CalmState } from '@/components/compositions'
 import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
 import { formatNumber } from '@/lib/format'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
+import { vaultDisplayName } from '@/lib/clients/vaults'
 
 /**
  * Calendrier des déblocages : quand chaque vault redevient retirable, et pour
@@ -79,8 +80,11 @@ export function UnlockSchedule({
           return (
             <li key={vault.vaultId} className="flex flex-col gap-1.5 py-3">
               <div className="flex items-baseline justify-between gap-3 text-sm">
-                <Link href={`/admin/clients/${vault.clientId}`} className="min-w-0 truncate font-medium text-fg">
-                  {vault.clientLabel}
+                <Link
+                  href={`/admin/clients/${vault.clientId}?vault=${encodeURIComponent(vault.vaultId)}`}
+                  className="min-w-0 truncate font-medium text-fg"
+                >
+                  {vaultDisplayName(vault, vaults.value)}
                 </Link>
                 <span className="shrink-0 tabular-nums text-fg">{btcShort(capital)}</span>
               </div>

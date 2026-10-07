@@ -3,6 +3,7 @@ import { Link } from '@/components/catalyst/link'
 import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
 import { formatNumber } from '@/lib/format'
 import { totalActiveCapital } from '@/lib/mining/allocation'
+import { vaultDisplayName } from '@/lib/clients/vaults'
 
 /**
  * Le rendement minier, vault par vault.
@@ -62,8 +63,11 @@ export function MiningByVault({
           {rows.map(({ v, share, ths, btc }) => (
             <li key={v.vaultId} className="flex flex-col gap-2 py-3.5">
               <div className="flex items-baseline justify-between gap-3">
-                <Link href={`/admin/clients/${v.clientId}`} className="truncate text-sm font-medium text-fg">
-                  {v.clientLabel}
+                <Link
+                  href={`/admin/clients/${v.clientId}?vault=${encodeURIComponent(v.vaultId)}`}
+                  className="truncate text-sm font-medium text-fg"
+                >
+                  {vaultDisplayName(v, vaults)}
                 </Link>
                 <span className="text-sm tabular-nums text-fg">{formatNumber(btc, { maximumFractionDigits: 3 })} BTC</span>
               </div>

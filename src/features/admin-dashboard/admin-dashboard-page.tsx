@@ -349,14 +349,16 @@ async function ReserveHistoryData() {
   const points: ReserveSplitPoint[] = all.map((m) => {
     accumulated += added.get(m) ?? 0
     const deposits = starts.filter((x) => x.month <= m).reduce((t, x) => t + x.btc, 0)
-    const byClient = vaults.value
-      .filter((v) => v.lockupStartAt !== null && (v.lockupStartAt as string).slice(0, 7) <= m)
-      .map((v) => {
-        const acc = (running.get(v.vaultId) ?? 0) + (addedByVault.get(v.vaultId)?.get(m) ?? 0)
-        running.set(v.vaultId, acc)
-        return { label: v.clientLabel, value: (v.capitalBtcSats ?? 0) / 1e8 + acc }
-      })
-      .sort((a, b) => b.value - a.value)
+    // Par CLIENT : ses tranches (un vault chacune) s'additionnent.
+    const perClient = new Map<string, { label: string; value: number }>()
+    for (const v of vaults.value) {
+      if (v.lockupStartAt === null || (v.lockupStartAt as string).slice(0, 7) > m) continue
+      const acc = (running.get(v.vaultId) ?? 0) + (addedByVault.get(v.vaultId)?.get(m) ?? 0)
+      running.set(v.vaultId, acc)
+      const cur = perClient.get(v.clientId) ?? { label: v.clientLabel, value: 0 }
+      perClient.set(v.clientId, { label: cur.label, value: cur.value + (v.capitalBtcSats ?? 0) / 1e8 + acc })
+    }
+    const byClient = [...perClient.values()].sort((a, b) => b.value - a.value)
     return { month: m, deposits, accumulated, byClient }
   })
   return <ReserveCompositionChart points={points} />
@@ -572,7 +574,7 @@ export function AdminDashboardPage() {
           <DashPanel
             eyebrow="Clients"
             title="Vaults"
-            subtitle="One vault per client, each against its own drift threshold"
+            subtitle="One vault per deposit tranche, each against its own drift threshold"
             action={<PanelHeaderLink href="/admin/clients?view=active">All vaults</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
