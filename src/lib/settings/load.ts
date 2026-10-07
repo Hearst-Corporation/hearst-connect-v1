@@ -23,3 +23,25 @@ export async function loadAudit(limit = 200): Promise<readonly AuditEntry[] | nu
     return null
   }
 }
+
+export type Integration = Readonly<{
+  id: string
+  name: string
+  role: string
+  status: string
+  environment: string | null
+  lastCallAt: string | null
+  lastWebhookAt: string | null
+  detail: string | null
+}>
+
+/** La santé des services tiers. `null` : illisible. */
+export async function loadIntegrations(): Promise<readonly Integration[] | null> {
+  try {
+    const res = await callBackend<{ integrations: BackendResolved<readonly Integration[]> }>('admin-integrations')
+    const value = res.ok ? res.data.integrations?.value : null
+    return Array.isArray(value) ? value : null
+  } catch {
+    return null
+  }
+}

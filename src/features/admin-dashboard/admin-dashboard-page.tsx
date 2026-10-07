@@ -1,18 +1,18 @@
 import {
-  ActivityTimelinePanel,
   DashCard,
   DashboardHeader,
   DashboardShell,
   MarketSnapshotPanel,
   PanelFallback,
   PanelHeaderLink,
-  PortfolioExposurePanel,
-  RebalancingAlertsPanel,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
 import { HearstPrimaryAction } from '@/components/actions'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { PendingStrip } from '@/features/admin-approvals/pending-strip'
+import { AlertsPanel } from './alerts-panel'
+import { AuditList } from '@/features/settings/audit-list'
+import { loadAudit } from '@/lib/settings/load'
 import { ApprovalsQueue } from '@/features/admin-approvals/approvals-queue'
 import { DecisionsDisclosure } from '@/features/admin-approvals/decisions-disclosure'
 import {
@@ -25,36 +25,25 @@ import {
 import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
 import type { ProductionCost } from '@/lib/product/readings'
 import {
-  loadAdminExposure,
   loadAdminMarketSnapshot,
-  loadAdminRebalancingSummary,
-  loadAdminRecentActivity,
-  loadAdminAssetScale,
 } from '@/lib/admin-dashboard/load'
-import { formatCurrency, formatDriftPts, formatNumber } from '@/lib/format'
+import { formatCurrency, formatNumber } from '@/lib/format'
 import { available, isAvailable, mapAvailability, valueOf, type Availability } from '@/lib/vaults/model'
 import { Suspense, type ReactNode } from 'react'
 import { HearstBreakdownDonut } from '@/components/charts'
 import {
   ReserveCompositionChart,
-  BucketsByMonthChart,
-  type BucketMonth,
   type ReserveSplitPoint,
 } from './book-charts'
 import {
   reserveByClientKind,
   type CapitalSlice,
 } from './capital-breakdowns'
-import { ComputeFleetPanel } from '@/features/user-dashboard/compute-fleet-panel'
-import { allocatedTo, computeByVault, loadFleetCompute } from '@/lib/mining/compute'
-import { ComputeByVault } from './compute-by-vault'
 import { PipelineStrip } from './pipeline-strip'
 import { UnlockSchedule } from './unlock-schedule'
-import { VaultWatchlist } from './vault-watchlist'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
-  ExclamationTriangleIcon,
   PlusIcon,
   BoltIcon,
 } from '@heroicons/react/16/solid'
@@ -288,33 +277,6 @@ async function CapitalDonut({
 }
 
 /** Le parc et ce qui en revient aux vaults — le panneau de /account, à l'échelle du book. */
-async function ComputeData() {
-  const fc = await loadFleetCompute()
-  const fleet = allocatedTo(fc, 'all')
-  const rows = computeByVault(fc)
-  if (fleet === null) {
-    return <p className="py-6 text-center text-sm text-fg-tertiary">The fleet could not be read.</p>
-  }
-  const vaults = rows.filter((r) => r.vaultId !== null).length
-  return (
-    <div className="flex flex-col gap-8">
-      <ComputeFleetPanel
-        fleet={fleet}
-        networkHashrateEhs={fc.networkEhs}
-        copy={{
-          eyebrow: 'Allocated to client vaults',
-          hashrate: `Hashrate allocated, across ${vaults} vaults`,
-          produced: 'Produced for the vaults',
-          note: 'Each vault holds the machines its Mining capital bought. The rest of the fleet is free for new vaults.',
-        }}
-      />
-      <div>
-        <p className="mb-3 text-xs text-fg-tertiary">Distribution by client vault</p>
-        <ComputeByVault rows={rows} />
-      </div>
-    </div>
-  )
-}
 
 async function UnlockScheduleData() {
   const vaults = await loadAdminVaultRegistry()
@@ -375,88 +337,33 @@ async function ReserveHistoryData() {
   return <ReserveCompositionChart points={points} />
 }
 
-/** Ce que chaque poche ajoute aux réserves, mois par mois, tous vaults confondus. */
-async function BucketsByMonthData() {
-  const distributions = await loadAdminMiningDistributions()
-  if (!isAvailable(distributions)) {
-    return <p className="py-6 text-center text-sm text-fg-tertiary">Distributions could not be read.</p>
-  }
-  const months: BucketMonth[] = [...distributions.value]
-    .sort((x, y) => x.month.localeCompare(y.month))
-    .map((d) => ({
-      month: d.month,
-      usd: Number(d.yieldUsdc) || 0,
-      buckets: Object.fromEntries((d.byBucket ?? []).map((b) => [b.bucket, b.btcSats / 1e8])),
-      byClient: (d.byVault ?? [])
-        .map((v) => ({ label: v.clientLabel, value: v.btcSats / 1e8 }))
-        .sort((a, b) => b.value - a.value),
-    }))
-  return <BucketsByMonthChart months={months} />
-}
 
-async function PortfolioExposureData() {
-  const [exposure, assetScale] = await Promise.all([loadAdminExposure(), loadAdminAssetScale()])
-  return <PortfolioExposurePanel strategies={exposure} assetScale={assetScale} />
-}
 
 async function PipelineData() {
   const offers = await loadAdminOffers()
   return <PipelineStrip offers={offers} />
 }
 
-async function VaultWatchlistData() {
-  const vaults = await loadAdminVaultRegistry()
-  return <VaultWatchlist vaults={vaults} showUnlock={false} />
-}
 
-async function RebalancingAlertsData() {
-  const rebalancing = await loadAdminRebalancingSummary()
-  return <RebalancingAlertsPanel summary={rebalancing} />
-}
 
 async function MarketData() {
   const market = await loadAdminMarketSnapshot()
   return <MarketSnapshotPanel snapshot={market} />
 }
 
-async function ActivityTimelineData() {
-  const [recentActivity, assetScale, vaults] = await Promise.all([
-    loadAdminRecentActivity(7),
-    loadAdminAssetScale(),
-    loadAdminVaultRegistry(),
-  ])
-  /* Un rééquilibrage concerne UN vault, donc UN client : le flux l'annonçait
-     sans nom (« Across the vault »). Le registre dit à qui est ce vault. */
-  const clientOf = new Map((isAvailable(vaults) ? vaults.value : []).map((v) => [v.vaultId, v.clientLabel]))
-  /* Le backend peut renvoyer plus que demandé : la liste est coupée ici, pour
-     que la colonne ne dépasse pas celle des vaults. */
-  return (
-    <ActivityTimelinePanel
-      events={mapAvailability(recentActivity, (events) =>
-        events.slice(0, 7).map((e) =>
-          e.clientLabel === null && e.vaultId !== null && clientOf.has(e.vaultId)
-            ? { ...e, clientLabel: clientOf.get(e.vaultId) ?? null }
-            : e,
-        ),
-      )}
-      assetScale={assetScale}
-    />
-  )
-}
 
 /**
- * Admin dashboard — the cockpit FIRST SCREEN.
+ * LE DASHBOARD — un centre de commande, pas une vitrine.
  *
- * Only what counts at a glance: the four headline figures, the market, what
- * waits on a decision, the commercial pipeline, then each vault against its
- * own threshold beside the ledger.
+ *   1. Les chiffres de tête, et à qui appartient le capital.
+ *   2. Le marché, en une ligne.
+ *   3. Ce qui ATTEND (décisions) à côté de ce qui ALERTE (dérive, fin de
+ *      blocage, intégration en panne, réglage en attente, gardien).
+ *   4. La réserve des clients dans le temps, à côté du calendrier des sorties.
+ *   5. Le pipeline commercial, à côté de ce que l'équipe vient de faire.
  *
- * No aggregated drift curve and no event histogram: drift only means
- * something vault by vault, and a count of on-chain events says nothing an
- * operator acts on.
- *
- * Explicit rows, each owning its grid; every panel streams independently
- * behind a Suspense boundary.
+ * Ce qui a son écran n'est plus répété ici : le parc et sa répartition vivent
+ * dans Settlement et sur la fiche client, la liste des vaults dans Clients.
  */
 export function AdminDashboardPage() {
   return (
@@ -465,16 +372,10 @@ export function AdminDashboardPage() {
         <HeaderData />
       </Suspense>
 
-      {/* Le marché juste sous les chiffres de tête, en aplat vert : c'est le
-          contexte qui donne leur sens au coût de minage et au revenu net. */}
+      {/* Le marché, en une bande : le contexte du coût de minage et des rewards. */}
       <BentoGrid>
         <BentoCard span={12} bare>
-          <DashPanel
-            eyebrow="Readings"
-            title="Market"
-            subtitle="Bitcoin price, hashprice and network difficulty"
-            tone="accent"
-          >
+          <DashPanel eyebrow="Readings" title="Market" subtitle="Bitcoin price, hashprice and network difficulty">
             <Suspense fallback={<PanelFallback />}>
               <MarketData />
             </Suspense>
@@ -482,73 +383,52 @@ export function AdminDashboardPage() {
         </BentoCard>
       </BentoGrid>
 
-      {/* Ce qui ATTEND une décision passe avant les lectures de marché : un
-          tableau de bord qui n'annonce pas ce qui bloque laisse l'opérateur
-          découvrir les demandes par hasard. */}
+      {/* Ce qui attend un geste, à côté de ce qui alerte. */}
       <BentoGrid>
-        <BentoCard span={12} bare>
+        <BentoCard span={8} bare>
           <DashPanel
             eyebrow="Decisions"
             title="Waiting on you"
-            subtitle="Deposits, distributions and withdrawals that need a decision"
+            subtitle="Deposits, rewards, withdrawals and rebalancings that need a decision"
           >
             <Suspense fallback={<PanelFallback />}>
               <PendingDecisions />
             </Suspense>
           </DashPanel>
         </BentoCard>
-      </BentoGrid>
-
-      {/* ── LE COMPUTE ─────────────────────────────────────────────────────
-          Le cœur du produit : la puissance du parc, ce qui en est affecté aux
-          vaults, et ce qui reste libre. Le même panneau que voit le client. */}
-      <BentoGrid>
-        <BentoCard span={12} bare>
-          <DashPanel
-            eyebrow="Compute"
-            title="Compute infrastructure"
-            subtitle="The fleet, what is allocated to each client vault, and what is still available"
-            action={<PanelHeaderLink href="/admin/settlement">Settlement</PanelHeaderLink>}
-          >
+        <BentoCard span={4} bare>
+          <DashPanel eyebrow="Alerts" title="Needs attention" subtitle="Not a decision — but not to be discovered by chance">
             <Suspense fallback={<PanelFallback />}>
-              <ComputeData />
+              <AlertsPanel />
             </Suspense>
           </DashPanel>
         </BentoCard>
       </BentoGrid>
 
-      {/* ── LE BOOK DANS LE TEMPS ──────────────────────────────────────────
-          Comment le capital évolue, et ce que le minage verse chaque mois. */}
+      {/* La réserve des clients dans le temps, et quand elle peut sortir. */}
       <BentoGrid>
-        <BentoCard span={6} bare>
+        <BentoCard span={8} bare>
           <DashPanel
             eyebrow="Reserves"
             title="Client bitcoin reserves"
             subtitle="What the deposits bought at entry, and what the product has added since"
+            action={<PanelHeaderLink href="/admin/settlement">Settlement</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
               <ReserveHistoryData />
             </Suspense>
           </DashPanel>
         </BentoCard>
-        <BentoCard span={6} bare>
-          <DashPanel
-            eyebrow="Reserves"
-            title="Added each month, by bucket"
-            subtitle="What Mining, Lending and USDC added to client reserves, converted into bitcoin"
-            action={<PanelHeaderLink href="/admin/settlement">Settlement</PanelHeaderLink>}
-          >
+        <BentoCard span={4} bare>
+          <DashPanel eyebrow="Liquidity" title="Unlock schedule" subtitle="When each client's bitcoin reserve can leave" fill>
             <Suspense fallback={<PanelFallback />}>
-              <BucketsByMonthData />
+              <UnlockScheduleData />
             </Suspense>
           </DashPanel>
         </BentoCard>
       </BentoGrid>
 
-      {/* ── LE PIPELINE ────────────────────────────────────────────────────
-          Avant toute mesure de ce qui tourne déjà : l'essentiel d'une journée
-          est en amont — des offres à finir, à relancer, des fonds à appeler,
-          des vaults à ouvrir. Le registre des derniers mouvements l'accompagne. */}
+      {/* L'amont commercial, et ce que l'équipe vient de faire. */}
       <BentoGrid>
         <BentoCard span={8} bare>
           <DashPanel
@@ -565,48 +445,22 @@ export function AdminDashboardPage() {
         <BentoCard span={4} bare>
           <DashPanel
             eyebrow="Activity"
-            title="Recent activity"
-            subtitle="The latest movements across all vaults"
-            action={<PanelHeaderLink href="/admin/clients?view=active">Open the clients</PanelHeaderLink>}
+            title="What the team did"
+            subtitle="From the audit log"
+            action={<PanelHeaderLink href="/admin/settings/audit">Audit log</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
-              <ActivityTimelineData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-      </BentoGrid>
-
-      {/* ── LES VAULTS, UN PAR LIGNE ───────────────────────────────────────
-          Chaque vault contre SON seuil — on ne rééquilibre jamais « le
-          portefeuille », on rééquilibre le vault de quelqu'un. À droite, quand
-          ce capital peut sortir. */}
-      <BentoGrid>
-        <BentoCard span={8} bare>
-          <DashPanel
-            eyebrow="Clients"
-            title="Vaults"
-            subtitle="One vault per deposit tranche, each against its own drift threshold"
-            action={<PanelHeaderLink href="/admin/clients?view=active">All vaults</PanelHeaderLink>}
-          >
-            <Suspense fallback={<PanelFallback />}>
-              <VaultWatchlistData />
-            </Suspense>
-          </DashPanel>
-        </BentoCard>
-        {/* `self-stretch` : la carte prend la hauteur du tableau des vaults. */}
-        <BentoCard span={4} bare className="self-stretch">
-          <DashPanel
-            eyebrow="Liquidity"
-            title="Unlock schedule"
-            subtitle="When each client's bitcoin reserve can leave — and how much"
-            fill
-          >
-            <Suspense fallback={<PanelFallback />}>
-              <UnlockScheduleData />
+              <TeamActivityData />
             </Suspense>
           </DashPanel>
         </BentoCard>
       </BentoGrid>
     </DashboardShell>
   )
+}
+
+/** Les derniers gestes de l'équipe, lus dans le journal d'audit. */
+async function TeamActivityData() {
+  const audit = await loadAudit(7)
+  return <AuditList entries={audit} compact />
 }

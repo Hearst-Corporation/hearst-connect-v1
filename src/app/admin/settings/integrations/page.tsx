@@ -1,9 +1,8 @@
 import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { FireblocksLogo, GmailLogo, HubSpotLogo, SumsubLogo } from '@/components/brand-logos'
 import { Callout } from '@/components/compositions'
-import type { BackendResolved } from '@/lib/admin-dashboard/cache'
 import { requireSession } from '@/lib/auth'
-import { callBackend } from '@/lib/backend/client'
+import { loadIntegrations } from '@/lib/settings/load'
 import { formatDateTime } from '@/lib/format'
 import type { Metadata } from 'next'
 
@@ -24,17 +23,6 @@ export const dynamic = 'force-dynamic'
  * jamais le backend. Une intégration illisible se dit illisible.
  */
 
-type Integration = Readonly<{
-  id: string
-  name: string
-  role: string
-  status: 'connected' | 'degraded' | 'disconnected' | 'not_configured' | string
-  environment: 'sandbox' | 'production' | string | null
-  lastCallAt: string | null
-  lastWebhookAt: string | null
-  detail: string | null
-}>
-
 const LOGO: Record<string, (p: { className?: string }) => React.ReactNode> = {
   sumsub: SumsubLogo,
   fireblocks: FireblocksLogo,
@@ -47,16 +35,6 @@ const TONE: Record<string, { label: string; tone: string }> = {
   degraded: { label: 'Degraded', tone: 'text-amber-300 ring-amber-300/30' },
   disconnected: { label: 'Disconnected', tone: 'text-red-400 ring-red-400/30' },
   not_configured: { label: 'Not configured', tone: 'text-fg-tertiary ring-[var(--ud-line)]' },
-}
-
-async function loadIntegrations(): Promise<readonly Integration[] | null> {
-  try {
-    const res = await callBackend<{ integrations: BackendResolved<readonly Integration[]> }>('admin-integrations')
-    const value = res.ok ? res.data.integrations?.value : null
-    return Array.isArray(value) ? value : null
-  } catch {
-    return null
-  }
 }
 
 export default async function IntegrationsPage() {
