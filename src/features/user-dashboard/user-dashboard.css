@@ -6260,7 +6260,7 @@
 /* Hauteur commune ramenée à 590 px : onglet + en-tête tiennent dans 790 px. */
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body {
-    height: 610px;
+    height: 614px;
   }
   .ud-root .analysis--fund .center-plot {
     height: 416px;
@@ -6368,22 +6368,26 @@
 /* Overview : 5 px de plus au-dessus et au-dessous des en-têtes et de la
    rangée BTC ; l'écart entre les deux sections se resserre d'autant. */
 .ud-root .vault-tab-body--overview .section-heading {
-  padding-top: 24px;
-  padding-bottom: 24px;
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
+/* Même padding que les tuiles du vault (28 px) : les trois rangées respirent
+   pareil. */
 .ud-root .vault-tab-body--overview .btc-block-top .stat-tile {
-  padding-top: 24px;
-  padding-bottom: 24px;
+  padding-top: 28px;
+  padding-bottom: 28px;
 }
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body--overview {
-    gap: 8px;
+    gap: 6px;
   }
   /* Le « +21.9 % » est haut : il creusait l'air au-dessus du titre. 6 px en
      haut, 12 en bas donnent le même vide visible des deux côtés. */
+  /* 28 px visibles des deux côtés : le « +21.9 % », plus haut que le titre,
+     prend déjà ~6 px en haut. */
   .ud-root .vault-tab-body--overview .btc-gauge {
-    padding-top: 14px;
-    padding-bottom: 20px;
+    padding-top: 22px;
+    padding-bottom: 28px;
   }
 }
 
