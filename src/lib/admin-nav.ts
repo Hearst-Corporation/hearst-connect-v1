@@ -1,14 +1,8 @@
 import {
-  BanknotesIcon,
   BuildingOffice2Icon,
-  CommandLineIcon,
   CalendarDaysIcon,
-  DocumentTextIcon,
   HomeIcon,
   IdentificationIcon,
-  ShieldCheckIcon,
-  SignalIcon,
-  Squares2X2Icon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/20/solid'
 
@@ -26,12 +20,14 @@ import {
  *   Decisions   → la file de validations vit dans le Dashboard, où elle est
  *                 la première chose à traiter, et sur chaque fiche client.
  *   Compliance  → un onglet de la fiche client : le KYC concerne UN client.
- *   Operations  → le rebalancing se décide par vault ; l'écran global reste
- *                 accessible depuis le tableau de bord (activité, contrat).
+ *   Operations  → le rebalancing se décide par vault : la dérive sur le
+ *                 tableau de bord, l'historique sur la fiche client.
+ * Ces trois routes redirigent ; aucune page ne les porte plus.
  *
- * Réglages rassemble ce qui était éparpillé en trois groupes secondaires
- * (Product, Service, API explorer, Keeper, Series 1) : des surfaces d'outillage,
- * consultées rarement, qui n'ont pas à peser autant que le travail quotidien.
+ * Settings rassemble deux choses, et les sépare : les termes du PRODUIT (les
+ * paramètres de chaque offre), et l'outillage TECHNIQUE (Integrations,
+ * Service, API explorer, Keeper),
+ * consulté rarement, qui n'a pas à peser autant que le travail quotidien.
  */
 
 type NavIcon = typeof HomeIcon
@@ -65,6 +61,8 @@ export type SecondaryEntry = Readonly<{
   href: string
   icon: NavIcon
   detail: string
+  /** Le bloc du hub Settings : la référence métier, ou l'outillage technique. */
+  section?: 'Product' | 'Technical'
 }>
 
 export type SecondaryGroup = Readonly<{
@@ -80,47 +78,6 @@ export type SecondaryGroup = Readonly<{
  * servir personne. Elles gardent leurs routes — rien n'est supprimé.
  */
 export const ADMIN_SECONDARY: readonly SecondaryGroup[] = [
-  {
-    title: 'Settings',
-    entries: [
-      {
-        label: 'Product',
-        href: '/admin/product',
-        icon: DocumentTextIcon,
-        detail: 'Reserve, production and backtests — facts carried by the backend',
-      },
-      {
-        label: 'Compliance',
-        href: '/admin/compliance',
-        icon: ShieldCheckIcon,
-        detail: 'Read-only KYC queue — the decision belongs to the partner',
-      },
-      {
-        label: 'Journal',
-        href: '/admin/series-1',
-        icon: Squares2X2Icon,
-        detail: 'Explorer of indexed events, filterable',
-      },
-      {
-        label: 'Service',
-        href: '/admin/runtime',
-        icon: SignalIcon,
-        detail: 'Probes, runtime, coverage and raw responses',
-      },
-      {
-        label: 'API explorer',
-        href: '/admin/api-explorer',
-        icon: CommandLineIcon,
-        detail: 'Backend endpoints, their method, their access, a curl ready to copy',
-      },
-      {
-        label: 'Keeper',
-        href: '/admin/keeper',
-        icon: BanknotesIcon,
-        detail: 'Keeper requests with side effects, each behind an explicit confirmation',
-      },
-    ],
-  },
   {
     title: 'Account',
     entries: [
@@ -203,19 +160,8 @@ export function activeBodyHref(pathname: string): string | undefined {
  * l'explorateur d'API n'allumait aucune entrée et le rail paraissait éteint.
  */
 const NAV_ALIASES: Readonly<Record<string, string>> = {
-  '/admin/client-simulator': '/admin/clients',
   '/admin/offers': '/admin/clients',
   '/admin/vaults': '/admin/clients',
-  '/admin/product': '/admin/settings',
-  '/admin/compliance': '/admin/settings',
-  '/admin/series-1': '/admin/settings',
-  '/admin/runtime': '/admin/settings',
-  '/admin/api-explorer': '/admin/settings',
-  '/admin/keeper': '/admin/settings',
-  // L'activité et le contrat on-chain : un écran d'exploitation, rattaché à Clients.
-  '/admin/operations': '/admin/clients',
-  // La file de validations est le premier bloc du tableau de bord.
-  '/admin/approvals': '/admin',
 }
 
 export function activeHref(pathname: string): string | undefined {

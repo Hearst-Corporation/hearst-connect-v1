@@ -14,10 +14,9 @@ import type { Offer } from '@/lib/offers/model'
  * modèle recopié dans deux écrans finit par diverger, et le client reçoit
  * alors deux versions de la même promesse.
  *
- * ATTENTION — aucun envoi n'est branché. Ces gabarits produisent le texte ;
- * le transport (SMTP, service tiers) reste à raccorder, et le lien de virement
- * viendra de Fireblocks. Tant que ce n'est pas fait, l'écran affiche le texte
- * pour qu'il soit copié à la main plutôt que réécrit à chaque fois.
+ * L'envoi passe par le backend : il part du Gmail de l'opérateur et se
+ * consigne dans HubSpot (voir `admin-offer-email-send`). L'adresse de dépôt de
+ * l'appel de fonds vient de Fireblocks, ouverte à l'acceptation de l'offre.
  */
 
 export type EmailTemplate = Readonly<{
@@ -87,11 +86,12 @@ export function fundingEmail(offer: Offer): EmailTemplate {
 Thank you for confirming. Here are the funding instructions for ${offer.clientName}.
 
   Amount             ${usd(offer.amountUsdc)} USDC
-  Route              Fireblocks transfer
-  Link               [FIREBLOCKS_LINK]
+  Network            ${offer.fireblocks?.network ?? '[network]'}
+  Deposit address    ${offer.fireblocks?.depositAddress ?? '[FIREBLOCKS_DEPOSIT_ADDRESS]'}
 
-Please confirm the destination address inside Fireblocks before approving —
-never from this email alone. We will confirm receipt as soon as the transfer
+This address belongs to your dedicated vault account at Fireblocks. Please
+confirm it with us by phone before approving the transfer — never from this
+email alone. We will confirm receipt as soon as the transfer
 settles, and your vault opens at that point.
 
 — Hearst`,

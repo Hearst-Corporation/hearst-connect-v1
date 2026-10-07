@@ -53,6 +53,7 @@ import { ProjectionTable } from './projection-table'
 import type { AllocationBar, UserDashboard } from './load'
 import { HearstConnectLockupImage, LogoMark } from '@/components/logo'
 import { DepositForm } from './deposit-form'
+import { WithdrawDialog } from './withdraw-dialog'
 import { BtcPositionHeadline } from './btc-position'
 
 /**
@@ -238,6 +239,8 @@ export function UserDashboardView({
   user,
 }: Readonly<{ data: UserDashboard; user: SessionUser }>) {
   const [route, setRoute] = useState<Route>('dashboard')
+  // Le retrait : une demande, validée par Hearst avant que le bitcoin ne sorte.
+  const [withdrawOpen, setWithdrawOpen] = useState(false)
   /* Ouverture du menu mobile. Fermé à chaque navigation : laisser le panneau
      ouvert sur la vue qu'on vient d'atteindre cacherait le résultat du clic. */
   const [menuOpen, setMenuOpen] = useState(false)
@@ -302,7 +305,8 @@ export function UserDashboardView({
   // client. Dérivée, jamais un solde détenu — d'où la ligne secondaire et non
   // une seconde valeur de tuile. Sans cours lisible, rien ne s'affiche : mieux
   // vaut une tuile en dollars seuls qu'un montant BTC bâti sur un taux supposé.
-  const btcProduced = valueOf(data.btcProducedTotal)
+  /* Le produit du VAULT quand sa source le publie ; sinon le cumul du compte. */
+  const btcProduced = valueOf(data.vaultAccount)?.producedBtc ?? valueOf(data.btcProducedTotal)
   const btcSpotUsd = valueOf(data.marketSnapshot)?.btcUsd ?? null
   /*
    * Le bitcoin porte la valeur PRINCIPALE des tuiles, le dollar sa contrevaleur.
@@ -703,7 +707,7 @@ export function UserDashboardView({
                         plutôt qu'il ne rassure. */}
                     <span>Capital, distributions and withdrawals.</span>
                   </div>
-                  <VaultActions vault={data.vaultAccount} onWithdraw={() => setRoute('trade')} />
+                  <VaultActions vault={data.vaultAccount} onWithdraw={() => setWithdrawOpen(true)} />
                 </div>
 
                 <section className="fund-kpis" aria-label="Vault indicators">
@@ -992,6 +996,15 @@ export function UserDashboardView({
             </div>
           </div>
         </main>
+        {withdrawOpen ? (
+          <WithdrawDialog
+            availableBtc={
+              btcSpotUsd !== null && btcSpotUsd > 0 ? (valueOf(data.vaultAccount)?.availableUsdc ?? 0) / btcSpotUsd : 0
+            }
+            spotUsd={btcSpotUsd}
+            onClose={() => setWithdrawOpen(false)}
+          />
+        ) : null}
       </div>
     </MotionConfig>
   )

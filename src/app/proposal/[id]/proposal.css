@@ -75,6 +75,22 @@
   clip-path: polygon(23.5% 25.5%, 50.2% 19.8%, 76.8% 25.8%, 74.8% 60.8%, 49.6% 75%, 46% 75.5%, 23.6% 63.5%);
 }
 
+/* La réponse du client, juste sous la barre : accepter ou décliner. */
+.proposal-answer {
+  position: sticky;
+  top: 57px;
+  z-index: 9;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 14px 24px;
+  background: #0f1a0b;
+  border-bottom: 1px solid rgba(158, 234, 122, 0.25);
+  color: #fff;
+}
+
 .proposal-toolbar {
   position: sticky;
   top: 0;
@@ -116,7 +132,8 @@
     background: #0b0b0b;
   }
 
-  .proposal-toolbar {
+  .proposal-toolbar,
+  .proposal-answer {
     display: none;
   }
 

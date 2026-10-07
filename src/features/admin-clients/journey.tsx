@@ -29,7 +29,7 @@ export function Journey({ entry }: Readonly<{ entry: ClientEntry }>) {
     { label: 'Offer prepared', detail: date(o?.createdAt), done: reached(entry, 'draft') || (entry.stage === 'closed' && o !== null) },
     { label: 'Offer sent', detail: date(o?.sentAt), done: reached(entry, 'sent') || (entry.stage === 'closed' && o?.sentAt != null) },
     { label: 'Accepted', detail: date(o?.decidedAt), done: reached(entry, 'accepted') },
-    { label: 'KYC approved', detail: 'Som', done: kycOk || entry.stage === 'active' },
+    { label: 'KYC approved', detail: 'Sumsub', done: kycOk || entry.stage === 'active' },
     { label: 'Funds called', detail: 'Credentials + funding link', done: reached(entry, 'funding') },
     { label: 'Funds received', detail: null, done: reached(entry, 'funded') },
     {

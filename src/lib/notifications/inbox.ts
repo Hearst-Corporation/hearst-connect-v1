@@ -121,7 +121,7 @@ function itemsFor(e: ClientEntry): InboxItem[] {
       items.push(
         kycOk
           ? { ...base, href: `${href}#offer`, id: `offer:${o.id}:accepted`, kind: 'offer', severity: 'action', title: 'Offer accepted — call the funds', detail: `${e.name} · issue credentials and the ${amount} funding link`, at: o.decidedAt ?? o.updatedAt }
-          : { ...base, id: `offer:${o.id}:kyc`, kind: 'kyc', severity: 'info', title: 'KYC pending with Som', detail: `${e.name} accepted ${amount} — funds cannot be called until Som approves`, at: o.decidedAt ?? o.updatedAt },
+          : { ...base, id: `offer:${o.id}:kyc`, kind: 'kyc', severity: 'info', title: 'KYC pending with Sumsub', detail: `${e.name} accepted ${amount} — funds cannot be called until Sumsub approves`, at: o.decidedAt ?? o.updatedAt },
       )
     } else if (o.status === 'funded') {
       items.push({ ...base, href: `${href}#offer`, id: `offer:${o.id}:funded`, kind: 'funds', severity: 'action', title: 'Funds received — open the vault', detail: `${e.name} · ${amount} arrived`, at: o.updatedAt })

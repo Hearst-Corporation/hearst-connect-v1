@@ -1,15 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { GmailLogo, HubSpotLogo } from '@/components/brand-logos'
+import { sendOfferEmail } from '@/features/admin-offers/actions'
+import { formatDate } from '@/lib/format'
+import type { SentEmail } from '@/lib/offers/model'
+import { useEffect, useState, useTransition } from 'react'
 
 /**
  * Les courriels du parcours d'une offre — prêts à relire, modifier et envoyer.
  *
- * Aucun service d'envoi n'est branché côté serveur : « Send » ouvre un
- * brouillon PRÉ-REMPLI (destinataire, copies, objet, texte) dans Gmail ou dans
- * le logiciel de messagerie, et l'opérateur n'a plus qu'à cliquer sur Envoyer.
- * Rien ne part sans lui — c'est aussi ce qu'on veut pour un courriel qui
- * engage l'entreprise.
+ * « Send » part par le backend : depuis le Gmail de l'opérateur, et consigné
+ * sur le contact et le deal HubSpot — l'historique commercial reste complet
+ * sans recopie. Quand l'envoi EST l'étape (proposition, appel de fonds), le
+ * backend l'enregistre aussi ; s'il la refuse (KYC non validé), rien ne part.
+ * Rien ne part sans un clic de l'opérateur.
  *
  * Les modifications et les copies se gardent dans ce navigateur, par offre et
  * par courriel : elles survivent à un rechargement, pas à un changement de
@@ -23,6 +27,8 @@ export type ComposerEmail = Readonly<{
   body: string
   /** Le courriel de l'étape en cours : déplié par défaut. */
   current: boolean
+  /** Le dernier envoi de ce courriel, quand il est parti. */
+  sent?: SentEmail | null
 }>
 
 type Draft = { subject: string; body: string; to: string; cc: string }
@@ -76,6 +82,20 @@ export function EmailComposer({
 
 function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string; email: ComposerEmail }>) {
   const [draft, setDraft] = useState<Draft>({ subject: email.subject, body: email.body, to, cc: '' })
+  const [sending, startSending] = useTransition()
+  const [sendError, setSendError] = useState<string | null>(null)
+  const send = () => {
+    setSendError(null)
+    startSending(async () => {
+      const out = await sendOfferEmail(offerId, email.id, {
+        to: addresses(draft.to),
+        cc: addresses(draft.cc),
+        subject: draft.subject,
+        body: draft.body,
+      })
+      if (!out.ok) setSendError(out.error)
+    })
+  }
   const [editing, setEditing] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -91,18 +111,6 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
   const ccList = addresses(draft.cc)
   const edited = draft.subject !== email.subject || draft.body !== email.body
 
-  const gmailHref =
-    'https://mail.google.com/mail/?view=cm&fs=1' +
-    `&to=${encodeURIComponent(toList.join(','))}` +
-    (ccList.length > 0 ? `&cc=${encodeURIComponent(ccList.join(','))}` : '') +
-    `&su=${encodeURIComponent(draft.subject)}` +
-    `&body=${encodeURIComponent(draft.body)}`
-  const mailtoHref =
-    `mailto:${toList.map(encodeURIComponent).join(',')}` +
-    `?subject=${encodeURIComponent(draft.subject)}` +
-    (ccList.length > 0 ? `&cc=${ccList.map(encodeURIComponent).join(',')}` : '') +
-    `&body=${encodeURIComponent(draft.body)}`
-
   return (
     <details open={email.current} className="group rounded-lg bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hearst-green)] [&::-webkit-details-marker]:hidden">
@@ -111,6 +119,11 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
         </span>
         <span className="min-w-0 flex-1 truncate font-medium text-[var(--hearst-green)]">{draft.subject}</span>
         {edited ? <span className="text-[11px] text-fg-tertiary">edited</span> : null}
+        {email.sent ? (
+          <span className="rounded-full px-2 py-0.5 text-[11px] text-[var(--hearst-green)] ring-1 ring-[var(--hearst-green)]/30">
+            Sent {formatDate(email.sent.sentAt)}
+          </span>
+        ) : null}
         <span className="shrink-0 text-xs text-fg-tertiary">{email.trigger}</span>
       </summary>
 
@@ -158,22 +171,15 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
         )}
 
         <div className="flex flex-wrap items-center gap-2">
-          <a
-            href={toList.length > 0 ? gmailHref : undefined}
-            target="_blank"
-            rel="noreferrer"
-            aria-disabled={toList.length === 0}
-            className={`ud-cta ${toList.length === 0 ? 'pointer-events-none opacity-40' : ''}`}
+          <button
+            type="button"
+            onClick={send}
+            disabled={toList.length === 0 || sending}
+            className="ud-cta inline-flex items-center gap-2 disabled:pointer-events-none disabled:opacity-40"
           >
-            Send with Gmail
-          </a>
-          <a
-            href={toList.length > 0 ? mailtoHref : undefined}
-            aria-disabled={toList.length === 0}
-            className={`inline-flex h-9 items-center rounded-full px-5 text-[13px] font-medium text-fg ring-1 ring-[var(--ud-line)] hover:bg-white/5 ${toList.length === 0 ? 'pointer-events-none opacity-40' : ''}`}
-          >
-            Mail app
-          </a>
+            <GmailLogo className="size-4" />
+            {sending ? 'Sending…' : email.sent ? 'Send again' : 'Send'}
+          </button>
           <button
             type="button"
             onClick={() => setEditing((e) => !e)}
@@ -206,6 +212,34 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
             </button>
           ) : null}
           {toList.length === 0 ? <span className="text-xs text-amber-400">Add a recipient to send.</span> : null}
+          {sendError ? <span className="text-xs text-amber-400">{sendError}</span> : null}
+        </div>
+
+        {/* Où part le courriel, et où il se consigne : on le lit avant d'envoyer. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-tertiary">
+          {email.sent ? (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <GmailLogo className="size-3.5" />
+                Sent {formatDate(email.sent.sentAt)} to {email.sent.to.join(', ')}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <HubSpotLogo className="size-3.5" />
+                Logged in HubSpot{email.sent.hubspotEngagementId ? ` · #${email.sent.hubspotEngagementId}` : ''}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <GmailLogo className="size-3.5" />
+                Sends from your Gmail
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <HubSpotLogo className="size-3.5" />
+                Logged on the contact and deal in HubSpot
+              </span>
+            </>
+          )}
         </div>
       </div>
     </details>

@@ -20,6 +20,10 @@ import { driftThresholdOf, isVaultDrifting } from '@/lib/admin-dashboard/contrac
 import { loadAdminRebalancingOperations, loadOfferSimulation } from '@/lib/admin-dashboard/load'
 import { AllocationRebalancing } from '@/features/admin-clients/allocation-rebalancing'
 import { TrancheSwitcher } from '@/features/admin-clients/tranche-switcher'
+import { OfferSteps } from '@/features/admin-offers/offer-steps'
+import { loadTransactions } from '@/features/fireblocks/load'
+import { FireblocksTransactions } from '@/features/fireblocks/transactions-list'
+import { ReleaseVaultButton } from '@/features/admin-offers/release-vault-button'
 import { DecisionButtons } from '@/features/admin-approvals/decision-buttons'
 import { requireSession } from '@/lib/auth'
 import { loadClientBook, STAGE_LABEL } from '@/lib/clients/book'
@@ -110,11 +114,12 @@ export default async function ClientPage({
   // Le vault affiché : un client détient un vault par tranche ; `?vault=` choisit lequel.
   const { vault: vaultParam } = await searchParams
 
-  const [book, dossier, compute, rebalancing] = await Promise.all([
+  const [book, dossier, compute, rebalancing, transactions] = await Promise.all([
     loadClientBook(),
     loadClientDossier(id, vaultParam ?? null),
     loadFleetCompute(),
     loadAdminRebalancingOperations(200),
+    loadTransactions(id),
   ])
   const entry = book.entries.find((e) => e.clientId === id)
   if (entry === undefined) notFound()
@@ -284,7 +289,7 @@ export default async function ClientPage({
           title: 'KYC',
           value: available(entry.kycStatus === null ? 'Not started' : kycStatusLabel(entry.kycStatus)),
           icon: ShieldCheckIcon,
-          footnote: 'Decided by Som, the KYC partner',
+          footnote: 'Decided by Sumsub, the KYC partner',
         },
       ]
 
@@ -418,6 +423,42 @@ export default async function ClientPage({
         </BentoCard>
       </BentoGrid>
 
+      {/* ── LA FIN DU BLOCAGE de la tranche affichée ──────────────────────
+          Deux issues : rendre la réserve au client (en bitcoin), ou la
+          renouveler — ce qui est une NOUVELLE tranche, donc un nouveau vault. */}
+      {vault !== null && vault.lockupMonths !== null && vault.lockupElapsedMonths !== null &&
+      vault.lockupElapsedMonths >= vault.lockupMonths ? (
+        <BentoGrid>
+          <BentoCard span={12} bare>
+            {vault.status === 'RELEASED' ? (
+              <Callout tone="info" title={`Tranche ${tranche} — released`}>
+                The lockup ended and the reserve ({btcFmt(vCapital + vAccrued)}) was returned to the client
+                {vault.releasedAt ? ` on ${formatDate(vault.releasedAt)}` : ''}. This vault is closed.
+              </Callout>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--ud-radius)] bg-amber-400/[0.06] px-5 py-4 ring-1 ring-amber-400/30">
+                <div className="flex max-w-xl flex-col gap-1">
+                  <p className="text-xs tracking-[0.12em] text-amber-400 uppercase">
+                    Lockup ended{multi ? ` · tranche ${tranche}` : ''} · {formatDate(vault.lockupEndAt)}
+                  </p>
+                  <p className="text-base font-medium text-fg">Release the reserve, or renew as a new tranche</p>
+                  <p className="text-xs text-fg-secondary">
+                    Releasing returns {btcFmt(vCapital + vAccrued)} to the client in bitcoin and closes this vault. Renewing
+                    is a new offer — a new vault, at today’s entry price, with its own lockup.
+                  </p>
+                </div>
+                <div className="ml-auto flex flex-wrap items-start justify-end gap-2">
+                  <Link href={offerHref} className="inline-flex h-9 items-center rounded-full px-4 text-[13px] font-medium text-fg ring-1 ring-[var(--ud-line)] no-underline hover:bg-white/5">
+                    Renew as a new tranche
+                  </Link>
+                  <ReleaseVaultButton vaultId={vault.vaultId} />
+                </div>
+              </div>
+            )}
+          </BentoCard>
+        </BentoGrid>
+      ) : null}
+
       {/* ── 2. L'OFFRE ─────────────────────────────────────────────────── */}
       {offer !== null ? (
         <BentoGrid>
@@ -433,6 +474,15 @@ export default async function ClientPage({
                 </Link>
               }
             >
+              {/* Le geste suivant du parcours, avec son bouton. */}
+              <div className="mb-5 empty:hidden">
+                <OfferSteps
+                  offer={offer}
+                  kyc={entry.kycStatus}
+                  aml={valueOf(dossier.identity)?.amlStatus ?? null}
+                  depositDecisionId={decisions.find((d) => d.id === `apr_dep_${offer.id}`)?.id ?? null}
+                />
+              </div>
               <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] sm:grid-cols-4">
                 {[
                   ['Amount', usd(offer.amountUsdc)],
@@ -462,6 +512,8 @@ export default async function ClientPage({
                     trigger: mail.trigger,
                     body: mail.body,
                     current: mail.trigger.startsWith(`${offer.status} →`),
+                    // Le dernier envoi de ce courriel (Gmail), consigné dans HubSpot.
+                    sent: offer.sentEmails?.filter((e) => e.emailId === mail.id).at(-1) ?? null,
                   }))}
                 />
               </div>
@@ -757,13 +809,51 @@ export default async function ClientPage({
         </>
       ) : null}
 
+      {/* ── LES MOUVEMENTS D'ARGENT ─────────────────────────────────────
+          La console décide ; Fireblocks exécute et signe. Chaque geste qui
+          déplace de l'argent pour ce client a sa ligne ici, avec le statut
+          de Fireblocks. */}
+      {transactions === null || transactions.length > 0 ? (
+        <BentoGrid>
+          <BentoCard id="transactions" span={12} bare className="scroll-mt-24">
+            <DashCard
+              className="min-w-0"
+              eyebrow="Payments"
+              title="Transactions · Fireblocks"
+              subtitle="Decided here, executed and signed in Fireblocks — status relayed as Fireblocks reports it"
+            >
+              <FireblocksTransactions transactions={transactions} />
+            </DashCard>
+          </BentoCard>
+        </BentoGrid>
+      ) : null}
+
       {/* ── 5. QUI EST-IL ──────────────────────────────────────────────── */}
       <BentoGrid>
         <BentoCard id="kyc" span={12} bare className="scroll-mt-24">
-          <DashCard className="min-w-0" tone="accent" eyebrow="Client" title="Qualification and KYC" subtitle="What the client answered, and where Som stands on their KYC">
+          <DashCard className="min-w-0" tone="accent" eyebrow="Client" title="Qualification and KYC" subtitle="What the client answered, and where Sumsub stands on their KYC">
             <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
               {[
-                ['KYC (Som)', entry.kycStatus === null ? 'Not started' : kycStatusLabel(entry.kycStatus)],
+                ['KYC (Sumsub)', entry.kycStatus === null ? 'Not started' : kycStatusLabel(entry.kycStatus)],
+                ['AML (Sumsub)', (() => {
+                  const aml = valueOf(dossier.identity)?.amlStatus ?? null
+                  return aml === null ? 'Not run' : aml === 'CLEAR' ? 'Clear' : aml === 'FLAGGED' ? 'Flagged' : aml
+                })()],
+                ['Sumsub file', (() => {
+                  const file = valueOf(dossier.identity)?.sumsub ?? null
+                  if (file === null) return 'Not opened yet'
+                  return (
+                    <a
+                      href={`https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(file.applicantId)}/basicInfo`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[var(--hearst-green)] no-underline hover:underline"
+                    >
+                      {file.levelName ?? 'Applicant'}
+                      {file.reviewedAt ? ` · reviewed ${formatDate(file.reviewedAt)}` : ''} · Open in Sumsub ↗
+                    </a>
+                  )
+                })()],
                 ['Contact', offer?.contactEmail ?? '—'],
                 ['Platform', questionnaire?.platformKind ?? entry.kind ?? '—'],
                 // Ce que le client GÈRE chez lui, déclaré au questionnaire — pas ce qu'il a versé ici.
@@ -774,7 +864,7 @@ export default async function ClientPage({
                 ['First vault size', questionnaire?.firstVaultSize ?? '—'],
                 ['Timeline', questionnaire?.launchTimeline ?? '—'],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4 border-b border-[var(--ud-line)] pb-2">
+                <div key={String(k)} className="flex justify-between gap-4 border-b border-[var(--ud-line)] pb-2">
                   <dt className="text-sm text-fg-tertiary">{k}</dt>
                   <dd className="text-right text-sm text-fg">{v}</dd>
                 </div>

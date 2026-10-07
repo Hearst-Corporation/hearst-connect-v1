@@ -1,5 +1,6 @@
 import { AdminApplicationLayout } from '@/components/admin/application-layout'
 import { TableLabels } from '@/components/admin/table-labels'
+import { DemoDock } from '@/features/demo/demo-dock'
 import { requireSession } from '@/lib/auth'
 import { loadAdminInbox } from '@/lib/notifications/inbox'
 import { publicUser } from '@/lib/session'
@@ -39,6 +40,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
         {children}
       </AdminApplicationLayout>
       <TableLabels />
+      <DemoDock />
     </div>
   )
 }

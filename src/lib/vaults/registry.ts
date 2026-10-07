@@ -725,7 +725,7 @@ function buildCompliance(
           clientId: row.clientId as ClientId,
           clientLabel: typeof row.clientLabel === 'string' ? row.clientLabel : row.clientId,
           // A missing stage/KYC status stays empty (rendered as "—" / neutral badge) —
-          // never fabricated as 'a-verifier'/'pending', which would read as a real Som verdict.
+          // never fabricated as 'a-verifier'/'pending', which would read as a real Sumsub verdict.
           stage: typeof row.stage === 'string' ? row.stage : '',
           kycStatus: typeof row.kycStatus === 'string' ? row.kycStatus : '',
           openedAt: row.openedAt ?? null,

@@ -57,12 +57,12 @@ export function PendingStrip({
 
   const countOf = (kind: AdminApprovalKind) => rows.filter((r) => r.kind === kind).length
 
-  /** Où mène « Details » : la fiche quand il n'y a qu'un client, sinon le groupe de la page Decisions. */
+  /** Où mène « Details » : la fiche quand il n'y a qu'un client, sinon son groupe dans la file, juste dessous. */
   const detailsHref = (kind: AdminApprovalKind) => {
     const items = rows.filter((r) => r.kind === kind)
     const clients = new Set(items.map((r) => r.clientId))
     if (items.length > 0 && clients.size === 1) return `/admin/clients/${items[0].clientId}${SECTION_OF[kind]}`
-    return `/admin/approvals#${kind}`
+    return `/admin#${kind}`
   }
 
   const ending =
@@ -177,7 +177,7 @@ const SECTION_OF: Record<AdminApprovalKind, string> = {
  * Le bouton vert « Details » de /account (`.ud-detail-btn`), sur la ligne du
  * montant. La case entière n'est plus un lien : le bouton dit où l'on clique.
  */
-function DetailsLink({ label, href = '/admin/approvals' }: Readonly<{ label: string; href?: string }>) {
+function DetailsLink({ label, href = '/admin#decisions' }: Readonly<{ label: string; href?: string }>) {
   return (
     <Link
       href={href}

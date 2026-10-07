@@ -13,6 +13,8 @@ import {
 import { HearstPrimaryAction } from '@/components/actions'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { PendingStrip } from '@/features/admin-approvals/pending-strip'
+import { ApprovalsQueue } from '@/features/admin-approvals/approvals-queue'
+import { DecisionsDisclosure } from '@/features/admin-approvals/decisions-disclosure'
 import {
   loadAdminApprovals,
   loadAdminOffers,
@@ -30,7 +32,7 @@ import {
   loadAdminAssetScale,
 } from '@/lib/admin-dashboard/load'
 import { formatCurrency, formatDriftPts, formatNumber } from '@/lib/format'
-import { available, isAvailable, mapAvailability, type Availability } from '@/lib/vaults/model'
+import { available, isAvailable, mapAvailability, valueOf, type Availability } from '@/lib/vaults/model'
 import { Suspense, type ReactNode } from 'react'
 import { HearstBreakdownDonut } from '@/components/charts'
 import {
@@ -66,7 +68,16 @@ function unavailableReason(bloc: Availability<unknown>, fallback: string): strin
 /** Décisions en attente, chargées à part : le bandeau ne bloque pas le reste. */
 async function PendingDecisions() {
   const [approvals, vaults] = await Promise.all([loadAdminApprovals(), loadAdminVaultRegistry()])
-  return <PendingStrip approvals={approvals} vaults={vaults} />
+  /* Le résumé par type, puis la file complète — ses boutons sont ici : il n'y
+     a plus de page « Decisions » à part. */
+  return (
+    <>
+      <PendingStrip approvals={approvals} vaults={vaults} />
+      <DecisionsDisclosure count={valueOf(approvals)?.length ?? 0}>
+        <ApprovalsQueue approvals={approvals} />
+      </DecisionsDisclosure>
+    </>
+  )
 }
 
 /**
@@ -556,7 +567,7 @@ export function AdminDashboardPage() {
             eyebrow="Activity"
             title="Recent activity"
             subtitle="The latest movements across all vaults"
-            action={<PanelHeaderLink href="/admin/operations">View all activity</PanelHeaderLink>}
+            action={<PanelHeaderLink href="/admin/clients?view=active">Open the clients</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
               <ActivityTimelineData />

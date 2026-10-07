@@ -1,3 +1,4 @@
+import { EmailComposer } from '@/features/admin-offers/email-composer'
 import { redirect } from 'next/navigation'
 import { Link } from '@/components/catalyst/link'
 import { DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
@@ -291,38 +292,27 @@ export default async function OfferPage({
             l'entreprise. Celui de l'étape courante est déplié : c'est le seul
             qu'on ait à envoyer maintenant.
 
-            Aucun envoi n'est branché — le transport et le lien Fireblocks
-            restent à raccorder. En attendant, le texte se copie d'ici plutôt
-            que de se réécrire à chaque fois. */}
+            L'envoi part du Gmail de l'opérateur et se consigne dans HubSpot ;
+            l'adresse de dépôt de l'appel de fonds vient de Fireblocks. */}
         <BentoCard span={12} bare>
           <DashCard
             className="min-w-0"
             eyebrow="Journey"
             title="Emails"
-            subtitle="Each is triggered by a change of state, never sent by hand. Nothing is wired to a mail service yet — copy the text for now"
+            subtitle="Sent from your Gmail and logged in HubSpot — the email of the current step is open"
           >
-          <div className="flex flex-col gap-3">
-            {emailsFor(offer).map((mail) => {
-              const current = mail.trigger.startsWith(`${offer.status} →`)
-              return (
-                <details
-                  key={mail.id}
-                  open={current}
-                  className="rounded-lg border border-console-line bg-console-inset px-4 py-3"
-                >
-                  <summary className="cursor-pointer text-sm">
-                    <span className={current ? 'font-medium text-accent-400' : ''}>
-                      {mail.subject}
-                    </span>
-                    <span className="ml-2 text-xs text-fg-tertiary">{mail.trigger}</span>
-                  </summary>
-                  <pre className="mt-3 overflow-x-auto text-xs leading-relaxed whitespace-pre-wrap text-fg-secondary">
-                    {mail.body}
-                  </pre>
-                </details>
-              )
-            })}
-          </div>
+            <EmailComposer
+              offerId={offer.id}
+              to={offer.contactEmail}
+              emails={emailsFor(offer).map((mail) => ({
+                id: mail.id,
+                subject: mail.subject,
+                trigger: mail.trigger,
+                body: mail.body,
+                current: mail.trigger.startsWith(`${offer.status} →`),
+                sent: offer.sentEmails?.filter((e) => e.emailId === mail.id).at(-1) ?? null,
+              }))}
+            />
           </DashCard>
         </BentoCard>
 

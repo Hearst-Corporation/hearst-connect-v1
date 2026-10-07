@@ -1,62 +1,102 @@
-import { DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
+import { DashCard, DashboardHeader, DashboardShell, PanelHeaderLink } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { Link } from '@/components/catalyst/link'
+import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
+import { Callout } from '@/components/compositions'
+import { ChangeCard } from '@/features/settings/change-card'
+import { AuditList } from '@/features/settings/audit-list'
 import { requireSession } from '@/lib/auth'
-import { ADMIN_SECONDARY } from '@/lib/admin-nav'
+import { loadAudit, loadSettings } from '@/lib/settings/load'
+import { sectionOf, type TeamMember } from '@/lib/settings/schema'
+import { editorial } from '@/lib/vaults/model'
+import { ClockIcon, ShieldCheckIcon, UserGroupIcon, PauseCircleIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Settings' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Le hub des réglages.
+ * SETTINGS · OVERVIEW — ce qui attend une décision, puis ce qui vient de changer.
  *
- * Six surfaces d'outillage — produit, conformité, journal, service, explorateur
- * d'API, keeper — occupaient chacune un rang dans le menu latéral, au même
- * niveau que les clients et les vaults. Elles servent à vérifier et déboguer,
- * pas à opérer : les voir toutes en permanence donnait dix cibles pour cinq
- * tâches quotidiennes.
- *
- * Elles gardent leurs routes. Cette page les rassemble, chacune avec ce qu'elle
- * fait — un menu qui ne dit que des noms oblige à cliquer pour se souvenir.
+ * La première chose qu'un responsable veut savoir en ouvrant les réglages :
+ * y a-t-il un changement à approuver, un autre qui va s'appliquer, et qui a
+ * touché à quoi récemment.
  */
-export default async function SettingsPage() {
-  await requireSession()
+export default async function SettingsOverview() {
+  const session = await requireSession()
+  const [settings, audit] = await Promise.all([loadSettings(), loadAudit(8)])
 
-  const group = ADMIN_SECONDARY.find((g) => g.title === 'Settings')
-  const entries = group?.entries ?? []
+  if (settings === null) {
+    return (
+      <DashboardShell>
+        <DashboardHeader title="Settings" description="Configure the platform — every change approved by a second member." kpis={[]} />
+        <Callout tone="warning" title="Settings could not be read">
+          The backend does not publish them yet — nothing is shown rather than a guess.
+        </Callout>
+      </DashboardShell>
+    )
+  }
+
+  const team = (settings.values.team ?? []) as TeamMember[]
+  const open = settings.changes.filter((c) => c.status === 'pending' || c.status === 'scheduled')
+  const pending = open.filter((c) => c.status === 'pending')
+  const scheduled = open.filter((c) => c.status === 'scheduled')
+  const limits = (settings.values.limits ?? {}) as { guardianPause?: boolean }
+
+  const kpis: readonly AdminHeroKpi[] = [
+    { id: 'pending', title: 'Waiting for approval', value: editorial(String(pending.length)), icon: ClockIcon },
+    { id: 'scheduled', title: 'Timelock running', value: editorial(String(scheduled.length)), icon: ShieldCheckIcon },
+    {
+      id: 'team',
+      title: 'Active members',
+      value: editorial(String(team.filter((m) => m.status === 'active').length)),
+      icon: UserGroupIcon,
+    },
+    { id: 'guardian', title: 'Guardian pause', value: editorial(limits.guardianPause ? 'ON — moves frozen' : 'Off'), icon: PauseCircleIcon },
+  ]
 
   return (
     <DashboardShell>
       <DashboardHeader
         title="Settings"
-        description="Tooling and reference surfaces — product facts, compliance queue, service health, API catalogue."
-        kpis={[]}
+        description="Configure the platform. Every change is a request: a second member approves it, risk parameters wait for their timelock, and all of it is logged."
+        kpis={kpis}
       />
 
       <BentoGrid>
-        {entries.map((entry) => {
-          const Icon = entry.icon
-          return (
-            <BentoCard key={entry.href} span={4} bare>
-              {/* Aplat vert citrus, encre sombre : les six surfaces d'outillage
-                  se lisent comme des portes d'entrée, pas comme du texte. */}
-              <Link
-                href={entry.href}
-                className="group flex h-full flex-col gap-3 rounded-[var(--ud-radius)] bg-[var(--hearst-green)] p-5 text-[var(--hearst-green-ink)] no-underline transition-[filter] hover:brightness-[1.04]"
-              >
-                <span className="flex items-center justify-between">
-                  <span className="flex size-9 items-center justify-center rounded-full bg-[var(--hearst-green-ink)]/10">
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="text-sm opacity-60 transition-transform group-hover:translate-x-0.5">→</span>
-                </span>
-                <span className="text-[17px] font-medium">{entry.label}</span>
-                <span className="text-xs leading-relaxed opacity-75">{entry.detail}</span>
-              </Link>
-            </BentoCard>
-          )
-        })}
+        <BentoCard span={8} bare>
+          <DashCard title="Waiting on the team" subtitle="Change requests to approve, and approved ones whose timelock is running">
+            {open.length === 0 ? (
+              <p className="text-sm text-fg-tertiary">Nothing is waiting. Every setting is as approved.</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {open.map((c) => {
+                  const section = sectionOf(c.section)
+                  if (section === null) return null
+                  return (
+                    <ChangeCard
+                      key={c.id}
+                      change={c}
+                      section={section}
+                      team={team}
+                      approverRoles={settings.approverRoles[section.policy] ?? []}
+                      me={session.email}
+                      compact
+                    />
+                  )
+                })}
+              </div>
+            )}
+          </DashCard>
+        </BentoCard>
+        <BentoCard span={4} bare>
+          <DashCard
+            title="Recent activity"
+            subtitle="Who changed what — from the audit log"
+            action={<PanelHeaderLink href="/admin/settings/audit">Audit log</PanelHeaderLink>}
+          >
+            <AuditList entries={audit} compact />
+          </DashCard>
+        </BentoCard>
       </BentoGrid>
     </DashboardShell>
   )

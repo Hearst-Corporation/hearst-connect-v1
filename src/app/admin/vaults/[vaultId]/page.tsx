@@ -851,7 +851,7 @@ export default async function Page({ params }: PageProps) {
       {/* Page-level provenance note — one quiet text line, not a bordered strip. */}
       <Text className="text-sm text-fg-secondary">
         Source health and endpoint coverage:{' '}
-        <Link href="/admin/runtime" className="underline">
+        <Link href="/admin/settings/developer/service" className="underline">
           Service
         </Link>
         .

@@ -106,6 +106,20 @@ export type AdminRecentClient = Readonly<{
   lastActivityAt: string | null
   kycProvider: string
   kycStatus: string
+  /** L'AML, décidé par le partenaire avec le KYC : CLEAR, FLAGGED, ou pas encore lu. */
+  amlStatus?: string | null
+  /**
+   * Le dossier du client chez Sumsub, quand il existe : l'identifiant ouvre
+   * le cockpit Sumsub, le niveau dit ce qui a été vérifié (KYB institutionnel…).
+   * La décision arrive du partenaire par webhook ; la console ne la prend jamais.
+   */
+  sumsub?: Readonly<{
+    applicantId: string
+    levelName: string | null
+    /** GREEN (validé), RED (refusé), ou null tant que l'examen n'est pas rendu. */
+    reviewAnswer: string | null
+    reviewedAt: string | null
+  }> | null
   currentExposureAtomic: string | null
   vaultIds: readonly string[]
 }>
@@ -243,6 +257,8 @@ export type AdminVaultRecord = {
    * ne sait pas mesurer n'est pas une dérive nulle.
    */
   readonly worstDriftBps: number | null
+  /** Blocage levé : la réserve a été rendue au client (statut RELEASED). */
+  readonly releasedAt?: string | null
   /**
    * Seuil au-delà duquel ce vault demande un arbitrage, en points de base.
    *

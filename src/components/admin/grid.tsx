@@ -111,6 +111,9 @@ export function BentoCard({
            qui oubliait `bare` affichait une carte dans une carte. */
         !bare &&
           'has-[>[data-surface=box]]:bg-transparent has-[>[data-surface=box]]:p-0 has-[>[data-surface=box]]:ring-0',
+        /* La carte enfant prend toute la hauteur de la rangée, `bare` ou non :
+           deux cartes côte à côte finissent à la même ligne. */
+        '[&>[data-surface=box]]:h-full',
         // Une cellule `bare` porte sa propre carte : la carte prend toute la
         // hauteur de la rangée.
         bare && '[&>*]:h-full',

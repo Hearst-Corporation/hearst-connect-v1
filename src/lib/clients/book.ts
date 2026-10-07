@@ -27,7 +27,7 @@ import { isAvailable, type Availability } from '@/lib/vaults/model'
  * ne voulaient pas dire la même chose.
  *
  * Ici, les quatre sources se rejoignent par l'identifiant client : l'annuaire
- * (identité + KYC Som), les offres, le registre des vaults, la file des
+ * (identité + KYC Sumsub), les offres, le registre des vaults, la file des
  * décisions. Chaque client reçoit UNE étape et UNE action attendue.
  */
 
@@ -98,8 +98,11 @@ function monthsLeft(v: AdminVaultRecord): number | null {
 }
 
 /** L'étape d'un client, lue dans son vault puis dans son offre la plus récente. */
-function stageOf(vault: AdminVaultRecord | null, offer: Offer | null): Pick<ClientEntry, 'stage' | 'closedReason'> {
-  if (vault !== null && vault.status.toUpperCase() === 'ACTIVE') return { stage: 'active', closedReason: null }
+function stageOf(vaults: readonly AdminVaultRecord[], offer: Offer | null): Pick<ClientEntry, 'stage' | 'closedReason'> {
+  if (vaults.some((v) => v.status.toUpperCase() === 'ACTIVE')) return { stage: 'active', closedReason: null }
+  /* Tous ses vaults rendus (blocages levés) et rien en cours : la relation est
+     close — un renouvellement en préparation reprend, lui, le parcours. */
+  if (vaults.length > 0 && (offer === null || isTerminal(offer.status))) return { stage: 'closed', closedReason: null }
   if (offer === null) return { stage: 'prospect', closedReason: null }
   if (offer.status === 'declined' || offer.status === 'expired') return { stage: 'closed', closedReason: offer.status }
   if (offer.status === 'active') return { stage: 'active', closedReason: null }
@@ -154,7 +157,7 @@ function nextActionOf(
       return { nextAction: 'Waiting on the client’s answer', onUs: false }
     case 'accepted':
       return kycBlocks
-        ? { nextAction: 'KYC pending with Som — funds cannot be called yet', onUs: false }
+        ? { nextAction: 'KYC pending with Sumsub — funds cannot be called yet', onUs: false }
         : { nextAction: 'Issue credentials and request funds', onUs: true }
     case 'funding':
       return { nextAction: 'Waiting for the transfer', onUs: false }
@@ -205,7 +208,7 @@ export function buildClientBook(
     // L'offre qui fait avancer : la plus récente encore ouverte, sinon la plus récente.
     const offer = clientOffers.find((o) => !isTerminal(o.status)) ?? clientOffers[0] ?? null
     const decisions = decisionRows.filter((d) => d.clientId === clientId)
-    const { stage, closedReason } = stageOf(vault, offer)
+    const { stage, closedReason } = stageOf(vaults, offer)
     const { nextAction, onUs } = nextActionOf(stage, offer, vaults, decisions, ident.kyc)
     const vaultCapital = vaults.reduce((t, v) => t + (v.principalUsdc ?? 0), 0)
     return {

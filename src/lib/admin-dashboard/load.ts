@@ -40,7 +40,6 @@ export {
   type AdminDashboardData,
   type AdminExposureStrategy,
   type AdminMarketSnapshot,
-  type AdminOperationsSurface,
   type AdminPortfolioOverview,
   type AdminRecentClient,
   type AdminRebalancingAlert,
@@ -438,39 +437,4 @@ export async function loadAdminAssetScale(): Promise<AdminAssetScale | null> {
   return isAvailable(overview)
     ? { asset: overview.value.asset, decimals: overview.value.decimals }
     : null
-}
-
-/**
- * Client directory for `/admin/clients` — same backend read model as the
- * dashboard strip, with a higher limit for the operating surface.
- */
-export async function loadAdminClientsDirectory(
-  limit = 100,
-): Promise<Availability<readonly AdminRecentClient[]>> {
-  return loadAdminRecentClients(limit)
-}
-
-/** Focused read models for `/admin/operations` — no market/portfolio extras. */
-export async function loadAdminOperationsSurface(): Promise<AdminOperationsSurface> {
-  const [rebalancing, recentActivity, overview, exposure, rebalancingHistory, rebalancingOperations] =
-    await Promise.all([
-      loadAdminRebalancingSummary(),
-      loadAdminRecentActivity(25),
-      loadAdminOverview(),
-      loadAdminExposure(),
-      loadAdminRebalancingHistory(90),
-      loadAdminRebalancingOperations(50),
-    ])
-
-  return {
-    rebalancing,
-    recentActivity,
-    // Real portfolio scale — absent overview stays absent (null), never a blind 6-decimal assumption.
-    assetScale: isAvailable(overview)
-      ? { asset: overview.value.asset, decimals: overview.value.decimals }
-      : null,
-    exposure,
-    rebalancingHistory,
-    rebalancingOperations,
-  }
 }

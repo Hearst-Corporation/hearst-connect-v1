@@ -29,7 +29,7 @@ export function PayElectricityButton({
       {outcome?.ok === false ? (
         <p className="text-xs text-danger-400">{outcome.error}</p>
       ) : outcome?.ok === true ? (
-        <p className="text-xs text-success-400">Payment recorded.</p>
+        <p className="text-xs text-success-400">Sent to Fireblocks — awaiting signers.</p>
       ) : null}
     </form>
   )

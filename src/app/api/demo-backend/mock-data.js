@@ -611,7 +611,14 @@ function payloadFor(path, search = '') {
             lockupEnded: addMonths(start, months) <= mockNow(),
             released: isReleased(v),
             monthsRewarded: ms.length,
+            rewardsValidated: ms.filter((m) => m.status === 'distributed').length,
             pendingReward: ms.find((m) => m.status === 'pending')?.month ?? null,
+            // Le mois clos a-t-il son électricité payée (Settlement) ?
+            closedMonth: ms.length > 0 ? ymOf(lastClosed()) : null,
+            electricityPaid: ms.length > 0 && WORLD.paid.includes(`${vaultKey(v)}:${ymOf(lastClosed())}`),
+            rebalances: (WORLD.rebalanced[v] ?? []).length,
+            withdrawals: withdrawalsOf(v).map((w) => ({ id: w.id, status: w.status, btc: w.sats / 1e8 })),
+            availableBtc: vaultEconomy(v).availableSats / 1e8,
             drifting: (() => {
               const d = VAULT_DRIFT[v]
               return d !== null && Math.max(Math.abs(d.mining), Math.abs(d.lending), Math.abs(d.stable)) > VAULT_BAND[v]
@@ -634,15 +641,107 @@ function payloadFor(path, search = '') {
     }
   }
 
+  /* ── /account COMME LE CLIENT DE LA DÉMO ──────────────────────────────────
+     Quand la démo regarde un client (`viewAs`), ses lectures `/me/*` viennent
+     de SON vault : son versement, ses rewards validés, ses retraits. Sans
+     client regardé, Hearst Holdings et ses constantes, comme avant. */
+  const seen = viewedVault()
+  if (seen !== null) {
+    const { v, c } = seen
+    const eco = vaultEconomy(v)
+    const usdOf = (sats) => usdcFromBtc(sats / 1e8)
+    const months = vaultMonths(v)
+    if (p === '/api/v1/me/vault') {
+      const next = addMonths(new Date(Date.UTC(mockNow().getUTCFullYear(), mockNow().getUTCMonth(), 1)), 1)
+      return {
+        vault: bloc({
+          vaultId: vaultKey(v),
+          label: vaultsOf(c).length > 1 ? `Tranche ${trancheOf(v)}` : 'Dedicated Vault',
+          principalUsdc: VAULT_PRINCIPAL[v],
+          withdrawnUsdc: usdOf(eco.withdrawnSats),
+          withdrawnUsdcAtPayout: eco.withdrawnUsdAtPayout,
+          entryRateUsd: eco.entryRate,
+          availableUsdc: usdOf(eco.availableSats),
+          nextDistributionAt: next.toISOString(),
+          lockupStartAt: `${VAULT_START[v]}T09:00:00Z`,
+          lockupMonths: lockupMonthsOf(v),
+          depositUnlocked: false,
+          depositRequestedAt: null,
+          withdrawUnlocked: !isReleased(v),
+          producedBtc: eco.producedSats / 1e8,
+          accruedBtc: eco.accruedSats / 1e8,
+          pendingWithdrawalBtc: eco.pendingSats / 1e8,
+        }),
+      }
+    }
+    if (p === '/api/v1/me/portfolio') {
+      const accrued = usdOf(eco.accruedSats)
+      return {
+        position: bloc({
+          principal: VAULT_PRINCIPAL[v],
+          accrued,
+          value: VAULT_PRINCIPAL[v] + accrued,
+          status: isReleased(v) ? 'RELEASED' : 'ACTIVE',
+          subscribedAt: `${VAULT_START[v]}T09:00:00Z`,
+        }),
+      }
+    }
+    if (p === '/api/v1/me/movements') {
+      const hash = (n) => '0x' + createHash('sha256').update(`${vaultKey(v)}:${n}`).digest('hex')
+      const rows = [
+        { id: 'mv_dep', type: 'deposit', amountUsdc: VAULT_PRINCIPAL[v], occurredAt: `${VAULT_START[v]}T09:00:00Z`, txHash: hash('dep') },
+        ...months
+          .filter((m) => m.status === 'distributed')
+          .map((m) => ({ id: `mv_d_${m.month}`, type: 'distribution', amountUsdc: m.usd, occurredAt: `${addMonths(new Date(`${m.month}-01T09:00:00Z`), 1).toISOString().slice(0, 10)}T09:00:00Z`, txHash: hash(m.month) })),
+        ...eco.withdrawals
+          .filter((w) => w.status !== 'declined')
+          .map((w) => {
+            // Approuvé, le retrait part par Fireblocks : confirmé quand la transaction l'est.
+            const tx = txOfRef(`apr_wd_${w.id}`)
+            const view = tx ? fireblocksView(tx) : null
+            const status = w.status !== 'approved' ? w.status : view?.status === 'COMPLETED' ? 'confirmed' : 'processing'
+            return { id: `mv_${w.id}`, type: 'withdraw', amountUsdc: usdOf(w.sats), occurredAt: w.at, txHash: view?.txHash ?? '', status }
+          }),
+      ]
+      return { movements: bloc(rows.sort((x, y) => y.occurredAt.localeCompare(x.occurredAt))) }
+    }
+    if (p === '/api/v1/vault/bucket-yields') {
+      const cur = vaultCurrentBps(v)
+      const capital = (bps) => Math.round((VAULT_PRINCIPAL[v] * bps) / 10_000)
+      return {
+        bucketYields: bloc([
+          { bucket: 'Mining Alpha', yieldPct: VAULT_PROTOCOLS[v].mining.apy, capitalUsdc: capital(cur.mining), trendPct: 0.4 },
+          { bucket: 'Bitcoin Lending', yieldPct: VAULT_PROTOCOLS[v].lending.apy, capitalUsdc: capital(cur.lending), trendPct: -0.2 },
+          { bucket: 'USDC Yield', yieldPct: VAULT_PROTOCOLS[v].stable.apy, capitalUsdc: capital(cur.stable), trendPct: 0.1 },
+        ]),
+      }
+    }
+  }
+
   if (p === '/health') return { status: 'ok', uptimeSeconds: 128_400 }
-  if (p === '/ready') return { status: 'ready', checks: { database: 'ok', indexer: 'ok' } }
+  // Les sondes, dans la forme que lit la page Service (`RuntimePayload`, `ready`/`db`).
+  if (p === '/ready') return { ready: true, db: 'ok', status: 'ready', checks: { database: 'ok', indexer: 'ok' } }
   if (p === '/api/v1/runtime') {
     return {
       service: 'hearst-connect-backend (mock local)',
-      version: 'mock-1',
-      chainId: 31337,
-      indexer: { lastBlock: 21_400_320, lagSeconds: 4 },
+      serviceVersion: 'mock-1',
+      commitSha: 'demo0000',
       environment: 'local-mock',
+      uptimeSeconds: 128_400,
+      databaseStatus: 'ready',
+      contractStatus: 'CONFIGURED',
+      indexerStatus: 'RUNNING',
+      db: { reachable: true, latencyMs: 3 },
+      contract: { ...runtimeBlock(), contractAddress: '0x' + '11'.repeat(20) },
+      indexer: { status: 'running', lastSyncedAt: nowIso() },
+      indexerScheduler: {
+        status: 'RUNNING',
+        intervalMs: 15_000,
+        lastRunAt: nowIso(),
+        lastSuccessAt: nowIso(),
+        consecutiveErrors: 0,
+        lastIndexedBlock: 21_400_320,
+      },
     }
   }
 
@@ -774,6 +873,18 @@ function payloadFor(path, search = '') {
             requestedAt: o.fundsReceivedAt,
             note: `${o.reference} — funds received, opens a new vault once authorised`,
           })),
+        // Les retraits demandés depuis /account pendant la démo : en bitcoin, vers le portefeuille du client.
+        ...(WORLD.withdrawals ?? []).map((w) => ({
+          id: `apr_wd_${w.id}`,
+          kind: 'withdrawal',
+          clientId: ownerOf(w.v)?.id ?? null,
+          clientLabel: vaultLabel(w.v),
+          vaultId: vaultKey(w.v),
+          amountUsdc: null,
+          amountBtcSats: w.sats,
+          requestedAt: w.at,
+          note: 'Bitcoin withdrawal to the client’s wallet — requested from their dashboard',
+        })),
         {
           id: 'apr_2',
           kind: 'withdrawal',
@@ -1268,6 +1379,109 @@ function payloadFor(path, search = '') {
     }
   }
 
+  /* LES RÉGLAGES — valeurs courantes, demandes de changement, rôles approbateurs. */
+  if (p === '/api/v1/admin/settings') {
+    const v = currentSettings()
+    return {
+      settings: bloc({
+        values: v,
+        changes: (WORLD.changes ?? []).map(changeView).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        approverRoles: Object.fromEntries(['settings', 'risk', 'treasury'].map((k) => [k, policyOf(k).roles])),
+      }),
+    }
+  }
+
+  /* LE JOURNAL D'AUDIT — déduit de tout ce que le monde a enregistré : pas
+     de seconde source qui pourrait diverger de la première. */
+  if (p === '/api/v1/admin/audit') {
+    const q = new URLSearchParams(search)
+    const limit = Math.min(500, Number(q.get('limit')) || 200)
+    const out = []
+    const push = (at, actor, action, target, detail, category) => at && out.push({ id: `${category}:${out.length}`, at, actor, action, target, detail, category })
+    const nameOf = (email) => SETTINGS_BASE.team.find((m) => m.email === email)?.name ?? email
+    for (const c of WORLD.changes ?? []) {
+      const title = SETTINGS_TITLES[c.section] ?? c.section
+      push(c.createdAt, nameOf(c.author), 'Requested a change', title, c.reason || null, 'settings')
+      for (const a of c.approvals ?? []) push(a.at, nameOf(a.by), 'Approved a change', title, null, 'settings')
+      if (c.status === 'rejected') push(c.decidedAt, nameOf(c.rejectedBy), 'Rejected a change', title, null, 'settings')
+      if (c.status === 'cancelled') push(c.decidedAt, nameOf(c.rejectedBy), 'Cancelled a change', title, null, 'settings')
+      if (changeEffective(c)) push(c.effectiveAt ?? c.appliedAt, 'System', 'Applied a change', title, c.effectiveAt ? 'after its timelock' : null, 'settings')
+    }
+    for (const [id, d] of Object.entries(WORLD.decisions ?? {})) {
+      push((WORLD.decidedAt ?? {})[id] ?? null, 'Admin (you)', d === 'approved' ? 'Approved' : 'Declined', id.replace(/^apr_/, '').replace(/_/g, ' '), null, 'decision')
+    }
+    for (const o of allOffers().filter((x) => WORLD.offers.some((y) => y.id === x.id) || WORLD.patch[x.id])) {
+      push(o.createdAt, 'Admin (you)', 'Created an offer', `${o.reference} · ${o.clientName}`, null, 'offer')
+      push(o.sentAt, 'Admin (you)', 'Sent the proposal', o.reference, null, 'offer')
+      push(o.decidedAt, o.acceptedBy === 'client' ? o.clientName : 'Admin (you)', o.status === 'declined' ? 'Declined the offer' : 'Accepted the offer', o.reference, null, 'offer')
+      push(o.fundingRequestedAt, 'Admin (you)', 'Called the funds', o.reference, null, 'offer')
+      push(o.fundsReceivedAt, 'Fireblocks', 'Detected the deposit', o.reference, null, 'payment')
+      push(o.openedAt, 'Admin (you)', 'Opened the vault', o.reference, null, 'offer')
+    }
+    for (const e of WORLD.emails ?? []) push(e.sentAt, 'Admin (you)', 'Sent an email', e.subject || e.emailId, `to ${e.to.join(', ')} · logged in HubSpot`, 'email')
+    for (const t of WORLD.txs ?? []) push(t.createdAt, 'Fireblocks', `Created a ${t.kind} transaction`, t.note ?? t.kind, `${t.amount ?? ''} ${t.asset}`.trim(), 'payment')
+    for (const w of WORLD.withdrawals ?? []) push(w.at, vaultLabel(w.v) ?? 'Client', 'Requested a withdrawal', `${(w.sats / 1e8).toFixed(4)} BTC`, null, 'client')
+    for (const [id, k] of Object.entries(WORLD.kyc ?? {})) push(k.at ?? null, 'Sumsub', `KYC ${String(k.kyc).toLowerCase()} · AML ${String(k.aml ?? '—').toLowerCase()}`, allClients().find((c) => c.id === id)?.label ?? id, null, 'compliance')
+    return { audit: bloc(out.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)) }
+  }
+
+  /* LA SANTÉ DES INTÉGRATIONS — chaque service tiers dont le produit dépend.
+     Le backend les sonde ; le front lit. Le mock les dit branchées en bac à
+     sable, avec ce qu'elles ont réellement fait pendant la démo. */
+  if (p === '/api/v1/admin/integrations') {
+    const ago = (s) => new Date(mockNow().getTime() - s * 1000).toISOString()
+    const lastOf = (list, key) => (list.length > 0 ? list[list.length - 1][key] : null)
+    return {
+      integrations: bloc([
+        {
+          id: 'sumsub', name: 'Sumsub', role: 'KYC & AML', status: 'connected', environment: 'sandbox',
+          lastCallAt: ago(42), lastWebhookAt: ago(3_600),
+          detail: `${allClients().filter((c) => c.kyc === 'APPROVED').length} applicants approved · decisions arrive by webhook`,
+        },
+        {
+          id: 'fireblocks', name: 'Fireblocks', role: 'Custody & payments', status: 'connected', environment: 'sandbox',
+          lastCallAt: lastOf(WORLD.txs ?? [], 'createdAt') ?? ago(120), lastWebhookAt: lastOf(WORLD.txs ?? [], 'createdAt') ?? ago(900),
+          detail: `${(WORLD.txs ?? []).length} transactions this session · co-signing policy: 2 of 3`,
+        },
+        {
+          id: 'hubspot', name: 'HubSpot', role: 'CRM', status: 'connected', environment: 'production',
+          lastCallAt: lastOf(WORLD.emails ?? [], 'sentAt') ?? ago(300), lastWebhookAt: null,
+          detail: `${(WORLD.emails ?? []).length} emails logged this session · contacts and deals synced`,
+        },
+        {
+          id: 'gmail', name: 'Gmail', role: 'Sending', status: 'connected', environment: 'production',
+          lastCallAt: lastOf(WORLD.emails ?? [], 'sentAt') ?? ago(300), lastWebhookAt: null,
+          detail: 'Sends as the signed-in operator (Google Workspace, OAuth)',
+        },
+        {
+          id: 'price', name: 'Kaiko', role: 'BTC price feed', status: 'connected', environment: 'production',
+          lastCallAt: ago(30), lastWebhookAt: null,
+          detail: `BTC/USD ${BTC_SPOT_USD.toLocaleString('en-US')} · every conversion and reward uses this rate`,
+        },
+        {
+          id: 'pool', name: 'Mining pool', role: 'Fleet production', status: 'connected', environment: 'production',
+          lastCallAt: ago(600), lastWebhookAt: ago(3_600),
+          detail: `${(FLEET_THS / 1e6).toFixed(2)} EH/s reported · daily payouts reconciled with the fleet`,
+        },
+      ]),
+    }
+  }
+
+  /* Les transactions Fireblocks, d'un client (`?clientId=`) ou de tout le book. */
+  if (p === '/api/v1/admin/transactions') {
+    const q = new URLSearchParams(search)
+    const clientId = q.get('clientId')
+    return {
+      transactions: bloc(
+        (WORLD.txs ?? [])
+          .filter((t) => clientId === null || t.clientId === clientId)
+          .map(fireblocksView)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        'fireblocks',
+      ),
+    }
+  }
+
   if (p === '/api/v1/admin/clients/recent') {
     return {
       clients: bloc(
@@ -1276,10 +1490,20 @@ function payloadFor(path, search = '') {
           label: c.label,
           createdAt: new Date(c.since + 'T09:00:00Z').toISOString(),
           lastActivityAt: new Date(Date.parse('2026-09-28T00:00:00Z') - i * 86_400_000).toISOString(),
-          kycProvider: 'Som',
+          kycProvider: 'Sumsub',
           kycStatus: c.kyc,
-          // L'AML, décidé par Som avec le KYC : sans lui, pas d'appel de fonds.
+          // L'AML, décidé par Sumsub avec le KYC : sans lui, pas d'appel de fonds.
           amlStatus: c.aml ?? (c.kyc === 'APPROVED' ? 'CLEAR' : null),
+          // Le dossier chez Sumsub : son identifiant ouvre le cockpit, son niveau dit ce qui a été vérifié.
+          sumsub:
+            c.kyc === 'NOT_STARTED' || !c.kyc
+              ? null
+              : {
+                  applicantId: createHash('sha256').update(`sumsub:${c.id}`).digest('hex').slice(0, 24),
+                  levelName: 'kyb-institutional',
+                  reviewAnswer: c.kyc === 'APPROVED' ? 'GREEN' : c.kyc === 'REJECTED' ? 'RED' : null,
+                  reviewedAt: c.kyc === 'APPROVED' ? new Date(c.since + 'T12:00:00Z').toISOString() : null,
+                },
           currentExposureAtomic: atomic(vaultsOf(c).reduce((t, v) => t + VAULT_PRINCIPAL[v], 0)),
           vaultIds: vaultsOf(c).map(vaultKey),
         })),
@@ -1660,6 +1884,8 @@ function payloadFor(path, search = '') {
    * MAQUETTE : aucun endpoint réel ne publie encore le parc.
    */
   if (p === '/api/v1/mining/fleet') {
+    // La part du vault regardé : Hearst Holdings (0), ou le client de la démo.
+    const fv = viewedVault()?.v ?? 0
     return {
       fleet: bloc({
         minersManaged: MACHINES.length,
@@ -1676,11 +1902,14 @@ function payloadFor(path, search = '') {
          * entre elles : 0.021 % d'un parc de 10 000 machines et 2.1 EH/s donne
          * ~2 machines et ~441 TH/s, pour ~0.158 BTC produits.
          */
-        allocatedSharePct: Number(((VAULT_THS[0] / FLEET_THS) * 100).toFixed(2)),
-        allocatedMiners: MACHINE_VAULT.filter((v) => v === 0).length,
-        allocatedHashrateThs: Math.round(VAULT_THS[0]),
+        allocatedSharePct: Number(((VAULT_THS[fv] / FLEET_THS) * 100).toFixed(2)),
+        allocatedMiners: MACHINE_VAULT.filter((v) => v === fv).length,
+        allocatedHashrateThs: Math.round(VAULT_THS[fv]),
         // Six mois de production de SA puissance — la même somme que ses lignes de clôture mensuelle.
-        allocatedBtcProduced: Number((VAULT_THS[0] * BTC_PER_THS_DAY * 30 * 6 * 0.975).toFixed(4)),
+        allocatedBtcProduced:
+          fv === 0
+            ? Number((VAULT_THS[0] * BTC_PER_THS_DAY * 30 * 6 * 0.975).toFixed(4))
+            : Number((vaultMonths(fv).reduce((t, m) => t + (m.pockets[0]?.btcSats ?? 0), 0) / 1e8).toFixed(4)),
       }),
     }
   }
@@ -1748,8 +1977,10 @@ function payloadFor(path, search = '') {
    * Les percentiles arrivent précalculés : le front trace, il ne rejoue rien.
    */
   if (p === '/api/v1/me/vault/projection') {
-    const start = 482_000
-    const months = 24
+    // Le client de la démo : SON versement, SON blocage.
+    const shown = viewedVault()
+    const start = shown ? VAULT_PRINCIPAL[shown.v] : 482_000
+    const months = shown ? lockupMonthsOf(shown.v) : 24
     const BTC_VOL = 0.55
     // Quantiles de la loi normale centrée réduite, pour p10/p25/p50/p75/p90.
     const Z = { p10: -1.2816, p25: -0.6745, p50: 0, p75: 0.6745, p90: 1.2816 }
@@ -2309,7 +2540,9 @@ function baseOffers() {
 
 /** Toutes les offres : le socle avec ses étapes franchies, puis celles créées depuis la console. */
 function allOffers() {
-  return [...baseOffers().map((o) => ({ ...o, ...(WORLD.patch[o.id] ?? {}) })), ...WORLD.offers]
+  // Chaque offre porte ses courriels envoyés (Gmail) et consignés (HubSpot).
+  const withEmails = (o) => ({ ...o, sentEmails: (WORLD.emails ?? []).filter((e) => e.offerId === o.id) })
+  return [...baseOffers().map((o) => ({ ...o, ...(WORLD.patch[o.id] ?? {}) })), ...WORLD.offers].map(withEmails)
 }
 
 // ── Le monde modifiable ──────────────────────────────────────────────────────
@@ -2333,10 +2566,15 @@ function emptyWorld() {
     rebalanced: {}, // index de vault → [{ clock, at, before, worst, moveUsd, fromBucket, toBucket, k }]
     offers: [], // offres créées depuis la console
     patch: {}, // offerId → champs modifiés d'une offre du socle (ses étapes)
-    kyc: {}, // clientId → { kyc, aml } — la décision de Som
+    kyc: {}, // clientId → { kyc, aml } — la décision de Sumsub
     opened: [], // vaults ouverts : { clientId, offerId, principal, alloc, months, openedAt, clock }
     released: {}, // index de vault → { month, at, sats } — blocage levé, réserve rendue
     viewAs: null, // le client que /account montre (null = Hearst Holdings)
+    withdrawals: [], // retraits demandés depuis /account : { id, v, sats, usd, at }
+    txs: [], // transactions Fireblocks : { id, kind, clientId, vaultId, asset, amount, … }
+    emails: [], // courriels envoyés (Gmail) et consignés (HubSpot) : { offerId, emailId, … }
+    changes: [], // demandes de changement des réglages : { id, section, after, approvals, … }
+    decidedAt: {}, // approvalId → date de la décision (pour le journal d'audit)
     tour: null, // la démo guidée : { clientName, offerId }
   }
 }
@@ -2359,6 +2597,173 @@ const defaultProtocols = () => ({
 /** Le blocage d'un vault, en mois : 24 pour le socle, celui de l'offre sinon. */
 const lockupMonthsOf = (v) => (v >= BASE_VAULT_COUNT ? (WORLD.opened[v - BASE_VAULT_COUNT]?.months ?? 24) : 24)
 const isReleased = (v) => WORLD.released[v] !== undefined
+
+/* ══ LES RÉGLAGES ══════════════════════════════════════════════════════════
+ * Le socle (ci-dessous), plus les changements APPLIQUÉS. Un changement est une
+ * demande : son auteur ne peut pas l'approuver (quatre yeux), il faut autant
+ * d'approbations que la règle l'exige, puis le délai de la section court
+ * (timelock) avant qu'il s'applique. Le monde ne garde que les demandes ; les
+ * valeurs courantes s'en déduisent à chaque lecture. */
+const SETTINGS_BASE = {
+  team: [
+    { id: 'm_admin', name: 'Admin (you)', email: 'admin@localhost', role: 'Admin', twoFactor: true, status: 'active' },
+    { id: 'm_risk', name: 'Sarah Klein', email: 'sarah.klein@hearst.test', role: 'Risk', twoFactor: true, status: 'active' },
+    { id: 'm_fin', name: 'Marc Dubois', email: 'marc.dubois@hearst.test', role: 'Finance', twoFactor: true, status: 'active' },
+    { id: 'm_comp', name: 'Lina Haddad', email: 'lina.haddad@hearst.test', role: 'Compliance', twoFactor: true, status: 'active' },
+    { id: 'm_rm', name: 'Tom Becker', email: 'tom.becker@hearst.test', role: 'Relationship manager', twoFactor: false, status: 'active' },
+    { id: 'm_view', name: 'Board observer', email: 'board@hearst.test', role: 'Viewer', twoFactor: true, status: 'invited' },
+  ],
+  policies: [
+    { id: 'deposit', label: 'Authorise a deposit', approvers: 1, roles: ['Admin', 'Finance'], thresholdBtc: null },
+    { id: 'withdrawal', label: 'Approve a client withdrawal', approvers: 1, roles: ['Admin', 'Finance'], thresholdBtc: null },
+    { id: 'withdrawal-large', label: 'Approve a large withdrawal', approvers: 2, roles: ['Admin', 'Finance', 'Risk'], thresholdBtc: 1 },
+    { id: 'rebalance', label: 'Approve a rebalancing', approvers: 1, roles: ['Admin', 'Risk'], thresholdBtc: null },
+    { id: 'protocol', label: 'Switch a protocol', approvers: 2, roles: ['Admin', 'Risk'], thresholdBtc: null },
+    { id: 'release', label: 'Release a reserve', approvers: 2, roles: ['Admin', 'Finance'], thresholdBtc: null },
+    { id: 'electricity', label: 'Pay electricity', approvers: 1, roles: ['Admin', 'Finance'], thresholdBtc: null },
+    { id: 'settings', label: 'Change a setting', approvers: 1, roles: ['Admin', 'Risk', 'Compliance'], thresholdBtc: null },
+    { id: 'risk', label: 'Change a risk parameter', approvers: 1, roles: ['Admin', 'Risk'], thresholdBtc: null },
+    { id: 'treasury', label: 'Change the address book or payees', approvers: 1, roles: ['Admin', 'Finance'], thresholdBtc: null },
+  ],
+  security: { sso: 'Google Workspace', mfaRequired: true, sessionHours: 12, ipAllowlist: [] },
+  terms: {
+    minTicketUsdc: 100_000,
+    lockupOptions: ['12', '24', '36'],
+    defaultLockupMonths: 24,
+    rewardsCadence: 'monthly',
+    managementFeeBps: 150,
+    performanceFeeBps: 1000,
+  },
+  profiles: [
+    { id: 'conservative', label: 'Conservative', miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
+    { id: 'balanced', label: 'Balanced', miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
+    { id: 'growth', label: 'Growth', miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+  ],
+  strategies: [
+    { id: 's_fleet', pocket: 'Mining Alpha', protocol: 'Hearst fleet', status: 'enabled', capUsd: 60_000_000, apyPct: 14.2, apySource: 'Fleet telemetry', risk: 'medium' },
+    { id: 's_aave_btc', pocket: 'Bitcoin Lending', protocol: 'Aave v3 (cbBTC)', status: 'enabled', capUsd: 25_000_000, apyPct: 8.4, apySource: 'Aave subgraph', risk: 'low' },
+    { id: 's_morpho', pocket: 'USDC Yield', protocol: 'Morpho (USDC)', status: 'enabled', capUsd: 30_000_000, apyPct: 10.1, apySource: 'Morpho API', risk: 'low' },
+    { id: 's_aave_usdc', pocket: 'USDC Yield', protocol: 'Aave v3 (USDC)', status: 'enabled', capUsd: 20_000_000, apyPct: 12.0, apySource: 'Aave subgraph', risk: 'low' },
+  ],
+  limits: { driftBandBps: 500, maxProtocolExposureBps: 6000, maxClientExposureUsd: 25_000_000, liquidityBufferBps: 300, guardianPause: false },
+  addressBook: [
+    { id: 'a_hh', owner: 'Hearst Holdings', label: 'Treasury cold wallet', asset: 'BTC', network: 'Bitcoin', address: 'bc1qhh7k0x3m4n2p8r5t6w9y1z3c5v7b9n2m4k6j8h', activeFrom: '2025-09-01T00:00:00Z' },
+    { id: 'a_zand', owner: 'ZAND Bank', label: 'Custody — Fireblocks', asset: 'BTC', network: 'Bitcoin', address: 'bc1qz4nd8c2v6b0n4m8k2j6h0g4f8d2s6a0p4o8i2u', activeFrom: '2026-02-01T00:00:00Z' },
+  ],
+  payees: [
+    { id: 'p_host', name: 'Nordic Hosting AS', purpose: 'Hosting & electricity — Norway sites', asset: 'USDC', address: '0x7e1c00ffee0000000000000000000000000c0de1', schedule: 'monthly' },
+    { id: 'p_tx', name: 'Lone Star Power', purpose: 'Electricity — Texas sites', asset: 'USDC', address: '0x9a2f00ffee0000000000000000000000000c0de2', schedule: 'monthly' },
+  ],
+  compliance: { level: 'kyb-institutional', reverifyMonths: 12, blockedJurisdictions: ['IR', 'KP', 'SY', 'CU', 'RU'], amlBlockAt: 'high', blockOnFlag: true },
+  templates: [
+    { id: 'proposal', label: 'Proposal', subject: 'Hearst Connect — your Bitcoin Strategic Reserve proposal', hubspotStage: 'Proposal sent', intro: 'Following our conversation, here is the proposal.' },
+    { id: 'funding', label: 'Funding instructions', subject: 'Hearst Connect — funding instructions', hubspotStage: 'Contract signed', intro: 'Thank you for confirming. Here are the funding instructions.' },
+    { id: 'funded', label: 'Funds received', subject: 'Hearst Connect — funds received', hubspotStage: 'Funded', intro: 'We have received your deposit.' },
+    { id: 'credentials', label: 'Access', subject: 'Hearst Connect — your access', hubspotStage: 'Closed won — live', intro: 'Your vault is live.' },
+  ],
+  notifications: [
+    { id: 'n1', event: 'A vault leaves its drift band', notify: ['Risk'], channels: ['Slack'] },
+    { id: 'n2', event: 'A withdrawal waits more than 24 h', notify: ['Finance', 'Admin'], channels: ['Slack', 'Email'] },
+    { id: 'n3', event: 'An integration stops answering', notify: ['Admin'], channels: ['Slack', 'SMS'] },
+    { id: 'n4', event: 'A lockup ends within 30 days', notify: ['Relationship manager'], channels: ['Email'] },
+    { id: 'n5', event: 'Sumsub flags a client', notify: ['Compliance'], channels: ['Slack', 'Email'] },
+    { id: 'n6', event: 'A settings change waits for approval', notify: ['Admin', 'Risk'], channels: ['Slack'] },
+  ],
+}
+/** La gouvernance de chaque section : sa règle d'approbation et son délai (miroir du schéma front). */
+const SETTINGS_GOV = {
+  team: ['settings', 0], policies: ['risk', 24], security: ['settings', 0], terms: ['risk', 24], profiles: ['risk', 24],
+  strategies: ['risk', 24], limits: ['risk', 24], addressBook: ['treasury', 48], payees: ['treasury', 48],
+  compliance: ['settings', 0], templates: ['settings', 0], notifications: ['settings', 0],
+}
+const SETTINGS_TITLES = {
+  team: 'Team & roles', policies: 'Approval policies', security: 'Security', terms: 'Product terms', profiles: 'Risk profiles',
+  strategies: 'Strategies & protocols', limits: 'Risk limits', addressBook: 'Address book', payees: 'Payees',
+  compliance: 'KYC & AML', templates: 'Email templates', notifications: 'Notifications',
+}
+const changeEffective = (c) => c.status === 'applied' || (c.status === 'scheduled' && c.effectiveAt && Date.parse(c.effectiveAt) <= mockNow().getTime())
+/** Les réglages courants : le socle, plus chaque changement dont le délai est passé. */
+function currentSettings() {
+  const v = JSON.parse(JSON.stringify(SETTINGS_BASE))
+  for (const c of (WORLD.changes ?? []).filter(changeEffective).sort((a, b) => (a.appliedAt ?? a.effectiveAt).localeCompare(b.appliedAt ?? b.effectiveAt))) {
+    v[c.section] = c.after
+  }
+  return v
+}
+const changeView = (c) => ({ ...c, status: changeEffective(c) ? 'applied' : c.status })
+const policyOf = (id) => currentSettings().policies.find((p) => p.id === id) ?? { approvers: 1, roles: ['Admin'] }
+
+/* ══ FIREBLOCKS ════════════════════════════════════════════════════════════
+ * Tout ce qui DÉPLACE de l'argent passe par Fireblocks : l'admin décide, la
+ * console crée la transaction, Fireblocks la fait signer (politique de
+ * co-signature) puis la diffuse. Le statut avance seul, en temps réel, pour
+ * que la démo montre le cycle : signature → diffusion → terminée.
+ * Un dépôt entrant est DÉTECTÉ par Fireblocks sur l'adresse de dépôt du client. */
+const FB_WALLET = { BTC: 'bc1q-hearst-client-wallet', USDC: '0x-electricity-payee' }
+function fireblocksTx(kind, fields) {
+  const n = (WORLD.txs ?? []).length + 1
+  const tx = {
+    id: createHash('sha256').update(`fb:${n}:${kind}:${JSON.stringify(fields)}`).digest('hex').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12}).*/, '$1-$2-$3-$4-$5'),
+    kind,
+    createdAt: nowIso(),
+    realMs: Date.now(),
+    ...fields,
+  }
+  WORLD.txs = [...(WORLD.txs ?? []), tx]
+  return tx
+}
+/** Le statut Fireblocks d'une transaction, au fil du temps réel. */
+function fireblocksView(t) {
+  const s = (Date.now() - t.realMs) / 1000
+  const status = t.kind === 'deposit' ? 'COMPLETED' : s < 8 ? 'PENDING_SIGNATURE' : s < 20 ? 'BROADCASTING' : 'COMPLETED'
+  const { realMs, ...rest } = t
+  return {
+    ...rest,
+    status,
+    txHash: status === 'COMPLETED' ? '0x' + createHash('sha256').update(`hash:${t.id}`).digest('hex') : null,
+    consoleUrl: `https://console.fireblocks.io/v2/transactions/${t.id}`,
+  }
+}
+const txOfRef = (ref) => (WORLD.txs ?? []).find((t) => t.ref === ref) ?? null
+
+/** Le vault que /account montre pendant la démo : la première tranche encore ouverte du client regardé. */
+function viewedVault() {
+  if (!WORLD.viewAs) return null
+  const c = allClients().find((x) => x.id === WORLD.viewAs)
+  if (!c) return null
+  const vs = vaultsOf(c)
+  const v = vs.find((x) => !isReleased(x)) ?? vs[0]
+  return v === undefined ? null : { v, c }
+}
+
+/** Les retraits demandés par le client d'un vault, avec la décision de l'admin. */
+const withdrawalsOf = (v) =>
+  (WORLD.withdrawals ?? [])
+    .filter((w) => w.v === v)
+    .map((w) => ({ ...w, status: WORLD.decisions[`apr_wd_${w.id}`] ?? 'pending' }))
+
+/**
+ * L'ÉCONOMIE D'UN VAULT, du point de vue de son client :
+ *   produit (rewards validés) = retiré + acquis ; disponible = acquis − retraits en attente.
+ */
+function vaultEconomy(v) {
+  const withdrawals = withdrawalsOf(v)
+  const producedSats = vaultReserveSats(v)
+  const done = withdrawals.filter((w) => w.status === 'approved')
+  const withdrawnSats = done.reduce((t, w) => t + w.sats, 0)
+  const pendingSats = withdrawals.filter((w) => w.status === 'pending').reduce((t, w) => t + w.sats, 0)
+  const accruedSats = Math.max(0, producedSats - withdrawnSats)
+  return {
+    withdrawals,
+    producedSats,
+    withdrawnSats,
+    withdrawnUsdAtPayout: done.reduce((t, w) => t + w.usd, 0),
+    pendingSats,
+    accruedSats,
+    availableSats: Math.max(0, accruedSats - pendingSats),
+    entryRate: priceOf(VAULT_START[v].slice(0, 7)),
+  }
+}
 
 /*
  * LA DÉRIVE GRANDIT AVEC LE TEMPS : chaque mois, le minage s'écarte de sa
@@ -2403,7 +2808,7 @@ function applyWorld(w) {
     VAULT_PRINCIPAL.push(o.principal)
     VAULT_START.push(o.openedAt.slice(0, 10))
     VAULT_ALLOC.push({ ...o.alloc })
-    VAULT_BAND.push(500)
+    VAULT_BAND.push(Number(currentSettings().limits.driftBandBps) || 500)
     VAULT_MINING_BPS.push(o.alloc.miningBps)
     VAULT_ADDRESSES.push(addressFor(o.offerId))
     VAULT_PROTOCOLS.push(defaultProtocols())
@@ -2481,6 +2886,28 @@ function handleWrite(method, path, body) {
   // Souscription : le backend est l'autorité, pas le formulaire. On rejoue donc
   // ici les refus qu'un vrai back opposerait (montant, minimum, capacité) pour
   // que les états d'erreur de l'UI soient réellement exerçables en local.
+  /* UN RETRAIT DEMANDÉ PAR LE CLIENT — en bitcoin, pris sur ce qu'il a acquis.
+     Rien ne sort avant la validation de l'admin : la demande entre dans sa file. */
+  if (path === '/api/v1/me/withdrawals' && method === 'POST') {
+    const seen = viewedVault()
+    if (seen === null) return reply(409, problem(409, 'NO_VAULT', 'This account has no vault to withdraw from.'))
+    if (isReleased(seen.v)) return reply(409, problem(409, 'VAULT_CLOSED', 'This vault has been released.'))
+    const available = vaultEconomy(seen.v).availableSats
+    /* Le client saisit 4 décimales : « tout » arrondi peut dépasser de quelques
+       satoshis. Un écart sous 0.0001 BTC vaut « tout ce qui est disponible ». */
+    const asked = Math.round(Number(body?.amountBtcSats))
+    // Dans les deux sens : un reste de moins de 0.0001 BTC part avec la demande.
+    const sats = Math.abs(available - asked) < 10_000 ? available : asked
+    if (!Number.isFinite(sats) || sats <= 0) return reply(400, problem(400, 'INVALID_AMOUNT', 'amountBtcSats must be a positive number of satoshis.'))
+    if (sats > available) {
+      return reply(422, problem(422, 'ABOVE_AVAILABLE', `Only ${(Math.floor(available / 1e4) / 1e4).toFixed(4)} BTC is available to withdraw.`))
+    }
+    const id = `wd_${String((WORLD.withdrawals ?? []).length + 1).padStart(3, '0')}`
+    WORLD.withdrawals = [...(WORLD.withdrawals ?? []), { id, v: seen.v, sats, usd: Math.round((sats / 1e8) * BTC_SPOT_USD), at: nowIso() }]
+    applyWorld(WORLD)
+    return reply(200, envelope({ withdrawal: bloc({ id, amountBtcSats: sats, status: 'PENDING_APPROVAL', requestedAt: nowIso() }) }))
+  }
+
   if (path === '/api/v1/me/deposits' && method === 'POST') {
     const amount = Number(body?.amountUsdc)
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -2514,6 +2941,13 @@ function handleWrite(method, path, body) {
     const decision = body?.decision === 'decline' ? 'declined' : 'approved'
     const id = mDecide[1]
     WORLD.decisions[id] = decision
+    WORLD.decidedAt = { ...(WORLD.decidedAt ?? {}), [id]: nowIso() }
+    // Le gardien a gelé les allocations : aucun rééquilibrage ne part.
+    if (decision === 'approved' && (id.startsWith('apr_reb_') || id.startsWith('apr_proto_')) && currentSettings().limits.guardianPause) {
+      delete WORLD.decisions[id]
+      delete WORLD.decidedAt[id]
+      return reply(423, problem(423, 'GUARDIAN_PAUSE', 'Allocation moves are frozen by the guardian pause (Settings → Risk limits).'))
+    }
     if (decision === 'approved' && id.startsWith('apr_reb_')) {
       const hit = ALL_VAULTS().find(({ v }) => `apr_reb_${vaultTag(v)}_${(WORLD.rebalanced[v] ?? []).length}` === id)
       if (hit && VAULT_DRIFT[hit.v]) {
@@ -2537,7 +2971,35 @@ function handleWrite(method, path, body) {
             k: 100 + list.length,
           },
         ]
+        const done = WORLD.rebalanced[v][WORLD.rebalanced[v].length - 1]
+        fireblocksTx('rebalance', {
+          ref: id, clientId: ownerOf(v)?.id ?? null, vaultId: vaultKey(v), asset: 'USDC', amount: done.moveUsd,
+          source: done.fromBucket, destination: done.toBucket, note: 'Rebalancing back to target — contract call',
+        })
       }
+    }
+    /* Une décision qui DÉPLACE de l'argent devient une transaction Fireblocks. */
+    if (decision === 'approved' && id.startsWith('apr_wd_')) {
+      const w = (WORLD.withdrawals ?? []).find((x) => `apr_wd_${x.id}` === id)
+      if (w) {
+        fireblocksTx('withdrawal', {
+          ref: id, clientId: ownerOf(w.v)?.id ?? null, vaultId: vaultKey(w.v), asset: 'BTC', amount: w.sats / 1e8,
+          source: `Vault ${vaultLabel(w.v)}`, destination: FB_WALLET.BTC, note: 'Bitcoin withdrawal to the client’s whitelisted wallet',
+        })
+      }
+    }
+    if (decision === 'approved' && id === 'apr_2') {
+      fireblocksTx('withdrawal', {
+        ref: id, clientId: 'cli_1', vaultId: vaultKey(0), asset: 'BTC', amount: 0.042,
+        source: 'Vault Hearst Holdings', destination: FB_WALLET.BTC, note: 'Bitcoin withdrawal to the client’s whitelisted wallet',
+      })
+    }
+    if (decision === 'approved' && id.startsWith('apr_proto_')) {
+      fireblocksTx('protocol', {
+        ref: id, clientId: ownerOf(1)?.id ?? null, vaultId: vaultKey(1), asset: 'USDC',
+        amount: Math.round((VAULT_PRINCIPAL[1] * vaultCurrentBps(1).stable) / 10_000),
+        source: 'Morpho (USDC)', destination: 'Aave (USDC)', note: 'Protocol switch — contract call',
+      })
     }
     if (decision === 'approved' && id.startsWith('apr_dep_')) {
       const offer = allOffers().find((o) => `apr_dep_${o.id}` === id)
@@ -2551,7 +3013,16 @@ function handleWrite(method, path, body) {
      est retenu et la clôture mensuelle le montre aussitôt. */
   if (path === '/api/v1/mining/electricity/pay' && method === 'POST') {
     if (typeof body?.vaultId === 'string' && typeof body?.month === 'string') {
-      WORLD.paid = [...new Set([...WORLD.paid, `${body.vaultId}:${body.month}`])]
+      const key = `${body.vaultId}:${body.month}`
+      if (!WORLD.paid.includes(key)) {
+        const v = VAULT_PRINCIPAL.findIndex((_, i) => vaultKey(i) === body.vaultId)
+        fireblocksTx('electricity', {
+          ref: `elec:${key}`, clientId: v >= 0 ? (ownerOf(v)?.id ?? null) : null, vaultId: body.vaultId, asset: 'USDC',
+          amount: Number(body.amount) || null, source: v >= 0 ? `Vault ${vaultLabel(v)}` : 'Vault', destination: FB_WALLET.USDC,
+          note: `Electricity — ${monthName(body.month)}`,
+        })
+      }
+      WORLD.paid = [...new Set([...WORLD.paid, key])]
       applyWorld(WORLD)
     }
     return reply(200, envelope({ status: 'recorded', reason: null }))
@@ -2559,7 +3030,7 @@ function handleWrite(method, path, body) {
 
   /* ── LE PARCOURS D'UNE OFFRE ───────────────────────────────────────────
      Une étape à la fois, dans l'ordre du métier. Le backend est l'autorité :
-     il refuse un saut d'étape, et il refuse d'appeler les fonds tant que Som
+     il refuse un saut d'étape, et il refuse d'appeler les fonds tant que Sumsub
      n'a pas validé le KYC ET l'AML du client.
 
        draft → sent → accepted → funding ─(fonds reçus)→ [dépôt à autoriser]
@@ -2586,12 +3057,22 @@ function handleWrite(method, path, body) {
     const client = allClients().find((c) => c.id === offer.clientId)
     const cleared = client?.kyc === 'APPROVED' && (client?.aml ?? 'CLEAR') === 'CLEAR'
     if (to === 'funding' && !cleared) {
-      return reply(409, problem(409, 'KYC_REQUIRED', 'Funds cannot be called until Som has cleared the client’s KYC and AML.'))
+      return reply(409, problem(409, 'KYC_REQUIRED', 'Funds cannot be called until Sumsub has cleared the client’s KYC and AML.'))
     }
     const now = nowIso()
     const patch = {
       sent: { status: 'sent', sentAt: now },
-      accepted: { status: 'accepted', decidedAt: now, acceptedBy: body?.by === 'client' ? 'client' : 'admin' },
+      /* Accepté : Fireblocks ouvre le compte du futur vault et son adresse de
+         dépôt — c'est elle que porte le courriel d'appel de fonds. */
+      accepted: {
+        status: 'accepted', decidedAt: now, acceptedBy: body?.by === 'client' ? 'client' : 'admin',
+        fireblocks: {
+          vaultAccountId: String(1000 + (parseInt(createHash('sha256').update(`va:${offer.id}`).digest('hex').slice(0, 6), 16) % 9000)),
+          asset: 'USDC',
+          network: 'Ethereum',
+          depositAddress: '0x' + createHash('sha256').update(`deposit:${offer.id}`).digest('hex').slice(0, 40),
+        },
+      },
       declined: { status: 'declined', decidedAt: now },
       funding: { status: 'funding', fundingRequestedAt: now },
       funds_received: { fundsReceivedAt: now },
@@ -2617,19 +3098,145 @@ function handleWrite(method, path, body) {
       // La démo regarde désormais ce client depuis /account.
       if (WORLD.tour && WORLD.tour.offerId === offer.id) WORLD.viewAs = offer.clientId
     }
+    // Le virement entrant est détecté par Fireblocks ; l'ouverture convertit l'USDC en bitcoin.
+    if (to === 'funds_received') {
+      fireblocksTx('deposit', {
+        ref: `deposit:${offer.id}`, clientId: offer.clientId, vaultId: null, asset: 'USDC', amount: offer.amountUsdc,
+        source: `${offer.clientName} — external wallet`, destination: offer.fireblocks?.depositAddress ?? 'Deposit address',
+        note: `Funding of ${offer.reference}, detected on-chain`,
+      })
+    }
+    if (to === 'active') {
+      fireblocksTx('conversion', {
+        ref: `conversion:${offer.id}`, clientId: offer.clientId, vaultId: patch.vaultId, asset: 'USDC', amount: offer.amountUsdc,
+        source: 'USDC', destination: 'BTC + strategy pockets', note: 'Conversion at entry — the deposit becomes the vault’s reserve',
+      })
+    }
     patchOffer(offer, { ...patch, updatedAt: now })
     applyWorld(WORLD)
     return reply(200, envelope({ offer: bloc(allOffers().find((o) => o.id === offer.id)) }))
   }
 
-  /* LA DÉCISION DE SOM — le partenaire KYC/AML. La console ne la prend
+  /* UNE DEMANDE DE CHANGEMENT — jamais appliquée à la création : elle attend
+     ses approbations, puis son délai. */
+  if (path === '/api/v1/admin/settings/changes' && method === 'POST') {
+    const section = String(body?.section ?? '')
+    const gov = SETTINGS_GOV[section]
+    if (!gov) return reply(400, problem(400, 'UNKNOWN_SECTION', `Unknown section "${section}".`))
+    const author = String(body?.author ?? 'admin@localhost')
+    const before = currentSettings()[section]
+    const after = body?.value
+    if (after === undefined || JSON.stringify(after) === JSON.stringify(before)) {
+      return reply(400, problem(400, 'NO_CHANGE', 'Nothing changed in this section.'))
+    }
+    if ((WORLD.changes ?? []).some((c) => c.section === section && c.status === 'pending')) {
+      return reply(409, problem(409, 'CHANGE_PENDING', 'A change to this section is already waiting for approval — decide it first.'))
+    }
+    if (section === 'profiles' && Array.isArray(after) && after.some((r) => Number(r.miningBps) + Number(r.lendingBps) + Number(r.stableBps) !== 10_000)) {
+      return reply(422, problem(422, 'ALLOCATION_NOT_100', 'Each profile must total 100 %.'))
+    }
+    const n = (WORLD.changes ?? []).length + 1
+    WORLD.changes = [
+      ...(WORLD.changes ?? []),
+      {
+        id: `chg_${String(n).padStart(3, '0')}`,
+        section,
+        reason: String(body?.reason ?? '').slice(0, 280),
+        author,
+        createdAt: nowIso(),
+        status: 'pending',
+        required: Math.max(1, Number(policyOf(gov[0]).approvers) || 1),
+        approvals: [],
+        rejectedBy: null,
+        effectiveAt: null,
+        before,
+        after,
+      },
+    ]
+    applyWorld(WORLD)
+    return reply(200, envelope({ change: bloc(changeView(WORLD.changes[WORLD.changes.length - 1])) }))
+  }
+  const mChg = path.match(/^\/api\/v1\/admin\/settings\/changes\/([^/]+)\/decision$/)
+  if (mChg && method === 'POST') {
+    const c = (WORLD.changes ?? []).find((x) => x.id === mChg[1])
+    if (!c) return reply(404, problem(404, 'NOT_FOUND', 'No such change.'))
+    const by = String(body?.by ?? '')
+    const member = currentSettings().team.find((m) => m.email === by)
+    const decision = String(body?.decision ?? '')
+    const now = nowIso()
+    const update = (fields) => {
+      WORLD.changes = WORLD.changes.map((x) => (x.id === c.id ? { ...x, ...fields } : x))
+    }
+    if (decision === 'cancel') {
+      if (!['pending', 'scheduled'].includes(c.status) || changeEffective(c)) return reply(409, problem(409, 'NOT_CANCELLABLE', 'This change can no longer be cancelled.'))
+      update({ status: 'cancelled', rejectedBy: by || c.author, decidedAt: now })
+    } else {
+      if (c.status !== 'pending') return reply(409, problem(409, 'NOT_PENDING', 'This change is not waiting for a decision.'))
+      if (!member || member.status !== 'active') return reply(403, problem(403, 'NOT_A_MEMBER', 'Only an active team member can decide.'))
+      if (by === c.author) return reply(403, problem(403, 'FOUR_EYES', 'The author of a change cannot approve or reject it.'))
+      const roles = policyOf(SETTINGS_GOV[c.section][0]).roles
+      if (!roles.includes(member.role)) return reply(403, problem(403, 'ROLE_NOT_ALLOWED', `${member.role} cannot decide this change — allowed: ${roles.join(', ')}.`))
+      if (c.approvals.some((a) => a.by === by)) return reply(409, problem(409, 'ALREADY_APPROVED', 'This member already approved it.'))
+      if (decision === 'reject') {
+        update({ status: 'rejected', rejectedBy: by, decidedAt: now })
+      } else {
+        const approvals = [...c.approvals, { by, at: now }]
+        if (approvals.length < c.required) {
+          update({ approvals })
+        } else {
+          // Le délai de la section — sauf la pause du gardien, ou une mise en pause de protocole : immédiates.
+          const urgent =
+            (c.section === 'limits' && c.after?.guardianPause === true && c.before?.guardianPause !== true) ||
+            (c.section === 'strategies' && JSON.stringify((c.after ?? []).map((s) => ({ ...s, status: 'enabled' }))) === JSON.stringify((c.before ?? []).map((s) => ({ ...s, status: 'enabled' }))))
+          const hours = urgent ? 0 : SETTINGS_GOV[c.section][1]
+          if (hours === 0) update({ approvals, status: 'applied', appliedAt: now })
+          else update({ approvals, status: 'scheduled', effectiveAt: new Date(mockNow().getTime() + hours * 3_600_000).toISOString() })
+        }
+      }
+    }
+    applyWorld(WORLD)
+    return reply(200, envelope({ change: bloc(changeView(WORLD.changes.find((x) => x.id === c.id))) }))
+  }
+
+  /* UN COURRIEL DU PARCOURS — envoyé depuis le Gmail de l'opérateur, consigné
+     sur le contact et le deal HubSpot. Quand l'envoyer EST l'étape (la
+     proposition, l'appel de fonds), l'étape passe d'abord : si elle est
+     refusée (KYC non validé), rien ne part. */
+  const mMail = path.match(/^\/api\/v1\/admin\/offers\/([^/]+)\/emails\/([^/]+)\/send$/)
+  if (mMail && method === 'POST') {
+    const offer = allOffers().find((o) => o.id === mMail[1])
+    if (!offer) return reply(404, problem(404, 'NOT_FOUND', 'No such offer.'))
+    const to = (Array.isArray(body?.to) ? body.to : []).filter((a) => typeof a === 'string' && a.includes('@'))
+    if (to.length === 0) return reply(400, problem(400, 'NO_RECIPIENT', 'Add at least one recipient.'))
+    const step = { proposal: ['draft', 'sent'], funding: ['accepted', 'funding'] }[mMail[2]]
+    if (step && offer.status === step[0]) {
+      const moved = handleWrite('POST', `/api/v1/admin/offers/${offer.id}/transition`, { to: step[1], by: 'admin' })
+      if (moved.status >= 400) return moved
+    }
+    const n = (WORLD.emails ?? []).length + 1
+    const sent = {
+      offerId: offer.id,
+      emailId: mMail[2],
+      to,
+      cc: (Array.isArray(body?.cc) ? body.cc : []).filter((a) => typeof a === 'string' && a.includes('@')),
+      subject: String(body?.subject ?? ''),
+      sentAt: nowIso(),
+      gmailMessageId: createHash('sha256').update(`gmail:${n}`).digest('hex').slice(0, 16),
+      hubspotEngagementId: String(41_000_000 + n),
+    }
+    WORLD.emails = [...(WORLD.emails ?? []), sent]
+    applyWorld(WORLD)
+    return reply(200, envelope({ email: bloc(sent, 'gmail') }))
+  }
+
+  /* LA DÉCISION DE SUMSUB — le partenaire KYC/AML. La console ne la prend
      jamais : en production elle arrive par le partenaire. Ici, la démo la
      simule pour dérouler le parcours. */
   const mKyc = path.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/kyc$/)
   if (mKyc && method === 'POST') {
     const kyc = ['APPROVED', 'PENDING', 'REJECTED', 'NOT_STARTED'].includes(body?.kyc) ? body.kyc : 'APPROVED'
     const aml = ['CLEAR', 'FLAGGED'].includes(body?.aml) ? body.aml : kyc === 'APPROVED' ? 'CLEAR' : null
-    WORLD.kyc = { ...WORLD.kyc, [mKyc[1]]: { kyc, aml } }
+    WORLD.kyc = { ...WORLD.kyc, [mKyc[1]]: { kyc, aml, at: nowIso() } }
     applyWorld(WORLD)
     return reply(200, envelope({ clientId: mKyc[1], kyc, aml }))
   }
@@ -2648,6 +3255,11 @@ function handleWrite(method, path, body) {
     const ms = vaultMonths(v)
     const capital = Math.round((VAULT_PRINCIPAL[v] / (ms[ms.length - 1]?.price ?? BTC_SPOT_USD)) * 1e8)
     WORLD.released = { ...WORLD.released, [v]: { month: ymOf(lastClosed()), at: nowIso(), sats: capital + vaultReserveSats(v) } }
+    fireblocksTx('release', {
+      ref: `release:${vaultKey(v)}`, clientId: ownerOf(v)?.id ?? null, vaultId: vaultKey(v), asset: 'BTC',
+      amount: (capital + vaultReserveSats(v)) / 1e8, source: `Vault ${vaultLabel(v)}`, destination: FB_WALLET.BTC,
+      note: 'End of lockup — the reserve returned to the client',
+    })
     applyWorld(WORLD)
     return reply(200, envelope({ vaultId: vaultKey(v), releasedSats: WORLD.released[v].sats }))
   }
@@ -2688,9 +3300,10 @@ function handleWrite(method, path, body) {
     if (!Number.isFinite(amount) || amount <= 0) {
       return reply(400, problem(400, 'INVALID_AMOUNT', 'amountUsdc must be a positive whole number of USDC.'))
     }
-    // Le ticket minimum d'un vault dédié.
-    if (amount < 100_000) {
-      return reply(400, problem(400, 'BELOW_MINIMUM', 'A dedicated vault starts at 100,000 USDC.'))
+    // Le ticket minimum d'un vault dédié — celui des termes du produit en vigueur.
+    const minTicket = Number(currentSettings().terms.minTicketUsdc) || 100_000
+    if (amount < minTicket) {
+      return reply(400, problem(400, 'BELOW_MINIMUM', `A dedicated vault starts at ${minTicket.toLocaleString('en-US')} USDC.`))
     }
     if (!Number.isFinite(months) || months <= 0) {
       return reply(400, problem(400, 'INVALID_LOCKUP', 'lockupMonths must be a positive number of months.'))

@@ -52,13 +52,13 @@ export function entityHref(kind: EntityKind, id: string): string {
     case 'client':
       return '/admin/clients'
     case 'compliance':
-      return '/admin/compliance'
+      return '/admin/clients'
     case 'keeper':
-      return '/admin/keeper'
+      return '/admin/settings/developer/keeper'
     case 'source':
       // Data coverage: a section inside `/admin/runtime` (not the
       // subscription management on `/admin`).
-      return '/admin/runtime'
+      return '/admin/settings/developer/service'
   }
 }
 

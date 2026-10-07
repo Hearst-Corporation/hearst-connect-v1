@@ -1,3 +1,4 @@
+import { DemoDock } from '@/features/demo/demo-dock'
 import { requireSession } from '@/lib/auth'
 import type { Metadata } from 'next'
 
@@ -12,5 +13,10 @@ export const metadata: Metadata = {
  */
 export default async function AccountLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   await requireSession()
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <DemoDock />
+    </>
+  )
 }

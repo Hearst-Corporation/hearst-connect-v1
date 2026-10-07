@@ -1,6 +1,9 @@
 import { DashboardHeader, DashboardShell } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { Callout } from '@/components/compositions'
+import { loadDemoState } from '@/features/demo/load'
+import { loadSettings } from '@/lib/settings/load'
+import type { OfferTerms } from './offer-form'
 import { requireSession } from '@/lib/auth'
 import type { Metadata } from 'next'
 import { OfferForm } from './offer-form'
@@ -17,6 +20,22 @@ export const dynamic = 'force-dynamic'
  */
 export default async function NewOfferPage() {
   await requireSession()
+  // Sur le backend de démonstration, le formulaire arrive rempli : on présente, on ne saisit pas.
+  const [demoState, settings] = await Promise.all([loadDemoState(), loadSettings()])
+  const demo = demoState !== null
+  // Les termes en vigueur — ceux qu'un changement approuvé a fixés, délai passé.
+  const t = settings?.values.terms as { minTicketUsdc?: number; defaultLockupMonths?: number; lockupOptions?: string[] } | undefined
+  const rows = settings?.values.profiles as { id: string; miningBps: number; lendingBps: number; stableBps: number }[] | undefined
+  const grid = rows ? Object.fromEntries(rows.map((r) => [r.id, { miningBps: r.miningBps, lendingBps: r.lendingBps, stableBps: r.stableBps }])) : null
+  const terms: OfferTerms | null =
+    t && grid && grid.conservative && grid.balanced && grid.growth
+      ? {
+          minTicketUsdc: Number(t.minTicketUsdc),
+          defaultLockupMonths: Number(t.defaultLockupMonths),
+          lockupOptions: (t.lockupOptions ?? []).map(Number).filter((n) => n > 0),
+          profiles: grid as OfferTerms['profiles'],
+        }
+      : null
 
   return (
     <DashboardShell>
@@ -28,7 +47,7 @@ export default async function NewOfferPage() {
 
       <BentoGrid>
         <BentoCard span={8}>
-          <OfferForm />
+          <OfferForm demo={demo} terms={terms} />
         </BentoCard>
 
         <BentoCard span={4}>

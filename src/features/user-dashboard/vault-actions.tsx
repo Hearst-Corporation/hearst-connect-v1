@@ -35,7 +35,9 @@ export function VaultActions({
     )
   }
 
-  const canWithdraw = account.withdrawUnlocked && account.availableUsdc > 0
+  /* Sous ~10 $ (≈ 0.0001 BTC, la plus petite saisie possible), il n'y a
+     rien à retirer : un reliquat d'arrondi n'est pas un retrait. */
+  const canWithdraw = account.withdrawUnlocked && account.availableUsdc >= 10
 
   return (
     <div className="vault-actions">

@@ -5,6 +5,7 @@ import { Callout } from '@/components/compositions'
 import {
   CLIENT_KINDS,
   DEFAULT_ALLOCATION,
+  DEFAULT_LOCKUP_MONTHS,
   MIN_VAULT_USDC,
   RISK_PROFILES,
   RISK_PROFILE_LABEL,
@@ -45,12 +46,29 @@ function clampPct(raw: string): number {
   return Math.min(100, Math.max(0, n))
 }
 
-export function OfferForm() {
+/** Le jeu de test de la démo : un prospect plausible, déjà qualifié. */
+const DEMO_PRESET = { client: 'Orbit Capital', kind: 'Family office', amount: '1000000' } as const
+const slug = (name: string) => name.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 16)
+
+/** Les termes EN VIGUEUR (Settings → Product terms et Risk profiles) ; à défaut, ceux du code. */
+export type OfferTerms = Readonly<{
+  minTicketUsdc: number
+  defaultLockupMonths: number
+  lockupOptions: readonly number[]
+  profiles: Readonly<Record<RiskProfile, Readonly<{ miningBps: number; lendingBps: number; stableBps: number }>>>
+}>
+
+export function OfferForm({ demo = false, terms }: Readonly<{ demo?: boolean; terms?: OfferTerms | null }>) {
+  const MIN_TICKET = terms?.minTicketUsdc ?? MIN_VAULT_USDC
+  const GRID = terms?.profiles ?? DEFAULT_ALLOCATION
+  const LOCKUPS = terms?.lockupOptions ?? []
   /* Ouverte depuis une fiche client (« New tranche », « New version ») : le
      client est déjà connu, l'offre lui sera rattachée par son identifiant. */
   const params = useSearchParams()
   const presetClientId = params.get('clientId')
-  const presetClient = params.get('client') ?? ''
+  /* Démo : tout est pré-rempli (nom, référence, courriel de test, typologie,
+     1 000 000 USDC) — chaque champ reste modifiable. */
+  const presetClient = params.get('client') ?? (demo ? DEMO_PRESET.client : '')
   /* Une NOUVELLE TRANCHE reprend l'allocation du vault le plus récent du
      client : c'est le mandat qu'il a déjà signé. Elle ouvrira son propre vault,
      modifiable ici comme toute offre. */
@@ -58,11 +76,11 @@ export function OfferForm() {
   const inherited = ['mining', 'lending', 'stable'].map((k) => Number(params.get(k)))
   const inherits = tranche !== null && inherited.every((v) => Number.isFinite(v) && v >= 0) && inherited.reduce((a, b) => a + b, 0) === 10_000
   const [profile, setProfile] = useState<ProfileChoice>(inherits ? 'custom' : 'balanced')
-  const [mining, setMining] = useState(inherits ? inherited[0] / 100 : DEFAULT_ALLOCATION.balanced.miningBps / 100)
-  const [lending, setLending] = useState(inherits ? inherited[1] / 100 : DEFAULT_ALLOCATION.balanced.lendingBps / 100)
-  const [stable, setStable] = useState(inherits ? inherited[2] / 100 : DEFAULT_ALLOCATION.balanced.stableBps / 100)
-  const [amount, setAmount] = useState('')
-  const [months, setMonths] = useState(24)
+  const [mining, setMining] = useState(inherits ? inherited[0] / 100 : GRID.balanced.miningBps / 100)
+  const [lending, setLending] = useState(inherits ? inherited[1] / 100 : GRID.balanced.lendingBps / 100)
+  const [stable, setStable] = useState(inherits ? inherited[2] / 100 : GRID.balanced.stableBps / 100)
+  const [amount, setAmount] = useState(demo ? DEMO_PRESET.amount : '')
+  const [months, setMonths] = useState(terms?.defaultLockupMonths ?? DEFAULT_LOCKUP_MONTHS)
   const [state, submit, submitting] = useActionState(createOffer, { error: null })
   const [projection, setProjection] = useState<DraftSimulation | null>(null)
   const [projecting, startProjecting] = useTransition()
@@ -72,7 +90,7 @@ export function OfferForm() {
      tant qu'il ne rechange pas de profil. */
   function pickProfile(next: RiskProfile) {
     setProfile(next)
-    const a = DEFAULT_ALLOCATION[next]
+    const a = GRID[next]
     setMining(a.miningBps / 100)
     setLending(a.lendingBps / 100)
     setStable(a.stableBps / 100)
@@ -89,7 +107,7 @@ export function OfferForm() {
   const amountNum = Number(amount.replace(/[^\d.]/g, ''))
   const typedAmount = Number.isFinite(amountNum) && amountNum > 0
   /* Le ticket minimum : en dessous, ni projection ni création. */
-  const belowMinimum = typedAmount && amountNum < MIN_VAULT_USDC
+  const belowMinimum = typedAmount && amountNum < MIN_TICKET
   const hasAmount = typedAmount && !belowMinimum
 
   const slice = (pctValue: number) =>
@@ -147,15 +165,27 @@ export function OfferForm() {
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-fg-tertiary">Reference</span>
-            <input name="reference" required className={FIELD} placeholder="NORTHWIND-01" />
+            <input
+              name="reference"
+              required
+              className={FIELD}
+              placeholder="NORTHWIND-01"
+              defaultValue={demo && presetClient ? `${slug(presetClient)}-${String(tranche ?? 1).padStart(2, '0')}` : undefined}
+            />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-fg-tertiary">Contact email</span>
-            <input name="contactEmail" type="email" className={FIELD} placeholder="treasury@…" />
+            <input
+              name="contactEmail"
+              type="email"
+              className={FIELD}
+              placeholder="treasury@…"
+              defaultValue={demo && presetClient ? `treasury@${slug(presetClient).toLowerCase()}.test` : undefined}
+            />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-fg-tertiary">Kind</span>
-            <select name="clientKind" className={FIELD} defaultValue="">
+            <select name="clientKind" className={FIELD} defaultValue={demo ? DEMO_PRESET.kind : ''}>
               <option value="">Not recorded</option>
               {CLIENT_KINDS.map((k) => (
                 <option key={k} value={k}>
@@ -184,7 +214,7 @@ export function OfferForm() {
             />
             {belowMinimum ? (
               <span className="text-xs text-danger-400">
-                Minimum {MIN_VAULT_USDC.toLocaleString('en-US')} USDC per vault — this amount cannot open one.
+                Minimum {MIN_TICKET.toLocaleString('en-US')} USDC per vault — this amount cannot open one.
               </span>
             ) : (
               <span className="text-xs text-fg-tertiary">
@@ -192,7 +222,7 @@ export function OfferForm() {
                 {projection?.ok && hasAmount
                   ? `≈ ${projection.simulation.hodlBtc.toLocaleString('en-US', { maximumFractionDigits: 2 })} BTC at today’s price — converted at entry. `
                   : ''}
-                Minimum {MIN_VAULT_USDC.toLocaleString('en-US')} USDC.
+                Minimum {MIN_TICKET.toLocaleString('en-US')} USDC.
               </span>
             )}
           </label>
@@ -206,6 +236,21 @@ export function OfferForm() {
               onChange={(e) => setMonths(Math.max(0, Math.round(Number(e.target.value))))}
               className={FIELD}
             />
+            {/* Les durées que les termes du produit proposent : un clic. */}
+            {LOCKUPS.length > 0 ? (
+              <span className="flex flex-wrap gap-1.5">
+                {LOCKUPS.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMonths(m)}
+                    className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${months === m ? 'bg-white/[0.08] text-fg ring-white/20' : 'text-fg-tertiary ring-[var(--ud-line)] hover:text-fg'}`}
+                  >
+                    {m} months
+                  </button>
+                ))}
+              </span>
+            ) : null}
           </label>
         </div>
       </fieldset>
@@ -320,7 +365,7 @@ export function OfferForm() {
         {projection === null ? (
           <p className="rounded-lg bg-[var(--ud-inset)] px-4 py-6 text-center text-sm text-fg-tertiary">
             {belowMinimum
-              ? `A vault starts at ${MIN_VAULT_USDC.toLocaleString('en-US')} USDC — raise the amount to project this offer.`
+              ? `A vault starts at ${MIN_TICKET.toLocaleString('en-US')} USDC — raise the amount to project this offer.`
               : !hasAmount
               ? 'Enter an amount to project this offer.'
               : !balanced

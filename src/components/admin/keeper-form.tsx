@@ -19,7 +19,8 @@ import { useActionState } from 'react'
    metrics pair + CONFIRM + button ≈ 326px chrome included) without scrolling;
    the outcome well and any longer state scroll INSIDE — the grid row never
    moves with the data. */
-const CARD_HEIGHT_CLASS = 'h-[340px]'
+// La carte prend la hauteur de sa rangée (la grille étire) — plus de hauteur figée.
+const CARD_HEIGHT_CLASS = 'h-full'
 
 /**
  * Keeper action form — fail-closed. Nothing is presented as executed until

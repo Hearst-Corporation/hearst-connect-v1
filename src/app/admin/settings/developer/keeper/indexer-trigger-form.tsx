@@ -27,8 +27,8 @@ export function IndexerTriggerForm() {
   return (
     <form action={action} className="space-y-3">
       <Text>
-        Starts one Series 1 indexer pass. Useful only when chain RPC is reachable — otherwise the
-        failure stays visible in the response. This does not sign vault transactions.
+        Reads the chain once more and indexes what is new. If the chain RPC is down, the failure is
+        shown here as the service reports it.
       </Text>
       <ConfirmField />
       <Button type="submit" disabled={pending}>

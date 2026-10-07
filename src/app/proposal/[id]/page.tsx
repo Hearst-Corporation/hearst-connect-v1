@@ -8,6 +8,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PrintButton } from './print-button'
+import { ProposalAnswer } from './proposal-answer'
+import { DemoDock } from '@/features/demo/demo-dock'
 import './proposal.css'
 
 export const metadata: Metadata = { title: 'Proposal' }
@@ -84,7 +86,10 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
   return (
     <div className="proposal-root">
       <div className="proposal-toolbar">
-        <Link href={`/admin/offers/${offer.id}`} className="text-sm text-white/70 hover:text-white">
+        <Link
+          href={offer.clientId ? `/admin/clients/${offer.clientId}` : `/admin/offers/${offer.id}`}
+          className="text-sm text-white/70 hover:text-white"
+        >
           ← Back to the offer
         </Link>
         <span className="text-sm text-white/60">
@@ -92,6 +97,8 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
         </span>
         <PrintButton />
       </div>
+      <ProposalAnswer offer={offer} />
+      <DemoDock />
 
       {/* ── 1. COUVERTURE ──────────────────────────────────────────────── */}
       <section className="proposal-sheet is-cover">

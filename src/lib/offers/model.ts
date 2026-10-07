@@ -21,6 +21,9 @@ import type { Availability } from '@/lib/vaults/model'
 /** Le ticket minimum d'un vault dédié, en USDC. En dessous, l'offre ne se crée pas. */
 export const MIN_VAULT_USDC = 100_000
 
+/** Le blocage proposé par défaut à une nouvelle offre, en mois — modifiable offre par offre. */
+export const DEFAULT_LOCKUP_MONTHS = 24
+
 export const CLIENT_KINDS = [
   'Crypto company',
   'Crypto exchange',
@@ -164,6 +167,17 @@ export type Questionnaire = Readonly<{
 
 export type OfferId = string & { readonly __brand: 'OfferId' }
 
+/** Un courriel parti : depuis le Gmail de l'opérateur, consigné sur le contact et le deal HubSpot. */
+export type SentEmail = Readonly<{
+  emailId: string
+  to: readonly string[]
+  cc: readonly string[]
+  subject: string
+  sentAt: string
+  gmailMessageId: string | null
+  hubspotEngagementId: string | null
+}>
+
 export type Offer = Readonly<{
   id: OfferId
   /**
@@ -189,6 +203,24 @@ export type Offer = Readonly<{
   updatedAt: string
   sentAt: string | null
   decidedAt: string | null
+  /** Qui a répondu : le client depuis sa proposition, ou l'admin qui consigne sa réponse. */
+  acceptedBy?: 'client' | 'admin' | null
+  /** Identifiants et lien de virement envoyés : les fonds sont appelés. */
+  fundingRequestedAt?: string | null
+  /** Le virement est arrivé — il attend son autorisation (une décision). */
+  fundsReceivedAt?: string | null
+  /** Le dépôt est autorisé : le vault peut s'ouvrir. */
+  fundedAt?: string | null
+  /** Le vault s'est ouvert. */
+  openedAt?: string | null
+  /**
+   * Le compte Fireblocks du futur vault, ouvert à l'acceptation : son adresse
+   * de dépôt est celle de l'appel de fonds. Tout ce qui déplace de l'argent
+   * passe ensuite par Fireblocks.
+   */
+  fireblocks?: Readonly<{ vaultAccountId: string; asset: string; network: string; depositAddress: string }> | null
+  /** Les courriels du parcours déjà envoyés (Gmail) et consignés dans HubSpot. */
+  sentEmails?: readonly SentEmail[]
   /** Le vault ouvert au terme du parcours, quand il existe. */
   vaultId: string | null
   questionnaire: Questionnaire | null

@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { BackendResolved } from '@/lib/admin-dashboard/cache'
 import type { OfferSimulation } from '@/lib/admin-dashboard/contracts'
@@ -104,4 +105,62 @@ export async function createOffer(_prev: CreateOfferState, form: FormData): Prom
   /* Retour sur la fiche du client : c'est là que vit son offre, avec sa
      projection, son PDF et ses courriels. */
   redirect(created.clientId ? `/admin/clients/${created.clientId}` : `/admin/offers/${created.id}`)
+}
+
+/* ── Les étapes d'une offre ─────────────────────────────────────────────────
+   Une étape à la fois : envoyée, réponse du client, fonds appelés, fonds
+   reçus, vault ouvert. Le backend est l'autorité — il refuse un saut d'étape,
+   et l'appel de fonds tant que le KYC/AML n'est pas validé. Son refus
+   s'affiche tel quel. */
+
+export type StepOutcome = Readonly<{ ok: boolean; error: string | null }>
+
+export async function advanceOffer(_prev: StepOutcome | null, form: FormData): Promise<StepOutcome> {
+  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const id = String(form.get('offerId') ?? '')
+  const to = String(form.get('to') ?? '')
+  const by = String(form.get('by') ?? 'admin')
+  if (id === '' || to === '') return { ok: false, error: 'Nothing to do.' }
+  const res = await callBackend<{ offer: BackendResolved<Offer> }>('admin-offer-transition', {
+    params: { id },
+    body: { to, by },
+  })
+  if (!res.ok) return { ok: false, error: res.problem?.detail ?? 'The backend refused this step.' }
+  revalidatePath('/admin', 'layout')
+  revalidatePath(`/proposal/${id}`)
+  return { ok: true, error: null }
+}
+
+/* ── Les courriels du parcours ──────────────────────────────────────────────
+   Le backend envoie depuis le Gmail de l'opérateur et consigne dans HubSpot.
+   Quand l'envoi EST l'étape (proposition, appel de fonds), il l'enregistre
+   aussi — ou refuse, et rien ne part (KYC non validé, par exemple). */
+
+export async function sendOfferEmail(
+  offerId: string,
+  emailId: string,
+  draft: Readonly<{ to: readonly string[]; cc: readonly string[]; subject: string; body: string }>,
+): Promise<StepOutcome> {
+  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const res = await callBackend('admin-offer-email-send', {
+    params: { id: offerId, emailId },
+    body: { to: draft.to, cc: draft.cc, subject: draft.subject, body: draft.body },
+  })
+  if (!res.ok) return { ok: false, error: res.problem?.detail ?? 'The email could not be sent.' }
+  revalidatePath('/admin', 'layout')
+  return { ok: true, error: null }
+}
+
+/* ── La fin d'un blocage ────────────────────────────────────────────────────
+   La réserve (versement converti + accumulé) est rendue au client en bitcoin,
+   et le vault se clôt. Renouveler, c'est une NOUVELLE tranche. */
+
+export async function releaseVault(_prev: StepOutcome | null, form: FormData): Promise<StepOutcome> {
+  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const vaultId = String(form.get('vaultId') ?? '')
+  if (vaultId === '') return { ok: false, error: 'No vault given.' }
+  const res = await callBackend('admin-vault-release', { params: { vaultId } })
+  if (!res.ok) return { ok: false, error: res.problem?.detail ?? 'The backend refused to release this vault.' }
+  revalidatePath('/admin', 'layout')
+  return { ok: true, error: null }
 }

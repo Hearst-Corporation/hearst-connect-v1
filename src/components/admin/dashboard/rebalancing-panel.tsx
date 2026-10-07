@@ -75,10 +75,10 @@ export function RebalancingAlertsPanel({
         <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
       ) : (
         <Link
-          href="/admin/operations"
+          href="/admin/clients?view=active"
           className="text-xs font-medium text-accent-400 hover:text-accent-300"
         >
-          Review drift alerts in Operations
+          Review the drifting vaults
         </Link>
       )}
     </div>

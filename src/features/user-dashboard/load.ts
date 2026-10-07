@@ -292,6 +292,8 @@ export type VaultAccount = {
   readonly entryRateUsd: number | null
   /** Distribution du mois, retirable maintenant. */
   readonly availableUsdc: number
+  /** Bitcoin produit pour CE vault depuis l'ouverture (rewards validés), quand la source le publie. */
+  readonly producedBtc: number | null
   readonly nextDistributionAt: string | null
   /** Début du blocage du capital. Null quand la source ne le publie pas. */
   readonly lockupStartAt: string | null
@@ -514,6 +516,7 @@ function vaultAccountFrom(field: ResolvedField | null): VaultAccount | null {
     /* LU, jamais deviné : le cours d'entrée est un fait historique. */
     entryRateUsd: num(r.entryRateUsd),
     availableUsdc,
+    producedBtc: num(r.producedBtc),
     nextDistributionAt: typeof r.nextDistributionAt === 'string' ? r.nextDistributionAt : null,
     lockupStartAt: typeof r.lockupStartAt === 'string' ? r.lockupStartAt : null,
     lockupMonths: num(r.lockupMonths),
