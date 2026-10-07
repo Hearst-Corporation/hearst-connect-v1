@@ -56,7 +56,12 @@ function fontFaces(): string {
   const out: string[] = []
   for (const sheet of Array.from(document.styleSheets)) {
     try {
-      for (const rule of Array.from(sheet.cssRules)) if (rule instanceof CSSFontFaceRule) out.push(rule.cssText)
+      const base = sheet.href ?? location.href
+      for (const rule of Array.from(sheet.cssRules)) {
+        if (!(rule instanceof CSSFontFaceRule)) continue
+        // Les chemins de fontes sont relatifs à la feuille : on les rend absolus.
+        out.push(rule.cssText.replace(/url\(["']?([^"')]+)["']?\)/g, (_, u: string) => `url("${new URL(u, base).href}")`))
+      }
     } catch {
       // Feuille d'une autre origine : illisible, on s'en passe.
     }
@@ -77,7 +82,8 @@ function printPdf(x: TableExport) {
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"><title>${esc(x.filename)}</title>
 <style>
   ${fontFaces()}
-  @page { size: A4 landscape; margin: 0; }
+  @page { size: A4 landscape; margin: 12mm 0 16mm; }
+  @page :first { margin: 0 0 16mm; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { margin: 0; font: 10.5px/1.45 ${family}, -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #121512; }
   .band { display: flex; align-items: center; justify-content: space-between; padding: 18px 14mm; background: #0d100d; }
@@ -85,7 +91,7 @@ function printPdf(x: TableExport) {
   .band .meta { text-align: right; color: #9aa39a; font-size: 9px; letter-spacing: .04em; }
   .band .meta b { display: block; color: #fff; font-size: 10px; font-weight: 500; letter-spacing: 0; }
   .rule { height: 3px; background: #a7fb90; }
-  main { padding: 10mm 14mm 18mm; }
+  main { padding: 10mm 14mm 0; }
   h1 { margin: 0 0 2px; font-size: 20px; font-weight: 500; letter-spacing: -.01em; }
   .sub { margin: 0 0 16px; color: #6b736b; }
   table { width: 100%; border-collapse: separate; border-spacing: 0; }
@@ -104,7 +110,7 @@ function printPdf(x: TableExport) {
 <main>
 <h1>${esc(x.title)}</h1><p class="sub">${x.data.length} rows · Hearst Connect</p>
 <table><thead><tr>${x.columns.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead>
-<tbody>${x.data.map((r) => `<tr>${r.map((v) => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+<tbody>${x.data.map((r) => `<tr>${r.map((v) => `<td>${esc(typeof v === 'number' ? v.toLocaleString('en-US', { maximumFractionDigits: 8 }) : v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
 </main>
 <footer><span>Hearst Connect · Confidential</span><span>hearstcorporation.io</span></footer>
 </body></html>`)
