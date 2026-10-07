@@ -10,6 +10,7 @@ import { SegSelect } from '@/components/admin/seg-select'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { useState } from 'react'
 import { PayElectricityButton } from './pay-electricity-button'
+import { CloseActions } from './close-actions'
 
 /**
  * LA CLÔTURE DU MOIS — le geste mensuel, vault par vault, au même endroit.
@@ -128,6 +129,14 @@ export function MonthlyClose({
         ))}
       </div>
 
+      {/* Où en est la clôture, et ses deux gestes en lot. */}
+      <CloseActions
+        month={m.month}
+        total={m.lines.length}
+        rewardIds={m.lines.filter((l) => l.status === 'pending' && decisionIds[l.vaultId]).map((l) => decisionIds[l.vaultId])}
+        dues={due.map((l) => ({ vaultId: l.vaultId, amountUsd: l.electricityUsd }))}
+      />
+
       {/* Le mois en quatre chiffres : ce que le parc a produit, ce qu'il reste
           à payer, ce qui entre dans les réserves, ce qui reste à valider. */}
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] lg:grid-cols-4">
@@ -136,7 +145,7 @@ export function MonthlyClose({
           [
             'Electricity to pay',
             due.length === 0 ? 'All paid' : usd(dueUsd),
-            due.length === 0 ? `${usd(m.electricityUsd)} for the month` : `${due.length} of ${m.lines.length} vaults · ≈ ${btc(toSats(dueUsd))}`,
+            due.length === 0 ? `${usd(m.lines.reduce((t, l) => t + l.electricityUsd, 0))} paid across ${m.lines.length} vaults` : `${due.length} of ${m.lines.length} vaults · ≈ ${btc(toSats(dueUsd))}`,
             due.length > 0,
           ],
           ['Mining, net', btc(netTotalSats), `${m.lines.length} vaults, after electricity`, false],
@@ -177,7 +186,7 @@ export function MonthlyClose({
           <TableRow key={l.id}>
             <TableCell>
               <Link
-                href={`/admin/clients/${l.clientId}?vault=${encodeURIComponent(l.vaultId)}#rewards`}
+                href={`/admin/clients/${l.clientId}?vault=${encodeURIComponent(l.vaultId)}&tab=rewards`}
                 className="font-medium text-fg"
               >
                 {l.clientLabel}
@@ -222,10 +231,10 @@ export function MonthlyClose({
                   tout ce qu'elles contiennent. */}
               <div className="flex flex-wrap items-center justify-end! gap-2">
                 {l.status === 'pending' && decisionIds[l.vaultId] ? (
-                  <DecisionButtons id={decisionIds[l.vaultId]} action="Approve reward" />
+                  <DecisionButtons id={decisionIds[l.vaultId]} action="Approve" compact />
                 ) : null}
                 {l.electricityStatus !== 'paid' ? (
-                  <PayElectricityButton amount={String(Math.round(l.electricityUsd))} vaultId={l.vaultId} month={m.month} />
+                  <PayElectricityButton amount={String(Math.round(l.electricityUsd))} vaultId={l.vaultId} month={m.month} compact />
                 ) : null}
               </div>
             </TableCell>

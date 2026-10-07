@@ -8,7 +8,8 @@ export function PayElectricityButton({
   amount,
   vaultId,
   month,
-}: Readonly<{ amount: string; vaultId?: string; month?: string }>) {
+  compact = false,
+}: Readonly<{ amount: string; vaultId?: string; month?: string; compact?: boolean }>) {
   const [outcome, action, pending] = useActionState<PayElectricityOutcome | null, FormData>(
     payElectricity,
     null,
@@ -22,9 +23,9 @@ export function PayElectricityButton({
       <button
         type="submit"
         disabled={pending}
-        className={actionButtonClass}
+        className={compact ? 'inline-flex h-7 items-center rounded-full px-3 text-xs font-medium text-fg ring-1 ring-[var(--ud-line)] hover:bg-white/5' : actionButtonClass}
       >
-        {pending ? 'Processing…' : 'Pay electricity'}
+        {pending ? 'Processing…' : compact ? 'Pay' : 'Pay electricity'}
       </button>
       {outcome?.ok === false ? (
         <p className="text-xs text-danger-400">{outcome.error}</p>
