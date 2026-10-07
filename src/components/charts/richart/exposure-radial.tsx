@@ -81,6 +81,7 @@ export function HearstExposureRadial({
   aumUsdc = null,
   briefs = null,
   yields = null,
+  expanded = false,
 }: Readonly<{
   items: readonly ExposureItem[]
   /** AUM du vault : chiffre chaque poche en dollars. Sans lui, la légende
@@ -92,6 +93,9 @@ export function HearstExposureRadial({
   /** Rendement courant par poche, indexé sur le libellé. Une poche sans taux
    *  affiche `—` : c'est une absence, pas un rendement nul. */
   yields?: readonly { readonly bucket: string; readonly yieldPct: number }[] | null
+  /** Détail de chaque poche toujours ouvert (protocole, cible, réel) — sans
+   *  bouton. Pour l'écran client, où ce détail EST l'information. */
+  expanded?: boolean
 }>) {
   const rows: Row[] = items.map((p, index) => ({
     ...p,
@@ -241,6 +245,7 @@ export function HearstExposureRadial({
                 aumUsdc={aumUsdc}
                 brief={briefs?.[r.label]}
                 yieldPct={yields?.find((y) => y.bucket === r.label)?.yieldPct ?? null}
+                expanded={expanded}
               />
             ))}
           </ul>
@@ -267,13 +272,16 @@ function PocketRow({
   aumUsdc,
   brief,
   yieldPct,
+  expanded,
 }: Readonly<{
   row: Row
   aumUsdc: number | null
   brief: string | undefined
   yieldPct: number | null
+  expanded: boolean
 }>) {
-  const [open, setOpen] = useState(false)
+  const [toggled, setOpen] = useState(false)
+  const open = expanded || toggled
 
   const amount =
     row.actualPct === null
@@ -344,20 +352,30 @@ function PocketRow({
       {/* Mêmes tokens que le bouton « Detail » des mouvements : `bg-accent-400`
           (#a7fb90) et `text-accent-ink` (#000) divergeaient de `--hearst-green`
           (#9eea7a) et `--hearst-green-ink` (#06140a). */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="ud-detail-btn"
-      >
-        {open ? 'Hide' : 'Detail'}
-      </button>
+      {expanded ? (
+        <span aria-hidden="true" />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="ud-detail-btn"
+        >
+          {open ? 'Hide' : 'Detail'}
+        </button>
+      )}
 
       {/* Description et détail restent dans la grille, alignés sur le libellé —
           pas d'indentation supplémentaire qui créerait un troisième niveau. La
           description n'apparaît qu'au dépli : repliée, la ligne se lit d'un coup
           d'œil et les trois poches tiennent sur trois lignes. */}
-      {open ? (
+      {expanded ? (
+        // Vue client : une seule ligne — le protocole et la cible. Réel et
+        // dérive sont déjà dans les colonnes de la ligne.
+        brief !== undefined ? (
+          <span className="col-start-2 -col-end-1 text-[11px] text-fg-tertiary">{brief}</span>
+        ) : null
+      ) : (open ? (
         <span className="col-start-2 -col-end-1 flex flex-col gap-1.5 text-[11px] text-fg-tertiary">
           {brief !== undefined ? <span className="leading-snug">{brief}</span> : null}
           <span className="flex flex-wrap gap-x-6 gap-y-1">
@@ -380,7 +398,7 @@ function PocketRow({
           </span>
           </span>
         </span>
-      ) : null}
+      ) : null)}
     </li>
   )
 }

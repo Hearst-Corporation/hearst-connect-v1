@@ -29,6 +29,8 @@ export type PortalVault = Readonly<{
   lockupStartAt: string
   lockupEndAt: string
   lockupMonths: number
+  /** La composition du vault dans le temps — part de chaque bucket, en %. */
+  allocationHistory?: readonly Readonly<{ at: string; shares: Readonly<Record<string, number>> }>[]
   elapsedMonths: number
   nextRewardAt: string | null
   allocation: Readonly<{

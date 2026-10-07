@@ -3316,9 +3316,9 @@
 }
 
 .ud-root .dashboard-view > .page-intro,
-.ud-root .dashboard-view > .your-position,
-.ud-root .dashboard-view > .your-account,
-.ud-root .dashboard-view > .fund-vault {
+.ud-root .dashboard-view > .your-position, .ud-root .vault-tab-body > .your-position,
+.ud-root .dashboard-view > .your-account, .ud-root .vault-tab-body > .your-account,
+.ud-root .dashboard-view > .fund-vault, .ud-root .vault-tab-body > .fund-vault {
   border: 1px solid var(--ud-line);
   border-radius: var(--ud-radius);
   background: var(--ud-card);
@@ -3337,9 +3337,9 @@
 
 /* Les filets de séparation internes disparaissent : c'est le vide entre les
    boxes qui sépare désormais, plus une ligne. */
-.ud-root .dashboard-view > .your-position,
-.ud-root .dashboard-view > .your-account,
-.ud-root .dashboard-view > .fund-vault {
+.ud-root .dashboard-view > .your-position, .ud-root .vault-tab-body > .your-position,
+.ud-root .dashboard-view > .your-account, .ud-root .vault-tab-body > .your-account,
+.ud-root .dashboard-view > .fund-vault, .ud-root .vault-tab-body > .fund-vault {
   border-bottom: 1px solid var(--ud-line);
 }
 
@@ -5589,4 +5589,658 @@
   background-position: right 0.875rem center;
   background-size: 14px 14px;
   padding-right: 2.5rem;
+}
+
+/* Un mouvement pas encore réglé le dit, à côté de son titre. */
+.ud-root .timeline-status {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fcd34d;
+  box-shadow: inset 0 0 0 1px rgb(252 211 77 / 0.3);
+  vertical-align: 2px;
+}
+
+/* Le panneau « Reserve » : le graphique prend la hauteur du panneau central. */
+.ud-root .center-reserve {
+  padding: 8px 4px 0;
+}
+
+/* Les actions du vault : sélecteur de vault puis « Withdraw », sur une ligne. */
+.ud-root .vault-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* La fin de blocage : la jauge, le choix, la phrase — aérés. */
+.ud-root .term-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.ud-root .term-choice-track {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+.ud-root .term-choice-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ud-text-tertiary, rgb(255 255 255 / 0.5));
+}
+.ud-root .term-choice-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  overflow: hidden;
+}
+.ud-root .term-choice-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--hearst-green);
+}
+.ud-root .term-choice-note {
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.5);
+  max-width: 640px;
+}
+
+/* Reserve et Allocation remplissent le panneau central : plus de vide dessous. */
+.ud-root .center-plot-inner:has(.center-reserve),
+.ud-root .center-plot-inner:has(.center-allocation) {
+  flex: 1 1 auto;
+  justify-content: stretch;
+}
+.ud-root .center-reserve {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+.ud-root .center-allocation {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Ce que chaque bucket a rapporté : trois cellules sous la composition. */
+.ud-root .bucket-earned {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.ud-root .bucket-earned > li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.03);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+.ud-root .bucket-earned-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.6);
+}
+.ud-root .bucket-earned-name > i {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+}
+.ud-root .bucket-earned-value {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--hearst-green);
+  font-variant-numeric: tabular-nums;
+}
+.ud-root .bucket-earned-share {
+  font-size: 11px;
+  color: rgb(255 255 255 / 0.45);
+}
+@media (max-width: 640px) {
+  .ud-root .bucket-earned {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Où travaille le capital : une ligne par bucket. ── */
+.ud-root .pocket-table {
+  display: flex;
+  flex-direction: column;
+}
+.ud-root .pocket-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1.6fr) 5rem 7rem;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--ud-line);
+}
+.ud-root .pocket-head {
+  padding: 0 0 12px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.45);
+}
+.ud-root .pocket-row .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ud-root .pocket-name {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: #fff;
+}
+.ud-root .pocket-name > i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 3px;
+}
+.ud-root .pocket-name small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.45);
+}
+.ud-root .pocket-protocol {
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.75);
+}
+.ud-root .pocket-share {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ud-root .pocket-share-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+}
+.ud-root .pocket-share-bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+}
+.ud-root .pocket-share-bar > b {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: #fff;
+}
+.ud-root .pocket-share-text {
+  font-size: 12px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.ud-root .pocket-share-text em {
+  font-style: normal;
+  color: rgb(255 255 255 / 0.45);
+}
+.ud-root .pocket-share-text strong {
+  margin-left: 8px;
+  font-weight: 500;
+  color: #fcd34d;
+}
+.ud-root .pocket-rate {
+  font-size: 15px;
+  color: var(--hearst-green);
+}
+.ud-root .pocket-capital {
+  font-size: 14px;
+  color: rgb(255 255 255 / 0.75);
+}
+.ud-root .pocket-note {
+  padding-top: 16px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.45);
+}
+@media (max-width: 860px) {
+  .ud-root .pocket-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 16px;
+  }
+  .ud-root .pocket-head {
+    display: none;
+  }
+  .ud-root .pocket-protocol {
+    grid-column: 1;
+  }
+  .ud-root .pocket-share {
+    grid-column: 1 / -1;
+  }
+  .ud-root .pocket-rate {
+    grid-row: 1;
+    grid-column: 2;
+  }
+  .ud-root .pocket-capital {
+    grid-row: 2;
+    grid-column: 2;
+  }
+}
+
+/* Le titre d'un mouvement tient sur une ligne, son statut compris. */
+.ud-root .timeline-title {
+  white-space: nowrap;
+}
+
+/* Les valeurs de l'économie du minage ne se coupent pas (« 92.05 T »). */
+.ud-root .mining-flank-params dd,
+.ud-root .mining-flank-params [class*='value'] {
+  white-space: nowrap;
+}
+
+/* ── Movements : titre à gauche, filtres et export à droite. ── */
+.ud-root .movements-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ud-root .movements-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Un retrait en cours : ses quatre étapes, cochées au fil de l'eau. */
+.ud-root .withdrawal-track {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--ud-pad-card);
+  border-bottom: 1px solid var(--ud-line);
+  background: rgb(252 211 77 / 0.04);
+}
+.ud-root .withdrawal-track-row p {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.75);
+}
+.ud-root .withdrawal-track-row strong {
+  color: #fff;
+  font-weight: 500;
+}
+.ud-root .withdrawal-track-row ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.ud-root .withdrawal-track-row li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.45);
+}
+.ud-root .withdrawal-track-row li > span {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+.ud-root .withdrawal-track-row li.is-done {
+  color: rgb(255 255 255 / 0.75);
+}
+.ud-root .withdrawal-track-row li.is-done > span {
+  background: var(--hearst-green);
+  color: #0b0b0b;
+  box-shadow: none;
+}
+@media (max-width: 640px) {
+  .ud-root .withdrawal-track-row ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Les onglets de My Vault, avec le choix du vault et « Withdraw » à droite —
+   collés en haut au défilement, sur tous les onglets. */
+.ud-root .vault-tabs-row {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -8px 0;
+  padding: 8px 0;
+  background: color-mix(in srgb, var(--ud-page, #141414) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.ud-root .vault-tabs-row > nav {
+  position: static;
+  margin: 0;
+  padding: 0;
+  background: none;
+  backdrop-filter: none;
+}
+.ud-root .vault-tabs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Le statut d'un mouvement ne se tronque jamais. */
+.ud-root .timeline-title {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Onglets du panneau central : la police porte son texte haut ; on le
+   redescend d'1,5 px pour que son centre tombe sur celui du picto. */
+.ud-root .chart-switch .switch-inner {
+  line-height: 1;
+  padding-top: 8.5px;
+  padding-bottom: 5.5px;
+}
+.ud-root .chart-switch .switch-inner svg {
+  transform: translateY(-1.5px);
+}
+
+/* Les trois vues du panneau central (Compute, Reserve, Allocation) partagent
+   UNE hauteur fixe : passer de l'une à l'autre ne bouge ni la rangée ni les
+   flancs, pas d'un pixel. Sous 1024px les blocs s'empilent, chacun à sa
+   hauteur naturelle. */
+@media (min-width: 1025px) {
+  .ud-root .analysis--fund .center-plot {
+    flex: none;
+    height: 504px;
+    min-height: 0;
+  }
+  .ud-root .analysis--fund .center-plot-inner {
+    height: 100%;
+    min-height: 0;
+  }
+  .ud-root .analysis--fund .center-reserve {
+    min-height: 0;
+    height: 100%;
+  }
+}
+
+/* Le corps d'un onglet de My Vault : ses blocs, à l'écart des sections. */
+.ud-root .vault-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ud-gap-section);
+}
+
+/* Fin de blocage : la jauge à gauche, le choix et sa phrase à droite. */
+@media (min-width: 1025px) {
+  .ud-root .term-choice {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 16px 48px;
+  }
+  .ud-root .term-choice-track {
+    max-width: none;
+    padding-top: 10px;
+  }
+}
+.ud-root .term-choice-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ud-root .term-choice-side .term-choice-note {
+  max-width: 460px;
+}
+
+/* Les quatre onglets de My Vault ont la même hauteur : changer d'onglet ne
+   fait pas sauter la page. Le dernier bloc s'étire jusqu'au plancher. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body {
+    min-height: 700px;
+  }
+  .ud-root .vault-tab-body > :last-child {
+    flex: 1 1 auto;
+  }
+}
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body > .fund-vault,
+  .ud-root .vault-tab-body > .your-account {
+    display: flex;
+    flex-direction: column;
+  }
+  .ud-root .vault-tab-body > .fund-vault > :last-child,
+  .ud-root .vault-tab-body > .your-account > :last-child {
+    flex: 1 1 auto;
+    border-bottom: none;
+  }
+}
+
+/* Le rebalancing, en trois phrases : la cible, le retour, le contrôle. */
+.ud-root .rebalance-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+.ud-root .rebalance-points > div {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.03);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+.ud-root .rebalance-points strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+}
+.ud-root .rebalance-points p {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.55);
+}
+@media (max-width: 860px) {
+  .ud-root .rebalance-points {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Capital & lockup : plus d'air dans les deux blocs. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body--capital .exposure-cap .ec-panel {
+    padding: 32px 36px;
+  }
+  .ud-root .vault-tab-body--capital .ud-radial-row {
+    column-gap: 56px;
+  }
+  .ud-root .vault-tab-body--capital .ud-radial-dial {
+    width: 18rem;
+  }
+}
+
+/* Mouvements : la ligne entière est cliquable, comme dans les tableaux de la
+   console — survol gris, chevron vert. Plus de bouton « Detail » par ligne. */
+.ud-root .timeline-item--link {
+  margin: 0 -12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.ud-root .timeline-item--link:hover,
+.ud-root .timeline-item--link.is-open {
+  background: rgb(255 255 255 / 0.04);
+}
+.ud-root .timeline-item--link:focus-visible {
+  outline: 2px solid var(--hearst-green);
+  outline-offset: -2px;
+}
+.ud-root .timeline > li:not(:last-child) .timeline-item--link::before {
+  left: 29px;
+}
+.ud-root .timeline-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--hearst-green);
+  opacity: 0.6;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.ud-root .timeline-item--link:hover .timeline-chevron,
+.ud-root .timeline-item--link.is-open .timeline-chevron {
+  opacity: 1;
+}
+.ud-root .timeline-item--link.is-open .timeline-chevron {
+  transform: rotate(90deg);
+}
+/* « Show more » : bouton secondaire gris à contour, comme dans la console. */
+.ud-root .timeline-toggle {
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--ud-fg, #fff);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+.ud-root .timeline-toggle:hover {
+  filter: none;
+  background: rgb(255 255 255 / 0.05);
+}
+
+/* Mouvements, gabarit large : les colonnes se répartissent toute la largeur,
+   le statut dans sa colonne à droite, juste avant le chevron. */
+@media (min-width: 1025px) {
+  .ud-root .timeline-body {
+    grid-template-columns:
+      minmax(10rem, 1.3fr)
+      minmax(7rem, 1fr)
+      minmax(7rem, 1fr)
+      minmax(7rem, 1fr)
+      7rem
+      max-content;
+    align-items: center;
+  }
+}
+.ud-root .timeline-status-cell {
+  justify-self: end;
+}
+.ud-root .timeline-status-cell .timeline-status {
+  margin-left: 0;
+  vertical-align: 0;
+}
+
+/* Pied des mouvements : exports puis « Show all », alignés à droite, comme
+   le pied des tableaux de la console. */
+.ud-root .timeline-tail {
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding-right: var(--ud-pad-card);
+}
+.ud-root .timeline-tail .timeline-toggle {
+  margin: 0;
+}
+/* Lignes de mouvements : un peu plus serrées, le statut centré sur la ligne. */
+.ud-root .timeline-item--link {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.ud-root .timeline-status-cell {
+  align-self: center;
+  line-height: 1;
+}
+
+/* Le rebalancing en une ligne, sous les poches. */
+.ud-root .rebalance-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.55);
+}
+.ud-root .rebalance-line svg {
+  flex: none;
+  color: var(--hearst-green);
+}
+
+/* Les quatre onglets de My Vault : UNE hauteur, fixe. Changer d'onglet ne
+   bouge rien, pas d'un pixel. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body {
+    height: 700px;
+    min-height: 0;
+  }
+  .ud-root .vault-tab-body > :last-child {
+    min-height: 0;
+  }
+}
+
+/* Statut : centré entre la contrevaleur et le chevron ; vert une fois réglé. */
+@media (min-width: 1025px) {
+  .ud-root .timeline-body {
+    grid-template-columns:
+      minmax(10rem, 1.3fr)
+      minmax(7rem, 1fr)
+      minmax(7rem, 1fr)
+      minmax(7rem, 1fr)
+      minmax(7rem, 1fr)
+      max-content;
+  }
+}
+.ud-root .timeline-status-cell {
+  justify-self: center;
+}
+.ud-root .timeline-status[data-tone='done'] {
+  color: var(--hearst-green);
+  box-shadow: inset 0 0 0 1px rgb(158 234 122 / 0.3);
+}
+.ud-root .timeline-status[data-tone='off'] {
+  color: rgb(255 255 255 / 0.5);
+  box-shadow: inset 0 0 0 1px var(--ud-line);
+}
+
+/* Show all / Show less : le bouton vert — exports en gris à côté. */
+.ud-root .timeline-toggle {
+  background: var(--hearst-green);
+  color: var(--hearst-green-ink);
+  box-shadow: none;
+}
+.ud-root .timeline-toggle:hover {
+  background: var(--hearst-green);
+  filter: brightness(1.06);
+}
+/* Liste dépliée : l'onglet suit son contenu, le seul cas où il grandit. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body:has(.timeline-toggle[aria-expanded='true']) {
+    height: auto;
+  }
+}
+
+/* La phrase sous le choix de fin de blocage, décalée sur le texte des pilules. */
+.ud-root .term-choice-side .term-choice-note {
+  padding-left: 5px;
 }

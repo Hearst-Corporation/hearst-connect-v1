@@ -38,7 +38,12 @@ export type WithdrawWallet = Readonly<{ id: string; label: string; address: stri
  * « Max » arrondit vers le bas : jamais plus que le disponible. La demande part
  * à Hearst ; son suivi (approuvé, co-signé, confirmé) se lit dans Activity.
  */
-export function WithdrawButton({ vaults, wallets, spotUsd }: Readonly<{ vaults: readonly WithdrawVault[]; wallets: readonly WithdrawWallet[]; spotUsd: number }>) {
+export function WithdrawButton({
+  vaults,
+  wallets,
+  spotUsd,
+  className = 'ud-cta inline-flex h-9 items-center',
+}: Readonly<{ vaults: readonly WithdrawVault[]; wallets: readonly WithdrawWallet[]; spotUsd: number; className?: string }>) {
   const usable = vaults.filter((v) => v.availableBtc >= 0.0001)
   const [open, setOpen] = useState(false)
   const [vaultId, setVaultId] = useState(usable[0]?.vaultId ?? '')
@@ -53,7 +58,7 @@ export function WithdrawButton({ vaults, wallets, spotUsd }: Readonly<{ vaults: 
 
   if (usable.length === 0) {
     return (
-      <button type="button" disabled className={`${SECONDARY} cursor-not-allowed opacity-40`} title="Nothing available to withdraw yet">
+      <button type="button" disabled className={`${className} cursor-not-allowed opacity-40`} title="Nothing available to withdraw yet">
         Withdraw
       </button>
     )
@@ -69,7 +74,7 @@ export function WithdrawButton({ vaults, wallets, spotUsd }: Readonly<{ vaults: 
           setAmount(max)
           setOpen(true)
         }}
-        className="ud-cta inline-flex h-9 items-center"
+        className={className}
       >
         Withdraw
       </button>
@@ -154,7 +159,7 @@ export function WithdrawButton({ vaults, wallets, spotUsd }: Readonly<{ vaults: 
 }
 
 /** INVESTIR DAVANTAGE — un nouveau versement ouvre un nouveau vault ; la demande va à son interlocuteur. */
-export function InvestMoreButton({ ownerName }: Readonly<{ ownerName: string }>) {
+export function InvestMoreButton({ ownerName, className = SECONDARY }: Readonly<{ ownerName: string; className?: string }>) {
   const [open, setOpen] = useState(false)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
@@ -163,7 +168,7 @@ export function InvestMoreButton({ ownerName }: Readonly<{ ownerName: string }>)
   const [error, setError] = useState<string | null>(null)
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={SECONDARY}>
+      <button type="button" onClick={() => setOpen(true)} className={className}>
         Invest more
       </button>
       {open ? (

@@ -2948,6 +2948,28 @@ function walletsOf(c) {
     return { ...w, activeFrom, status: Date.parse(activeFrom) <= mockNow().getTime() ? 'active' : 'cooling' }
   })
 }
+/**
+ * La composition d'UN vault dans le temps, semaine par semaine sur 90 jours :
+ * partie de sa cible signée, elle dérive avec les marchés jusqu'à sa part
+ * d'aujourd'hui — chaque rebalancing la ramène vers la cible.
+ */
+function vaultAllocationHistory(v, start, cur) {
+  const a = VAULT_ALLOC[v]
+  const now = mockNow().getTime()
+  const from = Math.max(start.getTime(), now - 90 * 86_400_000)
+  const weeks = Math.max(1, Math.round((now - from) / (7 * 86_400_000)))
+  const out = []
+  for (let i = 0; i <= weeks; i++) {
+    const t = i / weeks
+    const wob = Math.sin(i * 1.3 + v) * 0.6
+    const mining = (a.miningBps + (cur.mining - a.miningBps) * t) / 100 + wob
+    const lending = (a.lendingBps + (cur.lending - a.lendingBps) * t) / 100 - wob / 2
+    const stable = 100 - mining - lending
+    const at = new Date(from + (now - from) * t).toISOString()
+    out.push({ at, shares: { 'Mining Alpha': Number(mining.toFixed(2)), 'Bitcoin Lending': Number(lending.toFixed(2)), 'USDC Yield': Number(stable.toFixed(2)) } })
+  }
+  return out
+}
 /** Une vue de vault pour son client : tout découle de `vaultEconomy`, le livre que lit aussi l'admin. */
 function clientVaultView(c, v) {
   const e = vaultEconomy(v)
@@ -2978,6 +3000,7 @@ function clientVaultView(c, v) {
     lockupStartAt: start.toISOString(),
     lockupEndAt: end.toISOString(),
     lockupMonths: months,
+    allocationHistory: vaultAllocationHistory(v, start, cur),
     elapsedMonths: elapsed,
     nextRewardAt: isReleased(v) ? null : nextReward.toISOString(),
     allocation: {
@@ -3053,7 +3076,16 @@ function driftOf(v) {
   if (base === null) return null
   const months = last !== null ? WORLD.clock - last : opened ? WORLD.clock - opened.clock : WORLD.clock
   const g = driftGrowth(v)
-  return { mining: base.mining + g.mining * months, lending: base.lending + g.lending * months, stable: base.stable + g.stable * months }
+  const d = { mining: base.mining + g.mining * months, lending: base.lending + g.lending * months, stable: base.stable + g.stable * months }
+  /* Le mandat rééquilibre dès que la bande est franchie : une dérive ne dépasse
+     jamais la bande de plus de 20 % — même quand la démo saute un an d'un coup. */
+  const cap = (VAULT_BAND[v] ?? 500) * 1.2
+  const worst = Math.max(Math.abs(d.mining), Math.abs(d.lending), Math.abs(d.stable))
+  if (worst <= cap) return d
+  const k = cap / worst
+  const mining = Math.round(d.mining * k)
+  const lending = Math.round(d.lending * k)
+  return { mining, lending, stable: -mining - lending }
 }
 
 /** Une adresse de vault stable, dérivée de l'offre qui l'a ouvert. */

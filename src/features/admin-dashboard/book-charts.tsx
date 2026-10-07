@@ -134,7 +134,11 @@ export type ReserveSplitPoint = {
  * dépôts ont acheté à l'entrée, en vert ce que le produit y a ajouté depuis.
  * La part verte, c'est ce que Hearst crée.
  */
-export function ReserveCompositionChart({ points }: Readonly<{ points: readonly ReserveSplitPoint[] }>) {
+export function ReserveCompositionChart({
+  points,
+  breakdownTitle = 'Reserve by client',
+  wide = false,
+}: Readonly<{ points: readonly ReserveSplitPoint[]; breakdownTitle?: string; wide?: boolean }>) {
   if (points.length === 0) {
     return <p className="py-6 text-center text-sm text-fg-tertiary">No vault open yet.</p>
   }
@@ -156,11 +160,12 @@ export function ReserveCompositionChart({ points }: Readonly<{ points: readonly 
               detail: label(p.month),
               values: { deposits: p.deposits, accumulated: p.accumulated },
               breakdown: p.byClient,
-              breakdownTitle: 'Reserve by client',
+              breakdownTitle,
             }))}
             series={RESERVE_SERIES}
             unit="BTC"
             height={h}
+            wide={wide}
             format={(v) => `${formatBtcValue(v)} BTC`}
             yTickFormatter={(v) => formatNumber(v, { maximumFractionDigits: 0 })}
           />

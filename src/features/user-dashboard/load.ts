@@ -181,6 +181,11 @@ export type UserMovement = {
    *  amount — an absent amount is never rendered as 0. */
   readonly amountUsdc: number | null
   readonly occurredAt: string | null
+  /** Le bitcoin RÉELLEMENT mû, quand le livre du vault le porte — prime sur
+   *  une conversion au spot du jour, qui réécrirait l'histoire. */
+  readonly btc?: number | null
+  /** Pending, processing, declined… — absent pour un mouvement réglé. */
+  readonly status?: string | null
 }
 
 export type UserDashboard = {

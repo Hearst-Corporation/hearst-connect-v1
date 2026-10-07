@@ -73,6 +73,7 @@ export function HearstStackedBarChart({
   height,
   format = (v) => formatNumber(v, { maximumFractionDigits: 2 }),
   yTickFormatter = (v) => formatNumber(v, { maximumFractionDigits: 1 }),
+  wide = false,
 }: Readonly<{
   points: readonly StackPoint[]
   series: readonly StackSeries[]
@@ -80,6 +81,8 @@ export function HearstStackedBarChart({
   height?: number
   format?: (v: number) => string
   yTickFormatter?: (v: number) => string
+  /** Colonnes épaisses, presque jointives — pour un graphique seul dans un grand panneau. */
+  wide?: boolean
 }>) {
   const { ref, width, viewportHeight } = useChartViewport({ height, kind: 'columns' })
   const data = points.map((p) => ({
@@ -91,7 +94,7 @@ export function HearstStackedBarChart({
   }))
   const legendH = 26
   const n = points.length
-  const maxBarSize = n <= 6 ? 44 : n <= 12 ? 32 : 22
+  const maxBarSize = wide ? 64 : n <= 6 ? 44 : n <= 12 ? 32 : 22
 
   return (
     <div className="min-w-0">
@@ -120,7 +123,7 @@ export function HearstStackedBarChart({
             height={Math.max(viewportHeight - legendH, 120)}
             data={data}
             margin={{ ...chartTheme.margin, right: 12, left: 0 }}
-            barCategoryGap={n <= 6 ? '28%' : '18%'}
+            barCategoryGap={wide ? '8%' : n <= 6 ? '28%' : '18%'}
           >
             <CartesianGrid stroke={chartTheme.grid} strokeOpacity={chartTheme.gridOpacity} vertical={false} />
             <XAxis

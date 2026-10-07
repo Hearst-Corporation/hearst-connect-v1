@@ -5,12 +5,13 @@ import { HearstConnectLockupImage } from '@/components/logo'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
 import { logout } from '@/lib/actions'
 import type { SessionUser } from '@/lib/session'
+import { InstagramIcon, LinkedInIcon, XIcon } from '@/assets/brand/social'
+import { LogoMark } from '@/components/logo'
 import {
-  ArrowsRightLeftIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
   HomeIcon,
-  RectangleStackIcon,
+  QuestionMarkCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/20/solid'
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
@@ -20,11 +21,11 @@ import { useState } from 'react'
 
 /**
  * LA COQUE DE L'ESPACE CLIENT — le rail et la barre du haut de /account,
- * avec cinq destinations, une par usage :
+ * avec trois destinations, une par usage, et le support :
  *
- *   Overview   sa réserve, ce qui vient de se passer, ce qui arrive.
- *   Vaults     un par versement : allocation, rewards, calcul, échéance.
- *   Activity   un seul registre, chaque mouvement avec son statut.
+ *   My Vault   l'écran qu'il ouvre, en quatre onglets : sa position, le parc
+ *              et l'économie du minage, son capital et son échéance, ses
+ *              mouvements (filtrés, exportables).
  *   Documents  relevés mensuels, rapports annuels, propositions.
  *   Settings   portefeuilles autorisés, équipe, sécurité, notifications.
  *
@@ -32,12 +33,33 @@ import { useState } from 'react'
  */
 
 const NAV = [
-  { href: '/account', label: 'Overview', Icon: HomeIcon },
-  { href: '/account/vaults', label: 'Vaults', Icon: RectangleStackIcon },
-  { href: '/account/activity', label: 'Activity', Icon: ArrowsRightLeftIcon },
+  { href: '/account', label: 'My Vault', Icon: HomeIcon },
   { href: '/account/documents', label: 'Documents', Icon: DocumentTextIcon },
   { href: '/account/settings', label: 'Settings', Icon: Cog6ToothIcon },
 ] as const
+
+const SUPPORT = 'mailto:connect@hearstcorporation.io?subject=Hearst%20Connect%20support'
+
+const SOCIAL_LINKS = [
+  { label: 'X', href: 'https://x.com/Hearst_io', Icon: XIcon },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/hearstio/', Icon: LinkedInIcon },
+  { label: 'Instagram', href: 'https://www.instagram.com/hearst.io/', Icon: InstagramIcon },
+] as const
+
+/* Calculée une fois au chargement du module : pas d'écart serveur / client. */
+const COPYRIGHT_YEAR = new Date().getFullYear()
+
+function SocialLinks({ className }: Readonly<{ className: string }>) {
+  return (
+    <div className={className}>
+      {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+        <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+          <Icon className="size-4" />
+        </a>
+      ))}
+    </div>
+  )
+}
 
 export function AccountShell({
   user,
@@ -71,6 +93,10 @@ export function AccountShell({
                   <span>{label}</span>
                 </Link>
               ))}
+              <a className="rail-item rail-item--support no-underline" href={SUPPORT}>
+                <QuestionMarkCircleIcon className="size-4" aria-hidden="true" />
+                <span>Support</span>
+              </a>
             </nav>
 
             <button
@@ -104,12 +130,18 @@ export function AccountShell({
                     <span>{label}</span>
                   </Link>
                 ))}
+                <a className="rail-menu-item no-underline" href={SUPPORT} onClick={() => setMenuOpen(false)}>
+                  <QuestionMarkCircleIcon className="size-5" aria-hidden="true" />
+                  <span>Support</span>
+                </a>
               </nav>
+              <SocialLinks className="rail-menu-social" />
               <button type="button" className="rail-menu-signout" onClick={() => void logout()}>
                 <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
                 <span>Sign out</span>
               </button>
             </div>
+            <SocialLinks className="rail-social" />
           </aside>
 
           <div className="content">
@@ -129,8 +161,17 @@ export function AccountShell({
                 </button>
               </div>
             </header>
-            {/* La marge de la barre du haut (`--space`) : le contenu s'aligne sur elle. */}
-            <div className="flex min-w-0 flex-col gap-6 px-[var(--space)] pt-[var(--space)] pb-12">{children}</div>
+            <div className="dashboard-view">{children}</div>
+            <footer className="ud-footer">
+              <span className="ud-footer-brand" aria-label="Hearst">
+                <LogoMark className="h-9 w-auto" viewBox="12.6 11.87 129.26 142.86" />
+              </span>
+              <p className="ud-footer-copy">© {COPYRIGHT_YEAR} Hearst. All rights reserved.</p>
+              <div className="ud-footer-links">
+                <a href="mailto:connect@hearstcorporation.io?subject=Terms%20%26%20conditions">Terms &amp; conditions</a>
+                <a href="mailto:connect@hearstcorporation.io?subject=Privacy%20Policy">Privacy Policy</a>
+              </div>
+            </footer>
           </div>
         </div>
       </main>
