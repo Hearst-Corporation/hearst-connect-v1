@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, handleWrite, payloadFor, problem, randomUUID } from '../mock-data.js'
+import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, handleWrite, payloadFor, problem, randomUUID, serializeWorld, useWorld } from '../mock-data.js'
 
 /**
  * Backend de DÉMONSTRATION — données entièrement fictives.
@@ -21,7 +21,9 @@ import { ACCOUNTS, ENVELOPE_EXEMPT, envelope, handleWrite, payloadFor, problem, 
  */
 const DEMO_TOKEN_PREFIX = 'demo-'
 
-async function handle(req: Request, path: string): Promise<NextResponse> {
+/* `body` est lu AVANT d'appliquer le monde de la session : la suite est
+   synchrone, aucune requête concurrente ne peut réappliquer le sien entre-temps. */
+function handle(req: Request, path: string, body: unknown): NextResponse {
   // Le garde vise le PROJET, pas l'environnement : la démo est déployée en
   // production sur son propre projet Vercel, alors que le projet de l'équipe ne
   // doit jamais exposer cette route. Sans `DEMO_BACKEND=1`, rien ne répond.
@@ -30,9 +32,9 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
   }
 
   if (path === '/api/v1/auth/login' && req.method === 'POST') {
-    const body = await req.json().catch(() => null)
-    const email = String(body?.email ?? '').trim().toLowerCase()
-    const password = String(body?.password ?? '')
+    const creds = (body ?? {}) as { email?: unknown; password?: unknown }
+    const email = String(creds.email ?? '').trim().toLowerCase()
+    const password = String(creds.password ?? '')
     const account = (ACCOUNTS as { email: string; password: string; id: string; role: string }[])
       .find((a) => a.email === email && a.password === password)
     if (!account) {
@@ -63,10 +65,8 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
     }
   }
 
-  // Les écritures sont celles du mock local, au caractère près. Leur effet
-  // reste propre à l'instance serverless qui les reçoit.
+  // Les écritures sont celles du mock local, au caractère près.
   if (req.method !== 'GET') {
-    const body = await req.json().catch(() => null)
     const write = handleWrite(req.method, path, body) as { status: number; body: unknown } | null
     if (write) return NextResponse.json(write.body, { status: write.status })
   }
@@ -80,9 +80,16 @@ async function handle(req: Request, path: string): Promise<NextResponse> {
 type Ctx = { params: Promise<{ path: string[] }> }
 
 /** Le chemin d'origine est reconstruit : le front appelle `/api/v1/...`. */
+/* Le monde de la session — décisions, offres, horloge — arrive dans l'en-tête
+   `x-demo-world` et repart dans la réponse : une instance serverless n'en
+   garde rien d'une requête à l'autre. */
 async function routed(req: Request, ctx: Ctx): Promise<NextResponse> {
   const { path } = await ctx.params
-  return handle(req, '/' + (path ?? []).join('/'))
+  const body = req.method === 'GET' ? null : await req.json().catch(() => null)
+  ;(useWorld as (h: string | null) => void)(req.headers.get('x-demo-world'))
+  const res = handle(req, '/' + (path ?? []).join('/'), body)
+  res.headers.set('x-demo-world', (serializeWorld as () => string)())
+  return res
 }
 
 export const GET = routed

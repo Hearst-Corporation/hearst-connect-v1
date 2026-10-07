@@ -5,6 +5,7 @@ import { getSession } from '@/lib/session'
 import { resolved, type Resolved } from '@/lib/resolved'
 import { authorizationHeader, toBackendRole } from './auth'
 import { BACKEND_ENDPOINTS, resolvePath, type BackendEndpoint } from './endpoints'
+import { keepWorld, worldHeader } from './demo-world'
 import { stateForHttpFailure } from './http-failure'
 
 /**
@@ -271,6 +272,8 @@ export async function callBackend<T = unknown>(
   const authorization = authOutcome.authorization
 
   const requestId = crypto.randomUUID()
+  // Le monde du backend de démonstration, gardé dans la session (voir demo-world).
+  const world = await worldHeader()
   const fetchOutcome = await fetchWithTimeout(
     `${base}${path}`,
     {
@@ -279,6 +282,7 @@ export async function callBackend<T = unknown>(
       headers: {
         Accept: 'application/json',
         'X-Request-Id': requestId,
+        ...world,
         ...(authorization ? { Authorization: authorization } : {}),
         ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
@@ -294,6 +298,7 @@ export async function callBackend<T = unknown>(
     return fetchOutcome.result
   }
   const response = fetchOutcome.response
+  await keepWorld(response, world['x-demo-world'], endpoint.method)
 
   const serverRequestId = response.headers.get('X-Request-Id') ?? requestId
   const callTrace = trace(endpoint, path, startedAt, {

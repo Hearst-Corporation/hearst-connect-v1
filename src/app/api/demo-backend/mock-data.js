@@ -41,7 +41,7 @@ function onOffersChanged(fn) {
  * plus récent — un nouveau versement ouvre un nouveau vault, il ne s'ajoute
  * jamais à un vault existant (prix d'entrée, blocage et allocation propres).
  */
-const CLIENT_BOOK = [
+const CLIENT_BOOK_BASE = [
   { id: 'cli_1', label: 'Hearst Holdings', kyc: 'APPROVED', vault: 0, since: '2025-08-20' },
   { id: 'cli_2', label: 'ZAND Bank', kyc: 'APPROVED', vault: 1, vaults: [1, 5], since: '2025-02-10' },
   { id: 'cli_3', label: 'Rain Financial', kyc: 'APPROVED', vault: 2, since: '2025-06-01' },
@@ -53,6 +53,11 @@ const CLIENT_BOOK = [
   { id: 'cli_9', label: 'Solstice Wealth', kyc: 'APPROVED', vault: null, since: '2026-07-02' },
   { id: 'cli_10', label: 'Kestrel Partners', kyc: 'NOT_STARTED', vault: null, since: '2026-06-15' },
 ]
+
+/** La table VIVANTE des clients : le socle, plus les clients nés d'une offre,
+ *  avec leur KYC et leurs vaults tels que le monde les a fait évoluer.
+ *  Reconstruite par `applyWorld` à chaque requête. */
+const CLIENT_BOOK = CLIENT_BOOK_BASE.map((c) => ({ ...c }))
 
 /** Le type de chaque client — sert la répartition de l'AUM par type. */
 const CLIENT_KIND = { cli_1: 'Crypto company', cli_2: 'Crypto company', cli_3: 'Fund', cli_4: 'Family office', cli_5: 'Crypto exchange' }
@@ -140,6 +145,8 @@ function vaultRebalances(v) {
 }
 
 function plannedRebalances(v) {
+  // Un vault ouvert pendant la démo n'a pas d'histoire : ses rééquilibrages sont ceux qu'on approuve.
+  if (v >= BASE_VAULT_COUNT) return []
   const start = new Date(`${VAULT_START[v]}T00:00:00Z`)
   const out = []
   const d = new Date(start)
@@ -222,13 +229,18 @@ const MACHINES = Array.from({ length: FLEET_SIZE }, (_, i) => {
 const USD_PER_THS = 50
 /** Capital de la poche Mining de chaque vault (capital × sa propre part de minage). */
 const VAULT_MINING_BPS = [4000, 6000, 2000, 2000, 4000, 6000]
+/** Le nombre de vaults du SOCLE ; ceux ouverts pendant la démo viennent après. */
+const BASE_VAULT_COUNT = VAULT_PRINCIPAL.length
 const VAULT_MINING_CAPITAL = VAULT_PRINCIPAL.map((p, i) => (p * VAULT_MINING_BPS[i]) / 10_000)
 /* Chaque machine est AFFECTÉE à un vault jusqu'à ce que ce vault ait la
    puissance que son capital a achetée ; le reste du parc est LIBRE — capacité
    disponible pour les prochains clients. L'ordre est mélangé (pas premier) pour
    que chaque vault ait des machines sur plusieurs sites. */
-const MACHINE_VAULT = (() => {
-  const out = new Array(FLEET_SIZE).fill(null)
+const MACHINE_VAULT = new Array(FLEET_SIZE).fill(null)
+/** La puissance réellement affectée à chaque vault. */
+const VAULT_THS = []
+function allocateMachines() {
+  MACHINE_VAULT.fill(null)
   const order = Array.from({ length: FLEET_SIZE }, (_, k) => (k * 7919) % FLEET_SIZE) // 7919 premier avec 10 000
   let cursor = 0
   VAULT_MINING_CAPITAL.forEach((capital, v) => {
@@ -237,34 +249,43 @@ const MACHINE_VAULT = (() => {
     while (got < target && cursor < order.length) {
       const i = order[cursor++]
       if (MACHINES[i].status !== 'online') continue
-      out[i] = v
+      MACHINE_VAULT[i] = v
       got += MACHINES[i].hashrateThs
     }
   })
-  return out
-})()
+  VAULT_THS.length = 0
+  VAULT_MINING_CAPITAL.forEach((_, v) =>
+    VAULT_THS.push(MACHINES.reduce((t, m, i) => t + (MACHINE_VAULT[i] === v ? m.hashrateThs : 0), 0)),
+  )
+}
+allocateMachines()
 const vaultIndexOfMachine = (k) => MACHINE_VAULT[k]
-/** La puissance réellement affectée à chaque vault. */
-const VAULT_THS = VAULT_MINING_CAPITAL.map((_, v) =>
-  MACHINES.reduce((s, m, i) => s + (MACHINE_VAULT[i] === v ? m.hashrateThs : 0), 0),
-)
 const FLEET_THS = MACHINES.reduce((s, m) => s + m.hashrateThs, 0)
 const FLEET_ACTIVE = MACHINES.filter((m) => m.status === 'online').length
 const FLEET_UPTIME = Number((MACHINES.reduce((s, m) => s + m.uptime30dPct, 0) / MACHINES.length).toFixed(1))
 
 /** Les clients du registre, plus ceux nés d'une offre créée depuis la console. */
-const allClients = () => [
-  ...CLIENT_BOOK,
-  ...CREATED_OFFERS.filter((o) => !CLIENT_BOOK.some((c) => c.id === o.clientId)).map((o) => ({
-    id: o.clientId,
-    label: o.clientName,
-    kyc: 'NOT_STARTED',
-    vault: null,
-    since: o.createdAt.slice(0, 10),
-  })),
-]
+const allClients = () => CLIENT_BOOK
 
-const nowIso = () => new Date().toISOString()
+/* ══ L'HORLOGE ═════════════════════════════════════════════════════════════
+ * « Aujourd'hui » pour le mock : la date réelle, avancée de `WORLD.clock`
+ * mois. Le dernier mois CLOS est celui qui précède aujourd'hui. Toutes les
+ * dates du métier en découlent : rewards, échéances, clôture mensuelle — la
+ * démo peut ainsi avancer d'un mois, ou jusqu'à la fin d'un blocage. */
+const addMonths = (t, n) => {
+  const d = new Date(t)
+  d.setUTCMonth(d.getUTCMonth() + n)
+  return d
+}
+const mockNow = () => addMonths(Date.now(), WORLD.clock)
+const lastClosed = () => {
+  const n = mockNow()
+  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth() - 1, 1))
+}
+const ymOf = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+const monthName = (ym) =>
+  new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+const nowIso = () => mockNow().toISOString()
 
 /*
  * Cours du bitcoin — UNE seule valeur pour tout le mock.
@@ -290,6 +311,24 @@ const BTC_SPOT_USD = 94_820
  */
 /** n = mois en arrière depuis août 2026 (le dernier mois clos). */
 const monthPrice = (n) => Math.round(BTC_SPOT_USD - n * 1_400 + ((n * 7919) % 5_000) - 2_500 * Math.min(n, 1))
+/*
+ * LE COURS D'UN MOIS DU CALENDRIER — fixe, quelle que soit l'horloge. Indexé
+ * sur le dernier mois clos RÉEL (k = 0) : en remontant le temps, la série
+ * historique ; au-delà (l'horloge de la démo avance), une tendance qui monte.
+ * Indexé sur le dernier mois clos de l'horloge, un mois était re-pricé à
+ * chaque avancée et un dépôt « achetait » rétroactivement plus de bitcoin.
+ */
+const calIndex = (ym) => {
+  const now = new Date()
+  const anchor = Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)
+  const d = new Date(`${ym}-01T00:00:00Z`)
+  return (new Date(anchor).getUTCFullYear() - d.getUTCFullYear()) * 12 + new Date(anchor).getUTCMonth() - d.getUTCMonth()
+}
+const priceOf = (ym) => {
+  const k = calIndex(ym)
+  return k >= 0 ? monthPrice(k) : Math.round(BTC_SPOT_USD + -k * 900 + ((-k * 7919) % 4_000) - 2_000)
+}
+const wobbleOf = (ym) => monthWobble(Math.abs(calIndex(ym)))
 /** Le rendement du parc ce mois-là (uptime, difficulté) — le même pour tous. */
 const monthWobble = (n) => 0.82 + ((n * 37) % 30) / 100
 /** L'électricité pèse ~36 % de la valeur minée. */
@@ -297,49 +336,54 @@ const ELECTRICITY_SHARE = 0.36
 
 function vaultMonths(v) {
   const out = []
-  // Le dernier mois CLOS : août 2026 — le même que la clôture mensuelle.
-  const d = new Date(Date.UTC(2026, 7, 1))
+  // Le dernier mois CLOS — ou celui où le blocage a été levé, s'il l'a été.
+  const released = WORLD.released[v] ? new Date(`${WORLD.released[v].month}-01T00:00:00Z`) : null
+  const d = released && released < lastClosed() ? released : lastClosed()
   const first = new Date(`${VAULT_START[v].slice(0, 7)}-01T00:00:00Z`)
-  first.setUTCMonth(first.getUTCMonth() + 1)
+  // Un vault du socle commence le mois suivant son ouverture ; un vault ouvert
+  // pendant la démo compte son mois d'ouverture (au prorata), pour que la
+  // première clôture arrive au mois suivant.
+  if (v < BASE_VAULT_COUNT) first.setUTCMonth(first.getUTCMonth() + 1)
   const principal = VAULT_PRINCIPAL[v]
   const a = VAULT_ALLOC[v]
   let n = 0
   while (d >= first) {
-    const month = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
-    // Le cours du mois : le spot aujourd'hui, plus bas en remontant le temps.
-    const price = monthPrice(n)
-    const wobble = monthWobble(n)
+    const month = ymOf(d)
+    // Le cours du mois : celui du calendrier, le même à chaque lecture.
+    const price = priceOf(month)
+    const wobble = wobbleOf(month)
     const pockets = [
       // Le minage : ce que SA puissance a miné, électricité déduite (~36 %).
       { bucket: 'Mining Alpha', usd: VAULT_THS[v] * BTC_PER_THS_DAY * 30 * wobble * (1 - ELECTRICITY_SHARE) * price },
       { bucket: 'Bitcoin Lending', usd: ((principal * a.lendingBps) / 10_000) * (POCKET_APY.lending / 12) },
       { bucket: 'USDC Yield', usd: ((principal * a.stableBps) / 10_000) * (POCKET_APY.stable / 12) },
     ].map((b) => ({ bucket: b.bucket, usd: Math.round(b.usd), btcSats: Math.round((b.usd / price) * 1e8) }))
+    // Le reward du dernier mois clos attend l'admin ; une fois approuvé il est
+    // versé. Les mois antérieurs sont réglés — sauf refus explicite.
+    const decision = rewardDecision(v, month)
+    const latest = month === ymOf(lastClosed()) && !released
     out.push({
       month,
       price,
       pockets,
       sats: pockets.reduce((t, b) => t + b.btcSats, 0),
       usd: pockets.reduce((t, b) => t + b.usd, 0),
-      // Le reward du dernier mois attend l'admin ; une fois approuvé, il est
-      // versé et arrive côté client. Refusé, il reste bloqué (« declined »).
-      status:
-        n === 0
-          ? rewardDecision(v) === 'approved'
-            ? 'distributed'
-            : rewardDecision(v) === 'declined'
-              ? 'declined'
-              : 'pending'
-          : 'distributed',
+      status: decision === 'declined' ? 'declined' : latest && decision !== 'approved' ? 'pending' : 'distributed',
     })
     d.setUTCMonth(d.getUTCMonth() - 1)
     n += 1
   }
   return out
 }
-/** La décision de l'admin sur le reward en attente d'un vault, s'il y en a une. */
-function rewardDecision(v) {
-  return ownerOf(v) ? DECISIONS.get(`apr_dist_${vaultTag(v)}`) : undefined
+/** Le premier mois rémunéré d'un vault (voir `vaultMonths`). */
+function firstMonthOf(v) {
+  const first = new Date(`${VAULT_START[v].slice(0, 7)}-01T00:00:00Z`)
+  if (v < BASE_VAULT_COUNT) first.setUTCMonth(first.getUTCMonth() + 1)
+  return ymOf(first)
+}
+/** La décision de l'admin sur le reward d'un vault pour un mois donné. */
+function rewardDecision(v, month) {
+  return ownerOf(v) ? WORLD.decisions[`apr_dist_${vaultTag(v)}_${month}`] : undefined
 }
 
 /** Le bitcoin accumulé par un vault depuis son ouverture. */
@@ -547,6 +591,49 @@ function payloadFor(path, search = '') {
   const rnd = seeded(path)
   const p = path
 
+  /* L'état de la démo guidée : l'horloge, le prospect embarqué, son offre,
+     son KYC, ses vaults et ce qui l'attend. Le panneau de démo s'en sert pour
+     savoir à quelle étape on en est. */
+  if (p === '/api/v1/demo/state') {
+    const tour = WORLD.tour
+    const offer = tour?.offerId ? (allOffers().find((o) => o.id === tour.offerId) ?? null) : null
+    const client = offer ? (allClients().find((c) => c.id === offer.clientId) ?? null) : null
+    const vaults = client
+      ? vaultsOf(client).map((v) => {
+          const start = new Date(`${VAULT_START[v]}T09:00:00Z`)
+          const months = lockupMonthsOf(v)
+          const ms = vaultMonths(v)
+          return {
+            vaultId: vaultKey(v),
+            tranche: trancheOf(v),
+            openedAt: start.toISOString(),
+            lockupEndAt: addMonths(start, months).toISOString(),
+            lockupEnded: addMonths(start, months) <= mockNow(),
+            released: isReleased(v),
+            monthsRewarded: ms.length,
+            pendingReward: ms.find((m) => m.status === 'pending')?.month ?? null,
+            drifting: (() => {
+              const d = VAULT_DRIFT[v]
+              return d !== null && Math.max(Math.abs(d.mining), Math.abs(d.lending), Math.abs(d.stable)) > VAULT_BAND[v]
+            })(),
+          }
+        })
+      : []
+    return {
+      state: {
+        clock: WORLD.clock,
+        today: nowIso(),
+        lastClosed: ymOf(lastClosed()),
+        tour,
+        viewAs: WORLD.viewAs,
+        offer,
+        client: client ? { id: client.id, label: client.label, kyc: client.kyc, aml: client.aml ?? null } : null,
+        vaults,
+        offers: client ? allOffers().filter((o) => o.clientId === client.id).map((o) => ({ id: o.id, reference: o.reference, status: o.status })) : [],
+      },
+    }
+  }
+
   if (p === '/health') return { status: 'ok', uptimeSeconds: 128_400 }
   if (p === '/ready') return { status: 'ready', checks: { database: 'ok', indexer: 'ok' } }
   if (p === '/api/v1/runtime') {
@@ -671,17 +758,22 @@ function payloadFor(path, search = '') {
   if (p === '/api/v1/admin/approvals') {
     return {
       approvals: bloc(([
-        {
-          id: 'apr_1',
-          kind: 'deposit',
-          clientId: 'cli_2',
-          clientLabel: 'ZAND Bank',
-          // Une nouvelle tranche ouvre un NOUVEAU vault : il n'existe pas encore.
-          vaultId: null,
-          amountUsdc: 1_500_000,
-          requestedAt: '2026-09-08T14:22:00Z',
-          note: 'Third tranche, board approved — opens a new vault',
-        },
+        /* Un dépôt REÇU attend son autorisation : les fonds d'une offre en
+           « funding » sont arrivés. Autorisé, l'offre passe à « funds received »
+           et le vault peut être ouvert. Une nouvelle tranche ouvre un NOUVEAU
+           vault : il n'existe pas encore. */
+        ...allOffers()
+          .filter((o) => o.status === 'funding' && o.fundsReceivedAt)
+          .map((o) => ({
+            id: `apr_dep_${o.id}`,
+            kind: 'deposit',
+            clientId: o.clientId,
+            clientLabel: o.clientName,
+            vaultId: null,
+            amountUsdc: o.amountUsdc,
+            requestedAt: o.fundsReceivedAt,
+            note: `${o.reference} — funds received, opens a new vault once authorised`,
+          })),
         {
           id: 'apr_2',
           kind: 'withdrawal',
@@ -695,7 +787,7 @@ function payloadFor(path, search = '') {
         },
         // Un rééquilibrage PROPOSÉ pour chaque vault sorti de sa bande : rien
         // ne bouge tant que l'admin ne l'a pas approuvé.
-        ...ALL_VAULTS().filter(({ v }) => VAULT_DRIFT[v] !== null).flatMap(({ v, c }) => {
+        ...ALL_VAULTS().filter(({ v }) => VAULT_DRIFT[v] !== null && !isReleased(v)).flatMap(({ v, c }) => {
           const d = VAULT_DRIFT[v]
           const worst = Math.max(Math.abs(d.mining), Math.abs(d.lending), Math.abs(d.stable))
           if (worst <= VAULT_BAND[v]) return []
@@ -703,14 +795,15 @@ function payloadFor(path, search = '') {
           const name = { mining: 'Mining Alpha', lending: 'Bitcoin Lending', stable: 'USDC Yield' }
           const usd = Math.round((VAULT_PRINCIPAL[v] * worst) / 10_000)
           return [{
-            id: `apr_reb_${vaultTag(v)}`,
+            // Un identifiant par proposition : la suivante, des mois plus tard, en est une autre.
+            id: `apr_reb_${vaultTag(v)}_${(WORLD.rebalanced[v] ?? []).length}`,
             kind: 'rebalance',
             clientId: c.id,
             clientLabel: vaultLabel(v),
             vaultId: vaultKey(v),
             amountUsdc: null,
             amountBtcSats: Math.round((usd / BTC_SPOT_USD) * 1e8),
-            requestedAt: '2026-09-04T08:00:00Z',
+            requestedAt: new Date(lastClosed().getTime() + 34 * 86_400_000).toISOString(),
             note: `${name[entries[entries.length - 1][0]]} over target, ${name[entries[0][0]]} under — outside the ±${VAULT_BAND[v] / 100} pt band`,
             rebalance: {
               driftBps: d,
@@ -746,19 +839,20 @@ function payloadFor(path, search = '') {
             }]
           : []),
         // Une distribution à signer PAR VAULT : le mois clos qui attend.
-        ...ALL_VAULTS().map(({ v, c }) => {
+        ...ALL_VAULTS().flatMap(({ v, c }) => {
           const m = vaultMonths(v).find((x) => x.status === 'pending')
-          return {
-            id: `apr_dist_${vaultTag(v)}`,
+          if (!m) return []
+          return [{
+            id: `apr_dist_${vaultTag(v)}_${m.month}`,
             kind: 'distribution',
             clientId: c.id,
             clientLabel: vaultLabel(v),
             vaultId: vaultKey(v),
             amountUsdc: null,
             amountBtcSats: m?.sats ?? 0,
-            requestedAt: '2026-09-02T10:00:00Z',
-            note: 'August distribution, awaiting sign-off',
-          }
+            requestedAt: new Date(lastClosed().getTime() + 32 * 86_400_000).toISOString(),
+            note: `${monthName(m.month)} distribution, awaiting sign-off`,
+          }]
         }),
       ]).filter((a) => !DECISIONS.has(a.id))),
     }
@@ -780,12 +874,12 @@ function payloadFor(path, search = '') {
       id: vaultKey(v),
       client: c.label,
       allocation: VAULT_ALLOC[v],
-      kind: CLIENT_KIND[c.id] ?? null,
+      kind: CLIENT_KIND[c.id] ?? c.kind ?? null,
       clientId: c.id,
       tranche,
       principal: VAULT_PRINCIPAL[v],
       start: VAULT_START[v],
-      months: 24,
+      months: lockupMonthsOf(v),
       depositUnlocked: v === 1,
       threshold: VAULT_BAND[v] === 500 ? null : VAULT_BAND[v],
     }))
@@ -795,7 +889,7 @@ function payloadFor(path, search = '') {
           const start = new Date(v.start + 'T09:00:00Z')
           const end = new Date(start)
           end.setMonth(end.getMonth() + v.months)
-          const now = new Date()
+          const now = mockNow()
           const elapsed = Math.max(
             0,
             Math.min((now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth(), v.months),
@@ -829,7 +923,9 @@ function payloadFor(path, search = '') {
             lockupMonths: v.months,
             lockupElapsedMonths: elapsed,
             depositUnlocked: v.depositUnlocked,
-            status: 'ACTIVE',
+            // Blocage levé : la réserve est rendue au client, le vault est clos.
+            status: isReleased(v.v) ? 'RELEASED' : 'ACTIVE',
+            releasedAt: WORLD.released[v.v]?.at ?? null,
             // La dérive vient de l'état ACTUEL du vault : un rééquilibrage approuvé la remet à zéro.
             worstDriftBps: (() => {
               const d = VAULT_DRIFT[v.v]
@@ -1182,6 +1278,8 @@ function payloadFor(path, search = '') {
           lastActivityAt: new Date(Date.parse('2026-09-28T00:00:00Z') - i * 86_400_000).toISOString(),
           kycProvider: 'Som',
           kycStatus: c.kyc,
+          // L'AML, décidé par Som avec le KYC : sans lui, pas d'appel de fonds.
+          amlStatus: c.aml ?? (c.kyc === 'APPROVED' ? 'CLEAR' : null),
           currentExposureAtomic: atomic(vaultsOf(c).reduce((t, v) => t + VAULT_PRINCIPAL[v], 0)),
           vaultIds: vaultsOf(c).map(vaultKey),
         })),
@@ -1463,264 +1561,7 @@ function payloadFor(path, search = '') {
   }
 
   if (p === '/api/v1/admin/offers') {
-    const day = 86_400_000
-    const now = Date.parse('2026-09-25T00:00:00Z')
-    const iso = (daysAgo) => new Date(now - daysAgo * day).toISOString()
-    return {
-      offers: bloc([
-        {
-          id: 'off_001',
-          reference: 'NORTHWIND-01',
-          clientId: 'cli_6',
-          clientName: 'Northwind Digital',
-          clientKind: 'Crypto exchange',
-          contactEmail: 'treasury@northwind.test',
-          amountUsdc: 2_500_000,
-          riskProfile: 'growth',
-          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
-          lockupMonths: 24,
-          status: 'sent',
-          createdAt: iso(9),
-          updatedAt: iso(4),
-          sentAt: iso(4),
-          decidedAt: null,
-          vaultId: null,
-          notes: 'Veut une exposition minage forte. Relance prévue lundi.',
-          questionnaire: {
-            platformKind: 'Crypto Exchange',
-            assetsUnderManagement: '$250M+',
-            fundsIdleOrEarning: 'Mostly sitting unused',
-            hasProductToday: 'Not Yet',
-            productInterest: 'Growth-oriented',
-            firstVaultSize: '$1M – $5M',
-            launchTimeline: 'ASAP',
-            submittedAt: iso(10),
-          },
-        },
-        {
-          id: 'off_002',
-          reference: 'MERIDIAN-01',
-          clientId: 'cli_4',
-          clientName: 'Meridian Family Office',
-          clientKind: 'Family office',
-          contactEmail: 'ops@meridian.test',
-          amountUsdc: 800_000,
-          riskProfile: 'conservative',
-          allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
-          lockupMonths: 24,
-          status: 'draft',
-          createdAt: iso(2),
-          updatedAt: iso(1),
-          sentAt: null,
-          decidedAt: null,
-          vaultId: null,
-          notes: 'Attente du comité d’investissement pour confirmer le montant.',
-          questionnaire: { platformKind: 'Family Office', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Not Yet', productInterest: 'Capital preservation', firstVaultSize: '$500k – $1M', launchTimeline: 'Next quarter', submittedAt: iso(3) },
-        },
-        {
-          id: 'off_003',
-          reference: 'ACCRUE-02',
-          clientId: 'cli_7',
-          clientName: 'Accrue Capital',
-          clientKind: 'Fund',
-          contactEmail: 'desk@accrue.test',
-          amountUsdc: 1_200_000,
-          riskProfile: 'balanced',
-          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
-          lockupMonths: 24,
-          status: 'accepted',
-          createdAt: iso(21),
-          updatedAt: iso(3),
-          sentAt: iso(14),
-          decidedAt: iso(3),
-          vaultId: null,
-          notes: 'Accord verbal confirmé par écrit. Identifiants à émettre.',
-          questionnaire: {
-            platformKind: 'Crypto / Crypto company',
-            assetsUnderManagement: '$50M – $250M',
-            fundsIdleOrEarning: 'A mix',
-            hasProductToday: 'In progress',
-            productInterest: 'Balanced',
-            firstVaultSize: '$1M – $5M',
-            launchTimeline: '1 - 3 months',
-            submittedAt: iso(23),
-          },
-        },
-        {
-          id: 'off_004',
-          reference: 'HALVEN-01',
-          clientId: 'cli_8',
-          clientName: 'Halven Custody',
-          clientKind: 'Custody / Infrastructure',
-          contactEmail: 'finance@halven.test',
-          amountUsdc: 3_400_000,
-          riskProfile: 'balanced',
-          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
-          lockupMonths: 24,
-          status: 'funding',
-          createdAt: iso(30),
-          updatedAt: iso(6),
-          sentAt: iso(24),
-          decidedAt: iso(8),
-          vaultId: null,
-          notes: 'Lien de virement envoyé. Virement annoncé sous 5 jours ouvrés.',
-          questionnaire: {
-            platformKind: 'Custody / Infrastructure',
-            assetsUnderManagement: '$250M+',
-            fundsIdleOrEarning: 'Mostly earning',
-            hasProductToday: 'Live',
-            productInterest: 'Balanced',
-            firstVaultSize: '$5M+',
-            launchTimeline: '1 - 3 months',
-            submittedAt: iso(32),
-          },
-        },
-        {
-          id: 'off_005',
-          reference: 'SOLSTICE-01',
-          clientId: 'cli_9',
-          clientName: 'Solstice Wealth',
-          clientKind: 'Wealth platform',
-          contactEmail: 'admin@solstice.test',
-          amountUsdc: 620_000,
-          riskProfile: 'conservative',
-          allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
-          lockupMonths: 24,
-          status: 'funded',
-          createdAt: iso(41),
-          updatedAt: iso(1),
-          sentAt: iso(35),
-          decidedAt: iso(12),
-          vaultId: null,
-          notes: 'Fonds reçus hier. Vault à ouvrir.',
-          questionnaire: { platformKind: 'Wealth Platform', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Capital preservation', firstVaultSize: '$500k – $1M', launchTimeline: 'Within 3 months', submittedAt: iso(42) },
-        },
-        {
-          id: 'off_006',
-          reference: 'HEARST-01',
-          clientId: 'cli_1',
-          clientName: 'Hearst Holdings',
-          clientKind: 'Crypto company',
-          contactEmail: 'treasury@hearst-holdings.test',
-          amountUsdc: 420_000,
-          riskProfile: 'balanced',
-          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
-          lockupMonths: 24,
-          status: 'active',
-          createdAt: iso(400),
-          updatedAt: iso(380),
-          sentAt: iso(395),
-          decidedAt: iso(388),
-          vaultId: vaultKey(0),
-          notes: null,
-          questionnaire: { platformKind: 'Crypto Company', assetsUnderManagement: '$10M – $50M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Balanced', firstVaultSize: '$100k – $500k', launchTimeline: 'ASAP', submittedAt: iso(405) },
-        },
-        {
-          id: 'off_007',
-          reference: 'KESTREL-01',
-          clientId: 'cli_10',
-          clientName: 'Kestrel Partners',
-          clientKind: 'Fund',
-          contactEmail: 'invest@kestrel.test',
-          amountUsdc: 1_000_000,
-          riskProfile: 'growth',
-          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
-          lockupMonths: 24,
-          status: 'declined',
-          createdAt: iso(64),
-          updatedAt: iso(38),
-          sentAt: iso(57),
-          decidedAt: iso(38),
-          vaultId: null,
-          notes: 'Immobilisation de 24 mois jugée trop longue.',
-          questionnaire: { platformKind: 'Fund', assetsUnderManagement: '$250M+', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Yes', productInterest: 'Growth-oriented', firstVaultSize: '$1M – $5M', launchTimeline: 'Within 6 months', submittedAt: iso(66) },
-        },
-        {
-          id: 'off_008',
-          reference: 'ZAND-01',
-          clientId: 'cli_2',
-          clientName: 'ZAND Bank',
-          clientKind: 'Crypto company',
-          contactEmail: 'treasury@zand.test',
-          amountUsdc: 12_000_000,
-          riskProfile: 'growth',
-          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
-          lockupMonths: 24,
-          status: 'active',
-          createdAt: iso(600),
-          updatedAt: iso(580),
-          sentAt: iso(595),
-          decidedAt: iso(588),
-          vaultId: vaultKey(1),
-          notes: null,
-          questionnaire: { platformKind: 'Bank', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Yes', productInterest: 'Growth-oriented', firstVaultSize: '$5M+', launchTimeline: 'ASAP', submittedAt: iso(605) },
-        },
-        // La DEUXIÈME tranche de ZAND : une nouvelle offre, qui a ouvert un nouveau vault.
-        {
-          id: 'off_008b',
-          reference: 'ZAND-02',
-          clientId: 'cli_2',
-          clientName: 'ZAND Bank',
-          clientKind: 'Crypto company',
-          contactEmail: 'treasury@zand.test',
-          amountUsdc: 2_000_000,
-          riskProfile: 'growth',
-          // L'allocation de la tranche 1, reprise telle quelle.
-          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
-          lockupMonths: 24,
-          status: 'active',
-          createdAt: iso(250),
-          updatedAt: iso(235),
-          sentAt: iso(246),
-          decidedAt: iso(240),
-          vaultId: vaultKey(5),
-          notes: 'Second tranche — a new vault, its own entry price and lockup.',
-          questionnaire: null,
-        },
-        {
-          id: 'off_009',
-          reference: 'RAIN-01',
-          clientId: 'cli_3',
-          clientName: 'Rain Financial',
-          clientKind: 'Fund',
-          contactEmail: 'ops@rain.test',
-          amountUsdc: 3_400_000,
-          riskProfile: 'conservative',
-          allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
-          lockupMonths: 24,
-          status: 'active',
-          createdAt: iso(490),
-          updatedAt: iso(470),
-          sentAt: iso(485),
-          decidedAt: iso(478),
-          vaultId: vaultKey(2),
-          notes: null,
-          questionnaire: { platformKind: 'Fund', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Capital preservation', firstVaultSize: '$1M – $5M', launchTimeline: 'Within 3 months', submittedAt: iso(495) },
-        },
-        {
-          id: 'off_010',
-          reference: 'NORTHGATE-01',
-          clientId: 'cli_5',
-          clientName: 'Northgate Capital',
-          clientKind: 'Crypto exchange',
-          contactEmail: 'treasury@northgate.test',
-          amountUsdc: 5_600_000,
-          riskProfile: 'balanced',
-          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
-          lockupMonths: 24,
-          status: 'active',
-          createdAt: iso(270),
-          updatedAt: iso(250),
-          sentAt: iso(265),
-          decidedAt: iso(258),
-          vaultId: vaultKey(4),
-          notes: null,
-          questionnaire: { platformKind: 'Crypto Exchange', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Not Yet', productInterest: 'Balanced', firstVaultSize: '$5M+', launchTimeline: 'ASAP', submittedAt: iso(275) },
-        },
-        // Les offres créées depuis la console pendant que ce mock tourne.
-        ...CREATED_OFFERS,
-      ]),
-    }
+    return { offers: bloc(allOffers()) }
   }
 
   if (p === '/api/v1/clients') {
@@ -2068,7 +1909,7 @@ function payloadFor(path, search = '') {
   }
 
   if (p === '/api/v1/mining/calculations' || /^\/api\/v1\/mining\/calculations\/[^/]+$/.test(p)) {
-    const rows = ['2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'].map((period, i) => ({
+    const rows = Array.from({ length: 6 }, (_, k) => ymOf(addMonths(lastClosed(), k - 5))).map((period, i) => ({
       id: `calc_${i}`,
       period,
       totalBtcMinedSats: String(Math.round(money(rnd, 0.4, 0.9) * 1e8)),
@@ -2098,7 +1939,7 @@ function payloadFor(path, search = '') {
    */
   if (p === '/api/v1/admin/mining/monthly-close') {
     // Une ligne par VAULT (une tranche = un vault), pas par client.
-    const vaults = ALL_VAULTS().map(({ v, c }) => ({
+    const vaults = ALL_VAULTS().filter(({ v }) => !isReleased(v)).map(({ v, c }) => ({
       idx: v,
       clientId: c.id,
       client: vaultLabel(v),
@@ -2106,10 +1947,8 @@ function payloadFor(path, search = '') {
       miningBps: VAULT_MINING_BPS[v],
     }))
     const miningCapital = vaults.map((v) => (v.principal * v.miningBps) / 10_000)
-    const months = Array.from({ length: 6 }, (_, k) => {
-      const d = new Date(Date.UTC(2026, 2 + k, 1))
-      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
-    })
+    // Les six derniers mois clos, le plus ancien d'abord.
+    const months = Array.from({ length: 6 }, (_, k) => ymOf(addMonths(lastClosed(), k - 5)))
     return {
       months: bloc(
         months.map((month, m) => {
@@ -2118,8 +1957,8 @@ function payloadFor(path, search = '') {
              part des machines libres reste à Hearst. */
           // Les MÊMES formules que la réserve de chaque vault (`vaultMonths`).
           const n = months.length - 1 - m
-          const fleetSats = Math.round(FLEET_THS * BTC_PER_THS_DAY * 30 * monthWobble(n) * 1e8)
-          const price = monthPrice(n)
+          const fleetSats = Math.round(FLEET_THS * BTC_PER_THS_DAY * 30 * wobbleOf(month) * 1e8)
+          const price = priceOf(month)
           const electricityUsd = Math.round((fleetSats / 1e8) * price * ELECTRICITY_SHARE)
           const last = m === months.length - 1
           return {
@@ -2127,7 +1966,8 @@ function payloadFor(path, search = '') {
             fleetBtcSats: fleetSats,
             btcPriceUsd: price,
             electricityUsd,
-            lines: vaults.map((v, i) => {
+            // Un vault n'apparaît qu'à partir de son premier mois rémunéré.
+            lines: vaults.filter((v) => firstMonthOf(v.idx) <= month).map((v, i) => {
               const share = VAULT_THS[v.idx] / FLEET_THS
               const sats = Math.round(fleetSats * share)
               const gross = Math.round((sats / 1e8) * price)
@@ -2149,7 +1989,16 @@ function payloadFor(path, search = '') {
                 // Le dernier mois attend sa signature, l'avant-dernier est approuvé —
                 // comme la réserve de chaque vault (`vaultMonths`).
                 // Le reward du mois se valide sur la fiche du client : la clôture en suit la décision.
-                status: last ? (rewardDecision(v.idx) === 'approved' ? 'distributed' : rewardDecision(v.idx) === 'declined' ? 'declined' : 'pending') : 'distributed',
+                // Un vault ouvert après ce mois n'y a rien reçu.
+                status: last
+                  ? rewardDecision(v.idx, month) === 'approved'
+                    ? 'distributed'
+                    : rewardDecision(v.idx, month) === 'declined'
+                      ? 'declined'
+                      : 'pending'
+                  : rewardDecision(v.idx, month) === 'declined'
+                    ? 'declined'
+                    : 'distributed',
                 // L'électricité de CE vault : payée pour les mois clos, due pour le dernier.
                 electricityStatus: !last || PAID_ELECTRICITY.has(`${vaultKey(v.idx)}:${month}`) ? 'paid' : 'due',
               }
@@ -2175,11 +2024,452 @@ function payloadFor(path, search = '') {
   return { note: 'Route servie par le mock local sans payload dédié.', path: p }
 }
 
+// ── Les offres ───────────────────────────────────────────────────────────────
+
+/** Les offres du socle, telles que le pipeline les connaissait au départ. */
+function baseOffers() {
+  const day = 86_400_000
+  const now = Date.parse('2026-09-25T00:00:00Z')
+  const iso = (daysAgo) => new Date(now - daysAgo * day).toISOString()
+  return [
+
+        {
+          id: 'off_001',
+          reference: 'NORTHWIND-01',
+          clientId: 'cli_6',
+          clientName: 'Northwind Digital',
+          clientKind: 'Crypto exchange',
+          contactEmail: 'treasury@northwind.test',
+          amountUsdc: 2_500_000,
+          riskProfile: 'growth',
+          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+          lockupMonths: 24,
+          status: 'sent',
+          createdAt: iso(9),
+          updatedAt: iso(4),
+          sentAt: iso(4),
+          decidedAt: null,
+          vaultId: null,
+          notes: 'Veut une exposition minage forte. Relance prévue lundi.',
+          questionnaire: {
+            platformKind: 'Crypto Exchange',
+            assetsUnderManagement: '$250M+',
+            fundsIdleOrEarning: 'Mostly sitting unused',
+            hasProductToday: 'Not Yet',
+            productInterest: 'Growth-oriented',
+            firstVaultSize: '$1M – $5M',
+            launchTimeline: 'ASAP',
+            submittedAt: iso(10),
+          },
+        },
+        {
+          id: 'off_002',
+          reference: 'MERIDIAN-01',
+          clientId: 'cli_4',
+          clientName: 'Meridian Family Office',
+          clientKind: 'Family office',
+          contactEmail: 'ops@meridian.test',
+          amountUsdc: 800_000,
+          riskProfile: 'conservative',
+          allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
+          lockupMonths: 24,
+          status: 'draft',
+          createdAt: iso(2),
+          updatedAt: iso(1),
+          sentAt: null,
+          decidedAt: null,
+          vaultId: null,
+          notes: 'Attente du comité d’investissement pour confirmer le montant.',
+          questionnaire: { platformKind: 'Family Office', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Not Yet', productInterest: 'Capital preservation', firstVaultSize: '$500k – $1M', launchTimeline: 'Next quarter', submittedAt: iso(3) },
+        },
+        {
+          id: 'off_003',
+          reference: 'ACCRUE-02',
+          clientId: 'cli_7',
+          clientName: 'Accrue Capital',
+          clientKind: 'Fund',
+          contactEmail: 'desk@accrue.test',
+          amountUsdc: 1_200_000,
+          riskProfile: 'balanced',
+          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
+          lockupMonths: 24,
+          status: 'accepted',
+          createdAt: iso(21),
+          updatedAt: iso(3),
+          sentAt: iso(14),
+          decidedAt: iso(3),
+          vaultId: null,
+          notes: 'Accord verbal confirmé par écrit. Identifiants à émettre.',
+          questionnaire: {
+            platformKind: 'Crypto / Crypto company',
+            assetsUnderManagement: '$50M – $250M',
+            fundsIdleOrEarning: 'A mix',
+            hasProductToday: 'In progress',
+            productInterest: 'Balanced',
+            firstVaultSize: '$1M – $5M',
+            launchTimeline: '1 - 3 months',
+            submittedAt: iso(23),
+          },
+        },
+        {
+          id: 'off_004',
+          reference: 'HALVEN-01',
+          clientId: 'cli_8',
+          clientName: 'Halven Custody',
+          clientKind: 'Custody / Infrastructure',
+          contactEmail: 'finance@halven.test',
+          amountUsdc: 3_400_000,
+          riskProfile: 'balanced',
+          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
+          lockupMonths: 24,
+          status: 'funding',
+          createdAt: iso(30),
+          updatedAt: iso(6),
+          sentAt: iso(24),
+          decidedAt: iso(8),
+          vaultId: null,
+          notes: 'Lien de virement envoyé. Virement annoncé sous 5 jours ouvrés.',
+          questionnaire: {
+            platformKind: 'Custody / Infrastructure',
+            assetsUnderManagement: '$250M+',
+            fundsIdleOrEarning: 'Mostly earning',
+            hasProductToday: 'Live',
+            productInterest: 'Balanced',
+            firstVaultSize: '$5M+',
+            launchTimeline: '1 - 3 months',
+            submittedAt: iso(32),
+          },
+        },
+        {
+          id: 'off_005',
+          reference: 'SOLSTICE-01',
+          clientId: 'cli_9',
+          clientName: 'Solstice Wealth',
+          clientKind: 'Wealth platform',
+          contactEmail: 'admin@solstice.test',
+          amountUsdc: 620_000,
+          riskProfile: 'conservative',
+          allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
+          lockupMonths: 24,
+          status: 'funded',
+          createdAt: iso(41),
+          updatedAt: iso(1),
+          sentAt: iso(35),
+          decidedAt: iso(12),
+          vaultId: null,
+          notes: 'Fonds reçus hier. Vault à ouvrir.',
+          questionnaire: { platformKind: 'Wealth Platform', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Capital preservation', firstVaultSize: '$500k – $1M', launchTimeline: 'Within 3 months', submittedAt: iso(42) },
+        },
+        {
+          id: 'off_006',
+          reference: 'HEARST-01',
+          clientId: 'cli_1',
+          clientName: 'Hearst Holdings',
+          clientKind: 'Crypto company',
+          contactEmail: 'treasury@hearst-holdings.test',
+          amountUsdc: 420_000,
+          riskProfile: 'balanced',
+          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
+          lockupMonths: 24,
+          status: 'active',
+          createdAt: iso(400),
+          updatedAt: iso(380),
+          sentAt: iso(395),
+          decidedAt: iso(388),
+          vaultId: vaultKey(0),
+          notes: null,
+          questionnaire: { platformKind: 'Crypto Company', assetsUnderManagement: '$10M – $50M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Balanced', firstVaultSize: '$100k – $500k', launchTimeline: 'ASAP', submittedAt: iso(405) },
+        },
+        {
+          id: 'off_007',
+          reference: 'KESTREL-01',
+          clientId: 'cli_10',
+          clientName: 'Kestrel Partners',
+          clientKind: 'Fund',
+          contactEmail: 'invest@kestrel.test',
+          amountUsdc: 1_000_000,
+          riskProfile: 'growth',
+          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+          lockupMonths: 24,
+          status: 'declined',
+          createdAt: iso(64),
+          updatedAt: iso(38),
+          sentAt: iso(57),
+          decidedAt: iso(38),
+          vaultId: null,
+          notes: 'Immobilisation de 24 mois jugée trop longue.',
+          questionnaire: { platformKind: 'Fund', assetsUnderManagement: '$250M+', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Yes', productInterest: 'Growth-oriented', firstVaultSize: '$1M – $5M', launchTimeline: 'Within 6 months', submittedAt: iso(66) },
+        },
+        {
+          id: 'off_008',
+          reference: 'ZAND-01',
+          clientId: 'cli_2',
+          clientName: 'ZAND Bank',
+          clientKind: 'Crypto company',
+          contactEmail: 'treasury@zand.test',
+          amountUsdc: 12_000_000,
+          riskProfile: 'growth',
+          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+          lockupMonths: 24,
+          status: 'active',
+          createdAt: iso(600),
+          updatedAt: iso(580),
+          sentAt: iso(595),
+          decidedAt: iso(588),
+          vaultId: vaultKey(1),
+          notes: null,
+          questionnaire: { platformKind: 'Bank', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Partly earning', hasProductToday: 'Yes', productInterest: 'Growth-oriented', firstVaultSize: '$5M+', launchTimeline: 'ASAP', submittedAt: iso(605) },
+        },
+        // La DEUXIÈME tranche de ZAND : une nouvelle offre, qui a ouvert un nouveau vault.
+        {
+          id: 'off_008b',
+          reference: 'ZAND-02',
+          clientId: 'cli_2',
+          clientName: 'ZAND Bank',
+          clientKind: 'Crypto company',
+          contactEmail: 'treasury@zand.test',
+          amountUsdc: 2_000_000,
+          riskProfile: 'growth',
+          // L'allocation de la tranche 1, reprise telle quelle.
+          allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+          lockupMonths: 24,
+          status: 'active',
+          createdAt: iso(250),
+          updatedAt: iso(235),
+          sentAt: iso(246),
+          decidedAt: iso(240),
+          vaultId: vaultKey(5),
+          notes: 'Second tranche — a new vault, its own entry price and lockup.',
+          questionnaire: null,
+        },
+        {
+          id: 'off_009',
+          reference: 'RAIN-01',
+          clientId: 'cli_3',
+          clientName: 'Rain Financial',
+          clientKind: 'Fund',
+          contactEmail: 'ops@rain.test',
+          amountUsdc: 3_400_000,
+          riskProfile: 'conservative',
+          allocation: { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
+          lockupMonths: 24,
+          status: 'active',
+          createdAt: iso(490),
+          updatedAt: iso(470),
+          sentAt: iso(485),
+          decidedAt: iso(478),
+          vaultId: vaultKey(2),
+          notes: null,
+          questionnaire: { platformKind: 'Fund', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Capital preservation', firstVaultSize: '$1M – $5M', launchTimeline: 'Within 3 months', submittedAt: iso(495) },
+        },
+        {
+          id: 'off_010',
+          reference: 'NORTHGATE-01',
+          clientId: 'cli_5',
+          clientName: 'Northgate Capital',
+          clientKind: 'Crypto exchange',
+          contactEmail: 'treasury@northgate.test',
+          amountUsdc: 5_600_000,
+          riskProfile: 'balanced',
+          allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
+          lockupMonths: 24,
+          status: 'active',
+          createdAt: iso(270),
+          updatedAt: iso(250),
+          sentAt: iso(265),
+          decidedAt: iso(258),
+          vaultId: vaultKey(4),
+          notes: null,
+          questionnaire: { platformKind: 'Crypto Exchange', assetsUnderManagement: '$50M – $250M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Not Yet', productInterest: 'Balanced', firstVaultSize: '$5M+', launchTimeline: 'ASAP', submittedAt: iso(275) },
+        },
+    // La TROISIÈME tranche de ZAND : les fonds sont arrivés, le dépôt attend son autorisation.
+    {
+      id: 'off_008c',
+      reference: 'ZAND-03',
+      clientId: 'cli_2',
+      clientName: 'ZAND Bank',
+      clientKind: 'Crypto company',
+      contactEmail: 'treasury@zand.test',
+      amountUsdc: 1_500_000,
+      riskProfile: 'growth',
+      allocation: { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
+      lockupMonths: 24,
+      status: 'funding',
+      createdAt: iso(40),
+      updatedAt: iso(17),
+      sentAt: iso(38),
+      decidedAt: iso(30),
+      fundsReceivedAt: '2026-09-08T14:22:00Z',
+      vaultId: null,
+      notes: 'Third tranche, board approved — opens a new vault.',
+      questionnaire: null,
+    },
+  ]
+}
+
+/** Toutes les offres : le socle avec ses étapes franchies, puis celles créées depuis la console. */
+function allOffers() {
+  return [...baseOffers().map((o) => ({ ...o, ...(WORLD.patch[o.id] ?? {}) })), ...WORLD.offers]
+}
+
+// ── Le monde modifiable ──────────────────────────────────────────────────────
+
+/*
+ * Le mock garde DEUX choses : un SOCLE fixe (les tables ci-dessus) et un MONDE
+ * qui change — décisions, électricité payée, rééquilibrages, offres et leurs
+ * étapes, KYC/AML, vaults ouverts, blocages levés, et l'horloge.
+ *
+ * Le monde ne vit pas dans la mémoire du serveur : sur Vercel, chaque requête
+ * peut tomber sur une instance différente — une décision prise à une étape
+ * était perdue à la suivante. Il voyage donc avec la session : l'hôte le lit
+ * dans l'en-tête `x-demo-world` (relayé par le front depuis un cookie), le
+ * réapplique (`useWorld`), et le renvoie après chaque écriture.
+ */
+function emptyWorld() {
+  return {
+    clock: 0, // mois avancés depuis aujourd'hui
+    decisions: {}, // approvalId → approved | declined
+    paid: [], // `${vaultId}:${YYYY-MM}` — électricité payée
+    rebalanced: {}, // index de vault → [{ clock, at, before, worst, moveUsd, fromBucket, toBucket, k }]
+    offers: [], // offres créées depuis la console
+    patch: {}, // offerId → champs modifiés d'une offre du socle (ses étapes)
+    kyc: {}, // clientId → { kyc, aml } — la décision de Som
+    opened: [], // vaults ouverts : { clientId, offerId, principal, alloc, months, openedAt, clock }
+    released: {}, // index de vault → { month, at, sats } — blocage levé, réserve rendue
+    viewAs: null, // le client que /account montre (null = Hearst Holdings)
+    tour: null, // la démo guidée : { clientName, offerId }
+  }
+}
+let WORLD = emptyWorld()
+
+const BASE = {
+  principal: [...VAULT_PRINCIPAL],
+  start: [...VAULT_START],
+  alloc: VAULT_ALLOC.map((a) => ({ ...a })),
+  drift: VAULT_DRIFT.map((d) => (d === null ? null : { ...d })),
+  band: [...VAULT_BAND],
+  miningBps: [...VAULT_MINING_BPS],
+  addresses: [...VAULT_ADDRESSES],
+}
+const defaultProtocols = () => ({
+  mining: { name: 'Hearst fleet', apy: 14.2 },
+  lending: { name: 'Aave (cbBTC)', apy: 8.4 },
+  stable: { name: 'Morpho (USDC)', apy: 10.1 },
+})
+/** Le blocage d'un vault, en mois : 24 pour le socle, celui de l'offre sinon. */
+const lockupMonthsOf = (v) => (v >= BASE_VAULT_COUNT ? (WORLD.opened[v - BASE_VAULT_COUNT]?.months ?? 24) : 24)
+const isReleased = (v) => WORLD.released[v] !== undefined
+
+/*
+ * LA DÉRIVE GRANDIT AVEC LE TEMPS : chaque mois, le minage s'écarte de sa
+ * cible (le bitcoin bouge, la production s'accumule). Un vault sort de sa
+ * bande au bout de quelques mois ; un rééquilibrage approuvé le remet à zéro.
+ */
+const driftGrowth = (v) => {
+  const s = v % 2 === 0 ? 1 : -1
+  return { mining: 140 * s, lending: -60 * s, stable: -80 * s }
+}
+function driftOf(v) {
+  const done = WORLD.rebalanced[v] ?? []
+  const last = done.length > 0 ? done[done.length - 1].clock : null
+  const opened = v >= BASE_VAULT_COUNT ? WORLD.opened[v - BASE_VAULT_COUNT] : null
+  const base = last !== null || opened ? { mining: 0, lending: 0, stable: 0 } : BASE.drift[v]
+  if (base === null) return null
+  const months = last !== null ? WORLD.clock - last : opened ? WORLD.clock - opened.clock : WORLD.clock
+  const g = driftGrowth(v)
+  return { mining: base.mining + g.mining * months, lending: base.lending + g.lending * months, stable: base.stable + g.stable * months }
+}
+
+/** Une adresse de vault stable, dérivée de l'offre qui l'a ouvert. */
+const addressFor = (seed) => '0x' + createHash('sha256').update(String(seed)).digest('hex').slice(0, 40)
+
+/** Réapplique le monde : le socle, puis tout ce qui a changé. */
+function applyWorld(w) {
+  WORLD = { ...emptyWorld(), ...(w ?? {}) }
+  const reset = (arr, base) => {
+    arr.length = 0
+    arr.push(...base)
+  }
+  // Les vaults : le socle, puis ceux ouverts pendant la démo.
+  reset(VAULT_PRINCIPAL, BASE.principal)
+  reset(VAULT_START, BASE.start)
+  reset(VAULT_ALLOC, BASE.alloc.map((a) => ({ ...a })))
+  reset(VAULT_BAND, BASE.band)
+  reset(VAULT_MINING_BPS, BASE.miningBps)
+  reset(VAULT_ADDRESSES, BASE.addresses)
+  VAULT_PROTOCOLS.length = 0
+  for (let i = 0; i < BASE_VAULT_COUNT; i++) VAULT_PROTOCOLS.push(defaultProtocols())
+  for (const o of WORLD.opened) {
+    VAULT_PRINCIPAL.push(o.principal)
+    VAULT_START.push(o.openedAt.slice(0, 10))
+    VAULT_ALLOC.push({ ...o.alloc })
+    VAULT_BAND.push(500)
+    VAULT_MINING_BPS.push(o.alloc.miningBps)
+    VAULT_ADDRESSES.push(addressFor(o.offerId))
+    VAULT_PROTOCOLS.push(defaultProtocols())
+  }
+  if (WORLD.decisions.apr_proto_cli_2 === 'approved') VAULT_PROTOCOLS[1].stable = { name: 'Aave (USDC)', apy: 12.0 }
+  reset(VAULT_MINING_CAPITAL, VAULT_PRINCIPAL.map((p, i) => (p * VAULT_MINING_BPS[i]) / 10_000))
+  allocateMachines()
+
+  // Les clients : le socle, les prospects nés d'une offre, leurs vaults, leur KYC.
+  CLIENT_BOOK.length = 0
+  for (const c of CLIENT_BOOK_BASE) {
+    CLIENT_BOOK.push({ ...c, vaults: c.vaults ? [...c.vaults] : c.vault === null ? [] : [c.vault] })
+  }
+  for (const o of WORLD.offers) {
+    if (!CLIENT_BOOK.some((c) => c.id === o.clientId)) {
+      CLIENT_BOOK.push({ id: o.clientId, label: o.clientName, kyc: 'NOT_STARTED', vault: null, vaults: [], since: o.createdAt.slice(0, 10), kind: o.clientKind })
+    }
+  }
+  WORLD.opened.forEach((o, i) => {
+    const c = CLIENT_BOOK.find((x) => x.id === o.clientId)
+    if (!c) return
+    c.vaults.push(BASE_VAULT_COUNT + i)
+    if (c.vault === null) c.vault = BASE_VAULT_COUNT + i
+  })
+  for (const [id, k] of Object.entries(WORLD.kyc)) {
+    const c = CLIENT_BOOK.find((x) => x.id === id)
+    if (c) Object.assign(c, { kyc: k.kyc, aml: k.aml ?? null })
+  }
+
+  // La dérive, les rééquilibrages exécutés, les décisions, l'électricité, les offres.
+  VAULT_DRIFT.length = 0
+  for (let v = 0; v < VAULT_PRINCIPAL.length; v++) VAULT_DRIFT.push(driftOf(v))
+  EXECUTED_REBALANCES.length = 0
+  for (const [v, list] of Object.entries(WORLD.rebalanced)) for (const r of list) EXECUTED_REBALANCES.push({ ...r, v: Number(v) })
+  DECISIONS.clear()
+  for (const [k, d] of Object.entries(WORLD.decisions)) DECISIONS.set(k, d)
+  PAID_ELECTRICITY.clear()
+  for (const k of WORLD.paid) PAID_ELECTRICITY.add(k)
+  CREATED_OFFERS.length = 0
+  CREATED_OFFERS.push(...WORLD.offers)
+}
+
+/** Le monde lu dans l'en-tête `x-demo-world` (base64url de JSON). Illisible : le socle. */
+function useWorld(header) {
+  try {
+    applyWorld(header ? JSON.parse(Buffer.from(String(header), 'base64url').toString('utf8')) : null)
+  } catch {
+    applyWorld(null)
+  }
+}
+const serializeWorld = () => Buffer.from(JSON.stringify(WORLD)).toString('base64url')
+
 // ── Écritures ────────────────────────────────────────────────────────────────
 
 const ENVELOPE_EXEMPT = new Set(['/health', '/ready', '/api/v1/runtime'])
 
 const reply = (status, body) => ({ status, body })
+
+/** Modifie une offre : directement si elle a été créée ici, par un patch si elle vient du socle. */
+function patchOffer(offer, fields) {
+  if (WORLD.offers.some((o) => o.id === offer.id)) {
+    WORLD.offers = WORLD.offers.map((o) => (o.id === offer.id ? { ...o, ...fields } : o))
+  } else {
+    WORLD.patch = { ...WORLD.patch, [offer.id]: { ...(WORLD.patch[offer.id] ?? {}), ...fields } }
+  }
+}
 
 /**
  * Les écritures que le mock sait jouer (souscription, décision d'un admin,
@@ -2217,47 +2507,173 @@ function handleWrite(method, path, body) {
   // ouvrirait un vault dont une part du capital ne sait pas où aller.
   /* LA DÉCISION D'UN ADMIN sur un élément en attente. Un rééquilibrage
      approuvé remet le vault à sa cible ; un changement de protocole approuvé
-     bascule la poche sur le nouveau protocole. Refusé : rien ne bouge. */
+     bascule la poche sur le nouveau protocole ; un dépôt autorisé fait passer
+     l'offre à « funds received ». Refusé : rien ne bouge. */
   const mDecide = path.match(/^\/api\/v1\/admin\/approvals\/([^/]+)\/decision$/)
   if (mDecide && method === 'POST') {
     const decision = body?.decision === 'decline' ? 'declined' : 'approved'
     const id = mDecide[1]
-    DECISIONS.set(id, decision)
+    WORLD.decisions[id] = decision
     if (decision === 'approved' && id.startsWith('apr_reb_')) {
-      const hit = ALL_VAULTS().find(({ v }) => `apr_reb_${vaultTag(v)}` === id)
-      const c = hit ? { vault: hit.v } : null
-      if (c && VAULT_DRIFT[c.vault]) {
+      const hit = ALL_VAULTS().find(({ v }) => `apr_reb_${vaultTag(v)}_${(WORLD.rebalanced[v] ?? []).length}` === id)
+      if (hit && VAULT_DRIFT[hit.v]) {
         // Le keeper exécute : l'écart corrigé entre dans l'historique, le vault revient à sa cible.
-        const before = { ...VAULT_DRIFT[c.vault] }
+        const v = hit.v
+        const before = { ...VAULT_DRIFT[v] }
         const worst = Math.max(Math.abs(before.mining), Math.abs(before.lending), Math.abs(before.stable))
-        const sorted = Object.entries(before).sort((a, b) => a[1] - b[1])
+        const sorted = Object.entries(before).sort((x, y) => x[1] - y[1])
         const name = { mining: 'Mining Alpha', lending: 'Bitcoin Lending', stable: 'USDC Yield' }
-        EXECUTED_REBALANCES.push({
-          v: c.vault,
-          at: new Date().toISOString(),
-          before,
-          worst,
-          moveUsd: Math.round((VAULT_PRINCIPAL[c.vault] * worst) / 10_000),
-          fromBucket: name[sorted[sorted.length - 1][0]],
-          toBucket: name[sorted[0][0]],
-          k: 100 + EXECUTED_REBALANCES.length,
-        })
-        VAULT_DRIFT[c.vault] = { mining: 0, lending: 0, stable: 0 }
+        const list = WORLD.rebalanced[v] ?? []
+        WORLD.rebalanced[v] = [
+          ...list,
+          {
+            clock: WORLD.clock,
+            at: nowIso(),
+            before,
+            worst,
+            moveUsd: Math.round((VAULT_PRINCIPAL[v] * worst) / 10_000),
+            fromBucket: name[sorted[sorted.length - 1][0]],
+            toBucket: name[sorted[0][0]],
+            k: 100 + list.length,
+          },
+        ]
       }
     }
-    if (decision === 'approved' && id === 'apr_proto_cli_2') {
-      VAULT_PROTOCOLS[1].stable = { name: 'Aave (USDC)', apy: 12.0 }
+    if (decision === 'approved' && id.startsWith('apr_dep_')) {
+      const offer = allOffers().find((o) => `apr_dep_${o.id}` === id)
+      if (offer) patchOffer(offer, { status: 'funded', fundedAt: nowIso() })
     }
+    applyWorld(WORLD)
     return reply(200, envelope({ id, decision }))
   }
 
   /* L'électricité se paie VAULT PAR VAULT, pour un mois donné : le paiement
-     est retenu (en mémoire) et la clôture mensuelle le montre aussitôt. */
+     est retenu et la clôture mensuelle le montre aussitôt. */
   if (path === '/api/v1/mining/electricity/pay' && method === 'POST') {
     if (typeof body?.vaultId === 'string' && typeof body?.month === 'string') {
-      PAID_ELECTRICITY.add(`${body.vaultId}:${body.month}`)
+      WORLD.paid = [...new Set([...WORLD.paid, `${body.vaultId}:${body.month}`])]
+      applyWorld(WORLD)
     }
     return reply(200, envelope({ status: 'recorded', reason: null }))
+  }
+
+  /* ── LE PARCOURS D'UNE OFFRE ───────────────────────────────────────────
+     Une étape à la fois, dans l'ordre du métier. Le backend est l'autorité :
+     il refuse un saut d'étape, et il refuse d'appeler les fonds tant que Som
+     n'a pas validé le KYC ET l'AML du client.
+
+       draft → sent → accepted → funding ─(fonds reçus)→ [dépôt à autoriser]
+             → funded → active (le vault s'ouvre)
+       sent / draft → declined · draft / sent → expired */
+  const mStep = path.match(/^\/api\/v1\/admin\/offers\/([^/]+)\/transition$/)
+  if (mStep && method === 'POST') {
+    const offer = allOffers().find((o) => o.id === mStep[1])
+    if (!offer) return reply(404, problem(404, 'NOT_FOUND', 'No such offer.'))
+    const to = String(body?.to ?? '')
+    const from = {
+      sent: ['draft'],
+      accepted: ['sent'],
+      declined: ['draft', 'sent'],
+      funding: ['accepted'],
+      funds_received: ['funding'],
+      active: ['funded'],
+      expired: ['draft', 'sent'],
+    }[to]
+    if (!from) return reply(400, problem(400, 'UNKNOWN_STEP', `Unknown step "${to}".`))
+    if (!from.includes(offer.status) || (to === 'funds_received' && offer.fundsReceivedAt)) {
+      return reply(409, problem(409, 'INVALID_STEP', `This offer is "${offer.status}" — it cannot go to "${to}".`))
+    }
+    const client = allClients().find((c) => c.id === offer.clientId)
+    const cleared = client?.kyc === 'APPROVED' && (client?.aml ?? 'CLEAR') === 'CLEAR'
+    if (to === 'funding' && !cleared) {
+      return reply(409, problem(409, 'KYC_REQUIRED', 'Funds cannot be called until Som has cleared the client’s KYC and AML.'))
+    }
+    const now = nowIso()
+    const patch = {
+      sent: { status: 'sent', sentAt: now },
+      accepted: { status: 'accepted', decidedAt: now, acceptedBy: body?.by === 'client' ? 'client' : 'admin' },
+      declined: { status: 'declined', decidedAt: now },
+      funding: { status: 'funding', fundingRequestedAt: now },
+      funds_received: { fundsReceivedAt: now },
+      expired: { status: 'expired' },
+      active: {},
+    }[to]
+    if (to === 'active') {
+      // LE VAULT S'OUVRE : son capital, son allocation, son blocage, ses machines.
+      const index = BASE_VAULT_COUNT + WORLD.opened.length
+      WORLD.opened = [
+        ...WORLD.opened,
+        {
+          clientId: offer.clientId,
+          offerId: offer.id,
+          principal: offer.amountUsdc,
+          alloc: { ...offer.allocation },
+          months: offer.lockupMonths,
+          openedAt: now,
+          clock: WORLD.clock,
+        },
+      ]
+      Object.assign(patch, { status: 'active', vaultId: `${VAULT_CHAIN_ID}-${addressFor(offer.id)}`, openedAt: now, vaultIndex: index })
+      // La démo regarde désormais ce client depuis /account.
+      if (WORLD.tour && WORLD.tour.offerId === offer.id) WORLD.viewAs = offer.clientId
+    }
+    patchOffer(offer, { ...patch, updatedAt: now })
+    applyWorld(WORLD)
+    return reply(200, envelope({ offer: bloc(allOffers().find((o) => o.id === offer.id)) }))
+  }
+
+  /* LA DÉCISION DE SOM — le partenaire KYC/AML. La console ne la prend
+     jamais : en production elle arrive par le partenaire. Ici, la démo la
+     simule pour dérouler le parcours. */
+  const mKyc = path.match(/^\/api\/v1\/admin\/clients\/([^/]+)\/kyc$/)
+  if (mKyc && method === 'POST') {
+    const kyc = ['APPROVED', 'PENDING', 'REJECTED', 'NOT_STARTED'].includes(body?.kyc) ? body.kyc : 'APPROVED'
+    const aml = ['CLEAR', 'FLAGGED'].includes(body?.aml) ? body.aml : kyc === 'APPROVED' ? 'CLEAR' : null
+    WORLD.kyc = { ...WORLD.kyc, [mKyc[1]]: { kyc, aml } }
+    applyWorld(WORLD)
+    return reply(200, envelope({ clientId: mKyc[1], kyc, aml }))
+  }
+
+  /* FIN DU BLOCAGE : la réserve (versement converti + accumulé) est rendue
+     au client en bitcoin, et le vault se clôt. Refusé tant que le blocage court. */
+  const mRelease = path.match(/^\/api\/v1\/admin\/vaults\/([^/]+)\/release$/)
+  if (mRelease && method === 'POST') {
+    const v = VAULT_PRINCIPAL.findIndex((_, i) => vaultKey(i) === decodeURIComponent(mRelease[1]))
+    if (v < 0) return reply(404, problem(404, 'NOT_FOUND', 'No such vault.'))
+    if (isReleased(v)) return reply(409, problem(409, 'ALREADY_RELEASED', 'This vault has already been released.'))
+    const start = new Date(`${VAULT_START[v]}T09:00:00Z`)
+    if (addMonths(start, lockupMonthsOf(v)) > mockNow()) {
+      return reply(409, problem(409, 'LOCKUP_RUNNING', 'The lockup has not ended yet.'))
+    }
+    const ms = vaultMonths(v)
+    const capital = Math.round((VAULT_PRINCIPAL[v] / (ms[ms.length - 1]?.price ?? BTC_SPOT_USD)) * 1e8)
+    WORLD.released = { ...WORLD.released, [v]: { month: ymOf(lastClosed()), at: nowIso(), sats: capital + vaultReserveSats(v) } }
+    applyWorld(WORLD)
+    return reply(200, envelope({ vaultId: vaultKey(v), releasedSats: WORLD.released[v].sats }))
+  }
+
+  /* ── LA DÉMO GUIDÉE ────────────────────────────────────────────────────
+     Démarrer (un monde neuf, un prospect à embarquer), réinitialiser, avancer
+     l'horloge, regarder /account comme un client donné. */
+  if (path === '/api/v1/demo/start' && method === 'POST') {
+    WORLD = { ...emptyWorld(), tour: { clientName: String(body?.clientName ?? '').trim() || 'Orbit Capital', offerId: null } }
+    applyWorld(WORLD)
+    return reply(200, envelope({ tour: WORLD.tour }))
+  }
+  if (path === '/api/v1/demo/reset' && method === 'POST') {
+    applyWorld(null)
+    return reply(200, envelope({ reset: true }))
+  }
+  if (path === '/api/v1/demo/clock' && method === 'POST') {
+    const months = Math.max(1, Math.min(36, Math.round(Number(body?.months) || 1)))
+    WORLD.clock += months
+    applyWorld(WORLD)
+    return reply(200, envelope({ clock: WORLD.clock, today: nowIso(), lastClosed: ymOf(lastClosed()) }))
+  }
+  if (path === '/api/v1/demo/view-as' && method === 'POST') {
+    WORLD.viewAs = typeof body?.clientId === 'string' && body.clientId !== '' ? body.clientId : null
+    applyWorld(WORLD)
+    return reply(200, envelope({ viewAs: WORLD.viewAs }))
   }
 
   if (path === '/api/v1/admin/offers' && method === 'POST') {
@@ -2283,7 +2699,7 @@ function handleWrite(method, path, body) {
       return reply(422, problem(422, 'ALLOCATION_NOT_100', 'The three pockets must total 10,000 bps.'))
     }
     const now = nowIso()
-    const n = CREATED_OFFERS.length + 1
+    const n = WORLD.offers.length + 1
     // Un client existant garde son identifiant (deuxième tranche, renouvellement) ;
     // un prospect nouveau en reçoit un.
     const known = allClients().find(
@@ -2309,15 +2725,23 @@ function handleWrite(method, path, body) {
       notes: body?.notes || null,
       questionnaire: null,
     }
-    CREATED_OFFERS.unshift(offer)
-    persistOffers()
+    WORLD.offers = [offer, ...WORLD.offers]
+    // L'offre de la démo guidée : celle du prospect qu'elle embarque.
+    if (WORLD.tour && !WORLD.tour.offerId && offer.clientName.toLowerCase() === WORLD.tour.clientName.toLowerCase()) {
+      WORLD.tour = { ...WORLD.tour, offerId: offer.id }
+    }
+    applyWorld(WORLD)
     return reply(201, envelope({ offer: bloc(offer) }))
   }
   return null
 }
 
+applyWorld(null)
+
 export {
   ACCOUNTS,
+  serializeWorld,
+  useWorld,
   CREATED_OFFERS,
   ENVELOPE_EXEMPT,
   bloc,

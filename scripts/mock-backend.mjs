@@ -22,13 +22,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   ACCOUNTS,
-  CREATED_OFFERS,
   ENVELOPE_EXEMPT,
-  envelope,
   handleWrite,
-  onOffersChanged,
   payloadFor,
   problem,
+  envelope,
+  serializeWorld,
+  useWorld,
 } from '../src/app/api/demo-backend/mock-data.js'
 
 const PORT = Number(process.env.MOCK_PORT ?? 4106)
@@ -47,21 +47,9 @@ const PORT = Number(process.env.MOCK_PORT ?? 4106)
  */
 const TOKEN_STORE = join(tmpdir(), 'hearst-mock-tokens.json')
 
-/** Les offres créées survivent à un redémarrage du mock : elles se gardent
- *  dans un fichier temporaire, comme les sessions. */
-const OFFER_STORE = join(tmpdir(), 'hearst-mock-offers.json')
-try {
-  CREATED_OFFERS.push(...JSON.parse(readFileSync(OFFER_STORE, 'utf8')))
-} catch {
-  /* Premier lancement : aucune offre créée. */
-}
-onOffersChanged(() => {
-  try {
-    writeFileSync(OFFER_STORE, JSON.stringify(CREATED_OFFERS))
-  } catch {
-    /* Disque en lecture seule : les offres restent en mémoire. */
-  }
-})
+/* Les offres créées, les décisions, l'horloge… vivent dans le MONDE du mock,
+   qui voyage avec la session (en-tête `x-demo-world`) — plus de fichier
+   temporaire à recharger. */
 
 const TOKENS = new Map(
   (() => {
@@ -116,6 +104,8 @@ const send = (res, status, body) => {
     'Content-Type': 'application/json',
     'X-Request-Id': randomUUID(),
     'X-RateLimit-Remaining': '999',
+    // Le monde après la requête : le front le garde dans la session.
+    'X-Demo-World': serializeWorld(),
   })
   res.end(payload)
 }
@@ -123,10 +113,14 @@ const send = (res, status, body) => {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const path = url.pathname
+  // Le corps d'abord : tout ce qui suit est synchrone, aucune autre requête ne
+  // peut réappliquer SON monde entre `useWorld` et la réponse.
+  const body = req.method === 'GET' ? null : await readBody(req)
+  // Le monde de CETTE session (décisions, offres, horloge…), relayé par le front.
+  useWorld(req.headers['x-demo-world'])
 
   // Authentification : vérifiée pour de bon, comme le ferait le backend.
   if (path === '/api/v1/auth/login' && req.method === 'POST') {
-    const body = await readBody(req)
     const email = String(body?.email ?? '').trim().toLowerCase()
     const password = String(body?.password ?? '')
     const account = ACCOUNTS.find((a) => a.email === email && a.password === password)
@@ -157,7 +151,7 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  const write = handleWrite(req.method, path, req.method === 'GET' ? null : await readBody(req))
+  const write = handleWrite(req.method, path, body)
   if (write) return send(res, write.status, write.body)
 
   const data = payloadFor(path, url.search.replace(/^\?/, ''))
