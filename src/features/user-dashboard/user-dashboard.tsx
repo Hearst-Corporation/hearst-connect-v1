@@ -170,26 +170,34 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
      retrait : il reste dans la réserve tant que le client ne le retire pas. */
   const [kind, setKind] = useState<'all' | 'in' | 'out'>('all')
   const [scope, setScope] = useState<'vault' | 'all'>('vault')
-  const { totals, spotUsd } = overview
+  const { spotUsd } = overview
+  /* LA POSITION DU VAULT CHOISI. Le bloc du haut additionnait les vaults
+     encore ouverts : sous « Vault 1 » comme sous « Vault 2 », il montrait les
+     mêmes chiffres — on croyait lire deux vaults identiques. Le sélecteur
+     gouverne maintenant toute la page, ce bloc compris. */
+  const totals = {
+    reserveBtc: vault.reserveBtc,
+    withdrawnBtc: vault.withdrawnBtc,
+    capitalBtc: vault.capitalBtc,
+    producedBtc: vault.producedBtc,
+    depositedUsdc: vault.principalUsdc,
+  }
+  const multiVault = overview.vaults.length > 1
   const live = available(true, { provenance: 'chain' })
   const sig = signalOf(live)
   const released = vault.status === 'RELEASED'
   // Le vault dans l'URL : son rang, et rien quand le client n'en a qu'un.
   const rank = (id: string) => (overview.vaults.length > 1 ? overview.vaults.findIndex((v) => v.vaultId === id) + 1 : undefined)
 
-  // ── Position : toute la réserve, tous vaults confondus ─────────────────────
-  const since = [...overview.vaults].map((v) => v.lockupStartAt).sort()[0] ?? null
-  const activeCount = overview.vaults.filter((v) => v.status === 'ACTIVE').length
-  /* Ce que chaque bitcoin du client lui a coûté : ses dépôts, rapportés à tout
-     le bitcoin qu'ils ont produit — gardé ou déjà retiré. Le minage le fait
-     baisser mois après mois ; c'est la mesure du produit, en un prix. */
+  // ── Position : la réserve du vault choisi ─────────────────────────────────
+  /* Ce que chaque bitcoin lui a coûté : le dépôt, rapporté à tout le bitcoin
+     qu'il a produit — gardé ou déjà retiré. Le minage le fait baisser mois
+     après mois ; c'est la mesure du produit, en un prix. */
   const ownedBtc = totals.reserveBtc + totals.withdrawnBtc
   const avgCost = ownedBtc > 0 ? totals.depositedUsdc / ownedBtc : null
-  const nextReward =
-    overview.vaults
-      .map((v) => v.nextRewardAt)
-      .filter((x): x is string => x !== null)
-      .sort()[0] ?? null
+  const nextReward = vault.nextRewardAt
+  const lastReward =
+    [...rewards].filter((r) => r.status === 'distributed').sort((a, b) => b.month.localeCompare(a.month))[0] ?? null
 
   // ── Vault ────────────────────────────────────────────────────────────────
   const credited = rewards.filter((r) => r.status !== 'pending' && r.status !== 'declined')
@@ -358,7 +366,9 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               <p className="eyebrow">Your position</p>
               <h2>Bitcoin Strategic Reserve</h2>
               <span>
-                Everything in bitcoin — {activeCount} vault{activeCount === 1 ? '' : 's'} open, one per deposit.
+                {multiVault
+                  ? `${vault.label}${released ? ' · returned' : ''} — one of your ${overview.vaults.length} vaults, one per deposit.`
+                  : 'Everything in bitcoin — one vault per deposit.'}
               </span>
             </div>
             <InvestMoreButton ownerName={overview.owner.name} className="position-deposit-cta" />
@@ -372,18 +382,21 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                 deltaPct: totals.capitalBtc > 0 ? ((totals.reserveBtc + totals.withdrawnBtc) / totals.capitalBtc - 1) * 100 : 0,
                 entryRateUsd: 0,
                 spotRateUsd: spotUsd,
-                windowLabel: 'since your first deposit',
+                windowLabel: multiVault ? 'since this deposit' : 'since your deposit',
               },
               { provenance: 'chain' },
             )}
-            note={`${formatBtc(totals.capitalBtc)} deposited + ${formatBtc(totals.producedBtc)} earned`}
+            // La note retombe sur le chiffre : ce qui est déjà sorti en est retiré.
+            note={`${formatBtc(totals.capitalBtc)} deposited + ${formatBtc(totals.producedBtc)} earned${
+              totals.withdrawnBtc > 0 ? ` − ${formatBtc(totals.withdrawnBtc)} withdrawn` : ''
+            }`}
             terms={[
               {
                 label: 'Deposited',
                 value: usdc(totals.depositedUsdc),
                 icon: ScaleIcon,
                 signal: sig,
-                footnote: `${overview.vaults.length} vault${overview.vaults.length === 1 ? '' : 's'} · client since ${since ? formatDate(since) : '—'}`,
+                footnote: `On ${formatDate(vault.lockupStartAt)} · ${formatBtc(totals.capitalBtc)} at entry`,
               },
               {
                 label: 'Your price per bitcoin',
@@ -397,12 +410,14 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               },
               {
                 label: 'Next reward',
-                value: nextReward ? formatDate(nextReward) : '—',
+                value: nextReward ? formatDate(nextReward) : released ? 'None' : '—',
                 icon: CalendarDaysIcon,
                 signal: sig,
-                footnote: overview.lastReward
-                  ? `last: ${formatBtc(overview.lastReward.btc)} for ${monthLabel(overview.lastReward.month)}`
-                  : 'after your first full month',
+                footnote: released
+                  ? 'Vault returned — no more rewards'
+                  : lastReward
+                    ? `last: ${formatBtc(lastReward.btc)} for ${monthLabel(lastReward.month)}`
+                    : 'after your first full month',
               },
             ]}
           />
