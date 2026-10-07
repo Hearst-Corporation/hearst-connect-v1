@@ -463,6 +463,6 @@ export function AdminDashboardPage() {
 
 /** Les derniers gestes de l'équipe, lus dans le journal d'audit. */
 async function TeamActivityData() {
-  const audit = await loadAudit(12)
+  const audit = await loadAudit(9)
   return <AuditList entries={audit} compact />
 }
