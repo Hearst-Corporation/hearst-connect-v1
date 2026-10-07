@@ -141,7 +141,7 @@ function Row({
 }
 
 /** Lignes visibles tant que la liste est repliée. */
-const COLLAPSED_COUNT = 8
+const COLLAPSED_COUNT = 7
 
 const listVariants: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 const itemVariants: Variants = {

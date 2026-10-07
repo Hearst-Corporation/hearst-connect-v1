@@ -6244,3 +6244,135 @@
 .ud-root .term-choice-side .term-choice-note {
   padding-left: 5px;
 }
+
+/* My Vault tient dans un écran de portable (≈ 790 px utiles) : en-têtes de
+   section resserrés, sans la rangée vide réservée au formulaire de dépôt. */
+.ud-root .vault-tab-body .section-heading {
+  padding: 16px 20px;
+}
+.ud-root .vault-tab-body .vault-heading {
+  padding-bottom: 16px;
+}
+.ud-root .vault-tab-body .position-heading {
+  row-gap: 0;
+}
+
+/* Hauteur commune ramenée à 590 px : onglet + en-tête tiennent dans 790 px. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body {
+    height: 600px;
+  }
+  .ud-root .analysis--fund .center-plot {
+    height: 425px;
+  }
+  /* Moins de texte : la note sous « Produced for you » redisait l'en-tête. */
+  .ud-root .analysis--fund .fleet-mine-note {
+    display: none;
+  }
+  .ud-root .vault-tab-body--capital .exposure-cap .ec-panel {
+    padding: 20px 28px;
+  }
+  .ud-root .vault-tab-body--capital .ud-radial-dial {
+    width: 15rem;
+  }
+  .ud-root .vault-tab-body--capital .rebalance-line {
+    margin-top: 14px;
+  }
+}
+
+/* Tuiles du vault : padding vertical divisé par deux, contenu en haut — plus
+   d'air étiré au-dessus et au-dessous. */
+.ud-root .vault-tab-body .fund-kpis .stat-tile {
+  padding-top: 28px;
+  padding-bottom: 28px;
+  align-content: center;
+}
+/* Compute : le logo décoratif du flanc cède sa place, il ne dicte plus la
+   hauteur de la rangée. */
+@media (min-width: 1025px) {
+  .ud-root .analysis--fund .flank-mark {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/* Mining Economics resserré pour la hauteur commune de 590 px. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body .mining-flank-body {
+    gap: 14px;
+  }
+  .ud-root .vault-tab-body .mining-flank-params {
+    gap: 8px;
+  }
+  .ud-root .vault-tab-body .mining-flank-params .term-row {
+    padding: 9px 14px;
+  }
+  .ud-root .vault-tab-body .mining-flank-foot {
+    padding: 6px 14px;
+  }
+}
+@media (min-width: 1025px) {
+  .ud-root .analysis--fund .flank-mark {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+/* La rangée Compute prend la hauteur de l'onglet, pas celle du plus haut de
+   ses flancs : le logo décoratif se rogne au lieu de pousser la rangée. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body--compute .analysis--fund {
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+  }
+  .ud-root .vault-tab-body--compute .analysis--fund > * {
+    min-height: 0;
+  }
+}
+
+/* Les filtres de type finissent à l'aplomb d'« Export PDF » : la barre
+   s'arrête au bord de la colonne des mouvements, pas à celui de la carte. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body--activity .movements-toolbar {
+    padding-right: calc(320px + 20px);
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .ud-root .vault-tab-body--activity .movements-toolbar > :first-child {
+    min-width: 0;
+  }
+  .ud-root .vault-tab-body--activity .movements-filters {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+}
+
+/* Mouvements : le titre seul à gauche — le sous-titre poussait les filtres
+   sur une deuxième ligne dès 1280 px. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body--activity .movements-toolbar .section-heading-text > span,
+  .ud-root .vault-tab-body--activity .movements-toolbar > :first-child > span:last-child {
+    display: none;
+  }
+}
+
+/* My Vault : pas de sur-titre au-dessus des titres de section — le titre suffit. */
+.ud-root .vault-tab-body .section-heading .eyebrow {
+  display: none;
+}
+
+/* Overview : 5 px de plus au-dessus et au-dessous des en-têtes et de la
+   rangée BTC ; l'écart entre les deux sections se resserre d'autant. */
+.ud-root .vault-tab-body--overview .section-heading {
+  padding-top: 21px;
+  padding-bottom: 21px;
+}
+.ud-root .vault-tab-body--overview .btc-block-top .stat-tile {
+  padding-top: 19px;
+  padding-bottom: 19px;
+}
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body--overview {
+    gap: 16px;
+  }
+}
