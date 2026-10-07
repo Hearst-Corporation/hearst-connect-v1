@@ -99,7 +99,7 @@ export default async function DocumentsPage() {
       <DashCard title="Monthly statements" subtitle={`${months.length} months · one statement per vault, issued after each close`}>
         <PaginatedTable
           className="[&_table]:w-full [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0"
-          collapsed={12}
+          collapsed={8}
           noun="statements"
           head={
             <TableRow>

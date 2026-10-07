@@ -79,6 +79,10 @@ function printPdf(x: TableExport) {
 export const SECONDARY_BUTTON =
   'inline-flex h-9 items-center rounded-full px-4 text-[13px] font-medium text-fg ring-1 ring-[var(--ud-line)] hover:bg-white/5'
 
+/** Le bouton PRIMAIRE de la console : aplat vert, encre sombre. */
+export const PRIMARY_BUTTON =
+  'inline-flex h-9 items-center rounded-full bg-[var(--hearst-green)] px-4 text-[13px] font-medium text-[var(--hearst-green-ink)] hover:brightness-105'
+
 /** Les deux exports, au même gabarit partout. */
 export function ExportButtons({ data }: Readonly<{ data: TableExport }>) {
   const btn = SECONDARY_BUTTON
@@ -230,15 +234,14 @@ export function TableFooter({
       {/* À droite même quand la ligne se replie (téléphone) : `ml-auto`. */}
       <span className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {exportData ? <ExportButtons data={exportData} /> : null}
-        {/* Toujours là, au même endroit — un bouton SECONDAIRE, en gris comme les
-            exports : déplier un tableau n'est pas une action métier. */}
-        <button
-          type="button"
-          className={`${SECONDARY_BUTTON} ${foldable ? '' : 'cursor-default'}`}
-          onClick={foldable ? onToggle : undefined}
-        >
-          {expanded ? 'Show less' : `Show all ${total} ${noun}`}
-        </button>
+        {/* Le bouton VERT, comme « Show all » des mouvements de /account. Absent
+            quand toutes les lignes sont déjà là : un bouton qui ne fait rien
+            se lit comme une panne. */}
+        {foldable ? (
+          <button type="button" className={PRIMARY_BUTTON} onClick={onToggle}>
+            {expanded ? 'Show less' : `Show all ${total} ${noun}`}
+          </button>
+        ) : null}
       </span>
     </div>
   )
