@@ -67,7 +67,7 @@ export default async function AccountSettingsPage() {
                     <Pic icon={WalletIcon} />
                     <span className="truncate text-sm text-fg">{w.label}</span>
                   </span>
-                  <span className="hidden truncate font-mono text-xs text-fg-secondary sm:block">{w.address}</span>
+                  <span className="hidden truncate font-mono text-xs text-[var(--hearst-green)] sm:block">{w.address}</span>
                   <span className="hidden items-center gap-1.5 text-xs text-fg-tertiary sm:flex">
                     <BitcoinIcon className="size-4 text-[var(--hearst-green)]" aria-hidden="true" />
                     {w.network}
@@ -83,7 +83,7 @@ export default async function AccountSettingsPage() {
               ))}
             </ul>
             <div className="border-t border-[var(--ud-line)] pt-5">
-              <p className="mb-3 flex items-center gap-3 text-sm font-medium text-fg">
+              <p className="mb-5 flex items-center gap-3 text-sm font-medium text-fg">
                 <Pic icon={PlusCircleIcon} />
                 Add a wallet
               </p>

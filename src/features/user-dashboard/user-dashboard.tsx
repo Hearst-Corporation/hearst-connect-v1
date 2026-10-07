@@ -574,7 +574,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
             <div>
               <p className="eyebrow">Your account</p>
               <h2>Capital Activity</h2>
-              <span>Every deposit, monthly reward and withdrawal — in bitcoin, with its status.</span>
+              <span>Every deposit, reward and withdrawal — in bitcoin.</span>
             </div>
             <div className="movements-filters">
               {overview.vaults.length > 1 ? (

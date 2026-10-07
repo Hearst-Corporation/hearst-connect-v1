@@ -6351,12 +6351,12 @@
   }
 }
 
-/* Mouvements : le titre seul à gauche — le sous-titre poussait les filtres
-   sur une deuxième ligne dès 1280 px. */
+/* Mouvements : le bandeau a le même padding que ceux de l'Overview (28 px),
+   donc la même hauteur. */
 @media (min-width: 1025px) {
-  .ud-root .vault-tab-body--activity .movements-toolbar .section-heading-text > span,
-  .ud-root .vault-tab-body--activity .movements-toolbar > :first-child > span:last-child {
-    display: none;
+  .ud-root .vault-tab-body--activity .movements-toolbar {
+    padding-top: 28px;
+    padding-bottom: 28px;
   }
 }
 
@@ -6477,5 +6477,40 @@
   }
   .ud-root .center-allocation > .bucket-earned {
     margin-top: auto;
+  }
+}
+
+/* Bandeau des mouvements, en trois colonnes calées sur le corps : le titre ;
+   les types, qui finissent à l'aplomb d'« Export PDF » ; le choix du vault,
+   au-dessus de la colonne Distributions. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body--activity .movements-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 320px;
+    align-items: center;
+    column-gap: 0;
+    padding-right: 20px;
+  }
+  .ud-root .vault-tab-body--activity .movements-toolbar > :first-child {
+    padding-right: 24px;
+  }
+  .ud-root .vault-tab-body--activity .movements-filters {
+    display: contents;
+  }
+  .ud-root .vault-tab-body--activity .movements-filters > [aria-label='Type'] {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .ud-root .vault-tab-body--activity .movements-filters > [aria-label='Vaults'] {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+}
+@media (min-width: 1025px) {
+  /* Les pilules (44 px) ne grandissent pas le bandeau : même hauteur que
+     celui de l'Overview, réglée par le titre et son sous-titre. */
+  .ud-root .vault-tab-body--activity .movements-toolbar .ud-seg {
+    margin: -1px 0;
   }
 }
