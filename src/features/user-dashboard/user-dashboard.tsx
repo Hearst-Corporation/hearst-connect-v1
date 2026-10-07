@@ -71,9 +71,10 @@ const MOVE_TITLE: Record<string, string> = {
 }
 const MOVE_ICON_KEY: Record<string, string> = { deposit: 'deposit', reward: 'distribution', withdrawal: 'withdraw', release: 'withdraw' }
 const MOVE_STATUS: Record<string, string> = { pending: 'Pending', processing: 'Processing', declined: 'Declined' }
-/** Un mouvement réglé : « Received » pour un versement, « Sent » pour le reste. */
+/** Un mouvement réglé : « Received » pour un versement, « Added » pour un reward
+ *  (il entre dans la réserve, rien ne sort), « Sent » pour ce qui part vers le wallet. */
 const settledStatus = (type: string, status: string) =>
-  MOVE_STATUS[status] ?? (type === 'deposit' ? 'Received' : 'Sent')
+  MOVE_STATUS[status] ?? (type === 'deposit' ? 'Received' : type === 'reward' ? 'Added' : 'Sent')
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`
 const usdc = (n: number) => `${Math.round(n).toLocaleString('en-US')} USDC`
@@ -164,7 +165,10 @@ export type ClientVaultProps = Readonly<{
 
 export function UserDashboardView({ tab, data, overview, vault, rewards, activity, wallets, reserve }: ClientVaultProps) {
   const [central, setCentral] = useState<CentralView>('compute')
-  const [kind, setKind] = useState<'all' | 'reward' | 'withdrawal' | 'deposit'>('all')
+  /* Deux sens, pas quatre types : ce qui ENTRE dans la réserve (versements,
+     rewards) et ce qui en SORT (retraits, restitution). Un reward n'est pas un
+     retrait : il reste dans la réserve tant que le client ne le retire pas. */
+  const [kind, setKind] = useState<'all' | 'in' | 'out'>('all')
   const [scope, setScope] = useState<'vault' | 'all'>('vault')
   const { totals, spotUsd } = overview
   const live = available(true, { provenance: 'chain' })
@@ -199,7 +203,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
   const scoped = (activity ?? []).filter(
     (a) =>
       (scope === 'all' || a.vault === vault.label) &&
-      (kind === 'all' || a.type === kind || (kind === 'withdrawal' && a.type === 'release')),
+      (kind === 'all' || (kind === 'in') === (a.type === 'deposit' || a.type === 'reward')),
   )
   const inFlight = (activity ?? []).filter((a) => a.type === 'withdrawal' && (a.status === 'pending' || a.status === 'processing'))
   const moves: UserMovement[] = scoped
@@ -594,9 +598,8 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                 {(
                   [
                     ['all', 'All'],
-                    ['reward', 'Rewards'],
-                    ['withdrawal', 'Withdrawals'],
-                    ['deposit', 'Deposits'],
+                    ['in', 'In'],
+                    ['out', 'Out'],
                   ] as const
                 ).map(([id, label]) => (
                   <button key={id} type="button" className={`ud-seg-btn${kind === id ? ' active' : ''}`} onClick={() => setKind(id)}>
@@ -645,6 +648,13 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                 key={`${scope}:${kind}`}
                 availability={activity === null ? unavailable() : available(moves, { provenance: 'chain' })}
                 btcSpotUsd={spotUsd}
+                empty={
+                  kind === 'out'
+                    ? { title: 'Nothing has left your reserve', detail: 'Your rewards stay in your reserve until you withdraw them. Withdrawals will appear here.' }
+                    : kind === 'in'
+                      ? { title: 'Nothing added yet', detail: 'Your deposit and each monthly reward will appear here once recorded.' }
+                      : undefined
+                }
                 actions={
                   <ExportButtons
                     data={{

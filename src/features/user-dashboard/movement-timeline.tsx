@@ -153,7 +153,10 @@ export function MovementTimeline({
   availability,
   btcSpotUsd = null,
   actions = null,
+  empty,
 }: Readonly<{
+  /** Le message quand le filtre ne laisse rien (« rien n'est encore sorti »…). */
+  empty?: Readonly<{ title: string; detail: string }>
   availability: UserDashboard['activity']
   btcSpotUsd?: number | null
   /** Les exports, au pied, à côté de « Show more » — comme les tableaux de la console. */
@@ -169,11 +172,11 @@ export function MovementTimeline({
         <span className="empty-mark" />
         <div>
           <p className="eyebrow">Account history</p>
-          <h3>{rows === null ? 'Activity source unavailable' : 'No verified activity yet'}</h3>
+          <h3>{rows === null ? 'Activity source unavailable' : (empty?.title ?? 'No verified activity yet')}</h3>
           <span>
             {rows === null
               ? 'The verified activity source did not resolve — nothing is shown rather than a guess.'
-              : 'Your deposits, distributions and account events will appear here from the verified source, most recent first.'}
+              : (empty?.detail ?? 'Your deposits, distributions and account events will appear here from the verified source, most recent first.')}
           </span>
         </div>
       </div>
