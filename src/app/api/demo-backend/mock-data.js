@@ -2940,6 +2940,8 @@ function clientVaultView(c, v) {
     vaultId: vaultKey(v),
     label: vaultNameOf(c, v),
     status: isReleased(v) ? 'RELEASED' : 'ACTIVE',
+    // Le mois où la réserve a été rendue : à partir de là, elle n'est plus chez Hearst.
+    releasedMonth: WORLD.released[v]?.month ?? null,
     principalUsdc: VAULT_PRINCIPAL[v],
     entryRateUsd: e.entryRate,
     capitalBtc: e.capitalSats / 1e8,

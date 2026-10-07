@@ -15,6 +15,8 @@ export type PortalVault = Readonly<{
   vaultId: string
   label: string
   status: 'ACTIVE' | 'RELEASED' | string
+  /** Le mois (YYYY-MM) où la réserve a été rendue au client, s'il l'a été. */
+  releasedMonth?: string | null
   principalUsdc: number
   entryRateUsd: number
   capitalBtc: number

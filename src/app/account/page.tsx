@@ -97,7 +97,8 @@ export default async function OverviewPage() {
     }
   }
   const points: ReserveSplitPoint[] = all.map((m) => {
-    const open = vaults.filter((v) => v.lockupStartAt.slice(0, 7) <= m)
+    // Un vault rendu sort de la réserve à partir du mois de sa restitution.
+    const open = vaults.filter((v) => v.lockupStartAt.slice(0, 7) <= m && !(v.releasedMonth && m >= v.releasedMonth))
     const byVault = open.map((v) => ({
       label: v.label,
       value: v.capitalBtc + credited.filter((r) => r.vaultId === v.vaultId && r.month <= m).reduce((t, r) => t + r.btc, 0),
@@ -105,7 +106,7 @@ export default async function OverviewPage() {
     return {
       month: m,
       deposits: open.reduce((t, v) => t + v.capitalBtc, 0),
-      accumulated: credited.filter((r) => r.month <= m).reduce((t, r) => t + r.btc, 0),
+      accumulated: credited.filter((r) => r.month <= m && open.some((v) => v.vaultId === r.vaultId)).reduce((t, r) => t + r.btc, 0),
       byClient: byVault,
     }
   })
