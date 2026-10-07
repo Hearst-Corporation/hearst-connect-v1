@@ -49,7 +49,7 @@ export function TableLabels() {
         // La projection reste un tableau partout, comme sur /account.
         if (table.classList.contains('projection-table')) continue
         // Un tableau qui gère lui-même son affichage étroit (il défile) s'exclut.
-        if (table.hasAttribute('data-no-labels')) continue
+        if (table.closest('[data-no-labels]')) continue
         // `textContent` et non `innerText` : l'en-tête est masqué en mode
         // cartes, et `innerText` dépend du rendu. Une colonne d'actions n'a
         // qu'un intitulé pour lecteur d'écran (`.sr-only`) : pas d'étiquette.

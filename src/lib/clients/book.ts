@@ -62,6 +62,8 @@ export const DUE_SOON_MONTHS = 3
 export type ClientEntry = Readonly<{
   clientId: string
   name: string
+  /** Le relationship manager qui suit ce client (Settings → Team). */
+  owner: string | null
   kind: string | null
   stage: ClientStage
   /** Pour un client sorti du parcours : déclinée ou expirée. */
@@ -185,8 +187,8 @@ export function buildClientBook(
 
   /* Les identités : l'annuaire d'abord, puis tout client que seule une offre ou
      un vault connaît encore (le backend ne les a pas tous publiés). */
-  const ids = new Map<string, { name: string; kyc: string | null }>()
-  for (const c of dir) ids.set(c.id, { name: c.label, kyc: c.kycStatus })
+  const ids = new Map<string, { name: string; kyc: string | null; owner?: string | null }>()
+  for (const c of dir) ids.set(c.id, { name: c.label, kyc: c.kycStatus, owner: c.relationshipManager ?? null })
   for (const v of vaultRows) if (!ids.has(v.clientId)) ids.set(v.clientId, { name: v.clientLabel, kyc: null })
   const byName = new Map([...ids].map(([id, c]) => [norm(c.name), id]))
   const clientIdOfOffer = (o: Offer): string =>
@@ -214,6 +216,7 @@ export function buildClientBook(
     return {
       clientId,
       name: ident.name,
+      owner: ident.owner ?? null,
       kind: vault?.clientKind ?? offer?.clientKind ?? null,
       stage,
       closedReason,

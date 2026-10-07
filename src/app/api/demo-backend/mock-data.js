@@ -1494,6 +1494,8 @@ function payloadFor(path, search = '') {
           lastActivityAt: new Date(Date.parse('2026-09-28T00:00:00Z') - i * 86_400_000).toISOString(),
           kycProvider: 'Sumsub',
           kycStatus: c.kyc,
+          // Qui suit ce client : un relationship manager de l'équipe (Settings → Team).
+          relationshipManager: ['Tom Becker', 'Admin (you)', 'Tom Becker', 'Sarah Klein'][i % 4],
           // L'AML, décidé par Sumsub avec le KYC : sans lui, pas d'appel de fonds.
           amlStatus: c.aml ?? (c.kyc === 'APPROVED' ? 'CLEAR' : null),
           // Le dossier chez Sumsub : son identifiant ouvre le cockpit, son niveau dit ce qui a été vérifié.

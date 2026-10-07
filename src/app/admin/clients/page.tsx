@@ -2,7 +2,6 @@ import { DashCard, DashboardHeader, DashboardShell } from '@/components/admin/da
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { HearstPrimaryAction } from '@/components/actions'
-import { HearstBreakdownDonut } from '@/components/charts'
 import { Callout } from '@/components/compositions'
 import { ClientBookTable, type ClientRow } from '@/features/admin-clients/client-book-table'
 import { btcFromSats } from '@/lib/admin-dashboard/amounts'
@@ -93,6 +92,7 @@ function toRow(e: ClientEntry): ClientRow {
     ...vaultCell(e),
     nextAction: e.nextAction,
     onUs: e.onUs,
+    owner: e.owner,
   }
 }
 
@@ -148,22 +148,12 @@ export default async function ClientsPage() {
     },
   ]
 
-  /* Les clients par étape — la forme du portefeuille en un anneau. */
-  const byStage = [...entries.reduce((m, e) => m.set(STAGE_LABEL[e.stage], (m.get(STAGE_LABEL[e.stage]) ?? 0) + 1), new Map<string, number>())].map(
-    ([label, value]) => ({ label, value }),
-  )
-
   return (
     <DashboardShell>
       <DashboardHeader
         title="Clients"
         description="Every client on one page — the offers on the way in (Pipeline), the live vaults and their bitcoin reserves (Active), and the next move."
         kpis={kpis}
-        aside={
-          <DashCard className="min-w-0" eyebrow="Book" title="Clients by stage" subtitle="Where each relationship stands">
-            <HearstBreakdownDonut slices={byStage} kind="count" unit="clients" centerCaption="clients" layout="side" />
-          </DashCard>
-        }
         action={
           <HearstPrimaryAction icon={<PlusIcon />} href="/admin/offers/new">
             New offer

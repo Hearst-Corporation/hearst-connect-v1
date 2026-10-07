@@ -108,6 +108,8 @@ export type AdminRecentClient = Readonly<{
   kycStatus: string
   /** L'AML, décidé par le partenaire avec le KYC : CLEAR, FLAGGED, ou pas encore lu. */
   amlStatus?: string | null
+  /** Le relationship manager qui suit ce client — un membre de Settings → Team. */
+  relationshipManager?: string | null
   /**
    * Le dossier du client chez Sumsub, quand il existe : l'identifiant ouvre
    * le cockpit Sumsub, le niveau dit ce qui a été vérifié (KYB institutionnel…).

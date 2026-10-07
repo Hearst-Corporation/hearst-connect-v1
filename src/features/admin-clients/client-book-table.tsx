@@ -39,6 +39,7 @@ export type ClientRow = Readonly<{
   vaultBadge: string | null
   nextAction: string | null
   onUs: boolean
+  owner: string | null
 }>
 
 type View = 'all' | 'onUs' | 'pipeline' | 'active' | 'closed'
@@ -135,21 +136,21 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
           No client matches this view.
         </p>
       ) : (
+        /* Un tableau dense, une ligne par client : à 200 clients, une carte
+           chacun ferait 80 000 px. Il défile en largeur sur petit écran au lieu
+           de se replier en cartes. */
+        <div data-no-labels className="min-w-0">
         <PaginatedTable
-          className="[&_table]:w-full [&_table]:min-w-[56rem] [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0"
+          className="[&_table]:w-full [&_table]:min-w-[52rem] [&_td]:px-4 [&_th]:px-4 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0"
           noun="clients"
-          collapsed={10}
+          collapsed={25}
           head={
             <TableRow>
               <TableHeader className={tableCol.primary}>Client</TableHeader>
               <TableHeader className={tableCol.status}>Stage</TableHeader>
               <TableHeader className={tableCol.numeric}>Reserve · offer</TableHeader>
-              <TableHeader className={tableCol.status}>KYC</TableHeader>
               <TableHeader>Vault · drift</TableHeader>
               <TableHeader>Next action</TableHeader>
-              <TableHeader className={tableCol.action}>
-                <span className="sr-only">Open</span>
-              </TableHeader>
             </TableRow>
           }
           rows={filtered.map((r) => (
@@ -158,10 +159,18 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
                   <Link href={r.href} className="block truncate font-medium text-fg hover:underline">
                     {r.name}
                   </Link>
-                  <div className="text-xs text-fg-tertiary">{r.kind ?? 'Kind not recorded'}</div>
+                  <div className="text-xs text-fg-tertiary">
+                    {r.kind ?? 'Kind not recorded'}
+                    {/* Qui suit ce client : la personne à qui demander. */}
+                    {r.owner ? <span className="text-fg-secondary"> · {r.owner}</span> : null}
+                  </div>
                 </TableCell>
                 <TableCell className={tableCol.status}>
-                  <Badge color={STAGE_TONE[r.stage] ?? 'neutral'}>{r.stageLabel}</Badge>
+                  <div className="flex flex-col items-start gap-1">
+                    <Badge color={STAGE_TONE[r.stage] ?? 'neutral'}>{r.stageLabel}</Badge>
+                    {/* Le KYC ne se montre que s'il reste quelque chose à faire. */}
+                    {r.kycTone !== 'lime' ? <span className="text-[11px] text-fg-tertiary">KYC · {r.kycLabel}</span> : null}
+                  </div>
                 </TableCell>
                 {/* Vault actif : sa réserve de bitcoin. Sinon : le montant de l'offre,
                     le seul chiffre en USDC du parcours. */}
@@ -182,9 +191,6 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
                       <div className="text-xs text-fg-tertiary">{r.amountUsdc !== null ? 'USDC proposed' : ''}</div>
                     </>
                   )}
-                </TableCell>
-                <TableCell className={tableCol.status}>
-                  <Badge color={r.kycTone}>{r.kycLabel}</Badge>
                 </TableCell>
                 <TableCell>
                   {r.vaultBadge !== null ? (
@@ -209,17 +215,12 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
                     <span className="text-fg-tertiary">—</span>
                   )}
                 </TableCell>
-                <TableCell className={tableCol.action}>
-                  <Link href={r.href} className="ud-detail-btn inline-flex items-center no-underline" aria-label={`Open ${r.name}`}>
-                    Open
-                  </Link>
-                </TableCell>
               </TableRow>
             ))}
           exportData={{
             filename: 'hearst-clients',
             title: 'Clients',
-            columns: ['Client', 'Kind', 'Stage', 'Deposit or offer (USDC)', 'Reserve (BTC)', 'Accumulated (BTC)', 'KYC', 'Vault', 'Term', 'Next action'],
+            columns: ['Client', 'Kind', 'Stage', 'Deposit or offer (USDC)', 'Reserve (BTC)', 'Accumulated (BTC)', 'KYC', 'Vault', 'Term', 'Next action', 'Owner'],
             data: filtered.map((r) => [
               r.name,
               r.kind,
@@ -231,9 +232,11 @@ export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] 
               r.vaultBadge,
               r.vaultLine,
               r.nextAction,
+              r.owner,
             ]),
           }}
         />
+        </div>
       )}
       <p className="flex items-center gap-2 text-xs text-fg-tertiary">
         <span className="size-2 rounded-full bg-[var(--hearst-green)]" aria-hidden="true" /> the next move is ours
