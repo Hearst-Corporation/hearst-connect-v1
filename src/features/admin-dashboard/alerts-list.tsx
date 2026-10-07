@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
-export type AlertKind = 'guardian' | 'integration' | 'drift' | 'lockup' | 'settings'
+export type AlertKind = 'guardian' | 'integration' | 'drift' | 'stale' | 'kyc' | 'lockup' | 'settings'
 export type Alert = Readonly<{
   kind: AlertKind
   tone: 'red' | 'amber' | 'sky'
@@ -19,6 +19,8 @@ const KIND_LABEL: Record<AlertKind, string> = {
   guardian: 'Guardian',
   integration: 'Integrations',
   drift: 'Out of band',
+  stale: 'Waiting too long',
+  kyc: 'KYC',
   lockup: 'Lockups',
   settings: 'Settings',
 }
@@ -26,6 +28,8 @@ const KIND_TONE: Record<AlertKind, string> = {
   guardian: 'text-red-400 ring-red-400/30',
   integration: 'text-red-400 ring-red-400/30',
   drift: 'text-amber-300 ring-amber-300/30',
+  stale: 'text-amber-300 ring-amber-300/30',
+  kyc: 'text-sky-300 ring-sky-300/30',
   lockup: 'text-sky-300 ring-sky-300/30',
   settings: 'text-sky-300 ring-sky-300/30',
 }
@@ -36,10 +40,7 @@ const SHOWN = 8
  * tête. Un vault hors bande montre sa jauge : la dérive mesurée contre la
  * bande autorisée (le repère), pour voir qui est loin et qui la frôle.
  */
-export function AlertsList({
-  alerts,
-  services = [],
-}: Readonly<{ alerts: readonly Alert[]; services?: readonly Readonly<{ name: string; ok: boolean }>[] }>) {
+export function AlertsList({ alerts }: Readonly<{ alerts: readonly Alert[] }>) {
   const [all, setAll] = useState(false)
   const shown = all ? alerts : alerts.slice(0, SHOWN)
   const counts = (Object.keys(KIND_LABEL) as AlertKind[])
@@ -49,7 +50,7 @@ export function AlertsList({
   const scale = Math.max(1, ...alerts.filter((a) => a.drift).map((a) => Math.max(a.drift!.pt, a.drift!.band * 2)))
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex flex-col gap-4">
       {alerts.length === 0 ? <p className="text-sm text-fg-tertiary">All clear — every vault within its band.</p> : null}
       <div className="flex flex-wrap gap-1.5 empty:hidden">
         {counts.map(({ k, n }) => (
@@ -109,25 +110,6 @@ export function AlertsList({
         </p>
       ) : null}
 
-      {/* En pied de bloc : chaque service dont le produit dépend, et s'il répond. */}
-      {services.length > 0 ? (
-        <div className="mt-auto border-t border-[var(--ud-line)] pt-4">
-          <p className="mb-2.5 flex items-center justify-between text-[11px] tracking-[0.12em] text-fg-tertiary uppercase">
-            Integrations
-            <Link href="/admin/settings/integrations" className="normal-case tracking-normal text-fg-tertiary no-underline hover:text-fg">
-              {services.every((s) => s.ok) ? 'All answering' : `${services.filter((s) => !s.ok).length} down`} →
-            </Link>
-          </p>
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {services.map((s) => (
-              <li key={s.name} className="flex items-center gap-2 text-xs text-fg-secondary">
-                <span className={`size-1.5 shrink-0 rounded-full ${s.ok ? 'bg-[var(--hearst-green)]' : 'bg-red-400'}`} aria-hidden="true" />
-                <span className="truncate">{s.name}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { AlertsList, type Alert } from './alerts-list'
 import { isVaultDrifting, driftThresholdOf } from '@/lib/admin-dashboard/contracts'
-import { loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
+import { loadAdminApprovals, loadAdminRecentClients, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import { formatDate } from '@/lib/format'
 import { loadIntegrations, loadSettings } from '@/lib/settings/load'
 import { isAvailable } from '@/lib/vaults/model'
@@ -15,7 +15,13 @@ import { isAvailable } from '@/lib/vaults/model'
 const DAY = 86_400_000
 
 export async function AlertsPanel() {
-  const [vaults, settings, integrations] = await Promise.all([loadAdminVaultRegistry(), loadSettings(), loadIntegrations()])
+  const [vaults, settings, integrations, approvals, clients] = await Promise.all([
+    loadAdminVaultRegistry(),
+    loadSettings(),
+    loadIntegrations(),
+    loadAdminApprovals(),
+    loadAdminRecentClients(100),
+  ])
   const alerts: Alert[] = []
 
   if ((settings?.values.limits as { guardianPause?: boolean } | undefined)?.guardianPause) {
@@ -57,16 +63,33 @@ export async function AlertsPanel() {
       })
     }
   }
+  /* Les décisions qui attendent depuis plus d'une semaine : un client attend. */
+  const stale = (isAvailable(approvals) ? approvals.value : []).filter((a) => a.requestedAt && Date.now() - Date.parse(a.requestedAt) > 7 * DAY)
+  if (stale.length > 0) {
+    const oldest = Math.max(...stale.map((a) => Math.floor((Date.now() - Date.parse(a.requestedAt as string)) / DAY)))
+    alerts.push({
+      kind: 'stale',
+      tone: 'amber',
+      title: `${stale.length} decision${stale.length > 1 ? 's' : ''} waiting more than a week`,
+      detail: `Oldest: ${oldest} days — a client is waiting`,
+      href: '/admin#decisions',
+    })
+  }
+  /* Un KYC qui n'est pas validé bloque l'appel de fonds : la décision est chez Sumsub, le suivi chez nous. */
+  for (const c of (isAvailable(clients) ? clients.value : []).filter((x) => ['PENDING', 'IN_REVIEW', 'REJECTED'].includes(String(x.kycStatus).toUpperCase()))) {
+    alerts.push({
+      kind: 'kyc',
+      tone: String(c.kycStatus).toUpperCase() === 'REJECTED' ? 'red' : 'sky',
+      title: `${c.label} — KYC ${String(c.kycStatus).toLowerCase().replace('_', ' ')}`,
+      detail: 'With Sumsub — funds cannot be called yet',
+      href: `/admin/clients/${c.id}?tab=kyc`,
+    })
+  }
   const waiting = (settings?.changes ?? []).filter((c) => c.status === 'pending').length
   if (waiting > 0) {
     alerts.push({ kind: 'settings', tone: 'sky', title: `${waiting} settings change${waiting > 1 ? 's' : ''} to approve`, detail: 'Four eyes — another member decides', href: '/admin/settings' })
   }
 
   const order = { red: 0, amber: 1, sky: 2 }
-  return (
-    <AlertsList
-      alerts={[...alerts].sort((a, b) => order[a.tone] - order[b.tone])}
-      services={(integrations ?? []).map((i) => ({ name: i.name, ok: i.status === 'connected' }))}
-    />
-  )
+  return <AlertsList alerts={[...alerts].sort((a, b) => order[a.tone] - order[b.tone])} />
 }

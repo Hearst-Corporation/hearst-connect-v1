@@ -399,7 +399,7 @@ export function AdminDashboardPage() {
           </DashPanel>
         </BentoCard>
         <BentoCard span={4} bare>
-          <DashPanel eyebrow="Alerts" title="Needs attention" subtitle="Not a decision — but not to be discovered by chance" fill>
+          <DashPanel eyebrow="Alerts" title="Needs attention" subtitle="Not a decision — but not to be discovered by chance">
             <Suspense fallback={<PanelFallback />}>
               <AlertsPanel />
             </Suspense>
