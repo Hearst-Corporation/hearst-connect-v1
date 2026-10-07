@@ -712,11 +712,12 @@ function payloadFor(path, search = '') {
         }
         for (const w of withdrawalsOf(v)) {
           const tx = txOfRef(`apr_wd_${w.id}`)
-          const fb = tx ? fireblocksView(tx) : null
+          // Un retrait passé a fait tout son chemin : signé, diffusé, confirmé.
+          const fb = tx ? fireblocksView(tx) : w.seeded ? { status: 'COMPLETED', createdAt: w.at, txHash: seededHash(w) } : null
           const decided = (WORLD.decidedAt ?? {})[`apr_wd_${w.id}`] ?? null
           const steps = [
             { label: 'Requested', at: w.at, done: true },
-            { label: 'Approved by Hearst', at: w.status === 'approved' ? decided : null, done: w.status === 'approved' },
+            { label: 'Approved by Hearst', at: w.status === 'approved' ? (decided ?? (w.seeded ? w.at : null)) : null, done: w.status === 'approved' },
             { label: 'Co-signed in Fireblocks', at: null, done: fb ? ['BROADCASTING', 'CONFIRMING', 'COMPLETED'].includes(fb.status) : false },
             { label: 'Confirmed on-chain', at: fb?.status === 'COMPLETED' ? fb.createdAt : null, done: fb?.status === 'COMPLETED' },
           ]
@@ -815,7 +816,7 @@ function payloadFor(path, search = '') {
           .map((w) => {
             // Approuvé, le retrait part par Fireblocks : confirmé quand la transaction l'est.
             const tx = txOfRef(`apr_wd_${w.id}`)
-            const view = tx ? fireblocksView(tx) : null
+            const view = tx ? fireblocksView(tx) : w.seeded ? { status: 'COMPLETED', txHash: seededHash(w) } : null
             const status = w.status !== 'approved' ? w.status : view?.status === 'COMPLETED' ? 'confirmed' : 'processing'
             return { id: `mv_${w.id}`, type: 'withdraw', amountUsdc: usdOf(w.sats), occurredAt: w.at, txHash: view?.txHash ?? '', status }
           }),
@@ -1610,9 +1611,18 @@ function payloadFor(path, search = '') {
     const clientId = q.get('clientId')
     return {
       transactions: bloc(
-        (WORLD.txs ?? [])
+        [
+          ...(WORLD.txs ?? []).map(fireblocksView),
+          // Les retraits passés des vaults du socle, réglés depuis longtemps.
+          ...Array.from({ length: BASE_VAULT_COUNT }, (_, v) => seededWithdrawals(v)).flat().map((w) => ({
+            id: createHash('sha256').update(`fb-seed:${w.id}`).digest('hex').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12}).*/, '$1-$2-$3-$4-$5'),
+            kind: 'withdrawal', ref: `apr_wd_${w.id}`, clientId: ownerOf(w.v)?.id ?? null, vaultId: vaultKey(w.v), asset: 'BTC', amount: w.sats / 1e8,
+            source: `Vault ${vaultLabel(w.v)}`, destination: (ownerOf(w.v) ? walletsOf(ownerOf(w.v))[0]?.address : null) ?? FB_WALLET.BTC,
+            note: 'Bitcoin withdrawal to the client’s whitelisted wallet', createdAt: w.at, status: 'COMPLETED', txHash: seededHash(w),
+            consoleUrl: `https://console.fireblocks.io/v2/transactions/${w.id}`,
+          })),
+        ]
           .filter((t) => clientId === null || t.clientId === clientId)
-          .map(fireblocksView)
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
         'fireblocks',
       ),
@@ -1891,17 +1901,16 @@ function payloadFor(path, search = '') {
               txHash: hash(i),
               status: 'confirmed',
             }))
-            // Un retrait de bitcoin vers le portefeuille du client, après la deuxième distribution.
-            if (paid[1]) {
-              const sats = Math.round(paid[1].sats * 1.6)
+            // Les retraits passés du client — les mêmes que son écran et que sa réserve.
+            for (const w of seededWithdrawals(v)) {
               rows.push({
-                id: 'mv_w_1',
+                id: `mv_${w.id}`,
                 type: 'withdrawal',
-                amountBtcSats: sats,
-                amountUsdc: Math.round((sats / 1e8) * paid[1].price),
-                btcPriceUsd: paid[1].price,
-                occurredAt: `${paid[1].month}-14T11:20:00Z`,
-                txHash: hash(9),
+                amountBtcSats: w.sats,
+                amountUsdc: w.usd,
+                btcPriceUsd: priceOf(w.at.slice(0, 7)),
+                occurredAt: w.at,
+                txHash: seededHash(w),
                 status: 'confirmed',
               })
             }
@@ -3023,11 +3032,44 @@ const OWNERS = {
   'Admin (you)': { name: 'Pierre — Hearst', title: 'Head of client relations', email: 'connect@hearstcorporation.io', phone: '+33 1 84 88 40 00' },
 }
 
-/** Les retraits demandés par le client d'un vault, avec la décision de l'admin. */
-const withdrawalsOf = (v) =>
-  (WORLD.withdrawals ?? [])
+/**
+ * LE PASSÉ D'UN VAULT DU SOCLE : un client qui touche des rewards depuis des
+ * mois en a déjà retiré une partie — un historique de « Out » vide ne
+ * ressemblerait à aucun vrai client. Chaque trimestre réglé, il retire la moitié
+ * de ce qui s'est accumulé depuis son retrait précédent, le 14 du mois qui
+ * suit, au cours de ce mois-là. Déjà approuvé, signé et confirmé on-chain.
+ * Seulement avant aujourd'hui : avancer l'horloge de la démo n'invente pas de
+ * retrait. Calculé, jamais stocké : le monde (cookie) n'en grossit pas.
+ */
+function seededWithdrawals(v) {
+  if (v >= BASE_VAULT_COUNT) return []
+  const paid = vaultMonths(v)
+    .filter((m) => m.status === 'distributed')
+    .sort((a, b) => a.month.localeCompare(b.month))
+  const out = []
+  let accrued = 0
+  paid.forEach((m, i) => {
+    accrued += m.sats
+    // Le mois suivant doit être clos : le retrait est dans le passé.
+    if ((i + 1) % 3 !== 0 || i + 1 >= paid.length) return
+    const month = paid[i + 1].month
+    if (Date.parse(`${month}-14T10:30:00Z`) >= Date.now()) return
+    const sats = Math.round((accrued * 0.5) / 1e4) * 1e4
+    accrued -= sats
+    out.push({ id: `h${v}_${month}`, v, sats, usd: Math.round((sats / 1e8) * priceOf(month)), at: `${month}-14T10:30:00Z`, seeded: true, status: 'approved' })
+  })
+  return out
+}
+
+/** Les retraits d'un vault : son passé, puis ceux demandés pendant la démo, avec la décision de l'admin. */
+const withdrawalsOf = (v) => [
+  ...seededWithdrawals(v),
+  ...(WORLD.withdrawals ?? [])
     .filter((w) => w.v === v)
-    .map((w) => ({ ...w, status: WORLD.decisions[`apr_wd_${w.id}`] ?? 'pending' }))
+    .map((w) => ({ ...w, status: WORLD.decisions[`apr_wd_${w.id}`] ?? 'pending' })),
+]
+/** Le hash on-chain d'un retrait passé : stable d'une lecture à l'autre. */
+const seededHash = (w) => '0x' + createHash('sha256').update(`seed-wd:${w.id}`).digest('hex')
 
 /**
  * L'ÉCONOMIE D'UN VAULT, du point de vue de son client :
