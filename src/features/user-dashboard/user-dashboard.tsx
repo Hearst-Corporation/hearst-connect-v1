@@ -205,7 +205,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
       node:
         allocationTime !== null ? (
           <div className="center-allocation">
-            <HearstAllocationStackChart points={[...allocationTime]} viewport="standard" />
+            <HearstAllocationStackChart points={[...allocationTime]} viewport="hero" />
             <ul className="bucket-earned" aria-label="Earned by each bucket">
               {earned.map((e) => (
                 <li key={e.bucket}>

@@ -1,3 +1,4 @@
+import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { DashCard, DashboardHeader } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { Callout } from '@/components/compositions'
@@ -5,17 +6,39 @@ import { AddWalletForm, NotificationSwitch } from '@/features/client-portal/cont
 import { loadOverview, loadPreferences, loadWallets } from '@/features/client-portal/load'
 import { requireSession } from '@/lib/auth'
 import { formatDate, formatDateTime } from '@/lib/format'
+import {
+  ArrowUpTrayIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  ComputerDesktopIcon,
+  DocumentTextIcon,
+  GiftIcon,
+  PlusCircleIcon,
+  ShieldCheckIcon,
+  UserCircleIcon,
+  WalletIcon,
+} from '@heroicons/react/24/outline'
 import type { Metadata } from 'next'
+import type { ComponentType, SVGProps } from 'react'
 
 export const metadata: Metadata = { title: 'Settings' }
 export const dynamic = 'force-dynamic'
 
 const NOTIFS = [
-  { id: 'rewards', label: 'Monthly reward credited', detail: 'When a month’s reward reaches your reserve' },
-  { id: 'withdrawals', label: 'Withdrawal updates', detail: 'Approved, co-signed, confirmed on-chain' },
-  { id: 'lockup', label: 'End of lockup', detail: '90, 30 and 7 days before a vault unlocks' },
-  { id: 'statements', label: 'Monthly statement', detail: 'Your statement, by email, each month' },
+  { id: 'rewards', label: 'Monthly reward credited', detail: 'When a month’s reward reaches your reserve', icon: GiftIcon },
+  { id: 'withdrawals', label: 'Withdrawal updates', detail: 'Approved, co-signed, confirmed on-chain', icon: ArrowUpTrayIcon },
+  { id: 'lockup', label: 'End of lockup', detail: '90, 30 and 7 days before a vault unlocks', icon: CalendarDaysIcon },
+  { id: 'statements', label: 'Monthly statement', detail: 'Your statement, by email, each month', icon: DocumentTextIcon },
 ] as const
+
+/** Le picto d'une ligne : vert, dans un carré teinté — le même partout dans l'app. */
+function Pic({ icon: Icon }: Readonly<{ icon: ComponentType<SVGProps<SVGSVGElement>> }>) {
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green)]">
+      <Icon className="size-4" aria-hidden="true" />
+    </span>
+  )
+}
 
 /**
  * SETTINGS — ce que le client règle lui-même : où son bitcoin peut aller (ses
@@ -40,12 +63,18 @@ export default async function AccountSettingsPage() {
             <ul className="flex flex-col divide-y divide-[var(--ud-line)]">
               {wallets.map((w) => (
                 <li key={w.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-3 first:pt-0 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_7rem_9rem]">
-                  <span className="truncate text-sm text-fg">{w.label}</span>
+                  <span className="flex min-w-0 items-center gap-3">
+                    <Pic icon={WalletIcon} />
+                    <span className="truncate text-sm text-fg">{w.label}</span>
+                  </span>
                   <span className="hidden truncate font-mono text-xs text-fg-secondary sm:block">{w.address}</span>
-                  <span className="hidden text-xs text-fg-tertiary sm:block">{w.network}</span>
+                  <span className="hidden items-center gap-1.5 text-xs text-fg-tertiary sm:flex">
+                    <BitcoinIcon className="size-4 text-[var(--hearst-green)]" aria-hidden="true" />
+                    {w.network}
+                  </span>
                   <span
                     className={`justify-self-end rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${
-                      w.status === 'active' ? 'text-fg-secondary ring-[var(--ud-line)]' : 'text-amber-300 ring-amber-300/30'
+                      w.status === 'active' ? 'text-[var(--hearst-green)] ring-[var(--hearst-green)]/30' : 'text-amber-300 ring-amber-300/30'
                     }`}
                   >
                     {w.status === 'active' ? 'Active' : `Usable ${formatDate(w.activeFrom)}`}
@@ -54,7 +83,10 @@ export default async function AccountSettingsPage() {
               ))}
             </ul>
             <div className="border-t border-[var(--ud-line)] pt-5">
-              <p className="mb-3 text-sm font-medium text-fg">Add a wallet</p>
+              <p className="mb-3 flex items-center gap-3 text-sm font-medium text-fg">
+                <Pic icon={PlusCircleIcon} />
+                Add a wallet
+              </p>
               <AddWalletForm />
             </div>
           </div>
@@ -70,9 +102,12 @@ export default async function AccountSettingsPage() {
               <ul className="flex flex-col divide-y divide-[var(--ud-line)]">
                 {prefs.team.map((m) => (
                   <li key={m.email} className="flex items-center justify-between gap-4 py-3 first:pt-0">
-                    <span className="flex min-w-0 flex-col">
-                      <span className="truncate text-sm text-fg">{m.name}</span>
-                      <span className="truncate text-xs text-fg-tertiary">{m.email}</span>
+                    <span className="flex min-w-0 items-center gap-3">
+                      <Pic icon={UserCircleIcon} />
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate text-sm text-fg">{m.name}</span>
+                        <span className="truncate text-xs text-fg-tertiary">{m.email}</span>
+                      </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
                       {m.twoFactor ? <span className="text-[11px] text-fg-tertiary">2FA</span> : null}
@@ -95,13 +130,18 @@ export default async function AccountSettingsPage() {
               <p className="text-sm text-fg-tertiary">Security settings could not be read.</p>
             ) : (
               <dl className="flex flex-col divide-y divide-[var(--ud-line)]">
-                {[
-                  ['Two-factor authentication', prefs.security.twoFactor ? 'On' : 'Off'],
-                  ['Last sign-in', formatDateTime(prefs.security.lastSignInAt)],
-                  ['Active sessions', String(prefs.security.sessions)],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-baseline justify-between gap-4 py-3 first:pt-0">
-                    <dt className="text-sm text-fg-tertiary">{k}</dt>
+                {(
+                  [
+                    ['Two-factor authentication', prefs.security.twoFactor ? 'On' : 'Off', ShieldCheckIcon],
+                    ['Last sign-in', formatDateTime(prefs.security.lastSignInAt), ClockIcon],
+                    ['Active sessions', String(prefs.security.sessions), ComputerDesktopIcon],
+                  ] as const
+                ).map(([k, v, icon]) => (
+                  <div key={k} className="flex items-center justify-between gap-4 py-3 first:pt-0">
+                    <dt className="flex items-center gap-3 text-sm text-fg-tertiary">
+                      <Pic icon={icon} />
+                      {k}
+                    </dt>
                     <dd className="text-sm text-fg">{v}</dd>
                   </div>
                 ))}
@@ -117,7 +157,14 @@ export default async function AccountSettingsPage() {
         ) : (
           <div className="flex flex-col divide-y divide-[var(--ud-line)]">
             {NOTIFS.map((n) => (
-              <NotificationSwitch key={n.id} id={n.id} label={n.label} detail={n.detail} value={prefs.notifications[n.id] !== false} />
+              <NotificationSwitch
+                key={n.id}
+                id={n.id}
+                label={n.label}
+                detail={n.detail}
+                value={prefs.notifications[n.id] !== false}
+                icon={<Pic icon={n.icon} />}
+              />
             ))}
           </div>
         )}

@@ -6467,3 +6467,15 @@
     flex-direction: column;
   }
 }
+
+/* Allocation : même retrait sous le titre que Reserve (8 px, 4 px à gauche),
+   graphe en grand, les trois cartes calées en bas du bloc. */
+@media (min-width: 1025px) {
+  .ud-root .center-allocation {
+    flex: 1 1 auto;
+    padding: 8px 0 0 4px;
+  }
+  .ud-root .center-allocation > .bucket-earned {
+    margin-top: auto;
+  }
+}

@@ -247,14 +247,23 @@ export function EndOfTermChoice({ vaultId, value }: Readonly<{ vaultId: string; 
 }
 
 /** Un interrupteur de notification, enregistré au clic. */
-export function NotificationSwitch({ id, label, detail, value }: Readonly<{ id: string; label: string; detail: string; value: boolean }>) {
+export function NotificationSwitch({
+  id,
+  label,
+  detail,
+  value,
+  icon = null,
+}: Readonly<{ id: string; label: string; detail: string; value: boolean; icon?: React.ReactNode }>) {
   const [on, setOn] = useState(value)
   const [, start] = useTransition()
   return (
     <div className="flex items-center justify-between gap-4 py-3">
-      <span className="flex flex-col">
-        <span className="text-sm text-fg">{label}</span>
-        <span className="text-xs text-fg-tertiary">{detail}</span>
+      <span className="flex min-w-0 items-center gap-3">
+        {icon}
+        <span className="flex flex-col">
+          <span className="text-sm text-fg">{label}</span>
+          <span className="text-xs text-fg-tertiary">{detail}</span>
+        </span>
       </span>
       <button
         type="button"
