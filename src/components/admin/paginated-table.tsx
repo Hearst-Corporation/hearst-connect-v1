@@ -274,7 +274,7 @@ export function TableFooter({
 }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <span className="flex min-w-0 flex-1 items-center gap-4">
+      <span className="flex min-w-[min(100%,16rem)] flex-1 items-center gap-4">
         {pager}
         {note ? <span className="max-w-3xl text-[11px] leading-relaxed text-fg-tertiary">{note}</span> : null}
       </span>

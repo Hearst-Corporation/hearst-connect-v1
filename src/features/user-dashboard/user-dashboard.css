@@ -6913,3 +6913,171 @@
     gap: 12px;
   }
 }
+
+/* ══ Mobile — passe de finition ═══════════════════════════════════════════ */
+
+/* Tuiles KPI : rien ne se coupe en « … ». Sur deux colonnes étroites, le
+   libellé et la note passent à la ligne, et le chiffre aussi plutôt que de
+   perdre ses derniers caractères. */
+@media (max-width: 768px) {
+  .ud-root .kpi-band .stat-tile .stat-eyebrow,
+  .ud-root .kpi-band .stat-tile .stat-eyebrow span,
+  .ud-root .kpi-band .stat-tile .stat-foot .stat-footnote,
+  .ud-root .kpi-band .stat-tile .stat-value-row .stat-value {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .ud-root .kpi-band .stat-tile .stat-eyebrow {
+    align-items: flex-start;
+  }
+  .ud-root .kpi-band .stat-tile .stat-value-row .stat-value {
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 480px) {
+  .ud-root .kpi-band .stat-tile .stat-value-row .stat-value {
+    font-size: 20px;
+  }
+}
+
+/* Onglets de My Vault : le sélecteur seul, sur toute la largeur — la piste
+   de pilules faisait doublon à côté. */
+@media (max-width: 768px) {
+  .ud-root .seg-collapsible {
+    display: none !important;
+  }
+  .ud-root .vault-tabs-row > nav {
+    flex: 1 1 100%;
+  }
+  .ud-root .vault-tabs-row .seg-select {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* Fin de blocage : sous le titre du vault, les trois choix sur une piste
+   pleine largeur, chacun sa part égale. */
+@media (max-width: 1024px) {
+  .ud-root .vault-tab-body--overview .vault-heading,
+  .ud-root .vault-heading:has(.vault-term) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .ud-root .vault-term {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .ud-root .vault-term-label {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .ud-root .vault-term .ud-seg {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin: 0;
+  }
+  .ud-root .vault-term .ud-seg-btn {
+    justify-content: center;
+    white-space: nowrap;
+    padding-inline: 8px;
+  }
+}
+@media (max-width: 560px) {
+  .ud-root .vault-term .ud-seg {
+    border-radius: 18px;
+  }
+  .ud-root .vault-term .ud-seg-btn {
+    height: auto;
+    min-height: 40px;
+    padding: 6px 8px;
+    border-radius: 14px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+    font-size: 12px;
+  }
+}
+
+/* Movements : chaque filtre sur toute la largeur, boutons à parts égales —
+   « Deposits » ne tombe plus seul sur une seconde ligne. */
+@media (max-width: 640px) {
+  .ud-root .movements-filters {
+    width: 100%;
+  }
+  .ud-root .movements-filters .ud-seg {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .ud-root .movements-filters .ud-seg-btn {
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    padding-inline: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+/* Tuiles du vault sur une colonne : ni filet vertical hérité de la grille à
+   deux colonnes, ni double filet au pied. */
+@media (max-width: 640px) {
+  .ud-root .fund-vault .fund-kpis > .stat-tile.stat-tile {
+    border-right: 0;
+  }
+  .ud-root .fund-vault .fund-kpis > .stat-tile:not(:has(~ .stat-tile)) {
+    border-bottom: 0;
+  }
+}
+
+/* Statut d'un mouvement : aligné sur le texte, pas flottant au milieu. */
+@media (max-width: 1024px) {
+  .ud-root .timeline-status-cell {
+    justify-self: start;
+    align-self: start;
+  }
+}
+
+/* Console : une case sans contenu (la colonne d'actions hors édition) ne
+   laisse pas une rangée vide au pied de la carte. */
+@media (max-width: 1439px) {
+  .ud-admin table:not(.projection-table) tbody td:empty {
+    display: none;
+  }
+}
+
+/* Projection : un montant ne se casse jamais en « 30.11 / BTC ». */
+.ud-root .projection-table .projection-amount {
+  white-space: nowrap;
+}
+/* Dans la colonne étroite de la fiche prospect, la médiane garde sa place
+   sans mordre sur la colonne voisine. */
+.ud-admin .projection-table {
+  table-layout: fixed;
+}
+.ud-admin .projection-table th:first-child {
+  width: 22%;
+}
+.ud-admin .projection-table th,
+.ud-admin .projection-table td {
+  padding-inline: 4px;
+}
+.ud-admin .projection-table .projection-amount {
+  font-size: 13px;
+}
+.ud-admin .projection-table .is-median .projection-amount {
+  font-size: 14px;
+}
+
+/* Fin de blocage, mobile : l'échéance sous l'intitulé, jamais collée à lui. */
+@media (max-width: 1024px) {
+  .ud-root .vault-term .vault-term-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+}

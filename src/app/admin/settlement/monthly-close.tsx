@@ -201,7 +201,7 @@ export function MonthlyClose({
               <div className="text-[11px] text-fg-tertiary">≈ {usd(l.grossUsd)}</div>
             </TableCell>
             <TableCell className="tabular-nums">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="text-fg-secondary">−{btc(toSats(l.electricityUsd))}</span>
                 <Badge color={l.electricityStatus === 'paid' ? 'lime' : 'amber'}>
                   {l.electricityStatus === 'paid' ? 'Paid' : 'Due'}
@@ -216,7 +216,7 @@ export function MonthlyClose({
             {/* Le reward : les trois poches converties en bitcoin — le montant
                 que « Approve reward » envoie dans la réserve du client. */}
             <TableCell className="tabular-nums">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="font-medium text-fg">{rewardOf(l) !== null ? btc(rewardOf(l) as number) : '—'}</span>
                 <Badge color={REWARD_TONE[l.status] ?? 'neutral'}>{REWARD_LABEL[l.status] ?? l.status}</Badge>
               </div>

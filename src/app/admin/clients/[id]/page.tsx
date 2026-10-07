@@ -4,7 +4,6 @@ import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import type { AdminHeroKpi } from '@/components/admin/hero-kpi'
 import { Badge } from '@/components/catalyst/badge'
 import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
-import { HearstBreakdownDonut } from '@/components/charts'
 import { Callout, tableCol } from '@/components/compositions'
 import { Journey } from '@/features/admin-clients/journey'
 import { ClientCompute } from '@/features/admin-clients/client-compute'
@@ -253,13 +252,13 @@ export default async function ClientPage({
         {
           id: 'amount',
           title: 'Amount proposed',
-          value: shown(offer ? `${usd(offer.amountUsdc)} USDC` : null),
+          value: shown(offer ? usd(offer.amountUsdc) : null),
           icon: BanknotesIcon,
           // Le seul montant en USDC : il sera converti en bitcoin à l'entrée.
           footnote: offer
             ? sim
-              ? `≈ ${btcFmt(sim.hodlBtc)} at entry · ${offer.lockupMonths}-month lockup`
-              : `${offer.lockupMonths}-month lockup`
+              ? `USDC · ≈ ${btcFmt(sim.hodlBtc)} at entry · ${offer.lockupMonths}-month lockup`
+              : `USDC · ${offer.lockupMonths}-month lockup`
             : 'No offer yet',
         },
         {
@@ -297,24 +296,6 @@ export default async function ClientPage({
         },
       ]
 
-  /* L'anneau de tête : la répartition réelle du vault s'il tourne, sinon celle
-     qui est proposée. */
-  /* En parts, pas en dollars : la console ne parle pas en USD d'une réserve de
-     bitcoin. La part réelle de chaque poche si le vault tourne, sinon celle
-     proposée. */
-  const capitalTotal = bucketYields.reduce((t, y) => t + (y.capitalUsdc ?? 0), 0)
-  const allocationSlices = isActive
-    ? bucketYields.map((y) => ({
-        label: y.bucket,
-        value: capitalTotal > 0 ? Math.round(((y.capitalUsdc ?? 0) / capitalTotal) * 1000) / 10 : 0,
-      }))
-    : offer !== null
-      ? [
-          { label: 'Mining Alpha', value: offer.allocation.miningBps / 100 },
-          { label: 'Bitcoin Lending', value: offer.allocation.lendingBps / 100 },
-          { label: 'USDC Yield', value: offer.allocation.stableBps / 100 },
-        ]
-      : []
 
   /* Les sections présentes sur CETTE fiche, dans l'ordre de la page — avec le
      nombre de décisions qui attendent dans chacune. */
@@ -372,28 +353,6 @@ export default async function ClientPage({
             />
           ) : undefined
         }
-        aside={
-          isActive ? undefined : (
-          <DashCard
-            className="min-w-0"
-            eyebrow="Allocation"
-            title={isActive ? 'Capital by pocket' : 'Proposed allocation'}
-            subtitle={isActive ? 'Where this client’s capital sits today' : 'Becomes the vault target once signed'}
-          >
-            {allocationSlices.length > 0 ? (
-              <HearstBreakdownDonut
-                slices={allocationSlices}
-                kind="percent"
-                unit="%"
-                centerCaption={isActive ? 'of the vault' : 'allocated'}
-                layout="side"
-              />
-            ) : (
-              <p className="py-6 text-center text-sm text-fg-tertiary">No allocation yet — prepare an offer.</p>
-            )}
-          </DashCard>
-          )
-        }
         action={
           <span className="flex flex-wrap items-center justify-end gap-2">
             {/* Le même client chez les trois partenaires : un clic, pas une recherche. */}
@@ -403,11 +362,14 @@ export default async function ClientPage({
                 const fb = (offerOfVault ?? offer)?.fireblocks ?? null
                 const deal = (offerOfVault ?? offer)?.hubspotDealUrl ?? null
                 // Fireblocks d'abord : c'est là qu'est l'argent. Puis la conformité, puis le CRM.
+                // Les trois, toujours, à la même place et du même rendu : tant
+                // que le dossier n'existe pas chez le partenaire, le lien ouvre
+                // sa console plutôt qu'une fiche.
                 const links = [
-                  fb ? { href: `https://console.fireblocks.io/v2/accounts/vault/${encodeURIComponent(fb.vaultAccountId)}`, label: 'Fireblocks', Logo: FireblocksLogo } : null,
-                  sumsub ? { href: `https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(sumsub.applicantId)}/basicInfo`, label: 'Sumsub', Logo: SumsubLogo } : null,
-                  deal ? { href: deal, label: 'HubSpot', Logo: HubSpotLogo } : null,
-                ].filter((x): x is NonNullable<typeof x> => x !== null)
+                  { href: fb ? `https://console.fireblocks.io/v2/accounts/vault/${encodeURIComponent(fb.vaultAccountId)}` : 'https://console.fireblocks.io/v2/', label: 'Fireblocks', Logo: FireblocksLogo },
+                  { href: sumsub ? `https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(sumsub.applicantId)}/basicInfo` : 'https://cockpit.sumsub.com/checkus#/applicants', label: 'Sumsub', Logo: SumsubLogo },
+                  { href: deal ?? 'https://app.hubspot.com/', label: 'HubSpot', Logo: HubSpotLogo },
+                ]
                 return links.map(({ href, label, Logo }) => (
                   <a
                     key={label}
@@ -423,11 +385,6 @@ export default async function ClientPage({
                 ))
               })()}
             </span>
-            {offer !== null && !isActive && entry.stage !== 'closed' ? (
-              <Link href={`/proposal/${offer.id}`} className="ud-cta">
-                Proposal (PDF)
-              </Link>
-            ) : null}
             <Link href={offerHref} className="ud-cta">
               {isActive ? 'New vault' : offer === null || entry.stage === 'closed' ? 'New offer' : 'New version'}
             </Link>

@@ -172,7 +172,7 @@ export function SectionPanel({
         </dl>
       ) : (
         <div className="overflow-x-auto">
-          <table data-no-labels className="w-full min-w-[40rem] text-sm">
+          <table className="w-full min-w-[40rem] text-sm">
             <thead>
               <tr className="text-left text-[11px] tracking-[0.08em] text-fg-tertiary uppercase">
                 {section.fields.map((f) => (
@@ -193,7 +193,7 @@ export function SectionPanel({
               {rows.map((r, i) => (
                 <tr key={String(r.id ?? i)} className="align-middle">
                   {section.fields.map((f) => (
-                    <td key={f.key} className={`px-3 py-2.5 ${f.type === 'address' && !editing ? 'font-mono text-xs' : ''} ${f.wide ? 'break-all' : ''}`}>
+                    <td key={f.key} className={`px-3 py-2.5 ${f.type === 'address' && !editing ? 'font-mono text-xs' : ''} ${f.wide ? '[overflow-wrap:anywhere]' : ''}`}>
                       {editing ? <FieldInput field={f} value={r[f.key]} onChange={(v) => setRow(i, f.key, v)} /> : formatValue(f, r[f.key])}
                     </td>
                   ))}

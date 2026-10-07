@@ -105,7 +105,7 @@ export default async function DocumentsPage() {
             <TableRow>
               <TableHeader>Month</TableHeader>
               <TableHeader>Vault</TableHeader>
-              <TableHeader>Document</TableHeader>
+              <TableHeader className="hidden sm:table-cell">Document</TableHeader>
               <TableHeader className="w-10">
                 <span className="sr-only">Open</span>
               </TableHeader>
@@ -113,14 +113,14 @@ export default async function DocumentsPage() {
           }
           rows={rows.map((d) => (
             <TableRow key={d.id} href={hrefOf(d)} title={`${d.vault} — ${monthLabel(d.period)}`} className="group">
-              <TableCell>
-                <span className="flex items-center gap-3 font-medium text-fg">
+              <TableCell className="pr-6">
+                <span className="mr-4 flex items-center gap-3 whitespace-nowrap font-medium text-fg">
                   <DocumentTextIcon className="size-4 shrink-0 text-fg-tertiary" aria-hidden="true" />
                   {monthLabel(d.period)}
                 </span>
               </TableCell>
-              <TableCell className="text-fg-secondary">{d.vault}</TableCell>
-              <TableCell className="text-fg-tertiary">Statement · PDF</TableCell>
+              <TableCell className="whitespace-nowrap text-fg-secondary">{d.vault}</TableCell>
+              <TableCell className="hidden text-fg-tertiary sm:table-cell">Statement · PDF</TableCell>
               <TableCell className="text-right">
                 <ChevronRightIcon
                   className="ml-auto size-4 text-[var(--hearst-green)] opacity-60 transition group-hover:translate-x-0.5 group-hover:opacity-100"
