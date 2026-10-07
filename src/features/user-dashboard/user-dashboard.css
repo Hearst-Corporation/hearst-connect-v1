@@ -6260,10 +6260,10 @@
 /* Hauteur commune ramenée à 590 px : onglet + en-tête tiennent dans 790 px. */
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body {
-    height: 614px;
+    height: 660px;
   }
   .ud-root .analysis--fund .center-plot {
-    height: 416px;
+    height: 462px;
   }
   /* Moins de texte : la note sous « Produced for you » redisait l'en-tête. */
   .ud-root .analysis--fund .fleet-mine-note {
@@ -6368,8 +6368,8 @@
 /* Overview : 5 px de plus au-dessus et au-dessous des en-têtes et de la
    rangée BTC ; l'écart entre les deux sections se resserre d'autant. */
 .ud-root .vault-tab-body--overview .section-heading {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 28px;
+  padding-bottom: 28px;
 }
 /* Même padding que les tuiles du vault (28 px) : les trois rangées respirent
    pareil. */
@@ -6379,7 +6379,7 @@
 }
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body--overview {
-    gap: 6px;
+    gap: 20px;
   }
   /* Le « +21.9 % » est haut : il creusait l'air au-dessus du titre. 6 px en
      haut, 12 en bas donnent le même vide visible des deux côtés. */
@@ -6401,4 +6401,69 @@
 .ud-root .vault-tab-body .mining-flank-foot {
   white-space: nowrap;
   font-size: 12px;
+}
+
+/* Chaque onglet remplit sa hauteur : plus de vide sous les derniers blocs. */
+@media (min-width: 1025px) {
+  /* Compute : la grille des machines occupe toute la zone centrale. */
+  .ud-root .analysis--fund .center-plot-inner:has(.fleet-panel) {
+    justify-content: stretch;
+  }
+  .ud-root .analysis--fund .fleet-panel {
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .ud-root .analysis--fund .fleet-panel > :first-child {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  /* Capital & lockup : plus d'air dans les deux blocs. */
+  .ud-root .vault-tab-body--capital .exposure-cap .ec-panel {
+    padding: 36px 32px;
+  }
+  .ud-root .vault-tab-body--capital .rebalance-line {
+    margin-top: 28px;
+  }
+}
+@media (min-width: 1025px) {
+  /* Compute : la zone centrale descend jusqu'au bas du panneau. La rangée a
+     déjà la hauteur fixe de l'onglet, donc les trois vues restent identiques. */
+  .ud-root .analysis--fund .center-plot {
+    flex: 1 1 auto;
+    height: auto;
+  }
+  /* Capital & lockup : les deux blocs se partagent la hauteur, leur contenu
+     centré dedans. */
+  .ud-root .vault-tab-body--capital > .exposure-cap,
+  .ud-root .vault-tab-body--capital > section > .exposure-cap,
+  .ud-root .vault-tab-body--capital .exposure-cap {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .ud-root .vault-tab-body--capital .exposure-cap .ec-panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+@media (min-width: 1025px) {
+  /* Le contenu des deux cartes se centre dans la hauteur gagnée. */
+  .ud-root .analysis--fund .fleet-mine-grid {
+    margin-top: auto;
+    margin-bottom: auto;
+    gap: 20px;
+  }
+  .ud-root .analysis--fund .fleet-dots {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+@media (min-width: 1025px) {
+  .ud-root .analysis--fund .fleet-cell--miners {
+    display: flex;
+    flex-direction: column;
+  }
 }
