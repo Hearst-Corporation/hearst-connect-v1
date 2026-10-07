@@ -140,7 +140,7 @@ export function OfferForm({ demo = false, terms }: Readonly<{ demo?: boolean; te
   return (
     <form action={submit} className="flex flex-col gap-6">
       {tranche !== null ? (
-        <Callout tone="info" title={`Tranche ${tranche} — a new vault`}>
+        <Callout tone="info" title={`Vault ${tranche} — a new deposit`}>
           {presetClient || 'This client'} already holds {tranche - 1} vault{tranche - 1 > 1 ? 's' : ''}. This deposit
           opens its own vault, with its own entry price and lockup — it is never added to an existing one.
           {inherits ? ' The allocation is taken from their latest vault; adjust it if the mandate changes.' : ''}

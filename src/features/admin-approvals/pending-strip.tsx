@@ -158,7 +158,8 @@ export function PendingStrip({
   )
 }
 
-const CELL = 'flex flex-col gap-1.5 bg-[var(--ud-card)] px-4 py-3.5'
+/* Fond gris par défaut : les six tuiles forment un bloc distinct de ce qui suit. */
+const CELL = 'flex flex-col gap-1.5 bg-[#2a2a2a] px-4 py-3.5'
 
 /** La section de la fiche client où se prend chaque décision. */
 const SECTION_OF: Record<AdminApprovalKind, string> = {
@@ -177,7 +178,7 @@ const SECTION_OF: Record<AdminApprovalKind, string> = {
 function Tile({ href, count, children }: Readonly<{ href: string | null; count: number; children: React.ReactNode }>) {
   if (href === null) return <div className={CELL}>{children}</div>
   return (
-    <Link href={href} className={`${CELL} group relative no-underline transition-colors hover:bg-white/[0.035]`}>
+    <Link href={href} className={`${CELL} group relative no-underline transition-colors hover:bg-[#333333]`}>
       {children}
       <span className="pointer-events-none absolute right-4 bottom-3.5 text-xs text-fg-tertiary opacity-0 transition-opacity group-hover:opacity-100">
         {count > 1 ? `Review ${count}` : 'Open'} →

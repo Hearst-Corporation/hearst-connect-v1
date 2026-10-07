@@ -80,7 +80,7 @@ const vaultTag = (v) => {
 const vaultLabel = (v) => {
   const c = ownerOf(v)
   if (c === null) return null
-  return vaultsOf(c).length > 1 ? `${c.label} · Tranche ${trancheOf(v)}` : c.label
+  return vaultsOf(c).length > 1 ? `${c.label} · Vault ${trancheOf(v)}` : c.label
 }
 /** Tous les vaults ouverts, avec leur client et leur rang de tranche. */
 const ALL_VAULTS = () => CLIENT_BOOK.flatMap((c) => vaultsOf(c).map((v, i) => ({ v, c, tranche: i + 1 })))
@@ -658,7 +658,7 @@ function payloadFor(path, search = '') {
       return {
         vault: bloc({
           vaultId: vaultKey(v),
-          label: vaultsOf(c).length > 1 ? `Tranche ${trancheOf(v)}` : 'Dedicated Vault',
+          label: vaultsOf(c).length > 1 ? `Vault ${trancheOf(v)}` : 'Dedicated Vault',
           principalUsdc: VAULT_PRINCIPAL[v],
           withdrawnUsdc: usdOf(eco.withdrawnSats),
           withdrawnUsdcAtPayout: eco.withdrawnUsdAtPayout,
@@ -1672,7 +1672,7 @@ function payloadFor(path, search = '') {
         vault: bloc({
           clientId,
           vaultId: vaultKey(v),
-          label: vaultsOf(c).length > 1 ? `Tranche ${trancheOf(v)}` : 'Dedicated Vault',
+          label: vaultsOf(c).length > 1 ? `Vault ${trancheOf(v)}` : 'Dedicated Vault',
           principalUsdc: principal,
           withdrawnUsdc: withdrawn,
           withdrawnUsdcAtPayout: CLIENT_WITHDRAWN_USDC_AT_PAYOUT,
@@ -2474,7 +2474,7 @@ function baseOffers() {
           sentAt: iso(246),
           decidedAt: iso(240),
           vaultId: vaultKey(5),
-          notes: 'Second tranche — a new vault, its own entry price and lockup.',
+          notes: 'Second vault — its own entry price and lockup.',
           questionnaire: null,
         },
         {

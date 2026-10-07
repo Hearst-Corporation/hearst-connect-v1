@@ -145,7 +145,7 @@ function nextActionOf(
     }
     // Une deuxième offre en préparation (tranche supplémentaire, renouvellement).
     if (offer !== null && !isTerminal(offer.status) && OFFER_NEXT_STEP[offer.status] !== null) {
-      return { nextAction: `${OFFER_NEXT_STEP[offer.status]} (new tranche)`, onUs: true }
+      return { nextAction: `${OFFER_NEXT_STEP[offer.status]} (new vault)`, onUs: true }
     }
     return { nextAction: null, onUs: false }
   }

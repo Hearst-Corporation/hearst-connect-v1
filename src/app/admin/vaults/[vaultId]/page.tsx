@@ -823,7 +823,7 @@ export default async function Page({ params }: PageProps) {
           <DashCard
             className="min-w-0"
             title="Client & term"
-            subtitle="One vault per tranche — capital committed, lockup, deposit state."
+            subtitle="One vault per deposit — capital committed, lockup, deposit state."
           >
             <VaultClientPanel vaultId={vault.id} vaults={vaultRegistry} />
           </DashCard>

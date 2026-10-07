@@ -143,7 +143,7 @@ export default async function ClientPage({
   const tranche = vault !== null ? trancheOf(vault) : 1
   /* Le suffixe des sections d'un vault : sans lui, deux tranches afficheraient
      deux sections « Monthly rewards » indiscernables. */
-  const ofTranche = multi ? ` · Tranche ${tranche}` : ''
+  const ofTranche = multi ? ` · Vault ${tranche}` : ''
   // Les décisions qui portent sur CE vault.
   const vaultDecisions = decisions.filter((d) => vault !== null && d.vaultId === vault.vaultId)
   /* « Waiting on you » : celles de la tranche affichée, plus celles qui ne
@@ -151,7 +151,7 @@ export default async function ClientPage({
   const shownDecisions = multi ? decisions.filter((d) => d.vaultId === null || d.vaultId === vault?.vaultId) : decisions
   const trancheLabel = (vaultId: string | null) => {
     const v = vaults.find((x) => x.vaultId === vaultId)
-    return multi && v ? `Tranche ${trancheOf(v)}` : null
+    return multi && v ? `Vault ${trancheOf(v)}` : null
   }
   const isActive = entry.stage === 'active'
   const bucketYields = valueOf(dossier.bucketYields) ?? []
@@ -351,7 +351,7 @@ export default async function ClientPage({
     <DashboardShell>
       <DashboardHeader
         title={entry.name}
-        description={`${entry.kind ?? 'Kind not recorded'} · ${entry.stage === 'closed' ? 'Closed' : STAGE_LABEL[entry.stage]}${multi ? ` · tranche ${tranche} of ${vaults.length}` : ''}`}
+        description={`${entry.kind ?? 'Kind not recorded'} · ${entry.stage === 'closed' ? 'Closed' : STAGE_LABEL[entry.stage]}${multi ? ` · vault ${tranche} of ${vaults.length}` : ''}`}
         titleAddon={
           <Link href="/admin/clients" className="text-xs text-fg-tertiary hover:text-fg">
             ← All clients
@@ -364,7 +364,7 @@ export default async function ClientPage({
               active={vault.vaultId}
               tabs={vaults.map((v) => ({
                 vaultId: v.vaultId,
-                label: `Tranche ${trancheOf(v)}`,
+                label: `Vault ${trancheOf(v)}`,
                 detail: `${usd(v.principalUsdc)} · ${formatDate(v.lockupStartAt)}`,
                 href: `/admin/clients/${entry.clientId}?vault=${encodeURIComponent(v.vaultId)}`,
               }))}
@@ -429,7 +429,7 @@ export default async function ClientPage({
               </Link>
             ) : null}
             <Link href={offerHref} className="ud-cta">
-              {isActive ? 'New tranche' : offer === null || entry.stage === 'closed' ? 'New offer' : 'New version'}
+              {isActive ? 'New vault' : offer === null || entry.stage === 'closed' ? 'New offer' : 'New version'}
             </Link>
           </span>
         }
@@ -447,7 +447,7 @@ export default async function ClientPage({
           <DashCard
             className="min-w-0"
             eyebrow="Journey"
-            title={multi ? `Where tranche ${tranche} stands` : 'Where this client stands'}
+            title={multi ? `Where vault ${tranche} stands` : 'Where this client stands'}
             subtitle="From the first offer to a live vault"
           >
             <Journey
@@ -473,7 +473,7 @@ export default async function ClientPage({
         <BentoGrid>
           <BentoCard span={12} bare>
             {vault.status === 'RELEASED' ? (
-              <Callout tone="info" title={`Tranche ${tranche} — released`}>
+              <Callout tone="info" title={`Vault ${tranche} — released`}>
                 The lockup ended and the reserve ({btcFmt(vCapital + vAccrued)}) was returned to the client
                 {vault.releasedAt ? ` on ${formatDate(vault.releasedAt)}` : ''}. This vault is closed.
               </Callout>
@@ -481,9 +481,9 @@ export default async function ClientPage({
               <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--ud-radius)] bg-amber-400/[0.06] px-5 py-4 ring-1 ring-amber-400/30">
                 <div className="flex max-w-xl flex-col gap-1">
                   <p className="text-xs tracking-[0.12em] text-amber-400 uppercase">
-                    Lockup ended{multi ? ` · tranche ${tranche}` : ''} · {formatDate(vault.lockupEndAt)}
+                    Lockup ended{multi ? ` · vault ${tranche}` : ''} · {formatDate(vault.lockupEndAt)}
                   </p>
-                  <p className="text-base font-medium text-fg">Release the reserve, or renew as a new tranche</p>
+                  <p className="text-base font-medium text-fg">Release the reserve, or renew as a new vault</p>
                   <p className="text-xs text-fg-secondary">
                     Releasing returns {btcFmt(vCapital + vAccrued)} to the client in bitcoin and closes this vault. Renewing
                     is a new offer — a new vault, at today’s entry price, with its own lockup.
@@ -491,7 +491,7 @@ export default async function ClientPage({
                 </div>
                 <div className="ml-auto flex flex-wrap items-start justify-end gap-2">
                   <Link href={offerHref} className="inline-flex h-9 items-center rounded-full px-4 text-[13px] font-medium text-fg ring-1 ring-[var(--ud-line)] no-underline hover:bg-white/5">
-                    Renew as a new tranche
+                    Renew as a new vault
                   </Link>
                   <ReleaseVaultButton vaultId={vault.vaultId} />
                 </div>

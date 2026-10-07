@@ -34,7 +34,7 @@ export async function AlertsPanel() {
     const count = new Map<string, number>()
     for (const v of vaults.value) count.set(v.clientId, (count.get(v.clientId) ?? 0) + 1)
     const nameOf = (v: (typeof vaults.value)[number]) =>
-      (count.get(v.clientId) ?? 0) > 1 ? `${v.clientLabel} · Tranche ${v.tranche ?? 1}` : v.clientLabel
+      (count.get(v.clientId) ?? 0) > 1 ? `${v.clientLabel} · Vault ${v.tranche ?? 1}` : v.clientLabel
     for (const v of vaults.value.filter((x) => x.status.toUpperCase() === 'ACTIVE' && isVaultDrifting(x))) {
       alerts.push({
         tone: 'amber',

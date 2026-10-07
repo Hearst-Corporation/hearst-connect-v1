@@ -34,7 +34,7 @@ export function clientVaults(rows: readonly AdminVaultRecord[], clientId: string
  */
 export function vaultDisplayName(v: AdminVaultRecord, all: readonly AdminVaultRecord[]): string {
   const siblings = all.filter((x) => x.clientId === v.clientId).length
-  return siblings > 1 ? `${v.clientLabel} · Tranche ${trancheOf(v)}` : v.clientLabel
+  return siblings > 1 ? `${v.clientLabel} · Vault ${trancheOf(v)}` : v.clientLabel
 }
 
 /** La réserve d'un vault, en sats : le versement converti à l'entrée, plus l'accumulé. */

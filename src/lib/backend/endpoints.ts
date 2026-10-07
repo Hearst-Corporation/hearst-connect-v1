@@ -266,7 +266,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'admin',
     surface: '/admin/clients',
     summary: 'Ends a vault whose lockup has run out: its reserve (deposit converted + accumulated) is returned to the client in bitcoin.',
-    caveat: 'Refused while the lockup runs. Renewing instead is a NEW tranche — a new offer and a new vault.',
+    caveat: 'Refused while the lockup runs. Renewing instead opens a NEW vault, through a new offer.',
   }),
   defineEndpoint({
     id: 'admin-transactions',

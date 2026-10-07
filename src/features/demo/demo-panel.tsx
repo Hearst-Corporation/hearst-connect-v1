@@ -198,7 +198,7 @@ function stepsOf(s: DemoState): Step[] {
   )
 
   // ── 5. UNE DEUXIÈME TRANCHE ────────────────────────────────────────────
-  const A5 = 'A second tranche'
+  const A5 = 'A second vault'
   const trancheOffered = s.offers.length >= 2
   add(
     {
@@ -209,7 +209,7 @@ function stepsOf(s: DemoState): Step[] {
         ? 'Same journey, faster — KYC is already cleared. From the client page: send, accept, fund, authorise, open.'
         : 'A new deposit never tops up the first vault: it opens a new one, at today’s entry price, with its own lockup. The form is pre-filled.',
       href: trancheOffered ? client : clientId ? `/admin/offers/new?clientId=${clientId}&client=${name}&tranche=2` : undefined,
-      cta: trancheOffered ? 'Go to the client' : 'Prepare tranche 2',
+      cta: trancheOffered ? 'Go to the client' : 'Prepare vault 2',
     },
     s.vaults.length >= 2,
   )
@@ -223,7 +223,7 @@ function stepsOf(s: DemoState): Step[] {
       act: A6,
       title: 'End of lockup — release or renew',
       detail: ended
-        ? 'Two outcomes, on the client page: return the reserve to the client in bitcoin (a Fireblocks transfer), or renew as a new tranche.'
+        ? 'Two outcomes, on the client page: return the reserve to the client in bitcoin (a Fireblocks transfer), or renew as a new vault.'
         : 'Fast-forward to the end of the first vault’s lockup.',
       ...(ended ? { href: client, cta: 'Go to the client' } : { play: { months: lockupMonths, label: `Jump ${lockupMonths} months` } }),
     },
@@ -460,7 +460,7 @@ function StartForm() {
     <form action={run} className="flex flex-col gap-3">
       <p className="text-xs text-white/70">
         Starts from a clean book with one prospect, and walks the whole relationship in six acts: onboarding, the first month,
-        the client’s side, operations, a second tranche, and the end of the lockup.
+        the client’s side, operations, a second vault, and the end of the lockup.
       </p>
       <label className="flex flex-col gap-1 text-xs text-white/60">
         Prospect name

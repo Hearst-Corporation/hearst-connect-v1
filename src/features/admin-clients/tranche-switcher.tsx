@@ -26,7 +26,7 @@ export function TrancheSwitcher({
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <SegSelect
-        label="Tranche"
+        label="Vault"
         value={active}
         options={tabs.map((t) => ({ value: t.vaultId, label: `${t.label} · ${t.detail}` }))}
         onChange={(vaultId) => {
@@ -34,7 +34,7 @@ export function TrancheSwitcher({
           if (tab) router.push(tab.href)
         }}
       />
-      <nav aria-label="Tranches" className="ud-seg seg-collapsible">
+      <nav aria-label="Vaults" className="ud-seg seg-collapsible">
         {tabs.map((t) => (
           <Link
             key={t.vaultId}
