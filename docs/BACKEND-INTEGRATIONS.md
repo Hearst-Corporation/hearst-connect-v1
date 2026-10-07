@@ -298,3 +298,35 @@ Refus : `400 UNKNOWN_SECTION`, `400 NO_CHANGE` (valeur identique), `409 CHANGE_P
 - Chaque écriture métier y ajoute sa ligne **dans la même transaction** que l'écriture elle-même.
 - Le mock la **déduit** de l'état (changements, décisions, étapes d'offre, transactions, courriels, KYC, retraits) ; le backend doit l'**écrire**.
 - Filtrage serveur à prévoir (`category`, `actor`, `from`, `to`) et export CSV signé pour les auditeurs.
+
+---
+
+## 9. L'espace client — `/account`
+
+L'espace client lit une API **à l'échelle du client** (jamais du fonds). Tout découle du **livre de chaque vault**, le même que lit l'admin :
+
+```
+capital     = versement USDC converti au cours du premier mois rémunéré
+produit     = somme des rewards VALIDÉS
+retiré      = somme des retraits APPROUVÉS
+en attente  = somme des retraits demandés, pas encore décidés
+réserve     = capital + produit − retiré          (admin : capitalBtcSats + accruedBtcSats)
+disponible  = produit − retiré − en attente
+vs simple achat = produit / capital
+```
+
+Le registre admin (`/admin/vaults/registry`) publie désormais `accruedBtcSats` NET des retraits approuvés : un retrait sorti n'est plus compté dans la réserve, côté admin comme côté client.
+
+| id | Méthode et chemin | Rôle |
+|---|---|---|
+| `me-overview` | `GET /me/overview` | Client, interlocuteur, totaux, et chaque vault (un par versement) — voir `PortalOverview` dans `src/features/client-portal/load.ts`. |
+| `me-rewards` | `GET /me/rewards?vaultId=` | Rewards mois par mois, par poche, en bitcoin, avec leur statut. |
+| `me-activity` | `GET /me/activity` | Registre : dépôts, rewards, retraits (avec étapes Demandé → Approuvé → Co-signé Fireblocks → Confirmé), réserves rendues. |
+| `me-wallets` | `GET /me/wallets` | Portefeuilles autorisés du client — synchronisés avec la whitelist Fireblocks. |
+| `me-wallet-add` | `POST /me/wallets` | `{ label, asset, network, address }`. Actif 48 h après ajout (`status: cooling` → `active`). Validation d'adresse par réseau à prévoir. |
+| `me-withdrawals` | `POST /me/withdrawals` | `{ vaultId, walletId, amountBtcSats }`. Refus : `ABOVE_AVAILABLE`, `WALLET_COOLING`, `VAULT_CLOSED`. |
+| `me-documents` | `GET /me/documents` | Relevés mensuels (un par vault et par mois clos), rapports annuels, propositions. Le front rend les relevés en page imprimable ; un PDF signé côté serveur reste souhaitable. |
+| `me-preferences` / `me-preferences-update` | `GET` / `POST /me/preferences` | Notifications, équipe du client (Owner / Viewer), sécurité, et **choix de fin de blocage par vault** (`release` / `renew` / `undecided`) — à remonter à l'admin avant l'échéance. |
+| `me-invest` | `POST /me/invest` | `{ amountUsdc, note }` — la demande va au relationship manager (HubSpot : une tâche sur le deal). |
+
+À faire côté backend en plus : rôles du client (un Viewer ne peut ni retirer ni ajouter de portefeuille), 2FA obligatoire pour retirer et pour ajouter un portefeuille, notification de chaque étape d'un retrait.

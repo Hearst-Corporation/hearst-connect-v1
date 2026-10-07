@@ -1,21 +1,26 @@
+import { AccountShell } from '@/features/client-portal/shell'
+import { loadOverview } from '@/features/client-portal/load'
 import { DemoDock } from '@/features/demo/demo-dock'
 import { requireSession } from '@/lib/auth'
+import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Command center · Hearst Connect' },
+  title: { template: '%s · Hearst Connect', default: 'Hearst Connect' },
 }
 
 /**
- * Canonical user shell — session guard only.
- * The account dashboard owns the full viewport (own nav + surfaces).
- * Legacy Catalyst sidebar chrome was removed; business content lives here.
+ * L'ESPACE CLIENT — une coque (rail et barre du haut), cinq destinations.
+ * Le nom du client vient de sa vue d'ensemble : un compte = un client.
  */
 export default async function AccountLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  await requireSession()
+  const session = await requireSession()
+  const overview = await loadOverview()
   return (
     <>
-      {children}
+      <AccountShell user={publicUser(session)} clientName={overview?.client.name ?? null}>
+        {children}
+      </AccountShell>
       <DemoDock />
     </>
   )

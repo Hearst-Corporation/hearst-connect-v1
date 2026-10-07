@@ -643,6 +643,120 @@ function payloadFor(path, search = '') {
     }
   }
 
+  /* ══ L'ESPACE CLIENT — une API à l'échelle du CLIENT, cohérente par construction ══
+     Tout découle du livre de chaque vault (`vaultEconomy`) : le même que lit
+     l'admin. Aucun chiffre du fonds ne se glisse dans l'écran d'un client. */
+  const portal = viewedClient()
+  if (portal !== null && p.startsWith('/api/v1/me/') ) {
+    const { c, vaults } = portal
+    if (p === '/api/v1/me/overview') {
+      const views = vaults.map((v) => clientVaultView(c, v))
+      const live = views.filter((x) => x.status === 'ACTIVE')
+      const sum = (k) => Number(live.reduce((t, x) => t + x[k], 0).toFixed(8))
+      const capital = sum('capitalBtc')
+      const produced = sum('producedBtc')
+      const ownerName = ['Tom Becker', 'Admin (you)', 'Tom Becker', 'Sarah Klein'][allClients().indexOf(c) % 4]
+      const lastMonth = vaults.flatMap((v) => vaultMonths(v).filter((m) => m.status === 'distributed').slice(0, 1).map((m) => ({ ...m, v })))
+        .sort((a, b) => b.month.localeCompare(a.month))[0] ?? null
+      return {
+        overview: bloc({
+          client: { id: c.id, name: c.label, kind: CLIENT_KIND[c.id] ?? c.kind ?? null, since: c.since ?? null },
+          owner: OWNERS[ownerName],
+          spotUsd: BTC_SPOT_USD,
+          totals: {
+            reserveBtc: sum('reserveBtc'),
+            valueUsd: Math.round(sum('reserveBtc') * BTC_SPOT_USD),
+            depositedUsdc: live.reduce((t, x) => t + x.principalUsdc, 0),
+            capitalBtc: capital,
+            producedBtc: produced,
+            withdrawnBtc: sum('withdrawnBtc'),
+            availableBtc: sum('availableBtc'),
+            pendingWithdrawalBtc: sum('pendingWithdrawalBtc'),
+            vsHodlPct: capital > 0 ? Number(((produced / capital) * 100).toFixed(1)) : 0,
+          },
+          lastReward: lastMonth ? { month: lastMonth.month, btc: lastMonth.sats / 1e8, usd: lastMonth.usd, vault: vaultNameOf(c, lastMonth.v) } : null,
+          vaults: views,
+        }),
+      }
+    }
+    if (p === '/api/v1/me/rewards') {
+      const vid = new URLSearchParams(search).get('vaultId')
+      const list = vaults.filter((v) => !vid || vaultKey(v) === vid)
+      return {
+        rewards: bloc(
+          list.flatMap((v) =>
+            vaultMonths(v).map((m) => ({
+              vaultId: vaultKey(v),
+              vault: vaultNameOf(c, v),
+              month: m.month,
+              status: m.status,
+              btc: m.sats / 1e8,
+              usd: m.usd,
+              priceUsd: m.price,
+              pockets: m.pockets.map((b) => ({ bucket: b.bucket, btc: b.btcSats / 1e8, usd: b.usd })),
+            })),
+          ).sort((a, b) => b.month.localeCompare(a.month)),
+        ),
+      }
+    }
+    if (p === '/api/v1/me/activity') {
+      const items = []
+      const hash = (k) => '0x' + createHash('sha256').update(`act:${k}`).digest('hex')
+      for (const v of vaults) {
+        const name = vaultNameOf(c, v)
+        const e = vaultEconomy(v)
+        items.push({ id: `dep_${v}`, at: `${VAULT_START[v]}T09:00:00Z`, type: 'deposit', vault: name, btc: e.capitalSats / 1e8, usd: VAULT_PRINCIPAL[v], status: 'confirmed', txHash: hash(`dep${v}`), steps: null })
+        for (const m of vaultMonths(v).filter((x) => x.status !== 'declined')) {
+          items.push({ id: `rw_${v}_${m.month}`, at: `${addMonths(new Date(`${m.month}-01T09:00:00Z`), 1).toISOString().slice(0, 10)}T09:00:00Z`, type: 'reward', vault: name, btc: m.sats / 1e8, usd: m.usd, status: m.status === 'pending' ? 'pending' : 'credited', txHash: null, steps: null, month: m.month })
+        }
+        for (const w of withdrawalsOf(v)) {
+          const tx = txOfRef(`apr_wd_${w.id}`)
+          const fb = tx ? fireblocksView(tx) : null
+          const decided = (WORLD.decidedAt ?? {})[`apr_wd_${w.id}`] ?? null
+          const steps = [
+            { label: 'Requested', at: w.at, done: true },
+            { label: 'Approved by Hearst', at: w.status === 'approved' ? decided : null, done: w.status === 'approved' },
+            { label: 'Co-signed in Fireblocks', at: null, done: fb ? ['BROADCASTING', 'CONFIRMING', 'COMPLETED'].includes(fb.status) : false },
+            { label: 'Confirmed on-chain', at: fb?.status === 'COMPLETED' ? fb.createdAt : null, done: fb?.status === 'COMPLETED' },
+          ]
+          items.push({
+            id: `wd_${w.id}`, at: w.at, type: 'withdrawal', vault: name, btc: w.sats / 1e8, usd: w.usd,
+            status: w.status === 'declined' ? 'declined' : fb?.status === 'COMPLETED' ? 'confirmed' : w.status === 'approved' ? 'processing' : 'pending',
+            txHash: fb?.txHash ?? null, steps, destination: (walletsOf(c).find((x) => x.id === w.walletId) ?? walletsOf(c)[0]).label,
+          })
+        }
+        if (isReleased(v)) items.push({ id: `rel_${v}`, at: WORLD.released[v].at, type: 'release', vault: name, btc: WORLD.released[v].sats / 1e8, usd: Math.round((WORLD.released[v].sats / 1e8) * BTC_SPOT_USD), status: 'confirmed', txHash: hash(`rel${v}`), steps: null })
+      }
+      return { activity: bloc(items.sort((a, b) => b.at.localeCompare(a.at))) }
+    }
+    if (p === '/api/v1/me/wallets') return { wallets: bloc(walletsOf(c)) }
+    if (p === '/api/v1/me/documents') {
+      const docs = []
+      for (const v of vaults) {
+        for (const m of vaultMonths(v).filter((x) => x.status === 'distributed')) {
+          docs.push({ id: `st_${v}_${m.month}`, kind: 'statement', title: `Monthly statement — ${monthName(m.month)}`, period: m.month, vaultId: vaultKey(v), vault: vaultNameOf(c, v) })
+        }
+      }
+      const years = [...new Set(docs.map((d) => d.period.slice(0, 4)))].filter((y) => Number(y) < mockNow().getUTCFullYear())
+      for (const y of years) docs.push({ id: `tax_${y}`, kind: 'tax', title: `Annual report ${y}`, period: `${y}-12`, vaultId: null, vault: 'All vaults' })
+      for (const o of allOffers().filter((x) => x.clientId === c.id)) docs.push({ id: `pr_${o.id}`, kind: 'proposal', title: `Proposal ${o.reference}`, period: o.createdAt.slice(0, 7), vaultId: o.vaultId ?? null, vault: o.reference, offerId: o.id })
+      return { documents: bloc(docs.sort((a, b) => b.period.localeCompare(a.period))) }
+    }
+    if (p === '/api/v1/me/preferences') {
+      const pr = WORLD.prefs?.[c.id] ?? {}
+      return {
+        preferences: bloc({
+          notifications: { rewards: true, withdrawals: true, lockup: true, statements: true, ...(pr.notifications ?? {}) },
+          team: [
+            { name: 'Treasury lead', email: `treasury@${c.label.toLowerCase().replace(/[^a-z]+/g, '')}.test`, role: 'Owner', twoFactor: true },
+            { name: 'CFO', email: `cfo@${c.label.toLowerCase().replace(/[^a-z]+/g, '')}.test`, role: 'Viewer', twoFactor: true },
+          ],
+          security: { twoFactor: true, lastSignInAt: nowIso(), sessions: 1 },
+        }),
+      }
+    }
+  }
+
   /* ── /account COMME LE CLIENT DE LA DÉMO ──────────────────────────────────
      Quand la démo regarde un client (`viewAs`), ses lectures `/me/*` viennent
      de SON vault : son versement, ses rewards validés, ses retraits. Sans
@@ -1022,12 +1136,10 @@ function payloadFor(path, search = '') {
             principalUsdc: v.principal,
             // Rendement accru : ~14.8 % du principal, comme le vault client.
             // Le cumul de la réserve : la somme de ses mois, en bitcoin.
-            accruedBtcSats: vaultReserveSats(v.v),
-            // Le versement d'entrée, converti en bitcoin au cours du premier mois.
-            capitalBtcSats: (() => {
-              const ms = vaultMonths(v.v)
-              return Math.round((v.principal / (ms[ms.length - 1]?.price ?? BTC_SPOT_USD)) * 1e8)
-            })(),
+            // Le livre du vault (`vaultEconomy`) : le MÊME que voit le client. L'accumulé
+            // est net des retraits approuvés — ce qui est sorti n'est plus dans la réserve.
+            accruedBtcSats: vaultEconomy(v.v).accruedSats,
+            capitalBtcSats: vaultEconomy(v.v).capitalSats,
             accruedUsdc: vaultMonths(v.v)
               .filter((m) => m.status === 'distributed')
               .reduce((t, m) => t + m.usd, 0),
@@ -1910,10 +2022,8 @@ function payloadFor(path, search = '') {
         allocatedMiners: MACHINE_VAULT.filter((v) => v === fv).length,
         allocatedHashrateThs: Math.round(VAULT_THS[fv]),
         // Six mois de production de SA puissance — la même somme que ses lignes de clôture mensuelle.
-        allocatedBtcProduced:
-          fv === 0
-            ? Number((VAULT_THS[0] * BTC_PER_THS_DAY * 30 * 6 * 0.975).toFixed(4))
-            : Number((vaultMonths(fv).reduce((t, m) => t + (m.pockets[0]?.btcSats ?? 0), 0) / 1e8).toFixed(4)),
+        // Ce que SA puissance a miné depuis l'ouverture — la poche Mining de ses rewards.
+        allocatedBtcProduced: Number((vaultMonths(fv).reduce((t, m) => t + (m.pockets[0]?.btcSats ?? 0), 0) / 1e8).toFixed(4)),
       }),
     }
   }
@@ -2595,6 +2705,9 @@ function emptyWorld() {
     emails: [], // courriels envoyés (Gmail) et consignés (HubSpot) : { offerId, emailId, … }
     changes: [], // demandes de changement des réglages : { id, section, after, approvals, … }
     decidedAt: {}, // approvalId → date de la décision (pour le journal d'audit)
+    wallets: [], // portefeuilles ajoutés par les clients : { id, clientId, label, asset, network, address, addedAt }
+    prefs: {}, // clientId → { endOfTerm: { vaultId: choice }, notifications: { … } }
+    investRequests: [], // demandes « Invest more » : { clientId, amountUsdc, note, at }
     tour: null, // la démo guidée : { clientName, offerId }
   }
 }
@@ -2748,12 +2861,83 @@ const txOfRef = (ref) => (WORLD.txs ?? []).find((t) => t.ref === ref) ?? null
 
 /** Le vault que /account montre pendant la démo : la première tranche encore ouverte du client regardé. */
 function viewedVault() {
-  if (!WORLD.viewAs) return null
-  const c = allClients().find((x) => x.id === WORLD.viewAs)
+  // Le client que montre /account : celui de la démo, sinon Hearst Holdings — jamais un mélange du fonds.
+  const c = allClients().find((x) => x.id === (WORLD.viewAs ?? 'cli_1'))
   if (!c) return null
   const vs = vaultsOf(c)
   const v = vs.find((x) => !isReleased(x)) ?? vs[0]
   return v === undefined ? null : { v, c }
+}
+
+/** Le client que montre /account, et ses vaults (un par versement). */
+function viewedClient() {
+  const c = allClients().find((x) => x.id === (WORLD.viewAs ?? 'cli_1'))
+  return c ? { c, vaults: vaultsOf(c) } : null
+}
+const vaultNameOf = (c, v) => (vaultsOf(c).length > 1 ? `Vault ${vaultsOf(c).indexOf(v) + 1}` : 'Your vault')
+/** Les portefeuilles autorisés d'un client : celui du socle, plus ceux ajoutés (48 h d'attente). */
+function walletsOf(c) {
+  const base = [{
+    id: `w_${c.id}`,
+    label: 'Treasury cold wallet',
+    asset: 'BTC',
+    network: 'Bitcoin',
+    address: 'bc1q' + createHash('sha256').update(`wallet:${c.id}`).digest('hex').slice(0, 38),
+    addedAt: `${c.since ?? '2025-01-01'}T10:00:00Z`,
+  }]
+  return [...base, ...(WORLD.wallets ?? []).filter((w) => w.clientId === c.id)].map((w) => {
+    const activeFrom = new Date(Date.parse(w.addedAt) + 48 * 3_600_000).toISOString()
+    return { ...w, activeFrom, status: Date.parse(activeFrom) <= mockNow().getTime() ? 'active' : 'cooling' }
+  })
+}
+/** Une vue de vault pour son client : tout découle de `vaultEconomy`, le livre que lit aussi l'admin. */
+function clientVaultView(c, v) {
+  const e = vaultEconomy(v)
+  const start = new Date(`${VAULT_START[v]}T09:00:00Z`)
+  const months = lockupMonthsOf(v)
+  const end = addMonths(start, months)
+  const now = mockNow()
+  const elapsed = Math.max(0, Math.min(months, (now.getUTCFullYear() - start.getUTCFullYear()) * 12 + now.getUTCMonth() - start.getUTCMonth()))
+  const cur = vaultCurrentBps(v)
+  const capital = (bps) => Math.round((VAULT_PRINCIPAL[v] * bps) / 10_000)
+  const nextReward = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 9))
+  return {
+    vaultId: vaultKey(v),
+    label: vaultNameOf(c, v),
+    status: isReleased(v) ? 'RELEASED' : 'ACTIVE',
+    principalUsdc: VAULT_PRINCIPAL[v],
+    entryRateUsd: e.entryRate,
+    capitalBtc: e.capitalSats / 1e8,
+    producedBtc: e.producedSats / 1e8,
+    withdrawnBtc: e.withdrawnSats / 1e8,
+    pendingWithdrawalBtc: e.pendingSats / 1e8,
+    availableBtc: e.availableSats / 1e8,
+    reserveBtc: e.reserveSats / 1e8,
+    // Contre un simple achat au même jour : ce que le vault a produit, rapporté au bitcoin acheté à l'entrée.
+    vsHodlPct: e.capitalSats > 0 ? Number(((e.producedSats / e.capitalSats) * 100).toFixed(1)) : 0,
+    lockupStartAt: start.toISOString(),
+    lockupEndAt: end.toISOString(),
+    lockupMonths: months,
+    elapsedMonths: elapsed,
+    nextRewardAt: isReleased(v) ? null : nextReward.toISOString(),
+    allocation: {
+      target: { mining: VAULT_ALLOC[v].miningBps, lending: VAULT_ALLOC[v].lendingBps, stable: VAULT_ALLOC[v].stableBps },
+      current: cur,
+      bandBps: VAULT_BAND[v],
+    },
+    pockets: [
+      { name: 'Mining Alpha', protocol: VAULT_PROTOCOLS[v].mining.name, apyPct: VAULT_PROTOCOLS[v].mining.apy, capitalUsd: capital(cur.mining) },
+      { name: 'Bitcoin Lending', protocol: VAULT_PROTOCOLS[v].lending.name, apyPct: VAULT_PROTOCOLS[v].lending.apy, capitalUsd: capital(cur.lending) },
+      { name: 'USDC Yield', protocol: VAULT_PROTOCOLS[v].stable.name, apyPct: VAULT_PROTOCOLS[v].stable.apy, capitalUsd: capital(cur.stable) },
+    ],
+    compute: { hashrateThs: Math.round(VAULT_THS[v]), machines: MACHINE_VAULT.filter((x) => x === v).length, fleetSharePct: Number(((VAULT_THS[v] / FLEET_THS) * 100).toFixed(2)) },
+    endOfTerm: (WORLD.prefs?.[c.id]?.endOfTerm ?? {})[vaultKey(v)] ?? 'undecided',
+  }
+}
+const OWNERS = {
+  'Tom Becker': { name: 'Tom Becker', title: 'Relationship manager', email: 'tom.becker@hearst.test', phone: '+44 20 7946 0321' },
+  'Sarah Klein': { name: 'Sarah Klein', title: 'Relationship manager', email: 'sarah.klein@hearst.test', phone: '+41 44 668 1800' },
+  'Admin (you)': { name: 'Pierre — Hearst', title: 'Head of client relations', email: 'connect@hearstcorporation.io', phone: '+33 1 84 88 40 00' },
 }
 
 /** Les retraits demandés par le client d'un vault, avec la décision de l'admin. */
@@ -2769,6 +2953,10 @@ const withdrawalsOf = (v) =>
 function vaultEconomy(v) {
   const withdrawals = withdrawalsOf(v)
   const producedSats = vaultReserveSats(v)
+  // Le versement d'entrée, converti au cours du premier mois rémunéré — la même règle que le registre admin.
+  const months = vaultMonths(v)
+  const firstPrice = months[months.length - 1]?.price ?? priceOf(VAULT_START[v].slice(0, 7))
+  const capitalSats = Math.round((VAULT_PRINCIPAL[v] / firstPrice) * 1e8)
   const done = withdrawals.filter((w) => w.status === 'approved')
   const withdrawnSats = done.reduce((t, w) => t + w.sats, 0)
   const pendingSats = withdrawals.filter((w) => w.status === 'pending').reduce((t, w) => t + w.sats, 0)
@@ -2781,7 +2969,10 @@ function vaultEconomy(v) {
     pendingSats,
     accruedSats,
     availableSats: Math.max(0, accruedSats - pendingSats),
-    entryRate: priceOf(VAULT_START[v].slice(0, 7)),
+    entryRate: firstPrice,
+    capitalSats,
+    // LA réserve : le versement converti, plus les rewards validés, moins ce qui est sorti.
+    reserveSats: capitalSats + accruedSats,
   }
 }
 
@@ -2908,8 +3099,41 @@ function handleWrite(method, path, body) {
   // que les états d'erreur de l'UI soient réellement exerçables en local.
   /* UN RETRAIT DEMANDÉ PAR LE CLIENT — en bitcoin, pris sur ce qu'il a acquis.
      Rien ne sort avant la validation de l'admin : la demande entre dans sa file. */
+  if (path === '/api/v1/me/wallets' && method === 'POST') {
+    const pc = viewedClient()
+    if (!pc) return reply(409, problem(409, 'NO_CLIENT', 'No client.'))
+    const address = String(body?.address ?? '').trim()
+    if (address.length < 20) return reply(400, problem(400, 'INVALID_ADDRESS', 'Enter a full wallet address.'))
+    const w = { id: `w_${(WORLD.wallets ?? []).length + 1}_${pc.c.id}`, clientId: pc.c.id, label: String(body?.label ?? 'Wallet').slice(0, 60), asset: body?.asset === 'USDC' ? 'USDC' : 'BTC', network: String(body?.network ?? 'Bitcoin'), address, addedAt: nowIso() }
+    WORLD.wallets = [...(WORLD.wallets ?? []), w]
+    applyWorld(WORLD)
+    return reply(200, envelope({ wallet: bloc(w) }))
+  }
+  if (path === '/api/v1/me/preferences' && method === 'POST') {
+    const pc = viewedClient()
+    if (!pc) return reply(409, problem(409, 'NO_CLIENT', 'No client.'))
+    const cur = WORLD.prefs?.[pc.c.id] ?? {}
+    const next = {
+      endOfTerm: { ...(cur.endOfTerm ?? {}), ...(body?.endOfTerm ?? {}) },
+      notifications: { ...(cur.notifications ?? {}), ...(body?.notifications ?? {}) },
+    }
+    WORLD.prefs = { ...(WORLD.prefs ?? {}), [pc.c.id]: next }
+    applyWorld(WORLD)
+    return reply(200, envelope({ preferences: bloc(next) }))
+  }
+  if (path === '/api/v1/me/invest' && method === 'POST') {
+    const pc = viewedClient()
+    if (!pc) return reply(409, problem(409, 'NO_CLIENT', 'No client.'))
+    WORLD.investRequests = [...(WORLD.investRequests ?? []), { clientId: pc.c.id, amountUsdc: Number(body?.amountUsdc) || null, note: String(body?.note ?? '').slice(0, 200), at: nowIso() }]
+    applyWorld(WORLD)
+    return reply(200, envelope({ received: true }))
+  }
+
   if (path === '/api/v1/me/withdrawals' && method === 'POST') {
-    const seen = viewedVault()
+    // Le vault choisi par le client (un par versement) ; sans choix, son premier vault ouvert.
+    const pc = viewedClient()
+    const chosen = pc ? pc.vaults.find((x) => vaultKey(x) === body?.vaultId) : undefined
+    const seen = pc && chosen !== undefined ? { v: chosen, c: pc.c } : viewedVault()
     if (seen === null) return reply(409, problem(409, 'NO_VAULT', 'This account has no vault to withdraw from.'))
     if (isReleased(seen.v)) return reply(409, problem(409, 'VAULT_CLOSED', 'This vault has been released.'))
     const available = vaultEconomy(seen.v).availableSats
@@ -2923,7 +3147,11 @@ function handleWrite(method, path, body) {
       return reply(422, problem(422, 'ABOVE_AVAILABLE', `Only ${(Math.floor(available / 1e4) / 1e4).toFixed(4)} BTC is available to withdraw.`))
     }
     const id = `wd_${String((WORLD.withdrawals ?? []).length + 1).padStart(3, '0')}`
-    WORLD.withdrawals = [...(WORLD.withdrawals ?? []), { id, v: seen.v, sats, usd: Math.round((sats / 1e8) * BTC_SPOT_USD), at: nowIso() }]
+    // La destination : un portefeuille ACTIF du client (la période d'attente est passée).
+    const wallets = walletsOf(seen.c)
+    const wallet = wallets.find((x) => x.id === body?.walletId) ?? wallets[0]
+    if (wallet.status !== 'active') return reply(409, problem(409, 'WALLET_COOLING', 'This wallet is still in its 48 h cooling period.'))
+    WORLD.withdrawals = [...(WORLD.withdrawals ?? []), { id, v: seen.v, sats, usd: Math.round((sats / 1e8) * BTC_SPOT_USD), at: nowIso(), walletId: wallet.id }]
     applyWorld(WORLD)
     return reply(200, envelope({ withdrawal: bloc({ id, amountBtcSats: sats, status: 'PENDING_APPROVAL', requestedAt: nowIso() }) }))
   }
@@ -3004,7 +3232,10 @@ function handleWrite(method, path, body) {
       if (w) {
         fireblocksTx('withdrawal', {
           ref: id, clientId: ownerOf(w.v)?.id ?? null, vaultId: vaultKey(w.v), asset: 'BTC', amount: w.sats / 1e8,
-          source: `Vault ${vaultLabel(w.v)}`, destination: FB_WALLET.BTC, note: 'Bitcoin withdrawal to the client’s whitelisted wallet',
+          source: `Vault ${vaultLabel(w.v)}`,
+          // Le portefeuille choisi par le client, pris dans SON carnet d'adresses autorisées.
+          destination: (ownerOf(w.v) ? walletsOf(ownerOf(w.v)).find((x) => x.id === w.walletId)?.address : null) ?? FB_WALLET.BTC,
+          note: 'Bitcoin withdrawal to the client’s whitelisted wallet',
         })
       }
     }
