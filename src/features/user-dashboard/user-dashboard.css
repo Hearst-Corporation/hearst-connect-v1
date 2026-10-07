@@ -6807,3 +6807,13 @@
     display: none;
   }
 }
+
+/* Mining Economics : le coût de production et sa réglette dans un bloc sombre. */
+.ud-root .mining-flank-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 14px;
+  border-radius: var(--ud-radius);
+  background: var(--ud-inset);
+}

@@ -94,6 +94,9 @@ function MiningEconomicsBody({
           gauche l'affiche déjà en grand — deux fois le même montant côte à
           côte, et le lecteur cherche la différence qu'il n'y a pas. La barre
           en dessous porte le rapport, la marge le chiffre l'écart. */}
+      {/* Le coût et sa réglette dans un même bloc sombre : ils se lisent
+          ensemble, comme les cartes du panneau central. */}
+      <div className="mining-flank-hero">
       <div className="mining-flank-lead">
         <p className="mining-flank-lead-label">Cost to mine one BTC</p>
         <p className="mining-flank-lead-value">{usd(costPerBtcUsd)}</p>
@@ -146,6 +149,7 @@ function MiningEconomicsBody({
             <p className="mining-axis-end-value is-market">{usd(marketPriceUsd)}</p>
           </div>
         </div>
+      </div>
       </div>
 
       {/* « Bitcoin can fall X % » a été retiré.
