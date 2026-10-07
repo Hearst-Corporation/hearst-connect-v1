@@ -6817,3 +6817,55 @@
   border-radius: var(--ud-radius);
   background: var(--ud-inset);
 }
+
+/* Relevés : l'en-tête sur bandeau sombre, comme les tableaux de l'admin. */
+.ud-root .docs-table table thead th {
+  background: var(--ud-inset);
+  color: var(--ud-fg-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 0;
+  white-space: nowrap;
+}
+.ud-root .docs-table table thead th:first-child,
+.ud-root .docs-table table tbody td:first-child {
+  padding-left: 10px;
+}
+.ud-root .docs-table table thead th:last-child,
+.ud-root .docs-table table tbody td:last-child {
+  padding-right: 10px;
+}
+.ud-root .docs-table table thead th:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+.ud-root .docs-table table thead th:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* Mining Economics : le bloc du coût en vert citron, encre sombre — comme la
+   tuile mise en avant de l'Overview. */
+.ud-root .mining-flank-hero {
+  background: var(--hearst-green);
+}
+.ud-root .mining-flank-hero .mining-flank-lead-label,
+.ud-root .mining-flank-hero .mining-axis-end-label {
+  color: color-mix(in srgb, var(--hearst-green-ink) 70%, transparent);
+}
+.ud-root .mining-flank-hero .mining-flank-lead-value,
+.ud-root .mining-flank-hero .mining-axis-end-value,
+.ud-root .mining-flank-hero .mining-axis-end-value.is-gain,
+.ud-root .mining-flank-hero .mining-axis-end-value.is-market {
+  color: var(--hearst-green-ink);
+}
+.ud-root .mining-flank-hero .mining-axis-track {
+  background-color: color-mix(in srgb, var(--hearst-green-ink) 18%, transparent);
+}
+.ud-root .mining-flank-hero .mining-axis-safe {
+  background: var(--hearst-green-ink);
+}
