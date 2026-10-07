@@ -4,5 +4,6 @@ import { redirect } from 'next/navigation'
    page par vault, plus deux qui se répétaient. Les anciens liens y mènent. */
 export default async function VaultsPage({ searchParams }: Readonly<{ searchParams: Promise<{ vault?: string }> }>) {
   const { vault } = await searchParams
+  // /account réécrit lui-même l'identifiant on-chain en rang.
   redirect(vault ? `/account?vault=${encodeURIComponent(vault)}` : '/account')
 }

@@ -16,12 +16,14 @@ export const dynamic = 'force-dynamic'
  */
 export default async function StatementPage({ searchParams }: Readonly<{ searchParams: Promise<{ month?: string; year?: string; vault?: string }> }>) {
   await requireSession()
-  const { month, year, vault: vaultId } = await searchParams
-  const [overview, rewards, activity] = await Promise.all([loadOverview(), loadRewards(year ? undefined : vaultId), loadActivity()])
+  const { month, year, vault: wanted } = await searchParams
+  // Les relevés de chaque vault sont filtrés plus bas : on lit tous les rewards.
+  const [overview, rewards, activity] = await Promise.all([loadOverview(), loadRewards(), loadActivity()])
   if (overview === null || rewards === null) return <p className="p-10 text-sm text-fg-tertiary">This statement could not be produced.</p>
 
   const inPeriod = (ym: string) => (year ? ym.startsWith(year) : ym === month)
-  const vault = overview.vaults.find((v) => v.vaultId === vaultId) ?? null
+  // `vault=2` : le rang du vault ; l'identifiant on-chain des anciens liens marche encore.
+  const vault = overview.vaults[Number(wanted) - 1] ?? overview.vaults.find((v) => v.vaultId === wanted) ?? null
   const scope = year ? overview.vaults : vault ? [vault] : overview.vaults
   const rws = rewards.filter((r) => inPeriod(r.month) && r.status !== 'declined' && scope.some((v) => v.vaultId === r.vaultId))
   const outs = (activity ?? []).filter((a) => (a.type === 'withdrawal' || a.type === 'release') && a.status !== 'declined' && inPeriod(a.at.slice(0, 7)) && scope.some((v) => v.label === a.vault))

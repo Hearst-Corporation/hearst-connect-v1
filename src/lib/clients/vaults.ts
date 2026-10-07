@@ -39,3 +39,13 @@ export function vaultDisplayName(v: AdminVaultRecord, all: readonly AdminVaultRe
 
 /** La réserve d'un vault, en sats : le versement converti à l'entrée, plus l'accumulé. */
 export const reserveSats = (v: AdminVaultRecord): number => (v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)
+
+/**
+ * L'adresse d'une fiche client : `?vault=2` (le rang de la tranche), jamais
+ * l'identifiant on-chain — `31337-0x1111…` dans la barre d'adresse ne dit rien
+ * à personne. La fiche redirige les anciens liens vers cette forme.
+ */
+export function clientHref(clientId: string, vault?: Pick<AdminVaultRecord, 'tranche'> | null, tab?: string): string {
+  const q = [vault ? `vault=${vault.tranche ?? 1}` : null, tab ? `tab=${tab}` : null].filter(Boolean).join('&')
+  return `/admin/clients/${encodeURIComponent(clientId)}${q ? `?${q}` : ''}`
+}

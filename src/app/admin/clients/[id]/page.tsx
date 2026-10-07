@@ -30,7 +30,7 @@ import { DecisionButtons } from '@/features/admin-approvals/decision-buttons'
 import { requireSession } from '@/lib/auth'
 import { loadClientBook, STAGE_LABEL } from '@/lib/clients/book'
 import { loadClientDossier } from '@/lib/clients/dossier'
-import { reserveSats, trancheOf } from '@/lib/clients/vaults'
+import { clientHref, reserveSats, trancheOf } from '@/lib/clients/vaults'
 import { formatCurrency, formatDate, formatHash, formatNumber } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { emailsFor } from '@/lib/offers/emails'
@@ -45,7 +45,7 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 export const metadata: Metadata = { title: 'Client' }
 export const dynamic = 'force-dynamic'
@@ -116,15 +116,24 @@ export default async function ClientPage({
   // Le vault affiché : un client détient un vault par tranche ; `?vault=` choisit lequel.
   const { vault: vaultParam, tab: tabParam } = await searchParams
 
-  const [book, dossier, compute, rebalancing, transactions, audit] = await Promise.all([
-    loadClientBook(),
-    loadClientDossier(id, vaultParam ?? null),
+  /* `?vault=2` : le rang de la tranche. Un ancien lien qui porte l'identifiant
+     on-chain est réécrit — la barre d'adresse reste lisible. */
+  const book = await loadClientBook()
+  const owner = book.entries.find((e) => e.clientId === id)
+  const wantedVault =
+    vaultParam === undefined ? undefined : owner?.vaults.find((v) => String(trancheOf(v)) === vaultParam || v.vaultId === vaultParam)
+  if (vaultParam !== undefined && (!wantedVault || vaultParam !== String(trancheOf(wantedVault)))) {
+    redirect(clientHref(id, wantedVault, tabParam))
+  }
+
+  const [dossier, compute, rebalancing, transactions, audit] = await Promise.all([
+    loadClientDossier(id, wantedVault?.vaultId ?? null),
     loadFleetCompute(),
     loadAdminRebalancingOperations(200),
     loadTransactions(id),
     loadAudit(500),
   ])
-  const entry = book.entries.find((e) => e.clientId === id)
+  const entry = owner
   if (entry === undefined) notFound()
 
   const { decisions } = entry
@@ -317,7 +326,7 @@ export default async function ClientPage({
   /* L'onglet ouvert : celui de l'URL, sinon l'offre pour un prospect, la vue d'ensemble pour un client actif. */
   const tab = tabs.some((t) => t.id === tabParam) ? (tabParam as string) : !isActive && offer !== null ? 'offer' : 'overview'
   const show = (id: string) => tab === id
-  const tabBase = `/admin/clients/${entry.clientId}${vaultParam ? `?vault=${encodeURIComponent(vaultParam)}` : ''}`
+  const tabBase = clientHref(entry.clientId, wantedVault)
 
   /* « New tranche » ouvre une offre pré-remplie avec l'allocation de la tranche
      la plus récente : un nouveau versement ouvrira un NOUVEAU vault. */
@@ -347,7 +356,7 @@ export default async function ClientPage({
                 vaultId: v.vaultId,
                 label: `Vault ${trancheOf(v)}`,
                 detail: `${usd(v.principalUsdc)} · ${formatDate(v.lockupStartAt)}`,
-                href: `/admin/clients/${entry.clientId}?vault=${encodeURIComponent(v.vaultId)}`,
+                href: clientHref(entry.clientId, v),
               }))}
               total={`Client total · ${vaults.length} vaults · ${btcFmt(sumReserve)} from ${usd(sumDeposits)} USDC`}
             />
@@ -488,7 +497,7 @@ export default async function ClientPage({
                     <span className="ml-auto sm:ml-0">
                       {DECISION_SECTION[d.kind] ? (
                         <a
-                          href={`?${d.vaultId ? `vault=${encodeURIComponent(d.vaultId)}&` : ''}tab=${DECISION_SECTION[d.kind]}`}
+                          href={clientHref(entry.clientId, vaults.find((v) => v.vaultId === d.vaultId), DECISION_SECTION[d.kind])}
                           className="ud-detail-btn inline-flex items-center no-underline"
                         >
                           Review

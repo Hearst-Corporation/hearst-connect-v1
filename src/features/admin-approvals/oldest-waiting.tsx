@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { approvalAmount } from '@/lib/admin-dashboard/amounts'
-import type { AdminApproval } from '@/lib/admin-dashboard/contracts'
+import type { AdminApproval, AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
+import { clientHref } from '@/lib/clients/vaults'
 import { valueOf, type Availability } from '@/lib/vaults/model'
 
 /**
@@ -25,7 +26,11 @@ function age(iso: string | null): { label: string; late: boolean } {
   return { label: days === 0 ? 'today' : `${days} d`, late: days >= 3 }
 }
 
-export function OldestWaiting({ approvals, limit = 5 }: Readonly<{ approvals: Availability<readonly AdminApproval[]>; limit?: number }>) {
+export function OldestWaiting({
+  approvals,
+  vaults,
+  limit = 5,
+}: Readonly<{ approvals: Availability<readonly AdminApproval[]>; vaults?: Availability<readonly AdminVaultRecord[]>; limit?: number }>) {
   const rows = [...(valueOf(approvals) ?? [])]
     .sort((a, b) => (a.requestedAt ?? '').localeCompare(b.requestedAt ?? ''))
     .slice(0, limit)
@@ -39,7 +44,7 @@ export function OldestWaiting({ approvals, limit = 5 }: Readonly<{ approvals: Av
         {rows.map((a) => {
           const { label, late } = age(a.requestedAt)
           const days = daysOf(a.requestedAt)
-          const href = `/admin/clients/${a.clientId}?${a.vaultId ? `vault=${encodeURIComponent(a.vaultId)}&` : ''}tab=${TAB[a.kind] ?? 'overview'}`
+          const href = clientHref(a.clientId, (vaults ? valueOf(vaults) : null)?.find((v) => v.vaultId === a.vaultId), TAB[a.kind] ?? 'overview')
           return (
             <li key={a.id}>
               {/* Quoi · pour qui · combien · depuis quand (la barre se lit avant le chiffre). */}

@@ -4,6 +4,7 @@ import { loadAdminApprovals, loadAdminRecentClients, loadAdminVaultRegistry } fr
 import { formatDate } from '@/lib/format'
 import { loadIntegrations, loadSettings } from '@/lib/settings/load'
 import { isAvailable } from '@/lib/vaults/model'
+import { clientHref } from '@/lib/clients/vaults'
 
 /**
  * LES ALERTES DU JOUR — ce qui n'est pas une décision, mais qu'on ne doit pas
@@ -48,7 +49,7 @@ export async function AlertsPanel() {
         title: nameOf(v),
         detail: `${((v.worstDriftBps ?? 0) / 100).toFixed(2)} pt vs ±${driftThresholdOf(v) / 100} pt`,
         drift: { pt: Math.abs(v.worstDriftBps ?? 0) / 100, band: driftThresholdOf(v) / 100 },
-        href: `/admin/clients/${v.clientId}?vault=${encodeURIComponent(v.vaultId)}&tab=allocation`,
+        href: clientHref(v.clientId, v, 'allocation'),
       })
     }
     const soon = Date.now() + 90 * DAY
@@ -59,7 +60,7 @@ export async function AlertsPanel() {
         tone: ended ? 'amber' : 'sky',
         title: `${nameOf(v)} — lockup ${ended ? 'ended' : 'ends soon'}`,
         detail: `${formatDate(v.lockupEndAt)} · release or renew`,
-        href: `/admin/clients/${v.clientId}?vault=${encodeURIComponent(v.vaultId)}`,
+        href: clientHref(v.clientId, v),
       })
     }
   }

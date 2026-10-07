@@ -1,5 +1,7 @@
 'use client'
 
+import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
+import { clientHref } from '@/lib/clients/vaults'
 import { DecisionButtons } from '@/features/admin-approvals/decision-buttons'
 import { btcFromSats } from '@/lib/admin-dashboard/amounts'
 import { Badge } from '@/components/catalyst/badge'
@@ -71,8 +73,11 @@ export function MonthlyClose({
   months,
   decisionIds,
   rewards,
+  vaults,
 }: Readonly<{
   months: readonly CloseMonth[]
+  /** Le registre des vaults : le lien de chaque ligne dit `?vault=2`, son rang de tranche. */
+  vaults: readonly AdminVaultRecord[]
   /** Le reward du mois de chaque vault, en sats (`mois → vaultId → sats`) :
    *  ses TROIS poches converties en bitcoin — ce que l'admin valide. */
   rewards: Readonly<Record<string, Readonly<Record<string, number>>>>
@@ -186,7 +191,7 @@ export function MonthlyClose({
           <TableRow key={l.id}>
             <TableCell>
               <Link
-                href={`/admin/clients/${l.clientId}?vault=${encodeURIComponent(l.vaultId)}&tab=rewards`}
+                href={clientHref(l.clientId, vaults.find((v) => v.vaultId === l.vaultId), 'rewards')}
                 className="font-medium text-fg"
               >
                 {l.clientLabel}

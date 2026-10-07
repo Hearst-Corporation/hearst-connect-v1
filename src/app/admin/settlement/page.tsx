@@ -1,7 +1,7 @@
 import { DashboardHeader } from '@/components/admin/dashboard'
 import { DashCard, PanelHeaderLink, PanelState } from '@/components/admin/dashboard'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
-import { loadAdminApprovals } from '@/lib/admin-dashboard/load'
+import { loadAdminApprovals, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import { callBackend } from '@/lib/backend/client'
 import { formatNumber } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
@@ -47,12 +47,13 @@ export default async function SettlementPage({
   const { machines: machinesView } = await searchParams
   const showAllMachines = machinesView === 'all'
 
-  const [closeRes, machinesRes, distRes, rwaRes, approvals] = await Promise.all([
+  const [closeRes, machinesRes, distRes, rwaRes, approvals, registry] = await Promise.all([
     callBackend<{ readonly months: Resolved<readonly CloseMonth[]> }>('admin-mining-monthly-close'),
     callBackend<{ readonly machines: Resolved<readonly Machine[]> }>('mining-machines'),
     callBackend<{ readonly distributions: Resolved<readonly DistributionRecord[]> }>('mining-distributions'),
     callBackend<{ readonly pockets: Resolved<readonly RwaPocket[]> }>('rwa-vault'),
     loadAdminApprovals(),
+    loadAdminVaultRegistry(),
   ])
 
   const months = closeRes.ok && closeRes.data.months?.value ? closeRes.data.months.value : []
@@ -112,7 +113,7 @@ export default async function SettlementPage({
             title="Split by vault"
             subtitle="The fleet’s output and electricity, split by each vault’s mining capital — approve each reward, pay each electricity"
           >
-            <MonthlyClose months={months} decisionIds={decisionIds} rewards={rewards} />
+            <MonthlyClose months={months} decisionIds={decisionIds} rewards={rewards} vaults={valueOf(registry) ?? []} />
           </DashCard>
         </BentoCard>
       </BentoGrid>

@@ -11,7 +11,7 @@ import {
   type AdminVaultRecord,
 } from '@/lib/admin-dashboard/contracts'
 import { isAvailable, type Availability } from '@/lib/vaults/model'
-import { vaultDisplayName } from '@/lib/clients/vaults'
+import { clientHref, vaultDisplayName } from '@/lib/clients/vaults'
 
 /**
  * Les vaults, un par ligne — avec SA dérive contre SON seuil.
@@ -92,7 +92,7 @@ export function VaultWatchlist({
           return (
             <TableRow key={vault.vaultId}>
               <TableCell className={tableCol.primary}>
-                <Link href={`/admin/clients/${vault.clientId}?vault=${encodeURIComponent(vault.vaultId)}`} className="font-medium">
+                <Link href={clientHref(vault.clientId, vault)} className="font-medium">
                   {vaultDisplayName(vault, rows)}
                 </Link>
                 {/* Plus d'identifiant de 45 caractères sous le nom : il ne se lit
@@ -147,7 +147,7 @@ export function VaultWatchlist({
               {/* Le bouton vert de /account : chaque ligne mène à SON vault. */}
               <TableCell className={tableCol.action}>
                 <Link
-                  href={`/admin/clients/${vault.clientId}?vault=${encodeURIComponent(vault.vaultId)}`}
+                  href={clientHref(vault.clientId, vault)}
                   className="ud-detail-btn inline-flex items-center no-underline"
                   aria-label={`Open ${vaultDisplayName(vault, rows)}`}
                 >

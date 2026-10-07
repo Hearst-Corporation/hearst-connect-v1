@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import './user-dashboard.css'
+import { accountHref } from './urls'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import {
   ArrowDownTrayIcon,
@@ -169,6 +170,8 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
   const live = available(true, { provenance: 'chain' })
   const sig = signalOf(live)
   const released = vault.status === 'RELEASED'
+  // Le vault dans l'URL : son rang, et rien quand le client n'en a qu'un.
+  const rank = (id: string) => (overview.vaults.length > 1 ? overview.vaults.findIndex((v) => v.vaultId === id) + 1 : undefined)
 
   // ── Position : toute la réserve, tous vaults confondus ─────────────────────
   const since = [...overview.vaults].map((v) => v.lockupStartAt).sort()[0] ?? null
@@ -314,7 +317,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               { id: 'activity', label: 'Movements', badge: vault.pendingWithdrawalBtc > 0 ? 1 : 0 },
             ]}
             active={tab}
-            base={`/account?vault=${encodeURIComponent(vault.vaultId)}`}
+            href={(id) => accountHref(rank(vault.vaultId), id as VaultTab)}
           />
           <div className="vault-tabs-actions">
             {overview.vaults.length > 1 ? (
@@ -322,7 +325,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                 {overview.vaults.map((v) => (
                   <Link
                     key={v.vaultId}
-                    href={`/account?vault=${encodeURIComponent(v.vaultId)}&tab=${tab}`}
+                    href={accountHref(rank(v.vaultId), tab)}
                     scroll={false}
                     className={`ud-seg-btn no-underline${v.vaultId === vault.vaultId ? ' active' : ''}`}
                   >

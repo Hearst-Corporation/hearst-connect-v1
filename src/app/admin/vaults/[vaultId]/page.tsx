@@ -1,5 +1,6 @@
 import { requireSession } from '@/lib/auth'
 import { loadClientBook } from '@/lib/clients/book'
+import { clientHref } from '@/lib/clients/vaults'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -15,5 +16,6 @@ export default async function Page({ params }: Readonly<{ params: Promise<{ vaul
   const { vaultId } = await params
   const book = await loadClientBook()
   const entry = book.entries.find((e) => e.vaults.some((v) => v.vaultId === vaultId))
-  redirect(entry ? `/admin/clients/${entry.clientId}?vault=${encodeURIComponent(vaultId)}` : '/admin/clients?view=active')
+  const vault = entry?.vaults.find((v) => v.vaultId === vaultId)
+  redirect(entry ? clientHref(entry.clientId, vault) : '/admin/clients?view=active')
 }

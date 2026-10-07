@@ -64,7 +64,7 @@ async function PendingDecisions() {
     <>
       <PendingStrip approvals={approvals} vaults={vaults} />
       {/* Par où commencer : les demandes les plus anciennes, une ligne chacune. */}
-      <OldestWaiting approvals={approvals} />
+      <OldestWaiting approvals={approvals} vaults={vaults} />
       <DecisionsDisclosure count={valueOf(approvals)?.length ?? 0}>
         <ApprovalsQueue approvals={approvals} />
       </DecisionsDisclosure>

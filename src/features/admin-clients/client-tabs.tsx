@@ -32,9 +32,10 @@ export function ClientTabs({
   tabs,
   active,
   base,
-}: Readonly<{ tabs: readonly ClientTab[]; active: string; base: string }>) {
+  href,
+}: Readonly<{ tabs: readonly ClientTab[]; active: string; base?: string; href?: (id: string) => string }>) {
   const router = useRouter()
-  const hrefOf = (id: string) => `${base}${base.includes('?') ? '&' : '?'}tab=${id}`
+  const hrefOf = href ?? ((id: string) => `${base}${base?.includes('?') ? '&' : '?'}tab=${id}`)
   // Arrivé par une ancre : on ouvre l'onglet qui la porte.
   useEffect(() => {
     const target = HASH_TO_TAB[window.location.hash.slice(1)]

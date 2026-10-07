@@ -1,6 +1,6 @@
 import { DashCard, DashboardHeader } from '@/components/admin/dashboard'
 import { Callout } from '@/components/compositions'
-import { loadDocuments, type PortalDocument } from '@/features/client-portal/load'
+import { loadDocuments, loadOverview, type PortalDocument } from '@/features/client-portal/load'
 import { requireSession } from '@/lib/auth'
 import { PaginatedTable } from '@/components/admin/paginated-table'
 import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
@@ -14,19 +14,20 @@ export const dynamic = 'force-dynamic'
 const monthLabel = (ym: string) =>
   new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
-function hrefOf(d: PortalDocument): string {
+/** `rank` : le rang du vault chez le client — l'URL dit `vault=2`, pas `31337-0x1111…`. */
+function hrefOf(d: PortalDocument, rank: (vaultId: string | undefined) => number): string {
   if (d.kind === 'proposal' && d.offerId) return `/proposal/${d.offerId}`
   if (d.kind === 'tax') return `/account/documents/statement?year=${d.period.slice(0, 4)}`
-  return `/account/documents/statement?month=${d.period}&vault=${encodeURIComponent(d.vaultId ?? '')}`
+  return `/account/documents/statement?month=${d.period}&vault=${rank(d.vaultId ?? undefined)}`
 }
 
 /** Une tuile de document : ce qu'il est, pour quoi, et l'ouvrir. */
-function DocTile({ doc, sub }: Readonly<{ doc: PortalDocument; sub: string }>) {
+function DocTile({ doc, sub, href }: Readonly<{ doc: PortalDocument; sub: string; href: string }>) {
   return (
     // Aplat vert, encre sombre : les deux documents qu'on cherche ressortent
     // du reste de la page, comme la tuile mise en avant de My Vault.
     <Link
-      href={hrefOf(doc)}
+      href={href}
       className="group flex items-center gap-4 rounded-[var(--ud-radius)] bg-[var(--hearst-green)] p-5 no-underline transition hover:brightness-105"
     >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--hearst-green-ink)]/10 text-[var(--hearst-green-ink)]">
@@ -54,7 +55,8 @@ function DocTile({ doc, sub }: Readonly<{ doc: PortalDocument; sub: string }>) {
  */
 export default async function DocumentsPage() {
   await requireSession()
-  const docs = await loadDocuments()
+  const [docs, overview] = await Promise.all([loadDocuments(), loadOverview()])
+  const rank = (vaultId: string | undefined) => (overview?.vaults.findIndex((v) => v.vaultId === vaultId) ?? -1) + 1
   if (docs === null) {
     return (
       <>
@@ -82,14 +84,14 @@ export default async function DocumentsPage() {
           <DashCard title="Annual reports" subtitle="Every vault, the full year — for your accountant">
             <div className="flex flex-col gap-3">
               {reports.map((d) => (
-                <DocTile key={d.id} doc={d} sub={d.vault} />
+                <DocTile key={d.id} doc={d} sub={d.vault} href={hrefOf(d, rank)} />
               ))}
             </div>
           </DashCard>
           <DashCard title="Proposals & terms" subtitle="What you signed, one per vault">
             <div className="flex flex-col gap-3">
               {proposals.map((d) => (
-                <DocTile key={d.id} doc={d} sub={`Signed terms · ${d.vault}`} />
+                <DocTile key={d.id} doc={d} sub={`Signed terms · ${d.vault}`} href={hrefOf(d, rank)} />
               ))}
             </div>
           </DashCard>
@@ -112,7 +114,7 @@ export default async function DocumentsPage() {
             </TableRow>
           }
           rows={rows.map((d) => (
-            <TableRow key={d.id} href={hrefOf(d)} title={`${d.vault} — ${monthLabel(d.period)}`} className="group">
+            <TableRow key={d.id} href={hrefOf(d, rank)} title={`${d.vault} — ${monthLabel(d.period)}`} className="group">
               <TableCell className="pr-6">
                 <span className="mr-4 flex items-center gap-3 whitespace-nowrap font-medium text-fg">
                   <DocumentTextIcon className="size-4 shrink-0 text-fg-tertiary" aria-hidden="true" />

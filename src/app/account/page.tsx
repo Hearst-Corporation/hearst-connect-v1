@@ -3,8 +3,10 @@ import { loadActivity, loadOverview, loadRewards, loadWallets } from '@/features
 import { reservePoints, scopeToVault } from '@/features/client-portal/scope'
 import { loadUserDashboard } from '@/features/user-dashboard/load'
 import { UserDashboardView, type VaultTab } from '@/features/user-dashboard/user-dashboard'
+import { accountHref, tabSlug } from '@/features/user-dashboard/urls'
 import { requireSession } from '@/lib/auth'
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = { title: 'My vault' }
 export const dynamic = 'force-dynamic'
@@ -17,10 +19,14 @@ export const dynamic = 'force-dynamic'
 export default async function AccountPage({ searchParams }: Readonly<{ searchParams: Promise<{ vault?: string; tab?: string }> }>) {
   await requireSession()
   const { vault: wanted, tab: wantedTab } = await searchParams
-  const TABS: readonly VaultTab[] = ['overview', 'compute', 'activity']
-  // L'ancien onglet « Capital & lockup » est réparti : la stratégie dans
-  // Strategy & mining, la fin de blocage sur l'Overview.
-  const tab = wantedTab === 'capital' ? 'compute' : (TABS.find((t) => t === wantedTab) ?? 'overview')
+  /* L'onglet dans l'URL porte le mot de l'écran (`strategy`, `movements`).
+     Les anciens (`compute`, `activity`, `capital`) y mènent encore. */
+  const tab: VaultTab =
+    wantedTab === 'strategy' || wantedTab === 'compute' || wantedTab === 'capital'
+      ? 'compute'
+      : wantedTab === 'movements' || wantedTab === 'activity'
+        ? 'activity'
+        : 'overview'
   const [data, overview, rewards, activity, wallets] = await Promise.all([
     loadUserDashboard(),
     loadOverview(),
@@ -37,10 +43,18 @@ export default async function AccountPage({ searchParams }: Readonly<{ searchPar
     )
   }
 
+  /* `?vault=2` : le rang du vault chez le client (1 = premier versement), et
+     rien quand il n'en a qu'un. Un ancien lien (identifiant on-chain, ancien
+     nom d'onglet) est réécrit dans cette forme. */
+  const n = Number(wanted)
+  const picked = Number.isInteger(n) && n >= 1 && n <= overview.vaults.length ? n - 1 : overview.vaults.findIndex((v) => v.vaultId === wanted)
   const vault =
-    overview.vaults.find((v) => v.vaultId === wanted) ??
+    overview.vaults[picked] ??
     [...overview.vaults].reverse().find((v) => v.status === 'ACTIVE') ??
     overview.vaults[0]
+  const canonical = accountHref(overview.vaults.length > 1 && picked >= 0 ? picked + 1 : undefined, tab)
+  const current = accountHref(wanted, wantedTab === undefined ? 'overview' : tab)
+  if (canonical !== current || (wantedTab !== undefined && tabSlug(tab) !== wantedTab) || wantedTab === 'overview') redirect(canonical)
 
   return (
     <UserDashboardView
