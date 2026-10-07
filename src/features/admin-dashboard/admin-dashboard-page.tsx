@@ -7,6 +7,7 @@ import {
   PanelHeaderLink,
   type DashboardKpi,
 } from '@/components/admin/dashboard'
+import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { HearstPrimaryAction } from '@/components/actions'
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { PendingStrip } from '@/features/admin-approvals/pending-strip'
@@ -123,7 +124,8 @@ function dashboardKpis(
       title: 'Client bitcoin reserves',
       value: book === null ? mapAvailability(vaults, () => '—') : available(btc2((capitalSats ?? 0) + (accumulatedSats ?? 0))),
       unit: 'BTC',
-      icon: BanknotesIcon,
+      // Le symbole ₿ : l'AUM, juste à côté, porte déjà les billets.
+      icon: BitcoinIcon,
       footnote:
         // Le détail dépôts / accumulé est dans le graphe « Client bitcoin reserves », plus bas.
         book !== null ? `Across ${book.length} client vault${book.length === 1 ? '' : 's'}` : null,
