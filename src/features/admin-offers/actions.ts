@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { writeRefusal } from '@/lib/settings/roles'
 import type { BackendResolved } from '@/lib/admin-dashboard/cache'
 import type { OfferSimulation } from '@/lib/admin-dashboard/contracts'
 import { loadOfferSimulation } from '@/lib/admin-dashboard/load'
@@ -60,7 +61,8 @@ function whole(raw: FormDataEntryValue | null): number | null {
 }
 
 export async function createOffer(_prev: CreateOfferState, form: FormData): Promise<CreateOfferState> {
-  if ((await getSession()) === null) return { error: 'Session expired — sign in again.' }
+  const refused = await writeRefusal()
+  if (refused) return { error: refused }
 
   const clientName = String(form.get('clientName') ?? '').trim()
   const amountUsdc = whole(form.get('amountUsdc'))
@@ -116,7 +118,8 @@ export async function createOffer(_prev: CreateOfferState, form: FormData): Prom
 export type StepOutcome = Readonly<{ ok: boolean; error: string | null }>
 
 export async function advanceOffer(_prev: StepOutcome | null, form: FormData): Promise<StepOutcome> {
-  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const id = String(form.get('offerId') ?? '')
   const to = String(form.get('to') ?? '')
   const by = String(form.get('by') ?? 'admin')
@@ -141,7 +144,8 @@ export async function sendOfferEmail(
   emailId: string,
   draft: Readonly<{ to: readonly string[]; cc: readonly string[]; subject: string; body: string }>,
 ): Promise<StepOutcome> {
-  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const res = await callBackend('admin-offer-email-send', {
     params: { id: offerId, emailId },
     body: { to: draft.to, cc: draft.cc, subject: draft.subject, body: draft.body },
@@ -156,7 +160,8 @@ export async function sendOfferEmail(
    et le vault se clôt. Renouveler, c'est une NOUVELLE tranche. */
 
 export async function releaseVault(_prev: StepOutcome | null, form: FormData): Promise<StepOutcome> {
-  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const vaultId = String(form.get('vaultId') ?? '')
   if (vaultId === '') return { ok: false, error: 'No vault given.' }
   const res = await callBackend('admin-vault-release', { params: { vaultId } })

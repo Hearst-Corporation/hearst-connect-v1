@@ -1,8 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { writeRefusal } from '@/lib/settings/roles'
 import { callBackend } from '@/lib/backend/client'
-import { getSession } from '@/lib/session'
 
 /**
  * La décision d'un admin sur un élément en attente : un dépôt, une
@@ -14,7 +14,8 @@ import { getSession } from '@/lib/session'
 export type DecisionOutcome = Readonly<{ ok: boolean; error: string | null; decision: 'approve' | 'decline' | null }>
 
 export async function decideApproval(_prev: DecisionOutcome | null, form: FormData): Promise<DecisionOutcome> {
-  if ((await getSession()) === null) return { ok: false, error: 'Session expired — sign in again.', decision: null }
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused, decision: null }
   const id = String(form.get('id') ?? '')
   const decision = form.get('decision') === 'decline' ? 'decline' : 'approve'
   if (id === '') return { ok: false, error: 'Missing item.', decision: null }

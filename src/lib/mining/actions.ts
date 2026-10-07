@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { callBackend } from '@/lib/backend/client'
 import { getSession } from '@/lib/session'
+import { writeRefusal } from '@/lib/settings/roles'
 import { toBackendRole } from '@/lib/backend/auth'
 
 export type ApproveOutcome = {
@@ -24,6 +25,8 @@ export async function approveDistribution(
     return { ok: false, error: 'Distribution identifier missing.' }
   }
 
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const session = await getSession()
   if (!session || toBackendRole(session.role) !== 'admin') {
     return { ok: false, error: 'Administrator role required.' }
@@ -64,6 +67,8 @@ export async function triggerCalculation(
     return { ok: false, error: 'RWA strategy id is required.' }
   }
 
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const session = await getSession()
   if (!session || toBackendRole(session.role) !== 'admin') {
     return { ok: false, error: 'Administrator role required.' }
@@ -99,6 +104,8 @@ export async function payElectricity(
     return { ok: false, error: 'Amount is required.' }
   }
 
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const session = await getSession()
   if (!session || toBackendRole(session.role) !== 'admin') {
     return { ok: false, error: 'Administrator role required.' }

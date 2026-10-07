@@ -1,6 +1,7 @@
 'use client'
 
 import { InboxBell } from '@/features/admin-inbox/inbox-bell'
+import { TopbarNav, type PaletteClient } from '@/components/admin/command-palette'
 import type { InboxItem } from '@/lib/notifications/inbox'
 
 import {
@@ -174,7 +175,8 @@ export function AdminApplicationLayout({
   user,
   inbox,
   children,
-}: Readonly<{ user: SessionUser; inbox: readonly InboxItem[]; children: React.ReactNode }>) {
+  clients = [],
+}: Readonly<{ user: SessionUser; inbox: readonly InboxItem[]; children: React.ReactNode; clients?: readonly PaletteClient[] }>) {
   const pathname = usePathname()
   const activeGroup = activeSecondaryGroup(pathname)
   const activePrimary = activeHref(pathname)
@@ -256,13 +258,8 @@ export function AdminApplicationLayout({
             l'écran d'un seul tenant. La console n'en portait pas en desktop,
             donc le filet du rail s'arrêtait net. */}
         <header className="-mx-6 mb-6 flex h-[88px] items-center justify-between gap-4 border-b border-[var(--ud-line)] px-6 max-md:hidden">
-          <div className="flex items-center gap-2.5">
-            <i
-              aria-hidden="true"
-              className="size-[7px] rounded-full bg-[var(--hearst-green)]"
-            />
-            <span className="text-[13px] text-[var(--ud-fg-2)]">Console</span>
-          </div>
+          {/* Où l'on est, et ⌘K pour aller n'importe où. */}
+          <TopbarNav clients={clients} />
           {/* La pastille de /account : 30px, ronde, 11px — `NavbarAvatar`
               n'emporte aucune taille et comptait sur le contexte de la
               navbar Catalyst, absent ici : l'initiale sortait en 48px dans

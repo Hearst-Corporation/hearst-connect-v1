@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { callBackend } from '@/lib/backend/client'
 import { getSession } from '@/lib/session'
+import { writeRefusal } from '@/lib/settings/roles'
 
 /* ── LES CHANGEMENTS DE RÉGLAGES ────────────────────────────────────────────
    Une modification ne s'applique jamais à l'enregistrement : elle devient une
@@ -14,6 +15,8 @@ export type SettingsOutcome = Readonly<{ ok: boolean; error: string | null }>
 export async function requestChange(section: string, value: unknown, reason: string): Promise<SettingsOutcome> {
   const session = await getSession()
   if (session === null) return { ok: false, error: 'Session expired — sign in again.' }
+  const refused = await writeRefusal()
+  if (refused) return { ok: false, error: refused }
   const res = await callBackend('admin-settings-change', {
     body: { section, value, reason, author: session.email },
   })

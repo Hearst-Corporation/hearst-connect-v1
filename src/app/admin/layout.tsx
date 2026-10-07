@@ -3,6 +3,8 @@ import { TableLabels } from '@/components/admin/table-labels'
 import { DemoDock } from '@/features/demo/demo-dock'
 import { requireSession } from '@/lib/auth'
 import { loadAdminInbox } from '@/lib/notifications/inbox'
+import { loadAdminRecentClients } from '@/lib/admin-dashboard/load'
+import { isAvailable } from '@/lib/vaults/model'
 import { publicUser } from '@/lib/session'
 import type { Metadata } from 'next'
 
@@ -33,10 +35,16 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   const session = await requireSession()
   // La boîte de réception de la cloche : lue ici une fois, puis rafraîchie
   // par la cloche elle-même (la mise en page ne se recalcule pas à chaque page).
-  const inbox = await loadAdminInbox().catch(() => [])
+  const [inbox, clients] = await Promise.all([
+    loadAdminInbox().catch(() => []),
+    // L'annuaire, pour ⌘K et le fil d'Ariane (« Clients › ZAND Bank »).
+    loadAdminRecentClients(200)
+      .then((c) => (isAvailable(c) ? c.value.map((x) => ({ id: x.id, label: x.label })) : []))
+      .catch(() => []),
+  ])
   return (
     <div className="ud-root ud-admin">
-      <AdminApplicationLayout user={publicUser(session)} inbox={inbox}>
+      <AdminApplicationLayout user={publicUser(session)} inbox={inbox} clients={clients}>
         {children}
       </AdminApplicationLayout>
       <TableLabels />
