@@ -83,6 +83,7 @@ export function HearstExposureRadial({
   yields = null,
   expanded = false,
   center = null,
+  dial = true,
 }: Readonly<{
   items: readonly ExposureItem[]
   /** AUM du vault : chiffre chaque poche en dollars. Sans lui, la légende
@@ -100,6 +101,9 @@ export function HearstExposureRadial({
   /** Ce que dit le centre du cadran, à la place de la « worst drift » : pour
    *  un client, un statut en mots (« On target ») se lit mieux qu'un écart. */
   center?: { readonly value: string; readonly label: string; readonly tag: string; readonly ok: boolean } | null
+  /** Sans cadran : les poches seules, quand un autre graphe montre déjà la
+   *  répartition à côté. */
+  dial?: boolean
 }>) {
   const rows: Row[] = items.map((p, index) => ({
     ...p,
@@ -169,6 +173,7 @@ export function HearstExposureRadial({
       />
 
       <div className="ud-radial-row flex flex-wrap items-center gap-x-7 gap-y-6">
+        {dial ? (
         <div className="ud-radial-dial relative aspect-square w-[16rem] min-w-[12rem] max-w-full flex-[0_1_auto]">
           <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden="true">
             {geom.map((g, index) => (
@@ -247,6 +252,8 @@ export function HearstExposureRadial({
             )}
           </div>
         </div>
+
+        ) : null}
 
         {/* Legend = exact numbers (the rings are the visual comparison). */}
         <div className="min-w-[20rem] flex-[1_1_32rem]">

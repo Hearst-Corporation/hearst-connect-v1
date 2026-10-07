@@ -20,7 +20,6 @@ import {
 import Link from 'next/link'
 import type { SeriesState } from '@/components/charts/core/chart-frame'
 import { AdminHeroTitle } from '@/components/admin/typography'
-import { HearstExposureRadial } from '@/components/charts'
 import { ReserveCompositionChart, type ReserveSplitPoint } from '@/features/admin-dashboard/book-charts'
 import { ExportButtons } from '@/components/admin/paginated-table'
 import { EndOfTermChoice, InvestMoreButton, WithdrawButton, type WithdrawWallet } from '@/features/client-portal/controls'
@@ -34,7 +33,6 @@ import { BreakdownFlank } from './breakdown-flank'
 import { MiningEconomicsFlank } from './mining-economics-flank'
 import { ComputeFleetPanel } from './compute-fleet-panel'
 import { MovementTimeline } from './movement-timeline'
-import { HearstAllocationStackChart } from '@/components/charts/richart/allocation-stack-chart'
 import { DistributionsDonut } from './distributions-donut'
 import { BtcPositionHeadline } from './btc-position'
 import { ClientTabs } from '@/features/admin-clients/client-tabs'
@@ -56,12 +54,12 @@ import type { Distribution, UserDashboard, UserMovement } from './load'
  * contexte (marché, réseau, parc) vient des lectures communes.
  */
 
-type CentralView = 'compute' | 'reserve' | 'allocation'
+type CentralView = 'compute' | 'reserve' | 'strategy'
 
 const CENTRAL_VIEWS: readonly { key: CentralView; label: string; icon: typeof CpuChipIcon }[] = [
   { key: 'compute', label: 'Compute', icon: CpuChipIcon },
   { key: 'reserve', label: 'Reserve', icon: ChartBarIcon },
-  { key: 'allocation', label: 'Allocation', icon: ChartPieIcon },
+  { key: 'strategy', label: 'Strategy', icon: PresentationChartLineIcon },
 ]
 
 const MOVE_TITLE: Record<string, string> = {
@@ -87,7 +85,70 @@ function seriesState(a: Availability<unknown>, has: boolean, empty: string, miss
   return { type: 'plotted' }
 }
 
-export type VaultTab = 'overview' | 'compute' | 'capital' | 'activity'
+/** Les teintes des poches — celles du donut de gauche. */
+const BUCKET_HUE: Record<string, string> = { 'Mining Alpha': '#9eea7a', 'Bitcoin Lending': '#6b6b6b', 'USDC Yield': '#a9a9a9' }
+
+type StrategyRow = {
+  label: string
+  color: string
+  targetPct: number
+  actualPct: number | null
+  protocol: string
+  yieldPct: number | null
+  earnedBtc: number
+}
+
+/**
+ * Les trois poches, dessinées : la part réelle sur une jauge où se voient la
+ * cible (le trait) et la bande tolérée autour (la zone claire). Une poche hors
+ * de sa bande se voit avant de se lire — c'est tout le rebalancing.
+ */
+function StrategyBuckets({ rows, band }: Readonly<{ rows: readonly StrategyRow[]; band: number }>) {
+  const max = Math.max(60, ...rows.map((r) => Math.max(r.targetPct + band, r.actualPct ?? 0) + 5))
+  const at = (pct: number) => `${Math.min(100, Math.max(0, (pct / max) * 100))}%`
+  return (
+    <ul className="strategy-buckets">
+      {rows.map((r) => {
+        const drift = r.actualPct === null ? null : r.actualPct - r.targetPct
+        const out = drift !== null && Math.abs(drift) > band
+        return (
+          <li key={r.label} className="strategy-bucket">
+            <div className="strategy-bucket-head">
+              <span className="strategy-bucket-name">
+                <i style={{ background: r.color }} aria-hidden="true" />
+                {r.label}
+                <em>{r.protocol}</em>
+              </span>
+              <span className="strategy-bucket-share">{r.actualPct === null ? '—' : `${r.actualPct.toFixed(1)} %`}</span>
+            </div>
+            <div className="strategy-gauge" aria-hidden="true">
+              <span className="strategy-gauge-band" style={{ left: at(r.targetPct - band), width: `calc(${at(r.targetPct + band)} - ${at(r.targetPct - band)})` }} />
+              {r.actualPct !== null ? <span className="strategy-gauge-fill" style={{ width: at(r.actualPct), background: r.color }} /> : null}
+              <span className="strategy-gauge-target" style={{ left: at(r.targetPct) }} />
+            </div>
+            <div className="strategy-bucket-foot">
+              <span>
+                Target {Math.round(r.targetPct)} %
+                {drift !== null ? (
+                  <b className={out ? 'is-out' : undefined}>
+                    {drift >= 0 ? '+' : ''}
+                    {drift.toFixed(1)} pt
+                  </b>
+                ) : null}
+              </span>
+              <span>
+                <b className="is-yield">{r.yieldPct === null ? '—' : `${r.yieldPct.toFixed(1)} % / yr`}</b>
+                <b className="is-earned">+{formatBtc(r.earnedBtc)} earned</b>
+              </span>
+            </div>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+export type VaultTab = 'overview' | 'compute' | 'activity'
 
 export type ClientVaultProps = Readonly<{
   tab: VaultTab
@@ -163,15 +224,14 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
 
   // ── Panneau central ──────────────────────────────────────────────────────
   const fleet = valueOf(data.fleet)
-  const allocationTime = valueOf(data.allocationSeries)
   /* Ce que chaque bucket a rapporté à CE vault depuis l'entrée, en bitcoin. */
   const earned = ['Mining Alpha', 'Bitcoin Lending', 'USDC Yield'].map((bucket, i) => ({
     bucket,
     color: ['#9eea7a', '#6b6b6b', '#a9a9a9'][i],
     btc: credited.reduce((t, r) => t + (r.pockets.find((p) => p.bucket === bucket)?.btc ?? 0), 0),
   }))
-  const earnedTotal = earned.reduce((t, e) => t + e.btc, 0)
   const reserveSource = available(reserve, { provenance: 'chain' })
+  const exposure = valueOf(data.exposure)
   const views: Record<CentralView, { question: string; unit: string; state: SeriesState; node: ReactNode; source: Availability<unknown> }> = {
     compute: {
       question: 'Compute infrastructure',
@@ -191,40 +251,56 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
       ),
       source: reserveSource,
     },
-    allocation: {
-      question: 'Vault composition',
-      unit: 'share of vault by bucket · and what each one earned',
-      state: seriesState(
-        data.allocationSeries,
-        allocationTime !== null && allocationTime.length > 1,
-        'Allocation history is not deep enough to plot yet.',
-        'Awaiting a verified allocation source.',
-      ),
+    strategy: {
+      question: 'Strategy exposure',
+      unit: 'target vs actual · protocol, rate and what each bucket earned',
+      state: seriesState(data.exposure, exposure !== null, 'No allocation to show yet.', 'Awaiting a verified allocation source.'),
       node:
-        allocationTime !== null ? (
-          <div className="center-allocation">
-            <HearstAllocationStackChart points={[...allocationTime]} viewport="hero" />
-            <ul className="bucket-earned" aria-label="Earned by each bucket">
-              {earned.map((e) => (
-                <li key={e.bucket}>
-                  <span className="bucket-earned-name">
-                    <i style={{ background: e.color }} aria-hidden="true" />
-                    {e.bucket}
-                  </span>
-                  <span className="bucket-earned-value">+{formatBtc(e.btc)}</span>
-                  <span className="bucket-earned-share">
-                    {earnedTotal > 0 ? `${((e.btc / earnedTotal) * 100).toFixed(0)} % of earnings` : '—'}
-                  </span>
-                </li>
-              ))}
-            </ul>
+        exposure !== null ? (
+          <div className="center-strategy">
+            {(() => {
+              const c = (() => {
+                const band = vault.allocation.bandBps / 100
+                const ok = exposure.every((e) => e.actualPct === null || Math.abs(e.actualPct - e.targetPct) <= band)
+                // Le rendement des trois poches ensemble, pondéré par leur poids.
+                const weight = vault.pockets.reduce((t, p) => t + p.capitalUsd, 0)
+                const blended = weight > 0 ? vault.pockets.reduce((t, p) => t + p.apyPct * p.capitalUsd, 0) / weight : null
+                return { value: blended === null ? '—' : `${blended.toFixed(1)} %`, label: 'per year', tag: ok ? 'On target' : 'Rebalancing', ok }
+              })()
+              return (
+                <div className="strategy-summary">
+                  <span className="strategy-summary-value">{c.value}</span>
+                  <span className="strategy-summary-label">a year, blended across your three buckets</span>
+                  <span className={`strategy-summary-tag${c.ok ? ' is-ok' : ''}`}>{c.tag}</span>
+                </div>
+              )
+            })()}
+            <StrategyBuckets
+              rows={exposure.map((e) => {
+                const pocket = vault.pockets.find((p) => p.name === e.label)
+                return {
+                  label: e.label,
+                  color: BUCKET_HUE[e.label] ?? '#888',
+                  targetPct: e.targetPct,
+                  actualPct: e.actualPct,
+                  protocol: pocket?.protocol ?? '—',
+                  yieldPct: pocket?.apyPct ?? null,
+                  earnedBtc: earned.find((x) => x.bucket === e.label)?.btc ?? 0,
+                }
+              })}
+              band={vault.allocation.bandBps / 100}
+            />
+            <p className="rebalance-line">
+              <CheckCircleIcon className="size-4" aria-hidden="true" />
+              Beyond ±{vault.allocation.bandBps / 100} pt from target, Hearst rebalances back — only between your buckets, every move approved and
+              recorded.
+            </p>
           </div>
         ) : null,
-      source: data.allocationSeries,
+      source: data.exposure,
     },
   }
   const active = views[central]
-  const exposure = valueOf(data.exposure)
 
   return (
     <MotionConfig reducedMotion="user">
@@ -234,8 +310,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
           <ClientTabs
             tabs={[
               { id: 'overview', label: 'Overview', badge: 0 },
-              { id: 'compute', label: 'Compute & mining', badge: 0 },
-              { id: 'capital', label: 'Capital & lockup', badge: 0 },
+              { id: 'compute', label: 'Strategy & mining', badge: 0 },
               { id: 'activity', label: 'Movements', badge: vault.pendingWithdrawalBtc > 0 ? 1 : 0 },
             ]}
             active={tab}
@@ -336,9 +411,20 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               <p className="eyebrow">Your vault</p>
               <h2>{vault.label}</h2>
               <span>
-                {usd(vault.principalUsdc)} deposited {formatDate(vault.lockupStartAt)} · converted at {usd(vault.entryRateUsd)} / BTC
+                {usd(vault.principalUsdc)} on {formatDate(vault.lockupStartAt)} · {usd(vault.entryRateUsd)} / BTC
               </span>
             </div>
+            {/* Le choix de fin de blocage vit avec SON vault : visible dès
+                l'arrivée, à côté de la tuile « Capital locked ». */}
+            {released ? null : (
+              <div className="vault-term">
+                <span className="vault-term-label">
+                  At the end of the lockup
+                  <em>you can change until {formatDate(vault.lockupEndAt)}</em>
+                </span>
+                <EndOfTermChoice vaultId={vault.vaultId} value={vault.endOfTerm} />
+              </div>
+            )}
           </div>
           ) : null}
 
@@ -468,87 +554,6 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
           </section>
           ) : null}
 
-          {/* ── 4. L'exposition, puis l'échéance ────────────────────────── */}
-          {tab === 'capital' ? (
-          <>
-          <section id="exposure" className="exposure-cap" aria-label="Strategy exposure">
-            <div className="ec-panel">
-              <div className="ec-heading">
-                <h2>
-                  <PresentationChartLineIcon className="size-4" aria-hidden="true" />
-                  Strategy Exposure
-                </h2>
-                <span>Target vs actual · % of vault · each bucket’s protocol and current rate</span>
-              </div>
-              <div className="ec-body">
-                {exposure !== null ? (
-                  <HearstExposureRadial
-                    items={[...exposure]}
-                    aumUsdc={vault.principalUsdc}
-                    briefs={Object.fromEntries(
-                      vault.pockets.map((p) => {
-                        const target = exposure.find((e) => e.label === p.name)?.targetPct
-                        return [p.name, target === undefined ? p.protocol : `${p.protocol} · target ${Math.round(target)} %`]
-                      }),
-                    )}
-                    yields={valueOf(data.bucketYields)}
-                    expanded
-                    center={(() => {
-                      const band = vault.allocation.bandBps / 100
-                      const ok = exposure.every((e) => e.actualPct === null || Math.abs(e.actualPct - e.targetPct) <= band)
-                      // Le rendement des trois poches ensemble, pondéré par leur poids.
-                      const weight = vault.pockets.reduce((t, p) => t + p.capitalUsd, 0)
-                      const blended = weight > 0 ? vault.pockets.reduce((t, p) => t + p.apyPct * p.capitalUsd, 0) / weight : null
-                      return {
-                        value: blended === null ? '—' : `${blended.toFixed(1)} %`,
-                        label: 'per year',
-                        tag: ok ? 'On target' : 'Rebalancing',
-                        ok,
-                      }
-                    })()}
-                  />
-                ) : null}
-                <p className="rebalance-line">
-                  <CheckCircleIcon className="size-4" aria-hidden="true" />
-                  Beyond ±{vault.allocation.bandBps / 100} pt from target, Hearst rebalances back — only between your buckets, every move approved
-                  and recorded.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {released ? null : (
-            <section id="lockup" className="exposure-cap" aria-label="End of lockup">
-              <div className="ec-panel">
-                <div className="ec-heading">
-                  <h2>
-                    <CalendarDaysIcon className="size-4" aria-hidden="true" />
-                    At the end of the lockup
-                  </h2>
-                  <span>Tell us now — you can change your mind until {formatDate(vault.lockupEndAt)}</span>
-                </div>
-                <div className="ec-body term-choice">
-                  <div className="term-choice-track">
-                    <div className="term-choice-labels">
-                      <span>
-                        Month {vault.elapsedMonths} of {vault.lockupMonths}
-                      </span>
-                      <span>Unlocks {formatDate(vault.lockupEndAt)}</span>
-                    </div>
-                    <div className="term-choice-bar">
-                      <span style={{ width: `${Math.min(100, (vault.elapsedMonths / Math.max(1, vault.lockupMonths)) * 100)}%` }} />
-                    </div>
-                  </div>
-                  <div className="term-choice-side">
-                    <EndOfTermChoice vaultId={vault.vaultId} value={vault.endOfTerm} />
-                    <p className="term-choice-note">Receive {formatBtc(vault.reserveBtc)} to your whitelisted wallet, or renew at that day’s price.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-          </>
-          ) : null}
         </section>
         ) : null}
 

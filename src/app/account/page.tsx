@@ -17,8 +17,10 @@ export const dynamic = 'force-dynamic'
 export default async function AccountPage({ searchParams }: Readonly<{ searchParams: Promise<{ vault?: string; tab?: string }> }>) {
   await requireSession()
   const { vault: wanted, tab: wantedTab } = await searchParams
-  const TABS: readonly VaultTab[] = ['overview', 'compute', 'capital', 'activity']
-  const tab = TABS.find((t) => t === wantedTab) ?? 'overview'
+  const TABS: readonly VaultTab[] = ['overview', 'compute', 'activity']
+  // L'ancien onglet « Capital & lockup » est réparti : la stratégie dans
+  // Strategy & mining, la fin de blocage sur l'Overview.
+  const tab = wantedTab === 'capital' ? 'compute' : (TABS.find((t) => t === wantedTab) ?? 'overview')
   const [data, overview, rewards, activity, wallets] = await Promise.all([
     loadUserDashboard(),
     loadOverview(),
