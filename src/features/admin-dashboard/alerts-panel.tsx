@@ -19,15 +19,15 @@ export async function AlertsPanel() {
   const alerts: Alert[] = []
 
   if ((settings?.values.limits as { guardianPause?: boolean } | undefined)?.guardianPause) {
-    alerts.push({ tone: 'red', title: 'Guardian pause is ON', detail: 'Every allocation move is frozen', href: '/admin/settings/limits' })
+    alerts.push({ kind: 'guardian', tone: 'red', title: 'Guardian pause is ON', detail: 'Every allocation move is frozen', href: '/admin/settings/limits' })
   }
   for (const i of integrations ?? []) {
     if (i.status !== 'connected') {
-      alerts.push({ tone: 'red', title: `${i.name} is ${i.status.replace('_', ' ')}`, detail: i.role, href: '/admin/settings/integrations' })
+      alerts.push({ kind: 'integration', tone: 'red', title: `${i.name} is ${i.status.replace('_', ' ')}`, detail: i.role, href: '/admin/settings/integrations' })
     }
   }
   if (integrations === null) {
-    alerts.push({ tone: 'amber', title: 'Integrations could not be read', detail: 'Their health is unknown', href: '/admin/settings/integrations' })
+    alerts.push({ kind: 'integration', tone: 'amber', title: 'Integrations could not be read', detail: 'Their health is unknown', href: '/admin/settings/integrations' })
   }
   if (isAvailable(vaults)) {
     /* Un client à plusieurs tranches : on dit laquelle, sinon « ZAND Bank » apparaît deux fois sans qu'on sache pourquoi. */
@@ -37,9 +37,11 @@ export async function AlertsPanel() {
       (count.get(v.clientId) ?? 0) > 1 ? `${v.clientLabel} · Vault ${v.tranche ?? 1}` : v.clientLabel
     for (const v of vaults.value.filter((x) => x.status.toUpperCase() === 'ACTIVE' && isVaultDrifting(x))) {
       alerts.push({
+        kind: 'drift',
         tone: 'amber',
-        title: `${nameOf(v)} out of band`,
+        title: nameOf(v),
         detail: `${((v.worstDriftBps ?? 0) / 100).toFixed(2)} pt vs ±${driftThresholdOf(v) / 100} pt`,
+        drift: { pt: Math.abs(v.worstDriftBps ?? 0) / 100, band: driftThresholdOf(v) / 100 },
         href: `/admin/clients/${v.clientId}?vault=${encodeURIComponent(v.vaultId)}&tab=allocation`,
       })
     }
@@ -47,6 +49,7 @@ export async function AlertsPanel() {
     for (const v of vaults.value.filter((x) => x.status.toUpperCase() === 'ACTIVE' && x.lockupEndAt && Date.parse(x.lockupEndAt) <= soon)) {
       const ended = Date.parse(v.lockupEndAt as string) <= Date.now()
       alerts.push({
+        kind: 'lockup',
         tone: ended ? 'amber' : 'sky',
         title: `${nameOf(v)} — lockup ${ended ? 'ended' : 'ends soon'}`,
         detail: `${formatDate(v.lockupEndAt)} · release or renew`,
@@ -56,7 +59,7 @@ export async function AlertsPanel() {
   }
   const waiting = (settings?.changes ?? []).filter((c) => c.status === 'pending').length
   if (waiting > 0) {
-    alerts.push({ tone: 'sky', title: `${waiting} settings change${waiting > 1 ? 's' : ''} to approve`, detail: 'Four eyes — another member decides', href: '/admin/settings' })
+    alerts.push({ kind: 'settings', tone: 'sky', title: `${waiting} settings change${waiting > 1 ? 's' : ''} to approve`, detail: 'Four eyes — another member decides', href: '/admin/settings' })
   }
 
   if (alerts.length === 0) {
