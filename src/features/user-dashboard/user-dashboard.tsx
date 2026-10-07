@@ -508,6 +508,13 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                     )}
                     yields={valueOf(data.bucketYields)}
                     expanded
+                    center={(() => {
+                      const band = vault.allocation.bandBps / 100
+                      const ok = exposure.every((e) => e.actualPct === null || Math.abs(e.actualPct - e.targetPct) <= band)
+                      return ok
+                        ? { value: 'On target', label: `all within ±${band} pt`, ok }
+                        : { value: 'Rebalancing', label: `beyond ±${band} pt`, ok }
+                    })()}
                   />
                 ) : null}
                 <p className="rebalance-line">

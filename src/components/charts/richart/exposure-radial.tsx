@@ -82,6 +82,7 @@ export function HearstExposureRadial({
   briefs = null,
   yields = null,
   expanded = false,
+  center = null,
 }: Readonly<{
   items: readonly ExposureItem[]
   /** AUM du vault : chiffre chaque poche en dollars. Sans lui, la légende
@@ -96,6 +97,9 @@ export function HearstExposureRadial({
   /** Détail de chaque poche toujours ouvert (protocole, cible, réel) — sans
    *  bouton. Pour l'écran client, où ce détail EST l'information. */
   expanded?: boolean
+  /** Ce que dit le centre du cadran, à la place de la « worst drift » : pour
+   *  un client, un statut en mots (« On target ») se lit mieux qu'un écart. */
+  center?: { readonly value: string; readonly label: string; readonly ok: boolean } | null
 }>) {
   const rows: Row[] = items.map((p, index) => ({
     ...p,
@@ -213,7 +217,12 @@ export function HearstExposureRadial({
             ))}
           </svg>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            {worst !== null ? (
+            {center !== null ? (
+              <>
+                <span className={`text-lg font-semibold ${center.ok ? 'text-accent-400' : 'text-fg'}`}>{center.value}</span>
+                <span className="text-[11px] text-fg-tertiary">{center.label}</span>
+              </>
+            ) : worst !== null ? (
               <>
                 <span
                   className={`text-2xl font-semibold tabular-nums ${worst.d >= 0 ? 'text-accent-400' : 'text-fg'}`}
