@@ -6263,7 +6263,7 @@
     height: 610px;
   }
   .ud-root .analysis--fund .center-plot {
-    height: 425px;
+    height: 416px;
   }
   /* Moins de texte : la note sous « Produced for you » redisait l'en-tête. */
   .ud-root .analysis--fund .fleet-mine-note {
@@ -6299,14 +6299,18 @@
 
 /* Mining Economics resserré pour la hauteur commune de 590 px. */
 @media (min-width: 1025px) {
+  /* Le corps occupe toute la hauteur du flanc et répartit l'air entre ses
+     blocs : ni vide en bas, ni lignes collées. */
   .ud-root .vault-tab-body .mining-flank-body {
     gap: 14px;
+    flex: 1 1 auto;
+    justify-content: space-between;
   }
   .ud-root .vault-tab-body .mining-flank-params {
-    gap: 8px;
+    gap: 10px;
   }
   .ud-root .vault-tab-body .mining-flank-params .term-row {
-    padding: 9px 14px;
+    padding: 11px 14px;
   }
   .ud-root .vault-tab-body .mining-flank-foot {
     padding: 6px 14px;
@@ -6364,8 +6368,8 @@
 /* Overview : 5 px de plus au-dessus et au-dessous des en-têtes et de la
    rangée BTC ; l'écart entre les deux sections se resserre d'autant. */
 .ud-root .vault-tab-body--overview .section-heading {
-  padding-top: 26px;
-  padding-bottom: 26px;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }
 .ud-root .vault-tab-body--overview .btc-block-top .stat-tile {
   padding-top: 24px;
@@ -6373,11 +6377,13 @@
 }
 @media (min-width: 1025px) {
   .ud-root .vault-tab-body--overview {
-    gap: 12px;
+    gap: 8px;
   }
+  /* Le « +21.9 % » est haut : il creusait l'air au-dessus du titre. 6 px en
+     haut, 12 en bas donnent le même vide visible des deux côtés. */
   .ud-root .vault-tab-body--overview .btc-gauge {
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 14px;
+    padding-bottom: 20px;
   }
 }
 
@@ -6386,4 +6392,9 @@
   .ud-root .dashboard-view:has(> .vault-tabs-row) {
     row-gap: 18px;
   }
+}
+/* La pastille de provenance tient sur une ligne, même en flanc étroit. */
+.ud-root .vault-tab-body .mining-flank-foot {
+  white-space: nowrap;
+  font-size: 12px;
 }

@@ -205,7 +205,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
       node:
         allocationTime !== null ? (
           <div className="center-allocation">
-            <HearstAllocationStackChart points={[...allocationTime]} viewport="hero" />
+            <HearstAllocationStackChart points={[...allocationTime]} viewport="standard" />
             <ul className="bucket-earned" aria-label="Earned by each bucket">
               {earned.map((e) => (
                 <li key={e.bucket}>
@@ -215,7 +215,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                   </span>
                   <span className="bucket-earned-value">+{formatBtc(e.btc)}</span>
                   <span className="bucket-earned-share">
-                    {earnedTotal > 0 ? `${((e.btc / earnedTotal) * 100).toFixed(0)} % of what your vault earned` : '—'}
+                    {earnedTotal > 0 ? `${((e.btc / earnedTotal) * 100).toFixed(0)} % of earnings` : '—'}
                   </span>
                 </li>
               ))}
@@ -296,7 +296,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               },
               { provenance: 'chain' },
             )}
-            note={`${formatBtc(totals.capitalBtc)} bought with your deposits + ${formatBtc(totals.producedBtc)} added by the buckets · ≈ ${usd(totals.valueUsd)}`}
+            note={`${formatBtc(totals.capitalBtc)} deposited + ${formatBtc(totals.producedBtc)} earned`}
             terms={[
               {
                 label: 'Deposited',
@@ -516,7 +516,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                       const blended = weight > 0 ? vault.pockets.reduce((t, p) => t + p.apyPct * p.capitalUsd, 0) / weight : null
                       return {
                         value: blended === null ? '—' : `${blended.toFixed(1)} %`,
-                        label: 'a year, at today’s rates',
+                        label: 'per year',
                         tag: ok ? 'On target' : 'Rebalancing',
                         ok,
                       }

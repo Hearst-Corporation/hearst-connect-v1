@@ -186,7 +186,7 @@ function MiningEconomicsBody({
         />
         <MetricRow
           icon={BoltIcon}
-          label="Electricity"
+          label="Power cost"
           value={
             cost.electricityUsdPerKwh !== null
               ? `$${formatNumber(cost.electricityUsdPerKwh, { maximumFractionDigits: 3 })} / kWh`
