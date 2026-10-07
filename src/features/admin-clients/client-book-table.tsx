@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_VIEW_PATH, type View } from './views'
 import { PaginatedTable } from '@/components/admin/paginated-table'
 import { SegSelect } from '@/components/admin/seg-select'
 import { Badge } from '@/components/catalyst/badge'
@@ -41,7 +42,6 @@ export type ClientRow = Readonly<{
   owner: string | null
 }>
 
-type View = 'all' | 'onUs' | 'pipeline' | 'active' | 'closed'
 
 const VIEWS: readonly { id: View; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -79,10 +79,14 @@ function matches(row: ClientRow, view: View): boolean {
   }
 }
 
-export function ClientBookTable({ rows }: Readonly<{ rows: readonly ClientRow[] }>) {
+export function ClientBookTable({ rows, initialView = 'all' }: Readonly<{ rows: readonly ClientRow[]; initialView?: View }>) {
   const params = useSearchParams()
-  const initialView = (VIEWS.find((v) => v.id === params.get('view'))?.id ?? 'all') as View
-  const [view, setView] = useState<View>(initialView)
+  const [view, setViewState] = useState<View>(initialView)
+  // Changer de vue met l'adresse à jour, sans recharger : on la partage telle quelle.
+  const setView = (v: View) => {
+    setViewState(v)
+    window.history.replaceState(null, '', CLIENT_VIEW_PATH[v])
+  }
   const [query, setQuery] = useState(params.get('q') ?? '')
 
   const counts = useMemo(

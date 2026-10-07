@@ -30,7 +30,7 @@ import { DecisionButtons } from '@/features/admin-approvals/decision-buttons'
 import { requireSession } from '@/lib/auth'
 import { loadClientBook, STAGE_LABEL } from '@/lib/clients/book'
 import { loadClientDossier } from '@/lib/clients/dossier'
-import { clientHref, reserveSats, trancheOf } from '@/lib/clients/vaults'
+import { clientHref, parseClientPath, reserveSats, trancheOf } from '@/lib/clients/vaults'
 import { formatCurrency, formatDate, formatHash, formatNumber } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { emailsFor } from '@/lib/offers/emails'
@@ -110,19 +110,23 @@ const DECISION_ACTION: Record<string, string> = {
 export default async function ClientPage({
   params,
   searchParams,
-}: Readonly<{ params: Promise<{ id: string }>; searchParams: Promise<{ vault?: string; tab?: string }> }>) {
+}: Readonly<{ params: Promise<{ id: string; slug?: string[] }>; searchParams: Promise<{ vault?: string; tab?: string }> }>) {
   await requireSession()
-  const { id } = await params
-  // Le vault affiché : un client détient un vault par tranche ; `?vault=` choisit lequel.
-  const { vault: vaultParam, tab: tabParam } = await searchParams
+  const { id, slug } = await params
+  /* Le vault affiché (un client détient un vault par tranche) et l'onglet,
+     dans le chemin : `/admin/clients/cli_2/vault-2/rewards`. */
+  const path = parseClientPath(slug)
+  const legacy = await searchParams
+  const vaultParam = legacy.vault ?? path.vault
+  const tabParam = legacy.tab ?? path.tab
 
-  /* `?vault=2` : le rang de la tranche. Un ancien lien qui porte l'identifiant
-     on-chain est réécrit — la barre d'adresse reste lisible. */
   const book = await loadClientBook()
   const owner = book.entries.find((e) => e.clientId === id)
   const wantedVault =
     vaultParam === undefined ? undefined : owner?.vaults.find((v) => String(trancheOf(v)) === vaultParam || v.vaultId === vaultParam)
-  if (vaultParam !== undefined && (!wantedVault || vaultParam !== String(trancheOf(wantedVault)))) {
+  /* Un ancien lien (`?vault=31337-0x…&tab=…`) ou un vault inconnu : réécrit
+     dans la forme propre — la barre d'adresse reste lisible. */
+  if (legacy.vault !== undefined || legacy.tab !== undefined || (vaultParam !== undefined && !wantedVault)) {
     redirect(clientHref(id, wantedVault, tabParam))
   }
 
@@ -329,13 +333,8 @@ export default async function ClientPage({
   const tabBase = clientHref(entry.clientId, wantedVault)
 
   /* « New tranche » ouvre une offre pré-remplie avec l'allocation de la tranche
-     la plus récente : un nouveau versement ouvrira un NOUVEAU vault. */
-  const latest = vaults[vaults.length - 1] ?? null
-  const offerHref = `/admin/offers/new?clientId=${encodeURIComponent(entry.clientId)}&client=${encodeURIComponent(entry.name)}${
-    isActive && latest?.allocation
-      ? `&tranche=${vaults.length + 1}&mining=${latest.allocation.miningBps}&lending=${latest.allocation.lendingBps}&stable=${latest.allocation.stableBps}`
-      : ''
-  }`
+     la plus récente (lue par la page elle-même) : un nouveau versement ouvrira un NOUVEAU vault. */
+  const offerHref = `/admin/clients/${encodeURIComponent(entry.clientId)}/new-offer`
 
   return (
     <DashboardShell>

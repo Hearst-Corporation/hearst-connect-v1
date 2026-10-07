@@ -23,7 +23,7 @@ const HASH_TO_TAB: Record<string, string> = {
  *
  * La fiche faisait 6 500 px : parcours, offre, courriels, décisions, rewards,
  * allocation, calcul, mouvements, KYC, tout à la suite, et la même décision
- * affichée à trois endroits. Chaque onglet est maintenant une URL (`?tab=`) :
+ * affichée à trois endroits. Chaque onglet est maintenant une URL (`…/rewards`) :
  * on la partage, on y revient, le navigateur sait reculer.
  */
 export type ClientTab = Readonly<{ id: string; label: string; badge: number }>
@@ -35,7 +35,7 @@ export function ClientTabs({
   href,
 }: Readonly<{ tabs: readonly ClientTab[]; active: string; base?: string; href?: (id: string) => string }>) {
   const router = useRouter()
-  const hrefOf = href ?? ((id: string) => `${base}${base?.includes('?') ? '&' : '?'}tab=${id}`)
+  const hrefOf = href ?? ((id: string) => `${base}/${id}`)
   // Arrivé par une ancre : on ouvre l'onglet qui la porte.
   useEffect(() => {
     const target = HASH_TO_TAB[window.location.hash.slice(1)]

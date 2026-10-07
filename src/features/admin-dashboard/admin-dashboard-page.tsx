@@ -437,7 +437,7 @@ export function AdminDashboardPage() {
             eyebrow="Commercial"
             title="Pipeline"
             subtitle="Where each prospect stands, and what is waiting on you"
-            action={<PanelHeaderLink href="/admin/clients?view=pipeline">Open pipeline</PanelHeaderLink>}
+            action={<PanelHeaderLink href="/admin/clients/pipeline">Open pipeline</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>
               <PipelineData />

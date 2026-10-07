@@ -6,5 +6,5 @@ import { redirect } from 'next/navigation'
  * « Active » de Clients, son contrat on-chain vit dans Operations.
  */
 export default function Page() {
-  redirect('/admin/clients?view=active')
+  redirect('/admin/clients/active')
 }

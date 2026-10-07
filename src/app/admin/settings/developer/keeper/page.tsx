@@ -29,7 +29,7 @@ export const dynamic = 'force-dynamic'
 const DONE_IN_PRODUCT: Record<string, { label: string; href: string }> = {
   'mining-distribution-approve': { label: 'Dashboard · Waiting on you', href: '/admin#distribution' },
   'keeper-electricity-pay': { label: 'Settlement', href: '/admin/settlement' },
-  'keeper-rebalancing-execute': { label: 'Client page · rebalancing', href: '/admin/clients?view=active' },
+  'keeper-rebalancing-execute': { label: 'Client page · rebalancing', href: '/admin/clients/active' },
 }
 /** Déclarée à part, avec son propre formulaire (les métriques du parc). */
 const OWN_FORM = new Set(['keeper-mining-report'])

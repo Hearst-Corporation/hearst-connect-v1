@@ -76,7 +76,7 @@ export function MonthlyClose({
   vaults,
 }: Readonly<{
   months: readonly CloseMonth[]
-  /** Le registre des vaults : le lien de chaque ligne dit `?vault=2`, son rang de tranche. */
+  /** Le registre des vaults : le lien de chaque ligne dit `vault-2`, son rang de tranche. */
   vaults: readonly AdminVaultRecord[]
   /** Le reward du mois de chaque vault, en sats (`mois → vaultId → sats`) :
    *  ses TROIS poches converties en bitcoin — ce que l'admin valide. */

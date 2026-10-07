@@ -41,11 +41,17 @@ export function vaultDisplayName(v: AdminVaultRecord, all: readonly AdminVaultRe
 export const reserveSats = (v: AdminVaultRecord): number => (v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)
 
 /**
- * L'adresse d'une fiche client : `?vault=2` (le rang de la tranche), jamais
- * l'identifiant on-chain — `31337-0x1111…` dans la barre d'adresse ne dit rien
- * à personne. La fiche redirige les anciens liens vers cette forme.
+ * L'adresse d'une fiche client, en chemin : `/admin/clients/cli_2/vault-2/rewards`.
+ * Le vault par son rang de tranche, jamais l'identifiant on-chain ; ni `?` ni
+ * `=`. La fiche réécrit les anciens liens (`?vault=…&tab=…`) dans cette forme.
  */
 export function clientHref(clientId: string, vault?: Pick<AdminVaultRecord, 'tranche'> | null, tab?: string): string {
-  const q = [vault ? `vault=${vault.tranche ?? 1}` : null, tab ? `tab=${tab}` : null].filter(Boolean).join('&')
-  return `/admin/clients/${encodeURIComponent(clientId)}${q ? `?${q}` : ''}`
+  return `/admin/clients/${encodeURIComponent(clientId)}${vault ? `/vault-${vault.tranche ?? 1}` : ''}${tab ? `/${tab}` : ''}`
+}
+
+/** Lit la fin d'une adresse de fiche : `vault-2/rewards`, `rewards`, `vault-2` ou rien. */
+export function parseClientPath(slug: readonly string[] | undefined): { vault?: string; tab?: string } {
+  const [first, second] = slug ?? []
+  const m = first?.match(/^vault-(\d+)$/)
+  return m ? { vault: m[1], tab: second } : { tab: first }
 }

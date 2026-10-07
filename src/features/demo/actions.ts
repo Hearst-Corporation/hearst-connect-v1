@@ -25,7 +25,7 @@ export async function startDemo(_prev: DemoOutcome | null, form: FormData): Prom
   const out = await run('demo-start', { body: { clientName } })
   if (!out.ok) return out
   // Le premier geste : préparer l'offre de ce prospect.
-  redirect(`/admin/offers/new?client=${encodeURIComponent(clientName)}`)
+  redirect('/admin/offers/new')
 }
 
 export async function resetDemo(_prev: DemoOutcome | null): Promise<DemoOutcome> {

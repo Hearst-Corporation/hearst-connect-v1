@@ -148,7 +148,7 @@ export function InboxBell({ initial }: Readonly<{ initial: readonly InboxItem[] 
             </div>
 
             <Link
-              href="/admin/clients?view=onUs"
+              href="/admin/clients/waiting"
               onClick={() => close()}
               className="border-t border-[var(--ud-line,rgba(255,255,255,0.07))] px-4 py-3 text-center text-xs font-medium text-[var(--ud-fg-2,#a9a9a9)] hover:text-[var(--ud-fg,#f2f2f2)]"
             >

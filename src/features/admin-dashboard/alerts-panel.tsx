@@ -83,7 +83,7 @@ export async function AlertsPanel() {
       tone: String(c.kycStatus).toUpperCase() === 'REJECTED' ? 'red' : 'sky',
       title: `${c.label} — KYC ${String(c.kycStatus).toLowerCase().replace('_', ' ')}`,
       detail: 'With Sumsub — funds cannot be called yet',
-      href: `/admin/clients/${c.id}?tab=kyc`,
+      href: `/admin/clients/${c.id}/kyc`,
     })
   }
   const waiting = (settings?.changes ?? []).filter((c) => c.status === 'pending').length

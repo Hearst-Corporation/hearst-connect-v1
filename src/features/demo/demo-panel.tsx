@@ -50,7 +50,6 @@ function stepsOf(s: DemoState): Step[] {
   const v1 = s.vaults[0] ?? null
   const withdrawals = s.vaults.flatMap((v) => v.withdrawals)
   const lockupMonths = v1 ? Math.max(1, Math.ceil((Date.parse(v1.lockupEndAt) - Date.parse(s.today)) / (30.44 * 86_400_000))) : 1
-  const name = encodeURIComponent(s.client?.label ?? tour.clientName)
 
   const steps: Omit<Step, 'done'>[] = []
   const done: boolean[] = []
@@ -67,7 +66,7 @@ function stepsOf(s: DemoState): Step[] {
       act: A1,
       title: 'Prepare the offer',
       detail: `${tour.clientName} is a prospect. The form is pre-filled — show the risk profile seeding the allocation, and the projection following live. Then create the offer.`,
-      href: `/admin/offers/new?client=${encodeURIComponent(tour.clientName)}`,
+      href: '/admin/offers/new',
       cta: 'Open the offer form',
     },
     o !== null,
@@ -208,7 +207,7 @@ function stepsOf(s: DemoState): Step[] {
       detail: trancheOffered
         ? 'Same journey, faster — KYC is already cleared. From the client page: send, accept, fund, authorise, open.'
         : 'A new deposit never tops up the first vault: it opens a new one, at today’s entry price, with its own lockup. The form is pre-filled.',
-      href: trancheOffered ? client : clientId ? `/admin/offers/new?clientId=${clientId}&client=${name}&tranche=2` : undefined,
+      href: trancheOffered ? client : clientId ? `/admin/clients/${clientId}/new-offer` : undefined,
       cta: trancheOffered ? 'Go to the client' : 'Prepare vault 2',
     },
     s.vaults.length >= 2,

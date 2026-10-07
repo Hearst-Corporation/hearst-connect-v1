@@ -86,5 +86,5 @@ export async function requireSession(): Promise<Session> {
   // is an actual expiry — the login page words each case honestly.
   const store = await cookies()
   const hadCookie = store.get(SESSION_COOKIE)?.value !== undefined
-  redirect(hadCookie ? '/login?reason=expired' : '/login?reason=required')
+  redirect(hadCookie ? '/login/expired' : '/login/required')
 }

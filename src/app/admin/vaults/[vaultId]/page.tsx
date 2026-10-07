@@ -17,5 +17,5 @@ export default async function Page({ params }: Readonly<{ params: Promise<{ vaul
   const book = await loadClientBook()
   const entry = book.entries.find((e) => e.vaults.some((v) => v.vaultId === vaultId))
   const vault = entry?.vaults.find((v) => v.vaultId === vaultId)
-  redirect(entry ? clientHref(entry.clientId, vault) : '/admin/clients?view=active')
+  redirect(entry ? clientHref(entry.clientId, vault) : '/admin/clients/active')
 }

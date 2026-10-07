@@ -13,7 +13,6 @@ import {
 } from '@/lib/offers/model'
 import { createOffer, simulateDraft, type DraftSimulation } from '@/features/admin-offers/actions'
 import { ProjectionTable } from '@/features/user-dashboard/projection-table'
-import { useSearchParams } from 'next/navigation'
 import { useActionState, useEffect, useState, useTransition } from 'react'
 
 /**
@@ -58,22 +57,25 @@ export type OfferTerms = Readonly<{
   profiles: Readonly<Record<RiskProfile, Readonly<{ miningBps: number; lendingBps: number; stableBps: number }>>>
 }>
 
-export function OfferForm({ demo = false, terms }: Readonly<{ demo?: boolean; terms?: OfferTerms | null }>) {
+/** Ce que la page sait déjà du client : son identifiant, son nom, et pour une
+ *  nouvelle tranche son rang et l'allocation de son vault le plus récent (bps). */
+export type OfferPreset = Readonly<{ clientId?: string; client?: string; tranche?: number; allocation?: readonly [number, number, number] }>
+
+export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boolean; terms?: OfferTerms | null; preset?: OfferPreset }>) {
   const MIN_TICKET = terms?.minTicketUsdc ?? MIN_VAULT_USDC
   const GRID = terms?.profiles ?? DEFAULT_ALLOCATION
   const LOCKUPS = terms?.lockupOptions ?? []
   /* Ouverte depuis une fiche client (« New tranche », « New version ») : le
      client est déjà connu, l'offre lui sera rattachée par son identifiant. */
-  const params = useSearchParams()
-  const presetClientId = params.get('clientId')
+  const presetClientId = preset?.clientId ?? null
   /* Démo : tout est pré-rempli (nom, référence, courriel de test, typologie,
      1 000 000 USDC) — chaque champ reste modifiable. */
-  const presetClient = params.get('client') ?? (demo ? DEMO_PRESET.client : '')
+  const presetClient = preset?.client ?? (demo ? DEMO_PRESET.client : '')
   /* Une NOUVELLE TRANCHE reprend l'allocation du vault le plus récent du
      client : c'est le mandat qu'il a déjà signé. Elle ouvrira son propre vault,
      modifiable ici comme toute offre. */
-  const tranche = Number(params.get('tranche')) || null
-  const inherited = ['mining', 'lending', 'stable'].map((k) => Number(params.get(k)))
+  const tranche = preset?.tranche ?? null
+  const inherited = preset?.allocation ?? [NaN, NaN, NaN]
   const inherits = tranche !== null && inherited.every((v) => Number.isFinite(v) && v >= 0) && inherited.reduce((a, b) => a + b, 0) === 10_000
   const [profile, setProfile] = useState<ProfileChoice>(inherits ? 'custom' : 'balanced')
   const [mining, setMining] = useState(inherits ? inherited[0] / 100 : GRID.balanced.miningBps / 100)

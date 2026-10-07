@@ -6,5 +6,5 @@ import { redirect } from 'next/navigation'
  * s'ouvre sur la fiche de son client.
  */
 export default function Page() {
-  redirect('/admin/clients?view=pipeline')
+  redirect('/admin/clients/pipeline')
 }

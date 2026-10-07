@@ -19,8 +19,8 @@ type Item = Readonly<{ group: string; label: string; hint?: string; href: string
 const PAGES: readonly Item[] = [
   { group: 'Go to', label: 'Dashboard', href: '/admin' },
   { group: 'Go to', label: 'Clients', href: '/admin/clients' },
-  { group: 'Go to', label: 'Pipeline', hint: 'Clients', href: '/admin/clients?view=pipeline' },
-  { group: 'Go to', label: 'Active vaults', hint: 'Clients', href: '/admin/clients?view=active' },
+  { group: 'Go to', label: 'Pipeline', hint: 'Clients', href: '/admin/clients/pipeline' },
+  { group: 'Go to', label: 'Active vaults', hint: 'Clients', href: '/admin/clients/active' },
   { group: 'Go to', label: 'Settlement', href: '/admin/settlement' },
   ...SETTINGS_NAV.flatMap((g) => g.items.map((i) => ({ group: 'Settings', label: i.label, hint: g.title || 'Settings', href: i.href }))),
 ]
@@ -43,20 +43,25 @@ const TAB_LABEL: Record<string, string> = {
   activity: 'Activity',
 }
 
+const VIEW_LABEL: Record<string, string> = { waiting: 'Waiting on you', pipeline: 'Pipeline', active: 'Active', closed: 'Closed' }
+
 function useCrumbs(clients: readonly PaletteClient[]): readonly { label: string; href?: string }[] {
   const pathname = usePathname()
-  const [tab, setTab] = useState<string | null>(null)
-  useEffect(() => {
-    setTab(new URLSearchParams(window.location.search).get('tab'))
-  }, [pathname])
   const parts = pathname.split('/').filter(Boolean).slice(1)
   if (parts.length === 0) return [{ label: 'Dashboard' }]
   if (parts[0] === 'clients') {
+    /* `/admin/clients/active` : une vue de la liste ; `/admin/clients/cli_2/vault-2/rewards` :
+       la fiche, son vault, son onglet ; `/admin/clients/cli_2/new-offer` : l'offre à préparer. */
+    if (parts[1] && VIEW_LABEL[parts[1]]) return [{ label: 'Clients', href: '/admin/clients' }, { label: VIEW_LABEL[parts[1]] }]
     const client = parts[1] ? clients.find((c) => c.id === parts[1]) : null
+    const rest = parts.slice(2)
+    const vault = rest[0]?.match(/^vault-(\d+)$/)?.[1]
+    const tab = vault ? rest[1] : rest[0]
     return [
       { label: 'Clients', href: parts[1] ? '/admin/clients' : undefined },
-      ...(parts[1] ? [{ label: client?.label ?? 'Client' }] : []),
-      ...(parts[1] && tab && TAB_LABEL[tab] ? [{ label: TAB_LABEL[tab] }] : []),
+      ...(parts[1] ? [{ label: client?.label ?? 'Client', href: rest.length ? `/admin/clients/${parts[1]}` : undefined }] : []),
+      ...(vault ? [{ label: `Vault ${vault}` }] : []),
+      ...(tab === 'new-offer' ? [{ label: 'New offer' }] : tab && TAB_LABEL[tab] ? [{ label: TAB_LABEL[tab] }] : []),
     ]
   }
   if (parts[0] === 'settings') {

@@ -9,5 +9,5 @@ export default async function MiningRedirect({
   searchParams,
 }: Readonly<{ searchParams: Promise<{ readonly machines?: string }> }>) {
   const { machines } = await searchParams
-  redirect(machines === 'all' ? '/admin/settlement?machines=all' : '/admin/settlement')
+  redirect(machines === 'all' ? '/admin/settlement/machines' : '/admin/settlement')
 }

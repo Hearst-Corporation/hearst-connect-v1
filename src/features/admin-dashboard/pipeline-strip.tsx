@@ -142,7 +142,7 @@ export function PipelineStrip({
                     {onUs ? OFFER_NEXT_STEP[offer.status] : offer.status === 'sent' ? 'Waiting on the client’s answer' : 'Waiting on the client or a partner'}
                   </span>
                   <Link
-                    href={offer.clientId ? `/admin/clients/${offer.clientId}?tab=offer` : `/admin/offers/${offer.id}`}
+                    href={offer.clientId ? `/admin/clients/${offer.clientId}/offer` : `/admin/offers/${offer.id}`}
                     className={onUs ? 'ud-detail-btn inline-flex items-center' : 'inline-flex h-7 items-center rounded-full px-3 text-xs text-fg-secondary ring-1 ring-[var(--ud-line)] hover:text-fg'}
                   >
                     Open

@@ -75,7 +75,7 @@ export function RebalancingAlertsPanel({
         <p className="text-xs text-fg-tertiary">{footerNote(data, stable)}</p>
       ) : (
         <Link
-          href="/admin/clients?view=active"
+          href="/admin/clients/active"
           className="text-xs font-medium text-accent-400 hover:text-accent-300"
         >
           Review the drifting vaults

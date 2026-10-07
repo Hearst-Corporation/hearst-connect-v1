@@ -7,6 +7,7 @@ import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
 import { ChevronRightIcon, DocumentTextIcon } from '@heroicons/react/20/solid'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { statementHref } from '@/features/client-portal/statement-href'
 
 export const metadata: Metadata = { title: 'Documents' }
 export const dynamic = 'force-dynamic'
@@ -14,11 +15,11 @@ export const dynamic = 'force-dynamic'
 const monthLabel = (ym: string) =>
   new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
-/** `rank` : le rang du vault chez le client — l'URL dit `vault=2`, pas `31337-0x1111…`. */
+/** `rank` : le rang du vault chez le client — l'URL dit `vault-2`, pas `31337-0x1111…`. */
 function hrefOf(d: PortalDocument, rank: (vaultId: string | undefined) => number): string {
   if (d.kind === 'proposal' && d.offerId) return `/proposal/${d.offerId}`
-  if (d.kind === 'tax') return `/account/documents/statement?year=${d.period.slice(0, 4)}`
-  return `/account/documents/statement?month=${d.period}&vault=${rank(d.vaultId ?? undefined)}`
+  if (d.kind === 'tax') return statementHref(d.period.slice(0, 4))
+  return statementHref(d.period, rank(d.vaultId ?? undefined))
 }
 
 /** Une tuile de document : ce qu'il est, pour quoi, et l'ouvrir. */

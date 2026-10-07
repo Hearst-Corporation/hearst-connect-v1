@@ -77,7 +77,7 @@ export function PendingStrip({
   const dueSoon = ending === null ? null : ending.length
   // Un seul lockup qui arrive à terme : sa fiche ; plusieurs : la liste des vaults actifs.
   const lockupHref =
-    ending !== null && ending.length === 1 ? `/admin/clients/${ending[0].clientId}` : '/admin/clients?view=active'
+    ending !== null && ending.length === 1 ? `/admin/clients/${ending[0].clientId}` : '/admin/clients/active'
 
   const cells = [
     {
