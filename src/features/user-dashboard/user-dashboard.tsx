@@ -516,7 +516,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                       const blended = weight > 0 ? vault.pockets.reduce((t, p) => t + p.apyPct * p.capitalUsd, 0) / weight : null
                       return {
                         value: blended === null ? '—' : `${blended.toFixed(1)} %`,
-                        label: 'blended yield',
+                        label: 'a year, at today’s rates',
                         tag: ok ? 'On target' : 'Rebalancing',
                         ok,
                       }
