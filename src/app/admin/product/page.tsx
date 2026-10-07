@@ -426,7 +426,7 @@ export default async function Page() {
             title="Production"
             subtitle="Fund · Reported hashrate and figures that qualify it."
             slot="production"
-            action={<PanelHeaderLink href="/admin/mining">Open mining</PanelHeaderLink>}
+            action={<PanelHeaderLink href="/admin/mining">Monthly close</PanelHeaderLink>}
           >
             <dl className="divide-y divide-console-line-soft">
               <ReadingRow
@@ -469,7 +469,7 @@ export default async function Page() {
             className="min-w-0"
             title="What happens to the bitcoin we mine?"
             subtitle="Production, retention and sales — the reserve the product is named after."
-            action={<PanelHeaderLink href="/admin/mining">Open mining</PanelHeaderLink>}
+            action={<PanelHeaderLink href="/admin/mining">Monthly close</PanelHeaderLink>}
           >
             <BtcReserveBalance balance={reserveBalance} />
           </DashCard>

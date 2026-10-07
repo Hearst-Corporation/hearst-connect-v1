@@ -2,7 +2,7 @@ import {
   BanknotesIcon,
   BuildingOffice2Icon,
   CommandLineIcon,
-  CpuChipIcon,
+  CalendarDaysIcon,
   DocumentTextIcon,
   HomeIcon,
   IdentificationIcon,
@@ -51,7 +51,10 @@ export const ADMIN_NAV: readonly NavEntry[] = [
      vault, et « Open » menait à la même fiche) : ce sont devenus les filtres
      « Pipeline » et « Active » de Clients. */
   { label: 'Clients', href: '/admin/clients', icon: BuildingOffice2Icon },
-  { label: 'Mining', href: '/admin/mining', icon: CpuChipIcon },
+  /* La clôture du mois : le parc produit, chaque vault reçoit sa part, on
+     valide son reward et on paie son électricité. L'économie du minage vit sur
+     le tableau de bord ; la part d'un vault, sur sa fiche client. */
+  { label: 'Monthly close', href: '/admin/mining', icon: CalendarDaysIcon },
   { label: 'Settings', href: '/admin/settings', icon: WrenchScrewdriverIcon },
 ]
 

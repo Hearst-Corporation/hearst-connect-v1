@@ -28,6 +28,7 @@ import {
 } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { KeeperForm } from '@/components/admin/keeper-form'
+import { ReportFleetMetrics } from './report-fleet-metrics'
 
 export const metadata: Metadata = { title: 'Actions Keeper' }
 export const dynamic = 'force-dynamic'
@@ -160,6 +161,14 @@ export default async function KeeperPage() {
               </Text>
             )}
           </DashCard>
+        </BentoCard>
+      </BentoGrid>
+
+      {/* La déclaration du parc — venue de l'ancienne page de minage : c'est
+          une requête Keeper, pas un geste du mois. */}
+      <BentoGrid>
+        <BentoCard span={12} bare>
+          <ReportFleetMetrics />
         </BentoCard>
       </BentoGrid>
 
