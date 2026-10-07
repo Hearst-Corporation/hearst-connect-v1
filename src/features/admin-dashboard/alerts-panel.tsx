@@ -62,9 +62,11 @@ export async function AlertsPanel() {
     alerts.push({ kind: 'settings', tone: 'sky', title: `${waiting} settings change${waiting > 1 ? 's' : ''} to approve`, detail: 'Four eyes — another member decides', href: '/admin/settings' })
   }
 
-  if (alerts.length === 0) {
-    return <p className="text-sm text-fg-tertiary">All clear — every vault within its band, every integration answering.</p>
-  }
   const order = { red: 0, amber: 1, sky: 2 }
-  return <AlertsList alerts={[...alerts].sort((a, b) => order[a.tone] - order[b.tone])} />
+  return (
+    <AlertsList
+      alerts={[...alerts].sort((a, b) => order[a.tone] - order[b.tone])}
+      services={(integrations ?? []).map((i) => ({ name: i.name, ok: i.status === 'connected' }))}
+    />
+  )
 }

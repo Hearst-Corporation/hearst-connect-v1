@@ -29,6 +29,10 @@ export async function worldHeader(): Promise<Record<string, string>> {
     if (!(count > 0)) return {}
     let value = ''
     for (let i = 0; i < count; i++) value += jar.get(`${NAME}_${i}`)?.value ?? ''
+    /* Au-delà de 12 Ko, l'en-tête ferait refuser TOUS les appels (limite des
+       serveurs : 16 Ko). Mieux vaut repartir du socle que tout bloquer : la
+       prochaine écriture réenregistre un monde compressé. */
+    if (value.length > 12_000) return {}
     return value === '' ? {} : { 'x-demo-world': value }
   } catch {
     return {}

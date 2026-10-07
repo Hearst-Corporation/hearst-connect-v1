@@ -399,7 +399,7 @@ export function AdminDashboardPage() {
           </DashPanel>
         </BentoCard>
         <BentoCard span={4} bare>
-          <DashPanel eyebrow="Alerts" title="Needs attention" subtitle="Not a decision — but not to be discovered by chance">
+          <DashPanel eyebrow="Alerts" title="Needs attention" subtitle="Not a decision — but not to be discovered by chance" fill>
             <Suspense fallback={<PanelFallback />}>
               <AlertsPanel />
             </Suspense>
@@ -463,6 +463,6 @@ export function AdminDashboardPage() {
 
 /** Les derniers gestes de l'équipe, lus dans le journal d'audit. */
 async function TeamActivityData() {
-  const audit = await loadAudit(7)
+  const audit = await loadAudit(12)
   return <AuditList entries={audit} compact />
 }

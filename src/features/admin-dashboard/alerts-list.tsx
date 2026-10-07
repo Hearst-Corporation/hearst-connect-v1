@@ -36,7 +36,10 @@ const SHOWN = 8
  * tête. Un vault hors bande montre sa jauge : la dérive mesurée contre la
  * bande autorisée (le repère), pour voir qui est loin et qui la frôle.
  */
-export function AlertsList({ alerts }: Readonly<{ alerts: readonly Alert[] }>) {
+export function AlertsList({
+  alerts,
+  services = [],
+}: Readonly<{ alerts: readonly Alert[]; services?: readonly Readonly<{ name: string; ok: boolean }>[] }>) {
   const [all, setAll] = useState(false)
   const shown = all ? alerts : alerts.slice(0, SHOWN)
   const counts = (Object.keys(KIND_LABEL) as AlertKind[])
@@ -46,8 +49,9 @@ export function AlertsList({ alerts }: Readonly<{ alerts: readonly Alert[] }>) {
   const scale = Math.max(1, ...alerts.filter((a) => a.drift).map((a) => Math.max(a.drift!.pt, a.drift!.band * 2)))
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap gap-1.5">
+    <div className="flex h-full flex-col gap-4">
+      {alerts.length === 0 ? <p className="text-sm text-fg-tertiary">All clear — every vault within its band.</p> : null}
+      <div className="flex flex-wrap gap-1.5 empty:hidden">
         {counts.map(({ k, n }) => (
           <span key={k} className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${KIND_TONE[k]}`}>
             {n} · {KIND_LABEL[k]}
@@ -100,9 +104,29 @@ export function AlertsList({ alerts }: Readonly<{ alerts: readonly Alert[] }>) {
         </button>
       ) : null}
       {alerts.some((a) => a.drift) ? (
-        <p className="mt-auto flex items-center gap-2 text-[11px] text-fg-tertiary">
+        <p className="flex items-center gap-2 text-[11px] text-fg-tertiary">
           <span className="inline-block h-2.5 w-px bg-white/70" aria-hidden="true" /> the vault’s allowed band
         </p>
+      ) : null}
+
+      {/* En pied de bloc : chaque service dont le produit dépend, et s'il répond. */}
+      {services.length > 0 ? (
+        <div className="mt-auto border-t border-[var(--ud-line)] pt-4">
+          <p className="mb-2.5 flex items-center justify-between text-[11px] tracking-[0.12em] text-fg-tertiary uppercase">
+            Integrations
+            <Link href="/admin/settings/integrations" className="normal-case tracking-normal text-fg-tertiary no-underline hover:text-fg">
+              {services.every((s) => s.ok) ? 'All answering' : `${services.filter((s) => !s.ok).length} down`} →
+            </Link>
+          </p>
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
+            {services.map((s) => (
+              <li key={s.name} className="flex items-center gap-2 text-xs text-fg-secondary">
+                <span className={`size-1.5 shrink-0 rounded-full ${s.ok ? 'bg-[var(--hearst-green)]' : 'bg-red-400'}`} aria-hidden="true" />
+                <span className="truncate">{s.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </div>
   )

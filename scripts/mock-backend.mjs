@@ -110,7 +110,8 @@ const send = (res, status, body) => {
   res.end(payload)
 }
 
-const server = createServer(async (req, res) => {
+// En-têtes jusqu'à 64 Ko : le monde de la démo y voyage.
+const server = createServer({ maxHeaderSize: 65_536 }, async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const path = url.pathname
   // Le corps d'abord : tout ce qui suit est synchrone, aucune autre requête ne

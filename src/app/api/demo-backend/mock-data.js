@@ -12,6 +12,7 @@
  */
 
 import { createHash, randomUUID } from 'node:crypto'
+import { gunzipSync, gzipSync } from 'node:zlib'
 
 /** Identifiants du mock local. Rien de sensible : ce serveur ne sert que des données fictives. */
 const ACCOUNTS = [
@@ -1536,7 +1537,29 @@ function payloadFor(path, search = '') {
     for (const t of WORLD.txs ?? []) push(t.createdAt, 'Fireblocks', `Executed ${({ withdrawal: 'a withdrawal', release: 'a reserve release', electricity: 'an electricity payment', rebalance: 'a rebalancing', protocol: 'a protocol switch', deposit: 'a deposit', conversion: 'a conversion' })[t.kind] ?? 'a transaction'}`, t.note ?? t.kind, `${t.amount ?? ''} ${t.asset}`.trim(), 'payment')
     for (const w of WORLD.withdrawals ?? []) push(w.at, vaultLabel(w.v) ?? 'Client', 'Requested a withdrawal', `${(w.sats / 1e8).toFixed(4)} BTC`, null, 'client')
     for (const [id, k] of Object.entries(WORLD.kyc ?? {})) push(k.at ?? null, 'Sumsub', `KYC ${String(k.kyc).toLowerCase()} · AML ${String(k.aml ?? '—').toLowerCase()}`, allClients().find((c) => c.id === id)?.label ?? id, null, 'compliance')
-    return { audit: bloc(out.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)) }
+    /* L'HISTORIQUE DU BOOK — ce qui s'est passé avant la session : chaque mois
+       clos, les rewards signés et l'électricité payée ; les verdicts Sumsub ; les
+       offres du socle envoyées et acceptées. Le journal n'est jamais vide. */
+    const signer = (i) => ['Marc Dubois', 'Sarah Klein', 'Admin (you)'][i % 3]
+    for (const { v } of ALL_VAULTS()) {
+      vaultMonths(v)
+        .filter((m) => m.status === 'distributed')
+        .slice(1, 4)
+        .forEach((m, i) => {
+          const d = addMonths(new Date(`${m.month}-01T00:00:00Z`), 1)
+          push(new Date(d.getTime() + (2 + (v % 3)) * 86_400_000 + 10 * 3_600_000).toISOString(), signer(v + i), 'Approved', `${vaultLabel(v)} reward · ${monthName(m.month)}`, `${(m.sats / 1e8).toFixed(4)} BTC`, 'decision')
+          push(new Date(d.getTime() + (4 + (v % 2)) * 86_400_000 + 15 * 3_600_000).toISOString(), 'Fireblocks', 'Executed an electricity payment', `Electricity — ${monthName(m.month)}`, null, 'payment')
+        })
+    }
+    for (const c of allClients().filter((x) => x.kyc === 'APPROVED' && x.since)) {
+      push(`${c.since}T16:00:00Z`, 'Sumsub', 'KYC approved · AML clear', c.label, null, 'compliance')
+    }
+    for (const o of baseOffers()) {
+      if (o.sentAt) push(o.sentAt, 'Tom Becker', 'Sent the proposal', `${o.reference} · ${o.clientName}`, null, 'offer')
+      if (o.decidedAt && o.status !== 'declined') push(o.decidedAt, o.clientName, 'Accepted the offer', o.reference, null, 'offer')
+    }
+    const nowMs = mockNow().getTime()
+    return { audit: bloc(out.filter((e) => Date.parse(e.at) <= nowMs).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)) }
   }
 
   /* LA SANTÉ DES INTÉGRATIONS — chaque service tiers dont le produit dépend.
@@ -3100,14 +3123,24 @@ function applyWorld(w) {
 }
 
 /** Le monde lu dans l'en-tête `x-demo-world` (base64url de JSON). Illisible : le socle. */
+/*
+ * Le monde voyage dans un en-tête HTTP, et un serveur refuse un en-tête de
+ * plus de 16 Ko : une longue démo (deux vaults, des mois de rewards, des
+ * transactions) le dépassait, et TOUS les appels tombaient d'un coup. Il est
+ * donc compressé (préfixe `z.`, ~8× plus petit). L'ancien format, non
+ * compressé, se lit encore.
+ */
 function useWorld(header) {
   try {
-    applyWorld(header ? JSON.parse(Buffer.from(String(header), 'base64url').toString('utf8')) : null)
+    if (!header) return applyWorld(null)
+    const h = String(header)
+    const json = h.startsWith('z.') ? gunzipSync(Buffer.from(h.slice(2), 'base64url')).toString('utf8') : Buffer.from(h, 'base64url').toString('utf8')
+    applyWorld(JSON.parse(json))
   } catch {
     applyWorld(null)
   }
 }
-const serializeWorld = () => Buffer.from(JSON.stringify(WORLD)).toString('base64url')
+const serializeWorld = () => 'z.' + gzipSync(Buffer.from(JSON.stringify(WORLD)), { level: 9 }).toString('base64url')
 
 // ── Écritures ────────────────────────────────────────────────────────────────
 
