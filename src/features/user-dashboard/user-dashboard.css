@@ -6514,3 +6514,11 @@
     margin: -1px 0;
   }
 }
+
+/* Quatre tuiles pour le vault, de la même largeur que les quatre de la
+   réserve au-dessus : les colonnes s'alignent d'un bloc à l'autre. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body .fund-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

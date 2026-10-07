@@ -13,7 +13,6 @@ import {
   ChartPieIcon,
   CpuChipIcon,
   CurrencyDollarIcon,
-  GiftIcon,
   LockClosedIcon,
   PresentationChartLineIcon,
   ScaleIcon,
@@ -126,7 +125,6 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
 
   // ── Vault ────────────────────────────────────────────────────────────────
   const credited = rewards.filter((r) => r.status !== 'pending' && r.status !== 'declined')
-  const lastReward = [...credited].sort((a, b) => b.month.localeCompare(a.month))[0] ?? null
   const withdrawnUsdAtPayout = (activity ?? [])
     .filter((a) => a.vault === vault.label && a.type === 'withdrawal' && a.status !== 'declined' && a.status !== 'pending')
     .reduce((t, a) => t + a.usd, 0)
@@ -370,19 +368,6 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               signal={sig}
               meter={withdrawnShare}
               footnote={withdrawnShare !== null ? `${(withdrawnShare * 100).toFixed(1)} % of the bitcoin bought at entry` : null}
-            />
-            <StatTile
-              icon={GiftIcon}
-              label="Last reward"
-              value={lastReward ? formatBtc(lastReward.btc) : '—'}
-              signal={sig}
-              footnote={
-                released
-                  ? 'vault closed'
-                  : lastReward
-                    ? `credited for ${monthLabel(lastReward.month)}`
-                    : 'after the first full month'
-              }
             />
             <StatTile
               icon={LockClosedIcon}
