@@ -23,6 +23,7 @@ export function DashboardHeader({
   kpis,
   action,
   aside,
+  beforeKpis,
   tone = 'accent',
 }: Readonly<{
   title?: string
@@ -37,6 +38,9 @@ export function DashboardHeader({
    * deux tiers de la largeur, et s'étirent à la hauteur du bloc.
    */
   aside?: ReactNode
+  /** Un contrôle entre le titre et les chiffres — ex. le choix de la tranche
+   *  d'un client : les chiffres qui suivent en dépendent. */
+  beforeKpis?: ReactNode
   /** `accent` : chiffres en aplat vert citrus (défaut). `neutral` : sur fond
    *  de carte — le tableau de bord, dont le bloc Market porte déjà le vert. */
   tone?: 'accent' | 'neutral'
@@ -71,6 +75,8 @@ export function DashboardHeader({
           {action}
         </div>
       ) : null}
+
+      {beforeKpis}
 
       {kpis.length > 0 ? (
         <div className={aside === undefined ? 'contents' : 'grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'}>
