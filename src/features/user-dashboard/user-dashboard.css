@@ -6869,3 +6869,47 @@
 .ud-root .mining-flank-hero .mining-axis-safe {
   background: var(--hearst-green-ink);
 }
+
+/* Mining Economics : les lignes réseau suivent le bloc vert de près, plus
+   espacées entre elles ; la pastille de provenance remonte avec elles. */
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body .mining-flank-body {
+    justify-content: flex-start;
+    gap: 16px;
+  }
+  .ud-root .vault-tab-body .mining-flank-params {
+    gap: 14px;
+  }
+  .ud-root .vault-tab-body .mining-flank-params .term-row {
+    padding: 14px 14px;
+  }
+  .ud-root .vault-tab-body .mining-flank-foot {
+    margin-top: 4px;
+  }
+}
+@media (min-width: 1025px) {
+  .ud-root .vault-tab-body .mining-flank-body {
+    gap: 24px;
+  }
+  .ud-root .vault-tab-body .mining-flank-foot {
+    margin-top: 6px;
+  }
+}
+/* En 1280 px les libellés passent sur deux lignes : lignes plus serrées. */
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .ud-root .vault-tab-body .mining-flank-params {
+    gap: 8px;
+  }
+  .ud-root .vault-tab-body .mining-flank-params .term-row {
+    padding: 8px 12px;
+  }
+  .ud-root .vault-tab-body .mining-flank-body {
+    gap: 16px;
+  }
+}
+@media (min-width: 1401px) {
+  .ud-root .vault-tab-body .mining-flank-params {
+    margin-top: 10px;
+    gap: 12px;
+  }
+}
