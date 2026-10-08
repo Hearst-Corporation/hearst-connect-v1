@@ -39,10 +39,10 @@ export function UnlockSchedule({
 
   const now = new Date()
   const rows = vaults.value
-    .filter((v) => v.lockupEndAt !== null && ((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)) > 0)
+    .filter((v) => v.lockupEndAt !== null && (v.accruedBtcSats ?? 0) > 0)
     .map((v) => ({
       vault: v,
-      capital: ((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)) / 1e8,
+      capital: (v.accruedBtcSats ?? 0) / 1e8,
       left: monthsUntil(v.lockupEndAt as string, now),
     }))
     .sort((a, b) => (a.vault.lockupEndAt as string).localeCompare(b.vault.lockupEndAt as string))

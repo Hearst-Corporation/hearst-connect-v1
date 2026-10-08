@@ -40,11 +40,26 @@ export default async function StatementPage({
   const scope = year ? overview.vaults : vault ? [vault] : overview.vaults
   const rws = rewards.filter((r) => inPeriod(r.month) && r.status !== 'declined' && scope.some((v) => v.vaultId === r.vaultId))
   const outs = (activity ?? []).filter((a) => (a.type === 'withdrawal' || a.type === 'release') && a.status !== 'declined' && inPeriod(a.at.slice(0, 7)) && scope.some((v) => v.label === a.vault))
-  // V2 : un seul métier — le minage. Ce qui a été miné, la part vendue pour recharger le buffer, l'électricité payée.
+  // V2 : un seul métier — le minage. Ce qui a été miné, les frais Hearst, la part vendue pour recharger le buffer, l'électricité payée.
   const mined = rws.reduce((t, r) => t + (r.minedBtc ?? r.btc), 0)
+  const fees = rws.reduce((t, r) => t + (r.feeBtc ?? 0), 0)
   const refill = rws.reduce((t, r) => t + (r.refillBtc ?? 0), 0)
   const electricity = rws.reduce((t, r) => t + (r.electricityUsd ?? 0), 0)
   const added = rws.reduce((t, r) => t + r.btc, 0)
+  /* Les règles du registre on-chain, rejouées sur les mois du relevé : frais = 15 % du miné net
+     d'électricité, recharge du buffer ≤ 50 % du miné. Le contrat refuse toute ligne qui s'en écarte. */
+  const feeOk = rws.every((r) => {
+    if (r.minedBtc == null || r.feeBtc == null || r.electricityUsd == null || !r.priceUsd) return true
+    const minedSats = Math.round(r.minedBtc * 1e8)
+    const elecSats = Math.round((r.electricityUsd / r.priceUsd) * 1e8)
+    return Math.abs(Math.round(r.feeBtc * 1e8) - Math.floor(Math.max(0, minedSats - elecSats) * 0.15)) <= 1
+  })
+  const refillOk = rws.every((r) => (r.refillBtc ?? 0) <= (r.minedBtc ?? r.btc) / 2 + 1e-8)
+  // Face au simple achat : réserve + déjà retiré + buffer d'électricité restant (au client), au cours du jour.
+  const holdBtc = scope.reduce((t, v) => t + v.capitalBtc, 0)
+  const bufferBtc = overview.spotUsd > 0 ? scope.reduce((t, v) => t + (v.buffer?.balanceUsd ?? 0), 0) / overview.spotUsd : 0
+  const vsHold =
+    holdBtc > 0 ? ((scope.reduce((t, v) => t + v.reserveBtc + v.withdrawnBtc, 0) + bufferBtc) / holdBtc) * 100 : null
   const removed = outs.reduce((t, a) => t + (a.btc ?? 0), 0)
   const title = year ? `Annual report ${year}` : `Monthly statement — ${monthLabel(month ?? '')}`
 
@@ -91,6 +106,7 @@ export default async function StatementPage({
             <tbody className="divide-y divide-[var(--ud-line)]">
               {[
                 ['Mined by your share of the pool', btc(mined)],
+                ['Hearst fee — 15 % of the mined bitcoin, net of electricity', fees > 0 ? `−${btc(fees)}` : btc(0)],
                 ['Sold to refill the electricity buffer', refill > 0 ? `−${btc(refill)}` : btc(0)],
                 ['Electricity paid from the buffer', usd(electricity)],
               ].map(([k, v]) => (
@@ -105,6 +121,33 @@ export default async function StatementPage({
               </tr>
             </tbody>
           </table>
+        </section>
+
+        <section>
+          <p className="mb-3 text-sm font-medium text-fg">Verified on Ethereum</p>
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-[var(--ud-line)]">
+              {[
+                ['Hearst fee = 15 % of the mined bitcoin, net of electricity', feeOk ? 'Respected' : 'To check'],
+                ['Buffer refill ≤ 50 % of the month’s mined bitcoin', refillOk ? 'Respected' : 'To check'],
+                [
+                  'Bitcoin produced + buffer, vs simply holding',
+                  vsHold !== null ? `${vsHold.toFixed(1)} % of what the deposit would have bought` : '—',
+                ],
+                ['Reserve registry', 'HearstReserveRegistry · Ethereum'],
+              ].map(([k, v]) => (
+                <tr key={k}>
+                  <td className="py-2.5 text-fg-secondary">{k}</td>
+                  <td className="py-2.5 text-right tabular-nums text-fg">{v}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-xs leading-relaxed text-fg-tertiary">
+            Each closed month, Hearst publishes on Ethereum one fingerprint of every vault’s line, the totals and this
+            report’s hash. Your line and its proof let anyone check on-chain that it is part of the month and follows these
+            rules — without revealing other clients.
+          </p>
         </section>
 
         {outs.length > 0 ? (

@@ -42,9 +42,9 @@ export async function renderNewOffer(given?: OfferPreset) {
         <BentoCard span={4}>
           <div className="flex flex-col gap-4">
             <Callout tone="info" title="Mining as a Service">
-              The deposit buys computing power in Hearst’s pool ({MINING_PCT} %) and keeps an electricity buffer in USDC
-              ({BUFFER_PCT} %). Everything mined goes to the client’s bitcoin reserve; the bills are paid from the buffer.
-              Nothing to allocate, nothing to rebalance.
+              The deposit rents computing power in Hearst’s pool ({MINING_PCT} %) and keeps an electricity buffer in USDC
+              ({BUFFER_PCT} %). What is mined goes to the client’s bitcoin reserve, after the Hearst fee (15 % of the mined bitcoin net of
+              electricity); the bills are paid from the buffer. The power is priced at $12.54 per TH/s.
             </Callout>
             <Callout tone="info" title="What happens next">
               The offer is saved as a draft. Sending it, recording the client&apos;s answer, issuing

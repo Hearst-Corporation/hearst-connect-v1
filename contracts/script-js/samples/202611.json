@@ -12,7 +12,8 @@
       "withdrawnSats": "0",
       "prevReserveSats": "100553870",
       "prevWithdrawnTotalSats": "0",
-      "holdSats": "1054629825"
+      "holdSats": "1054629825",
+      "bufferSats": "84615883"
     },
     {
       "id": "V-0002",
@@ -22,7 +23,8 @@
       "withdrawnSats": "0",
       "prevReserveSats": "42232625",
       "prevWithdrawnTotalSats": "0",
-      "holdSats": "442944526"
+      "holdSats": "442944526",
+      "bufferSats": "35538670"
     },
     {
       "id": "V-0003",
@@ -32,7 +34,8 @@
       "withdrawnSats": "0",
       "prevReserveSats": "341883157",
       "prevWithdrawnTotalSats": "0",
-      "holdSats": "3585741405"
+      "holdSats": "3585741405",
+      "bufferSats": "287694002"
     },
     {
       "id": "V-0004",
@@ -42,7 +45,8 @@
       "withdrawnSats": "42735394",
       "prevReserveSats": "85470789",
       "prevWithdrawnTotalSats": "0",
-      "holdSats": "896435351"
+      "holdSats": "896435351",
+      "bufferSats": "71923500"
     },
     {
       "id": "V-0005",
@@ -52,7 +56,8 @@
       "withdrawnSats": "0",
       "prevReserveSats": "563101669",
       "prevWithdrawnTotalSats": "0",
-      "holdSats": "5905927020"
+      "holdSats": "5905927020",
+      "bufferSats": "473848947"
     }
   ]
 }

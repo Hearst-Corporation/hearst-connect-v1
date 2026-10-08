@@ -177,18 +177,15 @@ export default async function ClientPage({
   /* Le bandeau dépend de l'étape : un vault actif se lit par sa RÉSERVE de
      bitcoin ; un client en route, par l'offre qui le fait avancer. */
   const vaultCompute = vault !== null ? allocatedTo(compute, vault.vaultId) : null
-  /* La réserve, comme en tête de /account : le versement d'entrée converti en
-     bitcoin, PLUS ce que les trois poches ont rapporté et qui a été converti en
-     bitcoin mois après mois. */
+  /* La réserve, comme en tête de /account (V2) : le bitcoin que le minage a produit pour le
+     client, net d'électricité et des frais Hearst. Le dépôt loue de la puissance : il n'y est pas. */
   const validated = distributions.filter((d) => d.status === 'distributed')
   const pendingReward = distributions.find((d) => d.status === 'pending') ?? null
   // Les distributions vivent dans « Monthly rewards » : le journal ne garde que dépôts et retraits.
   const cashMoves = movements.filter((m) => m.type !== 'distribution')
   const reserveBtc =
     distributions.length > 0 ? validated.reduce((t, d) => t + (d.btcAmountSats ?? 0), 0) / 1e8 : null
-  const capitalBtc =
-    movements.filter((m) => m.type === 'deposit').reduce((t, m) => t + (m.amountBtcSats ?? 0), 0) / 1e8 || null
-  const totalReserveBtc = capitalBtc !== null || reserveBtc !== null ? (capitalBtc ?? 0) + (reserveBtc ?? 0) : null
+  const totalReserveBtc = reserveBtc
   const btcFmt = (v: number) => `${formatBtcValue(v)} BTC`
   const termPoint = sim?.points[sim.points.length - 1] ?? null
 
@@ -197,6 +194,11 @@ export default async function ClientPage({
      dans le sélecteur de tranche, juste au-dessus. */
   const vCapital = (vault?.capitalBtcSats ?? 0) / 1e8
   const vAccrued = (vault?.accruedBtcSats ?? 0) / 1e8
+  // Tout le bitcoin produit pour la tranche, gardé ou déjà retiré — à comparer au simple achat.
+  const vProduced = (vault?.producedBtcSats ?? vault?.accruedBtcSats ?? 0) / 1e8
+  // Le buffer d'électricité restant est au client : il compte face au simple achat, au dernier cours connu.
+  const lastPrice = [...distributions].sort((a, b) => b.month.localeCompare(a.month))[0]?.btcPriceUsdc ?? 0
+  const vBufferBtc = vault?.buffer && lastPrice > 0 ? vault.buffer.balanceUsd / lastPrice : 0
   const sumReserve = vaults.reduce((t, v) => t + reserveSats(v), 0) / 1e8
   const sumDeposits = vaults.reduce((t, v) => t + (v.principalUsdc ?? 0), 0)
 
@@ -205,11 +207,11 @@ export default async function ClientPage({
         {
           id: 'reserve-total',
           title: 'Bitcoin reserve',
-          value: shown(vault !== null ? btcFmt(vCapital + vAccrued) : totalReserveBtc !== null ? btcFmt(totalReserveBtc) : null),
+          value: shown(vault !== null ? btcFmt(vAccrued) : totalReserveBtc !== null ? btcFmt(totalReserveBtc) : null),
           icon: BitcoinIcon,
           footnote:
             vault !== null
-              ? `${btcFmt(vCapital)} from the ${usd(vault.principalUsdc)} USDC deposit + ${btcFmt(vAccrued)} accumulated`
+              ? `Mined for the ${usd(vault.principalUsdc)} USDC deposit, after electricity and ${btcFmt((vault.feeBtcSats ?? 0) / 1e8)} of Hearst fees`
               : null,
         },
         {
@@ -229,13 +231,18 @@ export default async function ClientPage({
                 : null,
         },
         {
-          /* LA promesse du produit, comme en tête de /account et du tableau de
-             bord : combien de bitcoin EN PLUS de ce que le dépôt a acheté. */
+          /* LA promesse du produit, comme en tête de /account : le bitcoin produit (gardé + retiré)
+             et le buffer restant, rapportés à ce que le dépôt aurait acheté. */
           id: 'vs-hodl',
-          title: 'Ahead of simply holding',
-          value: shown(vCapital > 0 ? `+${formatNumber((vAccrued / vCapital) * 100, { maximumFractionDigits: 1 })} %` : null),
+          title: 'Against simply holding',
+          value: shown(
+            vCapital > 0 ? `${formatNumber(((vProduced + vBufferBtc) / vCapital) * 100, { maximumFractionDigits: 1 })} %` : null,
+          ),
           icon: ArrowTrendingUpIcon,
-          footnote: vCapital > 0 ? `+${btcFmt(vAccrued)} more than the deposit bought at entry` : null,
+          footnote:
+            vCapital > 0
+              ? `${btcFmt(vProduced + vBufferBtc)} incl. buffer, vs ${btcFmt(vCapital)} if bought at entry`
+              : null,
         },
         {
           /* V2 : plus de dérive à surveiller — le buffer qui paie l'électricité. */
@@ -724,7 +731,7 @@ export default async function ClientPage({
           {show('payments') ? (
           <BentoGrid>
             <BentoCard id="moves" span={12} bare className="scroll-mt-24">
-              <DashCard className="min-w-0" eyebrow="Reserve" title={`Deposits & withdrawals${ofTranche}`} subtitle="What entered and left the reserve on-chain — the deposit converted at entry, each bitcoin withdrawal. Monthly rewards are in Rewards">
+              <DashCard className="min-w-0" eyebrow="Reserve" title={`Deposits & withdrawals${ofTranche}`} subtitle="What entered and left on-chain — the deposit (it rents computing power, it is not in the reserve), each bitcoin withdrawal. Monthly rewards are in Rewards">
                 {cashMoves.length === 0 ? (
                   <p className="text-sm text-fg-tertiary">No movement recorded.</p>
                 ) : (

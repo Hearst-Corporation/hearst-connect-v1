@@ -79,11 +79,12 @@ export function reservePoints(vaults: readonly PortalVault[], rewards: readonly 
     const open = vaults.filter((v) => v.lockupStartAt.slice(0, 7) <= m && !(v.releasedMonth && m >= v.releasedMonth))
     return {
       month: m,
-      deposits: open.reduce((t, v) => t + v.capitalBtc, 0),
+      // V2 : le dépôt loue de la puissance — il n'entre pas dans la réserve.
+      deposits: 0,
       accumulated: credited.filter((r) => r.month <= m && open.some((v) => v.vaultId === r.vaultId)).reduce((t, r) => t + r.btc, 0),
       byClient: open.map((v) => ({
         label: v.label,
-        value: v.capitalBtc + credited.filter((r) => r.vaultId === v.vaultId && r.month <= m).reduce((t, r) => t + r.btc, 0),
+        value: credited.filter((r) => r.vaultId === v.vaultId && r.month <= m).reduce((t, r) => t + r.btc, 0),
       })),
     }
   })

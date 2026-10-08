@@ -215,11 +215,8 @@ const siteOf = (i) => {
   }
   return SITES[0]
 }
-const MODELS = [
-  { model: 'Antminer S21 Pro', ths: 234, jth: 15 },
-  { model: 'Antminer S21', ths: 200, jth: 17.5 },
-  { model: 'Whatsminer M60S', ths: 186, jth: 18.5 },
-]
+/* V2 — le parc des vaults : machines hydro de 865 TH/s à 11 J/TH (9 688 $ pièce, hors installation). */
+const MODELS = [{ model: 'Hydro 865 TH/s', ths: 865, jth: 11 }]
 /* Production d'un TH/s : ~5,5e-7 BTC par jour au hashprice actuel (≈ 0,05 $). */
 const BTC_PER_THS_DAY = 5.5e-7
 const FLEET_SIZE = 10_000
@@ -243,10 +240,60 @@ const MACHINES = Array.from({ length: FLEET_SIZE }, (_, i) => {
     status: offline ? 'offline' : 'online',
   }
 })
-/* Le prix du TH/s (machine, hébergement, mise en service) : le capital qu'un
-   vault place dans sa poche Mining lui ACHÈTE de la puissance à ce prix. La
-   simulation d'offre utilise le même. */
-const USD_PER_THS = 50
+/* Le prix du TH/s vendu au client : coût machine 11,20 $ (9 688 $ ÷ 865 TH/s) + 12 % de marge
+   Hearst. L'installation (containers, raccordement) reste à la charge de Hearst. La part
+   « puissance » d'un vault lui loue de la puissance à ce prix ; la simulation d'offre utilise le même. */
+const MACHINE_USD_PER_THS = 9688 / 865
+const HEARST_MARGIN = 0.12
+const USD_PER_THS = Number((MACHINE_USD_PER_THS * (1 + HEARST_MARGIN)).toFixed(2))
+/* L'électricité : 6,5 ¢ le kWh, des machines à 11 J/TH — en dollars par TH/s et par jour. */
+const KWH_USD = 0.065
+const FLEET_JTH = 11
+const ELECTRICITY_USD_PER_THS_DAY = (FLEET_JTH * 24 / 1000) * KWH_USD
+/* Les frais Hearst : 15 % du bitcoin miné NET d'électricité, rien un mois à perte (les mêmes
+   règles que le registre on-chain, contracts/src/HearstReserveRegistry.sol). */
+const FEE_BPS = 1500
+const feeSatsOf = (minedSats, electricitySats) => Math.floor((Math.max(0, minedSats - electricitySats) * FEE_BPS) / 10_000)
+/**
+ * Le bitcoin d'un client mois par mois (réserve + buffer restant, en BTC au cours spot), pour une
+ * puissance donnée, selon trois trajectoires de difficulté du réseau : prudente (+1,5 %/mois),
+ * centrale (+1 %/mois), favorable (stable). Le halving d'avril 2028 divise la production par deux.
+ * `startMonth` = la date du mois 0 (le dépôt).
+ */
+function miningPaths(ths, bufferUsd, months, startMonth) {
+  const halvingIdx = Math.round((Date.parse('2028-04-01T00:00:00Z') - startMonth.getTime()) / (30.44 * 86_400_000))
+  const pathOf = (g) => {
+    let btc = bufferUsd / BTC_SPOT_USD
+    const out = [btc]
+    for (let m = 0; m < months; m++) {
+      let h = BTC_PER_THS_DAY / Math.pow(1 + g, m)
+      if (m >= halvingIdx) h /= 2
+      const net = Math.max(0, h - ELECTRICITY_USD_PER_THS_DAY / BTC_SPOT_USD) * 30 * ths
+      btc += net * (1 - FEE_BPS / 10_000)
+      out.push(btc)
+    }
+    return out
+  }
+  return { p10: pathOf(0.015), p50: pathOf(0.01), p90: pathOf(0) }
+}
+/** Les points d'une projection, à partir des trajectoires : dollars au cours spot, bitcoin du client. */
+const projectionPoints = (PATH, months) =>
+  Array.from({ length: months + 1 }, (_, i) => {
+    const usdOf = (btc) => Math.round(btc * BTC_SPOT_USD)
+    const mid = (x, y) => (x + y) / 2
+    return {
+      month: i,
+      label: i === 0 ? 'Today' : `M+${i}`,
+      p10: usdOf(PATH.p10.at(i)),
+      p25: usdOf(mid(PATH.p10.at(i), PATH.p50.at(i))),
+      p50: usdOf(PATH.p50.at(i)),
+      p75: usdOf(mid(PATH.p50.at(i), PATH.p90.at(i))),
+      p90: usdOf(PATH.p90.at(i)),
+      btcP10: Number(PATH.p10.at(i).toFixed(4)),
+      btcP50: Number(PATH.p50.at(i).toFixed(4)),
+      btcP90: Number(PATH.p90.at(i).toFixed(4)),
+    }
+  })
 /** Capital de la poche Mining de chaque vault (capital × sa propre part de minage). */
 const VAULT_MINING_BPS = [MINING_BPS, MINING_BPS, MINING_BPS, MINING_BPS, MINING_BPS, MINING_BPS]
 /** Le nombre de vaults du SOCLE ; ceux ouverts pendant la démo viennent après. */
@@ -353,8 +400,8 @@ const priceOf = (ym) => {
 const wobbleOf = (ym) => monthWobble(Math.abs(calIndex(ym)))
 /** Le rendement du parc ce mois-là (uptime, difficulté) — le même pour tous. */
 const monthWobble = (n) => 0.82 + ((n * 37) % 30) / 100
-/** L'électricité pèse ~36 % de la valeur minée. */
-const ELECTRICITY_SHARE = 0.36
+/** La facture d'électricité d'une puissance sur un mois, en dollars. */
+const electricityUsdOf = (ths) => Math.round(ths * ELECTRICITY_USD_PER_THS_DAY * 30)
 
 /**
  * LE MOIS D'UN VAULT, en V2 : ce que SA puissance a miné (brut), l'électricité
@@ -380,7 +427,9 @@ function vaultMonths(v) {
     const price = priceOf(month)
     const minedUsd = VAULT_THS[v] * BTC_PER_THS_DAY * 30 * wobbleOf(month) * price
     const minedSats = Math.round((minedUsd / price) * 1e8)
-    const electricityUsd = Math.round(minedUsd * ELECTRICITY_SHARE)
+    const electricityUsd = electricityUsdOf(VAULT_THS[v])
+    const electricitySats = Math.round((electricityUsd / price) * 1e8)
+    const feeSats = feeSatsOf(minedSats, electricitySats)
     bufferUsd -= electricityUsd
     let topUpUsd = 0
     if (bufferUsd < electricityUsd * BUFFER_FLOOR_MONTHS) {
@@ -388,7 +437,8 @@ function vaultMonths(v) {
       bufferUsd += topUpUsd
     }
     const topUpSats = Math.round((topUpUsd / price) * 1e8)
-    const sats = minedSats - topUpSats
+    // Ce qui entre dans la réserve : le miné, moins les frais Hearst, moins la recharge du buffer.
+    const sats = minedSats - feeSats - topUpSats
     const usd = Math.round((sats / 1e8) * price)
     // Le reward du dernier mois clos attend l'admin ; une fois approuvé il est
     // versé. Les mois antérieurs sont réglés — sauf refus explicite.
@@ -401,6 +451,8 @@ function vaultMonths(v) {
       pockets: [{ bucket: 'Mining', usd, btcSats: sats }],
       minedSats,
       electricityUsd,
+      electricitySats,
+      feeSats,
       bufferTopUpSats: topUpSats,
       bufferUsd: Math.round(bufferUsd),
       sats,
@@ -417,7 +469,7 @@ function vaultBufferView(v) {
   const startUsd = Math.round((VAULT_PRINCIPAL[v] * BUFFER_BPS) / 10_000)
   const balanceUsd = ms[0]?.bufferUsd ?? startUsd
   // La facture d'un mois : la dernière connue, sinon celle qu'annonce la puissance du vault.
-  const monthlyUsd = ms[0]?.electricityUsd ?? Math.round(VAULT_THS[v] * BTC_PER_THS_DAY * 30 * BTC_SPOT_USD * ELECTRICITY_SHARE)
+  const monthlyUsd = ms[0]?.electricityUsd ?? electricityUsdOf(VAULT_THS[v])
   const done = ms.filter((m) => m.status !== 'declined')
   return {
     startUsd,
@@ -427,6 +479,7 @@ function vaultBufferView(v) {
     electricityPaidUsd: done.reduce((t, m) => t + m.electricityUsd, 0),
     toppedUpBtc: done.reduce((t, m) => t + m.bufferTopUpSats, 0) / 1e8,
     minedBtc: done.reduce((t, m) => t + m.minedSats, 0) / 1e8,
+    feeBtc: done.reduce((t, m) => t + m.feeSats, 0) / 1e8,
     floorMonths: BUFFER_FLOOR_MONTHS,
     targetMonths: BUFFER_TARGET_MONTHS,
     history: [...ms].reverse().map((m) => ({ month: m.month, electricityUsd: m.electricityUsd, topUpBtc: m.bufferTopUpSats / 1e8, balanceUsd: m.bufferUsd })),
@@ -755,6 +808,7 @@ function payloadFor(path, search = '') {
               pockets: m.pockets.map((b) => ({ bucket: b.bucket, btc: b.btcSats / 1e8, usd: b.usd })),
               // V2 : le miné, la part vendue pour recharger le buffer, l'électricité payée sur le buffer.
               minedBtc: m.minedSats / 1e8,
+              feeBtc: m.feeSats / 1e8,
               refillBtc: m.bufferTopUpSats / 1e8,
               electricityUsd: m.electricityUsd,
             })),
@@ -775,7 +829,7 @@ function payloadFor(path, search = '') {
              la part vendue pour recharger le buffer sort ; la facture
              d'électricité est payée en USDC sur le buffer — elle ne touche pas
              la réserve en bitcoin. Entrées − sorties = la réserve. */
-          items.push({ id: `rw_${v}_${m.month}`, at: `${day}T09:00:00Z`, type: 'reward', vault: name, btc: m.minedSats / 1e8, usd: Math.round((m.minedSats / 1e8) * m.price), status: m.status === 'pending' ? 'pending' : 'credited', txHash: null, steps: null, month: m.month })
+          items.push({ id: `rw_${v}_${m.month}`, at: `${day}T09:00:00Z`, type: 'reward', vault: name, btc: (m.minedSats - m.feeSats) / 1e8, usd: Math.round(((m.minedSats - m.feeSats) / 1e8) * m.price), status: m.status === 'pending' ? 'pending' : 'credited', txHash: null, steps: null, month: m.month })
           if (m.status === 'pending') continue
           if (m.bufferTopUpSats > 0) {
             items.push({ id: `rf_${v}_${m.month}`, at: `${day}T09:05:00Z`, type: 'refill', vault: name, btc: m.bufferTopUpSats / 1e8, usd: Math.round((m.bufferTopUpSats / 1e8) * m.price), status: 'confirmed', txHash: null, steps: null, month: m.month })
@@ -1214,6 +1268,9 @@ function payloadFor(path, search = '') {
             // est net des retraits approuvés — ce qui est sorti n'est plus dans la réserve.
             accruedBtcSats: vaultEconomy(v.v).accruedSats,
             capitalBtcSats: vaultEconomy(v.v).capitalSats,
+            // V2 : tout le bitcoin produit (gardé + déjà retiré) — à comparer au simple achat — et les frais Hearst.
+            producedBtcSats: vaultEconomy(v.v).producedSats,
+            feeBtcSats: vaultMonths(v.v).filter((m) => m.status === 'distributed').reduce((t, m) => t + m.feeSats, 0),
             accruedUsdc: vaultMonths(v.v)
               .filter((m) => m.status === 'distributed')
               .reduce((t, m) => t + m.usd, 0),
@@ -1564,7 +1621,7 @@ function payloadFor(path, search = '') {
         hashprice: '48.20',
         hashpriceChangePct: '-0.80',
         difficulty: '92.05T',
-        energyCostUsdKwh: '0.042',
+        energyCostUsdKwh: String(KWH_USD),
         miningMarginScore: 72,
         provider: 'mock-local',
         asOf: nowIso(),
@@ -1773,53 +1830,20 @@ function payloadFor(path, search = '') {
       const months = num('months', 24)
       /* V2 — MINING AS A SERVICE : plus d'allocation à choisir. 85 % du dépôt
          achètent de la puissance au prix du TH/s du parc, 15 % restent en buffer
-         pour l'électricité. Le rendement attendu est celui du minage, net de
-         l'électricité (~36 % de la valeur minée) — le même calcul que le livre
-         des vaults (`vaultMonths`). */
+         pour l'électricité. Le bitcoin attendu est celui du minage, net de
+         l'électricité (11 J/TH à 6,5 ¢) et des frais Hearst (15 % du net),
+         avec le halving d'avril 2028 — les règles du registre on-chain. */
       const miningBps = MINING_BPS
       const lendingBps = 0
       const stableBps = BUFFER_BPS
       const ths = (amount * miningBps) / 10_000 / USD_PER_THS
-      const minedUsdYear = ths * BTC_PER_THS_DAY * 365 * 0.965 * BTC_SPOT_USD
-      const blended = amount > 0 ? (minedUsdYear * (1 - ELECTRICITY_SHARE)) / amount : 0
+      const minedUsdYear = ths * BTC_PER_THS_DAY * 365 * BTC_SPOT_USD
+      const electricityMonthlyUsd = electricityUsdOf(ths)
+      const PATH = miningPaths(ths, (amount * BUFFER_BPS) / 10_000, months, mockNow())
+      // Le bitcoin du client au terme, rapporté au simple achat, en rythme annuel (cas central).
+      const blended = amount > 0 ? Math.pow(PATH.p50.at(-1) / (amount / BTC_SPOT_USD), 12 / months) - 1 : 0
 
-      /* La dispersion vient du minage : cours, difficulté, prix de l'électricité. */
-      const spread = 0.35 + (miningBps / 10_000) * 0.55
-      const YIELD = {
-        p10: blended * (1 - spread),
-        p25: blended * (1 - spread / 2),
-        p50: blended,
-        p75: blended * (1 + spread / 2),
-        p90: blended * (1 + spread),
-      }
-
-      const BTC_VOL = 0.55
-      const Z = { p10: -1.2816, p25: -0.6745, p50: 0, p75: 0.6745, p90: 1.2816 }
-
-      const points = Array.from({ length: months + 1 }, (_, i) => {
-        const t = i / 12
-        const usd = (k) => Math.round(amount * Math.pow(1 + YIELD[k], t))
-        const sigma = BTC_VOL * Math.sqrt(t)
-        const btcAt = (k) => {
-          const capital = amount * Math.pow(1 + YIELD.p50, t)
-          const priceMult = Math.exp(Z[k] * sigma - 0.5 * sigma * sigma)
-          return Number((capital / (BTC_SPOT_USD * priceMult)).toFixed(4))
-        }
-        return {
-          month: i,
-          label: i === 0 ? 'Today' : `M+${i}`,
-          p10: usd('p10'),
-          p25: usd('p25'),
-          p50: usd('p50'),
-          p75: usd('p75'),
-          p90: usd('p90'),
-          // Percentile haut en bitcoin = cours bas : l'inversion est portée
-          // ici, jamais dans l'interface.
-          btcP10: btcAt('p90'),
-          btcP50: btcAt('p50'),
-          btcP90: btcAt('p10'),
-        }
-      })
+      const points = projectionPoints(PATH, months)
 
       /* Le point de comparaison de la thèse : combien de bitcoin le même
          capital aurait acheté au comptant, aujourd'hui. Sans lui, la
@@ -1838,13 +1862,14 @@ function payloadFor(path, search = '') {
           startValueBtc: hodlBtc,
           hodlBtc,
           blendedYieldPct: Number((blended * 100).toFixed(2)),
-          btcVolAnnualPct: BTC_VOL * 100,
+          btcVolAnnualPct: 55,
           allocation: { miningBps, lendingBps, stableBps },
           miningCapitalUsdc: Math.round(miningCapitalUsdc),
           // V2 : le buffer d'électricité, et le nombre de mois de factures qu'il couvre au départ.
           bufferUsdc: Math.round((amount * BUFFER_BPS) / 10_000),
-          bufferMonths: Number((((amount * BUFFER_BPS) / 10_000) / ((minedUsdYear / 12) * ELECTRICITY_SHARE || 1)).toFixed(1)),
-          electricityMonthlyUsd: Math.round((minedUsdYear / 12) * ELECTRICITY_SHARE),
+          bufferMonths: Number((((amount * BUFFER_BPS) / 10_000) / (electricityMonthlyUsd || 1)).toFixed(1)),
+          electricityMonthlyUsd,
+          feeBps: FEE_BPS,
           usdPerThs: USD_PER_THS,
           hashrateThs: Math.round(miningCapitalUsdc / USD_PER_THS),
           points,
@@ -2150,13 +2175,14 @@ function payloadFor(path, search = '') {
   if (p === '/api/v1/mining/production-cost') {
     return {
       productionCost: bloc({
-        costPerBtcUsd: 62_400,
+        // Électricité (11 J/TH à 6,5 ¢) + la machine amortie sur 4 ans, rapportées au bitcoin qu'un TH/s produit.
+        costPerBtcUsd: Math.round((ELECTRICITY_USD_PER_THS_DAY + MACHINE_USD_PER_THS / (4 * 365)) / BTC_PER_THS_DAY),
         // MÊME cours que le snapshot et que les séries : deux prix du bitcoin
         // sur un même écran ne se lisent pas comme deux sources, mais comme
         // un bug. `marginPct` est de toute façon recalculée côté front.
         marketPriceUsd: BTC_SPOT_USD,
         marginPct: 0,
-        electricityUsdPerKwh: 0.042,
+        electricityUsdPerKwh: KWH_USD,
         networkDifficulty: 9.205e13,
         hashrateEhs: 782.4,
         asOf: nowIso(),
@@ -2191,75 +2217,25 @@ function payloadFor(path, search = '') {
   }
 
   /*
-   * Projection Monte-Carlo à DEUX variables : le rendement de la stratégie et
-   * le cours du bitcoin.
-   *
-   * La lecture en dollars ne dépend que du rendement — c'est un capital qui
-   * compose. La lecture en bitcoin dépend AUSSI du cours, dont la volatilité
-   * (~55 % annualisés) domine tout le reste : à 24 mois, le cours seul va de
-   * ×0.27 à ×2.0 là où le rendement joue sur 15 points. Convertir les montants
-   * dollars au spot du jour aurait donc affiché une fourchette étroite là où la
-   * réalité est large — le pire mensonge possible sur une projection.
-   *
-   * Les percentiles arrivent précalculés : le front trace, il ne rejoue rien.
+   * Projection du vault : le bitcoin que SA puissance produira jusqu'au terme (réserve + buffer
+   * restant), net d'électricité et des frais Hearst, avec le halving d'avril 2028 — trois
+   * trajectoires de difficulté du réseau. Les points arrivent précalculés : le front trace.
    */
   if (p === '/api/v1/me/vault/projection') {
-    // Le client de la démo : SON versement, SON blocage.
     const shown = viewedVault()
     const start = shown ? VAULT_PRINCIPAL[shown.v] : 482_000
     const months = shown ? lockupMonthsOf(shown.v) : 24
-    const BTC_VOL = 0.55
-    // Quantiles de la loi normale centrée réduite, pour p10/p25/p50/p75/p90.
-    const Z = { p10: -1.2816, p25: -0.6745, p50: 0, p75: 0.6745, p90: 1.2816 }
-    // Rendement annuel de la stratégie, par percentile.
-    const YIELD = { p10: 0.012, p25: 0.041, p50: 0.079, p75: 0.118, p90: 0.163 }
-
-    const points = Array.from({ length: months + 1 }, (_, i) => {
-      const t = i / 12
-      const usd = (k) => Math.round(start * Math.pow(1 + YIELD[k], t))
-
-      /*
-       * Contrevaleur bitcoin. Le capital croît au rendement MÉDIAN — on isole
-       * l'incertitude du cours, sinon on cumulerait deux extrêmes qui ne se
-       * produisent pas ensemble. Le multiplicateur de cours suit une
-       * log-normale sans dérive : parier sur une hausse tendancielle du BTC
-       * dans une projection produit serait une prise de position, pas une
-       * mesure.
-       */
-      const sigma = BTC_VOL * Math.sqrt(t)
-      const btcAt = (k) => {
-        const capital = start * Math.pow(1 + YIELD.p50, t)
-        const priceMult = Math.exp(Z[k] * sigma - 0.5 * sigma * sigma)
-        // Percentile HAUT en bitcoin = cours BAS : moins cher le bitcoin, plus
-        // le même capital en achète. D'où le signe inversé sur `Z`.
-        return Number((capital / (BTC_SPOT_USD * priceMult)).toFixed(4))
-      }
-
-      return {
-        month: i,
-        label: i === 0 ? 'Today' : `M+${i}`,
-        p10: usd('p10'),
-        p25: usd('p25'),
-        p50: usd('p50'),
-        p75: usd('p75'),
-        p90: usd('p90'),
-        // Lecture bitcoin : `p10` = scénario défavorable pour le détenteur,
-        // c'est-à-dire un cours qui MONTE (le capital en dollars en achète
-        // moins). L'inversion est portée ici, pas dans l'interface.
-        btcP10: btcAt('p90'),
-        btcP50: btcAt('p50'),
-        btcP90: btcAt('p10'),
-      }
-    })
-
+    const ths = shown ? VAULT_THS[shown.v] : (start * MINING_BPS) / 10_000 / USD_PER_THS
+    const startMonth = shown ? new Date(`${VAULT_START[shown.v].slice(0, 7)}-01T00:00:00Z`) : mockNow()
+    const PATH = miningPaths(ths, (start * BUFFER_BPS) / 10_000, months, startMonth)
     return {
       projection: bloc({
-        runs: 10_000,
+        runs: 3,
         horizonMonths: months,
         startValueUsdc: start,
         startValueBtc: Number((start / BTC_SPOT_USD).toFixed(4)),
-        btcVolAnnualPct: BTC_VOL * 100,
-        points,
+        btcVolAnnualPct: 55,
+        points: projectionPoints(PATH, months),
       }),
     }
   }
@@ -2410,14 +2386,15 @@ function payloadFor(path, search = '') {
     return {
       months: bloc(
         months.map((month, m) => {
-          /* La production du parc ENTIER, et son électricité (~17 J/TH à
-             0,045 $/kWh). Chaque vault en reçoit la part de SA puissance ; la
-             part des machines libres reste à Hearst. */
+          /* La production du parc ENTIER, et son électricité (11 J/TH à
+             0,065 $/kWh). Chaque vault en reçoit la part de SA puissance ; la
+             part des machines libres reste à Hearst. Hearst prend 15 % du miné
+             net d'électricité de chaque vault. */
           // Les MÊMES formules que la réserve de chaque vault (`vaultMonths`).
           const n = months.length - 1 - m
           const fleetSats = Math.round(FLEET_THS * BTC_PER_THS_DAY * 30 * wobbleOf(month) * 1e8)
           const price = priceOf(month)
-          const electricityUsd = Math.round((fleetSats / 1e8) * price * ELECTRICITY_SHARE)
+          const electricityUsd = electricityUsdOf(FLEET_THS)
           const last = m === months.length - 1
           return {
             month,
@@ -2430,6 +2407,7 @@ function payloadFor(path, search = '') {
               const sats = Math.round(fleetSats * share)
               const gross = Math.round((sats / 1e8) * price)
               const elec = Math.round(electricityUsd * share)
+              const feeSats = feeSatsOf(sats, Math.round((elec / price) * 1e8))
               return {
                 id: `dist_${month}_${v.idx}`,
                 vaultId: vaultKey(v.idx),
@@ -2439,6 +2417,8 @@ function payloadFor(path, search = '') {
                 hashrateThs: Math.round(VAULT_THS[v.idx]),
                 sharePct: Number((share * 100).toFixed(2)),
                 btcSats: sats,
+                feeSats,
+                feeUsd: Math.round((feeSats / 1e8) * price),
                 grossUsd: gross,
                 electricityUsd: elec,
                 netUsd: gross - elec,
@@ -3181,8 +3161,10 @@ function vaultEconomy(v) {
     availableSats: isReleased(v) ? 0 : Math.max(0, accruedSats - pendingSats),
     entryRate: firstPrice,
     capitalSats,
-    // LA réserve : le versement converti, plus les rewards validés, moins ce qui est sorti.
-    reserveSats: capitalSats + accruedSats,
+    // LA réserve (V2) : le bitcoin produit pour le vault — miné, moins frais et recharges — moins
+    // ce qui est sorti. Le dépôt a loué de la puissance : il n'est PAS dans la réserve.
+    // `capitalSats` reste la référence « simple achat » : ce que le dépôt aurait acheté ce jour-là.
+    reserveSats: accruedSats,
   }
 }
 
@@ -3591,7 +3573,7 @@ function handleWrite(method, path, body) {
     if (to === 'active') {
       fireblocksTx('conversion', {
         ref: `conversion:${offer.id}`, clientId: offer.clientId, vaultId: patch.vaultId, asset: 'USDC', amount: offer.amountUsdc,
-        source: 'USDC', destination: 'BTC + strategy pockets', note: 'Conversion at entry — the deposit becomes the vault’s reserve',
+        source: 'USDC', destination: 'Computing power + electricity buffer', note: 'The deposit rents computing power (85 %) and funds the electricity buffer (15 %)',
       })
     }
     patchOffer(offer, { ...patch, updatedAt: now })

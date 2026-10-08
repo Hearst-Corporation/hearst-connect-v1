@@ -1,12 +1,13 @@
 {
   "period": 202611,
-  "merkleRoot": "0x1b9a280708ae6fb5f4cfc092da4733cd1fba649a5b187be58a17746dec1f8d06",
+  "merkleRoot": "0xb0da0db12515d7153271757b8ea5ab49b9260df7d6813ec27330f650b6b21059",
   "reportHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "feeBps": 1500,
   "refillCapBps": 5000,
   "leafEncoding": [
     "uint32",
     "bytes32",
+    "uint64",
     "uint64",
     "uint64",
     "uint64",
@@ -39,13 +40,13 @@
       "withdrawnSats": "0",
       "reserveSats": "201107740",
       "withdrawnTotalSats": "0",
+      "bufferSats": "84615883",
       "holdSats": "1054629825",
-      "vsHoldBps": 1906,
-      "leaf": "0x358be8e04bb4d1dffc00814f918d5f774d85e0ab53c8bee382a488c6f8ede83a",
+      "vsHoldBps": 2709,
+      "leaf": "0x71a0b81422997324c1135ad595a4386962d73db0d34d6a7b8e87adcd971f1aae",
       "proof": [
-        "0x5ae3a868cb85a4e12003953b57a8753970db696a373a4514c31a890399ffac63",
-        "0xf4646ac20ab19f992d839f655d4fc46587f0ce791ada8cd7b9ab1d9bd5a0cafd",
-        "0xfbf22ec429ff36cdb80fe15275a32e363d77c19b21de6fa616967429a4569d78"
+        "0x821bd603436f1fa1832d4b13167f89599489bf96aba168ada1c7842a584b96a3",
+        "0x4cb3c4da8e9dee7933879b721acf76cf8b2ebec348c20c25a5e4446aec483119"
       ]
     },
     {
@@ -59,12 +60,14 @@
       "withdrawnSats": "0",
       "reserveSats": "84465250",
       "withdrawnTotalSats": "0",
+      "bufferSats": "35538670",
       "holdSats": "442944526",
-      "vsHoldBps": 1906,
-      "leaf": "0xf4646ac20ab19f992d839f655d4fc46587f0ce791ada8cd7b9ab1d9bd5a0cafd",
+      "vsHoldBps": 2709,
+      "leaf": "0x434214ce1e01b3a94a8e3237162d242a1f3e9e2b66702ca771fa8e30fcc034ee",
       "proof": [
-        "0xa19a23e0b79e59704d3f63d51beb8d0f906f1831a1c5a20bb9a5cf54b6f356e8",
-        "0xfbf22ec429ff36cdb80fe15275a32e363d77c19b21de6fa616967429a4569d78"
+        "0x523d2da8a8c8595ba249dc8fb9aad9870d313b91ab53c737428a4ff9cd15e6d4",
+        "0xc411e88c87ceb91eb730fe4fec72d83bc909ed2903a68bee8fa0d2342b730f8e",
+        "0xa4a313f4d186b01e4e1273346d2079c0fd3f3691754c4899ceb8bdb8be31c1bc"
       ]
     },
     {
@@ -78,12 +81,13 @@
       "withdrawnSats": "0",
       "reserveSats": "683766314",
       "withdrawnTotalSats": "0",
+      "bufferSats": "287694002",
       "holdSats": "3585741405",
-      "vsHoldBps": 1906,
-      "leaf": "0x9224f869d1ec70ed664b476fcf84b23014ba15f10a3a6ec4ffc868a0eb50268a",
+      "vsHoldBps": 2709,
+      "leaf": "0xc411e88c87ceb91eb730fe4fec72d83bc909ed2903a68bee8fa0d2342b730f8e",
       "proof": [
-        "0xda9c1558c61903a5031f23896bd725c4884a402ddb315c655d83cb426faf8be0",
-        "0x973fbdd821993a9b6e4db8f64fbc5037795b6c7d58e289098fdb1e54e50e909e"
+        "0x176341faba623b2f9b0b15836df824ee81e88066025b890228b0316157c8ff38",
+        "0xa4a313f4d186b01e4e1273346d2079c0fd3f3691754c4899ceb8bdb8be31c1bc"
       ]
     },
     {
@@ -97,13 +101,14 @@
       "withdrawnSats": "42735394",
       "reserveSats": "128206184",
       "withdrawnTotalSats": "42735394",
+      "bufferSats": "71923500",
       "holdSats": "896435351",
-      "vsHoldBps": 1906,
-      "leaf": "0x5ae3a868cb85a4e12003953b57a8753970db696a373a4514c31a890399ffac63",
+      "vsHoldBps": 2709,
+      "leaf": "0x523d2da8a8c8595ba249dc8fb9aad9870d313b91ab53c737428a4ff9cd15e6d4",
       "proof": [
-        "0x358be8e04bb4d1dffc00814f918d5f774d85e0ab53c8bee382a488c6f8ede83a",
-        "0xf4646ac20ab19f992d839f655d4fc46587f0ce791ada8cd7b9ab1d9bd5a0cafd",
-        "0xfbf22ec429ff36cdb80fe15275a32e363d77c19b21de6fa616967429a4569d78"
+        "0x434214ce1e01b3a94a8e3237162d242a1f3e9e2b66702ca771fa8e30fcc034ee",
+        "0xc411e88c87ceb91eb730fe4fec72d83bc909ed2903a68bee8fa0d2342b730f8e",
+        "0xa4a313f4d186b01e4e1273346d2079c0fd3f3691754c4899ceb8bdb8be31c1bc"
       ]
     },
     {
@@ -117,12 +122,13 @@
       "withdrawnSats": "0",
       "reserveSats": "1126203338",
       "withdrawnTotalSats": "0",
+      "bufferSats": "473848947",
       "holdSats": "5905927020",
-      "vsHoldBps": 1906,
-      "leaf": "0xda9c1558c61903a5031f23896bd725c4884a402ddb315c655d83cb426faf8be0",
+      "vsHoldBps": 2709,
+      "leaf": "0x821bd603436f1fa1832d4b13167f89599489bf96aba168ada1c7842a584b96a3",
       "proof": [
-        "0x9224f869d1ec70ed664b476fcf84b23014ba15f10a3a6ec4ffc868a0eb50268a",
-        "0x973fbdd821993a9b6e4db8f64fbc5037795b6c7d58e289098fdb1e54e50e909e"
+        "0x71a0b81422997324c1135ad595a4386962d73db0d34d6a7b8e87adcd971f1aae",
+        "0x4cb3c4da8e9dee7933879b721acf76cf8b2ebec348c20c25a5e4446aec483119"
       ]
     }
   ]

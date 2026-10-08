@@ -174,7 +174,7 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
               <span className="text-xs text-fg-tertiary">
                 {/* Le seul montant en USDC du parcours : ce qu'il achète en bitcoin à l'entrée. */}
                 {projection?.ok && hasAmount
-                  ? `≈ ${projection.simulation.hodlBtc.toLocaleString('en-US', { maximumFractionDigits: 2 })} BTC at today’s price — converted at entry. `
+                  ? `≈ ${projection.simulation.hodlBtc.toLocaleString('en-US', { maximumFractionDigits: 2 })} BTC if bought at today’s price — the reference the vault must beat. `
                   : ''}
                 Minimum {MIN_TICKET.toLocaleString('en-US')} USDC.
               </span>

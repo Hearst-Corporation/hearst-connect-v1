@@ -27,7 +27,7 @@ function grouped(vaults: readonly AdminVaultRecord[], keyOf: (v: AdminVaultRecor
 
 /** La réserve de bitcoin d'un vault : son versement converti + ce qui s'y est ajouté. */
 function reserveBtcOf(vault: AdminVaultRecord): number {
-  return ((vault.capitalBtcSats ?? 0) + (vault.accruedBtcSats ?? 0)) / 1e8
+  return (vault.accruedBtcSats ?? 0) / 1e8
 }
 
 /** Les réserves de bitcoin, par typologie de client. */

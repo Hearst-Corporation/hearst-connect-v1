@@ -243,8 +243,13 @@ export type AdminVaultRecord = {
   readonly principalUsdc: number | null
   /** La réserve accumulée depuis l'entrée, en bitcoin — LE chiffre du produit. */
   readonly accruedBtcSats?: number | null
-  /** Le versement d'entrée, converti en bitcoin à l'entrée. */
+  /** V2 — la référence « simple achat » : ce que le versement aurait acheté de bitcoin à l'entrée.
+   *  Le dépôt loue de la puissance : il n'est PAS dans la réserve. */
   readonly capitalBtcSats?: number | null
+  /** V2 — tout le bitcoin produit pour le vault (gardé + déjà retiré), net d'électricité et de frais. */
+  readonly producedBtcSats?: number | null
+  /** V2 — les frais Hearst prélevés : 15 % du miné net d'électricité. */
+  readonly feeBtcSats?: number | null
   /** Sa contre-valeur, aux cours de chaque mois — un repère, jamais le titre. */
   readonly accruedUsdc: number | null
   readonly lockupStartAt: string | null

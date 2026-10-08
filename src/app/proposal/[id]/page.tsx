@@ -35,7 +35,7 @@ const SPLIT = [
     bps: MINING_PCT * 100,
     label: 'Computing power',
     color: '#9eea7a',
-    blurb: 'Hashrate bought in Hearst’s mining pool. It mines bitcoin for your vault from day one.',
+    blurb: 'Hashrate rented in Hearst’s mining pool for the lockup. It mines bitcoin for your vault from day one.',
   },
   {
     key: 'buffer' as const,
@@ -146,8 +146,9 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
 
         <h3 className="mt-10 text-lg font-medium">How your deposit works</h3>
         <p className="mt-1 text-sm text-white/55">
-          One activity — bitcoin mining. Your deposit buys computing power in Hearst’s pool; a small part stays aside
-          to pay the electricity. Everything mined goes to your bitcoin reserve.
+          One activity — bitcoin mining. Your deposit rents computing power in Hearst’s pool; a small part stays aside
+          to pay the electricity. What is mined goes to your bitcoin reserve, after a Hearst fee of 15 % of the mined bitcoin net of
+          electricity.
         </p>
         <div className="mt-6 flex items-center gap-10 max-sm:flex-col max-sm:items-stretch max-sm:gap-6">
           <StaticDonut />

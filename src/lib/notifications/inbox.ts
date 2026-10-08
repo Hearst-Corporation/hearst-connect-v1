@@ -103,7 +103,7 @@ function itemsFor(e: ClientEntry): InboxItem[] {
           kind: 'lockup',
           severity: 'action',
           title: left <= 0 ? 'Lockup ended' : 'Lockup ending soon',
-          detail: `${e.name} · ${btcFromSats((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0))} reserve unlocks ${formatDate(v.lockupEndAt)} — prepare the renewal`,
+          detail: `${e.name} · ${btcFromSats(v.accruedBtcSats ?? 0)} reserve unlocks ${formatDate(v.lockupEndAt)} — prepare the renewal`,
           at: v.lockupEndAt,
         })
       }

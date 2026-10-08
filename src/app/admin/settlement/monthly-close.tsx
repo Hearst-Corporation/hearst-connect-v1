@@ -37,6 +37,9 @@ export type CloseLine = Readonly<{
   hashrateThs?: number
   sharePct: number
   btcSats: number
+  /** V2 — les frais Hearst du mois : 15 % du miné net d'électricité (règle du registre on-chain). */
+  feeSats?: number
+  feeUsd?: number
   grossUsd: number
   electricityUsd: number
   netUsd: number
@@ -102,6 +105,7 @@ export function MonthlyClose({
   const rewardOf = (l: CloseLine) => rewards[m.month]?.[l.vaultId] ?? null
   const pendingSats = m.lines.filter((l) => l.status === 'pending').reduce((t, l) => t + (rewardOf(l) ?? 0), 0)
   const rewardTotalSats = m.lines.reduce((t, l) => t + (rewardOf(l) ?? 0), 0)
+  const feeTotalSats = m.lines.reduce((t, l) => t + (l.feeSats ?? 0), 0)
   const due = m.lines.filter((l) => l.electricityStatus !== 'paid')
   const dueUsd = due.reduce((t, l) => t + l.electricityUsd, 0)
   // Ce qui attend un geste remonte en tête : reward à valider, électricité due.
@@ -146,7 +150,7 @@ export function MonthlyClose({
           bande citrus des fiches client — mêmes tuiles, mêmes chiffres en grand. */}
       <dl className="kpi-band has-foot is-accent" style={{ '--kpi-cols': 4 } as CSSProperties}>
         {[
-          ['Fleet output', btc(m.fleetBtcSats), `at ${usd(m.btcPriceUsd)} / BTC`, false, CpuChipIcon],
+          ['Fleet output', btc(m.fleetBtcSats), `at ${usd(m.btcPriceUsd)} / BTC · ${btc(feeTotalSats)} Hearst fees`, false, CpuChipIcon],
           [
             'Electricity to pay',
             due.length === 0 ? 'All paid' : usd(dueUsd),
@@ -156,8 +160,8 @@ export function MonthlyClose({
             due.length > 0,
             BoltIcon,
           ],
-          // V2 : l'électricité se paie sur les buffers USDC — ce qui entre dans les réserves, c'est le miné, moins les recharges.
-          ['Into the reserves', btc(rewardTotalSats), `${m.lines.length} vaults · mined, less buffer refills`, false, BitcoinIcon],
+          // V2 : l'électricité se paie sur les buffers USDC — ce qui entre dans les réserves, c'est le miné, moins les frais Hearst et les recharges.
+          ['Into the reserves', btc(rewardTotalSats), `${m.lines.length} vaults · mined, less fees and refills`, false, BitcoinIcon],
           [
             'Rewards to approve',
             toApprove > 0 ? btc(pendingSats) : 'All decided',
@@ -218,7 +222,10 @@ export function MonthlyClose({
             </TableCell>
             <TableCell className="tabular-nums">
               <div>{btc(l.btcSats)}</div>
-              <div className="text-[11px] text-fg-tertiary">≈ {usd(l.grossUsd)}</div>
+              <div className="text-[11px] text-fg-tertiary">
+                ≈ {usd(l.grossUsd)}
+                {l.feeSats != null ? ` · fee ${btc(l.feeSats)}` : ''}
+              </div>
             </TableCell>
             <TableCell className="tabular-nums">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -229,8 +236,8 @@ export function MonthlyClose({
               </div>
               <div className="text-[11px] text-fg-tertiary">USDC, from the vault’s buffer</div>
             </TableCell>
-            {/* Le reward : le bitcoin miné, moins la part vendue pour recharger le
-                buffer — le montant que « Approve reward » envoie dans la réserve. */}
+            {/* Le reward : le bitcoin miné, moins les frais Hearst (15 % du net d'électricité) et la
+                part vendue pour recharger le buffer — le montant que « Approve reward » envoie dans la réserve. */}
             <TableCell className="tabular-nums">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="font-medium text-fg">{rewardOf(l) !== null ? btc(rewardOf(l) as number) : '—'}</span>
@@ -256,7 +263,7 @@ export function MonthlyClose({
             </TableCell>
           </TableRow>
         ))}
-        note="Split key = the computing power each vault bought (85 % of its deposit), over the power of all vaults. Electricity is paid in USDC from each vault’s buffer. One vault per deposit: two vaults of the same client are split separately."
+        note="Split key = the computing power each vault rented (85 % of its deposit), over the power of all vaults. Electricity is paid in USDC from each vault’s buffer. Hearst fee = 15 % of the mined bitcoin net of electricity. One vault per deposit: two vaults of the same client are split separately."
         exportData={{
           filename: `hearst-settlement-${m.month}`,
           title: `Settlement — ${monthLabel(m.month)}`,
@@ -266,6 +273,7 @@ export function MonthlyClose({
             'Hashrate (TH/s)',
             'Share of the fleet (%)',
             'BTC mined',
+            'Hearst fee (BTC)',
             'Electricity from the buffer (USD)',
             'Electricity status',
             'Reward (BTC)',
@@ -278,6 +286,7 @@ export function MonthlyClose({
             l.hashrateThs ?? null,
             l.sharePct,
             l.btcSats / 1e8,
+            l.feeSats != null ? l.feeSats / 1e8 : null,
             l.electricityUsd,
             l.electricityStatus ?? null,
             rewardOf(l) !== null ? (rewardOf(l) as number) / 1e8 : null,

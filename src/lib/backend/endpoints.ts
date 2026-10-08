@@ -486,7 +486,7 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     auth: 'session',
     surface: '/account',
     summary: 'The client portal at a glance — the client, their relationship manager, totals across every vault, and each vault (one per deposit).',
-    caveat: 'Every figure derives from the per-vault book the admin reads too: reserve = deposit converted at entry + validated rewards − approved withdrawals.',
+    caveat: 'Every figure derives from the per-vault book the admin reads too: reserve = validated rewards (mined, less the Hearst fee — 15 % of the mined bitcoin net of electricity — and buffer refills) − approved withdrawals; the deposit rents computing power and is not in the reserve.',
   }),
   defineEndpoint({
     id: 'me-rewards',

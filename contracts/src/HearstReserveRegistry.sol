@@ -50,6 +50,7 @@ contract HearstReserveRegistry is AccessControl {
         uint64 withdrawnSats; // versé au client ce mois-ci
         uint64 reserveSats; // sa réserve en fin de mois
         uint64 withdrawnTotalSats; // cumul de ce qui lui a été versé depuis le dépôt
+        uint64 bufferSats; // son buffer d'électricité restant (USDC), en sats au cours de clôture
         uint64 holdSats; // ce que son dépôt aurait acheté au marché le jour du dépôt
     }
 
@@ -186,15 +187,15 @@ contract HearstReserveRegistry is AccessControl {
         return uint64((uint256(minedSats - electricitySats) * FEE_BPS) / BPS);
     }
 
-    /// @notice Où en est le client face à un simple achat : (réserve + déjà versé) ÷ ce qu'aurait acheté
-    ///         son dépôt, en points de base (10 700 = 107 %).
+    /// @notice Où en est le client face à un simple achat : (réserve + déjà versé + buffer restant)
+    ///         ÷ ce qu'aurait acheté son dépôt, en points de base (10 700 = 107 %).
     function vsHoldBps(VaultLine calldata line) external pure returns (uint256) {
         if (line.holdSats == 0) return 0;
-        return ((uint256(line.reserveSats) + line.withdrawnTotalSats) * BPS) / line.holdSats;
+        return ((uint256(line.reserveSats) + line.withdrawnTotalSats + line.bufferSats) * BPS) / line.holdSats;
     }
 
     /// @notice Feuille Merkle d'une ligne de vault, au format standard d'OpenZeppelin
-    ///         (double hachage ; types : uint32 puis les dix champs de VaultLine).
+    ///         (double hachage ; types : uint32 puis les onze champs de VaultLine).
     function vaultLeaf(uint32 period, VaultLine calldata line) public pure returns (bytes32) {
         return keccak256(bytes.concat(keccak256(abi.encode(period, line))));
     }

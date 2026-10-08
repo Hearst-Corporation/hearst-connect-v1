@@ -51,7 +51,7 @@ export function VaultClientPanel({
         <Figure label="Client" value={record.clientLabel} />
         <Figure
           label="Bitcoin reserve"
-          value={btcFromSats((record.capitalBtcSats ?? 0) + (record.accruedBtcSats ?? 0))}
+          value={btcFromSats(record.accruedBtcSats ?? 0)}
           numeric
         />
         <Figure label="Accumulated since entry" value={`+${btcFromSats(record.accruedBtcSats)}`} numeric />

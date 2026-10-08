@@ -87,12 +87,15 @@ function dashboardKpis(
   cost: Availability<ProductionCost>,
   vaults: Availability<readonly AdminVaultRecord[]>,
 ): readonly DashboardKpi[] {
-  /* Les réserves des clients, en bitcoin : leurs versements convertis à
-     l'entrée, plus ce que les trois poches ont rapporté et qui a été converti
-     mois après mois. */
+  /* Les réserves des clients, en bitcoin (V2) : ce que le minage a produit pour eux, net
+     d'électricité et des frais Hearst, moins ce qui est sorti. Le dépôt loue de la puissance :
+     il n'est pas dans la réserve. `capitalSats` = la référence « simple achat ». */
   const book = isAvailable(vaults) ? vaults.value : null
   const capitalSats = book?.reduce((t, v) => t + (v.capitalBtcSats ?? 0), 0) ?? null
   const accumulatedSats = book?.reduce((t, v) => t + (v.accruedBtcSats ?? 0), 0) ?? null
+  const producedSats = book?.reduce((t, v) => t + (v.producedBtcSats ?? v.accruedBtcSats ?? 0), 0) ?? null
+  const feeSats = book?.reduce((t, v) => t + (v.feeBtcSats ?? 0), 0) ?? null
+  const bufferUsd = book?.reduce((t, v) => t + (v.buffer?.balanceUsd ?? 0), 0) ?? 0
   const depositsUsd = book?.reduce((t, v) => t + (v.principalUsdc ?? 0), 0) ?? null
   const btc2 = (sats: number) => formatNumber(sats / 1e8, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const c = isAvailable(cost) ? cost.value : null
@@ -102,8 +105,10 @@ function dashboardKpis(
   /* L'AUM, en DOLLARS : la valeur actuelle des réserves des clients au cours
      du jour. Le seul chiffre de tête en USD — c'est celui qu'on annonce
      dehors ; tout le reste se lit en bitcoin. */
-  const reserveBtc = ((capitalSats ?? 0) + (accumulatedSats ?? 0)) / 1e8
+  const reserveBtc = (accumulatedSats ?? 0) / 1e8
   const aumUsd = c !== null && book !== null ? reserveBtc * c.marketPriceUsd : null
+  // Le buffer d'électricité restant est aux clients : il compte face au simple achat.
+  const bufferSats = c !== null && c.marketPriceUsd > 0 ? (bufferUsd / c.marketPriceUsd) * 1e8 : 0
 
   return [
     {
@@ -122,13 +127,15 @@ function dashboardKpis(
     {
       id: 'reserves',
       title: 'Client bitcoin reserves',
-      value: book === null ? mapAvailability(vaults, () => '—') : available(btc2((capitalSats ?? 0) + (accumulatedSats ?? 0))),
+      value: book === null ? mapAvailability(vaults, () => '—') : available(btc2(accumulatedSats ?? 0)),
       unit: 'BTC',
       // Le symbole ₿ : l'AUM, juste à côté, porte déjà les billets.
       icon: BitcoinIcon,
       footnote:
         // Le détail dépôts / accumulé est dans le graphe « Client bitcoin reserves », plus bas.
-        book !== null ? `Across ${book.length} client vault${book.length === 1 ? '' : 's'}` : null,
+        book !== null
+          ? `Across ${book.length} client vault${book.length === 1 ? '' : 's'} · ${btc2(feeSats ?? 0)} BTC of Hearst fees`
+          : null,
     },
     {
       id: 'cost',
@@ -145,21 +152,22 @@ function dashboardKpis(
           : null,
     },
     {
-      /* LA PROMESSE DU PRODUIT : combien de bitcoin en plus de ce que les
-         dépôts auraient acheté au comptant à l'entrée. C'est la comparaison
-         « vs simply holding » que le client lit sur /account. */
+      /* LA PROMESSE DU PRODUIT : tout le bitcoin produit pour les clients (gardé + retiré),
+         rapporté à ce que leurs dépôts auraient acheté au comptant à l'entrée. Sous 100 % tant
+         que les vaults sont jeunes ; la promesse se juge au terme. */
       id: 'vs-hodl',
-      title: 'Ahead of simply holding',
+      title: 'Against simply holding',
       value:
         book === null
           ? mapAvailability(vaults, () => '—')
           : available(
               capitalSats !== null && capitalSats > 0
-                ? `+${formatNumber(((accumulatedSats ?? 0) / capitalSats) * 100, { maximumFractionDigits: 1 })} %`
+                ? `${formatNumber((((producedSats ?? 0) + bufferSats) / capitalSats) * 100, { maximumFractionDigits: 1 })} %`
                 : '—',
             ),
       icon: BoltIcon,
-      footnote: `${btc2(accumulatedSats ?? 0)} BTC more than the deposits bought at entry`,
+      // Produit (gardé + retiré) et buffers restants, face à ce que les dépôts auraient acheté.
+      footnote: `${btc2((producedSats ?? 0) + bufferSats)} BTC vs ${btc2(capitalSats ?? 0)} BTC if bought at entry`,
     },
   ]
 }
@@ -308,7 +316,8 @@ async function ReserveHistoryData() {
   }
   const starts = vaults.value
     .filter((v) => v.lockupStartAt !== null)
-    .map((v) => ({ month: (v.lockupStartAt as string).slice(0, 7), btc: (v.capitalBtcSats ?? 0) / 1e8 }))
+    // V2 : le dépôt n'est pas dans la réserve — seul le mois d'ouverture compte.
+    .map((v) => ({ month: (v.lockupStartAt as string).slice(0, 7), btc: 0 }))
   const months = [...new Set([...starts.map((x) => x.month), ...added.keys()])].sort()
   if (months.length === 0) return <ReserveCompositionChart points={[]} />
   // Tous les mois, du premier vault à aujourd'hui — sans trou.
@@ -333,7 +342,7 @@ async function ReserveHistoryData() {
       const acc = (running.get(v.vaultId) ?? 0) + (addedByVault.get(v.vaultId)?.get(m) ?? 0)
       running.set(v.vaultId, acc)
       const cur = perClient.get(v.clientId) ?? { label: v.clientLabel, value: 0 }
-      perClient.set(v.clientId, { label: cur.label, value: cur.value + (v.capitalBtcSats ?? 0) / 1e8 + acc })
+      perClient.set(v.clientId, { label: cur.label, value: cur.value + acc })
     }
     const byClient = [...perClient.values()].sort((a, b) => b.value - a.value)
     return { month: m, deposits, accumulated, byClient }
@@ -415,7 +424,7 @@ export function AdminDashboardPage() {
           <DashPanel
             eyebrow="Reserves"
             title="Client bitcoin reserves"
-            subtitle="What the deposits bought at entry, and what the product has added since"
+            subtitle="The bitcoin mining has produced for the clients, after electricity and Hearst fees"
             action={<PanelHeaderLink href="/admin/settlement">Settlement</PanelHeaderLink>}
           >
             <Suspense fallback={<PanelFallback />}>

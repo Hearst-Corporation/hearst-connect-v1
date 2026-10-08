@@ -106,7 +106,7 @@ export function VaultWatchlist({
               {/* La réserve : le versement converti à l'entrée + ce qui s'y est ajouté. */}
               <TableCell className={tableCol.numeric}>
                 <div className="font-medium">
-                  {btcFromSats((vault.capitalBtcSats ?? 0) + (vault.accruedBtcSats ?? 0))}
+                  {btcFromSats(vault.accruedBtcSats ?? 0)}
                 </div>
                 <div className="text-xs text-fg-tertiary">from {usd(vault.principalUsdc)} USDC</div>
               </TableCell>
@@ -167,7 +167,7 @@ export function VaultWatchlist({
           v.principalUsdc,
           v.capitalBtcSats != null ? v.capitalBtcSats / 1e8 : null,
           v.accruedBtcSats != null ? v.accruedBtcSats / 1e8 : null,
-          ((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)) / 1e8,
+          (v.accruedBtcSats ?? 0) / 1e8,
           v.worstDriftBps,
           v.lockupEndAt,
         ]),

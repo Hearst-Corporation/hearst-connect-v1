@@ -38,7 +38,7 @@ export function vaultDisplayName(v: AdminVaultRecord, all: readonly AdminVaultRe
 }
 
 /** La réserve d'un vault, en sats : le versement converti à l'entrée, plus l'accumulé. */
-export const reserveSats = (v: AdminVaultRecord): number => (v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0)
+export const reserveSats = (v: AdminVaultRecord): number => (v.accruedBtcSats ?? 0)
 
 /**
  * L'adresse d'une fiche client, en chemin : `/admin/clients/cli_2/vault-2/rewards`.

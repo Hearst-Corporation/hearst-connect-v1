@@ -9,7 +9,7 @@ import { useState, useTransition } from 'react'
  * LA CLÔTURE DU MOIS EN UN COUP D'ŒIL — où elle en est, et ses deux gestes en lot.
  *
  * Quatre étapes : le mois est calculé, les rewards sont validés, l'électricité
- * est payée, le mois est clos. « Approve all » et « Pay all » font la même
+ * est payée, le mois clos est attesté sur le registre de réserve (Ethereum). « Approve all » et « Pay all » font la même
  * chose que les boutons de chaque ligne, vault par vault — chaque paiement reste
  * une transaction Fireblocks distincte, envoyée au payee de Settings.
  */
@@ -74,7 +74,12 @@ export function CloseActions({
     { label: 'Calculated', detail: 'Fleet output split by vault', done: true },
     { label: 'Rewards validated', detail: `${validated} / ${total}`, done: rewardIds.length === 0 },
     { label: 'Electricity paid', detail: `${paid} / ${total} · via Fireblocks`, done: dues.length === 0 },
-    { label: 'Month closed', detail: rewardIds.length === 0 && dues.length === 0 ? 'Nothing left to do' : 'When both are done', done: rewardIds.length === 0 && dues.length === 0 },
+    // Le mois clos s'atteste sur le registre de réserve (Ethereum) : racine des lignes, totaux, rapport.
+    {
+      label: 'Attested on-chain',
+      detail: rewardIds.length === 0 && dues.length === 0 ? 'Ready for the reserve registry · Ethereum' : 'When both are done',
+      done: rewardIds.length === 0 && dues.length === 0,
+    },
   ]
 
   return (

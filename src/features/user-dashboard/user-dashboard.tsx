@@ -145,7 +145,11 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
      qu'il a produit — gardé ou déjà retiré. Le minage le fait baisser mois
      après mois ; c'est la mesure du produit, en un prix. */
   const ownedBtc = totals.reserveBtc + totals.withdrawnBtc
-  const avgCost = ownedBtc > 0 ? totals.depositedUsdc / ownedBtc : null
+  /* V2 : le buffer d'électricité restant est toujours au client (USDC) — il ne compte pas dans
+     le prix de ses bitcoins, et il compte dans la comparaison au simple achat. */
+  const bufferUsd = vault.buffer?.balanceUsd ?? 0
+  const bufferBtc = spotUsd > 0 ? bufferUsd / spotUsd : 0
+  const avgCost = ownedBtc > 0 ? Math.max(0, totals.depositedUsdc - bufferUsd) / ownedBtc : null
   const nextReward = vault.nextRewardAt
   const lastReward =
     [...rewards].filter((r) => r.status === 'distributed').sort((a, b) => b.month.localeCompare(a.month))[0] ?? null
@@ -154,7 +158,8 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
   const withdrawnUsdAtPayout = (activity ?? [])
     .filter((a) => a.vault === vault.label && a.type === 'withdrawal' && a.status !== 'declined' && a.status !== 'pending')
     .reduce((t, a) => t + a.usd, 0)
-  const withdrawnShare = vault.capitalBtc > 0 ? vault.withdrawnBtc / vault.capitalBtc : null
+  // La part du bitcoin produit déjà retirée (le dépôt, lui, a loué de la puissance : il n'est pas en bitcoin).
+  const withdrawnShare = vault.producedBtc > 0 ? vault.withdrawnBtc / vault.producedBtc : null
   const monthsLeft = Math.max(0, vault.lockupMonths - vault.elapsedMonths)
 
   // ── Mouvements et distributions de CE vault ─────────────────────────────
@@ -207,7 +212,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
     },
     reserve: {
       question: 'How your reserve was built',
-      unit: 'bought at entry + produced since · BTC',
+      unit: 'produced since your deposit · BTC',
       state: seriesState(reserveSource, reserve.length > 0, 'Your reserve starts with your first deposit.', ''),
       node: (
         <div className="center-reserve">
@@ -286,17 +291,20 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
             positionBtc={available({ btc: totals.reserveBtc, rateUsd: spotUsd, source: 'derived' as const }, { provenance: 'chain' })}
             vsHodl={available(
               {
-                heldBtc: totals.reserveBtc + totals.withdrawnBtc,
+                heldBtc: totals.reserveBtc + totals.withdrawnBtc + bufferBtc,
                 hodlBtc: totals.capitalBtc,
-                deltaPct: totals.capitalBtc > 0 ? ((totals.reserveBtc + totals.withdrawnBtc) / totals.capitalBtc - 1) * 100 : 0,
+                deltaPct:
+                  totals.capitalBtc > 0
+                    ? ((totals.reserveBtc + totals.withdrawnBtc + bufferBtc) / totals.capitalBtc - 1) * 100
+                    : 0,
                 entryRateUsd: 0,
                 spotRateUsd: spotUsd,
-                windowLabel: multiVault ? 'since this deposit' : 'since your deposit',
+                windowLabel: `${multiVault ? 'since this deposit' : 'since your deposit'} · reserve, withdrawals and electricity buffer`,
               },
               { provenance: 'chain' },
             )}
             // La note retombe sur le chiffre : ce qui est déjà sorti en est retiré.
-            note={`${formatBtc(totals.capitalBtc)} deposited + ${formatBtc(totals.producedBtc)} earned${
+            note={`${formatBtc(totals.producedBtc)} produced, after electricity and fees${
               totals.withdrawnBtc > 0 ? ` − ${formatBtc(totals.withdrawnBtc)} withdrawn` : ''
             }`}
             terms={[
@@ -305,7 +313,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                 value: usdc(totals.depositedUsdc),
                 icon: ScaleIcon,
                 signal: sig,
-                footnote: `On ${formatDate(vault.lockupStartAt)} · ${formatBtc(totals.capitalBtc)} at entry`,
+                footnote: `On ${formatDate(vault.lockupStartAt)} · ${formatBtc(totals.capitalBtc)} if bought that day`,
               },
               {
                 label: 'Your price per bitcoin',
@@ -314,7 +322,9 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
                 signal: sig,
                 footnote:
                   avgCost !== null
-                    ? `${usd(spotUsd)} on the market today · ${Math.round((1 - avgCost / spotUsd) * 100)} % below`
+                    ? avgCost <= spotUsd
+                      ? `${usd(spotUsd)} on the market today · ${Math.round((1 - avgCost / spotUsd) * 100)} % below`
+                      : `${usd(spotUsd)} on the market today · falls each month as mining adds bitcoin`
                     : null,
               },
               {
@@ -390,7 +400,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               aside={withdrawnUsdAtPayout > 0 ? `≈ ${usd(withdrawnUsdAtPayout)} received` : null}
               signal={sig}
               meter={withdrawnShare}
-              footnote={withdrawnShare !== null ? `${(withdrawnShare * 100).toFixed(1)} % of the bitcoin bought at entry` : null}
+              footnote={withdrawnShare !== null ? `${(withdrawnShare * 100).toFixed(1)} % of the bitcoin produced` : null}
             />
             <StatTile
               icon={LockClosedIcon}

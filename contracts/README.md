@@ -22,9 +22,9 @@ Elles sont fixées au déploiement et ne changent plus (`FEE_BPS`, `REFILL_CAP_B
 | Répartition | miné = frais + recharge du buffer + versé à la réserve | ligne et totaux |
 | Recharge du buffer | au plus 50 % du miné du mois | ligne et totaux |
 | Continuité | réserve du mois = réserve précédente + versé à la réserve − versé au client | `verifyContinuity`, sur deux mois d'un même vault |
-| Face au simple achat | (réserve + déjà versé) ÷ ce qu'aurait acheté le dépôt | `vsHoldBps` (10 700 = 107 %) |
+| Face au simple achat | (réserve + déjà versé + buffer restant) ÷ ce qu'aurait acheté le dépôt | `vsHoldBps` (10 700 = 107 %) |
 
-`verifyVault` ne répond `true` que si la ligne est dans l'attestation **et** respecte ces règles : une ligne aux frais gonflés est refusée même si Hearst l'a publiée. `vsHoldBps` ne compte que le bitcoin ; le buffer d'électricité restant (en USDC) n'y entre pas.
+`verifyVault` ne répond `true` que si la ligne est dans l'attestation **et** respecte ces règles : une ligne aux frais gonflés est refusée même si Hearst l'a publiée. Le buffer d'électricité restant (en USDC, au client) entre dans `vsHoldBps`, converti en sats au cours de clôture.
 
 ## 1. Les notions en cinq minutes
 
@@ -164,7 +164,7 @@ L'adresse du contrat s'affiche. Sur sepolia.etherscan.io, l'onglet **Contract** 
 
 ## 8. Publier un mois
 
-1. Exporter les lignes du mois clôturé au format de `script-js/samples/202611.json`. Pour chaque vault, en satoshis : miné, électricité du mois (convertie au cours de clôture), recharge du buffer, versement au client, réserve et cumul versé du mois précédent, et `holdSats` (ce que son dépôt aurait acheté le jour du dépôt). Le script calcule les frais, la part versée à la réserve et la nouvelle réserve.
+1. Exporter les lignes du mois clôturé au format de `script-js/samples/202611.json`. Pour chaque vault, en satoshis : miné, électricité du mois (convertie au cours de clôture), recharge du buffer, versement au client, réserve et cumul versé du mois précédent, buffer restant en sats (`bufferSats`), et `holdSats` (ce que son dépôt aurait acheté le jour du dépôt). Le script calcule les frais, la part versée à la réserve et la nouvelle réserve.
 2. Construire l'attestation. Le sel vient du Trousseau, jamais d'un fichier :
 
    ```bash

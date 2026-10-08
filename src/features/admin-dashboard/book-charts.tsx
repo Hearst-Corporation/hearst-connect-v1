@@ -115,10 +115,9 @@ export const BUCKET_SERIES: readonly StackSeries[] = [
   { key: 'Mining Alpha', label: 'Mining Alpha', color: '#9eea7a' },
 ]
 
-const RESERVE_SERIES: readonly StackSeries[] = [
-  { key: 'deposits', label: 'Deposits, converted at entry', color: '#4a4a4a' },
-  { key: 'accumulated', label: 'Accumulated by mining', color: '#9eea7a' },
-]
+/* V2 : le dépôt loue de la puissance de calcul — il n'est pas dans la réserve. La réserve,
+   c'est le bitcoin produit par le minage, net d'électricité et des frais Hearst. */
+const RESERVE_SERIES: readonly StackSeries[] = [{ key: 'accumulated', label: 'Produced by mining, net of fees', color: '#9eea7a' }]
 
 export type ClientShare = { readonly label: string; readonly value: number }
 export type ReserveSplitPoint = {
@@ -130,9 +129,8 @@ export type ReserveSplitPoint = {
 }
 
 /**
- * La réserve des clients, mois par mois, DÉCOMPOSÉE : en gris ce que leurs
- * dépôts ont acheté à l'entrée, en vert ce que le produit y a ajouté depuis.
- * La part verte, c'est ce que Hearst crée.
+ * La réserve des clients, mois par mois : le bitcoin que le minage a produit pour eux,
+ * net d'électricité et des frais Hearst. `deposits` reste dans la forme mais vaut 0 en V2.
  */
 export function ReserveCompositionChart({
   points,
@@ -143,14 +141,14 @@ export function ReserveCompositionChart({
     return <p className="py-6 text-center text-sm text-fg-tertiary">No vault open yet.</p>
   }
   const last = points[points.length - 1]
-  const total = last.deposits + last.accumulated
+  const total = last.accumulated
   const label = (ym: string) =>
     new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' })
   return (
     <div className="flex h-full min-w-0 flex-col">
       <Headline
         value={`${formatBtcValue(total)} BTC`}
-        caption={`${formatBtcValue(last.deposits)} from deposits · ${formatBtcValue(last.accumulated)} accumulated (${formatNumber(total > 0 ? (last.accumulated / total) * 100 : 0, { maximumFractionDigits: 1 })} %)`}
+        caption="Produced by mining since the deposits, after electricity and Hearst fees"
       />
       <FillHeight>
         {(h) => (
@@ -158,7 +156,7 @@ export function ReserveCompositionChart({
             points={points.map((p) => ({
               label: label(p.month),
               detail: label(p.month),
-              values: { deposits: p.deposits, accumulated: p.accumulated },
+              values: { accumulated: p.accumulated },
               breakdown: p.byClient,
               breakdownTitle,
             }))}

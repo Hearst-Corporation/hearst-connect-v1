@@ -89,7 +89,7 @@ export function VaultRegistry({
                     ) : null}
                   </td>
                   <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-fg">
-                    <p className="font-semibold">{btcFromSats((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0))}</p>
+                    <p className="font-semibold">{btcFromSats(v.accruedBtcSats ?? 0)}</p>
                     <p className="text-xs text-fg-tertiary">from {usd(v.principalUsdc)} USDC</p>
                   </td>
                   <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-[var(--hearst-green-text)]">

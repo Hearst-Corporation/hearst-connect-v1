@@ -80,12 +80,10 @@ export function BtcPositionHeadline({
             porte juste en dessous. */}
         <StatTile
           icon={BitcoinIcon}
-          /* « incl. your capital » : la réserve n'est pas que du bitcoin miné —
-             elle agrège le capital souscrit et ce que la production y ajoute.
-             Sans ce rappel, le libellé laissait croire que 5.27 BTC sortent du
-             seul minage, alors que la tuile « Produced for your vault » en
-             annonce 1.20. */
-          label="Mined and accumulated, incl. your capital"
+          /* V2 : le dépôt loue de la puissance de calcul — il n'est pas dans la
+             réserve. La réserve, c'est le bitcoin miné pour le vault, net de
+             l'électricité et des frais Hearst, moins ce qui a été retiré. */
+          label="Mined and accumulated, net of fees"
           value={formatBtc(pos?.btc ?? null)}
           signal={signalOf(positionBtc)}
           footnote={

@@ -88,6 +88,8 @@ export type PortalReward = Readonly<{
   pockets: readonly Readonly<{ bucket: string; btc: number; usd: number }>[]
   /** V2 — le bitcoin miné ce mois-là, la part vendue pour recharger le buffer, l'électricité payée sur le buffer. */
   minedBtc?: number
+  /** V2 — les frais Hearst : 15 % du miné net d'électricité. */
+  feeBtc?: number
   refillBtc?: number
   electricityUsd?: number
 }>

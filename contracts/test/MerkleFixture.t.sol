@@ -81,6 +81,7 @@ contract MerkleFixtureTest is Test {
             withdrawnSats: _u64(string.concat(p, ".withdrawnSats")),
             reserveSats: _u64(string.concat(p, ".reserveSats")),
             withdrawnTotalSats: _u64(string.concat(p, ".withdrawnTotalSats")),
+            bufferSats: _u64(string.concat(p, ".bufferSats")),
             holdSats: _u64(string.concat(p, ".holdSats"))
         });
     }

@@ -139,7 +139,7 @@ export const SECTIONS: readonly Section[] = [
     subtitle: 'How every deposit is split, and when the electricity buffer is refilled',
     kind: 'object',
     fields: [
-      { key: 'bufferBps', label: 'Electricity buffer', type: 'bps', help: 'Of each deposit, kept in USDC — the rest buys computing power' },
+      { key: 'bufferBps', label: 'Electricity buffer', type: 'bps', help: 'Of each deposit, kept in USDC — the rest rents computing power' },
       { key: 'bufferFloorMonths', label: 'Refill below', type: 'months', help: 'Months of bills left in the buffer' },
       { key: 'bufferTargetMonths', label: 'Refill up to', type: 'months', help: 'Months of bills after a refill' },
       { key: 'refillCapBps', label: 'Refill cap', type: 'bps', help: 'Of the month’s mined bitcoin, at most' },

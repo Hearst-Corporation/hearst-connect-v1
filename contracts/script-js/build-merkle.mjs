@@ -5,7 +5,8 @@
 // Usage : node build-merkle.mjs <entrée.json> <sortie.json> [rapport.pdf]
 //
 // L'entrée donne, par vault, les faits du mois : miné, électricité (en sats au cours de clôture),
-// recharge du buffer, versement au client, et l'état du mois précédent (réserve, cumul versé).
+// recharge du buffer, versement au client, buffer restant (en sats au cours de clôture), et l'état du
+// mois précédent (réserve, cumul versé).
 // Le script calcule le reste avec les MÊMES règles que le contrat :
 //   frais     = feeBps du miné net d'électricité (0 si l'électricité dépasse le miné)
 //   réserve   = miné − frais − recharge, ajouté à la réserve du mois précédent, moins le versement
@@ -31,11 +32,12 @@ const LINE_FIELDS = [
   'withdrawnSats',
   'reserveSats',
   'withdrawnTotalSats',
+  'bufferSats',
   'holdSats',
 ];
 const LEAF_ENCODING = ['uint32', 'bytes32', ...LINE_FIELDS.map(() => 'uint64')];
 const TOTAL_FIELDS = ['minedSats', 'electricitySats', 'feeSats', 'refillSats', 'toReserveSats', 'withdrawnSats', 'reserveSats'];
-const INPUT_FIELDS = ['minedSats', 'electricitySats', 'refillSats', 'withdrawnSats', 'prevReserveSats', 'prevWithdrawnTotalSats', 'holdSats'];
+const INPUT_FIELDS = ['minedSats', 'electricitySats', 'refillSats', 'withdrawnSats', 'prevReserveSats', 'prevWithdrawnTotalSats', 'bufferSats', 'holdSats'];
 const UINT64_MAX = 2n ** 64n - 1n;
 const BPS = 10_000n;
 const SAMPLE_SALT = '0x' + bytesToHex(keccak256(utf8ToBytes('hearst-sample-salt (public, exemple seulement)')));
@@ -106,6 +108,7 @@ const lines = input.vaults.map((v, i) => {
     withdrawnSats: f.withdrawnSats,
     reserveSats: f.prevReserveSats + toReserveSats - f.withdrawnSats,
     withdrawnTotalSats: f.prevWithdrawnTotalSats + f.withdrawnSats,
+    bufferSats: f.bufferSats,
     holdSats: f.holdSats,
   };
   for (const [k, n] of Object.entries(line)) if (n > UINT64_MAX) fail(`vault ${v.id} : ${k} dépasse uint64`);
@@ -137,7 +140,7 @@ const output = {
     id: l.id,
     vaultKey: l.vaultKey,
     ...str(Object.fromEntries(LINE_FIELDS.map((k) => [k, l[k]]))),
-    vsHoldBps: Number(((l.reserveSats + l.withdrawnTotalSats) * BPS) / l.holdSats),
+    vsHoldBps: Number(((l.reserveSats + l.withdrawnTotalSats + l.bufferSats) * BPS) / l.holdSats),
     leaf: tree.leafHash(values[i]),
     proof: tree.getProof(i),
   })),

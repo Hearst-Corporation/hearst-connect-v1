@@ -39,6 +39,7 @@ contract HearstReserveRegistryTest is Test {
             withdrawnSats: 0,
             reserveSats: 100_000_000 + mined - fee - refill,
             withdrawnTotalSats: 0,
+            bufferSats: 120_000_000,
             holdSats: 1_054_600_000
         });
     }
@@ -293,8 +294,9 @@ contract HearstReserveRegistryTest is Test {
     function test_vsHoldBps() public view {
         HearstReserveRegistry.VaultLine memory l = _line(keccak256("v"), 0, 0, 0);
         l.holdSats = 1_000_000_000;
-        l.reserveSats = 1_000_000_000;
+        l.reserveSats = 900_000_000;
         l.withdrawnTotalSats = 70_000_000;
+        l.bufferSats = 100_000_000; // le buffer restant compte : il est au client
         assertEq(registry.vsHoldBps(l), 10_700); // 107 % du simple achat
     }
 
