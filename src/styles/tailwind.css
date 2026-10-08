@@ -466,3 +466,36 @@ select:-webkit-autofill {
   border-color: transparent;
   box-shadow: none;
 }
+
+/* ── Lisibilité du vert au jour ────────────────────────────────────────────
+ * Un vert clair en petit texte sur blanc ne se lit pas (≈ 1,8:1), même en
+ * gras. Au jour : les PETITS textes verts passent à l'encre, en medium ; les
+ * pictos (svg) et les grands chiffres gardent le vert de marque. */
+:root[data-theme='light']
+  :is([class*='text-[var(--accent-text)]'], [class*='text-[var(--hearst-green-text)]']):not(svg):not(
+    :where([data-theme='dark'], [data-theme='dark'] *)
+  ) {
+  color: var(--color-fg);
+  font-weight: 500;
+}
+:root[data-theme='light']
+  :is([class*='text-[var(--accent-text)]'], [class*='text-[var(--hearst-green-text)]']):not(svg)
+  svg {
+  color: var(--accent-text);
+}
+:root[data-theme='light'] .ud-root :is(
+    .bucket-yield-trend.is-up,
+    .prodcost-lead-pct,
+    .prodcost-legend-pct,
+    .projection-table thead .is-median,
+    .btc-price-change.is-up,
+    .stat-delta.is-up,
+    .mining-flank-cushion strong,
+    .mining-axis-end-value.is-gain,
+    .fleet-mine-eyebrow,
+    .timeline-status[data-tone='done'],
+    .btc-gauge.is-ahead .btc-gauge-delta-value
+  ) {
+  color: var(--ud-fg);
+  font-weight: 500;
+}

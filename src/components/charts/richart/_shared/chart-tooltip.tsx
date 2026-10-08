@@ -44,16 +44,19 @@ export function TooltipRow({
   color,
   first = false,
 }: Readonly<{ label?: string; value: string; color?: string; first?: boolean }>) {
+  /* Le texte reste à l'encre du thème, lisible partout ; la couleur de la
+     série passe dans une pastille. Un libellé vert clair en 12 px ne se lisait
+     pas sur fond blanc. */
   return (
     <p
       className={clsx(
         first ? 'mt-1' : 'mt-0.5',
-        'tabular-nums',
-        color === undefined && 'text-fg-tertiary dark:text-fg-secondary',
+        'flex items-center gap-1.5 tabular-nums',
+        color === undefined ? 'text-fg-tertiary dark:text-fg-secondary' : 'text-fg',
       )}
-      style={color === undefined ? undefined : { color }}
     >
-      {label === undefined ? value : `${label}: ${value}`}
+      {color !== undefined ? <span className="inline-block size-2 shrink-0 rounded-[3px]" style={{ backgroundColor: color }} aria-hidden="true" /> : null}
+      <span>{label === undefined ? value : `${label}: ${value}`}</span>
     </p>
   )
 }
