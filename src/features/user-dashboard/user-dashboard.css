@@ -7329,24 +7329,35 @@
   transform: none;
 }
 
-/* Le ₿ en contour, à droite du bitcoin produit — le même trait que le H. */
-.ud-root .fleet-mine-metric--produced {
+/* Le ₿ en filigrane : grand, plein, très pâle, incliné, rogné par le coin
+   bas-droit de la carte. Le contenu passe au-dessus. */
+.ud-root .fleet-mine {
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
 }
 .ud-root .fleet-mine-btc-mark {
   position: absolute;
-  right: 4px;
-  top: 50%;
-  height: 112px;
-  width: auto;
-  transform: translateY(-30%);
-  color: var(--hearst-green-text);
+  right: -28px;
+  bottom: -34px;
+  z-index: -1;
+  width: 170px;
+  height: 170px;
+  color: var(--hearst-green);
+  opacity: 0.12;
+  transform: rotate(-12deg);
   pointer-events: none;
+}
+:root[data-theme='light'] .ud-root .fleet-mine-btc-mark {
+  color: #73de56;
+  opacity: 0.16;
 }
 @media (max-width: 768px) {
   .ud-root .fleet-mine-btc-mark {
-    height: 64px;
-    transform: translateY(-40%);
+    width: 120px;
+    height: 120px;
+    right: -20px;
+    bottom: -24px;
   }
 }
 
