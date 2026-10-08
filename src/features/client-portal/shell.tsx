@@ -13,9 +13,10 @@ import {
   DocumentTextIcon,
   HomeIcon,
   QuestionMarkCircleIcon,
+  WrenchScrewdriverIcon,
   XMarkIcon,
 } from '@heroicons/react/20/solid'
-import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/16/solid'
+import { ArrowRightStartOnRectangleIcon, WrenchScrewdriverIcon as WrenchSmallIcon } from '@heroicons/react/16/solid'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -71,6 +72,8 @@ export function AccountShell({
   const [menuOpen, setMenuOpen] = useState(false)
   const isActive = (href: string) => (href === '/account' ? pathname === '/account' : pathname.startsWith(href))
   const initials = userInitials(user.name)
+  /* Un compte Hearst (Owner, Admin) passe de la vue client à l'admin d'un clic ; un client ne voit pas ce bouton. */
+  const canAdmin = user.role === 'OWNER' || user.role === 'ADMIN'
 
   return (
     <div className="ud-root">
@@ -136,6 +139,12 @@ export function AccountShell({
                   <QuestionMarkCircleIcon className="size-5" aria-hidden="true" />
                   <span>Support</span>
                 </a>
+                {canAdmin ? (
+                  <Link href="/admin" className="rail-menu-item no-underline" onClick={() => setMenuOpen(false)}>
+                    <WrenchScrewdriverIcon className="size-5" aria-hidden="true" />
+                    <span>Admin</span>
+                  </Link>
+                ) : null}
               </nav>
               <SocialLinks className="rail-menu-social" />
               <button type="button" className="rail-menu-signout" onClick={() => void logout()}>
@@ -153,6 +162,12 @@ export function AccountShell({
                 <span className="sync-label">{clientName ?? 'Your account'}</span>
               </div>
               <div className="topbar-user">
+                {canAdmin ? (
+                  <Link href="/admin" className="sign-out no-underline">
+                    <WrenchSmallIcon className="size-4" aria-hidden="true" />
+                    <span>Admin</span>
+                  </Link>
+                ) : null}
                 <ThemeToggle />
                 <span className="avatar" title={user.email} aria-label={user.name}>
                   {initials || 'HC'}

@@ -22,7 +22,11 @@ function textField(formData: FormData, name: string): string {
  * cookie. Shared tail for `login` and `quickLoginOwner`: same handoff from
  * credentials to a live session, whichever way the credentials were sourced.
  */
-async function authenticateAndStartSession(email: string, password: string): Promise<LoginState> {
+async function authenticateAndStartSession(
+  email: string,
+  password: string,
+  to: '/admin' | '/account' = '/admin',
+): Promise<LoginState> {
   const result = await authenticate(email, password)
   if (!result.ok) {
     return { error: result.error }
@@ -34,7 +38,7 @@ async function authenticateAndStartSession(email: string, password: string): Pro
     return { error: loginErrorMessage('malformed_response') }
   }
 
-  redirect('/admin')
+  redirect(to)
 }
 
 /**
@@ -83,5 +87,6 @@ export async function quickLoginOwner(_prevState: LoginState): Promise<LoginStat
     return { error: loginErrorMessage('missing_fields') }
   }
 
-  return authenticateAndStartSession(credentials.email, credentials.password)
+  // La porte de la démo : elle ouvre la plateforme CLIENT ; l'admin est à un clic (bouton Admin).
+  return authenticateAndStartSession(credentials.email, credentials.password, '/account')
 }

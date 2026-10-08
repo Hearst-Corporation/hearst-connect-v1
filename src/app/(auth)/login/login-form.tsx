@@ -90,8 +90,9 @@ export function LoginForm({
       {devQuickLoginAvailable ? (
         <form action={quickAction} className="auth-dev">
           <button type="submit" className="auth-btn is-ghost" disabled={quickPending}>
-            {quickPending ? 'Signing in…' : 'Quick owner sign-in (local dev)'}
+            {quickPending ? 'Opening the demo…' : 'Explore the demo'}
           </button>
+          <p className="auth-meta">No sign-in needed: the client platform with demo data, the admin one click away.</p>
           {quickState.error ? (
             <p className="auth-error" role="alert">
               {quickState.error}
