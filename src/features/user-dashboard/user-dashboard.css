@@ -7375,6 +7375,22 @@
   color: #73de56;
   opacity: 0.22;
 }
+/* Quand la note est affichée (mobile, tablette, admin), le ₿ se centre entre le
+   filet du haut et celui de la note (12px de marge entre les deux : +6px), plus
+   petit, avec un peu d'air au-dessus et en dessous. */
+.ud-root .fleet-mine-btc-mark {
+  top: calc(50% + 6px);
+  transform: translateY(-50%);
+  height: 52px;
+}
+/* Ordinateur, espace client : la note est masquée, le réglage validé reste. */
+@media (min-width: 1025px) {
+  .ud-root .analysis--fund .fleet-mine-btc-mark {
+    top: 18px;
+    transform: none;
+    height: 80px;
+  }
+}
 
 /* Le panneau du burger chevauche la barre d'un pixel : à certains zooms, un
    interstice d'un demi-pixel laissait voir le fond de page — un trait blanc au
