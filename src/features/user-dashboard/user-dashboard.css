@@ -7361,3 +7361,14 @@
     border-top: 1px solid var(--ud-line);
   }
 }
+
+/* Compute : les deux boîtes du bas (« Produced to date », « Uptime ») prennent
+   un peu de hauteur, avec le MÊME espace en bas qu'au-dessus de leur titre —
+   contenu centré. Les boîtes du haut rendent d'autant leur vide. */
+@media (min-width: 1025px) {
+  .ud-root .analysis--fund .fleet-panel > .fleet-cell:not(.fleet-cell--miners) {
+    justify-content: center;
+    padding-top: 26px;
+    padding-bottom: 26px;
+  }
+}
