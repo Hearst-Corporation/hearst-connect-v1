@@ -1,5 +1,6 @@
 'use client'
 
+import { BitcoinMark } from '@/assets/brand/bitcoin'
 import { BoltIcon } from '@heroicons/react/24/outline'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { formatBtc, formatNumber } from '@/lib/format'
@@ -172,6 +173,8 @@ export function ComputeFleetPanel({
                 {allocatedBtcProduced !== null ? <span className="fleet-mine-unit">BTC</span> : null}
               </p>
               <p className="fleet-mine-label">{copy.produced}</p>
+              {/* Le ₿ en contour, comme le H des flancs : il signe le bitcoin produit. */}
+              <BitcoinMark className="fleet-mine-btc-mark" />
             </div>
           </div>
         ) : (

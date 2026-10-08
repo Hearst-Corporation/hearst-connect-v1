@@ -7328,3 +7328,24 @@
   right: 0;
   transform: none;
 }
+
+/* Le ₿ en contour, à droite du bitcoin produit — le même trait que le H. */
+.ud-root .fleet-mine-metric--produced {
+  position: relative;
+}
+.ud-root .fleet-mine-btc-mark {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  height: 112px;
+  width: auto;
+  transform: translateY(-30%);
+  color: var(--hearst-green-text);
+  pointer-events: none;
+}
+@media (max-width: 768px) {
+  .ud-root .fleet-mine-btc-mark {
+    height: 64px;
+    transform: translateY(-40%);
+  }
+}
