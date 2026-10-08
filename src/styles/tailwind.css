@@ -478,10 +478,52 @@ select:-webkit-autofill {
   color: var(--color-fg);
   font-weight: 500;
 }
+/* Les pictos au jour : à l'encre — un trait vert clair de 1,5 px ne ressort
+   pas sur blanc. Le vert reste aux aplats (tags, pastilles, boutons). */
 :root[data-theme='light']
-  :is([class*='text-[var(--accent-text)]'], [class*='text-[var(--hearst-green-text)]']):not(svg)
-  svg {
-  color: var(--accent-text);
+  :is(svg[class*='--accent-text'], svg[class*='--hearst-green-text'], [class*='text-[var(--accent-text)]'] svg, [class*='text-[var(--hearst-green-text)]'] svg):not(
+    :where([data-theme='dark'], [data-theme='dark'] *, [class*='day:text-'] *, [class*='day:text-'])
+  ) {
+  color: var(--color-fg);
+}
+:root[data-theme='light'] .ud-root :is(
+    .stat-eyebrow svg,
+    .flank-heading h2 svg,
+    .switch-inner svg,
+    .fleet-cell-label svg,
+    .ec-heading h2 svg,
+    .movements-heading h2 svg,
+    .mining-flank-foot svg,
+    .rebalance-line svg,
+    .term-icon,
+    .timeline-chevron
+  ):not(:where([data-theme='dark'] *)) {
+  color: var(--ud-fg);
+}
+/* Le picto d'une tuile verte garde l'encre de la tuile. */
+:root[data-theme='light'] .ud-root .stat-tile.is-accent .stat-eyebrow svg,
+:root[data-theme='light'] .ud-root .kpi-band.is-accent .stat-eyebrow svg {
+  color: inherit;
+}
+
+/* Le journal des mouvements au jour : statuts en aplat, nœuds pleins. */
+:root[data-theme='light'] .ud-root .timeline-status {
+  color: #3b2a05;
+  background: #fcd34d;
+  box-shadow: none;
+}
+:root[data-theme='light'] .ud-root .timeline-status[data-tone='done'] {
+  color: #06140a;
+  background: #9eea7a;
+}
+:root[data-theme='light'] .ud-root .timeline-status[data-tone='off'] {
+  color: var(--ud-fg-2);
+  background: var(--ud-inset);
+}
+:root[data-theme='light'] .ud-root .timeline-node {
+  color: #06140a;
+  background: #9eea7a;
+  box-shadow: none;
 }
 :root[data-theme='light'] .ud-root :is(
     .bucket-yield-trend.is-up,
@@ -493,8 +535,7 @@ select:-webkit-autofill {
     .mining-flank-cushion strong,
     .mining-axis-end-value.is-gain,
     .fleet-mine-eyebrow,
-    .timeline-status[data-tone='done'],
-    .btc-gauge.is-ahead .btc-gauge-delta-value
+    .timeline-status[data-tone='done']
   ) {
   color: var(--ud-fg);
   font-weight: 500;
