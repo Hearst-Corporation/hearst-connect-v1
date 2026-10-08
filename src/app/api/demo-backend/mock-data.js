@@ -190,13 +190,30 @@ const POCKET_APY = { mining: 0.142, lending: 0.084, stable: 0.101 }
  * chaque démarrage. Les compteurs agrégés de /api/v1/mining s'en déduisent,
  * pour que le total et la liste ne se contredisent pas.
  */
+/* Dix sites dans dix pays — les « 10+ Countries » de la landing. `weight` :
+   la part du parc (en %) qu'héberge le site, pour que la répartition ne soit
+   pas uniforme. */
 const SITES = [
-  { site: 'Itaipú', country: 'Paraguay', code: 'PY' },
-  { site: 'Addis Ababa', country: 'Ethiopia', code: 'ET' },
-  { site: 'Tromsø', country: 'Norway', code: 'NO' },
-  { site: 'Rockdale, TX', country: 'United States', code: 'US' },
-  { site: 'Baie-Comeau', country: 'Canada', code: 'CA' },
+  { site: 'Rockdale, TX', country: 'United States', code: 'US', weight: 18 },
+  { site: 'Itaipú', country: 'Paraguay', code: 'PY', weight: 15 },
+  { site: 'Baie-Comeau', country: 'Canada', code: 'CA', weight: 13 },
+  { site: 'Addis Ababa', country: 'Ethiopia', code: 'ET', weight: 12 },
+  { site: 'Tromsø', country: 'Norway', code: 'NO', weight: 10 },
+  { site: 'Ekibastuz', country: 'Kazakhstan', code: 'KZ', weight: 9 },
+  { site: 'Abu Dhabi', country: 'United Arab Emirates', code: 'AE', weight: 8 },
+  { site: 'Neuquén', country: 'Argentina', code: 'AR', weight: 6 },
+  { site: 'Boden', country: 'Sweden', code: 'SE', weight: 5 },
+  { site: 'Reykjanes', country: 'Iceland', code: 'IS', weight: 4 },
 ]
+/** Le site de la machine i : un tirage déterministe pondéré par `weight`. */
+const siteOf = (i) => {
+  let r = (i * 7919) % 100
+  for (const s of SITES) {
+    if (r < s.weight) return s
+    r -= s.weight
+  }
+  return SITES[0]
+}
 const MODELS = [
   { model: 'Antminer S21 Pro', ths: 234, jth: 15 },
   { model: 'Antminer S21', ths: 200, jth: 17.5 },
@@ -206,7 +223,7 @@ const MODELS = [
 const BTC_PER_THS_DAY = 5.5e-7
 const FLEET_SIZE = 10_000
 const MACHINES = Array.from({ length: FLEET_SIZE }, (_, i) => {
-  const site = SITES[i % SITES.length]
+  const site = siteOf(i)
   const m = MODELS[(i * 7) % MODELS.length]
   const offline = i % 89 === 17
   const uptime = offline ? 41.5 - (i % 5) : Number((98.8 + ((i * 37) % 12) / 10).toFixed(1))
