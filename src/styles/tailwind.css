@@ -540,3 +540,25 @@ select:-webkit-autofill {
   color: var(--ud-fg);
   font-weight: 500;
 }
+
+/* Les jauges au jour : une piste grise nette et un remplissage plus soutenu —
+   le vert pâle sur fond vert pâle ne se voyait pas. */
+:root[data-theme='light'] .ud-root .fleet-mine-bar {
+  height: 6px;
+  background: rgba(17, 19, 18, 0.1);
+}
+:root[data-theme='light'] .ud-root .fleet-mine-bar-fill,
+:root[data-theme='light'] .ud-root .stat-meter > span {
+  background: #73de56;
+}
+:root[data-theme='light'] .ud-root .stat-meter {
+  background: rgba(17, 19, 18, 0.1);
+}
+/* Les carrés du parc au jour : un vert plein et un trait net. */
+:root[data-theme='light'] .ud-root .fleet-dots span.is-on {
+  background: rgba(158, 234, 122, 0.55);
+  box-shadow: inset 0 0 0 1px #73de56;
+}
+:root[data-theme='light'] .ud-root .fleet-gauge {
+  background: rgba(17, 19, 18, 0.1);
+}
