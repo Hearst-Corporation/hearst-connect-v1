@@ -243,7 +243,8 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
           ))}
         </div>
         <p className="text-xs text-fg-tertiary">
-          Below three months of bills, the buffer is refilled to six with part of the month’s mined bitcoin.
+          When the buffer falls below 3 months of bills, it is topped back up to 6 months by selling part of that month’s mined
+          bitcoin — never more than half.
         </p>
       </fieldset>
 

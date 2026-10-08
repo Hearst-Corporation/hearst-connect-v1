@@ -99,8 +99,11 @@ export function BufferPanel({ buffer }: Readonly<{ buffer: PortalBuffer }>) {
 
       <p className="rebalance-line">
         <CheckCircleIcon className="size-4" aria-hidden="true" />
-        You never pay a bill. Below {buffer.floorMonths} months, Hearst refills the buffer to {buffer.targetMonths} with part of that month’s
-        mined bitcoin — never more than half. Marked months had a refill.
+        <span>
+          You never receive an electricity bill — it is paid from this buffer. When the buffer falls below {buffer.floorMonths} months of
+          bills, Hearst tops it back up to {buffer.targetMonths} months by selling part of that month’s mined bitcoin, never more than half.
+          A green dot marks the months with a top-up.
+        </span>
       </p>
     </div>
   )

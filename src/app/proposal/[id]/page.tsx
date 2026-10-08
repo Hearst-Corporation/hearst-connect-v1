@@ -184,8 +184,8 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
             Lue dans la simulation (backend), comme sur /account. */}
         <h3 className="mt-10 text-lg font-medium">Your computing power</h3>
         <p className="mt-1 text-sm text-white/55">
-          Electricity is paid from the buffer, at cost. When the buffer falls below three months of bills, Hearst refills it
-          to six with part of that month’s mined bitcoin — never more than half.
+          You never receive an electricity bill — it is paid from the buffer, at cost. When the buffer falls below 3 months of
+          bills, Hearst tops it back up to 6 months by selling part of that month’s mined bitcoin, never more than half.
         </p>
         {sim && ths !== null ? (
           <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10 max-sm:grid-cols-1">
