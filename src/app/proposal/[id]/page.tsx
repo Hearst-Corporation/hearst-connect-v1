@@ -81,7 +81,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
   const ths = sim?.hashrateThs ?? null
 
   return (
-    <div className="proposal-root">
+    <div className="proposal-root" data-theme="dark">
       <div className="proposal-toolbar">
         <Link
           href={offer.clientId ? `/admin/clients/${offer.clientId}` : `/admin/offers/${offer.id}`}

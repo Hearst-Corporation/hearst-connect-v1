@@ -92,7 +92,7 @@ export function VaultRegistry({
                     <p className="font-semibold">{btcFromSats((v.capitalBtcSats ?? 0) + (v.accruedBtcSats ?? 0))}</p>
                     <p className="text-xs text-fg-tertiary">from {usd(v.principalUsdc)} USDC</p>
                   </td>
-                  <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-[var(--hearst-green)]">
+                  <td suppressHydrationWarning className="py-3 pr-4 text-right tabular-nums text-[var(--hearst-green-text)]">
                     +{btcFromSats(v.accruedBtcSats)}
                   </td>
                   <td suppressHydrationWarning className="py-3 pr-4">
@@ -132,7 +132,7 @@ export function VaultRegistry({
                     <span
                       className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                         v.depositUnlocked
-                          ? 'text-accent-400 ring-1 ring-accent-400/40'
+                          ? 'text-[var(--accent-text)] ring-1 ring-accent-400/40'
                           : 'text-fg-tertiary ring-1 ring-console-line-soft'
                       }`}
                     >

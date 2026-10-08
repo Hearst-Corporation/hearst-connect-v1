@@ -1,5 +1,6 @@
 'use client'
 
+import { ThemeToggle } from '@/components/theme-toggle'
 import { InboxBell } from '@/features/admin-inbox/inbox-bell'
 import { TopbarNav, type PaletteClient } from '@/components/admin/command-palette'
 import type { InboxItem } from '@/lib/notifications/inbox'
@@ -98,6 +99,7 @@ function AdminMobileBar({
       </Link>
 
       <div className="ml-auto flex items-center gap-1">
+        <ThemeToggle />
         <InboxBell initial={inbox} />
         <button
           type="button"
@@ -267,6 +269,7 @@ export function AdminApplicationLayout({
           {/* La cloche à gauche de l'avatar, comme dans toute application :
               ce qui attend l'admin, et ce qui vient de se passer. */}
           <div className="flex items-center gap-4">
+          <ThemeToggle />
           <InboxBell initial={inbox} />
           <Dropdown>
             <DropdownButton as="button" className="flex items-center gap-2.5">

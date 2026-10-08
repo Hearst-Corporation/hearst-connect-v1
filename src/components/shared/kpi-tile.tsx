@@ -55,7 +55,7 @@ export function KpiTile({
         className={`flex items-center gap-1.5 text-[11px] ${accent ? 'text-[#06140a]/70' : 'text-fg-tertiary'}`}
       >
         {Icon !== undefined ? (
-          <Icon className={`size-4 ${accent ? 'text-[#06140a]' : 'text-accent-400'}`} />
+          <Icon className={`size-4 ${accent ? 'text-[#06140a]' : 'text-[var(--accent-text)]'}`} />
         ) : null}
         <span className="truncate">{label}</span>
       </div>

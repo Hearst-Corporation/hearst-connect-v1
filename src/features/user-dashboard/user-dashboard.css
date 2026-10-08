@@ -30,6 +30,11 @@
   --ud-fg: #f2f2f2;
   --ud-fg-2: #a9a9a9;
   --ud-fg-3: #6f6f6f;
+  /* Le texte vert : le vert de marque sur fond sombre, un vert plus profond sur fond clair. */
+  --hearst-green-text: var(--hearst-green);
+  /* L'aplat « actif » (pilules, onglets) : blanc sur la nuit, encre sur le jour. */
+  --ud-invert-bg: #ffffff;
+  --ud-invert-fg: #0a0a0a;
 
   /* ── Rayons ───────────────────────────────────────────────────────────── */
   --ud-radius: 12px;
@@ -198,7 +203,7 @@
    fond noir du rail, et rien ne signalait que l'item répondait. */
 .ud-root .rail-item:hover {
   color: var(--ud-fg);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--ud-fg) 8.0%, transparent);
 }
 
 /* Item courant : pastille mint pleine, encre sombre — le repère fort des
@@ -282,7 +287,7 @@
 }
 
 .ud-root .bucket-yield-trend.is-up {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .bucket-yield-trend.is-down {
@@ -331,7 +336,7 @@
 }
 
 .ud-root .prodcost-lead-pct {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -355,7 +360,7 @@
    « jusqu'où le marché peut tomber avant qu'on perde de l'argent ». */
 .ud-root .prodcost-lead-value {
   margin: 0;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-size: 40px;
   font-weight: 500;
   line-height: 1;
@@ -438,7 +443,7 @@
 }
 
 .ud-root .prodcost-legend-pct {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -677,8 +682,8 @@
 
 .ud-root .projection-unit.active,
 .ud-root .ud-seg-btn.active {
-  background: #ffffff;
-  color: #0a0a0a;
+  background: var(--ud-invert-bg);
+  color: var(--ud-invert-fg);
 }
 
 .ud-root .projection-unit:focus,
@@ -744,7 +749,7 @@
 }
 
 .ud-root .projection-table thead .is-median {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-weight: 500;
 }
 
@@ -844,7 +849,7 @@
 }
 
 .ud-root .btc-price-change.is-up {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .btc-price-change.is-down {
@@ -926,8 +931,8 @@
 
 /* Fenêtre courante : aplat blanc, comme la pilule active des onglets. */
 .ud-root .btc-price-window.active {
-  background: #ffffff;
-  color: #0a0a0a;
+  background: var(--ud-invert-bg);
+  color: var(--ud-invert-fg);
 }
 
 /* Historique insuffisant : la fenêtre est refusée, pas silencieusement tronquée. */
@@ -1154,7 +1159,7 @@
 }
 
 .ud-root .rail-social a:hover {
-  color: #ffffff;
+  color: var(--ud-fg);
 }
 
 .ud-root .rail-social a:focus-visible {
@@ -1474,7 +1479,7 @@
   width: auto;
   height: 100%;
   max-height: 96px;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 /* ── Monogramme du flanc d'allocation ────────────────────────────────────
@@ -1500,7 +1505,7 @@
   width: auto;
   height: 100%;
   max-height: 110px;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 /* Sous 1024px les flancs passent pleine largeur et se règlent sur leur contenu :
@@ -1683,7 +1688,7 @@
 }
 
 .ud-root .kpi-band > .stat-tile:first-child .stat-value {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .kpi-band .stat-tile .stat-value.is-absent {
@@ -1814,7 +1819,7 @@
 }
 
 .ud-root .stat-eyebrow svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .stat-eyebrow span {
@@ -1893,7 +1898,7 @@
 }
 
 .ud-root .stat-delta.is-up {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .stat-delta.is-down {
@@ -2015,7 +2020,7 @@
 }
 
 .ud-root .flank-heading h2 svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .flank-heading span {
@@ -2130,7 +2135,7 @@
   inset: 0;
   z-index: 0;
   border-radius: var(--ud-radius-pill);
-  background: #ffffff;
+  background: var(--ud-invert-bg);
 }
 
 .ud-root .switch-inner {
@@ -2143,7 +2148,7 @@
 }
 
 .ud-root .switch-inner svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .fresh-badge {
@@ -2159,7 +2164,7 @@
 }
 
 .ud-root .fresh-badge[data-signal='live'] {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .center-plot-inner {
@@ -2306,7 +2311,7 @@
 }
 
 .ud-root .mining-flank-cushion strong {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -2336,7 +2341,7 @@
 
 .ud-root .mining-flank-lead-value {
   margin: 0;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   /* 30px : deux pixels au-dessus des autres valeurs (28px), comme la réserve
      du bandeau. Ces deux chiffres portent leur bloc — l'écart les détache
      juste assez sans rompre l'uniformité de l'écran. */
@@ -2378,7 +2383,7 @@
   background-image: repeating-linear-gradient(
     -45deg,
     transparent 0 5px,
-    rgba(255, 255, 255, 0.045) 5px 10px
+    color-mix(in srgb, var(--ud-fg) 4.5%, transparent) 5px 10px
   );
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
@@ -2471,7 +2476,7 @@
    quand produire coûte plus que vendre. Elle est sous l'extrémité GAUCHE, là où
    la zone verte commence — nommer la figure à son point de départ. */
 .ud-root .mining-axis-end-value.is-gain {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .mining-axis-end-value.is-loss {
@@ -2547,7 +2552,7 @@
 }
 
 .ud-root .mining-flank-foot svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 /* ── Compute Infrastructure (panneau central) ────────────────────────────
@@ -2604,7 +2609,7 @@
 .ud-root .fleet-mine-eyebrow {
   margin: 0;
   margin-right: auto;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-size: var(--ud-t-micro);
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -2618,7 +2623,7 @@
   padding: 3px 10px;
   border-radius: var(--ud-radius-pill);
   background: rgba(158, 234, 122, 0.16);
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-size: var(--ud-t-micro);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -2736,7 +2741,7 @@
 }
 
 .ud-root .fleet-cell-label svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 /* Chiffres en ENCRE BLANCHE, pas en vert : le vert reste la couleur des
@@ -2895,7 +2900,7 @@
 }
 
 .ud-root .ec-heading h2 svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .ec-heading span {
@@ -3013,7 +3018,7 @@
 }
 
 .ud-root .movements-heading h2 svg {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .movements-heading > span {
@@ -3064,7 +3069,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   background: var(--ud-card);
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
@@ -3225,7 +3230,7 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .term-label {
@@ -3510,7 +3515,7 @@
   line-height: 1.02;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 /* L'unité ne concourt pas avec le nombre : même ligne de base, poids et corps
@@ -3588,7 +3593,7 @@
    les trois autres ne font que la situer. Un cran au-dessus suffit à établir la
    hiérarchie sans rompre l'uniformité des tuiles. */
 .ud-root .btc-block-top > .stat-tile:first-child .stat-value {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   /* 30px : deux pixels au-dessus des trois faits qui l'accompagnent, comme le
      coût de production dans son propre bloc. Assez pour détacher la mesure
      principale, trop peu pour rompre l'uniformité de l'écran. */
@@ -3672,7 +3677,7 @@
    ambre s'il décroche. C'est le seul endroit où l'ambre apparaît — les barres
    restent vert / gris, pour que la comparaison se lise sans code couleur. */
 .ud-root .btc-gauge.is-ahead .btc-gauge-delta-value {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 .ud-root .btc-gauge.is-behind .btc-gauge-delta-value {
@@ -3927,7 +3932,7 @@
    serait illisible. */
 .ud-root .chart-switch button.active .switch-inner,
 .ud-root .chart-switch button.active .switch-inner svg {
-  color: #111111;
+  color: var(--ud-invert-fg);
   font-weight: 500;
 }
 
@@ -4088,7 +4093,7 @@
 /* Le badge LIVE reprend le vert de marque, en filet plutôt qu'en aplat. */
 .ud-root .chart-live,
 .ud-root [class*='live-badge'] {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   border-color: rgba(158, 234, 122, 0.3);
   background: var(--hearst-green-dim);
 }
@@ -4478,7 +4483,7 @@
     border: 0;
     border-radius: var(--ud-radius);
     background: transparent;
-    color: var(--hearst-green);
+    color: var(--hearst-green-text);
     cursor: pointer;
     transition: background 0.15s;
   }
@@ -4572,7 +4577,7 @@
   }
 
   .ud-root .rail-menu-item.active svg {
-    color: var(--hearst-green);
+    color: var(--hearst-green-text);
   }
 
   .ud-root .rail-menu-item:focus-visible {
@@ -4617,7 +4622,7 @@
   }
 
   .ud-root .rail-menu-social a:hover {
-    color: #ffffff;
+    color: var(--ud-fg);
   }
 
   .ud-root .rail-menu-social a:focus-visible {
@@ -4705,7 +4710,7 @@
   }
 
   .ud-root .ud-footer-links a:hover {
-    color: #ffffff;
+    color: var(--ud-fg);
   }
 
   .ud-root .ud-footer-links a:focus-visible {
@@ -4720,7 +4725,7 @@
   .ud-root .ud-footer-brand {
     display: inline-flex;
     flex: 0 0 auto;
-    color: var(--hearst-green);
+    color: var(--hearst-green-text);
   }
 
 
@@ -5701,7 +5706,7 @@
 .ud-root .bucket-earned-value {
   font-size: 20px;
   font-weight: 500;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-variant-numeric: tabular-nums;
 }
 .ud-root .bucket-earned-share {
@@ -5743,7 +5748,7 @@
   align-items: flex-start;
   gap: 12px;
   font-size: 14px;
-  color: #fff;
+  color: var(--ud-fg);
 }
 .ud-root .pocket-name > i {
   flex: none;
@@ -5760,7 +5765,7 @@
 }
 .ud-root .pocket-protocol {
   font-size: 13px;
-  color: rgb(255 255 255 / 0.75);
+  color: var(--ud-fg-2);
 }
 .ud-root .pocket-share {
   display: flex;
@@ -5785,11 +5790,11 @@
   height: 14px;
   margin-left: -1px;
   border-radius: 2px;
-  background: #fff;
+  background: var(--ud-fg);
 }
 .ud-root .pocket-share-text {
   font-size: 12px;
-  color: #fff;
+  color: var(--ud-fg);
   font-variant-numeric: tabular-nums;
 }
 .ud-root .pocket-share-text em {
@@ -5803,11 +5808,11 @@
 }
 .ud-root .pocket-rate {
   font-size: 15px;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 .ud-root .pocket-capital {
   font-size: 14px;
-  color: rgb(255 255 255 / 0.75);
+  color: var(--ud-fg-2);
 }
 .ud-root .pocket-note {
   padding-top: 16px;
@@ -5876,10 +5881,10 @@
 .ud-root .withdrawal-track-row p {
   margin-bottom: 10px;
   font-size: 13px;
-  color: rgb(255 255 255 / 0.75);
+  color: var(--ud-fg-2);
 }
 .ud-root .withdrawal-track-row strong {
-  color: #fff;
+  color: var(--ud-fg);
   font-weight: 500;
 }
 .ud-root .withdrawal-track-row ol {
@@ -5907,7 +5912,7 @@
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 .ud-root .withdrawal-track-row li.is-done {
-  color: rgb(255 255 255 / 0.75);
+  color: var(--ud-fg-2);
 }
 .ud-root .withdrawal-track-row li.is-done > span {
   background: var(--hearst-green);
@@ -6058,7 +6063,7 @@
   margin-bottom: 6px;
   font-size: 13px;
   font-weight: 500;
-  color: #fff;
+  color: var(--ud-fg);
 }
 .ud-root .rebalance-points p {
   font-size: 12px;
@@ -6106,7 +6111,7 @@
 .ud-root .timeline-chevron {
   width: 16px;
   height: 16px;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   opacity: 0.6;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
@@ -6184,7 +6189,7 @@
 }
 .ud-root .rebalance-line svg {
   flex: none;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 
 /* Les quatre onglets de My Vault : UNE hauteur, fixe. Changer d'onglet ne
@@ -6215,7 +6220,7 @@
   justify-self: center;
 }
 .ud-root .timeline-status[data-tone='done'] {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   box-shadow: inset 0 0 0 1px rgb(158 234 122 / 0.3);
 }
 .ud-root .timeline-status[data-tone='off'] {
@@ -6598,7 +6603,7 @@
   line-height: 1;
   font-weight: 500;
   letter-spacing: -0.03em;
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   font-variant-numeric: tabular-nums;
 }
 .ud-root .strategy-summary-label {
@@ -6615,7 +6620,7 @@
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 .ud-root .strategy-summary-tag.is-ok {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
   box-shadow: inset 0 0 0 1px rgb(158 234 122 / 0.3);
 }
 .ud-root .center-strategy .ud-radial-row > :last-child {
@@ -6748,7 +6753,7 @@
   width: 2px;
   margin-left: -1px;
   border-radius: 2px;
-  background: #fff;
+  background: var(--ud-fg);
 }
 .ud-root .strategy-bucket-foot {
   font-size: 12px;
@@ -6769,7 +6774,7 @@
 }
 .ud-root .strategy-bucket-foot b.is-yield,
 .ud-root .strategy-bucket-foot b.is-earned {
-  color: var(--hearst-green);
+  color: var(--hearst-green-text);
 }
 @media (min-width: 1025px) {
   .ud-root .vault-term {
@@ -7229,5 +7234,15 @@
   }
   .ud-root .buffer-months em {
     display: none;
+  }
+}
+
+/* « At the end of the lockup  you can change until … » : un espace entre les deux. */
+.ud-root .vault-term-label em {
+  margin-left: 0.4em;
+}
+@media (max-width: 1024px) {
+  .ud-root .vault-term-label em {
+    margin-left: 0;
   }
 }

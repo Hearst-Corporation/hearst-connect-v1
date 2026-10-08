@@ -18,7 +18,7 @@ export function SiteFooter() {
     <footer className="relative w-full overflow-hidden border-t border-console-line-soft bg-console-app">
       <p
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-accent-300/[0.08]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none text-center text-[clamp(4.5rem,18vw,14rem)] leading-none font-bold tracking-tight text-[var(--accent-text)]/[0.08]"
       >
         Connect
       </p>

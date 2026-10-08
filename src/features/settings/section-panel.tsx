@@ -58,7 +58,7 @@ function FieldInput({ field, value, onChange }: Readonly<{ field: Field; value: 
                   key={o}
                   type="button"
                   onClick={() => onChange(on ? list.filter((x) => x !== o) : [...list, o])}
-                  className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? 'bg-[var(--hearst-green)]/15 text-[var(--hearst-green)] ring-[var(--hearst-green)]/40' : 'text-fg-tertiary ring-[var(--ud-line)]'}`}
+                  className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? 'bg-[var(--hearst-green)]/15 text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/40' : 'text-fg-tertiary ring-[var(--ud-line)]'}`}
                 >
                   {o}
                 </button>
@@ -233,7 +233,7 @@ export function SectionPanel({
                   ]),
                 ])
               }
-              className="mt-3 text-sm text-[var(--hearst-green)] hover:underline"
+              className="mt-3 text-sm text-[var(--hearst-green-text)] hover:underline"
             >
               + Add a row
             </button>
@@ -277,7 +277,7 @@ export function SectionPanel({
           <span className="text-xs text-amber-300">A change is waiting for approval — decide it before editing again.</span>
         ) : (
           <div className="flex items-center gap-3">
-            {sent ? <span className="text-xs text-[var(--hearst-green)]">Change requested — it now waits for approval.</span> : null}
+            {sent ? <span className="text-xs text-[var(--hearst-green-text)]">Change requested — it now waits for approval.</span> : null}
             <button type="button" onClick={startEdit} className="ud-cta inline-flex h-9 items-center">
               Edit
             </button>

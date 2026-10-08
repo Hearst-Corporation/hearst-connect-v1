@@ -301,3 +301,114 @@ select:-webkit-autofill {
   box-shadow: 0 0 0 1000px var(--ud-inset, #161616) inset;
   transition: background-color 9999s ease-out 0s;
 }
+
+/* ══ V2 — JOUR / NUIT ═══════════════════════════════════════════════════════
+ * Le jour (fond blanc) est la version principale ; la nuit est l'écran
+ * d'origine, noir et gris. Le thème est `data-theme` sur <html> (posé avant le
+ * premier rendu, voir `lib/theme.ts`). Seuls les TOKENS changent : surfaces,
+ * filets, encres. `--color-white` et `--color-black` s'échangent au jour, si
+ * bien que les `text-white`, `bg-white/5`… de la console suivent d'eux-mêmes.
+ * Un sous-arbre `data-theme="dark"` (la proposition imprimable) reste en nuit.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --color-white: #111312;
+  --color-black: #ffffff;
+  --color-fg: #111312;
+  --color-fg-secondary: #4f5452;
+  --color-fg-tertiary: #7d8280;
+  --color-fg-muted: #9a9f9d;
+  --color-console-app: #f4f5f3;
+  --color-console-shell: #ffffff;
+  --color-console-surface: #ffffff;
+  --color-console-raised: #f0f1ef;
+  --color-console-fill: #e4e6e3;
+  --color-console-fill-muted: #eceeeb;
+  --color-console-card: #ffffff;
+  --color-console-card-top: #f7f8f6;
+  --color-console-inset: #eef0ed;
+  --color-console-glass: #ffffff;
+  --color-console-line-soft: rgba(0, 0, 0, 0.05);
+  --color-console-line: rgba(0, 0, 0, 0.08);
+  --color-console-line-strong: rgba(0, 0, 0, 0.14);
+  /* Le vert en TEXTE sur fond clair : plus profond, lisible (≈ 4,6:1). Les
+     aplats verts (boutons) gardent le vert de marque. */
+  --accent-text: #3f8f22;
+}
+:root[data-theme='light'] .ud-root,
+:root[data-theme='light'].ud-root {
+  --hearst-green-text: #3f8f22;
+  --hearst-green-dim: rgba(63, 143, 34, 0.12);
+  --ud-rail: #ffffff;
+  --ud-page: #f4f5f3;
+  --ud-card: #ffffff;
+  --ud-card-raised: #f0f1ef;
+  --ud-inset: #eceeeb;
+  --ud-line: rgba(0, 0, 0, 0.08);
+  --ud-line-strong: rgba(0, 0, 0, 0.14);
+  --ud-fg: #111312;
+  --ud-fg-2: #4f5452;
+  --ud-fg-3: #7d8280;
+  --ud-invert-bg: #111312;
+  --ud-invert-fg: #ffffff;
+}
+
+/* Un sous-arbre qui reste en nuit, quel que soit le thème. */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-fg: #f2f2f2;
+  --color-fg-secondary: #a9a9a9;
+  --color-fg-tertiary: #6f6f6f;
+  --color-fg-muted: #565656;
+  --color-console-app: #1a1a1a;
+  --color-console-shell: #0a0a0a;
+  --color-console-surface: #212121;
+  --color-console-raised: #292929;
+  --color-console-fill: #333333;
+  --color-console-fill-muted: #262626;
+  --color-console-card: #212121;
+  --color-console-card-top: #262626;
+  --color-console-inset: #161616;
+  --color-console-glass: #0a0a0a;
+  --color-console-line-soft: rgba(255, 255, 255, 0.05);
+  --color-console-line: rgba(255, 255, 255, 0.07);
+  --color-console-line-strong: rgba(255, 255, 255, 0.12);
+  --color-accent-300: #b5f097;
+  --color-accent-400: #9eea7a;
+  --accent-text: #9eea7a;
+}
+
+/* Le vert en texte, par défaut (nuit). */
+:root {
+  --accent-text: #9eea7a;
+}
+
+/* Le bouton jour / nuit des barres du haut : la taille de la cloche. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--ud-fg-2, var(--color-fg-secondary));
+  border: 1px solid var(--ud-line, var(--color-console-line));
+  transition: color 0.15s, background 0.15s;
+}
+.theme-toggle:hover {
+  color: var(--ud-fg, var(--color-fg));
+  background: var(--ud-card-raised, var(--color-console-raised));
+}
+
+/* Le logo : une version par thème. */
+.logo-day {
+  display: none;
+}
+:root[data-theme='light'] .logo-day {
+  display: block;
+}
+:root[data-theme='light'] .logo-night {
+  display: none;
+}

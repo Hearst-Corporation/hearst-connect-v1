@@ -31,7 +31,7 @@ const LOGO: Record<string, (p: { className?: string }) => React.ReactNode> = {
 }
 
 const TONE: Record<string, { label: string; tone: string }> = {
-  connected: { label: 'Connected', tone: 'text-[var(--hearst-green)] ring-[var(--hearst-green)]/30' },
+  connected: { label: 'Connected', tone: 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30' },
   degraded: { label: 'Degraded', tone: 'text-amber-300 ring-amber-300/30' },
   disconnected: { label: 'Disconnected', tone: 'text-red-400 ring-red-400/30' },
   not_configured: { label: 'Not configured', tone: 'text-fg-tertiary ring-[var(--ud-line)]' },

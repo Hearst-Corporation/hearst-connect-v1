@@ -1,5 +1,6 @@
 'use client'
 
+import { ThemeToggle } from '@/components/theme-toggle'
 import '@/features/user-dashboard/user-dashboard.css'
 import { HearstConnectLockupImage } from '@/components/logo'
 import { userInitials } from '@/components/layout/user-avatar-trigger'
@@ -151,6 +152,7 @@ export function AccountShell({
                 <span className="sync-label">{clientName ?? 'Your account'}</span>
               </div>
               <div className="topbar-user">
+                <ThemeToggle />
                 <span className="avatar" title={user.email} aria-label={user.name}>
                   {initials || 'HC'}
                 </span>

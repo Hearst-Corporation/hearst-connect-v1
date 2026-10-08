@@ -30,7 +30,7 @@ function Headline({
       </span>
       {hasDelta ? (
         <span
-          className={`text-sm font-medium tabular-nums ${delta >= 0 ? 'text-[var(--hearst-green)]' : 'text-amber-400'}`}
+          className={`text-sm font-medium tabular-nums ${delta >= 0 ? 'text-[var(--hearst-green-text)]' : 'text-amber-400'}`}
         >
           {formatPercent(delta, { maximumFractionDigits: 1, signed: true })}
         </span>

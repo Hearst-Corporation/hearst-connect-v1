@@ -25,7 +25,7 @@ export function SectionIntro({
   return (
     <div className={cn(isCenter ? 'mx-auto max-w-2xl text-center' : 'max-w-2xl', className)}>
       {eyebrow ? (
-        <p className="text-xs font-medium tracking-[0.2em] text-accent-300 uppercase">{eyebrow}</p>
+        <p className="text-xs font-medium tracking-[0.2em] text-[var(--accent-text)] uppercase">{eyebrow}</p>
       ) : null}
       <h2
         id={id}
@@ -35,7 +35,7 @@ export function SectionIntro({
         )}
       >
         {title}
-        {titleAccent ? <span className="text-accent-300"> {titleAccent}</span> : null}
+        {titleAccent ? <span className="text-[var(--accent-text)]"> {titleAccent}</span> : null}
       </h2>
       {sub ? <p className="mt-4 text-sm/6 text-white/50 md:text-base">{sub}</p> : null}
     </div>

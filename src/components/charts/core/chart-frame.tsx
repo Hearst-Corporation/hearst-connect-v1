@@ -85,7 +85,7 @@ function StateVisual({
         <button
           type="button"
           onClick={onRetry}
-          className="text-xs font-medium text-accent-400 underline underline-offset-4 hover:text-accent-300"
+          className="text-xs font-medium text-[var(--accent-text)] underline underline-offset-4 hover:text-[var(--accent-text)]"
         >
           {retryLabel}
         </button>

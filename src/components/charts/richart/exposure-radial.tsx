@@ -224,11 +224,11 @@ export function HearstExposureRadial({
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             {center !== null ? (
               <>
-                <span className="text-2xl font-semibold tabular-nums text-accent-400">{center.value}</span>
+                <span className="text-2xl font-semibold tabular-nums text-[var(--accent-text)]">{center.value}</span>
                 <span className="text-[11px] text-fg-tertiary">{center.label}</span>
                 <span
                   className={`mt-2 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ${
-                    center.ok ? 'text-accent-400 ring-accent-400/30' : 'text-fg-secondary ring-white/15'
+                    center.ok ? 'text-[var(--accent-text)] ring-accent-400/30' : 'text-fg-secondary ring-white/15'
                   }`}
                 >
                   {center.tag}
@@ -237,7 +237,7 @@ export function HearstExposureRadial({
             ) : worst !== null ? (
               <>
                 <span
-                  className={`text-2xl font-semibold tabular-nums ${worst.d >= 0 ? 'text-accent-400' : 'text-fg'}`}
+                  className={`text-2xl font-semibold tabular-nums ${worst.d >= 0 ? 'text-[var(--accent-text)]' : 'text-fg'}`}
                 >
                   {worst.d >= 0 ? '+' : ''}
                   {formatNumber(worst.d, { maximumFractionDigits: 1 })}
@@ -319,7 +319,7 @@ function PocketRow({
       : `${row.drift >= 0 ? '+' : ''}${formatNumber(row.drift, { maximumFractionDigits: 1 })} pt`
 
   const driftClass =
-    row.drift === null ? 'text-fg-tertiary' : row.drift >= 0 ? 'text-accent-400' : 'text-fg-secondary'
+    row.drift === null ? 'text-fg-tertiary' : row.drift >= 0 ? 'text-[var(--accent-text)]' : 'text-fg-secondary'
 
   return (
     // Sept colonnes réclament ~30rem : sous 40rem la ligne passe en deux
@@ -358,7 +358,7 @@ function PocketRow({
             : `${formatNumber(row.actualPct, { maximumFractionDigits: 1 })} %`}
         </span>
         <span className="ud-pocket-inline-amount text-fg-secondary">{amount}</span>
-        <span className="ud-pocket-inline-yield text-accent-400">
+        <span className="ud-pocket-inline-yield text-[var(--accent-text)]">
           {yieldPct === null ? '' : `${formatNumber(yieldPct, { maximumFractionDigits: 1 })} %`}
         </span>
         <span className={`ud-pocket-inline-drift ${driftClass}`}>{driftText}</span>
@@ -368,7 +368,7 @@ function PocketRow({
       {/* Rendement courant de la poche. Un run-rate annualisé, pas un réalisé —
           la ligne de pied du bloc le dit. `—` quand la poche n'en publie pas :
           une absence, jamais un zéro. */}
-      <span className="text-right tabular-nums text-accent-400 ud-pocket-wide" title="Current annualised yield">
+      <span className="text-right tabular-nums text-[var(--accent-text)] ud-pocket-wide" title="Current annualised yield">
         {yieldPct === null ? '—' : `${formatNumber(yieldPct, { maximumFractionDigits: 1 })} %`}
       </span>
       <span className={`text-right tabular-nums  ud-pocket-wide ${driftClass}`}>{driftText}</span>

@@ -76,7 +76,7 @@ export function RebalancingAlertsPanel({
       ) : (
         <Link
           href="/admin/clients/active"
-          className="text-xs font-medium text-accent-400 hover:text-accent-300"
+          className="text-xs font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)]"
         >
           Review the drifting vaults
         </Link>

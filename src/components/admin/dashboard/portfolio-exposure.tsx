@@ -112,7 +112,7 @@ export function PortfolioExposurePanel({
                   surfaceSelect,
                 )}
               >
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-accent-300 ring-1 ring-console-line-soft">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-console-inset text-[var(--accent-text)] ring-1 ring-console-line-soft">
                   <ChartBarSquareIcon className="size-5" aria-hidden="true" />
                 </span>
                 <span className="mt-2 w-full truncate text-xs font-semibold text-fg" title={row.strategyLabel}>

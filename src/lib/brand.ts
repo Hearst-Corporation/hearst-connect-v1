@@ -12,6 +12,8 @@ export const HEARST_H_SRC = '/brand/hearst-h.svg' as const
  * mint H + white HEARST + mint CONNECT.
  */
 export const HEARST_CONNECT_LOCKUP_SRC = '/brand/hearst-connect.svg' as const
+/** Le même lockup en encre sombre, pour le thème jour. */
+export const HEARST_CONNECT_LOCKUP_LIGHT_SRC = '/brand/hearst-connect-light.svg' as const
 
 /**
  * Glow layer — pinned to the viewport (HC-ADMIN-FIXED-BACKGROUND-027).

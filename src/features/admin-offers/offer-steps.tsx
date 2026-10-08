@@ -140,7 +140,7 @@ export function OfferSteps({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--ud-radius-sm)] bg-[var(--hearst-green)]/[0.06] px-5 py-4 ring-1 ring-[var(--hearst-green)]/30">
       <div className="flex min-w-0 max-w-xl flex-col gap-1">
-        <p className="text-xs tracking-[0.12em] text-[var(--hearst-green)] uppercase">
+        <p className="text-xs tracking-[0.12em] text-[var(--hearst-green-text)] uppercase">
           Next step · {step} of {ORDER.length - 1}
         </p>
         <p className="text-base font-medium text-fg">{view.title}</p>

@@ -43,7 +43,7 @@ export default function AdminError({
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center justify-center rounded-lg border border-accent-400/40 bg-transparent px-4 py-2 text-sm font-medium text-accent-300 transition-colors hover:bg-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-console-app"
+              className="inline-flex items-center justify-center rounded-lg border border-accent-400/40 bg-transparent px-4 py-2 text-sm font-medium text-[var(--accent-text)] transition-colors hover:bg-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-console-app"
             >
               Try again
             </button>

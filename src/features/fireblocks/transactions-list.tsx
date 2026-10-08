@@ -26,7 +26,7 @@ const STATUS: Record<string, { label: string; tone: string }> = {
   PENDING_AUTHORIZATION: { label: 'Awaiting approval', tone: 'text-amber-300 ring-amber-300/30' },
   BROADCASTING: { label: 'Broadcasting', tone: 'text-sky-300 ring-sky-300/30' },
   CONFIRMING: { label: 'Confirming', tone: 'text-sky-300 ring-sky-300/30' },
-  COMPLETED: { label: 'Completed', tone: 'text-[var(--hearst-green)] ring-[var(--hearst-green)]/30' },
+  COMPLETED: { label: 'Completed', tone: 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30' },
   FAILED: { label: 'Failed', tone: 'text-red-400 ring-red-400/30' },
   REJECTED: { label: 'Rejected', tone: 'text-red-400 ring-red-400/30' },
   CANCELLED: { label: 'Cancelled', tone: 'text-fg-tertiary ring-[var(--ud-line)]' },
@@ -66,7 +66,7 @@ export function FireblocksTransactions({ transactions }: Readonly<{ transactions
             <span className="text-xs text-fg-tertiary">{formatDate(t.createdAt)}</span>
             <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${status.tone}`}>{status.label}</span>
             {t.consoleUrl ? (
-              <a href={t.consoleUrl} target="_blank" rel="noreferrer" className="text-xs text-[var(--hearst-green)] no-underline hover:underline">
+              <a href={t.consoleUrl} target="_blank" rel="noreferrer" className="text-xs text-[var(--hearst-green-text)] no-underline hover:underline">
                 Fireblocks ↗
               </a>
             ) : null}

@@ -92,7 +92,7 @@ export function VaultEntityLink({
         'group block min-w-0 max-w-full rounded-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500',
       )}
     >
-      <span className="block truncate text-sm font-medium text-ink group-hover:text-accent-700 dark:text-white dark:group-hover:text-accent-400">
+      <span className="block truncate text-sm font-medium text-ink group-hover:text-accent-700 dark:text-white dark:group-hover:text-[var(--accent-text)]">
         {label}
       </span>
       {sub === undefined ? null : (

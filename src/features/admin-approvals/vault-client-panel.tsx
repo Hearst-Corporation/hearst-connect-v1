@@ -107,7 +107,7 @@ export function VaultClientPanel({
         <span
           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
             record.depositUnlocked
-              ? 'text-accent-400 ring-1 ring-accent-400/40'
+              ? 'text-[var(--accent-text)] ring-1 ring-accent-400/40'
               : 'text-fg-tertiary ring-1 ring-console-line-soft'
           }`}
         >

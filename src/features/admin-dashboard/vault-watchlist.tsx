@@ -112,7 +112,7 @@ export function VaultWatchlist({
               </TableCell>
               {/* Ce que les trois poches ont ajouté depuis l'entrée, en bitcoin. */}
               <TableCell className={tableCol.numeric}>
-                <span className={vault.accruedBtcSats == null ? 'text-fg-tertiary' : 'text-[var(--hearst-green)]'}>
+                <span className={vault.accruedBtcSats == null ? 'text-fg-tertiary' : 'text-[var(--hearst-green-text)]'}>
                   {vault.accruedBtcSats == null ? '—' : `+${btcFromSats(vault.accruedBtcSats)}`}
                 </span>
               </TableCell>

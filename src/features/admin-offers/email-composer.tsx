@@ -114,13 +114,13 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
   return (
     <details className="group rounded-lg bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hearst-green)] [&::-webkit-details-marker]:hidden">
-        <span className="text-[var(--hearst-green)] transition-transform group-open:rotate-90" aria-hidden="true">
+        <span className="text-[var(--hearst-green-text)] transition-transform group-open:rotate-90" aria-hidden="true">
           ▸
         </span>
-        <span className="min-w-0 flex-1 truncate font-medium text-[var(--hearst-green)]">{draft.subject}</span>
+        <span className="min-w-0 flex-1 truncate font-medium text-[var(--hearst-green-text)]">{draft.subject}</span>
         {edited ? <span className="text-[11px] text-fg-tertiary">edited</span> : null}
         {email.sent ? (
-          <span className="rounded-full px-2 py-0.5 text-[11px] text-[var(--hearst-green)] ring-1 ring-[var(--hearst-green)]/30">
+          <span className="rounded-full px-2 py-0.5 text-[11px] text-[var(--hearst-green-text)] ring-1 ring-[var(--hearst-green)]/30">
             Sent {formatDate(email.sent.sentAt)}
           </span>
         ) : null}

@@ -116,7 +116,7 @@ export function ApprovalsQueue({
           <section key={kind} id={kind} aria-label={meta.label} className="flex scroll-mt-24 flex-col gap-3">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
-                <Icon className="size-4 text-accent-400" aria-hidden="true" />
+                <Icon className="size-4 text-[var(--accent-text)]" aria-hidden="true" />
                 {meta.label}
                 <span className="rounded-full bg-console-inset px-2 py-0.5 text-[11px] font-medium text-fg-secondary ring-1 ring-console-line-soft">
                   {items.length}
@@ -155,7 +155,7 @@ export function ApprovalsQueue({
                     {item.protocol ? (
                       <p className="mt-0.5 text-xs text-fg-secondary">
                         {item.protocol.bucket}: {item.protocol.fromProtocol} {formatNumber(item.protocol.fromApyPct, { maximumFractionDigits: 1 })} % →{' '}
-                        <span className="text-[var(--hearst-green)]">
+                        <span className="text-[var(--hearst-green-text)]">
                           {item.protocol.toProtocol} {formatNumber(item.protocol.toApyPct, { maximumFractionDigits: 1 })} %
                         </span>{' '}
                         · {item.protocol.reason}

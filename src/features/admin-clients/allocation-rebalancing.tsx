@@ -188,7 +188,7 @@ export function AllocationRebalancing({
                     <td suppressHydrationWarning className="py-3 text-right tabular-nums">
                       <span className={`block font-medium ${over ? 'text-amber-400' : 'text-fg'}`}>{r.drift !== null ? pts(r.drift) : '—'}</span>
                       {r.drift !== null ? (
-                        <span className={`block text-xs ${over ? 'text-amber-400' : 'text-[var(--hearst-green)]'}`}>
+                        <span className={`block text-xs ${over ? 'text-amber-400' : 'text-[var(--hearst-green-text)]'}`}>
                           {over ? 'Out of band' : 'Within band'}
                         </span>
                       ) : null}

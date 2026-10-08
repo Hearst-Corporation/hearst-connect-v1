@@ -5,7 +5,7 @@ import type { ComponentProps } from 'react'
 const primaryClass =
   'rounded-md bg-accent-400 text-sm font-semibold text-accent-ink shadow-xs transition-colors hover:bg-accent-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400'
 
-const secondaryClass = 'text-sm/6 font-semibold text-white transition-colors hover:text-accent-300'
+const secondaryClass = 'text-sm/6 font-semibold text-white transition-colors hover:text-[var(--accent-text)]'
 
 type LinkProps = ComponentProps<typeof Link>
 

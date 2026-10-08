@@ -22,7 +22,7 @@ export const ADMIN_TONE_CLASS: Record<AdminBadgeTone, string> = {
   bad: 'bg-danger-400/20 text-danger-400 ring-danger-400/40',
   info: 'bg-white/5 text-fg ring-console-line-strong',
   neutral: 'bg-white/5 text-fg-secondary ring-console-line-strong',
-  accent: 'bg-accent-400/15 text-accent-400 ring-accent-400/30',
+  accent: 'bg-accent-400/15 text-[var(--accent-text)] ring-accent-400/30',
 }
 
 export function AdminToneBadge({

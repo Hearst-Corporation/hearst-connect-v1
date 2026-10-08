@@ -27,7 +27,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html
       lang="en"
-      // Dark forced on the server side + init script (purges any residual .light).
+      // Jour par défaut ; le script pose le thème gardé avant le premier rendu.
+      data-theme="light"
       suppressHydrationWarning
       className={`dark ${fontFKGrotesk.variable} ${fontFKGrotesk.className} font-sans bg-console-app text-white antialiased`}
     >

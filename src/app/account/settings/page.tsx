@@ -34,7 +34,7 @@ const NOTIFS = [
 /** Le picto d'une ligne : vert, dans un carré teinté — le même partout dans l'app. */
 function Pic({ icon: Icon }: Readonly<{ icon: ComponentType<SVGProps<SVGSVGElement>> }>) {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green)]">
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green-text)]">
       <Icon className="size-4" aria-hidden="true" />
     </span>
   )
@@ -67,14 +67,14 @@ export default async function AccountSettingsPage() {
                     <Pic icon={WalletIcon} />
                     <span className="truncate text-sm text-fg">{w.label}</span>
                   </span>
-                  <span className="hidden truncate font-mono text-xs text-[var(--hearst-green)] sm:block">{w.address}</span>
+                  <span className="hidden truncate font-mono text-xs text-[var(--hearst-green-text)] sm:block">{w.address}</span>
                   <span className="hidden items-center gap-1.5 text-xs text-fg-tertiary sm:flex">
-                    <BitcoinIcon className="size-4 text-[var(--hearst-green)]" aria-hidden="true" />
+                    <BitcoinIcon className="size-4 text-[var(--hearst-green-text)]" aria-hidden="true" />
                     {w.network}
                   </span>
                   <span
                     className={`justify-self-end rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${
-                      w.status === 'active' ? 'text-[var(--hearst-green)] ring-[var(--hearst-green)]/30' : 'text-amber-300 ring-amber-300/30'
+                      w.status === 'active' ? 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30' : 'text-amber-300 ring-amber-300/30'
                     }`}
                   >
                     {w.status === 'active' ? 'Active' : `Usable ${formatDate(w.activeFrom)}`}

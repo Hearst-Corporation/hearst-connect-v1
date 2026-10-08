@@ -96,7 +96,7 @@ export function ActivityTimelinePanel({
           return (
             <li key={event.id} className="flex items-center gap-3 py-3 first:pt-0">
               <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--ud-inset)] ring-1 ring-[var(--ud-line)]">
-                <Icon className="size-4 text-[var(--hearst-green)]" aria-hidden="true" />
+                <Icon className="size-4 text-[var(--hearst-green-text)]" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-fg">{readableType(event.type)}</p>

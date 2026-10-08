@@ -29,7 +29,7 @@ export function DecisionsDisclosure({ count, children }: Readonly<{ count: numbe
   return (
     <details ref={ref} id="decisions" className="group mt-4 scroll-mt-24 rounded-[var(--ud-radius-sm)] ring-1 ring-[var(--ud-line)]">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium text-fg [&::-webkit-details-marker]:hidden">
-        <span className="text-[var(--hearst-green)] transition-transform group-open:rotate-90" aria-hidden="true">
+        <span className="text-[var(--hearst-green-text)] transition-transform group-open:rotate-90" aria-hidden="true">
           ▸
         </span>
         Review all {count} decision{count === 1 ? '' : 's'}

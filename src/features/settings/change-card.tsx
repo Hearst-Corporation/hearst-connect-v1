@@ -18,7 +18,7 @@ import { diffOf } from './format'
 const STATUS: Record<string, { label: string; tone: string }> = {
   pending: { label: 'Waiting for approval', tone: 'text-amber-300 ring-amber-300/30' },
   scheduled: { label: 'Approved · timelock running', tone: 'text-sky-300 ring-sky-300/30' },
-  applied: { label: 'Applied', tone: 'text-[var(--hearst-green)] ring-[var(--hearst-green)]/30' },
+  applied: { label: 'Applied', tone: 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30' },
   rejected: { label: 'Rejected', tone: 'text-red-400 ring-red-400/30' },
   cancelled: { label: 'Cancelled', tone: 'text-fg-tertiary ring-[var(--ud-line)]' },
 }
@@ -83,7 +83,7 @@ export function ChangeCard({
             <p className="mb-1 font-medium text-fg">
               <span
                 className={
-                  line.kind === 'added' ? 'text-[var(--hearst-green)]' : line.kind === 'removed' ? 'text-red-400' : 'text-amber-300'
+                  line.kind === 'added' ? 'text-[var(--hearst-green-text)]' : line.kind === 'removed' ? 'text-red-400' : 'text-amber-300'
                 }
               >
                 {line.kind === 'added' ? 'Added' : line.kind === 'removed' ? 'Removed' : 'Changed'}

@@ -126,7 +126,7 @@ export default async function DocumentsPage() {
               <TableCell className="hidden text-fg-tertiary sm:table-cell">Statement · PDF</TableCell>
               <TableCell className="text-right">
                 <ChevronRightIcon
-                  className="ml-auto size-4 text-[var(--hearst-green)] opacity-60 transition group-hover:translate-x-0.5 group-hover:opacity-100"
+                  className="ml-auto size-4 text-[var(--hearst-green-text)] opacity-60 transition group-hover:translate-x-0.5 group-hover:opacity-100"
                   aria-hidden="true"
                 />
               </TableCell>

@@ -101,7 +101,7 @@ export function PipelineStrip({
                 {OFFER_STATUS_LABEL[status]}
               </span>
               <span className="flex items-baseline gap-2">
-                <span className={`text-xl font-medium tabular-nums ${needsUs ? 'text-[var(--hearst-green)]' : 'text-fg'}`}>
+                <span className={`text-xl font-medium tabular-nums ${needsUs ? 'text-[var(--hearst-green-text)]' : 'text-fg'}`}>
                   {count}
                 </span>
                 <span className="truncate text-xs tabular-nums text-fg-tertiary">

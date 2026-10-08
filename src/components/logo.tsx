@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { HEARST_CONNECT_LOCKUP_SRC } from '@/lib/brand'
+import { HEARST_CONNECT_LOCKUP_LIGHT_SRC, HEARST_CONNECT_LOCKUP_SRC } from '@/lib/brand'
 
 /** Hearst H glyph (official monogram) — inherits `currentColor`. */
 export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'svg'>>) {
@@ -25,7 +25,7 @@ export function LogoMark({ className, ...props }: Readonly<React.ComponentPropsW
 export function Logo({ className, ...props }: Readonly<React.ComponentPropsWithoutRef<'span'>>) {
   return (
     <span {...props} className={clsx(className, 'inline-flex items-center gap-2.5')}>
-      <LogoMark className="size-8 text-accent-300" />
+      <LogoMark className="size-8 text-[var(--accent-text)]" />
       <span className="text-base font-semibold tracking-tight whitespace-nowrap">Hearst Connect</span>
     </span>
   )
@@ -36,11 +36,12 @@ export function HearstConnectLockupImage({
   className,
   alt = 'Hearst Connect',
 }: Readonly<{ className?: string; alt?: string }>) {
+  /* Deux versions : l'encre sombre pour le jour, le blanc pour la nuit — le
+     thème choisit laquelle se voit (`.logo-day` / `.logo-night`). */
   return (
-    <img
-      src={HEARST_CONNECT_LOCKUP_SRC}
-      alt={alt}
-      className={clsx(className, 'shrink-0')}
-    />
+    <>
+      <img src={HEARST_CONNECT_LOCKUP_LIGHT_SRC} alt={alt} className={clsx(className, 'logo-day shrink-0')} />
+      <img src={HEARST_CONNECT_LOCKUP_SRC} alt={alt} className={clsx(className, 'logo-night shrink-0')} />
+    </>
   )
 }

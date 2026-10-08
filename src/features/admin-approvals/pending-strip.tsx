@@ -124,7 +124,7 @@ export function PendingStrip({
           return (
             <Tile key={cell.id} href={cell.count > 0 ? detailsHref(cell.id as AdminApprovalKind) : null} count={cell.count}>
               <span className="flex items-center gap-2 text-xs text-fg-tertiary">
-                <Icon className="size-4 text-accent-400" aria-hidden="true" />
+                <Icon className="size-4 text-[var(--accent-text)]" aria-hidden="true" />
                 <span className="min-w-0 truncate">{cell.label}</span>
               </span>
               <span className="text-2xl font-semibold tabular-nums text-fg">{cell.count}</span>
@@ -137,7 +137,7 @@ export function PendingStrip({
 
         <Tile href={live.length > 0 ? '/admin/settlement' : null} count={live.length}>
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">
-            <BoltIcon className="size-4 text-accent-400" aria-hidden="true" />
+            <BoltIcon className="size-4 text-[var(--accent-text)]" aria-hidden="true" />
             <span className="min-w-0 truncate">Electricity buffers</span>
           </span>
           <span className="text-2xl font-semibold tabular-nums text-fg">{registry === null ? '—' : usd(bufferTotal)}</span>
@@ -149,7 +149,7 @@ export function PendingStrip({
           count={refilling.length}
         >
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">
-            <ArrowPathIcon className="size-4 text-accent-400" aria-hidden="true" />
+            <ArrowPathIcon className="size-4 text-[var(--accent-text)]" aria-hidden="true" />
             <span className="min-w-0 truncate">Buffers refilling</span>
           </span>
           <span className="text-2xl font-semibold tabular-nums text-fg">{registry === null ? '—' : refilling.length}</span>
@@ -158,7 +158,7 @@ export function PendingStrip({
 
         <Tile href={dueSoon ? lockupHref : null} count={dueSoon ?? 0}>
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">
-            <ClockIcon className="size-4 text-accent-400" aria-hidden="true" />
+            <ClockIcon className="size-4 text-[var(--accent-text)]" aria-hidden="true" />
             <span className="min-w-0 truncate">Lockups ending soon</span>
           </span>
           <span className="text-2xl font-semibold tabular-nums text-fg">
@@ -174,7 +174,7 @@ export function PendingStrip({
 }
 
 /* Fond gris par défaut : les six tuiles forment un bloc distinct de ce qui suit. */
-const CELL = 'flex flex-col gap-1.5 bg-[#2a2a2a] px-4 py-3.5'
+const CELL = 'flex flex-col gap-1.5 bg-console-raised px-4 py-3.5'
 
 /** La section de la fiche client où se prend chaque décision. */
 const SECTION_OF: Record<AdminApprovalKind, string> = {
@@ -193,7 +193,7 @@ const SECTION_OF: Record<AdminApprovalKind, string> = {
 function Tile({ href, count, children }: Readonly<{ href: string | null; count: number; children: React.ReactNode }>) {
   if (href === null) return <div className={CELL}>{children}</div>
   return (
-    <Link href={href} className={`${CELL} group relative no-underline transition-colors hover:bg-[#333333]`}>
+    <Link href={href} className={`${CELL} group relative no-underline transition-colors hover:bg-console-fill`}>
       {children}
       <span className="pointer-events-none absolute right-4 bottom-3.5 text-xs text-fg-tertiary opacity-0 transition-opacity group-hover:opacity-100">
         {count > 1 ? `Review ${count}` : 'Open'} →

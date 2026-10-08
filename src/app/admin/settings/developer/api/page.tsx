@@ -157,7 +157,7 @@ export default async function ApiExplorerPage() {
             className="group rounded-[var(--ud-radius)] bg-[var(--ud-card)] ring-1 ring-[var(--ud-line)]"
           >
             <summary className="flex cursor-pointer list-none items-center gap-3 p-[var(--ud-pad-card)] [&::-webkit-details-marker]:hidden">
-              <span className="text-[var(--hearst-green)] transition-transform group-open:rotate-90" aria-hidden="true">
+              <span className="text-[var(--hearst-green-text)] transition-transform group-open:rotate-90" aria-hidden="true">
                 ▸
               </span>
               <span className="flex min-w-0 flex-1 flex-col">

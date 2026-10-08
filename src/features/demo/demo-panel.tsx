@@ -311,7 +311,7 @@ export function DemoPanel({ state }: Readonly<{ state: DemoState }>) {
       <button
         type="button"
         onClick={() => toggle(true)}
-        className="fixed right-4 bottom-4 z-[60] inline-flex h-10 max-w-[calc(100vw-32px)] items-center gap-2 truncate rounded-full bg-[#0b120a] px-4 text-sm font-medium text-white shadow-lg ring-1 ring-[#9eea7a]/40 hover:ring-[#9eea7a] print:hidden"
+        className="fixed right-4 bottom-4 z-[60] inline-flex h-10 max-w-[calc(100vw-32px)] items-center gap-2 truncate rounded-full bg-console-card px-4 text-sm font-medium text-white shadow-lg ring-1 ring-[#9eea7a]/40 hover:ring-[#9eea7a] print:hidden"
       >
         <span className="size-2 shrink-0 rounded-full bg-[#9eea7a]" />
         <span className="truncate">{pill}</span>
@@ -320,10 +320,10 @@ export function DemoPanel({ state }: Readonly<{ state: DemoState }>) {
   }
 
   return (
-    <aside className="fixed right-4 bottom-4 z-[60] flex max-h-[min(680px,calc(100vh-32px))] w-[390px] max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-[#0b120a] text-white shadow-2xl ring-1 ring-[#9eea7a]/40 print:hidden">
+    <aside className="fixed right-4 bottom-4 z-[60] flex max-h-[min(680px,calc(100vh-32px))] w-[390px] max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl bg-console-card text-white shadow-2xl ring-1 ring-[#9eea7a]/40 print:hidden">
       <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
         <div className="flex flex-col">
-          <p className="text-[11px] tracking-[0.12em] text-[#9eea7a] uppercase">Guided demo · fictional data</p>
+          <p className="text-[11px] tracking-[0.12em] text-[var(--hearst-green-text)] uppercase">Guided demo · fictional data</p>
           <p className="text-sm font-medium">
             {state.tour ? (state.client?.label ?? state.tour.clientName) : 'The whole journey, end to end'}
             <span className="font-normal text-white/50"> · {monthLabel(state.today)}</span>
@@ -345,7 +345,7 @@ export function DemoPanel({ state }: Readonly<{ state: DemoState }>) {
               const isCurrentAct = act === currentAct
               return (
                 <section key={act}>
-                  <p className={`mb-1 text-[11px] tracking-[0.1em] uppercase ${isCurrentAct ? 'text-[#9eea7a]' : actDone ? 'text-white/40' : 'text-white/50'}`}>
+                  <p className={`mb-1 text-[11px] tracking-[0.1em] uppercase ${isCurrentAct ? 'text-[var(--hearst-green-text)]' : actDone ? 'text-white/40' : 'text-white/50'}`}>
                     {ai + 1}. {act}
                     {actDone ? ' ✓' : ''}
                   </p>
@@ -382,7 +382,7 @@ export function DemoPanel({ state }: Readonly<{ state: DemoState }>) {
             <span className="text-[11px] text-white/40">Clock</span>
             <ActionButton action={advanceClock} label="+1 month" pendingLabel="…" fields={{ months: '1' }} />
             <ActionButton action={advanceClock} label="+6 months" pendingLabel="…" fields={{ months: '6' }} />
-            <Link href="/account" className="ml-auto text-[11px] text-[#9eea7a] no-underline hover:underline">
+            <Link href="/account" className="ml-auto text-[11px] text-[var(--hearst-green-text)] no-underline hover:underline">
               Client view →
             </Link>
           </div>
@@ -415,7 +415,7 @@ function StepRow({
       <div className="flex items-center gap-2.5">
         <span
           className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-            s.done ? 'bg-[#9eea7a] text-[#06140a]' : current ? 'text-[#9eea7a] ring-1 ring-[#9eea7a]' : 'text-white/40 ring-1 ring-white/20'
+            s.done ? 'bg-[#9eea7a] text-[#06140a]' : current ? 'text-[var(--hearst-green-text)] ring-1 ring-[#9eea7a]' : 'text-white/40 ring-1 ring-white/20'
           }`}
         >
           {s.done ? '✓' : index + 1}

@@ -51,7 +51,7 @@ export type DeltaTone = 'positive' | 'negative' | 'neutral'
 const DELTA_TONE_CLASS: Record<DeltaTone, string> = {
   // The brand mint accent and danger go through their ramp tokens; the neutral
   // through the kit's secondary text gray. No hex.
-  positive: 'text-accent-400',
+  positive: 'text-[var(--accent-text)]',
   negative: 'text-danger-400',
   neutral: 'text-fg-secondary',
 }

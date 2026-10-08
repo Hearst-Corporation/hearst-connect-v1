@@ -148,7 +148,7 @@ export function TopbarNav({ clients }: Readonly<{ clients: readonly PaletteClien
           <div
             role="dialog"
             aria-label="Command palette"
-            className="w-full max-w-xl overflow-hidden rounded-2xl bg-[#121412] ring-1 ring-white/10"
+            className="w-full max-w-xl overflow-hidden rounded-2xl bg-console-card ring-1 ring-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             <input

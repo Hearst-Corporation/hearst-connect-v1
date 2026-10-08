@@ -14,7 +14,7 @@ const SECONDARY =
 function Dialog({ title, subtitle, onClose, children }: Readonly<{ title: string; subtitle: string; onClose: () => void; children: React.ReactNode }>) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-[#0d0f0d] p-6 text-white ring-1 ring-white/10" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-2xl bg-console-card p-6 text-white ring-1 ring-white/10" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <p className="text-lg font-medium">{title}</p>
@@ -322,7 +322,7 @@ export function AddWalletForm() {
           {pending ? 'Adding…' : 'Add wallet'}
         </button>
       </div>
-      {msg ? <p className={`text-xs ${msg.ok ? 'text-[var(--hearst-green)]' : 'text-amber-300'}`}>{msg.text}</p> : null}
+      {msg ? <p className={`text-xs ${msg.ok ? 'text-[var(--hearst-green-text)]' : 'text-amber-300'}`}>{msg.text}</p> : null}
     </div>
   )
 }

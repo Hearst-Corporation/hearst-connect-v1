@@ -1,15 +1,14 @@
 /**
- * Product theme — dark only.
+ * Thème du produit — V2 : jour (fond blanc, la version principale) et nuit
+ * (noir / gris, identique). Le choix vit dans le navigateur (`hc-theme`) et
+ * s'applique AVANT le premier rendu : pas de flash d'un thème à l'autre.
  *
- * Hearst Connect is always dark. No light/dark toggle, no reading of
- * `prefers-color-scheme`, and no stored preference.
- * The init script removes any leftover `.light` class (from older sessions).
+ * La classe `.dark` reste toujours posée : les composants Catalyst lisent
+ * leurs variantes `dark:` dessus. Le thème réel est `data-theme` sur <html>,
+ * et ce sont les tokens (`--ud-*`, `--color-*`) qui changent.
  */
 
-const THEME_STORAGE_KEY = 'theme'
+export const THEME_STORAGE_KEY = 'hc-theme'
+export type Theme = 'light' | 'dark'
 
-/**
- * Pre-first-paint script: forces `dark`, purges `light` + storage.
- * Avoids a light flash if an old "light" preference was lingering.
- */
-export const THEME_INIT_SCRIPT = `try{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');localStorage.setItem('${THEME_STORAGE_KEY}','dark')}catch(e){try{document.documentElement.classList.add('dark')}catch(_){}}`
+export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');document.documentElement.dataset.theme=t==='dark'?'dark':'light';document.documentElement.classList.add('dark')}catch(e){document.documentElement.dataset.theme='light'}`

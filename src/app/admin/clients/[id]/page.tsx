@@ -658,7 +658,7 @@ export default async function ClientPage({
                           {d.bufferUsd != null ? <div className="text-[11px] tabular-nums text-fg-tertiary">buffer {usd(d.bufferUsd)}</div> : null}
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium tabular-nums text-[var(--hearst-green)]">
+                          <div className="font-medium tabular-nums text-[var(--hearst-green-text)]">
                             {d.btcAmountSats != null ? btcFmt(d.btcAmountSats / 1e8) : '—'}
                           </div>
                           <div className="text-[11px] tabular-nums text-fg-tertiary">{usd(d.yieldUsdc)}</div>
@@ -817,7 +817,7 @@ export default async function ClientPage({
                             href={`https://cockpit.sumsub.com/checkus#/applicant/${encodeURIComponent(file.applicantId)}/basicInfo`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[var(--hearst-green)] no-underline hover:underline"
+                            className="text-[var(--hearst-green-text)] no-underline hover:underline"
                           >
                             Open in Sumsub ↗
                           </a>

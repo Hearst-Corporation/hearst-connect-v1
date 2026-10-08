@@ -32,7 +32,7 @@ export function LandingPage() {
             <p className="text-xs font-medium tracking-[0.2em] text-fg-tertiary uppercase">Hearst</p>
             <h1 className="mt-6 text-5xl font-semibold tracking-tight text-pretty sm:text-6xl lg:text-7xl">
               <span className="text-white">One sign-in </span>
-              <span className="text-accent-300">for all your Hearst workspaces</span>
+              <span className="text-[var(--accent-text)]">for all your Hearst workspaces</span>
             </h1>
             <p className="mt-8 text-lg font-medium text-pretty text-white/50 sm:text-xl/8">
               One administration console for identities, permissions, and access logs. Values are
@@ -97,7 +97,7 @@ export function LandingPage() {
                   <p className="mt-6">
                     <Link
                       href={feature.href}
-                      className="text-sm/6 font-semibold text-accent-300 transition-colors hover:text-accent-200"
+                      className="text-sm/6 font-semibold text-[var(--accent-text)] transition-colors hover:text-accent-200"
                     >
                       Open console <span aria-hidden="true">→</span>
                     </Link>
@@ -122,7 +122,7 @@ export function LandingPage() {
             {platformCapabilities.map((feature) => (
               <div key={feature.name} className="relative pl-9">
                 <dt className="inline font-semibold text-white">
-                  <feature.icon aria-hidden="true" className="absolute top-1 left-0 size-5 text-accent-300" />
+                  <feature.icon aria-hidden="true" className="absolute top-1 left-0 size-5 text-[var(--accent-text)]" />
                   {feature.name}
                 </dt>{' '}
                 <dd className="inline">{feature.description}</dd>
@@ -146,7 +146,7 @@ export function LandingPage() {
                 key={pillar.title}
                 className="rounded-2xl border border-console-line-soft bg-console-card/40 p-6 transition-colors hover:border-console-line"
               >
-                <pillar.icon className="size-6 text-accent-300" aria-hidden="true" />
+                <pillar.icon className="size-6 text-[var(--accent-text)]" aria-hidden="true" />
                 <h3 className="mt-4 text-base font-semibold text-white">{pillar.title}</h3>
                 <p className="mt-2 text-sm/6 text-white/50">{pillar.desc}</p>
               </article>

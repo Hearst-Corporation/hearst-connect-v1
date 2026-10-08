@@ -184,7 +184,7 @@ export function ClientBookTable({ rows, initialView = 'all' }: Readonly<{ rows: 
                       <div className="text-xs text-fg-tertiary">
                         from {usd(r.amountUsdc)} USDC
                         {r.accruedBtcSats !== null ? (
-                          <span className="text-[var(--hearst-green)]"> · +{btcFromSats(r.accruedBtcSats)}</span>
+                          <span className="text-[var(--hearst-green-text)]"> · +{btcFromSats(r.accruedBtcSats)}</span>
                         ) : null}
                       </div>
                     </>
