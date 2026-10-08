@@ -32,7 +32,7 @@ export function AuditList({ entries, compact = false }: Readonly<{ entries: read
             <p className="text-sm text-fg">
               <span className="font-medium">{e.actor}</span> <span className="text-fg-secondary">{e.action.toLowerCase()}</span>{' '}
               <span className="break-words">{e.target}</span>
-              {n > 1 ? <span className="ml-1.5 rounded-full bg-white/[0.08] px-1.5 text-[11px] tabular-nums text-fg-secondary">×{n}</span> : null}
+              {n > 1 ? <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 leading-none tabular-nums bg-white/[0.08] text-[11px] text-fg-secondary">×{n}</span> : null}
             </p>
             <p className="text-xs text-fg-tertiary">
               {formatDateTime(e.at)}

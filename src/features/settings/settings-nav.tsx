@@ -55,7 +55,7 @@ export function SettingsNav({ pendingBySection }: Readonly<{ pendingBySection: R
                 >
                   {i.label}
                   {n > 0 ? (
-                    <span className="rounded-full bg-amber-300/15 px-1.5 text-[11px] font-medium text-amber-300">{n}</span>
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 leading-none tabular-nums bg-amber-300/15 text-[11px] font-medium text-amber-300">{n}</span>
                   ) : null}
                 </Link>
               )
