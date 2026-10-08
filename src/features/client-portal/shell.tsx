@@ -76,7 +76,8 @@ export function AccountShell({
     <div className="ud-root">
       <main className="page">
         <div className="shell">
-          <aside className="rail" aria-label="Account sections">
+          {/* Le menu reste en NUIT dans les deux thèmes : fond noir, vert de marque, logo blanc. */}
+          <aside className="rail" aria-label="Account sections" data-theme="dark">
             <Link href="/account" className="rail-brand">
               <HearstConnectLockupImage className="h-10 w-auto" />
               <span className="sr-only">Overview</span>

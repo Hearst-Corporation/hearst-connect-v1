@@ -7246,3 +7246,17 @@
     margin-left: 0;
   }
 }
+
+/* Téléphone : un intitulé de tuile qui passe sur deux lignes (« Assets under
+   management ») ne doit plus chevaucher le chiffre — la première rangée suit
+   sa hauteur au lieu de rester à 16 px. */
+@media (max-width: 640px) {
+  .ud-root .kpi-band > .stat-tile,
+  .ud-root .kpi-band.has-foot > .stat-tile {
+    grid-template-rows: auto auto auto;
+  }
+  .ud-root .kpi-band .stat-eyebrow {
+    height: auto;
+    align-items: flex-start;
+  }
+}

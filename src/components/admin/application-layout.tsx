@@ -92,7 +92,7 @@ function AdminMobileBar({
   useEffect(() => setOpen(false), [pathname])
 
   return (
-    <div className="rail md:hidden">
+    <div className="rail md:hidden" data-theme="dark">
       <Link href="/admin" className="rail-brand">
         <HearstConnectLockupImage className="h-9 w-auto" />
         <span className="sr-only">Hearst Connect</span>

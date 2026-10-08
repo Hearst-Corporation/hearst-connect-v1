@@ -22,7 +22,8 @@ export function SidebarLayout({
 
       {/* Sidebar — z au-dessus du main (sinon le padding lg:pl-64 du main
           capture les clics et la nav est morte). */}
-      <div className={clsx('fixed inset-y-0 left-0 z-30 w-[169px] max-md:hidden', surfaceNav)}>
+      {/* Le menu reste en NUIT dans les deux thèmes : fond noir, vert de marque, logo blanc. */}
+      <div data-theme="dark" className={clsx('fixed inset-y-0 left-0 z-30 w-[169px] max-md:hidden', surfaceNav)}>
         {sidebar}
       </div>
 

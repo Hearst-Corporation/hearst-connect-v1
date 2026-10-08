@@ -378,6 +378,21 @@ select:-webkit-autofill {
   --color-accent-300: #b5f097;
   --color-accent-400: #9eea7a;
   --accent-text: #9eea7a;
+  /* Les tokens de /account aussi : le menu de gauche reste noir au jour. */
+  --hearst-green-text: var(--hearst-green, #9eea7a);
+  --hearst-green-dim: rgba(158, 234, 122, 0.14);
+  --ud-rail: #0a0a0a;
+  --ud-page: #1a1a1a;
+  --ud-card: #212121;
+  --ud-card-raised: #292929;
+  --ud-inset: #161616;
+  --ud-line: rgba(255, 255, 255, 0.07);
+  --ud-line-strong: rgba(255, 255, 255, 0.12);
+  --ud-fg: #f2f2f2;
+  --ud-fg-2: #a9a9a9;
+  --ud-fg-3: #6f6f6f;
+  --ud-invert-bg: #ffffff;
+  --ud-invert-fg: #0a0a0a;
 }
 
 /* Le vert en texte, par défaut (nuit). */
@@ -411,4 +426,11 @@ select:-webkit-autofill {
 }
 :root[data-theme='light'] .logo-night {
   display: none;
+}
+/* Dans un sous-arbre de nuit (le menu de gauche), le logo blanc. */
+:root[data-theme='light'] [data-theme='dark'] .logo-day {
+  display: none;
+}
+:root[data-theme='light'] [data-theme='dark'] .logo-night {
+  display: block;
 }
