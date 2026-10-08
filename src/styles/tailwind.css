@@ -339,8 +339,10 @@ select:-webkit-autofill {
   --accent-text: #73de56;
   /* Les tags et statuts en couleur : au jour, des teintes soutenues — l'ambre
      300 ou le bleu ciel 300 sur blanc ne se lisaient pas. */
-  --color-amber-300: #b45309;
-  --color-amber-400: #b45309;
+  /* L'orange de la nuit, en un ton plus soutenu : il reste ORANGE (pas brun)
+     et se lit en petit texte comme en barre (≈ 3,4:1). */
+  --color-amber-300: #e5700e;
+  --color-amber-400: #e5700e;
   --color-yellow-300: #a16207;
   --color-orange-400: #c2410c;
   --color-sky-300: #0369a1;
