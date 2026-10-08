@@ -84,7 +84,7 @@ export function BufferPanel({ buffer }: Readonly<{ buffer: PortalBuffer }>) {
               {h.topUpBtc > 0 ? <i className="buffer-refill" aria-hidden="true" /> : null}
               <em>{monthShort(h.month)}</em>
               {hover === i ? (
-                <div className={`buffer-tip${i > recent.length / 2 ? ' is-left' : ''}`} role="tooltip">
+                <div className={`buffer-tip${i < 3 ? ' is-start' : i >= recent.length - 3 ? ' is-end' : ''}`} role="tooltip">
                   <ChartTooltipShell title={monthLong(h.month)}>
                     <TooltipRow first color="#7d8280" label="Electricity paid" value={usd(h.electricityUsd)} />
                     {h.topUpBtc > 0 ? <TooltipRow color="#9eea7a" label="Refilled with" value={formatBtc(h.topUpBtc)} /> : null}

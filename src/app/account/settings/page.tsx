@@ -31,10 +31,10 @@ const NOTIFS = [
   { id: 'statements', label: 'Monthly statement', detail: 'Your statement, by email, each month', icon: DocumentTextIcon },
 ] as const
 
-/** Le picto d'une ligne : vert, dans un carré teinté — le même partout dans l'app. */
+/** Le picto d’une ligne, dans un carré teinté — le même partout dans l’app (au jour : teinte légère, picto à l’encre). */
 function Pic({ icon: Icon }: Readonly<{ icon: ComponentType<SVGProps<SVGSVGElement>> }>) {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green-text)] day:bg-[#9eea7a] day:text-[#06140a]">
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green-text)] day:bg-[#9eea7a]/25 day:text-[#111312]">
       <Icon className="size-4" aria-hidden="true" />
     </span>
   )

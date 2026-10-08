@@ -7310,3 +7310,21 @@
 .ud-root .buffer-tip.is-left {
   transform: translateX(-70%);
 }
+
+/* L'infobulle du buffer s'ouvre DANS la zone des barres (plus sur les cases du
+   dessus), centrée sur le mois — calée à gauche pour les premiers, à droite
+   pour les derniers, pour ne jamais sortir du panneau. */
+.ud-root .buffer-tip {
+  top: 0;
+  bottom: auto;
+  transform: translateX(-50%);
+}
+.ud-root .buffer-tip.is-start {
+  left: 0;
+  transform: none;
+}
+.ud-root .buffer-tip.is-end {
+  left: auto;
+  right: 0;
+  transform: none;
+}
