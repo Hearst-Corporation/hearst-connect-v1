@@ -5638,12 +5638,12 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: var(--ud-text-tertiary, rgb(255 255 255 / 0.5));
+  color: var(--ud-text-tertiary, color-mix(in srgb, var(--ud-fg) 50.0%, transparent));
 }
 .ud-root .term-choice-bar {
   height: 6px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.06);
+  background: color-mix(in srgb, var(--ud-fg) 6.0%, transparent);
   overflow: hidden;
 }
 .ud-root .term-choice-bar > span {
@@ -5654,7 +5654,7 @@
 }
 .ud-root .term-choice-note {
   font-size: 12px;
-  color: rgb(255 255 255 / 0.5);
+  color: color-mix(in srgb, var(--ud-fg) 50.0%, transparent);
   max-width: 640px;
 }
 
@@ -5688,7 +5688,7 @@
   gap: 6px;
   padding: 16px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.03);
+  background: color-mix(in srgb, var(--ud-fg) 3.0%, transparent);
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 .ud-root .bucket-earned-name {
@@ -5696,7 +5696,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: rgb(255 255 255 / 0.6);
+  color: color-mix(in srgb, var(--ud-fg) 60.0%, transparent);
 }
 .ud-root .bucket-earned-name > i {
   width: 8px;
@@ -5711,7 +5711,7 @@
 }
 .ud-root .bucket-earned-share {
   font-size: 11px;
-  color: rgb(255 255 255 / 0.45);
+  color: color-mix(in srgb, var(--ud-fg) 45.0%, transparent);
 }
 @media (max-width: 640px) {
   .ud-root .bucket-earned {
@@ -5737,7 +5737,7 @@
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 0.45);
+  color: color-mix(in srgb, var(--ud-fg) 45.0%, transparent);
 }
 .ud-root .pocket-row .num {
   text-align: right;
@@ -5761,7 +5761,7 @@
   display: block;
   margin-top: 3px;
   font-size: 12px;
-  color: rgb(255 255 255 / 0.45);
+  color: color-mix(in srgb, var(--ud-fg) 45.0%, transparent);
 }
 .ud-root .pocket-protocol {
   font-size: 13px;
@@ -5776,7 +5776,7 @@
   position: relative;
   height: 6px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.06);
+  background: color-mix(in srgb, var(--ud-fg) 6.0%, transparent);
 }
 .ud-root .pocket-share-bar > span {
   position: absolute;
@@ -5799,7 +5799,7 @@
 }
 .ud-root .pocket-share-text em {
   font-style: normal;
-  color: rgb(255 255 255 / 0.45);
+  color: color-mix(in srgb, var(--ud-fg) 45.0%, transparent);
 }
 .ud-root .pocket-share-text strong {
   margin-left: 8px;
@@ -5817,7 +5817,7 @@
 .ud-root .pocket-note {
   padding-top: 16px;
   font-size: 12px;
-  color: rgb(255 255 255 / 0.45);
+  color: color-mix(in srgb, var(--ud-fg) 45.0%, transparent);
 }
 @media (max-width: 860px) {
   .ud-root .pocket-row {
@@ -5897,7 +5897,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: rgb(255 255 255 / 0.45);
+  color: color-mix(in srgb, var(--ud-fg) 45.0%, transparent);
 }
 .ud-root .withdrawal-track-row li > span {
   display: inline-flex;
@@ -6055,7 +6055,7 @@
 .ud-root .rebalance-points > div {
   padding: 18px 20px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.03);
+  background: color-mix(in srgb, var(--ud-fg) 3.0%, transparent);
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 .ud-root .rebalance-points strong {
@@ -6068,7 +6068,7 @@
 .ud-root .rebalance-points p {
   font-size: 12px;
   line-height: 1.55;
-  color: rgb(255 255 255 / 0.55);
+  color: color-mix(in srgb, var(--ud-fg) 55.0%, transparent);
 }
 @media (max-width: 860px) {
   .ud-root .rebalance-points {
@@ -6099,7 +6099,7 @@
 }
 .ud-root .timeline-item--link:hover,
 .ud-root .timeline-item--link.is-open {
-  background: rgb(255 255 255 / 0.04);
+  background: color-mix(in srgb, var(--ud-fg) 4.0%, transparent);
 }
 .ud-root .timeline-item--link:focus-visible {
   outline: 2px solid var(--hearst-green);
@@ -6132,7 +6132,7 @@
 }
 .ud-root .timeline-toggle:hover {
   filter: none;
-  background: rgb(255 255 255 / 0.05);
+  background: color-mix(in srgb, var(--ud-fg) 5.0%, transparent);
 }
 
 /* Mouvements, gabarit large : les colonnes se répartissent toute la largeur,
@@ -6185,7 +6185,7 @@
   gap: 8px;
   margin-top: 24px;
   font-size: 12px;
-  color: rgb(255 255 255 / 0.55);
+  color: color-mix(in srgb, var(--ud-fg) 55.0%, transparent);
 }
 .ud-root .rebalance-line svg {
   flex: none;
@@ -6224,7 +6224,7 @@
   box-shadow: inset 0 0 0 1px rgb(158 234 122 / 0.3);
 }
 .ud-root .timeline-status[data-tone='off'] {
-  color: rgb(255 255 255 / 0.5);
+  color: color-mix(in srgb, var(--ud-fg) 50.0%, transparent);
   box-shadow: inset 0 0 0 1px var(--ud-line);
 }
 
@@ -6731,7 +6731,7 @@
   position: relative;
   height: 12px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.05);
+  background: color-mix(in srgb, var(--ud-fg) 5.0%, transparent);
 }
 .ud-root .strategy-gauge-band {
   position: absolute;
@@ -7259,4 +7259,26 @@
     height: auto;
     align-items: flex-start;
   }
+}
+
+
+/* La vue Buffer occupe toute la hauteur du panneau : les barres des mois
+   prennent l'espace libre, la note reste en pied. */
+.ud-root .center-plot-inner:has(.buffer-panel) {
+  flex: 1 1 auto;
+  justify-content: stretch;
+}
+.ud-root .buffer-panel {
+  flex: 1 1 auto;
+}
+.ud-root .buffer-months {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 140px;
+}
+.ud-root .buffer-bar {
+  max-width: 44px;
+}
+.ud-root .buffer-panel .rebalance-line {
+  margin-top: 0;
 }
