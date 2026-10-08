@@ -55,8 +55,9 @@ export default async function SettingsOverview() {
       // V2 : la règle qui fait tourner chaque vault — le buffer qui paie l'électricité.
       id: 'buffer',
       title: 'Electricity buffer',
-      value: editorial(limits.bufferBps !== undefined ? `${limits.bufferBps / 100} % of each deposit` : '—'),
+      value: editorial(limits.bufferBps !== undefined ? `${limits.bufferBps / 100} %` : '—'),
       icon: BoltIcon,
+      footnote: limits.bufferFloorMonths !== undefined ? `of each deposit · refilled below ${limits.bufferFloorMonths} months of bills` : 'of each deposit',
     },
   ]
 
