@@ -7282,3 +7282,31 @@
 .ud-root .buffer-panel .rebalance-line {
   margin-top: 0;
 }
+
+/* Survol d'un mois du buffer : la barre ressort, les autres s'effacent, et
+   l'infobulle des graphiques s'ouvre au-dessus — comme sur les autres courbes. */
+.ud-root .buffer-months > li {
+  cursor: default;
+}
+.ud-root .buffer-bar {
+  transition: opacity 0.15s, background 0.15s;
+}
+.ud-root .buffer-months.is-hovering > li:not(.is-active) .buffer-bar {
+  opacity: 0.35;
+}
+.ud-root .buffer-months > li.is-active .buffer-bar {
+  background: var(--ud-fg-2);
+}
+.ud-root .buffer-tip {
+  position: absolute;
+  bottom: calc(100% - 24px);
+  left: 50%;
+  z-index: 5;
+  min-width: 180px;
+  transform: translateX(-30%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.ud-root .buffer-tip.is-left {
+  transform: translateX(-70%);
+}

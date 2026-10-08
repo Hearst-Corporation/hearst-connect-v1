@@ -1,8 +1,14 @@
+'use client'
+
 import { CheckCircleIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react'
+import { ChartTooltipShell, TooltipRow } from '@/components/charts/richart/_shared/chart-tooltip'
 import type { PortalBuffer } from '@/features/client-portal/load'
 import { formatBtc } from '@/lib/format'
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`
+const monthLong = (ym: string) =>
+  new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 const monthShort = (ym: string) =>
   new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' })
 
@@ -25,6 +31,8 @@ export function BufferPanel({ buffer }: Readonly<{ buffer: PortalBuffer }>) {
   const low = months < buffer.floorMonths
   const recent = buffer.history.slice(-12)
   const maxBill = Math.max(1, ...recent.map((h) => h.electricityUsd))
+  // Le mois survolé : son infobulle, celle des autres graphiques.
+  const [hover, setHover] = useState<number | null>(null)
 
   return (
     <div className="buffer-panel">
@@ -64,12 +72,26 @@ export function BufferPanel({ buffer }: Readonly<{ buffer: PortalBuffer }>) {
       </dl>
 
       {recent.length > 0 ? (
-        <ol className="buffer-months" aria-label="Electricity paid and refills, month by month">
-          {recent.map((h) => (
-            <li key={h.month} title={`${monthShort(h.month)} — ${usd(h.electricityUsd)} paid${h.topUpBtc > 0 ? ` · refilled with ${formatBtc(h.topUpBtc)}` : ''}`}>
+        <ol className={`buffer-months${hover !== null ? ' is-hovering' : ''}`} aria-label="Electricity paid and refills, month by month" onMouseLeave={() => setHover(null)}>
+          {recent.map((h, i) => (
+            <li
+              key={h.month}
+              className={hover === i ? 'is-active' : undefined}
+              onMouseEnter={() => setHover(i)}
+              aria-label={`${monthShort(h.month)} — ${usd(h.electricityUsd)} paid${h.topUpBtc > 0 ? `, refilled with ${formatBtc(h.topUpBtc)}` : ''}`}
+            >
               <span className="buffer-bar" style={{ height: `${Math.max(6, (h.electricityUsd / maxBill) * 100)}%` }} />
               {h.topUpBtc > 0 ? <i className="buffer-refill" aria-hidden="true" /> : null}
               <em>{monthShort(h.month)}</em>
+              {hover === i ? (
+                <div className={`buffer-tip${i > recent.length / 2 ? ' is-left' : ''}`} role="tooltip">
+                  <ChartTooltipShell title={monthLong(h.month)}>
+                    <TooltipRow first color="#7d8280" label="Electricity paid" value={usd(h.electricityUsd)} />
+                    {h.topUpBtc > 0 ? <TooltipRow color="#9eea7a" label="Refilled with" value={formatBtc(h.topUpBtc)} /> : null}
+                    <TooltipRow label="Buffer after" value={usd(h.balanceUsd)} />
+                  </ChartTooltipShell>
+                </div>
+              ) : null}
             </li>
           ))}
         </ol>
