@@ -7338,10 +7338,10 @@
 }
 .ud-root .fleet-mine-btc-mark {
   position: absolute;
-  top: 26px;
+  top: 18px;
   right: 0;
   z-index: -1;
-  height: 64px;
+  height: 80px;
   width: auto;
   color: var(--hearst-green);
   opacity: 0.16;
