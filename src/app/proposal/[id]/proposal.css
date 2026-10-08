@@ -41,38 +41,18 @@
   background-color: #000;
 }
 
-/* La trame de points, sur sa propre couche : fine (rayon 0,7 px), espacée de
-   7 mm, arrêtée sous le cube pour que le titre et les conditions restent
-   parfaitement lisibles. */
-.proposal-sheet.is-cover::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, #9eea7a 0.75px, transparent 1.05px);
-  background-size: 7mm 7mm;
-  background-position: 3.5mm 3.5mm;
-  /* Arrêt NET sous le cube : les rangées qui s'estompaient au-dessus du
-     titre faisaient des points à moitié visibles. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 56%, transparent 56%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 56%, transparent 56%);
-}
-
 .proposal-sheet.is-cover > * {
   position: relative;
   z-index: 1;
 }
 
-/* L'illustration, découpée au contour EXACT du cube et de ses barres : les
-   points propres à l'image (plus petits, mal alignés sur la trame) sont
-   retirés — seule la trame de la page porte le motif. */
+/* L'illustration : le cube de la page de connexion (une image de sa vidéo),
+   sans trame de points derrière — fond noir pur, comme la couverture. */
 .proposal-cover-art {
   display: block;
   width: 120mm;
   height: 120mm;
   margin: 6mm auto 0;
-  clip-path: polygon(23.5% 25.5%, 50.2% 19.8%, 76.8% 25.8%, 74.8% 60.8%, 49.6% 75%, 46% 75.5%, 23.6% 63.5%);
 }
 
 /* La réponse du client, juste sous la barre : accepter ou décliner. */

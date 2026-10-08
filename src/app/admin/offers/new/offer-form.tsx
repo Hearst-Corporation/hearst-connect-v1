@@ -214,7 +214,9 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
         <input type="hidden" name="miningPct" value={MINING_PCT} />
         <input type="hidden" name="lendingPct" value={0} />
         <input type="hidden" name="stablePct" value={BUFFER_PCT} />
-        <div className="grid gap-px overflow-hidden rounded-xl bg-[var(--ud-line)] sm:grid-cols-2">
+        {/* Sur aplat vert citrus, chiffres en grand : la bande des KPI. Le split
+            se lit d'un coup d'œil, c'est la décision de l'offre. */}
+        <div className="grid gap-px overflow-hidden rounded-xl bg-[color-mix(in_srgb,var(--hearst-green-ink)_14%,var(--hearst-green))] sm:grid-cols-2">
           {[
             {
               label: 'Computing power',
@@ -233,12 +235,13 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
                   : 'USDC, pays the electricity',
             },
           ].map((row) => (
-            <div key={row.label} className="flex flex-col gap-1 bg-[var(--ud-card)] p-4">
-              <span className="text-xs text-fg-tertiary">{row.label}</span>
-              <span className="text-lg font-medium tabular-nums text-fg">
-                {row.pct} %<span className="ml-2 text-sm text-fg-secondary">· ${slice(row.pct)}</span>
+            <div key={row.label} className="flex flex-col gap-2 bg-[var(--hearst-green)] px-5 py-5 text-[var(--hearst-green-ink)]">
+              <span className="text-sm font-medium opacity-80">{row.label}</span>
+              <span className="flex items-baseline gap-3 tabular-nums">
+                <span className="text-[44px] leading-none font-medium tracking-[-0.02em]">{row.pct} %</span>
+                <span className="text-lg font-medium opacity-80">${slice(row.pct)}</span>
               </span>
-              <span className="text-xs text-fg-tertiary">{row.detail}</span>
+              <span className="text-xs opacity-70">{row.detail}</span>
             </div>
           ))}
         </div>
