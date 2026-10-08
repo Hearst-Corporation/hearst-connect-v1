@@ -1,0 +1,40 @@
+# Hearst Connect — smart contracts (Foundry)
+# Guide pas à pas : contracts/README.md
+
+[profile.default]
+src = "src"
+out = "out"
+test = "test"
+script = "script"
+libs = ["dependencies"]
+solc = "0.8.28"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+# Les tests et Publish.s.sol lisent les fichiers produits par script-js/build-merkle.mjs.
+fs_permissions = [{ access = "read", path = "./test/fixtures" }, { access = "read", path = "./attestations" }]
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+number_underscore = "thousands"
+
+[soldeer]
+remappings_generate = false
+remappings_location = "txt"
+recursive_deps = false
+
+[dependencies]
+forge-std = "1.17.0"
+"@openzeppelin-contracts" = "5.7.0"
+
+# Réseaux : l'adresse RPC vient de l'environnement (.env, jamais commité).
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+mainnet = "${MAINNET_RPC_URL}"
+local = "http://127.0.0.1:8545"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}", chain = 11155111 }
+mainnet = { key = "${ETHERSCAN_API_KEY}", chain = 1 }

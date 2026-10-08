@@ -1,0 +1,96 @@
+{
+  "period": 202609,
+  "merkleRoot": "0x7b9371bb9405daeb0199c9dacb3344831aa343fbf1f8dfe062494fbdf056cbaa",
+  "reportHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "leafEncoding": [
+    "bytes32",
+    "uint32",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64"
+  ],
+  "totals": {
+    "minedSats": "8922500",
+    "feeSats": "1338375",
+    "refillSats": "180000",
+    "toReserveSats": "7404125",
+    "reserveSats": "3397234125",
+    "vaultCount": 5
+  },
+  "vaults": [
+    {
+      "id": "V-0001",
+      "vaultKey": "0xe12b71016fb029df1603d9b451e2cf9f9e726a73086c9de96a45b5fc1c06fa19",
+      "minedSats": "2150000",
+      "feeSats": "322500",
+      "refillSats": "0",
+      "toReserveSats": "1827500",
+      "reserveSats": "818427500",
+      "leaf": "0x6f3a840f29154ba46ede9f6d7278f8c2a23a4d6e44f8ee9d02bb15e71db67422",
+      "proof": [
+        "0x6934f6e48ad3b87627014243aa945f44381d711bfedea32685dfb8b4d71c8f73",
+        "0xf1b909c96a4085c1b3fabee152534c03beed6e834742d9e494382cddcf24f32d"
+      ]
+    },
+    {
+      "id": "V-0002",
+      "vaultKey": "0x75d83977a531c21233d841175cb73e6c03c86328ee54a5605bcf58a9f75cce27",
+      "minedSats": "1075000",
+      "feeSats": "161250",
+      "refillSats": "120000",
+      "toReserveSats": "793750",
+      "reserveSats": "409213750",
+      "leaf": "0x0618201c14af831ec26af78fbe618e66f79094bad23fb8443152dd490220d136",
+      "proof": [
+        "0x0cc61ee29e12955f8ea4212749f355ba5ba86ea590c63e40427c320d455dc48c",
+        "0xedcb1bd29bd047dc2bfaa8cde2e1663c75c6fccfb8264ffb39792cfa4b4cd104",
+        "0xdd6316689b15e4af49fc261d7fe256986b17a736ec9aa80197aeae9ebd8b8860"
+      ]
+    },
+    {
+      "id": "V-0003",
+      "vaultKey": "0xa2fa9c9bf22f2ccf1e5ad8d47e5c3676374c6054a55867b96813183dd027cf77",
+      "minedSats": "4300000",
+      "feeSats": "645000",
+      "refillSats": "0",
+      "toReserveSats": "3655000",
+      "reserveSats": "1637855000",
+      "leaf": "0xedcb1bd29bd047dc2bfaa8cde2e1663c75c6fccfb8264ffb39792cfa4b4cd104",
+      "proof": [
+        "0x7ff3177d8946582d526017cbbd00f0205bbade394792c30ec9160b55926e7273",
+        "0xdd6316689b15e4af49fc261d7fe256986b17a736ec9aa80197aeae9ebd8b8860"
+      ]
+    },
+    {
+      "id": "V-0004",
+      "vaultKey": "0x10767a4981a0d135edb2b999038b64fa20fb690648535ebfd6499f60b385a13d",
+      "minedSats": "537500",
+      "feeSats": "80625",
+      "refillSats": "60000",
+      "toReserveSats": "396875",
+      "reserveSats": "204406875",
+      "leaf": "0x6934f6e48ad3b87627014243aa945f44381d711bfedea32685dfb8b4d71c8f73",
+      "proof": [
+        "0x6f3a840f29154ba46ede9f6d7278f8c2a23a4d6e44f8ee9d02bb15e71db67422",
+        "0xf1b909c96a4085c1b3fabee152534c03beed6e834742d9e494382cddcf24f32d"
+      ]
+    },
+    {
+      "id": "V-0005",
+      "vaultKey": "0x325f4be19d19fb056fb3630547e02ec9986ec56d107d498910d6ff0a43bcaac9",
+      "minedSats": "860000",
+      "feeSats": "129000",
+      "refillSats": "0",
+      "toReserveSats": "731000",
+      "reserveSats": "327331000",
+      "leaf": "0x0cc61ee29e12955f8ea4212749f355ba5ba86ea590c63e40427c320d455dc48c",
+      "proof": [
+        "0x0618201c14af831ec26af78fbe618e66f79094bad23fb8443152dd490220d136",
+        "0xedcb1bd29bd047dc2bfaa8cde2e1663c75c6fccfb8264ffb39792cfa4b4cd104",
+        "0xdd6316689b15e4af49fc261d7fe256986b17a736ec9aa80197aeae9ebd8b8860"
+      ]
+    }
+  ]
+}

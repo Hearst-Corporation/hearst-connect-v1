@@ -1,0 +1,13 @@
+{
+  "name": "hearst-reserve-merkle",
+  "private": true,
+  "type": "module",
+  "description": "Construit la racine Merkle mensuelle et les preuves par vault pour HearstReserveRegistry.",
+  "scripts": {
+    "sample": "node build-merkle.mjs samples/202609.json ../test/fixtures/merkle-202609.json"
+  },
+  "dependencies": {
+    "@openzeppelin/merkle-tree": "1.0.8",
+    "ethereum-cryptography": "3.2.0"
+  }
+}

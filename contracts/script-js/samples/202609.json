@@ -1,0 +1,12 @@
+{
+  "sample": true,
+  "period": 202609,
+  "feeBps": 1500,
+  "vaults": [
+    { "id": "V-0001", "minedSats": "2150000", "feeSats": "322500", "refillSats": "0",      "toReserveSats": "1827500", "reserveSats": "818427500" },
+    { "id": "V-0002", "minedSats": "1075000", "feeSats": "161250", "refillSats": "120000", "toReserveSats": "793750",  "reserveSats": "409213750" },
+    { "id": "V-0003", "minedSats": "4300000", "feeSats": "645000", "refillSats": "0",      "toReserveSats": "3655000", "reserveSats": "1637855000" },
+    { "id": "V-0004", "minedSats": "537500",  "feeSats": "80625",  "refillSats": "60000",  "toReserveSats": "396875",  "reserveSats": "204406875" },
+    { "id": "V-0005", "minedSats": "860000",  "feeSats": "129000", "refillSats": "0",      "toReserveSats": "731000",  "reserveSats": "327331000" }
+  ]
+}
