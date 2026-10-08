@@ -590,3 +590,22 @@ select:-webkit-autofill {
 :root[data-theme='light'] .ud-root .fleet-gauge {
   background: rgba(17, 19, 18, 0.1);
 }
+/* Le bouton jour / nuit : pas d'anneau bleu du navigateur au clic, un anneau
+   vert au clavier seulement. */
+.theme-toggle:focus {
+  outline: none;
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid #9eea7a;
+  outline-offset: 2px;
+}
+
+/* La barre du pipeline au jour : une vraie rampe, du gris (brouillon) au vert
+   franc (fonds reçus) — des verts à 20 % sur blanc se confondaient. */
+:root[data-theme='light'] {
+  --stage-0: #d5d9d4;
+  --stage-1: #bfe9ad;
+  --stage-2: #a2e38a;
+  --stage-3: #85db69;
+  --stage-4: #5fcc3f;
+}

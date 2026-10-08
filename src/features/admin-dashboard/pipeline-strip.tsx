@@ -79,7 +79,7 @@ export function PipelineStrip({
                 className="h-full"
                 style={{
                   width: `${(amountOf[status] / total) * 100}%`,
-                  background: `color-mix(in srgb, var(--hearst-green) ${STAGE_TINT[i]}%, transparent)`,
+                  background: `var(--stage-${i}, color-mix(in srgb, var(--hearst-green) ${STAGE_TINT[i]}%, transparent))`,
                 }}
               />
             ) : null,
@@ -96,7 +96,7 @@ export function PipelineStrip({
               <span className="flex items-center gap-2 text-xs text-fg-tertiary">
                 <span
                   className="size-2 shrink-0 rounded-full"
-                  style={{ background: `color-mix(in srgb, var(--hearst-green) ${STAGE_TINT[i]}%, transparent)` }}
+                  style={{ background: `var(--stage-${i}, color-mix(in srgb, var(--hearst-green) ${STAGE_TINT[i]}%, transparent))` }}
                 />
                 {OFFER_STATUS_LABEL[status]}
               </span>

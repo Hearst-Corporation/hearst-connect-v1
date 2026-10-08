@@ -7349,3 +7349,13 @@
     transform: translateY(-40%);
   }
 }
+
+/* Le panneau du burger chevauche la barre d'un pixel : à certains zooms, un
+   interstice d'un demi-pixel laissait voir le fond de page — un trait blanc au
+   jour, invisible la nuit. */
+@media (max-width: 1024px) {
+  .ud-root .rail-menu {
+    top: calc(var(--ud-bar-h, 68px) - 1px);
+    border-top: 1px solid var(--ud-line);
+  }
+}
