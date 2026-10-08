@@ -40,7 +40,10 @@ export default async function StatementPage({
   const scope = year ? overview.vaults : vault ? [vault] : overview.vaults
   const rws = rewards.filter((r) => inPeriod(r.month) && r.status !== 'declined' && scope.some((v) => v.vaultId === r.vaultId))
   const outs = (activity ?? []).filter((a) => (a.type === 'withdrawal' || a.type === 'release') && a.status !== 'declined' && inPeriod(a.at.slice(0, 7)) && scope.some((v) => v.label === a.vault))
-  const pocket = (name: string) => rws.reduce((t, r) => t + (r.pockets.find((p) => p.bucket === name)?.btc ?? 0), 0)
+  // V2 : un seul métier — le minage. Ce qui a été miné, la part vendue pour recharger le buffer, l'électricité payée.
+  const mined = rws.reduce((t, r) => t + (r.minedBtc ?? r.btc), 0)
+  const refill = rws.reduce((t, r) => t + (r.refillBtc ?? 0), 0)
+  const electricity = rws.reduce((t, r) => t + (r.electricityUsd ?? 0), 0)
   const added = rws.reduce((t, r) => t + r.btc, 0)
   const removed = outs.reduce((t, a) => t + a.btc, 0)
   const title = year ? `Annual report ${year}` : `Monthly statement — ${monthLabel(month ?? '')}`
@@ -83,21 +86,21 @@ export default async function StatementPage({
         </section>
 
         <section>
-          <p className="mb-3 text-sm font-medium text-fg">Rewards by pocket</p>
+          <p className="mb-3 text-sm font-medium text-fg">Mining</p>
           <table className="w-full text-sm">
             <tbody className="divide-y divide-[var(--ud-line)]">
               {[
-                ['Mining Alpha', pocket('Mining Alpha')],
-                ['Bitcoin Lending', pocket('Bitcoin Lending')],
-                ['USDC Yield', pocket('USDC Yield')],
+                ['Mined by your share of the pool', btc(mined)],
+                ['Sold to refill the electricity buffer', refill > 0 ? `−${btc(refill)}` : btc(0)],
+                ['Electricity paid from the buffer', usd(electricity)],
               ].map(([k, v]) => (
-                <tr key={k as string}>
+                <tr key={k}>
                   <td className="py-2.5 text-fg-secondary">{k}</td>
-                  <td className="py-2.5 text-right tabular-nums text-fg">{btc(v as number)}</td>
+                  <td className="py-2.5 text-right tabular-nums text-fg">{v}</td>
                 </tr>
               ))}
               <tr>
-                <td className="py-2.5 font-medium text-fg">Total</td>
+                <td className="py-2.5 font-medium text-fg">Added to your reserve</td>
                 <td className="py-2.5 text-right font-medium tabular-nums text-fg">{btc(added)}</td>
               </tr>
             </tbody>

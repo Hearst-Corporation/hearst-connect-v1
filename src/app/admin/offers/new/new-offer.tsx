@@ -17,23 +17,19 @@ export async function renderNewOffer(given?: OfferPreset) {
   const preset: OfferPreset | undefined = given ?? (demoState?.tour ? { client: demoState.tour.clientName } : undefined)
   // Les termes en vigueur — ceux qu'un changement approuvé a fixés, délai passé.
   const t = settings?.values.terms as { minTicketUsdc?: number; defaultLockupMonths?: number; lockupOptions?: string[] } | undefined
-  const rows = settings?.values.profiles as { id: string; miningBps: number; lendingBps: number; stableBps: number }[] | undefined
-  const grid = rows ? Object.fromEntries(rows.map((r) => [r.id, { miningBps: r.miningBps, lendingBps: r.lendingBps, stableBps: r.stableBps }])) : null
-  const terms: OfferTerms | null =
-    t && grid && grid.conservative && grid.balanced && grid.growth
-      ? {
-          minTicketUsdc: Number(t.minTicketUsdc),
-          defaultLockupMonths: Number(t.defaultLockupMonths),
-          lockupOptions: (t.lockupOptions ?? []).map(Number).filter((n) => n > 0),
-          profiles: grid as OfferTerms['profiles'],
-        }
-      : null
+  const terms: OfferTerms | null = t
+    ? {
+        minTicketUsdc: Number(t.minTicketUsdc),
+        defaultLockupMonths: Number(t.defaultLockupMonths),
+        lockupOptions: (t.lockupOptions ?? []).map(Number).filter((n) => n > 0),
+      }
+    : null
 
   return (
     <DashboardShell>
       <DashboardHeader
         title="New offer"
-        description="What is proposed to this client — the split here becomes their vault target once signed."
+        description="What is proposed to this client — an amount and a lockup. The deposit becomes computing power and an electricity buffer."
         kpis={[]}
       />
 
@@ -44,10 +40,10 @@ export async function renderNewOffer(given?: OfferPreset) {
 
         <BentoCard span={4}>
           <div className="flex flex-col gap-4">
-            <Callout tone="info" title="How the profile works">
-              The three profiles seed the allocation from what the client answered in the
-              qualification form. They are a starting point: two clients on the same profile rarely
-              hold the same constraints, so every slider stays editable.
+            <Callout tone="info" title="Mining as a Service">
+              The deposit buys computing power in Hearst’s pool (90 %) and keeps an electricity buffer in USDC
+              (10 %). Everything mined goes to the client’s bitcoin reserve; the bills are paid from the buffer.
+              Nothing to allocate, nothing to rebalance.
             </Callout>
             <Callout tone="info" title="What happens next">
               The offer is saved as a draft. Sending it, recording the client&apos;s answer, issuing

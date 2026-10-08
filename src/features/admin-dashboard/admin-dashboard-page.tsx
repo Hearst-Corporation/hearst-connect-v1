@@ -393,7 +393,7 @@ export function AdminDashboardPage() {
           <DashPanel
             eyebrow="Decisions"
             title="Waiting on you"
-            subtitle="Deposits, rewards, withdrawals and rebalancings that need a decision"
+            subtitle="Deposits, rewards and withdrawals that need a decision"
           >
             <Suspense fallback={<PanelFallback />}>
               <PendingDecisions />

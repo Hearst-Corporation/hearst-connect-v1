@@ -39,8 +39,23 @@ export type PortalVault = Readonly<{
     bandBps: number
   }>
   pockets: readonly Readonly<{ name: string; protocol: string; apyPct: number; capitalUsd: number }>[]
+  /** V2 — le buffer USDC qui paie l'électricité : 10 % du dépôt au départ, rechargé sur le bitcoin miné. */
+  buffer?: PortalBuffer
   compute: Readonly<{ hashrateThs: number; machines: number; fleetSharePct: number }>
   endOfTerm: 'release' | 'renew' | 'undecided' | string
+}>
+
+export type PortalBuffer = Readonly<{
+  startUsd: number
+  balanceUsd: number
+  monthlyElectricityUsd: number
+  monthsCovered: number | null
+  electricityPaidUsd: number
+  toppedUpBtc: number
+  minedBtc: number
+  floorMonths: number
+  targetMonths: number
+  history: readonly Readonly<{ month: string; electricityUsd: number; topUpBtc: number; balanceUsd: number }>[]
 }>
 
 export type PortalOverview = Readonly<{
@@ -71,6 +86,10 @@ export type PortalReward = Readonly<{
   usd: number
   priceUsd: number
   pockets: readonly Readonly<{ bucket: string; btc: number; usd: number }>[]
+  /** V2 — le bitcoin miné ce mois-là, la part vendue pour recharger le buffer, l'électricité payée sur le buffer. */
+  minedBtc?: number
+  refillBtc?: number
+  electricityUsd?: number
 }>
 
 export type PortalActivity = Readonly<{

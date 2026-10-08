@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-/* `/account/strategy`, `/account/vault-2/movements` : My Vault, le vault et l'onglet dans le chemin. */
+/* `/account/mining`, `/account/vault-2/movements` : My Vault, le vault et l'onglet dans le chemin. */
 export { default } from '../page'
 
 export const metadata: Metadata = { title: 'My vault' }

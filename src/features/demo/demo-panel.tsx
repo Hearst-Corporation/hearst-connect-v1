@@ -65,7 +65,7 @@ function stepsOf(s: DemoState): Step[] {
       key: 'offer',
       act: A1,
       title: 'Prepare the offer',
-      detail: `${tour.clientName} is a prospect. The form is pre-filled — show the risk profile seeding the allocation, and the projection following live. Then create the offer.`,
+      detail: `${tour.clientName} is a prospect. The form is pre-filled — show the deposit split (computing power and electricity buffer) and the projection following live. Then create the offer.`,
       href: '/admin/offers/new',
       cta: 'Open the offer form',
     },
@@ -182,18 +182,20 @@ function stepsOf(s: DemoState): Step[] {
     },
     withdrawals.some((w) => w.status !== 'pending'),
   )
-  const drifted = Boolean(v1?.drifting) || (v1?.rebalances ?? 0) > 0
+  /* V2 : plus de rééquilibrage — six mois plus tard, c'est le buffer
+     d'électricité qui a travaillé : factures payées, recharge sur le miné. */
+  const refilled = Boolean(v1?.bufferRefilled)
   add(
     {
-      key: 'rebalance',
+      key: 'buffer',
       act: A4,
-      title: 'Six months later — rebalance',
-      detail: drifted
-        ? 'The allocation left its band. The keeper proposes the move; approve it on the client page and the vault returns to its target — a Fireblocks contract call.'
-        : 'Markets move, production accumulates: let six months pass and the allocation drifts away from its target.',
-      ...(drifted ? { href: client, cta: 'Go to the client' } : { play: { months: 6, label: '+6 months' } }),
+      title: 'Six months later — the electricity buffer',
+      detail: refilled
+        ? 'The bills were paid from the buffer every month; once it fell below three months, part of the mined bitcoin refilled it. Show it in « Mining → Buffer » on the client’s dashboard, and in Rewards on the client page.'
+        : 'Let six months pass: the fleet’s electricity is paid from the 10 % buffer, month after month, until it needs a refill.',
+      ...(refilled ? { href: client, cta: 'Go to the client' } : { play: { months: 6, label: '+6 months' } }),
     },
-    (v1?.rebalances ?? 0) > 0,
+    refilled,
   )
 
   // ── 5. UNE DEUXIÈME TRANCHE ────────────────────────────────────────────

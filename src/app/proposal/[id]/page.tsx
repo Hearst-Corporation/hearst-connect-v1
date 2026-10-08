@@ -2,7 +2,7 @@ import { requireSession } from '@/lib/auth'
 import { loadAdminOffers, loadOfferSimulation } from '@/lib/admin-dashboard/load'
 import type { OfferSimulation } from '@/lib/admin-dashboard/contracts'
 import { formatDate, formatNumber } from '@/lib/format'
-import { RISK_PROFILE_LABEL, type Offer } from '@/lib/offers/model'
+import type { Offer } from '@/lib/offers/model'
 import { isAvailable, valueOf } from '@/lib/vaults/model'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
  * La proposition commerciale d'une offre, prête à imprimer en PDF.
  *
  * Tout vient de ce qui a été saisi côté admin — le client, le montant, la
- * durée, l'allocation — et de la MÊME simulation que la fiche d'offre et que
+ * durée — et de la MÊME simulation que la fiche d'offre et que
  * l'écran du client. Rien n'est réécrit à la main : la propale et la console
  * ne peuvent pas diverger.
  *
@@ -27,24 +27,21 @@ export const dynamic = 'force-dynamic'
  * pas un écran qu'on pilote.
  */
 
-const POCKETS = [
+/* V2 — MINING AS A SERVICE : le dépôt se partage en deux, toujours de la même façon. */
+const SPLIT = [
   {
-    key: 'miningBps' as const,
-    label: 'Mining Alpha',
+    key: 'mining' as const,
+    bps: 9000,
+    label: 'Computing power',
     color: '#9eea7a',
-    blurb: 'Bitcoin mined by Hearst’s fleet and allocated to the vault — the engine of the reserve.',
+    blurb: 'Hashrate bought in Hearst’s mining pool. It mines bitcoin for your vault from day one.',
   },
   {
-    key: 'lendingBps' as const,
-    label: 'Bitcoin Lending',
-    color: '#5c5c5c',
-    blurb: 'Bitcoin lent against collateral to institutional counterparties — it keeps working without being sold.',
-  },
-  {
-    key: 'stableBps' as const,
-    label: 'USDC Yield',
+    key: 'buffer' as const,
+    bps: 1000,
+    label: 'Electricity buffer',
     color: '#a9a9a9',
-    blurb: 'Dollar liquidity placed in USDC strategies — the stable leg of the vault.',
+    blurb: 'Kept in USDC to pay the fleet’s electricity bills — you never receive an invoice.',
   },
 ]
 
@@ -137,40 +134,44 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
         <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-white/10">
           <Term label="Capital committed" value={offer.amountUsdc !== null ? `${usd(offer.amountUsdc)} USDC` : '—'} />
           <Term label="Lockup" value={`${offer.lockupMonths} months`} />
-          <Term label="Risk profile" value={RISK_PROFILE_LABEL[offer.riskProfile]} />
+          <Term
+            label="Electricity buffer"
+            value={offer.amountUsdc !== null ? `${usd(offer.amountUsdc * 0.1)} USDC` : '—'}
+          />
           {/* Le produit est une réserve de bitcoin : on annonce le bitcoin
               visé au terme, jamais un rendement en dollars. */}
           <Term label="Bitcoin at term, median" value={last ? btc(last.btcP50) : '—'} accent />
         </dl>
 
-        <h3 className="mt-10 text-lg font-medium">Allocation of your vault</h3>
+        <h3 className="mt-10 text-lg font-medium">How your deposit works</h3>
         <p className="mt-1 text-sm text-white/55">
-          The split below becomes the target of your dedicated vault once the proposal is signed. It is
-          rebalanced back to target whenever it drifts beyond its tolerance.
+          One activity — bitcoin mining. Your deposit buys computing power in Hearst’s pool; a small part stays aside
+          to pay the electricity. Everything mined goes to your bitcoin reserve.
         </p>
         <div className="mt-6 flex items-center gap-10 max-sm:flex-col max-sm:items-stretch max-sm:gap-6">
-          <StaticDonut allocation={offer.allocation} />
+          <StaticDonut />
           <ul className="flex flex-1 flex-col gap-4">
-            {POCKETS.map((p) => (
+            {SPLIT.map((p) => (
               <li key={p.key} className="flex gap-3">
                 <span className="mt-1.5 size-3 shrink-0 rounded-sm" style={{ background: p.color }} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="font-medium">{p.label}</span>
                     <span className="tabular-nums">
-                      <span className="font-medium">{pct(offer.allocation[p.key])}</span>
+                      <span className="font-medium">{pct(p.bps)}</span>
                       {offer.amountUsdc !== null ? (
                         <span className="text-white/55">
                           {' · '}
-                          {usd((offer.amountUsdc * offer.allocation[p.key]) / 10_000)}
+                          {usd((offer.amountUsdc * p.bps) / 10_000)}
                         </span>
                       ) : null}
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-white/55">
                     {p.blurb}
-                    {p.key === 'miningBps' && ths !== null ? (
-                      <span className="text-[#9eea7a]"> {power(ths)} of computing power.</span>
+                    {p.key === 'mining' && ths !== null ? <span className="text-[#9eea7a]"> {power(ths)}.</span> : null}
+                    {p.key === 'buffer' && sim?.bufferMonths !== undefined ? (
+                      <span className="text-[#9eea7a]"> About {formatNumber(sim.bufferMonths, { maximumFractionDigits: 0 })} months of bills.</span>
                     ) : null}
                   </p>
                 </div>
@@ -183,16 +184,19 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
             Lue dans la simulation (backend), comme sur /account. */}
         <h3 className="mt-10 text-lg font-medium">Your computing power</h3>
         <p className="mt-1 text-sm text-white/55">
-          The Mining pocket buys hashrate in Hearst’s fleet. It mines bitcoin for your vault from day one, and
-          the electricity is charged at cost.
+          Electricity is paid from the buffer, at cost. When the buffer falls below three months of bills, Hearst refills it
+          to six with part of that month’s mined bitcoin — never more than half.
         </p>
         {sim && ths !== null ? (
           <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10 max-sm:grid-cols-1">
             <Term label="Hashrate allocated" value={power(ths)} accent />
-            <Term label="Share of the vault in mining" value={pct(offer.allocation.miningBps)} />
             <Term
               label="Mining capital"
               value={sim.miningCapitalUsdc !== undefined ? usd(sim.miningCapitalUsdc) : '—'}
+            />
+            <Term
+              label="Electricity, a month"
+              value={sim.electricityMonthlyUsd !== undefined ? `≈ ${usd(sim.electricityMonthlyUsd)}` : '—'}
             />
           </div>
         ) : (
@@ -255,10 +259,10 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
         <SheetHead step="03" title="Next steps" subtitle="From signature to your first distribution" />
         <ol className="mt-8 flex flex-col gap-5">
           {[
-            ['Sign the proposal', 'The allocation and the lockup above become the terms of your dedicated vault.'],
+            ['Sign the proposal', 'The amount and the lockup above become the terms of your dedicated vault.'],
             ['Receive your credentials', 'We open your Hearst Connect access and send the funding instructions.'],
             ['Fund the vault', `Transfer ${offer.amountUsdc !== null ? `${usd(offer.amountUsdc)} USDC` : 'the agreed amount'} to the address provided. We confirm reception.`],
-            ['Your vault goes live', 'Capital is deployed to target. You follow it in real time on your dashboard.'],
+            ['Your vault goes live', 'Your computing power is switched on and the buffer is funded. You follow it in real time on your dashboard.'],
             ['Your reserve grows', 'Every month, the bitcoin mined for your vault is added to your reserve — each addition visible with its date and amount.'],
           ].map(([title, body], i) => (
             <li key={title} className="flex gap-4">
@@ -277,7 +281,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-white/70">
           <li>Bitcoin is volatile. The value of the vault in dollars and in bitcoin can fall as well as rise.</li>
           <li>Mining output depends on network difficulty, energy costs and the hashprice — none of which Hearst controls.</li>
-          <li>Lending exposes the vault to counterparty risk, mitigated but not removed by collateral.</li>
+          <li>When electricity costs rise, the buffer empties faster and more mined bitcoin is sold to refill it.</li>
           <li>Capital is locked for {offer.lockupMonths} months. Early withdrawal is not guaranteed.</li>
           <li>The projections in this document are simulations ({sim ? formatNumber(sim.runs) : '—'} runs), not commitments.</li>
         </ul>
@@ -337,11 +341,11 @@ function Term({ label, value, accent }: Readonly<{ label: string; value: string;
 }
 
 /** Anneau statique (conic-gradient) : net à l'impression, sans moteur de graphe. */
-function StaticDonut({ allocation }: Readonly<{ allocation: Offer['allocation'] }>) {
+function StaticDonut() {
   let acc = 0
-  const stops = POCKETS.map((p) => {
+  const stops = SPLIT.map((p) => {
     const from = (acc / 10_000) * 360
-    acc += allocation[p.key]
+    acc += p.bps
     return `${p.color} ${from}deg ${(acc / 10_000) * 360}deg`
   })
   return (

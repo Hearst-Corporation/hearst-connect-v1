@@ -11,12 +11,9 @@ import { PaginatedTable } from '@/components/admin/paginated-table'
 import { approvalAmount, btcFromSats, formatBtcValue } from '@/lib/admin-dashboard/amounts'
 import { allocatedTo, loadFleetCompute } from '@/lib/mining/compute'
 import { EmailComposer } from '@/features/admin-offers/email-composer'
-import { BucketsByMonthChart } from '@/features/admin-dashboard/book-charts'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { ProjectionTable } from '@/features/user-dashboard/projection-table'
-import { driftThresholdOf, isVaultDrifting } from '@/lib/admin-dashboard/contracts'
-import { loadAdminRebalancingOperations, loadOfferSimulation } from '@/lib/admin-dashboard/load'
-import { AllocationRebalancing } from '@/features/admin-clients/allocation-rebalancing'
+import { loadOfferSimulation } from '@/lib/admin-dashboard/load'
 import { TrancheSwitcher } from '@/features/admin-clients/tranche-switcher'
 import { OfferSteps } from '@/features/admin-offers/offer-steps'
 import { loadTransactions } from '@/features/fireblocks/load'
@@ -34,12 +31,12 @@ import { clientHref, parseClientPath, reserveSats, trancheOf } from '@/lib/clien
 import { formatCurrency, formatDate, formatHash, formatNumber } from '@/lib/format'
 import { kycStatusLabel } from '@/lib/labels'
 import { emailsFor } from '@/lib/offers/emails'
-import { OFFER_STATUS_LABEL, RISK_PROFILE_LABEL, isTerminal } from '@/lib/offers/model'
+import { OFFER_STATUS_LABEL, isTerminal } from '@/lib/offers/model'
 import { available, isAvailable, unavailable, valueOf, type Availability } from '@/lib/vaults/model'
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
-  ChartPieIcon,
+  BoltIcon,
   DocumentTextIcon,
   LockClosedIcon,
   ShieldCheckIcon,
@@ -64,11 +61,7 @@ export const dynamic = 'force-dynamic'
 
 const usd = (v: number | null | undefined) =>
   v === null || v === undefined ? '—' : formatCurrency(String(Math.round(v)), { unit: '$', fromAtomic: 1 })
-const pct = (bps: number) => `${formatNumber(bps / 100, { maximumFractionDigits: 0 })} %`
-const pts = (bps: number) => `${formatNumber(bps / 100, { maximumFractionDigits: 2, signDisplay: 'exceptZero' })} pt`
 
-/** Les trois poches d'un vault, dans l'ordre de /account. */
-const BUCKETS = ['Mining Alpha', 'Bitcoin Lending', 'USDC Yield'] as const
 const monthName = (ym: string) =>
   new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
 
@@ -76,13 +69,11 @@ const DECISION_LABEL: Record<string, string> = {
   deposit: 'Deposit to authorise',
   withdrawal: 'Withdrawal to process',
   distribution: 'Distribution to sign off',
-  rebalance: 'Rebalance to approve',
-  protocol: 'Protocol change to approve',
 }
 /** L'état d'un reward mensuel, dit pour l'admin. */
 const REWARD_LABEL: Record<string, string> = {
   pending: 'To approve',
-  distributed: 'Paid to the client',
+  distributed: 'In the reserve',
   approved: 'Approved',
   declined: 'Declined',
 }
@@ -95,16 +86,12 @@ const REWARD_TONE: Record<string, 'amber' | 'lime' | 'sky' | 'red'> = {
 /** Les décisions qui se prennent dans une section de la fiche, pas dans la liste. */
 const DECISION_SECTION: Record<string, string> = {
   distribution: 'rewards',
-  rebalance: 'allocation',
-  protocol: 'allocation',
 }
 
 const DECISION_ACTION: Record<string, string> = {
   deposit: 'Authorise',
   withdrawal: 'Process',
   distribution: 'Approve',
-  rebalance: 'Approve',
-  protocol: 'Approve',
 }
 
 export default async function ClientPage({
@@ -130,10 +117,9 @@ export default async function ClientPage({
     redirect(clientHref(id, wantedVault, tabParam))
   }
 
-  const [dossier, compute, rebalancing, transactions, audit] = await Promise.all([
+  const [dossier, compute, transactions, audit] = await Promise.all([
     loadClientDossier(id, wantedVault?.vaultId ?? null),
     loadFleetCompute(),
-    loadAdminRebalancingOperations(200),
     loadTransactions(id),
     loadAudit(500),
   ])
@@ -166,7 +152,6 @@ export default async function ClientPage({
     return multi && v ? `Vault ${trancheOf(v)}` : null
   }
   const isActive = entry.stage === 'active'
-  const bucketYields = valueOf(dossier.bucketYields) ?? []
   const distributions = valueOf(dossier.distributions) ?? []
   const movements = valueOf(dossier.movements) ?? []
   const questionnaire = offer?.questionnaire ?? null
@@ -252,12 +237,13 @@ export default async function ClientPage({
           footnote: vCapital > 0 ? `+${btcFmt(vAccrued)} more than the deposit bought at entry` : null,
         },
         {
-          id: 'drift',
-          title: 'Allocation drift',
-          value: shown(vault?.worstDriftBps != null ? pts(vault.worstDriftBps) : 'Not read'),
-          icon: ChartPieIcon,
-          footnote: vault
-            ? `Band ±${formatNumber(driftThresholdOf(vault) / 100, { maximumFractionDigits: 1 })} pt${isVaultDrifting(vault) ? ' — rebalance' : ''}`
+          /* V2 : plus de dérive à surveiller — le buffer qui paie l'électricité. */
+          id: 'buffer',
+          title: 'Electricity buffer',
+          value: shown(vault?.buffer ? usd(vault.buffer.balanceUsd) : 'Not read'),
+          icon: BoltIcon,
+          footnote: vault?.buffer
+            ? `${vault.buffer.monthsCovered === null ? '—' : formatNumber(vault.buffer.monthsCovered, { maximumFractionDigits: 1 })} months of bills · started at ${usd(vault.buffer.startUsd)}`
             : null,
         },
       ]
@@ -296,9 +282,7 @@ export default async function ClientPage({
           footnote:
             sim && termPoint !== null
               ? `Median · vs ${btcFmt(sim.hodlBtc)} bought today`
-              : offer
-                ? `${RISK_PROFILE_LABEL[offer.riskProfile]} profile`
-                : null,
+              : null,
         },
         {
           id: 'kyc',
@@ -321,7 +305,6 @@ export default async function ClientPage({
     { id: 'overview', label: 'Overview', badge: shownDecisions.length },
     offer !== null ? { id: 'offer', label: 'Offer & emails', badge: 0 } : null,
     isActive ? { id: 'rewards', label: 'Rewards', badge: waitingIn(['distribution']) } : null,
-    isActive && vault !== null ? { id: 'allocation', label: 'Allocation', badge: waitingIn(['rebalance', 'protocol']) } : null,
     { id: 'payments', label: 'Payments', badge: 0 },
     isActive && vault !== null ? { id: 'compute', label: 'Compute', badge: electricityDue } : null,
     { id: 'kyc', label: 'KYC', badge: 0 },
@@ -544,8 +527,9 @@ export default async function ClientPage({
                 {[
                   ['Amount', usd(offer.amountUsdc)],
                   ['Lockup', `${offer.lockupMonths} months`],
-                  ['Profile', RISK_PROFILE_LABEL[offer.riskProfile]],
-                  ['Allocation', `${pct(offer.allocation.miningBps)} · ${pct(offer.allocation.lendingBps)} · ${pct(offer.allocation.stableBps)}`],
+                  // V2 : le dépôt se partage toujours ainsi — puissance de calcul, buffer d'électricité.
+                  ['Computing power', offer.amountUsdc !== null ? `90 % · ${usd(offer.amountUsdc * 0.9)}` : '90 %'],
+                  ['Electricity buffer', offer.amountUsdc !== null ? `10 % · ${usd(offer.amountUsdc * 0.1)}` : '10 %'],
                 ].map(([k, v]) => (
                   <div key={k} className="flex flex-col gap-1 bg-[var(--ud-card)] px-4 py-3">
                     <dt className="text-xs text-fg-tertiary">{k}</dt>
@@ -553,7 +537,6 @@ export default async function ClientPage({
                   </div>
                 ))}
               </dl>
-              <p className="mt-2 text-[11px] text-fg-tertiary">Allocation: Mining Alpha · Bitcoin Lending · USDC Yield</p>
               {offer.notes ? <p className="mt-4 text-sm text-fg-secondary">“{offer.notes}”</p> : null}
 
               {/* Les courriels du parcours : relire, modifier, ajouter des copies,
@@ -612,7 +595,7 @@ export default async function ClientPage({
                 className="min-w-0 scroll-mt-24"
                 eyebrow="Rewards"
                 title={`Monthly rewards${ofTranche}`}
-                subtitle="What each bucket earned each month, converted into bitcoin — validated here before it reaches the client"
+                subtitle="What the vault mined each month, what was sold to refill the electricity buffer, and what reaches the reserve — validated here first"
               >
                 {distributions.length === 0 ? (
                   <p className="text-sm text-fg-tertiary">No month closed yet.</p>
@@ -632,10 +615,9 @@ export default async function ClientPage({
                           <span className="ml-2 text-sm text-fg-tertiary">≈ {usd(pendingReward.yieldUsdc)}</span>
                         </p>
                         <p className="text-xs text-fg-secondary">
-                          {BUCKETS.map((b) => {
-                            const g = pendingReward.byBucket?.find((x) => x.bucket === b)
-                            return `${b} ${g ? btcFromSats(g.btcSats) : '—'}`
-                          }).join(' · ')}
+                          Mined {pendingReward.minedSats != null ? btcFromSats(pendingReward.minedSats) : '—'}
+                          {pendingReward.refillSats ? ` · ${btcFromSats(pendingReward.refillSats)} sold to refill the buffer` : ''}
+                          {pendingReward.electricityUsd != null ? ` · ${usd(pendingReward.electricityUsd)} electricity paid from the buffer` : ''}
                         </p>
                         <p className="text-[11px] text-fg-tertiary">
                           Converted at {usd(pendingReward.btcPriceUsdc)} / BTC · reaches the client’s reserve once approved
@@ -649,26 +631,16 @@ export default async function ClientPage({
                     </p>
                   )}
 
-                  <BucketsByMonthChart
-                    months={[...distributions]
-                      .sort((x, y) => x.month.localeCompare(y.month))
-                      .map((d) => ({
-                        month: d.month,
-                        usd: d.yieldUsdc ?? 0,
-                        buckets: Object.fromEntries((d.byBucket ?? []).map((b) => [b.bucket, b.btcSats / 1e8])),
-                      }))}
-                  />
-
                   <PaginatedTable
-                    className="[&_table]:w-full [&_table]:min-w-[56rem]"
+                    className="[&_table]:w-full [&_table]:min-w-[60rem]"
                     noun="months"
                     head={
                       <TableRow>
                         <TableHeader>Month</TableHeader>
-                        {BUCKETS.map((b) => (
-                          <TableHeader key={b}>{b}</TableHeader>
-                        ))}
-                        <TableHeader>Total, in bitcoin</TableHeader>
+                        <TableHeader>Mined</TableHeader>
+                        <TableHeader>Buffer refill</TableHeader>
+                        <TableHeader>Electricity</TableHeader>
+                        <TableHeader>Added</TableHeader>
                         <TableHeader>BTC price</TableHeader>
                         <TableHeader>Status</TableHeader>
                         <TableHeader>
@@ -679,21 +651,12 @@ export default async function ClientPage({
                     rows={distributions.map((d) => (
                       <TableRow key={d.id}>
                         <TableCell className="font-medium text-fg">{monthName(d.month)}</TableCell>
-                        {BUCKETS.map((b) => {
-                          const g = d.byBucket?.find((x) => x.bucket === b)
-                          return (
-                            <TableCell key={b}>
-                              {g ? (
-                                <>
-                                  <div className="tabular-nums text-fg">{usd(g.usd)}</div>
-                                  <div className="text-[11px] tabular-nums text-fg-tertiary">{btcFmt(g.btcSats / 1e8)}</div>
-                                </>
-                              ) : (
-                                <span className="text-fg-tertiary">—</span>
-                              )}
-                            </TableCell>
-                          )
-                        })}
+                        <TableCell className="tabular-nums text-fg">{d.minedSats != null ? btcFmt(d.minedSats / 1e8) : '—'}</TableCell>
+                        <TableCell className="tabular-nums text-fg-secondary">{d.refillSats ? `−${btcFmt(d.refillSats / 1e8)}` : '—'}</TableCell>
+                        <TableCell>
+                          <div className="tabular-nums text-fg-secondary">{d.electricityUsd != null ? usd(d.electricityUsd) : '—'}</div>
+                          {d.bufferUsd != null ? <div className="text-[11px] tabular-nums text-fg-tertiary">buffer {usd(d.bufferUsd)}</div> : null}
+                        </TableCell>
                         <TableCell>
                           <div className="font-medium tabular-nums text-[var(--hearst-green)]">
                             {d.btcAmountSats != null ? btcFmt(d.btcAmountSats / 1e8) : '—'}
@@ -706,7 +669,7 @@ export default async function ClientPage({
                         </TableCell>
                         {/* Le reward du mois arrive chez le client UNIQUEMENT une
                             fois approuvé ici. */}
-                        <TableCell className="text-right">
+                        <TableCell className="text-right whitespace-nowrap">
                           {d.status === 'pending' ? (
                             <DecisionButtons id={rewardDecisionId} action="Approve" />
                           ) : null}
@@ -718,18 +681,21 @@ export default async function ClientPage({
                       title: `Monthly rewards — ${entry.name}`,
                       columns: [
                         'Month',
-                        ...BUCKETS.flatMap((b) => [`${b} (USD)`, `${b} (BTC)`]),
-                        'Total (BTC)',
+                        'Mined (BTC)',
+                        'Sold to refill the buffer (BTC)',
+                        'Electricity from the buffer (USD)',
+                        'Buffer after (USD)',
+                        'Added to the reserve (BTC)',
                         'Total (USD)',
                         'BTC price (USD)',
                         'Status',
                       ],
                       data: distributions.map((d) => [
                         d.month,
-                        ...BUCKETS.flatMap((b) => {
-                          const g = d.byBucket?.find((x) => x.bucket === b)
-                          return [g?.usd ?? null, g ? g.btcSats / 1e8 : null]
-                        }),
+                        d.minedSats != null ? d.minedSats / 1e8 : null,
+                        d.refillSats != null ? d.refillSats / 1e8 : null,
+                        d.electricityUsd ?? null,
+                        d.bufferUsd ?? null,
                         d.btcAmountSats != null ? d.btcAmountSats / 1e8 : null,
                         d.yieldUsdc,
                         d.btcPriceUsdc,
@@ -742,23 +708,6 @@ export default async function ClientPage({
               </DashCard>
             </BentoCard>
           </BentoGrid>
-          ) : null}
-
-          {/* Son allocation en points, poche par poche, et ses rééquilibrages. */}
-          {show('allocation') && vault !== null ? (
-            <BentoGrid>
-              <BentoCard span={12} bare id="allocation" className="scroll-mt-24">
-                <AllocationRebalancing
-                  vault={vault}
-                  buckets={bucketYields}
-                  operations={(valueOf(rebalancing) ?? [])
-                    .filter((op) => op.vaultId === vault.vaultId)
-                    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))}
-                  clientName={`${entry.name}${ofTranche}`}
-                  pending={vaultDecisions.filter((d) => d.kind === 'rebalance' || d.kind === 'protocol')}
-                />
-              </BentoCard>
-            </BentoGrid>
           ) : null}
 
           {/* Sa puissance de calcul : ce que le client lit dans « Compute ». */}

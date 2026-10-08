@@ -100,30 +100,31 @@ const VAULT_PRINCIPAL = [420_000, 12_000_000, 3_400_000, 850_000, 5_600_000, 2_0
 /** Date d'ouverture de chaque vault — la même que le registre. */
 // Des ouvertures étalées : un book qui grandit client après client, pas un an à vide.
 const VAULT_START = ['2025-09-10', '2025-03-01', '2025-06-15', '2024-10-20', '2026-01-15', '2026-02-02']
-/** L'allocation de chaque vault (bps) — la même que le registre. */
-const VAULT_ALLOC = [
-  { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
-  { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
-  { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
-  { miningBps: 2000, lendingBps: 2500, stableBps: 5500 },
-  { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
-  // La tranche 2 reprend l'allocation de la tranche 1 : c'est le pré-remplissage d'une nouvelle tranche.
-  { miningBps: 6000, lendingBps: 2500, stableBps: 1500 },
-]
+/*
+ * V2 — MINING AS A SERVICE. Plus de poches ni de rééquilibrage : le dépôt
+ * achète de la puissance dans le pool de Hearst (90 %) et garde un BUFFER en
+ * USDC (10 %) qui paie les factures d'électricité. Le bitcoin miné entre dans
+ * la réserve du client. La forme { miningBps, lendingBps, stableBps } reste pour
+ * le registre : lending vaut 0, stable porte le buffer.
+ */
+const MINING_BPS = 9000
+const BUFFER_BPS = 1000
+/** Sous ce nombre de mois de factures, le buffer est rechargé… */
+const BUFFER_FLOOR_MONTHS = 3
+/** …jusqu'à ce nombre de mois, en vendant une part du bitcoin miné du mois. */
+const BUFFER_TARGET_MONTHS = 6
+/** Une recharge ne prend jamais plus de la moitié du bitcoin miné du mois. */
+const BUFFER_TOPUP_CAP = 0.5
+const V2_ALLOC = () => ({ miningBps: MINING_BPS, lendingBps: 0, stableBps: BUFFER_BPS })
+const VAULT_ALLOC = Array.from({ length: 6 }, V2_ALLOC)
 /**
  * L'écart ACTUEL de chaque poche à sa cible, en points de base (100 = 1 pt),
  * depuis le dernier rééquilibrage. La somme fait zéro : ce qu'une poche gagne,
  * une autre le perd. La plus forte valeur absolue est la « dérive » du registre.
  * `null` : la source ne lit pas la dérive de ce vault.
  */
-const VAULT_DRIFT = [
-  { mining: 142, lending: -60, stable: -82 },
-  { mining: -684, lending: 300, stable: 384 },
-  { mining: -200, lending: -118, stable: 318 },
-  { mining: 96, lending: -40, stable: -56 },
-  null,
-  { mining: 118, lending: -48, stable: -70 },
-]
+// V2 : une seule activité, rien ne dérive.
+const VAULT_DRIFT = [null, null, null, null, null, null]
 /** La bande que le mandat de chaque vault tolère, en bps (même que le registre ; 500 par défaut). */
 const VAULT_BAND = [500, 500, 250, 800, 500, 500]
 /** La part réelle de chaque poche aujourd'hui = cible + écart. */
@@ -146,8 +147,8 @@ function vaultRebalances(v) {
 }
 
 function plannedRebalances(v) {
-  // Un vault ouvert pendant la démo n'a pas d'histoire : ses rééquilibrages sont ceux qu'on approuve.
-  if (v >= BASE_VAULT_COUNT) return []
+  // V2 : plus de rééquilibrage.
+  if (v >= 0) return []
   const start = new Date(`${VAULT_START[v]}T00:00:00Z`)
   const out = []
   const d = new Date(start)
@@ -229,7 +230,7 @@ const MACHINES = Array.from({ length: FLEET_SIZE }, (_, i) => {
    simulation d'offre utilise le même. */
 const USD_PER_THS = 50
 /** Capital de la poche Mining de chaque vault (capital × sa propre part de minage). */
-const VAULT_MINING_BPS = [4000, 6000, 2000, 2000, 4000, 6000]
+const VAULT_MINING_BPS = [MINING_BPS, MINING_BPS, MINING_BPS, MINING_BPS, MINING_BPS, MINING_BPS]
 /** Le nombre de vaults du SOCLE ; ceux ouverts pendant la démo viennent après. */
 const BASE_VAULT_COUNT = VAULT_PRINCIPAL.length
 const VAULT_MINING_CAPITAL = VAULT_PRINCIPAL.map((p, i) => (p * VAULT_MINING_BPS[i]) / 10_000)
@@ -337,30 +338,40 @@ const monthWobble = (n) => 0.82 + ((n * 37) % 30) / 100
 /** L'électricité pèse ~36 % de la valeur minée. */
 const ELECTRICITY_SHARE = 0.36
 
+/**
+ * LE MOIS D'UN VAULT, en V2 : ce que SA puissance a miné (brut), l'électricité
+ * payée sur le buffer USDC, et — quand le buffer passe sous trois mois de
+ * factures — la part du bitcoin miné vendue pour le recharger à six mois.
+ * Ce qui entre dans la réserve : le miné, moins cette recharge.
+ * Calculé du plus ancien au plus récent (le buffer se suit), rendu du plus récent au plus ancien.
+ */
 function vaultMonths(v) {
-  const out = []
   // Le dernier mois CLOS — ou celui où le blocage a été levé, s'il l'a été.
   const released = WORLD.released[v] ? new Date(`${WORLD.released[v].month}-01T00:00:00Z`) : null
-  const d = released && released < lastClosed() ? released : lastClosed()
-  const first = new Date(`${VAULT_START[v].slice(0, 7)}-01T00:00:00Z`)
+  const last = released && released < lastClosed() ? released : lastClosed()
+  const d = new Date(`${VAULT_START[v].slice(0, 7)}-01T00:00:00Z`)
   // Un vault du socle commence le mois suivant son ouverture ; un vault ouvert
   // pendant la démo compte son mois d'ouverture (au prorata), pour que la
   // première clôture arrive au mois suivant.
-  if (v < BASE_VAULT_COUNT) first.setUTCMonth(first.getUTCMonth() + 1)
-  const principal = VAULT_PRINCIPAL[v]
-  const a = VAULT_ALLOC[v]
-  let n = 0
-  while (d >= first) {
+  if (v < BASE_VAULT_COUNT) d.setUTCMonth(d.getUTCMonth() + 1)
+  let bufferUsd = (VAULT_PRINCIPAL[v] * BUFFER_BPS) / 10_000
+  const out = []
+  while (d <= last) {
     const month = ymOf(d)
     // Le cours du mois : celui du calendrier, le même à chaque lecture.
     const price = priceOf(month)
-    const wobble = wobbleOf(month)
-    const pockets = [
-      // Le minage : ce que SA puissance a miné, électricité déduite (~36 %).
-      { bucket: 'Mining Alpha', usd: VAULT_THS[v] * BTC_PER_THS_DAY * 30 * wobble * (1 - ELECTRICITY_SHARE) * price },
-      { bucket: 'Bitcoin Lending', usd: ((principal * a.lendingBps) / 10_000) * (POCKET_APY.lending / 12) },
-      { bucket: 'USDC Yield', usd: ((principal * a.stableBps) / 10_000) * (POCKET_APY.stable / 12) },
-    ].map((b) => ({ bucket: b.bucket, usd: Math.round(b.usd), btcSats: Math.round((b.usd / price) * 1e8) }))
+    const minedUsd = VAULT_THS[v] * BTC_PER_THS_DAY * 30 * wobbleOf(month) * price
+    const minedSats = Math.round((minedUsd / price) * 1e8)
+    const electricityUsd = Math.round(minedUsd * ELECTRICITY_SHARE)
+    bufferUsd -= electricityUsd
+    let topUpUsd = 0
+    if (bufferUsd < electricityUsd * BUFFER_FLOOR_MONTHS) {
+      topUpUsd = Math.min(electricityUsd * BUFFER_TARGET_MONTHS - bufferUsd, minedUsd * BUFFER_TOPUP_CAP)
+      bufferUsd += topUpUsd
+    }
+    const topUpSats = Math.round((topUpUsd / price) * 1e8)
+    const sats = minedSats - topUpSats
+    const usd = Math.round((sats / 1e8) * price)
     // Le reward du dernier mois clos attend l'admin ; une fois approuvé il est
     // versé. Les mois antérieurs sont réglés — sauf refus explicite.
     const decision = rewardDecision(v, month)
@@ -368,16 +379,43 @@ function vaultMonths(v) {
     out.push({
       month,
       price,
-      pockets,
-      sats: pockets.reduce((t, b) => t + b.btcSats, 0),
-      usd: pockets.reduce((t, b) => t + b.usd, 0),
+      // Une seule « poche » : le minage. La forme reste celle que lisent les écrans.
+      pockets: [{ bucket: 'Mining', usd, btcSats: sats }],
+      minedSats,
+      electricityUsd,
+      bufferTopUpSats: topUpSats,
+      bufferUsd: Math.round(bufferUsd),
+      sats,
+      usd,
       status: decision === 'declined' ? 'declined' : latest && decision !== 'approved' ? 'pending' : 'distributed',
     })
-    d.setUTCMonth(d.getUTCMonth() - 1)
-    n += 1
+    d.setUTCMonth(d.getUTCMonth() + 1)
   }
-  return out
+  return out.reverse()
 }
+/** Le buffer d'un vault, tel que le client et l'admin le lisent. */
+function vaultBufferView(v) {
+  const ms = vaultMonths(v)
+  const startUsd = Math.round((VAULT_PRINCIPAL[v] * BUFFER_BPS) / 10_000)
+  const balanceUsd = ms[0]?.bufferUsd ?? startUsd
+  // La facture d'un mois : la dernière connue, sinon celle qu'annonce la puissance du vault.
+  const monthlyUsd = ms[0]?.electricityUsd ?? Math.round(VAULT_THS[v] * BTC_PER_THS_DAY * 30 * BTC_SPOT_USD * ELECTRICITY_SHARE)
+  const done = ms.filter((m) => m.status !== 'declined')
+  return {
+    startUsd,
+    balanceUsd,
+    monthlyElectricityUsd: monthlyUsd,
+    monthsCovered: monthlyUsd > 0 ? Number((balanceUsd / monthlyUsd).toFixed(1)) : null,
+    electricityPaidUsd: done.reduce((t, m) => t + m.electricityUsd, 0),
+    toppedUpBtc: done.reduce((t, m) => t + m.bufferTopUpSats, 0) / 1e8,
+    minedBtc: done.reduce((t, m) => t + m.minedSats, 0) / 1e8,
+    floorMonths: BUFFER_FLOOR_MONTHS,
+    targetMonths: BUFFER_TARGET_MONTHS,
+    history: [...ms].reverse().map((m) => ({ month: m.month, electricityUsd: m.electricityUsd, topUpBtc: m.bufferTopUpSats / 1e8, balanceUsd: m.bufferUsd })),
+  }
+}
+/** Le buffer USDC d'un vault aujourd'hui : le dépôt × 10 % au départ, puis le dernier mois clos. */
+const vaultBufferUsd = (v) => vaultMonths(v)[0]?.bufferUsd ?? Math.round((VAULT_PRINCIPAL[v] * BUFFER_BPS) / 10_000)
 /** Le premier mois rémunéré d'un vault (voir `vaultMonths`). */
 function firstMonthOf(v) {
   const first = new Date(`${VAULT_START[v].slice(0, 7)}-01T00:00:00Z`)
@@ -620,6 +658,8 @@ function payloadFor(path, search = '') {
             closedMonth: ms.length > 0 ? ymOf(lastClosed()) : null,
             electricityPaid: ms.length > 0 && WORLD.paid.includes(`${vaultKey(v)}:${ymOf(lastClosed())}`),
             rebalances: (WORLD.rebalanced[v] ?? []).length,
+            // V2 : le buffer d'électricité a-t-il déjà été rechargé sur le bitcoin miné ?
+            bufferRefilled: ms.some((m) => m.bufferTopUpSats > 0),
             withdrawals: withdrawalsOf(v).map((w) => ({ id: w.id, status: w.status, btc: w.sats / 1e8 })),
             availableBtc: vaultEconomy(v).availableSats / 1e8,
             drifting: (() => {
@@ -695,6 +735,10 @@ function payloadFor(path, search = '') {
               usd: m.usd,
               priceUsd: m.price,
               pockets: m.pockets.map((b) => ({ bucket: b.bucket, btc: b.btcSats / 1e8, usd: b.usd })),
+              // V2 : le miné, la part vendue pour recharger le buffer, l'électricité payée sur le buffer.
+              minedBtc: m.minedSats / 1e8,
+              refillBtc: m.bufferTopUpSats / 1e8,
+              electricityUsd: m.electricityUsd,
             })),
           ).sort((a, b) => b.month.localeCompare(a.month)),
         ),
@@ -1044,8 +1088,8 @@ function payloadFor(path, search = '') {
             },
           }]
         }),
-        // Un changement de protocole proposé : l'USDC de ZAND passerait de Morpho à Aave.
-        ...(VAULT_PROTOCOLS[1].stable.name.startsWith('Morpho')
+        // V2 : plus de protocole à changer — une seule activité, le minage.
+        ...(false
           ? [{
               id: 'apr_proto_cli_2',
               kind: 'protocol',
@@ -1160,6 +1204,11 @@ function payloadFor(path, search = '') {
               return [d.mining, d.lending, d.stable].reduce((w, x) => (Math.abs(x) > Math.abs(w) ? x : w), 0)
             })(),
             driftThresholdBps: v.threshold,
+            // V2 : le buffer d'électricité du vault — son solde, et combien de mois de factures il couvre.
+            buffer: (() => {
+              const b = vaultBufferView(v.v)
+              return { balanceUsd: b.balanceUsd, startUsd: b.startUsd, monthsCovered: b.monthsCovered, monthlyElectricityUsd: b.monthlyElectricityUsd, toppedUpBtc: b.toppedUpBtc }
+            })(),
           }
         }),
       ),
@@ -1694,24 +1743,19 @@ function payloadFor(path, search = '') {
       }
       const amount = num('amountUsdc', 1_000_000)
       const months = num('months', 24)
-      const miningBps = num('miningBps', 4000)
-      const lendingBps = num('lendingBps', 2700)
-      const stableBps = num('stableBps', 3300)
+      /* V2 — MINING AS A SERVICE : plus d'allocation à choisir. 90 % du dépôt
+         achètent de la puissance au prix du TH/s du parc, 10 % restent en buffer
+         pour l'électricité. Le rendement attendu est celui du minage, net de
+         l'électricité (~36 % de la valeur minée) — le même calcul que le livre
+         des vaults (`vaultMonths`). */
+      const miningBps = MINING_BPS
+      const lendingBps = 0
+      const stableBps = BUFFER_BPS
+      const ths = (amount * miningBps) / 10_000 / USD_PER_THS
+      const minedUsdYear = ths * BTC_PER_THS_DAY * 365 * 0.965 * BTC_SPOT_USD
+      const blended = amount > 0 ? (minedUsdYear * (1 - ELECTRICITY_SHARE)) / amount : 0
 
-      /* Rendement annuel attendu par poche, en part décimale. Ces trois
-         nombres sont les seuls paramètres métier de la simulation — tout le
-         reste en découle. */
-      const POCKET_YIELD = { mining: 0.142, lending: 0.084, stable: 0.101 }
-      const blended =
-        (miningBps * POCKET_YIELD.mining +
-          lendingBps * POCKET_YIELD.lending +
-          stableBps * POCKET_YIELD.stable) /
-        10_000
-
-      /* La dispersion suit la part de minage : c'est la poche dont le résultat
-         dépend du cours, de la difficulté et du prix de l'électricité. Une
-         allocation prudente resserre donc l'éventail, une allocation offensive
-         l'ouvre — ce que p10 et p90 doivent montrer. */
+      /* La dispersion vient du minage : cours, difficulté, prix de l'électricité. */
       const spread = 0.35 + (miningBps / 10_000) * 0.55
       const YIELD = {
         p10: blended * (1 - spread),
@@ -1769,6 +1813,10 @@ function payloadFor(path, search = '') {
           btcVolAnnualPct: BTC_VOL * 100,
           allocation: { miningBps, lendingBps, stableBps },
           miningCapitalUsdc: Math.round(miningCapitalUsdc),
+          // V2 : le buffer d'électricité, et le nombre de mois de factures qu'il couvre au départ.
+          bufferUsdc: Math.round((amount * BUFFER_BPS) / 10_000),
+          bufferMonths: Number((((amount * BUFFER_BPS) / 10_000) / ((minedUsdYear / 12) * ELECTRICITY_SHARE || 1)).toFixed(1)),
+          electricityMonthlyUsd: Math.round((minedUsdYear / 12) * ELECTRICITY_SHARE),
           usdPerThs: USD_PER_THS,
           hashrateThs: Math.round(miningCapitalUsdc / USD_PER_THS),
           points,
@@ -1870,6 +1918,11 @@ function payloadFor(path, search = '') {
             btcPriceUsdc: m.price,
             distributionDate: m.status === 'distributed' ? `${m.month}-01T09:00:00Z` : null,
             byBucket: m.pockets,
+            // V2 : le miné brut, la part vendue pour recharger le buffer, l'électricité payée sur le buffer.
+            minedSats: m.minedSats,
+            refillSats: m.bufferTopUpSats,
+            electricityUsd: m.electricityUsd,
+            bufferUsd: m.bufferUsd,
           })),
         ),
       }
@@ -2810,7 +2863,8 @@ const SETTINGS_BASE = {
     { id: 's_morpho', pocket: 'USDC Yield', protocol: 'Morpho (USDC)', status: 'enabled', capUsd: 30_000_000, apyPct: 10.1, apySource: 'Morpho API', risk: 'low' },
     { id: 's_aave_usdc', pocket: 'USDC Yield', protocol: 'Aave v3 (USDC)', status: 'enabled', capUsd: 20_000_000, apyPct: 12.0, apySource: 'Aave subgraph', risk: 'low' },
   ],
-  limits: { driftBandBps: 500, maxProtocolExposureBps: 6000, maxClientExposureUsd: 25_000_000, liquidityBufferBps: 300, guardianPause: false },
+  // V2 : les règles du buffer d'électricité (la même mécanique que `vaultMonths`).
+  limits: { bufferBps: BUFFER_BPS, bufferFloorMonths: BUFFER_FLOOR_MONTHS, bufferTargetMonths: BUFFER_TARGET_MONTHS, refillCapBps: BUFFER_TOPUP_CAP * 10_000, maxClientExposureUsd: 25_000_000 },
   addressBook: [
     { id: 'a_hh', owner: 'Hearst Holdings', label: 'Treasury cold wallet', asset: 'BTC', network: 'Bitcoin', address: 'bc1qhh7k0x3m4n2p8r5t6w9y1z3c5v7b9n2m4k6j8h', activeFrom: '2025-09-01T00:00:00Z' },
     { id: 'a_zand', owner: 'ZAND Bank', label: 'Custody — Fireblocks', asset: 'BTC', network: 'Bitcoin', address: 'bc1qz4nd8c2v6b0n4m8k2j6h0g4f8d2s6a0p4o8i2u', activeFrom: '2026-02-01T00:00:00Z' },
@@ -2827,7 +2881,7 @@ const SETTINGS_BASE = {
     { id: 'credentials', label: 'Access', subject: 'Hearst Connect — your access', hubspotStage: 'Closed won — live', intro: 'Your vault is live.' },
   ],
   notifications: [
-    { id: 'n1', event: 'A vault leaves its drift band', notify: ['Risk'], channels: ['Slack'] },
+    { id: 'n1', event: 'An electricity buffer is refilled', notify: ['Finance'], channels: ['Slack'] },
     { id: 'n2', event: 'A withdrawal waits more than 24 h', notify: ['Finance', 'Admin'], channels: ['Slack', 'Email'] },
     { id: 'n3', event: 'An integration stops answering', notify: ['Admin'], channels: ['Slack', 'SMS'] },
     { id: 'n4', event: 'A lockup ends within 30 days', notify: ['Relationship manager'], channels: ['Email'] },
@@ -2843,7 +2897,7 @@ const SETTINGS_GOV = {
 }
 const SETTINGS_TITLES = {
   team: 'Team & roles', policies: 'Approval policies', security: 'Security', terms: 'Product terms', profiles: 'Risk profiles',
-  strategies: 'Strategies & protocols', limits: 'Risk limits', addressBook: 'Address book', payees: 'Payees',
+  strategies: 'Strategies & protocols', limits: 'Mining & buffer', addressBook: 'Address book', payees: 'Payees',
   compliance: 'KYC & AML', templates: 'Email templates', notifications: 'Notifications',
 }
 /*
@@ -2857,10 +2911,10 @@ function seedChanges() {
   const base = SETTINGS_BASE
   return [
     {
-      id: 'chg_s1', section: 'strategies', author: 'sarah.klein@hearst.test', createdAt: at(-5), status: 'pending', required: 1,
-      reason: 'Add Ethena sUSDe to the USDC pocket — 14 % for six months, capped at $5M', approvals: [], rejectedBy: null, effectiveAt: null,
-      before: base.strategies,
-      after: [...base.strategies, { id: 's_ethena', pocket: 'USDC Yield', protocol: 'Ethena (sUSDe)', status: 'enabled', capUsd: 5_000_000, apyPct: 14, apySource: 'Ethena API', risk: 'medium' }],
+      id: 'chg_s1', section: 'limits', author: 'sarah.klein@hearst.test', createdAt: at(-5), status: 'pending', required: 1,
+      reason: 'Refill the electricity buffer earlier — below 4 months of bills instead of 3, energy prices are rising in Texas', approvals: [], rejectedBy: null, effectiveAt: null,
+      before: base.limits,
+      after: { ...base.limits, bufferFloorMonths: 4 },
     },
     {
       id: 'chg_s2', section: 'payees', author: 'marc.dubois@hearst.test', createdAt: at(-26), status: 'pending', required: 1,
@@ -3009,7 +3063,8 @@ function clientVaultView(c, v) {
     lockupStartAt: start.toISOString(),
     lockupEndAt: end.toISOString(),
     lockupMonths: months,
-    allocationHistory: vaultAllocationHistory(v, start, cur),
+    // V2 : plus d'historique d'allocation — une seule activité.
+    allocationHistory: [],
     elapsedMonths: elapsed,
     nextRewardAt: isReleased(v) ? null : nextReward.toISOString(),
     allocation: {
@@ -3017,11 +3072,12 @@ function clientVaultView(c, v) {
       current: cur,
       bandBps: VAULT_BAND[v],
     },
+    // V2 : le dépôt se partage en deux — la puissance achetée, le buffer d'électricité.
     pockets: [
-      { name: 'Mining Alpha', protocol: VAULT_PROTOCOLS[v].mining.name, apyPct: VAULT_PROTOCOLS[v].mining.apy, capitalUsd: capital(cur.mining) },
-      { name: 'Bitcoin Lending', protocol: VAULT_PROTOCOLS[v].lending.name, apyPct: VAULT_PROTOCOLS[v].lending.apy, capitalUsd: capital(cur.lending) },
-      { name: 'USDC Yield', protocol: VAULT_PROTOCOLS[v].stable.name, apyPct: VAULT_PROTOCOLS[v].stable.apy, capitalUsd: capital(cur.stable) },
+      { name: 'Mining', protocol: 'Hearst pool', apyPct: 0, capitalUsd: capital(MINING_BPS) },
+      { name: 'Electricity buffer', protocol: 'USDC', apyPct: 0, capitalUsd: capital(BUFFER_BPS) },
     ],
+    buffer: vaultBufferView(v),
     compute: { hashrateThs: Math.round(VAULT_THS[v]), machines: MACHINE_VAULT.filter((x) => x === v).length, fleetSharePct: Number(((VAULT_THS[v] / FLEET_THS) * 100).toFixed(2)) },
     endOfTerm: (WORLD.prefs?.[c.id]?.endOfTerm ?? {})[vaultKey(v)] ?? 'undecided',
   }
@@ -3112,6 +3168,8 @@ const driftGrowth = (v) => {
   return { mining: 140 * s, lending: -60 * s, stable: -80 * s }
 }
 function driftOf(v) {
+  // V2 : une seule activité, rien ne dérive.
+  if (v >= 0) return null
   const done = WORLD.rebalanced[v] ?? []
   const last = done.length > 0 ? done[done.length - 1].clock : null
   const opened = v >= BASE_VAULT_COUNT ? WORLD.opened[v - BASE_VAULT_COUNT] : null
@@ -3153,9 +3211,9 @@ function applyWorld(w) {
   for (const o of WORLD.opened) {
     VAULT_PRINCIPAL.push(o.principal)
     VAULT_START.push(o.openedAt.slice(0, 10))
-    VAULT_ALLOC.push({ ...o.alloc })
+    VAULT_ALLOC.push(V2_ALLOC())
     VAULT_BAND.push(Number(currentSettings().limits.driftBandBps) || 500)
-    VAULT_MINING_BPS.push(o.alloc.miningBps)
+    VAULT_MINING_BPS.push(MINING_BPS)
     VAULT_ADDRESSES.push(addressFor(o.offerId))
     VAULT_PROTOCOLS.push(defaultProtocols())
   }

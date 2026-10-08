@@ -13,13 +13,10 @@ import type { PortalReward, PortalVault } from './load'
  */
 export function scopeToVault(data: UserDashboard, vault: PortalVault): UserDashboard {
   const chain = { provenance: 'chain' as const }
-  const t = vault.allocation.target
-  const c = vault.allocation.current
-  const rows = [
-    { label: 'Mining Alpha', target: t.mining, now: c.mining },
-    { label: 'Bitcoin Lending', target: t.lending, now: c.lending },
-    { label: 'USDC Yield', target: t.stable, now: c.stable },
-  ]
+  /* V2 : le dépôt en deux parts — la puissance achetée dans le pool, le buffer
+     qui paie l'électricité. Plus de poches, plus de cible ni de dérive. */
+  const total = vault.pockets.reduce((t, p) => t + p.capitalUsd, 0)
+  const rows = vault.pockets.map((p) => ({ label: p.name, pct: total > 0 ? (p.capitalUsd / total) * 100 : 0 }))
   const fleet = data.fleet.kind === 'available' ? data.fleet.value : null
   const history = vault.allocationHistory ?? []
   return {
@@ -33,11 +30,11 @@ export function scopeToVault(data: UserDashboard, vault: PortalVault): UserDashb
           )
         : data.allocationSeries,
     allocationBars: available(
-      rows.map((r) => ({ label: r.label, value: r.now / 100 })),
+      rows.map((r) => ({ label: r.label, value: r.pct })),
       chain,
     ),
     exposure: available(
-      rows.map((r) => ({ label: r.label, targetPct: r.target / 100, actualPct: r.now / 100 })),
+      rows.map((r) => ({ label: r.label, targetPct: r.pct, actualPct: r.pct })),
       chain,
     ),
     bucketYields: available(

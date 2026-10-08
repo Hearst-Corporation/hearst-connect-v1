@@ -7081,3 +7081,153 @@
     gap: 2px;
   }
 }
+
+/* ── V2 — le buffer d'électricité (onglet Mining, vue « Buffer ») ──────────── */
+.ud-root .buffer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
+}
+.ud-root .buffer-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ud-root .buffer-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ud-root .buffer-value {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--ud-fg);
+  font-variant-numeric: tabular-nums;
+}
+.ud-root .buffer-caption {
+  font-size: 12px;
+  color: var(--ud-fg-2);
+}
+.ud-root .buffer-tag {
+  border-radius: var(--ud-radius-pill);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--hearst-green-ink);
+  background: var(--hearst-green);
+}
+.ud-root .buffer-tag.is-low {
+  color: #2b1305;
+  background: #fcd34d;
+}
+.ud-root .buffer-gauge {
+  position: relative;
+  height: 10px;
+  margin: 14px 0 22px;
+  border-radius: var(--ud-radius-pill);
+  background: var(--ud-inset);
+}
+.ud-root .buffer-gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--hearst-green);
+}
+.ud-root .buffer-gauge-mark {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  background: var(--ud-fg-3);
+}
+.ud-root .buffer-gauge-mark.is-target {
+  background: var(--ud-fg);
+}
+.ud-root .buffer-gauge-mark::after {
+  content: attr(data-label);
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--ud-fg-3);
+}
+.ud-root .buffer-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.ud-root .buffer-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--ud-radius-sm);
+  background: var(--ud-card-raised);
+}
+.ud-root .buffer-stats dt {
+  font-size: 11px;
+  color: var(--ud-fg-3);
+}
+.ud-root .buffer-stats dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ud-fg);
+  font-variant-numeric: tabular-nums;
+}
+.ud-root .buffer-months {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ud-root .buffer-months > li {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+.ud-root .buffer-bar {
+  width: 100%;
+  max-width: 28px;
+  border-radius: 4px 4px 0 0;
+  background: var(--ud-fg-3);
+}
+.ud-root .buffer-refill {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hearst-green);
+}
+.ud-root .buffer-months em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--ud-fg-3);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .ud-root .buffer-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ud-root .buffer-months em {
+    display: none;
+  }
+}

@@ -21,7 +21,7 @@ export default async function AccountPage({
   searchParams,
 }: Readonly<{ params: Promise<{ slug?: string[] }>; searchParams: Promise<{ vault?: string; tab?: string }> }>) {
   await requireSession()
-  /* Le vault et l'onglet sont dans le chemin : `/account/vault-2/strategy`.
+  /* Le vault et l'onglet sont dans le chemin : `/account/vault-2/mining`.
      Les anciennes adresses (`?vault=…&tab=…`) sont lues puis réécrites. */
   const { slug } = await params
   const path = parseAccountPath(slug)

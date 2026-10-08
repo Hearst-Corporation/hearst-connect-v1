@@ -117,7 +117,7 @@ export const BUCKET_SERIES: readonly StackSeries[] = [
 
 const RESERVE_SERIES: readonly StackSeries[] = [
   { key: 'deposits', label: 'Deposits, converted at entry', color: '#4a4a4a' },
-  { key: 'accumulated', label: 'Accumulated by the buckets', color: '#9eea7a' },
+  { key: 'accumulated', label: 'Accumulated by mining', color: '#9eea7a' },
 ]
 
 export type ClientShare = { readonly label: string; readonly value: number }

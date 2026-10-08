@@ -4,8 +4,8 @@ import {
   ArrowDownTrayIcon,
   ArrowPathIcon,
   ArrowUpTrayIcon,
-  ArrowsRightLeftIcon,
   BanknotesIcon,
+  BoltIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/format'
@@ -24,6 +24,9 @@ import type { AdminVaultRecord } from '@/lib/admin-dashboard/contracts'
  */
 
 const usd = (v: number) => `$${formatNumber(v, { maximumFractionDigits: 0 })}`
+
+/** Sous trois mois de factures, le buffer est rechargé sur le bitcoin miné. */
+const BUFFER_FLOOR_MONTHS = 3
 
 /** Un terme à moins de trois mois demande une action commerciale. */
 const DUE_SOON_MONTHS = 3
@@ -101,21 +104,12 @@ export function PendingStrip({
       amount: sumOf('deposit'),
       icon: ArrowDownTrayIcon,
     },
-    {
-      id: 'rebalance',
-      label: 'Rebalances to approve',
-      count: countOf('rebalance'),
-      amount: `${countOf('rebalance')} vault${countOf('rebalance') === 1 ? '' : 's'} out of band`,
-      icon: ArrowPathIcon,
-    },
-    {
-      id: 'protocol',
-      label: 'Protocol changes',
-      count: countOf('protocol'),
-      amount: 'to sign off',
-      icon: ArrowsRightLeftIcon,
-    },
   ]
+  /* V2 — plus de rééquilibrage ni de protocole : à leur place, les buffers qui
+     paient l'électricité. Leur total, et les vaults sous le seuil de recharge. */
+  const live = (registry ?? []).filter((v) => v.status === 'ACTIVE' && v.buffer)
+  const bufferTotal = live.reduce((t, v) => t + (v.buffer?.balanceUsd ?? 0), 0)
+  const refilling = live.filter((v) => (v.buffer?.monthsCovered ?? Infinity) < BUFFER_FLOOR_MONTHS)
 
   return (
     <div className="flex flex-col gap-4">
@@ -140,6 +134,27 @@ export function PendingStrip({
             </Tile>
           )
         })}
+
+        <Tile href={live.length > 0 ? '/admin/settlement' : null} count={live.length}>
+          <span className="flex items-center gap-2 text-xs text-fg-tertiary">
+            <BoltIcon className="size-4 text-accent-400" aria-hidden="true" />
+            <span className="min-w-0 truncate">Electricity buffers</span>
+          </span>
+          <span className="text-2xl font-semibold tabular-nums text-fg">{registry === null ? '—' : usd(bufferTotal)}</span>
+          <span className="text-xs text-fg-tertiary">USDC across {live.length} vault{live.length === 1 ? '' : 's'}</span>
+        </Tile>
+
+        <Tile
+          href={refilling.length === 1 ? `/admin/clients/${refilling[0].clientId}` : refilling.length > 1 ? '/admin/clients/active' : null}
+          count={refilling.length}
+        >
+          <span className="flex items-center gap-2 text-xs text-fg-tertiary">
+            <ArrowPathIcon className="size-4 text-accent-400" aria-hidden="true" />
+            <span className="min-w-0 truncate">Buffers refilling</span>
+          </span>
+          <span className="text-2xl font-semibold tabular-nums text-fg">{registry === null ? '—' : refilling.length}</span>
+          <span className="text-xs text-fg-tertiary">below {BUFFER_FLOOR_MONTHS} months of bills</span>
+        </Tile>
 
         <Tile href={dueSoon ? lockupHref : null} count={dueSoon ?? 0}>
           <span className="flex items-center gap-2 text-xs text-fg-tertiary">

@@ -8,7 +8,7 @@ import { requireSession } from '@/lib/auth'
 import { loadAudit, loadSettings } from '@/lib/settings/load'
 import { sectionOf, type TeamMember } from '@/lib/settings/schema'
 import { editorial } from '@/lib/vaults/model'
-import { ClockIcon, ShieldCheckIcon, UserGroupIcon, PauseCircleIcon } from '@heroicons/react/16/solid'
+import { BoltIcon, ClockIcon, ShieldCheckIcon, UserGroupIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Settings' }
@@ -40,7 +40,7 @@ export default async function SettingsOverview() {
   const open = settings.changes.filter((c) => c.status === 'pending' || c.status === 'scheduled')
   const pending = open.filter((c) => c.status === 'pending')
   const scheduled = open.filter((c) => c.status === 'scheduled')
-  const limits = (settings.values.limits ?? {}) as { guardianPause?: boolean }
+  const limits = (settings.values.limits ?? {}) as { bufferBps?: number; bufferFloorMonths?: number }
 
   const kpis: readonly AdminHeroKpi[] = [
     { id: 'pending', title: 'Waiting for approval', value: editorial(String(pending.length)), icon: ClockIcon },
@@ -51,7 +51,13 @@ export default async function SettingsOverview() {
       value: editorial(String(team.filter((m) => m.status === 'active').length)),
       icon: UserGroupIcon,
     },
-    { id: 'guardian', title: 'Guardian pause', value: editorial(limits.guardianPause ? 'ON — moves frozen' : 'Off'), icon: PauseCircleIcon },
+    {
+      // V2 : la règle qui fait tourner chaque vault — le buffer qui paie l'électricité.
+      id: 'buffer',
+      title: 'Electricity buffer',
+      value: editorial(limits.bufferBps !== undefined ? `${limits.bufferBps / 100} % of each deposit` : '—'),
+      icon: BoltIcon,
+    },
   ]
 
   return (

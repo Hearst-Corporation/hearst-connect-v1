@@ -22,6 +22,8 @@ export type DemoVault = Readonly<{
   closedMonth: string | null
   electricityPaid: boolean
   rebalances: number
+  /** V2 — le buffer d’électricité a déjà été rechargé sur le bitcoin miné. */
+  bufferRefilled?: boolean
   withdrawals: readonly Readonly<{ id: string; status: string; btc: number }>[]
   availableBtc: number
   drifting: boolean

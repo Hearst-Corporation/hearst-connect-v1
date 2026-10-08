@@ -6,7 +6,6 @@ import { Callout } from '@/components/compositions'
 import { ClientBookTable, type ClientRow } from '@/features/admin-clients/client-book-table'
 import type { View } from '@/features/admin-clients/views'
 import { btcFromSats } from '@/lib/admin-dashboard/amounts'
-import { isVaultDrifting } from '@/lib/admin-dashboard/contracts'
 import { requireSession } from '@/lib/auth'
 import { reserveSats } from '@/lib/clients/vaults'
 import { loadClientBook, PIPELINE_STAGES, STAGE_LABEL, type ClientEntry } from '@/lib/clients/book'
@@ -63,9 +62,13 @@ function vaultCell(e: ClientEntry): Pick<ClientRow, 'vaultBadge' | 'vaultTone' |
         : v.lockupEndAt !== null
           ? `Unlocks ${formatDate(v.lockupEndAt)}`
           : null
-  if (e.vaults.some(isVaultDrifting)) return { vaultBadge: 'Rebalance', vaultTone: 'amber', vaultLine: term }
-  if (e.vaults.every((x) => x.worstDriftBps === null)) return { vaultBadge: 'Drift unread', vaultTone: 'neutral', vaultLine: term }
-  return { vaultBadge: 'Within band', vaultTone: 'lime', vaultLine: term }
+  /* V2 : plus de bande ni de dérive — l'état qui compte est le buffer qui
+     paie l'électricité : sous trois mois de factures, il se recharge. */
+  const months = e.vaults.map((x) => x.buffer?.monthsCovered).filter((m): m is number => typeof m === 'number')
+  if (months.length === 0) return { vaultBadge: 'Buffer unread', vaultTone: 'neutral', vaultLine: term }
+  const low = Math.min(...months)
+  if (low < 3) return { vaultBadge: 'Buffer refilling', vaultTone: 'amber', vaultLine: term }
+  return { vaultBadge: `Buffer ${Math.floor(low)} mo`, vaultTone: 'lime', vaultLine: term }
 }
 
 function toRow(e: ClientEntry): ClientRow {

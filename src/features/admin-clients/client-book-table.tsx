@@ -152,7 +152,7 @@ export function ClientBookTable({ rows, initialView = 'all' }: Readonly<{ rows: 
               <TableHeader className={tableCol.primary}>Client</TableHeader>
               <TableHeader className={tableCol.status}>Stage</TableHeader>
               <TableHeader className={tableCol.numeric}>Reserve · offer</TableHeader>
-              <TableHeader>Vault · drift</TableHeader>
+              <TableHeader>Vault · buffer</TableHeader>
               <TableHeader>Next action</TableHeader>
             </TableRow>
           }

@@ -259,6 +259,8 @@ export type AdminVaultRecord = {
    * ne sait pas mesurer n'est pas une dérive nulle.
    */
   readonly worstDriftBps: number | null
+  /** V2 — le buffer d'électricité du vault (USDC) : solde, départ, mois de factures couverts. */
+  readonly buffer?: Readonly<{ balanceUsd: number; startUsd: number; monthsCovered: number | null; monthlyElectricityUsd: number; toppedUpBtc: number }> | null
   /** Blocage levé : la réserve a été rendue au client (statut RELEASED). */
   readonly releasedAt?: string | null
   /**
@@ -315,6 +317,10 @@ export type OfferSimulation = {
   /** La puissance de calcul que ce capital achète — calculée par le backend,
    *  jamais dérivée par le front. */
   readonly hashrateThs?: number
+  /** V2 — le buffer d'électricité (10 % du dépôt), les mois de factures qu'il couvre, une facture mensuelle. */
+  readonly bufferUsdc?: number
+  readonly bufferMonths?: number
+  readonly electricityMonthlyUsd?: number
   readonly points: readonly OfferSimulationPoint[]
 }
 
@@ -377,6 +383,11 @@ export type AdminClientDistribution = {
   readonly distributionDate: string | null
   /** Ce que chaque poche a rapporté ce mois-là, et sa conversion en bitcoin. */
   readonly byBucket?: readonly AdminBucketGain[]
+  /** V2 — le bitcoin miné ce mois-là (brut), la part vendue pour recharger le buffer, l'électricité payée, le solde du buffer. */
+  readonly minedSats?: number
+  readonly refillSats?: number
+  readonly electricityUsd?: number
+  readonly bufferUsd?: number
 }
 
 export type AdminBucketGain = {

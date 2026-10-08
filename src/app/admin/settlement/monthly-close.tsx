@@ -93,11 +93,8 @@ export function MonthlyClose({
     return <p className="py-6 text-center text-sm text-fg-tertiary">No monthly close recorded yet.</p>
   }
 
-  /* En bitcoin : l'électricité se paie en dollars, mais elle se déduit du
-     bitcoin miné au cours du mois — c'est le net qui entre dans les réserves. */
-  const toSats = (usdAmount: number) => (m.btcPriceUsd > 0 ? Math.round((usdAmount / m.btcPriceUsd) * 1e8) : 0)
-  const netSats = (l: CloseLine) => l.btcSats - toSats(l.electricityUsd)
-  const netTotalSats = m.lines.reduce((s, l) => s + netSats(l), 0)
+  /* V2 : l'électricité se paie en USDC sur le buffer de chaque vault ; ce qui
+     entre dans les réserves, c'est le bitcoin miné, moins les recharges du buffer. */
   const validated = m.lines.filter((l) => l.status === 'distributed' || l.status === 'approved').length
   const toApprove = m.lines.filter((l) => l.status === 'pending').length
   const rewardOf = (l: CloseLine) => rewards[m.month]?.[l.vaultId] ?? null
@@ -150,10 +147,13 @@ export function MonthlyClose({
           [
             'Electricity to pay',
             due.length === 0 ? 'All paid' : usd(dueUsd),
-            due.length === 0 ? `${usd(m.lines.reduce((t, l) => t + l.electricityUsd, 0))} paid across ${m.lines.length} vaults` : `${due.length} of ${m.lines.length} vaults · ≈ ${btc(toSats(dueUsd))}`,
+            due.length === 0
+              ? `${usd(m.lines.reduce((t, l) => t + l.electricityUsd, 0))} paid from the buffers`
+              : `${due.length} of ${m.lines.length} vaults · from their buffers`,
             due.length > 0,
           ],
-          ['Mining, net', btc(netTotalSats), `${m.lines.length} vaults, after electricity`, false],
+          // V2 : l'électricité se paie sur les buffers USDC — ce qui entre dans les réserves, c'est le miné, moins les recharges.
+          ['Into the reserves', btc(rewardTotalSats), `${m.lines.length} vaults · mined, less buffer refills`, false],
           [
             'Rewards to approve',
             toApprove > 0 ? btc(pendingSats) : 'All decided',
@@ -179,8 +179,7 @@ export function MonthlyClose({
           <TableRow>
             <TableHeader>Vault</TableHeader>
             <TableHeader>BTC mined</TableHeader>
-            <TableHeader>Electricity</TableHeader>
-            <TableHeader>Mining, net</TableHeader>
+            <TableHeader>Electricity, from the buffer</TableHeader>
             <TableHeader>Reward of the month</TableHeader>
             <TableHeader>
               <span className="sr-only">Actions</span>
@@ -207,26 +206,22 @@ export function MonthlyClose({
             </TableCell>
             <TableCell className="tabular-nums">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="text-fg-secondary">−{btc(toSats(l.electricityUsd))}</span>
+                <span className="text-fg-secondary">{usd(l.electricityUsd)}</span>
                 <Badge color={l.electricityStatus === 'paid' ? 'lime' : 'amber'}>
                   {l.electricityStatus === 'paid' ? 'Paid' : 'Due'}
                 </Badge>
               </div>
-              <div className="text-[11px] text-fg-tertiary">{usd(l.electricityUsd)}</div>
+              <div className="text-[11px] text-fg-tertiary">USDC, from the vault’s buffer</div>
             </TableCell>
-            <TableCell className="tabular-nums">
-              <div className="font-medium text-[var(--hearst-green)]">{btc(netSats(l))}</div>
-              <div className="text-[11px] text-fg-tertiary">≈ {usd(l.netUsd)}</div>
-            </TableCell>
-            {/* Le reward : les trois poches converties en bitcoin — le montant
-                que « Approve reward » envoie dans la réserve du client. */}
+            {/* Le reward : le bitcoin miné, moins la part vendue pour recharger le
+                buffer — le montant que « Approve reward » envoie dans la réserve. */}
             <TableCell className="tabular-nums">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="font-medium text-fg">{rewardOf(l) !== null ? btc(rewardOf(l) as number) : '—'}</span>
                 <Badge color={REWARD_TONE[l.status] ?? 'neutral'}>{REWARD_LABEL[l.status] ?? l.status}</Badge>
               </div>
               {rewardOf(l) !== null ? (
-                <div className="text-[11px] text-fg-tertiary">≈ {usd(((rewardOf(l) as number) / 1e8) * m.btcPriceUsd)} · 3 buckets</div>
+                <div className="text-[11px] text-fg-tertiary">≈ {usd(((rewardOf(l) as number) / 1e8) * m.btcPriceUsd)}</div>
               ) : null}
             </TableCell>
             {/* Les deux gestes du mois pour CE vault. La décision de reward est
@@ -245,7 +240,7 @@ export function MonthlyClose({
             </TableCell>
           </TableRow>
         ))}
-        note="Split key = the capital each vault holds in its Mining pocket (its capital × its own mining share), over the mining capital of all vaults. One vault per deposit: two vaults of the same client are split separately."
+        note="Split key = the computing power each vault bought (90 % of its deposit), over the power of all vaults. Electricity is paid in USDC from each vault’s buffer. One vault per deposit: two vaults of the same client are split separately."
         exportData={{
           filename: `hearst-settlement-${m.month}`,
           title: `Settlement — ${monthLabel(m.month)}`,
@@ -255,10 +250,8 @@ export function MonthlyClose({
             'Hashrate (TH/s)',
             'Share of the fleet (%)',
             'BTC mined',
-            'Electricity (BTC)',
-            'Electricity (USD)',
+            'Electricity from the buffer (USD)',
             'Electricity status',
-            'Mining, net (BTC)',
             'Reward (BTC)',
             'BTC price (USD)',
             'Reward status',
@@ -269,10 +262,8 @@ export function MonthlyClose({
             l.hashrateThs ?? null,
             l.sharePct,
             l.btcSats / 1e8,
-            toSats(l.electricityUsd) / 1e8,
             l.electricityUsd,
             l.electricityStatus ?? null,
-            netSats(l) / 1e8,
             rewardOf(l) !== null ? (rewardOf(l) as number) / 1e8 : null,
             m.btcPriceUsd,
             l.status,

@@ -9,13 +9,12 @@ import {
   ArrowUpTrayIcon,
   ArrowsRightLeftIcon,
   CalendarDaysIcon,
-  CheckCircleIcon,
   ChartBarIcon,
   ChartPieIcon,
+  BoltIcon,
   CpuChipIcon,
   CurrencyDollarIcon,
   LockClosedIcon,
-  PresentationChartLineIcon,
   ScaleIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -33,6 +32,7 @@ import { StatTile } from './stat-tile'
 import { BreakdownFlank } from './breakdown-flank'
 import { MiningEconomicsFlank } from './mining-economics-flank'
 import { ComputeFleetPanel } from './compute-fleet-panel'
+import { BufferPanel } from './buffer-panel'
 import { MovementTimeline } from './movement-timeline'
 import { DistributionsDonut } from './distributions-donut'
 import { BtcPositionHeadline } from './btc-position'
@@ -46,21 +46,24 @@ import type { Distribution, UserDashboard, UserMovement } from './load'
  *      achat — et « Invest more ».
  *   2. Son vault (un par versement, sélecteur s'il en a plusieurs) : ce qu'il
  *      a produit, ce qui est retirable, retiré, le dernier reward, le blocage.
- *   3. Comment il travaille : allocation | parc (sa puissance, les cubes),
- *      construction de la réserve, cours | ce que coûte un bitcoin miné.
- *   4. L'exposition par poche, puis sa fin de blocage.
+ *   3. Comment il travaille (V2, Mining as a Service) : son dépôt (puissance
+ *      | buffer) | parc (sa puissance, les cubes), réserve, buffer d'électricité
+ *      | ce que coûte un bitcoin miné.
+ *   4. Sa fin de blocage.
  *   5. Ses mouvements et ses distributions — ceux de CE vault.
  *
  * Chaque chiffre client vient du livre du vault, le même que lit l'admin ; le
  * contexte (marché, réseau, parc) vient des lectures communes.
  */
 
-type CentralView = 'compute' | 'reserve' | 'strategy'
+type CentralView = 'compute' | 'reserve' | 'buffer'
 
+/* V2 : plus de « Strategy » (poches, cibles, rééquilibrage) — à sa place, le
+   buffer qui paie l'électricité. */
 const CENTRAL_VIEWS: readonly { key: CentralView; label: string; icon: typeof CpuChipIcon }[] = [
   { key: 'compute', label: 'Compute', icon: CpuChipIcon },
   { key: 'reserve', label: 'Reserve', icon: ChartBarIcon },
-  { key: 'strategy', label: 'Strategy', icon: PresentationChartLineIcon },
+  { key: 'buffer', label: 'Buffer', icon: BoltIcon },
 ]
 
 const MOVE_TITLE: Record<string, string> = {
@@ -85,69 +88,6 @@ function seriesState(a: Availability<unknown>, has: boolean, empty: string, miss
   if (a.kind === 'unavailable') return { type: 'unavailable', explanation: missing }
   if (!has) return { type: 'empty', explanation: empty }
   return { type: 'plotted' }
-}
-
-/** Les teintes des poches — celles du donut de gauche. */
-const BUCKET_HUE: Record<string, string> = { 'Mining Alpha': '#9eea7a', 'Bitcoin Lending': '#6b6b6b', 'USDC Yield': '#a9a9a9' }
-
-type StrategyRow = {
-  label: string
-  color: string
-  targetPct: number
-  actualPct: number | null
-  protocol: string
-  yieldPct: number | null
-  earnedBtc: number
-}
-
-/**
- * Les trois poches, dessinées : la part réelle sur une jauge où se voient la
- * cible (le trait) et la bande tolérée autour (la zone claire). Une poche hors
- * de sa bande se voit avant de se lire — c'est tout le rebalancing.
- */
-function StrategyBuckets({ rows, band }: Readonly<{ rows: readonly StrategyRow[]; band: number }>) {
-  const max = Math.max(60, ...rows.map((r) => Math.max(r.targetPct + band, r.actualPct ?? 0) + 5))
-  const at = (pct: number) => `${Math.min(100, Math.max(0, (pct / max) * 100))}%`
-  return (
-    <ul className="strategy-buckets">
-      {rows.map((r) => {
-        const drift = r.actualPct === null ? null : r.actualPct - r.targetPct
-        const out = drift !== null && Math.abs(drift) > band
-        return (
-          <li key={r.label} className="strategy-bucket">
-            <div className="strategy-bucket-head">
-              <span className="strategy-bucket-name">
-                <i style={{ background: r.color }} aria-hidden="true" />
-                {r.label}
-                <em>{r.protocol}</em>
-              </span>
-              <span className="strategy-bucket-share">{r.actualPct === null ? '—' : `${r.actualPct.toFixed(1)} %`}</span>
-            </div>
-            <div className="strategy-gauge" aria-hidden="true">
-              <span className="strategy-gauge-band" style={{ left: at(r.targetPct - band), width: `calc(${at(r.targetPct + band)} - ${at(r.targetPct - band)})` }} />
-              {r.actualPct !== null ? <span className="strategy-gauge-fill" style={{ width: at(r.actualPct), background: r.color }} /> : null}
-              <span className="strategy-gauge-target" style={{ left: at(r.targetPct) }} />
-            </div>
-            <div className="strategy-bucket-foot">
-              <span>
-                Target {Math.round(r.targetPct)} %
-                {drift !== null ? (
-                  <b className={out ? 'is-out' : undefined}>
-                    {drift >= 0 ? '+' : ''}
-                    {drift.toFixed(1)} pt
-                  </b>
-                ) : null}
-              </span>
-              <span>
-                <b className="is-yield">{r.yieldPct === null ? '—' : `${r.yieldPct.toFixed(1)} % / yr`}</b>
-                <b className="is-earned">+{formatBtc(r.earnedBtc)} earned</b>
-              </span>
-            </div>
-          </li>
-        )
-      })}
-    </ul>
-  )
 }
 
 export type VaultTab = 'overview' | 'compute' | 'activity'
@@ -200,7 +140,6 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
     [...rewards].filter((r) => r.status === 'distributed').sort((a, b) => b.month.localeCompare(a.month))[0] ?? null
 
   // ── Vault ────────────────────────────────────────────────────────────────
-  const credited = rewards.filter((r) => r.status !== 'pending' && r.status !== 'declined')
   const withdrawnUsdAtPayout = (activity ?? [])
     .filter((a) => a.vault === vault.label && a.type === 'withdrawal' && a.status !== 'declined' && a.status !== 'pending')
     .reduce((t, a) => t + a.usd, 0)
@@ -239,14 +178,9 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
 
   // ── Panneau central ──────────────────────────────────────────────────────
   const fleet = valueOf(data.fleet)
-  /* Ce que chaque bucket a rapporté à CE vault depuis l'entrée, en bitcoin. */
-  const earned = ['Mining Alpha', 'Bitcoin Lending', 'USDC Yield'].map((bucket, i) => ({
-    bucket,
-    color: ['#9eea7a', '#6b6b6b', '#a9a9a9'][i],
-    btc: credited.reduce((t, r) => t + (r.pockets.find((p) => p.bucket === bucket)?.btc ?? 0), 0),
-  }))
   const reserveSource = available(reserve, { provenance: 'chain' })
-  const exposure = valueOf(data.exposure)
+  const buffer = vault.buffer ?? null
+  const bufferSource = buffer !== null ? available(buffer, { provenance: 'chain' }) : unavailable()
   const views: Record<CentralView, { question: string; unit: string; state: SeriesState; node: ReactNode; source: Availability<unknown> }> = {
     compute: {
       question: 'Compute infrastructure',
@@ -266,53 +200,12 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
       ),
       source: reserveSource,
     },
-    strategy: {
-      question: 'Strategy exposure',
-      unit: 'target vs actual · protocol, rate and what each bucket earned',
-      state: seriesState(data.exposure, exposure !== null, 'No allocation to show yet.', 'Awaiting a verified allocation source.'),
-      node:
-        exposure !== null ? (
-          <div className="center-strategy">
-            {(() => {
-              const c = (() => {
-                const band = vault.allocation.bandBps / 100
-                const ok = exposure.every((e) => e.actualPct === null || Math.abs(e.actualPct - e.targetPct) <= band)
-                // Le rendement des trois poches ensemble, pondéré par leur poids.
-                const weight = vault.pockets.reduce((t, p) => t + p.capitalUsd, 0)
-                const blended = weight > 0 ? vault.pockets.reduce((t, p) => t + p.apyPct * p.capitalUsd, 0) / weight : null
-                return { value: blended === null ? '—' : `${blended.toFixed(1)} %`, label: 'per year', tag: ok ? 'On target' : 'Rebalancing', ok }
-              })()
-              return (
-                <div className="strategy-summary">
-                  <span className="strategy-summary-value">{c.value}</span>
-                  <span className="strategy-summary-label">a year, blended across your three buckets</span>
-                  <span className={`strategy-summary-tag${c.ok ? ' is-ok' : ''}`}>{c.tag}</span>
-                </div>
-              )
-            })()}
-            <StrategyBuckets
-              rows={exposure.map((e) => {
-                const pocket = vault.pockets.find((p) => p.name === e.label)
-                return {
-                  label: e.label,
-                  color: BUCKET_HUE[e.label] ?? '#888',
-                  targetPct: e.targetPct,
-                  actualPct: e.actualPct,
-                  protocol: pocket?.protocol ?? '—',
-                  yieldPct: pocket?.apyPct ?? null,
-                  earnedBtc: earned.find((x) => x.bucket === e.label)?.btc ?? 0,
-                }
-              })}
-              band={vault.allocation.bandBps / 100}
-            />
-            <p className="rebalance-line">
-              <CheckCircleIcon className="size-4" aria-hidden="true" />
-              Beyond ±{vault.allocation.bandBps / 100} pt from target, Hearst rebalances back — only between your buckets, every move approved and
-              recorded.
-            </p>
-          </div>
-        ) : null,
-      source: data.exposure,
+    buffer: {
+      question: 'Electricity buffer',
+      unit: 'USDC set aside to pay the fleet’s bills',
+      state: seriesState(bufferSource, buffer !== null, 'Your buffer starts with your deposit.', 'Awaiting a verified buffer source.'),
+      node: buffer !== null ? <BufferPanel buffer={buffer} /> : null,
+      source: bufferSource,
     },
   }
   const active = views[central]
@@ -325,7 +218,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
           <ClientTabs
             tabs={[
               { id: 'overview', label: 'Overview', badge: 0 },
-              { id: 'compute', label: 'Strategy & mining', badge: 0 },
+              { id: 'compute', label: 'Mining', badge: 0 },
               { id: 'activity', label: 'Movements', badge: vault.pendingWithdrawalBtc > 0 ? 1 : 0 },
             ]}
             active={tab}
@@ -501,13 +394,13 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
           {tab === 'compute' ? (
           <section id="compute" className="analysis analysis--fund" aria-label="Vault analysis">
             <BreakdownFlank
-              title="Vault Allocation"
-              hint="Your capital by pocket"
+              title="Your deposit"
+              hint="Mining power and the electricity buffer"
               icon={ChartPieIcon}
               availability={data.allocationBars}
               kind="percent"
               unit="%"
-              centerCaption="allocated"
+              centerCaption="deposited"
             />
 
             <div className="center">
