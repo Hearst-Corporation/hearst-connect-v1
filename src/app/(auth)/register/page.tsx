@@ -1,7 +1,6 @@
 import { Button } from '@/components/catalyst/button'
 import { Strong, Text, TextLink } from '@/components/catalyst/text'
 import { Heading } from '@/components/catalyst/heading'
-import { Logo } from '@/components/logo'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -11,7 +10,6 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-ink dark:text-fg" />
       <div>
         <Heading>Invitation-only access</Heading>
         <Text className="mt-2">

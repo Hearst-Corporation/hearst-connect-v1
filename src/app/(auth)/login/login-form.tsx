@@ -5,7 +5,6 @@ import { ErrorMessage, Field, Label } from '@/components/catalyst/fieldset'
 import { Heading } from '@/components/catalyst/heading'
 import { Input } from '@/components/catalyst/input'
 import { Strong, Text, TextLink } from '@/components/catalyst/text'
-import { Logo } from '@/components/logo'
 import { login, quickLoginOwner, type LoginState } from '@/lib/actions'
 import { useActionState } from 'react'
 
@@ -28,7 +27,6 @@ export function LoginForm({
 
   return (
     <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-      <Logo className="text-ink dark:text-fg" />
       <div>
         <Heading>Sign in to your workspace</Heading>
         <Text className="mt-2">Use the professional email address linked to your organization.</Text>
