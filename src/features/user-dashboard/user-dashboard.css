@@ -742,15 +742,32 @@
   font-weight: 500;
 }
 
-/* La colonne médiane porte le scénario central : elle se détache des deux
-   bornes, qui l'encadrent sans la concurrencer. */
+/* La colonne médiane porte le scénario central : vert citrus plein, chiffres à
+   l'encre — la bande des KPI. Elle se lit d'abord, sur fond clair comme sombre ;
+   les deux bornes l'encadrent sans la concurrencer. Coins arrondis en haut et en
+   bas : une colonne, pas une suite de cases. */
 .ud-root .projection-table .is-median {
-  background: color-mix(in srgb, var(--hearst-green) 6%, transparent);
+  background: var(--hearst-green);
+  border-bottom-color: color-mix(in srgb, var(--hearst-green-ink) 14%, transparent);
 }
 
 .ud-root .projection-table thead .is-median {
-  color: var(--hearst-green-text);
-  font-weight: 500;
+  color: var(--hearst-green-ink);
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+}
+
+.ud-root .projection-table tbody tr:last-child .is-median {
+  border-bottom-color: transparent;
+  border-radius: 0 0 12px 12px;
+}
+
+.ud-root .projection-table .is-median .projection-amount {
+  color: var(--hearst-green-ink);
+}
+
+.ud-root .projection-table .is-median .projection-delta {
+  color: color-mix(in srgb, var(--hearst-green-ink) 68%, transparent);
 }
 
 .ud-root .projection-amount {

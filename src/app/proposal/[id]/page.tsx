@@ -384,22 +384,27 @@ function ProjectionPrint({
         <thead>
           <tr className="border-b border-white/10 text-left text-xs text-white/55">
             <th className="py-2 font-normal">Horizon</th>
-            <th className="py-2 text-right font-normal">Downside</th>
-            <th className="py-2 text-right font-medium text-white">Median</th>
-            <th className="py-2 text-right font-normal">Upside</th>
+            <th className="py-2 text-center font-normal">Downside</th>
+            {/* La médiane en vert citrus plein, chiffres à l'encre — la colonne se lit d'abord. */}
+            <th className="rounded-t-xl bg-[#9eea7a] py-2 text-center font-semibold text-black">Median</th>
+            <th className="py-2 text-center font-normal">Upside</th>
           </tr>
         </thead>
         <tbody>
-          {horizons.map((m) => {
+          {horizons.map((m, r) => {
             const p = simulation.points[m]
             const v = unit === 'btc' ? [p.btcP10, p.btcP50, p.btcP90] : [p.p10, p.p50, p.p90]
+            const last = r === horizons.length - 1
             return (
               <tr key={m} className="border-b border-white/[0.06]">
                 <td className="py-2.5 font-medium">{m} months</td>
                 {v.map((x, i) => (
-                  <td key={i} className={`py-2.5 text-right tabular-nums ${i === 1 ? 'bg-[#9eea7a]/20 font-medium' : ''}`}>
+                  <td
+                    key={i}
+                    className={`py-2.5 text-center tabular-nums ${i === 1 ? `bg-[#9eea7a] font-semibold text-black ${last ? 'rounded-b-xl' : ''}` : ''}`}
+                  >
                     {fmt(x)}
-                    <span className="ml-2 text-xs text-white/55">{growth(x)}</span>
+                    <span className={`ml-2 text-xs ${i === 1 ? 'font-normal text-black/60' : 'text-white/55'}`}>{growth(x)}</span>
                   </td>
                 ))}
               </tr>
