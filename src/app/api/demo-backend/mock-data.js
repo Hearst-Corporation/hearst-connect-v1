@@ -99,7 +99,7 @@ const PAID_ELECTRICITY = new Set()
 const VAULT_PRINCIPAL = [420_000, 12_000_000, 3_400_000, 850_000, 5_600_000, 2_000_000]
 /** Date d'ouverture de chaque vault — la même que le registre. */
 // Des ouvertures étalées : un book qui grandit client après client, pas un an à vide.
-const VAULT_START = ['2025-09-10', '2025-03-01', '2025-06-15', '2024-10-20', '2026-01-15', '2026-02-02']
+const VAULT_START = ['2025-02-10', '2025-03-01', '2025-06-15', '2024-10-20', '2026-01-15', '2026-02-02']
 /*
  * V2 — MINING AS A SERVICE. Plus de poches ni de rééquilibrage : le dépôt
  * achète de la puissance dans le pool de Hearst (85 %) et garde un BUFFER en
@@ -377,7 +377,8 @@ const BTC_SPOT_USD = 94_820
  * l'avant-dernier est approuvé, les autres sont versés.
  */
 /** n = mois en arrière depuis août 2026 (le dernier mois clos). */
-const monthPrice = (n) => Math.round(BTC_SPOT_USD - n * 1_400 + ((n * 7919) % 5_000) - 2_500 * Math.min(n, 1))
+/* Le cours historique de la démo reste proche du spot (≈ −250 $ par mois en remontant) : le modèle V2 suppose un cours quasi constant. */
+const monthPrice = (n) => Math.round(BTC_SPOT_USD - n * 250 + ((n * 7919) % 5_000) - 2_500 * Math.min(n, 1))
 /*
  * LE COURS D'UN MOIS DU CALENDRIER — fixe, quelle que soit l'horloge. Indexé
  * sur le dernier mois clos RÉEL (k = 0) : en remontant le temps, la série
