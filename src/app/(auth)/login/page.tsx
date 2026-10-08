@@ -26,6 +26,8 @@ export default async function LoginPage({
   const legacy = (await searchParams).reason
   if (legacy === 'expired' || legacy === 'required') redirect(`/login/${legacy}`)
   const { reason } = await params
+  // Les adresses de comparaison des deux animations : le cube est retenu.
+  if (reason === 'cube' || reason === 'miner') redirect('/login')
   const notice =
     reason === 'expired'
       ? 'Your session has expired. Sign in again to access the console.'

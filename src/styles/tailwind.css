@@ -644,16 +644,25 @@ select:-webkit-autofill {
   pointer-events: none;
 }
 .auth-brand-logo {
+  /* Au pixel près de la landing : 130 px de large, 26 px du haut, 64 px du
+     bord (24 px sous 1024 px) — le logo ne bouge pas quand on clique « Login ». */
   position: absolute;
-  top: 32px;
-  left: 40px;
+  top: 26.0625px;
+  left: 64px;
   z-index: 1;
+  display: block;
+  line-height: 0;
+}
+.auth-logo-img {
+  width: 130px;
+  height: 43.88px;
 }
 .auth-brand-copy {
+  /* Alignée sur le logo : même marge gauche que la landing. */
   position: absolute;
-  left: 40px;
+  left: 64px;
   right: 40px;
-  bottom: 40px;
+  bottom: 48px;
   z-index: 1;
   max-width: 460px;
 }
@@ -704,8 +713,8 @@ select:-webkit-autofill {
     min-height: 260px;
   }
   .auth-brand-logo {
-    top: 20px;
-    left: 20px;
+    top: 26.0625px;
+    left: 24px;
   }
   .auth-brand-copy {
     left: 20px;
