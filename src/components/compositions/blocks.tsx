@@ -8,32 +8,7 @@ import { Table } from '@/components/catalyst/table'
 import clsx from 'clsx'
 import { DashCard } from '@/components/admin/dashboard/shell'
 
-/**
- * "Premium" composition blocks — tier 2bis of the doctrine.
- *
- * ── What these blocks are, and what they are not ──────────────────────────
- * `panel.tsx`, `metric.tsx` and `empty-state.tsx` carry the contracts that the
- * routes were already copy-pasting. These blocks go one step further: they
- * compose those primitives into ready-to-use surfaces (a complete KPI card, a
- * titled section with its actions, a table wrapped in its absence state), so
- * that the 18 admin pages of the next wave don't reassemble the same scaffolding
- * ten times over. This is an API library, not a theme: the substance stays that
- * of the console (`csl`, tokens), and nothing here invents a color.
- *
- * ── The truthfulness rule, here as everywhere ─────────────────────────────
- * A block displays what it is GIVEN. It computes no value, derives none, and
- * never folds an absence onto a zero. Figures arrive either already formatted
- * (`string`), or as `Availability<string>` — and in the latter case they pass
- * through `Reading`, the only path by which an absence becomes a named state.
- * A `StatCard`'s `delta` is supplied by the caller (label + direction): the
- * block does not compare two numbers, it renders an already-made comparison.
- *
- * ── Motion ────────────────────────────────────────────────────────────────
- * The entrance animation lives in `motion.tsx` (`FadeIn`), a lightweight client
- * that respects `prefers-reduced-motion`. The blocks remain importable from a
- * server component: only `FadeIn` is `'use client'`, and it short-circuits to a
- * transition-free render when motion is reduced.
- */
+/** Shared admin KPI and section blocks. */
 
 /* ── StatCard / StatGrid ──────────────────────────────────────────────────── */
 

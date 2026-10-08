@@ -3,7 +3,7 @@ import { csl } from '@/components/layout/console'
 import clsx from 'clsx'
 
 /**
- * Panel — the canonical composition of a Hearst box.
+ * Panel layout wrapper.
  *
  * ── Material ──────────────────────────────────────────────────────────────
  * Always `surfaceBox` (`src/components/admin/surface.tsx`). No more

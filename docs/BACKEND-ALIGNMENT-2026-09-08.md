@@ -1,8 +1,10 @@
-# Alignement backend — actions requises sur `pierre`
+# Alignement backend — écarts mesurés le 2026-09-08
 
 Date : 2026-09-08. Contre le backend `Hearst-Corporation/hearst-connect-backend` au commit `1e44bed`.
 
-Ce fichier liste les écarts mesurés entre cette branche et le backend réel, puis les changements exacts à faire avant de merger. Deux blocages de production, puis des nettoyages.
+Ce fichier liste les écarts mesurés entre le front et le backend réel, puis les changements exacts à faire. Deux blocages de production, puis des nettoyages. Mesuré sur la branche `pierre`, aujourd'hui fondue dans `main`.
+
+**État au 2026-10-05, sur `main` :** les six points sont toujours ouverts. `deposit-request.ts` envoie encore `{ amountUsdc: amount }`, `user-dashboard/load.ts` lit encore `admin-market-snapshot`, le commentaire keeper d'`endpoints.ts` et celui d'`auth.ts` n'ont pas changé, aucune garde mock n'existe.
 
 ---
 
@@ -43,6 +45,8 @@ avec `txHash` récupéré du contrat on-chain confirmé (c'est bien un dépôt *
 ## 2. BLOCAGE — la jauge BTC / position en bitcoin lit une route admin pour les investisseurs
 
 **Symptôme.** `src/features/user-dashboard/load.ts` dérive l'équivalent BTC depuis `GET /api/v1/admin/market/snapshot` (`snapshot.btcUsd`). Cette route est `adminOnly` côté backend → pour un utilisateur investisseur, **403**, donc `marketSnapshot` = absence nommée `no_market_snapshot`, et tout le bloc « position en bitcoin » (position, accrued, HODL gauge) se tait silencieusement. Le mock démo ne force pas les rôles, d'où l'illusion que ça marche.
+
+À noter : ce front refuse aujourd'hui tout compte `investor` à la connexion (`fromBackendRole` dans `src/lib/backend/auth.ts`) ; seuls des admins voient `/account`, et pour eux cette route répond. Le 403 décrit ici ne se produit que si le front ouvre la connexion aux investisseurs.
 
 **Ce que le backend a livré pour ça.** Depuis le commit `1e44bed`, `GET /api/v1/btc` porte un champ **`market`** côté investisseur :
 
@@ -107,4 +111,4 @@ Le payload du `demo-backend` n'a pas de contrôle contre le contrat réel. Ajout
 3. **Bascule spot BTC** (§2)
 4. Follow-ups rapides : copy keeper (§3), endpoint-mapping (§4), garde mock (§5), commentaire auth (§6)
 
-Les 1–3 sont un préalable au merge sur `main`. Vérifier aussi le composant `btc-reserve-balance.tsx` admin contre le backend réel — le champ `custody` répond `NOT_SUPPORTED`/`no_custody_provider_integrated` aujourd'hui ; s'assurer qu'il rend une absence nommée et non une valeur inventée.
+Les 1–3 étaient posés comme préalable au merge sur `main` ; la branche a été fondue sans eux. Vérifier aussi le composant `btc-reserve-balance.tsx` admin contre le backend réel — le champ `custody` répond `NOT_SUPPORTED`/`no_custody_provider_integrated` aujourd'hui ; s'assurer qu'il rend une absence nommée et non une valeur inventée.

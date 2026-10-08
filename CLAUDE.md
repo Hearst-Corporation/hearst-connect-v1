@@ -1,10 +1,2 @@
-# Ultra speed
-
-Coder tout de suite, français court.
-
-- Pas de Graphify, pas de /repo, pas de sous-agents, pas de checklist.
-- Pas de worktree ni typecheck / lint / build sauf demande.
-- Secrets : jamais dans le chat, les commits, les logs.
-- Plugins / MCP seulement si la tâche le demande.
-- Git : signing inchangé (ne pas désactiver). Run Everything. Terminal > MCP pour le runtime local.
-- Le reste des règles (qualité, gouvernance, etc.) : hors injection — pas actif.
+Doctrine locale de ce repo: `.hearst/`.
+Lire d'abord `.hearst/README.md`, puis les fichiers `.hearst/` pertinents a la tache.

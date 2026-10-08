@@ -1,14 +1,4 @@
-/**
- * Hearst Connect compositions — level 2 of the doctrine.
- *
- * They assemble the primitives (Catalyst, and the console's own material) into
- * reusable layout contracts. They do not reimplement any of Catalyst's
- * accessible behavior, and contain no business logic.
- *
- * A composition only belongs here if it carries a real contract — structure,
- * accessibility, or data state. A wrapper that merely forwards its props has no
- * place here: it would add a name without adding a guarantee.
- */
+/** Layout and panel compositions for admin surfaces. */
 
 export { Panel, PanelBody, PanelHeader, type PanelTone } from '@/components/compositions/panel'
 export { CalmState, SourceAttendue } from '@/components/compositions/empty-state'

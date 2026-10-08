@@ -12,5 +12,19 @@
     "hearst-core@hearst": false,
     "hearst-secops@hearst": false,
     "hearst-storybook@hearst": false
+  },
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "NotebookEdit",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

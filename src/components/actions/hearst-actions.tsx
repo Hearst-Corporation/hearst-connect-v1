@@ -1,41 +1,6 @@
 'use client'
 
-/**
- * Hearst actions boundary — HC-ADMIN-DASHBOARD-UI-ASSETS-005 /
- * HC-ADMIN-DESIGN-SYSTEM-FORENSIC-033.
- *
- * ── What this boundary is, and is not ─────────────────────────────────────
- * The brief calls for a `src/components/actions/` boundary inspired by Aceternity
- * buttons. Local doctrine (§2, §8, §15) takes precedence: the ONLY button
- * primitive is Catalyst `<Button>`; an Aceternity button is "forbidden without
- * audit" and must never duplicate Catalyst. So these components do NOT
- * reimplement a button — they COMPOSE Catalyst `<Button>` and add, as an overlay,
- * two things that Aceternity merely inspired:
- *
- *   1. a Motion micro-interaction (lift on hover, scale on click);
- *   2. a state machine (`idle → loading → success | error`) for a real
- *      asynchronous action.
- *
- * ── Color contract (033) ──────────────────────────────────────────────────
- * ONE source of truth: Hearst CSS variables (`--btn-bg` / `--btn-border` /
- * `--btn-icon` / `--btn-hover-overlay`) via `style`. Catalyst provides
- * structure + behavior (`solid` / `plain`) — NEVER `color="lime"|amber|red`
- * (raw palettes that collide with the accent variables).
- *
- * Keyboard focus is realigned product-wide in `src/styles/tailwind.css`
- * (remaps `outline-color` → `--color-accent-500`); we do not use
- * `outline-none`.
- *
- * ── Reduced motion is STRUCTURAL ──────────────────────────────────────────
- * Mirroring `compositions/motion.tsx`: `useReducedMotion()` → we render an
- * inert `<span>`, no transition. The loading spinner also stops, via
- * `motion-reduce:animate-none`.
- *
- * ── Truthfulness ───────────────────────────────────────────────────────────
- * An action with no real endpoint is not wired to a fake handler: it renders
- * `disabled` with a `disabledReason` as a tooltip (brief §8). `loading` and
- * `success` only run for an `onAction` that does real work.
- */
+/** Async action buttons: Catalyst `Button` + optional Motion overlay and phase state. */
 
 import { Button } from '@/components/catalyst/button'
 import { ArrowPathIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/16/solid'
@@ -97,7 +62,7 @@ const TONE_CLASS: Record<Exclude<Tone, 'icon'>, string> = {
   secondary: FOCUS_ACCENT,
 }
 
-/** Tones that carry a micro-interaction. The secondary stays inert (doctrine: Catalyst hover is enough). */
+/** Tones that carry a micro-interaction; secondary stays inert. */
 const TONE_MOTION: Record<Tone, boolean> = {
   primary: true,
   critical: true,
@@ -339,7 +304,7 @@ export function HearstDangerAction(props: HearstActionProps) {
   return <HearstAction tone="danger" {...props} />
 }
 
-/** Secondary action — white background, gray border, light hover, NO animation (doctrine). */
+/** Secondary action — no motion overlay. */
 export function HearstSecondaryAction(props: HearstActionProps) {
   return <HearstAction tone="secondary" {...props} />
 }
