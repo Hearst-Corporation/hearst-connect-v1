@@ -6261,6 +6261,13 @@
 .ud-root .vault-tab-body .position-heading {
   row-gap: 0;
 }
+/* Sous 480px « Invest more » passe sous le titre : `row-gap: 0` le collait à
+   la phrase. On lui rend les 14px que prévoit l'empilement mobile. */
+@media (max-width: 480px) {
+  .ud-root .vault-tab-body .position-heading > .position-deposit-cta {
+    margin-top: 14px;
+  }
+}
 
 /* Hauteur commune ramenée à 590 px : onglet + en-tête tiennent dans 790 px. */
 @media (min-width: 1025px) {
