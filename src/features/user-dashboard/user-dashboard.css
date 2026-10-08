@@ -7372,3 +7372,15 @@
     padding-bottom: 26px;
   }
 }
+
+/* Téléphone : les deux repères de la jauge du buffer se chevauchaient — la
+   cible passe AU-DESSUS de la barre, le seuil reste dessous. */
+@media (max-width: 640px) {
+  .ud-root .buffer-gauge {
+    margin-top: 26px;
+  }
+  .ud-root .buffer-gauge-mark.is-target::after {
+    top: auto;
+    bottom: calc(100% + 4px);
+  }
+}
