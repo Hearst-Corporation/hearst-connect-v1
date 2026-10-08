@@ -7193,23 +7193,25 @@
   gap: 12px;
   margin: 0;
 }
+/* Les quatre chiffres du buffer sur aplat vert citrus, chiffres à l'encre :
+   la bande des KPI, en jour comme en nuit. */
 .ud-root .buffer-stats > div {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 12px;
   border-radius: var(--ud-radius-sm);
-  background: var(--ud-card-raised);
+  background: var(--hearst-green);
 }
 .ud-root .buffer-stats dt {
   font-size: 11px;
-  color: var(--ud-fg-3);
+  color: color-mix(in srgb, var(--hearst-green-ink) 70%, transparent);
 }
 .ud-root .buffer-stats dd {
   margin: 0;
   font-size: 15px;
   font-weight: 500;
-  color: var(--ud-fg);
+  color: var(--hearst-green-ink);
   font-variant-numeric: tabular-nums;
 }
 .ud-root .buffer-months {
