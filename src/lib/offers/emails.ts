@@ -139,7 +139,7 @@ export function credentialsEmail(offer: Offer): EmailTemplate {
 
 Your vault is live. You can now follow it here:
 
-  Address            https://connect.hearst.app/account
+  Address            https://hearst-connect-v2.vercel.app/login
   Username           ${offer.contactEmail ?? '[email]'}
   Temporary password [TEMPORARY_PASSWORD]
 
