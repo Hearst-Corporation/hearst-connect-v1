@@ -10,7 +10,9 @@ import { TableCell, TableHeader, TableRow } from '@/components/catalyst/table'
 import { PaginatedTable } from '@/components/admin/paginated-table'
 import { SegSelect } from '@/components/admin/seg-select'
 import { formatCurrency, formatNumber } from '@/lib/format'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
+import { BoltIcon, CheckBadgeIcon, CpuChipIcon } from '@heroicons/react/16/solid'
+import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { PayElectricityButton } from './pay-electricity-button'
 import { CloseActions } from './close-actions'
 
@@ -140,10 +142,11 @@ export function MonthlyClose({
       />
 
       {/* Le mois en quatre chiffres : ce que le parc a produit, ce qu'il reste
-          à payer, ce qui entre dans les réserves, ce qui reste à valider. */}
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--ud-radius-sm)] bg-[var(--ud-line)] lg:grid-cols-4">
+          à payer, ce qui entre dans les réserves, ce qui reste à valider. La
+          bande citrus des fiches client — mêmes tuiles, mêmes chiffres en grand. */}
+      <dl className="kpi-band has-foot is-accent" style={{ '--kpi-cols': 4 } as CSSProperties}>
         {[
-          ['Fleet output', btc(m.fleetBtcSats), `at ${usd(m.btcPriceUsd)} / BTC`, false],
+          ['Fleet output', btc(m.fleetBtcSats), `at ${usd(m.btcPriceUsd)} / BTC`, false, CpuChipIcon],
           [
             'Electricity to pay',
             due.length === 0 ? 'All paid' : usd(dueUsd),
@@ -151,9 +154,10 @@ export function MonthlyClose({
               ? `${usd(m.lines.reduce((t, l) => t + l.electricityUsd, 0))} paid from the buffers`
               : `${due.length} of ${m.lines.length} vaults · from their buffers`,
             due.length > 0,
+            BoltIcon,
           ],
           // V2 : l'électricité se paie sur les buffers USDC — ce qui entre dans les réserves, c'est le miné, moins les recharges.
-          ['Into the reserves', btc(rewardTotalSats), `${m.lines.length} vaults · mined, less buffer refills`, false],
+          ['Into the reserves', btc(rewardTotalSats), `${m.lines.length} vaults · mined, less buffer refills`, false, BitcoinIcon],
           [
             'Rewards to approve',
             toApprove > 0 ? btc(pendingSats) : 'All decided',
@@ -161,14 +165,26 @@ export function MonthlyClose({
               ? `${toApprove} vault${toApprove > 1 ? 's' : ''} · ${validated} / ${m.lines.length} validated · ≈ ${usd((pendingSats / 1e8) * m.btcPriceUsd)}`
               : `${btc(rewardTotalSats)} paid to ${m.lines.length} vaults`,
             toApprove > 0,
+            CheckBadgeIcon,
           ],
-        ].map(([label, value, hint, warn]) => (
-          <div key={label as string} className="flex flex-col gap-1 bg-[var(--ud-card)] px-4 py-3.5">
-            <dt className="text-xs text-fg-tertiary">{label}</dt>
-            <dd className="text-2xl font-medium tabular-nums text-fg">{value}</dd>
-            <dd className={`text-xs ${warn ? 'text-amber-400' : 'text-fg-tertiary'}`}>{hint}</dd>
-          </div>
-        ))}
+        ].map((row) => {
+          const [label, value, hint, warn, Icon] = row as [string, string, string, boolean, typeof BoltIcon]
+          return (
+            <div key={label} className="stat-tile">
+              <dt className="stat-eyebrow">
+                <Icon className="size-4" aria-hidden="true" />
+                <span>{label}</span>
+              </dt>
+              <dd className="stat-value-row">
+                <strong className="stat-value mono">{value}</strong>
+              </dd>
+              {/* Ce qui attend une action reste en gras : l'orange ne se lit pas sur le vert. */}
+              <dd className="stat-foot">
+                <p className={`stat-footnote${warn ? ' font-semibold' : ''}`}>{hint}</p>
+              </dd>
+            </div>
+          )
+        })}
       </dl>
 
       <PaginatedTable
