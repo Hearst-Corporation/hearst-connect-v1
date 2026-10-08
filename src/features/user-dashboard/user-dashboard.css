@@ -7329,36 +7329,27 @@
   transform: none;
 }
 
-/* Le ₿ en filigrane : grand, plein, très pâle, incliné, rogné par le coin
-   bas-droit de la carte. Le contenu passe au-dessus. */
-.ud-root .fleet-mine {
+/* Le ₿ en filigrane : plein, très pâle, DROIT, à droite du bitcoin produit,
+   son haut calé sur le filet qui sépare le bloc du hashrate. Le texte passe
+   au-dessus. */
+.ud-root .fleet-mine-metric--produced {
   position: relative;
-  overflow: hidden;
   isolation: isolate;
 }
 .ud-root .fleet-mine-btc-mark {
   position: absolute;
-  right: -28px;
-  bottom: -34px;
+  top: 14px;
+  right: 0;
   z-index: -1;
-  width: 170px;
-  height: 170px;
+  height: 64px;
+  width: auto;
   color: var(--hearst-green);
-  opacity: 0.12;
-  transform: rotate(-12deg);
+  opacity: 0.16;
   pointer-events: none;
 }
 :root[data-theme='light'] .ud-root .fleet-mine-btc-mark {
   color: #73de56;
-  opacity: 0.16;
-}
-@media (max-width: 768px) {
-  .ud-root .fleet-mine-btc-mark {
-    width: 120px;
-    height: 120px;
-    right: -20px;
-    bottom: -24px;
-  }
+  opacity: 0.22;
 }
 
 /* Le panneau du burger chevauche la barre d'un pixel : à certains zooms, un

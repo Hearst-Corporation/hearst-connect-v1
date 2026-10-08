@@ -118,8 +118,6 @@ export function ComputeFleetPanel({
           l'ordre du balisage suit la lecture — la part d'abord, le parc
           ensuite — et le CSS les met côte à côte. */}
       <section className="fleet-mine" aria-label="Your allocated capacity">
-        {/* Le ₿ en filigrane, rogné par le coin de la carte. */}
-        <BitcoinMark className="fleet-mine-btc-mark" />
         <div className="fleet-mine-head">
           <p className="fleet-mine-eyebrow">{copy.eyebrow}</p>
           {allocatedSharePct !== null ? (
@@ -175,6 +173,8 @@ export function ComputeFleetPanel({
                 {allocatedBtcProduced !== null ? <span className="fleet-mine-unit">BTC</span> : null}
               </p>
               <p className="fleet-mine-label">{copy.produced}</p>
+              {/* Le ₿ en filigrane, droit, calé sur le filet du bloc. */}
+              <BitcoinMark className="fleet-mine-btc-mark" />
             </div>
           </div>
         ) : (
