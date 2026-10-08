@@ -18,7 +18,7 @@ import { diffOf } from './format'
 const STATUS: Record<string, { label: string; tone: string }> = {
   pending: { label: 'Waiting for approval', tone: 'text-amber-300 ring-amber-300/30' },
   scheduled: { label: 'Approved · timelock running', tone: 'text-sky-300 ring-sky-300/30' },
-  applied: { label: 'Applied', tone: 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30' },
+  applied: { label: 'Applied', tone: 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30 day:bg-[#9eea7a] day:text-[#06140a] day:ring-transparent' },
   rejected: { label: 'Rejected', tone: 'text-red-400 ring-red-400/30' },
   cancelled: { label: 'Cancelled', tone: 'text-fg-tertiary ring-[var(--ud-line)]' },
 }

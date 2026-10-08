@@ -184,7 +184,7 @@ function Section({
               >
                 <span
                   className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ${
-                    item.severity === 'action' ? 'bg-[var(--hearst-green-dim,rgba(158,234,122,0.14))] text-[var(--hearst-green,#9eea7a)]' : 'bg-[var(--ud-inset,#161616)] text-[var(--ud-fg-2,#a9a9a9)]'
+                    item.severity === 'action' ? 'bg-[var(--hearst-green-dim,rgba(158,234,122,0.14))] text-[var(--hearst-green,#9eea7a)] day:bg-[#9eea7a] day:text-[#06140a]' : 'bg-[var(--ud-inset,#161616)] text-[var(--ud-fg-2,#a9a9a9)]'
                   }`}
                 >
                   <Icon className="size-4" aria-hidden="true" />

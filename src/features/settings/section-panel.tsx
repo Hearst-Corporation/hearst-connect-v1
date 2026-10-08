@@ -58,7 +58,7 @@ function FieldInput({ field, value, onChange }: Readonly<{ field: Field; value: 
                   key={o}
                   type="button"
                   onClick={() => onChange(on ? list.filter((x) => x !== o) : [...list, o])}
-                  className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? 'bg-[var(--hearst-green)]/15 text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/40' : 'text-fg-tertiary ring-[var(--ud-line)]'}`}
+                  className={`rounded-full px-2.5 py-1 text-xs ring-1 ${on ? 'bg-[var(--hearst-green)]/15 text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/40 day:bg-[#9eea7a] day:text-[#06140a] day:ring-transparent' : 'text-fg-tertiary ring-[var(--ud-line)]'}`}
                 >
                   {o}
                 </button>

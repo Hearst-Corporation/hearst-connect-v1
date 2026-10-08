@@ -120,7 +120,7 @@ function EmailRow({ offerId, to, email }: Readonly<{ offerId: string; to: string
         <span className="min-w-0 flex-1 truncate font-medium text-[var(--hearst-green-text)]">{draft.subject}</span>
         {edited ? <span className="text-[11px] text-fg-tertiary">edited</span> : null}
         {email.sent ? (
-          <span className="rounded-full px-2 py-0.5 text-[11px] text-[var(--hearst-green-text)] ring-1 ring-[var(--hearst-green)]/30">
+          <span className="day-tag-green rounded-full px-2 py-0.5 text-[11px] text-[var(--hearst-green-text)] ring-1 ring-[var(--hearst-green)]/30">
             Sent {formatDate(email.sent.sentAt)}
           </span>
         ) : null}

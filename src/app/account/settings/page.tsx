@@ -34,7 +34,7 @@ const NOTIFS = [
 /** Le picto d'une ligne : vert, dans un carré teinté — le même partout dans l'app. */
 function Pic({ icon: Icon }: Readonly<{ icon: ComponentType<SVGProps<SVGSVGElement>> }>) {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green-text)]">
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hearst-green)]/10 text-[var(--hearst-green-text)] day:bg-[#9eea7a] day:text-[#06140a]">
       <Icon className="size-4" aria-hidden="true" />
     </span>
   )
@@ -74,7 +74,7 @@ export default async function AccountSettingsPage() {
                   </span>
                   <span
                     className={`justify-self-end rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${
-                      w.status === 'active' ? 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30' : 'text-amber-300 ring-amber-300/30'
+                      w.status === 'active' ? 'text-[var(--hearst-green-text)] ring-[var(--hearst-green)]/30 day:bg-[#9eea7a] day:text-[#06140a] day:ring-transparent' : 'text-amber-300 ring-amber-300/30'
                     }`}
                   >
                     {w.status === 'active' ? 'Active' : `Usable ${formatDate(w.activeFrom)}`}

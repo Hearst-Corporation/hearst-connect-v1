@@ -9,6 +9,9 @@
  * Aligned with hearstcorporation.io: navy #020611, mint #A7FB90.
  */
 
+/* V2 — `day:` : le thème jour, hors des sous-arbres restés en nuit (le menu). */
+@custom-variant day (&:where([data-theme='light'] *):not(:where([data-theme='dark'], [data-theme='dark'] *)));
+
 @custom-variant dark {
   /* Produit dark-only : la variante suit la classe `.dark` sur <html>. */
   &:where(.dark, .dark *) {
@@ -334,6 +337,23 @@ select:-webkit-autofill {
   /* Le vert en TEXTE sur fond clair : proche du vert de marque, un ton plus soutenu (#73de56). Les
      aplats verts (boutons) gardent le vert de marque. */
   --accent-text: #73de56;
+  /* Les tags et statuts en couleur : au jour, des teintes soutenues — l'ambre
+     300 ou le bleu ciel 300 sur blanc ne se lisaient pas. */
+  --color-amber-300: #b45309;
+  --color-amber-400: #b45309;
+  --color-yellow-300: #a16207;
+  --color-orange-400: #c2410c;
+  --color-sky-300: #0369a1;
+  --color-red-400: #dc2626;
+}
+/* Le menu de gauche reste en nuit : ses couleurs d'origine. */
+:root[data-theme='light'] [data-theme='dark'] {
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-yellow-300: #fde047;
+  --color-orange-400: #fb923c;
+  --color-sky-300: #7dd3fc;
+  --color-red-400: #f87171;
 }
 :root[data-theme='light'] .ud-root,
 :root[data-theme='light'].ud-root {
@@ -433,4 +453,16 @@ select:-webkit-autofill {
 }
 :root[data-theme='light'] [data-theme='dark'] .logo-night {
   display: block;
+}
+
+/* Les tags verts au jour : l'aplat du vert de marque, encre sombre. */
+:root[data-theme='light'] .ud-root .fresh-badge[data-signal='live'],
+:root[data-theme='light'] .ud-root .fleet-mine-share,
+:root[data-theme='light'] .ud-root .chart-live,
+:root[data-theme='light'] .ud-root [class*='live-badge'],
+:root[data-theme='light'] .day-tag-green {
+  color: #06140a;
+  background: #9eea7a;
+  border-color: transparent;
+  box-shadow: none;
 }
