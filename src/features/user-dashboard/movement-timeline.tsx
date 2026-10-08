@@ -3,6 +3,7 @@
 import { motion, type Variants } from 'motion/react'
 import {
   ArrowDownTrayIcon,
+  ArrowPathIcon,
   ArrowUpTrayIcon,
   BanknotesIcon,
   BoltIcon,
@@ -42,6 +43,8 @@ const MOVEMENT_ICON: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   strategy: ArrowsRightLeftIcon,
   user: UserCircleIcon,
   electricity: BoltIcon,
+  // V2 : le bitcoin vendu pour recharger le buffer d'électricité.
+  refill: ArrowPathIcon,
 }
 
 function movementIcon(kind: string | null) {
@@ -66,8 +69,9 @@ function Row({
   // Le BTC porte la valeur PRINCIPALE — c'est l'unité du produit —, le dollar
   // sa contrevaleur. Le montant bitcoin reste DÉRIVÉ du book au spot : sans
   // cours lisible, la colonne reste vide plutôt que d'afficher un taux supposé.
-  const btc =
-    movement.btc != null
+  const btc = movement.usdOnly
+    ? null
+    : movement.btc != null
       ? formatBtc(movement.btc)
       : movement.amountUsdc !== null && btcSpotUsd !== null && btcSpotUsd > 0
       ? formatBtc(movement.amountUsdc / btcSpotUsd)
@@ -101,10 +105,20 @@ function Row({
             {movement.occurredAt !== null ? formatDate(movement.occurredAt) : '—'}
           </span>
           {/* Bitcoin d'abord, en corps principal ; le dollar suit, en creux. */}
-          <span className="timeline-amount">{btc ?? '—'}</span>
-          <span className="timeline-btc">
-            ≈ {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
-          </span>
+          {movement.usdOnly ? (
+            <>
+              <span className="timeline-amount">{formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}</span>
+              <span className="timeline-btc">{movement.note ?? ''}</span>
+            </>
+          ) : (
+            <>
+              <span className="timeline-amount">{btc ?? '—'}</span>
+              <span className="timeline-btc">
+                ≈ {formatCurrency(movement.amountUsdc, { fromAtomic: 1 })}
+                {movement.note ? ` · ${movement.note}` : ''}
+              </span>
+            </>
+          )}
           {/* Pas d'ancienneté relative : la date absolue est déjà sur la ligne,
               et « 12 d ago » redisait la même chose en moins précis. */}
           {/* Le statut a sa propre colonne, à droite : il ne décale plus

@@ -95,10 +95,13 @@ export type PortalReward = Readonly<{
 export type PortalActivity = Readonly<{
   id: string
   at: string
-  type: 'deposit' | 'reward' | 'withdrawal' | 'release' | string
+  /** V2 : `refill` (bitcoin vendu pour recharger le buffer), `electricity` (facture payée en USDC sur le buffer). */
+  type: 'deposit' | 'reward' | 'withdrawal' | 'release' | 'refill' | 'electricity' | string
   vault: string
-  btc: number
+  /** Null pour une facture d'électricité : elle se paie en USDC, pas en bitcoin. */
+  btc: number | null
   usd: number
+  bufferAfterUsd?: number
   status: string
   txHash: string | null
   steps: readonly Readonly<{ label: string; at: string | null; done: boolean }>[] | null

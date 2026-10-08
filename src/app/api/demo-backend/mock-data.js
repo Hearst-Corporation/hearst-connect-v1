@@ -752,7 +752,17 @@ function payloadFor(path, search = '') {
         const e = vaultEconomy(v)
         items.push({ id: `dep_${v}`, at: `${VAULT_START[v]}T09:00:00Z`, type: 'deposit', vault: name, btc: e.capitalSats / 1e8, usd: VAULT_PRINCIPAL[v], status: 'confirmed', txHash: hash(`dep${v}`), steps: null })
         for (const m of vaultMonths(v).filter((x) => x.status !== 'declined')) {
-          items.push({ id: `rw_${v}_${m.month}`, at: `${addMonths(new Date(`${m.month}-01T09:00:00Z`), 1).toISOString().slice(0, 10)}T09:00:00Z`, type: 'reward', vault: name, btc: m.sats / 1e8, usd: m.usd, status: m.status === 'pending' ? 'pending' : 'credited', txHash: null, steps: null, month: m.month })
+          const day = addMonths(new Date(`${m.month}-01T09:00:00Z`), 1).toISOString().slice(0, 10)
+          /* V2 : le mois se lit en trois lignes. Le bitcoin MINÉ entre (brut) ;
+             la part vendue pour recharger le buffer sort ; la facture
+             d'électricité est payée en USDC sur le buffer — elle ne touche pas
+             la réserve en bitcoin. Entrées − sorties = la réserve. */
+          items.push({ id: `rw_${v}_${m.month}`, at: `${day}T09:00:00Z`, type: 'reward', vault: name, btc: m.minedSats / 1e8, usd: Math.round((m.minedSats / 1e8) * m.price), status: m.status === 'pending' ? 'pending' : 'credited', txHash: null, steps: null, month: m.month })
+          if (m.status === 'pending') continue
+          if (m.bufferTopUpSats > 0) {
+            items.push({ id: `rf_${v}_${m.month}`, at: `${day}T09:05:00Z`, type: 'refill', vault: name, btc: m.bufferTopUpSats / 1e8, usd: Math.round((m.bufferTopUpSats / 1e8) * m.price), status: 'confirmed', txHash: null, steps: null, month: m.month })
+          }
+          items.push({ id: `el_${v}_${m.month}`, at: `${day}T08:55:00Z`, type: 'electricity', vault: name, btc: null, usd: m.electricityUsd, status: 'paid', txHash: null, steps: null, month: m.month, bufferAfterUsd: m.bufferUsd })
         }
         for (const w of withdrawalsOf(v)) {
           const tx = txOfRef(`apr_wd_${w.id}`)

@@ -186,6 +186,10 @@ export type UserMovement = {
   readonly btc?: number | null
   /** Pending, processing, declined… — absent pour un mouvement réglé. */
   readonly status?: string | null
+  /** V2 — un montant en dollars seulement (facture d'électricité payée sur le buffer). */
+  readonly usdOnly?: boolean
+  /** V2 — la précision sous le montant (« from the buffer »). */
+  readonly note?: string
 }
 
 export type UserDashboard = {

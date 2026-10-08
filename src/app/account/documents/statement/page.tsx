@@ -45,7 +45,7 @@ export default async function StatementPage({
   const refill = rws.reduce((t, r) => t + (r.refillBtc ?? 0), 0)
   const electricity = rws.reduce((t, r) => t + (r.electricityUsd ?? 0), 0)
   const added = rws.reduce((t, r) => t + r.btc, 0)
-  const removed = outs.reduce((t, a) => t + a.btc, 0)
+  const removed = outs.reduce((t, a) => t + (a.btc ?? 0), 0)
   const title = year ? `Annual report ${year}` : `Monthly statement — ${monthLabel(month ?? '')}`
 
   return (
@@ -117,7 +117,7 @@ export default async function StatementPage({
                     {formatDate(a.at)} · {a.vault}
                     {a.destination ? ` · to ${a.destination}` : ''}
                   </span>
-                  <span className="tabular-nums text-fg">−{btc(a.btc)}</span>
+                  <span className="tabular-nums text-fg">−{btc(a.btc ?? 0)}</span>
                 </li>
               ))}
             </ul>

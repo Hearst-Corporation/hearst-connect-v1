@@ -68,16 +68,27 @@ const CENTRAL_VIEWS: readonly { key: CentralView; label: string; icon: typeof Cp
 
 const MOVE_TITLE: Record<string, string> = {
   deposit: 'Deposit',
-  reward: 'Monthly reward',
+  reward: 'Mining of the month',
   withdrawal: 'Withdrawal',
   release: 'Reserve released',
+  refill: 'Buffer refill',
+  electricity: 'Electricity bill',
 }
-const MOVE_ICON_KEY: Record<string, string> = { deposit: 'deposit', reward: 'distribution', withdrawal: 'withdraw', release: 'withdraw' }
+const MOVE_ICON_KEY: Record<string, string> = {
+  deposit: 'deposit',
+  reward: 'distribution',
+  withdrawal: 'withdraw',
+  release: 'withdraw',
+  refill: 'refill',
+  electricity: 'electricity',
+}
 const MOVE_STATUS: Record<string, string> = { pending: 'Pending', processing: 'Processing', declined: 'Declined' }
-/** Un mouvement réglé : « Received » pour un versement, « Added » pour un reward
- *  (il entre dans la réserve, rien ne sort), « Sent » pour ce qui part vers le wallet. */
+/** Un mouvement réglé : « Received » pour un versement, « Mined » pour le minage
+ *  du mois, « Sold » pour le bitcoin vendu pour le buffer, « Paid » pour une facture
+ *  d'électricité réglée sur le buffer, « Sent » pour ce qui part vers le wallet. */
 const settledStatus = (type: string, status: string) =>
-  MOVE_STATUS[status] ?? (type === 'deposit' ? 'Received' : type === 'reward' ? 'Added' : 'Sent')
+  MOVE_STATUS[status] ??
+  (type === 'deposit' ? 'Received' : type === 'reward' ? 'Mined' : type === 'refill' ? 'Sold' : type === 'electricity' ? 'Paid' : 'Sent')
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`
 const usdc = (n: number) => `${Math.round(n).toLocaleString('en-US')} USDC`
@@ -150,6 +161,8 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
   const scoped = (activity ?? []).filter(
     (a) =>
       (scope === 'all' || a.vault === vault.label) &&
+      // In : ce qui entre dans la réserve. Out : ce qui en sort — retraits,
+      // recharges du buffer — et l'électricité payée sur le buffer.
       (kind === 'all' || (kind === 'in') === (a.type === 'deposit' || a.type === 'reward')),
   )
   const inFlight = (activity ?? []).filter((a) => a.type === 'withdrawal' && (a.status === 'pending' || a.status === 'processing'))
@@ -162,6 +175,9 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
       amountUsdc: a.usd,
       occurredAt: a.at,
       btc: a.btc,
+      // La facture se lit en dollars, payée sur le buffer : pas de bitcoin déduit au cours du jour.
+      usdOnly: a.type === 'electricity',
+      note: a.type === 'electricity' ? 'from the buffer' : a.type === 'refill' ? 'sold for the buffer' : undefined,
       status: settledStatus(a.type, a.status),
     }))
   const distributions: Distribution[] = rewards
@@ -485,7 +501,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
             <div>
               <p className="eyebrow">Your account</p>
               <h2>Capital Activity</h2>
-              <span>Every deposit, reward and withdrawal — in bitcoin.</span>
+              <span>Every deposit, month of mining, buffer refill, electricity bill and withdrawal.</span>
             </div>
             <div className="movements-filters">
               {overview.vaults.length > 1 ? (
@@ -524,7 +540,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               {inFlight.map((a) => (
                 <div key={a.id} className="withdrawal-track-row">
                   <p>
-                    Withdrawal in progress · <strong>{formatBtc(a.btc)}</strong> from {a.vault}
+                    Withdrawal in progress · <strong>{formatBtc(a.btc ?? 0)}</strong> from {a.vault}
                     {a.destination ? ` to ${a.destination}` : ''}
                   </p>
                   <ol>
