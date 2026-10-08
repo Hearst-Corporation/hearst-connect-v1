@@ -1,0 +1,129 @@
+{
+  "period": 202611,
+  "merkleRoot": "0x1b9a280708ae6fb5f4cfc092da4733cd1fba649a5b187be58a17746dec1f8d06",
+  "reportHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "feeBps": 1500,
+  "refillCapBps": 5000,
+  "leafEncoding": [
+    "uint32",
+    "bytes32",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64",
+    "uint64"
+  ],
+  "totals": {
+    "minedSats": "1260058593",
+    "electricitySats": "414615357",
+    "feeSats": "126816483",
+    "refillSats": "0",
+    "toReserveSats": "1133242110",
+    "withdrawnSats": "42735394",
+    "reserveSats": "2223748826",
+    "vaultCount": 5
+  },
+  "vaults": [
+    {
+      "id": "V-0001",
+      "vaultKey": "0xe12b71016fb029df1603d9b451e2cf9f9e726a73086c9de96a45b5fc1c06fa19",
+      "minedSats": "111806441",
+      "electricitySats": "36789295",
+      "feeSats": "11252571",
+      "refillSats": "0",
+      "toReserveSats": "100553870",
+      "withdrawnSats": "0",
+      "reserveSats": "201107740",
+      "withdrawnTotalSats": "0",
+      "holdSats": "1054629825",
+      "vsHoldBps": 1906,
+      "leaf": "0x358be8e04bb4d1dffc00814f918d5f774d85e0ab53c8bee382a488c6f8ede83a",
+      "proof": [
+        "0x5ae3a868cb85a4e12003953b57a8753970db696a373a4514c31a890399ffac63",
+        "0xf4646ac20ab19f992d839f655d4fc46587f0ce791ada8cd7b9ab1d9bd5a0cafd",
+        "0xfbf22ec429ff36cdb80fe15275a32e363d77c19b21de6fa616967429a4569d78"
+      ]
+    },
+    {
+      "id": "V-0002",
+      "vaultKey": "0x75d83977a531c21233d841175cb73e6c03c86328ee54a5605bcf58a9f75cce27",
+      "minedSats": "46958705",
+      "electricitySats": "15451504",
+      "feeSats": "4726080",
+      "refillSats": "0",
+      "toReserveSats": "42232625",
+      "withdrawnSats": "0",
+      "reserveSats": "84465250",
+      "withdrawnTotalSats": "0",
+      "holdSats": "442944526",
+      "vsHoldBps": 1906,
+      "leaf": "0xf4646ac20ab19f992d839f655d4fc46587f0ce791ada8cd7b9ab1d9bd5a0cafd",
+      "proof": [
+        "0xa19a23e0b79e59704d3f63d51beb8d0f906f1831a1c5a20bb9a5cf54b6f356e8",
+        "0xfbf22ec429ff36cdb80fe15275a32e363d77c19b21de6fa616967429a4569d78"
+      ]
+    },
+    {
+      "id": "V-0003",
+      "vaultKey": "0xa2fa9c9bf22f2ccf1e5ad8d47e5c3676374c6054a55867b96813183dd027cf77",
+      "minedSats": "380141901",
+      "electricitySats": "125083604",
+      "feeSats": "38258744",
+      "refillSats": "0",
+      "toReserveSats": "341883157",
+      "withdrawnSats": "0",
+      "reserveSats": "683766314",
+      "withdrawnTotalSats": "0",
+      "holdSats": "3585741405",
+      "vsHoldBps": 1906,
+      "leaf": "0x9224f869d1ec70ed664b476fcf84b23014ba15f10a3a6ec4ffc868a0eb50268a",
+      "proof": [
+        "0xda9c1558c61903a5031f23896bd725c4884a402ddb315c655d83cb426faf8be0",
+        "0x973fbdd821993a9b6e4db8f64fbc5037795b6c7d58e289098fdb1e54e50e909e"
+      ]
+    },
+    {
+      "id": "V-0004",
+      "vaultKey": "0x10767a4981a0d135edb2b999038b64fa20fb690648535ebfd6499f60b385a13d",
+      "minedSats": "95035475",
+      "electricitySats": "31270901",
+      "feeSats": "9564686",
+      "refillSats": "0",
+      "toReserveSats": "85470789",
+      "withdrawnSats": "42735394",
+      "reserveSats": "128206184",
+      "withdrawnTotalSats": "42735394",
+      "holdSats": "896435351",
+      "vsHoldBps": 1906,
+      "leaf": "0x5ae3a868cb85a4e12003953b57a8753970db696a373a4514c31a890399ffac63",
+      "proof": [
+        "0x358be8e04bb4d1dffc00814f918d5f774d85e0ab53c8bee382a488c6f8ede83a",
+        "0xf4646ac20ab19f992d839f655d4fc46587f0ce791ada8cd7b9ab1d9bd5a0cafd",
+        "0xfbf22ec429ff36cdb80fe15275a32e363d77c19b21de6fa616967429a4569d78"
+      ]
+    },
+    {
+      "id": "V-0005",
+      "vaultKey": "0x325f4be19d19fb056fb3630547e02ec9986ec56d107d498910d6ff0a43bcaac9",
+      "minedSats": "626116071",
+      "electricitySats": "206020053",
+      "feeSats": "63014402",
+      "refillSats": "0",
+      "toReserveSats": "563101669",
+      "withdrawnSats": "0",
+      "reserveSats": "1126203338",
+      "withdrawnTotalSats": "0",
+      "holdSats": "5905927020",
+      "vsHoldBps": 1906,
+      "leaf": "0xda9c1558c61903a5031f23896bd725c4884a402ddb315c655d83cb426faf8be0",
+      "proof": [
+        "0x9224f869d1ec70ed664b476fcf84b23014ba15f10a3a6ec4ffc868a0eb50268a",
+        "0x973fbdd821993a9b6e4db8f64fbc5037795b6c7d58e289098fdb1e54e50e909e"
+      ]
+    }
+  ]
+}

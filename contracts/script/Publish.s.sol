@@ -6,7 +6,7 @@ import {HearstReserveRegistry} from "../src/HearstReserveRegistry.sol";
 
 /// Publie l'attestation d'un mois à partir du fichier produit par script-js/build-merkle.mjs.
 ///   REGISTRY_ADDRESS  adresse du registre déployé
-///   ATTESTATION_FILE  ex. attestations/202609.json (ou test/fixtures/merkle-202609.json pour l'exemple)
+///   ATTESTATION_FILE  ex. attestations/202611.json (ou test/fixtures/merkle-202611.json pour l'exemple)
 /// Exemple : forge script script/Publish.s.sol --rpc-url sepolia --account hearst-publisher --broadcast
 contract Publish is Script {
     function run() external {
@@ -19,9 +19,11 @@ contract Publish is Script {
         bytes32 report = vm.parseJsonBytes32(json, ".reportHash");
         HearstReserveRegistry.Totals memory totals = HearstReserveRegistry.Totals({
             minedSats: _u64(json, ".totals.minedSats"),
+            electricitySats: _u64(json, ".totals.electricitySats"),
             feeSats: _u64(json, ".totals.feeSats"),
             refillSats: _u64(json, ".totals.refillSats"),
             toReserveSats: _u64(json, ".totals.toReserveSats"),
+            withdrawnSats: _u64(json, ".totals.withdrawnSats"),
             reserveSats: _u64(json, ".totals.reserveSats"),
             // forge-lint: disable-next-line(unsafe-typecast)
             vaultCount: uint32(vm.parseJsonUint(json, ".totals.vaultCount"))

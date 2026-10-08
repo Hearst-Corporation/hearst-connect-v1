@@ -12,6 +12,20 @@ Le contrat **ne détient aucun fonds**. Il sert de registre public, horodaté et
 
 ---
 
+## Les règles que le contrat applique
+
+Elles sont fixées au déploiement et ne changent plus (`FEE_BPS`, `REFILL_CAP_BPS`) :
+
+| Règle | Valeur V2 | Vérifiée où |
+|---|---|---|
+| Frais Hearst | 15 % du miné **net d'électricité** ; zéro si le mois perd | chaque ligne (`lineFollowsRules`) et les totaux (`publish`) |
+| Répartition | miné = frais + recharge du buffer + versé à la réserve | ligne et totaux |
+| Recharge du buffer | au plus 50 % du miné du mois | ligne et totaux |
+| Continuité | réserve du mois = réserve précédente + versé à la réserve − versé au client | `verifyContinuity`, sur deux mois d'un même vault |
+| Face au simple achat | (réserve + déjà versé) ÷ ce qu'aurait acheté le dépôt | `vsHoldBps` (10 700 = 107 %) |
+
+`verifyVault` ne répond `true` que si la ligne est dans l'attestation **et** respecte ces règles : une ligne aux frais gonflés est refusée même si Hearst l'a publiée. `vsHoldBps` ne compte que le bitcoin ; le buffer d'électricité restant (en USDC) n'y entre pas.
+
 ## 1. Les notions en cinq minutes
 
 | Notion | Ce que c'est ici |
@@ -52,11 +66,11 @@ contracts/
 ├── src/HearstReserveRegistry.sol        le contrat
 ├── test/HearstReserveRegistry.t.sol     tests unitaires (rôles, périodes, révisions, preuves) + fuzzing
 ├── test/MerkleFixture.t.sol             l'arbre JS et le contrat donnent les mêmes résultats
-├── test/fixtures/merkle-202609.json     attestation d'exemple (5 vaults fictifs, sel public)
+├── test/fixtures/merkle-202611.json     attestation d'exemple (5 vaults fictifs, sel public)
 ├── script/Deploy.s.sol                  déploiement
 ├── script/Publish.s.sol                 publication d'un mois
 ├── script-js/build-merkle.mjs           fabrique racine + preuves à partir des lignes du mois
-├── script-js/samples/202609.json        lignes d'exemple
+├── script-js/samples/202611.json        lignes d'exemple
 ├── foundry.toml                         configuration (compilateur, réseaux, Etherscan)
 └── .env.example                         variables à copier en .env (jamais commité)
 ```
@@ -67,7 +81,7 @@ contracts/
 cd contracts
 forge soldeer install      # première fois : télécharge les bibliothèques
 forge build                # compile
-forge test                 # 17 tests, dont 256 essais aléatoires sur les périodes
+forge test                 # 25 tests, dont 256 essais aléatoires sur les périodes
 forge test -vvvv --match-test test_verifyVault_twoVaults   # le détail d'un test
 forge test --gas-report    # coût en gas de chaque fonction
 forge fmt                  # formate le code
@@ -79,7 +93,7 @@ Côté Node, pour l'arbre Merkle :
 ```bash
 cd contracts/script-js
 npm install                # première fois
-npm run sample             # régénère test/fixtures/merkle-202609.json
+npm run sample             # régénère test/fixtures/merkle-202611.json
 ```
 
 ## 5. Essai complet sur une blockchain locale
@@ -94,16 +108,16 @@ anvil                                            # terminal 1 : la chaîne local
 A0=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266    # compte de test n°0 → admin
 A1=0x70997970C51812dc3A010C7d01b50e0d17dc79C8    # compte de test n°1 → publisher
 
-REGISTRY_ADMIN=$A0 REGISTRY_PUBLISHER=$A1 \
+REGISTRY_ADMIN=$A0 REGISTRY_PUBLISHER=$A1 FEE_BPS=1500 REFILL_CAP_BPS=5000 \
   forge script script/Deploy.s.sol --rpc-url local --unlocked --sender $A0 --broadcast
 # → HearstReserveRegistry : 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 REGISTRY_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3 \
-ATTESTATION_FILE=test/fixtures/merkle-202609.json \
+ATTESTATION_FILE=test/fixtures/merkle-202611.json \
   forge script script/Publish.s.sol --rpc-url local --unlocked --sender $A1 --broadcast
 
 cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "latestPeriod()(uint32)" --rpc-url local
-# → 202609
+# → 202611
 ```
 
 Vérifié le 8 octobre 2026 :
@@ -150,25 +164,25 @@ L'adresse du contrat s'affiche. Sur sepolia.etherscan.io, l'onglet **Contract** 
 
 ## 8. Publier un mois
 
-1. Exporter les lignes du mois clôturé au format de `script-js/samples/202609.json`. Les montants sont en satoshis, et pour chaque vault : `miné = frais + recharge + réserve`.
+1. Exporter les lignes du mois clôturé au format de `script-js/samples/202611.json`. Pour chaque vault, en satoshis : miné, électricité du mois (convertie au cours de clôture), recharge du buffer, versement au client, réserve et cumul versé du mois précédent, et `holdSats` (ce que son dépôt aurait acheté le jour du dépôt). Le script calcule les frais, la part versée à la réserve et la nouvelle réserve.
 2. Construire l'attestation. Le sel vient du Trousseau, jamais d'un fichier :
 
    ```bash
    cd contracts/script-js
    export VAULT_KEY_SALT=$(security find-generic-password -s hearst-vault-salt -w)
-   node build-merkle.mjs export-202610.json ../attestations/202610.json rapport-202610.pdf
+   node build-merkle.mjs export-202612.json ../attestations/202612.json rapport-202612.pdf
    ```
 
-   Le script refuse un fichier incohérent : doublon, ligne qui ne balance pas, frais différents du taux annoncé, période invalide.
+   Le script refuse un fichier incohérent : doublon, recharge au-dessus du plafond, versement supérieur à la réserve, période invalide.
 3. Publier :
 
    ```bash
    cd contracts && source .env
-   ATTESTATION_FILE=attestations/202610.json \
+   ATTESTATION_FILE=attestations/202612.json \
      forge script script/Publish.s.sol --rpc-url sepolia --account hearst-publisher --broadcast
    ```
 
-4. Envoyer à chaque client sa ligne et sa `proof`, extraites de `attestations/202610.json`. Ce fichier contient les identifiants internes : il reste hors du dépôt (`.gitignore`).
+4. Envoyer à chaque client sa ligne et sa `proof`, extraites de `attestations/202612.json`. Ce fichier contient les identifiants internes : il reste hors du dépôt (`.gitignore`).
 
 Le sel se crée une seule fois, puis se conserve. Le changer rendrait les clés de vault incomparables d'un mois à l'autre.
 
