@@ -211,7 +211,7 @@ export default async function ClientPage({
           icon: BitcoinIcon,
           footnote:
             vault !== null
-              ? `Mined for the ${usd(vault.principalUsdc)} USDC deposit, after electricity and ${btcFmt((vault.feeBtcSats ?? 0) / 1e8)} of Hearst fees`
+              ? `Net of electricity and ${btcFmt((vault.feeBtcSats ?? 0) / 1e8)} of Hearst fees`
               : null,
         },
         {
@@ -603,7 +603,7 @@ export default async function ClientPage({
                 className="min-w-0 scroll-mt-24"
                 eyebrow="Rewards"
                 title={`Monthly rewards${ofTranche}`}
-                subtitle="What the vault mined each month, what was sold to refill the electricity buffer, and what reaches the reserve — validated here first"
+                subtitle="What the vault mined each month, the Hearst fee, what was sold to refill the buffer, and what reaches the reserve — validated here first"
               >
                 {distributions.length === 0 ? (
                   <p className="text-sm text-fg-tertiary">No month closed yet.</p>
@@ -624,6 +624,7 @@ export default async function ClientPage({
                         </p>
                         <p className="text-xs text-fg-secondary">
                           Mined {pendingReward.minedSats != null ? btcFromSats(pendingReward.minedSats) : '—'}
+                          {pendingReward.feeSats ? ` · ${btcFromSats(pendingReward.feeSats)} Hearst fee` : ''}
                           {pendingReward.refillSats ? ` · ${btcFromSats(pendingReward.refillSats)} sold to refill the buffer` : ''}
                           {pendingReward.electricityUsd != null ? ` · ${usd(pendingReward.electricityUsd)} electricity paid from the buffer` : ''}
                         </p>
@@ -659,7 +660,10 @@ export default async function ClientPage({
                     rows={distributions.map((d) => (
                       <TableRow key={d.id}>
                         <TableCell className="font-medium text-fg">{monthName(d.month)}</TableCell>
-                        <TableCell className="tabular-nums text-fg">{d.minedSats != null ? btcFmt(d.minedSats / 1e8) : '—'}</TableCell>
+                        <TableCell>
+                          <div className="tabular-nums text-fg">{d.minedSats != null ? btcFmt(d.minedSats / 1e8) : '—'}</div>
+                          {d.feeSats ? <div className="text-[11px] tabular-nums text-fg-tertiary">Hearst fee −{btcFmt(d.feeSats / 1e8)}</div> : null}
+                        </TableCell>
                         <TableCell className="tabular-nums text-fg-secondary">{d.refillSats ? `−${btcFmt(d.refillSats / 1e8)}` : '—'}</TableCell>
                         <TableCell>
                           <div className="tabular-nums text-fg-secondary">{d.electricityUsd != null ? usd(d.electricityUsd) : '—'}</div>
@@ -690,6 +694,7 @@ export default async function ClientPage({
                       columns: [
                         'Month',
                         'Mined (BTC)',
+                        'Hearst fee (BTC)',
                         'Sold to refill the buffer (BTC)',
                         'Electricity from the buffer (USD)',
                         'Buffer after (USD)',
@@ -701,6 +706,7 @@ export default async function ClientPage({
                       data: distributions.map((d) => [
                         d.month,
                         d.minedSats != null ? d.minedSats / 1e8 : null,
+                        d.feeSats != null ? d.feeSats / 1e8 : null,
                         d.refillSats != null ? d.refillSats / 1e8 : null,
                         d.electricityUsd ?? null,
                         d.bufferUsd ?? null,

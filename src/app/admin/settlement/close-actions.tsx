@@ -77,7 +77,7 @@ export function CloseActions({
     // Le mois clos s'atteste sur le registre de réserve (Ethereum) : racine des lignes, totaux, rapport.
     {
       label: 'Attested on-chain',
-      detail: rewardIds.length === 0 && dues.length === 0 ? 'Ready for the reserve registry · Ethereum' : 'When both are done',
+      detail: rewardIds.length === 0 && dues.length === 0 ? 'Reserve registry · Ethereum' : 'When both are done',
       done: rewardIds.length === 0 && dues.length === 0,
     },
   ]

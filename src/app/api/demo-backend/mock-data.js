@@ -219,7 +219,8 @@ const siteOf = (i) => {
 const MODELS = [{ model: 'Hydro 865 TH/s', ths: 865, jth: 11 }]
 /* Production d'un TH/s : ~5,5e-7 BTC par jour au hashprice actuel (≈ 0,05 $). */
 const BTC_PER_THS_DAY = 5.5e-7
-const FLEET_SIZE = 10_000
+// ≈ 2,2 EH/s : la capacité que la landing annonce (+2 EH/s).
+const FLEET_SIZE = 2_600
 const MACHINES = Array.from({ length: FLEET_SIZE }, (_, i) => {
   const site = siteOf(i)
   const m = MODELS[(i * 7) % MODELS.length]
@@ -1974,6 +1975,7 @@ function payloadFor(path, search = '') {
             byBucket: m.pockets,
             // V2 : le miné brut, la part vendue pour recharger le buffer, l'électricité payée sur le buffer.
             minedSats: m.minedSats,
+            feeSats: m.feeSats,
             refillSats: m.bufferTopUpSats,
             electricityUsd: m.electricityUsd,
             bufferUsd: m.bufferUsd,
@@ -2611,13 +2613,13 @@ function baseOffers() {
           allocation: { miningBps: 4000, lendingBps: 2700, stableBps: 3300 },
           lockupMonths: 24,
           status: 'active',
-          createdAt: iso(400),
-          updatedAt: iso(380),
-          sentAt: iso(395),
-          decidedAt: iso(388),
+          createdAt: iso(625),
+          updatedAt: iso(600),
+          sentAt: iso(620),
+          decidedAt: iso(612),
           vaultId: vaultKey(0),
           notes: null,
-          questionnaire: { platformKind: 'Crypto Company', assetsUnderManagement: '$10M – $50M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Balanced', firstVaultSize: '$100k – $500k', launchTimeline: 'ASAP', submittedAt: iso(405) },
+          questionnaire: { platformKind: 'Crypto Company', assetsUnderManagement: '$10M – $50M', fundsIdleOrEarning: 'Mostly sitting unused', hasProductToday: 'Yes', productInterest: 'Balanced', firstVaultSize: '$100k – $500k', launchTimeline: 'ASAP', submittedAt: iso(630) },
         },
         {
           id: 'off_007',

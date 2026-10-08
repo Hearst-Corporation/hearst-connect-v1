@@ -62,7 +62,7 @@ export function ClientCompute({
           className="min-w-0"
           eyebrow="Compute"
           title="Computing power allocated"
-          subtitle="The same panel the client sees — then this vault’s electricity and the machines it owns"
+          subtitle="The same panel the client sees — then this vault’s electricity and the machines it rents"
         >
           <div className="flex flex-col gap-6">
             {fleet !== null ? (
@@ -73,7 +73,7 @@ export function ClientCompute({
                   eyebrow: 'Allocated to this vault',
                   hashrate: 'Vault hashrate',
                   produced: 'Produced for the vault',
-                  note: 'Bought by this vault.',
+                  note: 'Rented by this vault.',
                 }}
               />
             ) : (

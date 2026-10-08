@@ -390,6 +390,8 @@ export type AdminClientDistribution = {
   readonly byBucket?: readonly AdminBucketGain[]
   /** V2 — le bitcoin miné ce mois-là (brut), la part vendue pour recharger le buffer, l'électricité payée, le solde du buffer. */
   readonly minedSats?: number
+  /** V2 — les frais Hearst du mois : 15 % du miné net d'électricité. */
+  readonly feeSats?: number
   readonly refillSats?: number
   readonly electricityUsd?: number
   readonly bufferUsd?: number
