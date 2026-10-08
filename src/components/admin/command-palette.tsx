@@ -144,7 +144,7 @@ export function TopbarNav({ clients }: Readonly<{ clients: readonly PaletteClien
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/60 px-4 pt-[12vh]" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-[rgba(0,0,0,0.45)] px-4 pt-[12vh]" onClick={() => setOpen(false)}>
           <div
             role="dialog"
             aria-label="Command palette"

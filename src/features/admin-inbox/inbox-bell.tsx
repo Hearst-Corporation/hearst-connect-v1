@@ -130,7 +130,7 @@ export function InboxBell({ initial }: Readonly<{ initial: readonly InboxItem[] 
                 </p>
               </div>
               {unseen.length > 0 ? (
-                <button type="button" onClick={markAll} className="text-xs font-medium text-[var(--hearst-green,#9eea7a)] hover:underline">
+                <button type="button" onClick={markAll} className="text-xs font-medium text-[var(--hearst-green-text)] hover:underline">
                   Mark all as read
                 </button>
               ) : null}

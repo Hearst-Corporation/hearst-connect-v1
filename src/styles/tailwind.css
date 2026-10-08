@@ -417,9 +417,35 @@ select:-webkit-autofill {
   --ud-invert-fg: #0a0a0a;
 }
 
-/* Le vert en texte, par défaut (nuit). */
+/* Le vert en texte, par défaut (nuit). Les tokens de /account aussi, au niveau
+   de la page : les panneaux flottants (notifications, menus) s'ouvrent HORS de
+   `.ud-root` et retombaient sur leurs valeurs sombres de secours. */
 :root {
   --accent-text: #9eea7a;
+  --hearst-green: #9eea7a;
+  --hearst-green-ink: #06140a;
+  --hearst-green-text: #9eea7a;
+  --hearst-green-dim: rgba(158, 234, 122, 0.14);
+  --ud-card: #212121;
+  --ud-card-raised: #292929;
+  --ud-inset: #161616;
+  --ud-line: rgba(255, 255, 255, 0.07);
+  --ud-line-strong: rgba(255, 255, 255, 0.12);
+  --ud-fg: #f2f2f2;
+  --ud-fg-2: #a9a9a9;
+  --ud-fg-3: #6f6f6f;
+}
+:root[data-theme='light'] {
+  --hearst-green-text: #73de56;
+  --hearst-green-dim: rgba(115, 222, 86, 0.16);
+  --ud-card: #ffffff;
+  --ud-card-raised: #f0f1ef;
+  --ud-inset: #eceeeb;
+  --ud-line: rgba(0, 0, 0, 0.08);
+  --ud-line-strong: rgba(0, 0, 0, 0.14);
+  --ud-fg: #111312;
+  --ud-fg-2: #4f5452;
+  --ud-fg-3: #7d8280;
 }
 
 /* Le bouton jour / nuit des barres du haut : la taille de la cloche. */

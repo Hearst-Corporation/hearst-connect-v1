@@ -13,7 +13,7 @@ const SECONDARY =
 
 function Dialog({ title, subtitle, onClose, children }: Readonly<{ title: string; subtitle: string; onClose: () => void; children: React.ReactNode }>) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.45)] px-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl bg-console-card p-6 text-white ring-1 ring-white/10" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
