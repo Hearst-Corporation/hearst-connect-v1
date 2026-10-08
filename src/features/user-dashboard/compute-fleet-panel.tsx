@@ -68,7 +68,7 @@ const CLIENT_COPY: ComputeFleetCopy = {
   eyebrow: 'Allocated to your vault',
   hashrate: 'Your hashrate',
   produced: 'Produced for you',
-  note: 'Allocated pro rata to your capital in the vault, and updated as the fleet grows.',
+  note: 'Sized on your deposit.',
 }
 
 export function ComputeFleetPanel({

@@ -73,7 +73,7 @@ export function ClientCompute({
                   eyebrow: 'Allocated to this vault',
                   hashrate: 'Vault hashrate',
                   produced: 'Produced for the vault',
-                  note: 'The machines this vault’s Mining capital bought — what the client sees on their dashboard.',
+                  note: 'Bought by this vault.',
                 }}
               />
             ) : (
