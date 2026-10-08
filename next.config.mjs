@@ -56,8 +56,21 @@ const securityHeaders = [
     : []),
 ]
 
+/**
+ * MULTI-ZONES — l'application est servie sous connect.hearst.app : la landing (repo
+ * hearst-connect) garde la racine et renvoie en coulisse /login, /account, /admin,
+ * /proposal, /brand et /app-static vers ce projet. Ses fichiers JS/CSS passent donc
+ * sous /app-static pour ne pas croiser ceux de la landing, et les Server Actions
+ * acceptent l'origine connect.hearst.app.
+ */
+const PUBLIC_ORIGINS = ['connect.hearst.app']
+
 const nextConfig = {
   agentRules: false,
+  assetPrefix: isProd ? '/app-static' : undefined,
+  experimental: {
+    serverActions: { allowedOrigins: PUBLIC_ORIGINS },
+  },
   poweredByHeader: false,
   // Turbopack infère mal la racine du workspace (il remonte sur src/app) : on la fixe.
   turbopack: { root: import.meta.dirname },
