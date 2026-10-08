@@ -25,6 +25,13 @@ const BUFFER_PCT = 10
 
 /** Le jeu de test de la démo : un prospect plausible, déjà qualifié. */
 const DEMO_PRESET = { client: 'Orbit Capital', kind: 'Family office', amount: '1000000' } as const
+
+/* Le montant s'affiche avec ses séparateurs de milliers (1,000,000) : on ne garde
+   que les chiffres et on les regroupe. Le serveur retire les virgules à la lecture. */
+const groupDigits = (raw: string) => {
+  const digits = raw.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+  return digits === '' ? '' : Number(digits).toLocaleString('en-US')
+}
 const slug = (name: string) => name.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 16)
 
 /** Les termes EN VIGUEUR (Settings → Product terms) ; à défaut, ceux du code. */
@@ -49,7 +56,7 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
   const presetClient = preset?.client ?? (demo ? DEMO_PRESET.client : '')
   /* Une NOUVELLE TRANCHE ouvre son propre vault, au cours du jour, avec son propre blocage. */
   const tranche = preset?.tranche ?? null
-  const [amount, setAmount] = useState(demo ? DEMO_PRESET.amount : '')
+  const [amount, setAmount] = useState(demo ? groupDigits(DEMO_PRESET.amount) : '')
   const [months, setMonths] = useState(terms?.defaultLockupMonths ?? DEFAULT_LOCKUP_MONTHS)
   const [state, submit, submitting] = useActionState(createOffer, { error: null })
   const [projection, setProjection] = useState<DraftSimulation | null>(null)
@@ -156,10 +163,10 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
               name="amountUsdc"
               inputMode="numeric"
               className={`${FIELD} ${belowMinimum ? 'border-danger-400 focus:border-danger-400' : ''}`}
-              placeholder="1 000 000"
+              placeholder="1,000,000"
               value={amount}
               aria-invalid={belowMinimum}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setAmount(groupDigits(e.target.value))}
             />
             {belowMinimum ? (
               <span className="text-xs text-danger-400">
