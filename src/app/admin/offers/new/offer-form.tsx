@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/catalyst/button'
 import { Callout } from '@/components/compositions'
+import { BUFFER_PCT, MINING_PCT } from '@/lib/deposit-split'
 import { CLIENT_KINDS, DEFAULT_LOCKUP_MONTHS, MIN_VAULT_USDC } from '@/lib/offers/model'
 import { createOffer, simulateDraft, type DraftSimulation } from '@/features/admin-offers/actions'
 import { ProjectionTable } from '@/features/user-dashboard/projection-table'
@@ -11,17 +12,14 @@ import { useActionState, useEffect, useState, useTransition } from 'react'
  * Créer une offre — la première étape du parcours.
  *
  * V2 — Mining as a Service : l'offre tient en trois choses — le client, le
- * montant, la durée. Le dépôt se partage toujours de la même façon (90 % de
- * puissance de calcul, 10 % de buffer d'électricité) : plus de profil de
+ * montant, la durée. Le dépôt se partage toujours de la même façon (85 % de
+ * puissance de calcul, 15 % de buffer d'électricité) : plus de profil de
  * risque, plus d'allocation à régler, plus de rééquilibrage ensuite.
  */
 
 const FIELD =
   'w-full rounded-lg border border-console-line bg-console-inset px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-accent-400 focus:outline-none'
 
-/** V2 — Mining as a Service : le partage du dépôt, le même pour tous les vaults. */
-const MINING_PCT = 90
-const BUFFER_PCT = 10
 
 /** Le jeu de test de la démo : un prospect plausible, déjà qualifié. */
 const DEMO_PRESET = { client: 'Orbit Capital', kind: 'Family office', amount: '1000000' } as const
@@ -213,7 +211,7 @@ export function OfferForm({ demo = false, terms, preset }: Readonly<{ demo?: boo
 
       {/* ── LE PARTAGE DU DÉPÔT — V2 ─────────────────────────────────────
           Plus de profil ni d'allocation à régler : Mining as a Service. Le
-          dépôt achète de la puissance (90 %) et garde un buffer USDC (10 %)
+          dépôt achète de la puissance (85 %) et garde un buffer USDC (15 %)
           qui paie l'électricité. Rien à choisir, rien à rééquilibrer. */}
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-xs text-fg-tertiary">How the deposit is split — the same for every vault</legend>

@@ -256,7 +256,7 @@ export function MonthlyClose({
             </TableCell>
           </TableRow>
         ))}
-        note="Split key = the computing power each vault bought (90 % of its deposit), over the power of all vaults. Electricity is paid in USDC from each vault’s buffer. One vault per deposit: two vaults of the same client are split separately."
+        note="Split key = the computing power each vault bought (85 % of its deposit), over the power of all vaults. Electricity is paid in USDC from each vault’s buffer. One vault per deposit: two vaults of the same client are split separately."
         exportData={{
           filename: `hearst-settlement-${m.month}`,
           title: `Settlement — ${monthLabel(m.month)}`,

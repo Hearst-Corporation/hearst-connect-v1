@@ -1,6 +1,7 @@
 import { requireSession } from '@/lib/auth'
 import { loadAdminOffers, loadOfferSimulation } from '@/lib/admin-dashboard/load'
 import type { OfferSimulation } from '@/lib/admin-dashboard/contracts'
+import { BUFFER_PCT, MINING_PCT } from '@/lib/deposit-split'
 import { formatDate, formatNumber } from '@/lib/format'
 import type { Offer } from '@/lib/offers/model'
 import { isAvailable, valueOf } from '@/lib/vaults/model'
@@ -31,14 +32,14 @@ export const dynamic = 'force-dynamic'
 const SPLIT = [
   {
     key: 'mining' as const,
-    bps: 9000,
+    bps: MINING_PCT * 100,
     label: 'Computing power',
     color: '#9eea7a',
     blurb: 'Hashrate bought in Hearst’s mining pool. It mines bitcoin for your vault from day one.',
   },
   {
     key: 'buffer' as const,
-    bps: 1000,
+    bps: BUFFER_PCT * 100,
     label: 'Electricity buffer',
     color: '#a9a9a9',
     blurb: 'Kept in USDC to pay the fleet’s electricity bills — you never receive an invoice.',
@@ -136,7 +137,7 @@ export default async function ProposalPage({ params }: Readonly<{ params: Promis
           <Term label="Lockup" value={`${offer.lockupMonths} months`} />
           <Term
             label="Electricity buffer"
-            value={offer.amountUsdc !== null ? `${usd(offer.amountUsdc * 0.1)} USDC` : '—'}
+            value={offer.amountUsdc !== null ? `${usd((offer.amountUsdc * BUFFER_PCT) / 100)} USDC` : '—'}
           />
           {/* Le produit est une réserve de bitcoin : on annonce le bitcoin
               visé au terme, jamais un rendement en dollars. */}

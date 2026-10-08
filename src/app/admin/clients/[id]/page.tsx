@@ -10,6 +10,7 @@ import { ClientCompute } from '@/features/admin-clients/client-compute'
 import { PaginatedTable } from '@/components/admin/paginated-table'
 import { approvalAmount, btcFromSats, formatBtcValue } from '@/lib/admin-dashboard/amounts'
 import { allocatedTo, loadFleetCompute } from '@/lib/mining/compute'
+import { BUFFER_PCT, MINING_PCT } from '@/lib/deposit-split'
 import { EmailComposer } from '@/features/admin-offers/email-composer'
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { ProjectionTable } from '@/features/user-dashboard/projection-table'
@@ -528,8 +529,8 @@ export default async function ClientPage({
                   ['Amount', usd(offer.amountUsdc)],
                   ['Lockup', `${offer.lockupMonths} months`],
                   // V2 : le dépôt se partage toujours ainsi — puissance de calcul, buffer d'électricité.
-                  ['Computing power', offer.amountUsdc !== null ? `90 % · ${usd(offer.amountUsdc * 0.9)}` : '90 %'],
-                  ['Electricity buffer', offer.amountUsdc !== null ? `10 % · ${usd(offer.amountUsdc * 0.1)}` : '10 %'],
+                  ['Computing power', offer.amountUsdc !== null ? `${MINING_PCT} % · ${usd((offer.amountUsdc * MINING_PCT) / 100)}` : `${MINING_PCT} %`],
+                  ['Electricity buffer', offer.amountUsdc !== null ? `${BUFFER_PCT} % · ${usd((offer.amountUsdc * BUFFER_PCT) / 100)}` : `${BUFFER_PCT} %`],
                 ].map(([k, v]) => (
                   <div key={k} className="flex flex-col gap-1 bg-[var(--ud-card)] px-4 py-3">
                     <dt className="text-xs text-fg-tertiary">{k}</dt>

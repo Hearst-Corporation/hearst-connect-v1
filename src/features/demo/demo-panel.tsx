@@ -192,7 +192,7 @@ function stepsOf(s: DemoState): Step[] {
       title: 'Six months later — the electricity buffer',
       detail: refilled
         ? 'The bills were paid from the buffer every month; once it fell below three months, part of the mined bitcoin refilled it. Show it in « Mining → Buffer » on the client’s dashboard, and in Rewards on the client page.'
-        : 'Let six months pass: the fleet’s electricity is paid from the 10 % buffer, month after month, until it needs a refill.',
+        : 'Let six months pass: the fleet’s electricity is paid from the 15 % buffer, month after month, until it needs a refill.',
       ...(refilled ? { href: client, cta: 'Go to the client' } : { play: { months: 6, label: '+6 months' } }),
     },
     refilled,

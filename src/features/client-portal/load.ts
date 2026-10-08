@@ -39,7 +39,7 @@ export type PortalVault = Readonly<{
     bandBps: number
   }>
   pockets: readonly Readonly<{ name: string; protocol: string; apyPct: number; capitalUsd: number }>[]
-  /** V2 — le buffer USDC qui paie l'électricité : 10 % du dépôt au départ, rechargé sur le bitcoin miné. */
+  /** V2 — le buffer USDC qui paie l'électricité : 15 % du dépôt au départ, rechargé sur le bitcoin miné. */
   buffer?: PortalBuffer
   compute: Readonly<{ hashrateThs: number; machines: number; fleetSharePct: number }>
   endOfTerm: 'release' | 'renew' | 'undecided' | string

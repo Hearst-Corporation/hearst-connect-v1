@@ -5,6 +5,7 @@ import { loadDemoState } from '@/features/demo/load'
 import { loadSettings } from '@/lib/settings/load'
 import type { OfferPreset, OfferTerms } from './offer-form'
 import { requireSession } from '@/lib/auth'
+import { BUFFER_PCT, MINING_PCT } from '@/lib/deposit-split'
 import { OfferForm } from './offer-form'
 
 /** Le formulaire, pré-rempli de ce que l'appelant sait du client (`/admin/clients/cli_2/new-offer`). */
@@ -41,8 +42,8 @@ export async function renderNewOffer(given?: OfferPreset) {
         <BentoCard span={4}>
           <div className="flex flex-col gap-4">
             <Callout tone="info" title="Mining as a Service">
-              The deposit buys computing power in Hearst’s pool (90 %) and keeps an electricity buffer in USDC
-              (10 %). Everything mined goes to the client’s bitcoin reserve; the bills are paid from the buffer.
+              The deposit buys computing power in Hearst’s pool ({MINING_PCT} %) and keeps an electricity buffer in USDC
+              ({BUFFER_PCT} %). Everything mined goes to the client’s bitcoin reserve; the bills are paid from the buffer.
               Nothing to allocate, nothing to rebalance.
             </Callout>
             <Callout tone="info" title="What happens next">

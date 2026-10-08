@@ -317,7 +317,7 @@ export type OfferSimulation = {
   /** La puissance de calcul que ce capital achète — calculée par le backend,
    *  jamais dérivée par le front. */
   readonly hashrateThs?: number
-  /** V2 — le buffer d'électricité (10 % du dépôt), les mois de factures qu'il couvre, une facture mensuelle. */
+  /** V2 — le buffer d'électricité (15 % du dépôt), les mois de factures qu'il couvre, une facture mensuelle. */
   readonly bufferUsdc?: number
   readonly bufferMonths?: number
   readonly electricityMonthlyUsd?: number

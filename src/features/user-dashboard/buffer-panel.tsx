@@ -4,6 +4,7 @@ import { CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { ChartTooltipShell, TooltipRow } from '@/components/charts/richart/_shared/chart-tooltip'
 import type { PortalBuffer } from '@/features/client-portal/load'
+import { BUFFER_PCT } from '@/lib/deposit-split'
 import { formatBtc } from '@/lib/format'
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`
@@ -15,7 +16,7 @@ const monthShort = (ym: string) =>
 /**
  * LE BUFFER D'ÉLECTRICITÉ — V2.
  *
- * 10 % du dépôt restent en USDC pour payer les factures du parc : le client n'a
+ * 15 % du dépôt restent en USDC pour payer les factures du parc : le client n'a
  * jamais de facture à régler, et son bitcoin miné n'est pas vendu chaque mois.
  * Quand le buffer passe sous trois mois de factures, Hearst le recharge à six
  * mois en vendant une part du bitcoin miné ce mois-là — jamais plus de la moitié.
@@ -39,7 +40,7 @@ export function BufferPanel({ buffer }: Readonly<{ buffer: PortalBuffer }>) {
       <div className="buffer-summary">
         <div>
           <span className="buffer-value">{usd(buffer.balanceUsd)}</span>
-          <span className="buffer-caption">in USDC today · started at {usd(buffer.startUsd)}, 10 % of your deposit</span>
+          <span className="buffer-caption">in USDC today · started at {usd(buffer.startUsd)}, {BUFFER_PCT} % of your deposit</span>
         </div>
         <span className={`buffer-tag${low ? ' is-low' : ''}`}>
           {buffer.monthsCovered === null ? '—' : `${months.toLocaleString('en-US', { maximumFractionDigits: 1 })} months of bills`}

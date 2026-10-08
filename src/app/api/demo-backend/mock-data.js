@@ -102,13 +102,14 @@ const VAULT_PRINCIPAL = [420_000, 12_000_000, 3_400_000, 850_000, 5_600_000, 2_0
 const VAULT_START = ['2025-09-10', '2025-03-01', '2025-06-15', '2024-10-20', '2026-01-15', '2026-02-02']
 /*
  * V2 — MINING AS A SERVICE. Plus de poches ni de rééquilibrage : le dépôt
- * achète de la puissance dans le pool de Hearst (90 %) et garde un BUFFER en
- * USDC (10 %) qui paie les factures d'électricité. Le bitcoin miné entre dans
+ * achète de la puissance dans le pool de Hearst (85 %) et garde un BUFFER en
+ * USDC (15 %, environ quatre mois de factures) qui paie l'électricité.
+ * Garder aligné avec src/lib/deposit-split.ts (côté interface). Le bitcoin miné entre dans
  * la réserve du client. La forme { miningBps, lendingBps, stableBps } reste pour
  * le registre : lending vaut 0, stable porte le buffer.
  */
-const MINING_BPS = 9000
-const BUFFER_BPS = 1000
+const MINING_BPS = 8500
+const BUFFER_BPS = 1500
 /** Sous ce nombre de mois de factures, le buffer est rechargé… */
 const BUFFER_FLOOR_MONTHS = 3
 /** …jusqu'à ce nombre de mois, en vendant une part du bitcoin miné du mois. */
@@ -431,7 +432,7 @@ function vaultBufferView(v) {
     history: [...ms].reverse().map((m) => ({ month: m.month, electricityUsd: m.electricityUsd, topUpBtc: m.bufferTopUpSats / 1e8, balanceUsd: m.bufferUsd })),
   }
 }
-/** Le buffer USDC d'un vault aujourd'hui : le dépôt × 10 % au départ, puis le dernier mois clos. */
+/** Le buffer USDC d'un vault aujourd'hui : le dépôt × 15 % au départ, puis le dernier mois clos. */
 const vaultBufferUsd = (v) => vaultMonths(v)[0]?.bufferUsd ?? Math.round((VAULT_PRINCIPAL[v] * BUFFER_BPS) / 10_000)
 /** Le premier mois rémunéré d'un vault (voir `vaultMonths`). */
 function firstMonthOf(v) {
@@ -1770,8 +1771,8 @@ function payloadFor(path, search = '') {
       }
       const amount = num('amountUsdc', 1_000_000)
       const months = num('months', 24)
-      /* V2 — MINING AS A SERVICE : plus d'allocation à choisir. 90 % du dépôt
-         achètent de la puissance au prix du TH/s du parc, 10 % restent en buffer
+      /* V2 — MINING AS A SERVICE : plus d'allocation à choisir. 85 % du dépôt
+         achètent de la puissance au prix du TH/s du parc, 15 % restent en buffer
          pour l'électricité. Le rendement attendu est celui du minage, net de
          l'électricité (~36 % de la valeur minée) — le même calcul que le livre
          des vaults (`vaultMonths`). */
