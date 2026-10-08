@@ -331,14 +331,14 @@ select:-webkit-autofill {
   --color-console-line-soft: rgba(0, 0, 0, 0.05);
   --color-console-line: rgba(0, 0, 0, 0.08);
   --color-console-line-strong: rgba(0, 0, 0, 0.14);
-  /* Le vert en TEXTE sur fond clair : plus profond, lisible (≈ 4,6:1). Les
+  /* Le vert en TEXTE sur fond clair : proche du vert de marque, un ton plus soutenu (#73de56). Les
      aplats verts (boutons) gardent le vert de marque. */
-  --accent-text: #3f8f22;
+  --accent-text: #73de56;
 }
 :root[data-theme='light'] .ud-root,
 :root[data-theme='light'].ud-root {
-  --hearst-green-text: #3f8f22;
-  --hearst-green-dim: rgba(63, 143, 34, 0.12);
+  --hearst-green-text: #73de56;
+  --hearst-green-dim: rgba(115, 222, 86, 0.16);
   --ud-rail: #ffffff;
   --ud-page: #f4f5f3;
   --ud-card: #ffffff;
