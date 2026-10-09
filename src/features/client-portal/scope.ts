@@ -2,6 +2,7 @@ import type { ReserveSplitPoint } from '@/features/admin-dashboard/book-charts'
 import type { UserDashboard } from '@/features/user-dashboard/load'
 import type { ProductionCost } from '@/lib/product/readings'
 import { available, valueOf, type Availability } from '@/lib/vaults/model'
+import type { ChainVaultLedger } from '@/lib/chain/reserve-registry'
 import type { PortalOverview, PortalReward, PortalVault } from './load'
 
 /**
@@ -103,4 +104,97 @@ export function withChainSpot(overview: PortalOverview, cost: Availability<Produ
   const spot = valueOf(cost)?.marketPriceUsd
   if (spot === undefined || !(spot > 0)) return overview
   return { ...overview, spotUsd: spot, totals: { ...overview.totals, valueUsd: overview.totals.reserveBtc * spot } }
+}
+
+/**
+ * Les chiffres d'un vault, REMPLACÉS par ceux que le registre on-chain a vérifiés.
+ *
+ * La réserve, le bitcoin produit, les retraits, ce qu'aurait acheté le dépôt et
+ * le détail de chaque mois (miné, frais, recharge, versé à la réserve) viennent
+ * des lignes que `HearstReserveRegistry.verifyVault` a acceptées — à la date du
+ * dernier mois clos attesté. Le backend ne garde que ce qui n'existe pas sur la
+ * chaîne : dates, buffer en USDC, retraits en attente, mois pas encore attestés.
+ *
+ * `ledgers === null` : la chaîne n'est pas configurée ou ne répond pas.
+ */
+export function withChainLedger(
+  vault: PortalVault,
+  rewards: readonly PortalReward[],
+  ledgers: ReadonlyMap<string, ChainVaultLedger> | null,
+): { vault: PortalVault; rewards: readonly PortalReward[] } {
+  if (ledgers === null) return { vault: { ...vault, chain: { status: 'unconfigured' } }, rewards }
+  const l = ledgers.get(vault.vaultId)
+  if (l === undefined) return { vault: { ...vault, chain: { status: 'unverified' } }, rewards }
+
+  const { latest } = l
+  const produced = l.months.reduce((t, m) => t + m.toReserveBtc, 0)
+  const byMonth = new Map(l.months.map((m) => [m.month, m]))
+  return {
+    vault: {
+      ...vault,
+      reserveBtc: latest.reserveBtc,
+      producedBtc: Number(produced.toFixed(8)),
+      withdrawnBtc: latest.withdrawnTotalBtc,
+      capitalBtc: latest.holdBtc,
+      availableBtc:
+        vault.status === 'RELEASED' ? 0 : Math.max(0, Number((latest.reserveBtc - vault.pendingWithdrawalBtc).toFixed(8))),
+      chain: {
+        status: 'verified',
+        month: latest.month,
+        publishedAt: l.publishedAt,
+        registry: l.registry,
+        explorerUrl: l.explorerUrl,
+        bufferBtc: latest.bufferBtc,
+        vsHoldPct: l.vsHoldPct,
+        rejected: l.rejected,
+      },
+    },
+    rewards: rewards.map((r) => {
+      const m = r.vaultId === vault.vaultId ? byMonth.get(r.month) : undefined
+      return m === undefined
+        ? r
+        : {
+            ...r,
+            btc: m.toReserveBtc,
+            minedBtc: m.minedBtc,
+            feeBtc: m.feeBtc,
+            refillBtc: m.refillBtc,
+            usd: Math.round(m.toReserveBtc * r.priceUsd),
+            onChain: true,
+          }
+    }),
+  }
+}
+
+/** `withChainLedger` sur TOUS les vaults du client : la page, ses onglets et le relevé lisent les mêmes chiffres. */
+export function withChainLedgers(
+  overview: PortalOverview,
+  rewards: readonly PortalReward[],
+  ledgers: ReadonlyMap<string, ChainVaultLedger> | null,
+): { overview: PortalOverview; rewards: readonly PortalReward[] } {
+  let rs = rewards
+  const vaults = overview.vaults.map((v) => {
+    const r = withChainLedger(v, rs, ledgers)
+    rs = r.rewards
+    return r.vault
+  })
+  const live = vaults.filter((v) => v.status === 'ACTIVE')
+  const sum = (k: 'reserveBtc' | 'producedBtc' | 'withdrawnBtc' | 'availableBtc' | 'capitalBtc') =>
+    Number(live.reduce((t, v) => t + v[k], 0).toFixed(8))
+  return {
+    overview: {
+      ...overview,
+      vaults,
+      totals: {
+        ...overview.totals,
+        reserveBtc: sum('reserveBtc'),
+        valueUsd: sum('reserveBtc') * overview.spotUsd,
+        producedBtc: sum('producedBtc'),
+        withdrawnBtc: sum('withdrawnBtc'),
+        availableBtc: sum('availableBtc'),
+        capitalBtc: sum('capitalBtc'),
+      },
+    },
+    rewards: rs,
+  }
 }

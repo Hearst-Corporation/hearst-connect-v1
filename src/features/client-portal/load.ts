@@ -43,7 +43,27 @@ export type PortalVault = Readonly<{
   buffer?: PortalBuffer
   compute: Readonly<{ hashrateThs: number; machines: number; fleetSharePct: number }>
   endOfTerm: 'release' | 'renew' | 'undecided' | string
+  /** Posé par `withChainLedger` : d'où viennent la réserve, le produit, les retraits et la comparaison au simple achat. */
+  chain?: PortalVaultChain
 }>
+
+/** La preuve on-chain des chiffres d'un vault (HearstReserveRegistry). */
+export type PortalVaultChain =
+  | Readonly<{
+      status: 'verified'
+      /** Le dernier mois clos vérifié par le contrat (AAAA-MM). */
+      month: string
+      publishedAt: string
+      registry: string
+      explorerUrl: string | null
+      /** Buffer d'électricité restant, en BTC au cours de clôture du mois — tel que le contrat le compte. */
+      bufferBtc: number
+      /** (réserve + déjà versé + buffer) ÷ simple achat, en %, calculé par le contrat. */
+      vsHoldPct: number
+      /** Lignes refusées par le contrat (jamais affichées). */
+      rejected: number
+    }>
+  | Readonly<{ status: 'unverified' | 'unconfigured' }>
 
 export type PortalBuffer = Readonly<{
   startUsd: number
@@ -92,6 +112,8 @@ export type PortalReward = Readonly<{
   feeBtc?: number
   refillBtc?: number
   electricityUsd?: number
+  /** Posé par `withChainLedger` : la ligne de ce mois a été vérifiée par HearstReserveRegistry. */
+  onChain?: boolean
 }>
 
 export type PortalActivity = Readonly<{
@@ -149,6 +171,17 @@ async function read<T>(id: string, key: string, params?: Record<string, string>)
 
 export const loadOverview = () => read<PortalOverview>('me-overview', 'overview')
 export const loadRewards = (vaultId?: string) => read<readonly PortalReward[]>('me-rewards', 'rewards', vaultId ? { vaultId } : undefined)
+/** Une ligne de vault du registre on-chain, telle que le backend la remet au client avec sa preuve. */
+export type PortalAttestation = Readonly<{
+  vaultId: string
+  period: number
+  month: string
+  /** Les champs de `HearstReserveRegistry.VaultLine`, satoshis en chaînes. */
+  line: Readonly<Record<string, string>>
+  proof: readonly string[]
+}>
+
+export const loadAttestations = () => read<readonly PortalAttestation[]>('me-attestations', 'attestations')
 export const loadActivity = () => read<readonly PortalActivity[]>('me-activity', 'activity')
 export const loadWallets = () => read<readonly PortalWallet[]>('me-wallets', 'wallets')
 export const loadDocuments = () => read<readonly PortalDocument[]>('me-documents', 'documents')

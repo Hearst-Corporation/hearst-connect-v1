@@ -26,6 +26,29 @@ Elles sont fixées au déploiement et ne changent plus (`FEE_BPS`, `REFILL_CAP_B
 
 `verifyVault` ne répond `true` que si la ligne est dans l'attestation **et** respecte ces règles : une ligne aux frais gonflés est refusée même si Hearst l'a publiée. Le buffer d'électricité restant (en USDC, au client) entre dans `vsHoldBps`, converti en sats au cours de clôture.
 
+## Les chiffres de chaque vault dans l'espace client
+
+L'espace client n'affiche pas les chiffres d'un vault tels que le backend les donne. Il les fait d'abord **vérifier par le registre**.
+
+1. Le backend remet, pour chaque vault du client et chaque mois attesté, la ligne (`VaultLine`, en satoshis) et sa preuve Merkle (`GET /api/v1/me/attestations`).
+2. L'application appelle `verifyVault(période, ligne, preuve)` pour chaque ligne (`src/lib/chain/reserve-registry.ts`). Une ligne refusée n'est jamais affichée.
+3. Sur la dernière ligne vérifiée, elle lit `vsHoldBps` et la date de publication (`attestation`).
+
+| À l'écran | Vient de |
+|---|---|
+| Réserve | `reserveSats` de la dernière ligne vérifiée |
+| Bitcoin produit | somme des `toReserveSats` des mois vérifiés |
+| Déjà retiré | `withdrawnTotalSats` |
+| « If bought that day » (simple achat) | `holdSats` |
+| Face au simple achat | `vsHoldBps`, calculé par le contrat (buffer compté en sats au cours de clôture) |
+| Détail d'un mois (relevé, distributions) | `minedSats`, `feeSats`, `refillSats`, `toReserveSats` |
+| « Verified on Ethereum to <mois> » | le dernier mois vérifié |
+| Disponible au retrait | réserve vérifiée − retraits en attente (le backend) |
+
+Restent au backend ce qui n'existe pas sur la chaîne : les dates (dépôt, blocage), le buffer en USDC et les factures d'électricité en dollars, les retraits en attente, le mois en cours tant qu'il n'est pas attesté.
+
+`scripts/demo-chain.mjs` déploie les deux contrats, publie chaque mois de la démo (22 mois, novembre 2024 → août 2026, 6 vaults) et les relevés du réseau, puis affiche les variables à configurer.
+
 ## L'économie du minage on-chain — `HearstMiningOracle`
 
 Le bloc **Mining Economics** de l'espace client est lu dans ce contrat, chiffre par chiffre. Le contrat n'affiche pas un coût que Hearst lui aurait donné : il le **calcule** à chaque lecture (`economics()`), à partir de trois sources.
@@ -109,6 +132,7 @@ contracts/
 ├── script/Publish.s.sol                 publication d'un mois
 ├── script/DeployMiningOracle.s.sol      déploiement de l'oracle
 ├── script-js/publish-network.mjs        publication des relevés du réseau (mempool.space, Coinbase)
+└── ../scripts/demo-chain.mjs            la chaîne de la démo : déploie les deux contrats et les remplit
 ├── script-js/build-merkle.mjs           fabrique racine + preuves à partir des lignes du mois
 ├── script-js/samples/202611.json        lignes d'exemple
 ├── foundry.toml                         configuration (compilateur, réseaux, Etherscan)

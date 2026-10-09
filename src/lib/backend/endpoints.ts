@@ -497,6 +497,15 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     summary: 'Monthly rewards of the client’s vaults, by pocket, converted into bitcoin. `?vaultId=` scopes to one vault.',
   }),
   defineEndpoint({
+    id: 'me-attestations',
+    path: '/api/v1/me/attestations',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'The client’s vault lines in the on-chain reserve registry, month by month, each with its Merkle proof — amounts in satoshis.',
+    caveat: 'Nothing here is displayed as such: every line is checked by HearstReserveRegistry.verifyVault on Ethereum first, and only a verified line reaches the screen.',
+  }),
+  defineEndpoint({
     id: 'me-activity',
     path: '/api/v1/me/activity',
     category: 'business',

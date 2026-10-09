@@ -148,7 +148,11 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
   /* V2 : le buffer d'électricité restant est toujours au client (USDC) — il ne compte pas dans
      le prix de ses bitcoins, et il compte dans la comparaison au simple achat. */
   const bufferUsd = vault.buffer?.balanceUsd ?? 0
-  const bufferBtc = spotUsd > 0 ? bufferUsd / spotUsd : 0
+  /* Vérifiés sur la chaîne (HearstReserveRegistry), la réserve, le produit et les retraits sont
+     ceux du dernier mois clos attesté ; le buffer et la comparaison au simple achat aussi, tels
+     que le contrat les compte (buffer au cours de clôture, `vsHoldBps`). */
+  const chain = vault.chain?.status === 'verified' ? vault.chain : null
+  const bufferBtc = chain ? chain.bufferBtc : spotUsd > 0 ? bufferUsd / spotUsd : 0
   const avgCost = ownedBtc > 0 ? Math.max(0, totals.depositedUsdc - bufferUsd) / ownedBtc : null
   const nextReward = vault.nextRewardAt
   const lastReward =
@@ -293,13 +297,21 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               {
                 heldBtc: totals.reserveBtc + totals.withdrawnBtc + bufferBtc,
                 hodlBtc: totals.capitalBtc,
-                deltaPct:
-                  totals.capitalBtc > 0
+                deltaPct: chain
+                  ? chain.vsHoldPct - 100
+                  : totals.capitalBtc > 0
                     ? ((totals.reserveBtc + totals.withdrawnBtc + bufferBtc) / totals.capitalBtc - 1) * 100
                     : 0,
                 entryRateUsd: 0,
                 spotRateUsd: spotUsd,
-                windowLabel: `${multiVault ? 'since this deposit' : 'since your deposit'} · reserve, withdrawals and electricity buffer`,
+                // La provenance des chiffres : le registre on-chain, à la date du dernier mois attesté.
+                windowLabel: `${multiVault ? 'since this deposit' : 'since your deposit'} · reserve, withdrawals and electricity buffer${
+                  chain
+                    ? ` · verified on Ethereum to ${monthLabel(chain.month)}`
+                    : vault.chain?.status === 'unverified'
+                      ? ' · not verified on-chain'
+                      : ''
+                }`,
               },
               { provenance: 'chain' },
             )}

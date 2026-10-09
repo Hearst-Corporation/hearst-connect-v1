@@ -81,6 +81,12 @@ export function miningOracleAddress(): `0x${string}` | null {
   return raw && /^0x[0-9a-fA-F]{40}$/.test(raw) ? (raw as `0x${string}`) : null
 }
 
+/** Address of `HearstReserveRegistry` (per-vault monthly attestations). `null` if not configured or malformed. */
+export function reserveRegistryAddress(): `0x${string}` | null {
+  const raw = process.env.HEARST_RESERVE_REGISTRY_ADDRESS?.trim()
+  return raw && /^0x[0-9a-fA-F]{40}$/.test(raw) ? (raw as `0x${string}`) : null
+}
+
 /** Block explorer base for contract links (Etherscan, Sepolia Etherscan…). `null` = no link shown. */
 export function chainExplorerUrl(): string | null {
   const raw = process.env.HEARST_CHAIN_EXPLORER_URL?.trim()

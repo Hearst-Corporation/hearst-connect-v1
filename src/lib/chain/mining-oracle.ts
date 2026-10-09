@@ -1,9 +1,9 @@
 import 'server-only'
 
-import { chainExplorerUrl, chainRpcUrl, miningOracleAddress } from '@/lib/env'
+import { miningOracleAddress } from '@/lib/env'
+import { chainClient, contractLink } from './client'
 import type { ProductionCost } from '@/lib/product/readings'
 import { available, unavailable, type Availability } from '@/lib/vaults/model'
-import { createPublicClient, http } from 'viem'
 
 /**
  * MINING ECONOMICS — lu sur la chaîne, dans `HearstMiningOracle`
@@ -58,19 +58,17 @@ const ECONOMICS_ABI = [
 const e8 = (v: bigint) => Number(v) / 1e8
 
 export async function readMiningEconomics(): Promise<Availability<ProductionCost>> {
-  const rpc = chainRpcUrl()
+  const client = chainClient()
   const address = miningOracleAddress()
-  if (rpc === null || address === null) {
+  if (client === null || address === null) {
     return unavailable({ reason: 'chain_not_configured', endpoint: MINING_ORACLE_SOURCE, status: 'NOT_CONFIGURED' })
   }
 
   try {
-    const client = createPublicClient({ transport: http(rpc, { timeout: 8_000 }) })
     const [e, chainId] = await Promise.all([
       client.readContract({ address, abi: ECONOMICS_ABI, functionName: 'economics' }),
       client.getChainId(),
     ])
-    const explorer = chainExplorerUrl()
     const asOf = new Date(Number(e.networkUpdatedAt) * 1000).toISOString()
     return available<ProductionCost>(
       {
@@ -88,7 +86,7 @@ export async function readMiningEconomics(): Promise<Availability<ProductionCost
         onChain: {
           address,
           chainId,
-          explorerUrl: explorer ? `${explorer}/address/${address}#readContract` : null,
+          explorerUrl: contractLink(address),
           priceFromFeed: e.priceFromFeed,
         },
       },

@@ -13,6 +13,8 @@
 
 import { createHash, randomUUID } from 'node:crypto'
 import { gunzipSync, gzipSync } from 'node:zlib'
+import { StandardMerkleTree } from '@openzeppelin/merkle-tree'
+import { concat, keccak256, toBytes, toHex } from 'viem'
 
 /** Identifiants du mock local. Rien de sensible : ce serveur ne sert que des données fictives. */
 const ACCOUNTS = [
@@ -438,7 +440,8 @@ function vaultMonths(v) {
       topUpUsd = Math.min(electricityUsd * BUFFER_TARGET_MONTHS - bufferUsd, minedUsd * BUFFER_TOPUP_CAP)
       bufferUsd += topUpUsd
     }
-    const topUpSats = Math.round((topUpUsd / price) * 1e8)
+    // Plafonnée au satoshi près : le registre on-chain refuse une recharge au-dessus de 50 % du miné.
+    const topUpSats = Math.min(Math.round((topUpUsd / price) * 1e8), Math.floor(minedSats * BUFFER_TOPUP_CAP))
     // Ce qui entre dans la réserve : le miné, moins les frais Hearst, moins la recharge du buffer.
     const sats = minedSats - feeSats - topUpSats
     const usd = Math.round((sats / 1e8) * price)
@@ -791,6 +794,21 @@ function payloadFor(path, search = '') {
           lastReward: lastMonth ? { month: lastMonth.month, btc: lastMonth.sats / 1e8, usd: lastMonth.usd, vault: vaultNameOf(c, lastMonth.v) } : null,
           vaults: views,
         }),
+      }
+    }
+    /* Les lignes de SES vaults dans le registre on-chain, mois par mois, avec la preuve Merkle
+       que l'espace client fait vérifier par le contrat. Les montants sont en satoshis (chaînes). */
+    if (p === '/api/v1/me/attestations') {
+      const mine = new Set(vaults.map((v) => vaultKey(v)))
+      const str = (line) => Object.fromEntries(Object.entries(line).map(([k, n]) => [k, String(n)]))
+      return {
+        attestations: bloc(
+          demoAttestations().flatMap((a) =>
+            a.vaults
+              .filter((x) => mine.has(x.vaultId))
+              .map((x) => ({ vaultId: x.vaultId, period: a.period, month: x.month, line: str(x.line), proof: x.proof })),
+          ),
+        ),
       }
     }
     if (p === '/api/v1/me/rewards') {
@@ -3171,6 +3189,97 @@ function vaultEconomy(v) {
   }
 }
 
+/* ══ LE REGISTRE ON-CHAIN — HearstReserveRegistry ════════════════════════════
+ * Chaque mois clos, Hearst publie sur Ethereum la racine Merkle des lignes de
+ * TOUS les vaults (contracts/src/HearstReserveRegistry.sol). Le client reçoit
+ * SA ligne et SA preuve (`/api/v1/me/attestations`) ; l'espace client les fait
+ * vérifier par le contrat (`verifyVault`) avant d'afficher un seul chiffre.
+ *
+ * Les lignes découlent du même livre que tout le reste (`vaultMonths`,
+ * `withdrawalsOf`, `vaultEconomy`) : seul un mois VERSÉ est attesté — un mois
+ * en attente de validation n'est pas encore au client. Le sel de la démo est
+ * public ; le vrai vit dans le Trousseau (contracts/README.md).
+ */
+const ATTEST_FEE_BPS = FEE_BPS
+const ATTEST_REFILL_CAP_BPS = Math.round(BUFFER_TOPUP_CAP * 10_000)
+const ATTEST_SALT = keccak256(toBytes('hearst-demo-salt (public, démo seulement)'))
+/* Doit rester identique à HearstReserveRegistry.vaultLeaf : la période, la clé, puis les champs de VaultLine. */
+const LINE_FIELDS = ['minedSats', 'electricitySats', 'feeSats', 'refillSats', 'toReserveSats', 'withdrawnSats', 'reserveSats', 'withdrawnTotalSats', 'bufferSats', 'holdSats']
+const LEAF_ENCODING = ['uint32', 'bytes32', ...LINE_FIELDS.map(() => 'uint64')]
+const periodOf = (ym) => Number(ym.replace('-', ''))
+/** La clé opaque d'un vault : keccak256(sel ‖ identifiant). La chaîne ne voit jamais l'identifiant. */
+const chainKeyOf = (v) => keccak256(concat([ATTEST_SALT, toHex(vaultKey(v))]))
+const allVaultIndexes = () => Array.from({ length: BASE_VAULT_COUNT + WORLD.opened.length }, (_, i) => i)
+
+/** Les lignes attestables d'un vault, du plus ancien au plus récent : un mois versé après l'autre. */
+function vaultChainLines(v) {
+  const months = [...vaultMonths(v)].reverse()
+  const holdSats = vaultEconomy(v).capitalSats
+  const paid = withdrawalsOf(v).filter((w) => w.status === 'approved')
+  const out = []
+  let reserve = 0
+  let withdrawnTotal = 0
+  for (const m of months) {
+    if (m.status === 'declined') continue
+    // Un mois en attente arrête la série : les suivants ne peuvent pas être attestés avant lui.
+    if (m.status !== 'distributed') break
+    const withdrawnSats = paid.filter((w) => w.at.slice(0, 7) === m.month).reduce((t, w) => t + w.sats, 0)
+    if (reserve + m.sats < withdrawnSats) break
+    reserve += m.sats - withdrawnSats
+    withdrawnTotal += withdrawnSats
+    out.push({
+      period: periodOf(m.month),
+      month: m.month,
+      line: {
+        vaultKey: chainKeyOf(v),
+        minedSats: m.minedSats,
+        electricitySats: m.electricitySats,
+        feeSats: m.feeSats,
+        refillSats: m.bufferTopUpSats,
+        toReserveSats: m.sats,
+        withdrawnSats,
+        reserveSats: reserve,
+        withdrawnTotalSats: withdrawnTotal,
+        bufferSats: Math.round((m.bufferUsd / m.price) * 1e8),
+        holdSats,
+      },
+    })
+  }
+  return out
+}
+
+/** L'attestation d'un mois : toutes les lignes, la racine, les totaux publics. */
+function attestationOf(period) {
+  const rows = allVaultIndexes()
+    .map((v) => ({ v, entry: vaultChainLines(v).find((x) => x.period === period) }))
+    .filter((r) => r.entry !== undefined)
+  if (rows.length === 0) return null
+  const values = rows.map((r) => [period, r.entry.line.vaultKey, ...LINE_FIELDS.map((k) => String(r.entry.line[k]))])
+  const tree = StandardMerkleTree.of(values, LEAF_ENCODING)
+  const sum = (k) => rows.reduce((t, r) => t + r.entry.line[k], 0)
+  return {
+    period,
+    merkleRoot: tree.root,
+    totals: {
+      minedSats: sum('minedSats'),
+      electricitySats: sum('electricitySats'),
+      feeSats: sum('feeSats'),
+      refillSats: sum('refillSats'),
+      toReserveSats: sum('toReserveSats'),
+      withdrawnSats: sum('withdrawnSats'),
+      reserveSats: sum('reserveSats'),
+      vaultCount: rows.length,
+    },
+    vaults: rows.map((r, i) => ({ v: r.v, vaultId: vaultKey(r.v), month: r.entry.month, line: r.entry.line, proof: tree.getProof(i) })),
+  }
+}
+
+/** Toutes les périodes attestables de la démo, de la plus ancienne à la plus récente. */
+function demoAttestations() {
+  const periods = [...new Set(allVaultIndexes().flatMap((v) => vaultChainLines(v).map((x) => x.period)))].sort((a, b) => a - b)
+  return periods.map(attestationOf).filter((a) => a !== null)
+}
+
 /*
  * LA DÉRIVE GRANDIT AVEC LE TEMPS : chaque mois, le minage s'écarte de sa
  * cible (le bitcoin bouge, la production s'accumule). Un vault sort de sa
@@ -3820,6 +3929,9 @@ applyWorld(null)
 
 export {
   ACCOUNTS,
+  ATTEST_FEE_BPS,
+  ATTEST_REFILL_CAP_BPS,
+  demoAttestations,
   serializeWorld,
   useWorld,
   CREATED_OFFERS,

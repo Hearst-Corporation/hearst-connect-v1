@@ -1,5 +1,5 @@
 import { PrintButton } from '@/app/proposal/[id]/print-button'
-import { loadActivity, loadOverview, loadRewards } from '@/features/client-portal/load'
+import { loadActivity, loadAttestations, loadOverview, loadRewards } from '@/features/client-portal/load'
 import { btc, monthLabel, usd } from '@/features/client-portal/parts'
 import { requireSession } from '@/lib/auth'
 import { formatDate } from '@/lib/format'
@@ -7,7 +7,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { statementHref } from '@/features/client-portal/statement-href'
-import { withChainSpot } from '@/features/client-portal/scope'
+import { withChainLedgers, withChainSpot } from '@/features/client-portal/scope'
+import { readVaultLedgers } from '@/lib/chain/reserve-registry'
 import { readMiningEconomics } from '@/lib/chain/mining-oracle'
 
 export const metadata: Metadata = { title: 'Statement' }
@@ -33,9 +34,17 @@ export default async function StatementPage({
   if (!year && !month) notFound()
   const wanted = vaultWord?.match(/^vault-(\d+)$/)?.[1]
   // Les relevés de chaque vault sont filtrés plus bas : on lit tous les rewards.
-  const [ledger, rewards, activity, economics] = await Promise.all([loadOverview(), loadRewards(), loadActivity(), readMiningEconomics()])
-  // Le cours du bitcoin vient du contrat (HearstMiningOracle), comme sur l'espace client.
-  const overview = ledger === null ? null : withChainSpot(ledger, economics)
+  const [book, bookRewards, activity, economics, ledgers] = await Promise.all([
+    loadOverview(),
+    loadRewards(),
+    loadActivity(),
+    readMiningEconomics(),
+    loadAttestations().then(readVaultLedgers),
+  ])
+  // Les chiffres des vaults viennent du registre on-chain, le cours de l'oracle — comme sur l'espace client.
+  const chained = book === null || bookRewards === null ? null : withChainLedgers(withChainSpot(book, economics), bookRewards, ledgers)
+  const overview = chained?.overview ?? null
+  const rewards = chained?.rewards ?? null
   if (overview === null || rewards === null) return <p className="p-10 text-sm text-fg-tertiary">This statement could not be produced.</p>
 
   const inPeriod = (ym: string) => (year ? ym.startsWith(year) : ym === month)
@@ -59,9 +68,24 @@ export default async function StatementPage({
     return Math.abs(Math.round(r.feeBtc * 1e8) - Math.floor(Math.max(0, minedSats - elecSats) * 0.15)) <= 1
   })
   const refillOk = rws.every((r) => (r.refillBtc ?? 0) <= (r.minedBtc ?? r.btc) / 2 + 1e-8)
+  /* Les mois que le contrat a vérifiés : pour eux, les deux règles ci-dessus ne sont pas rejouées
+     ici, elles l'ont été par `verifyVault` sur la chaîne. */
+  const onChain = rws.filter((r) => r.onChain).length
+  const allOnChain = rws.length > 0 && onChain === rws.length
+  const registry = scope.map((v) => v.chain).find((c) => c?.status === 'verified')
   // Face au simple achat : réserve + déjà retiré + buffer d'électricité restant (au client), au cours du jour.
   const holdBtc = scope.reduce((t, v) => t + v.capitalBtc, 0)
-  const bufferBtc = overview.spotUsd > 0 ? scope.reduce((t, v) => t + (v.buffer?.balanceUsd ?? 0), 0) / overview.spotUsd : 0
+  // Un vault vérifié compte son buffer comme le contrat : en BTC au cours de clôture du mois attesté.
+  const bufferBtc = scope.reduce(
+    (t, v) =>
+      t +
+      (v.chain?.status === 'verified'
+        ? v.chain.bufferBtc
+        : overview.spotUsd > 0
+          ? (v.buffer?.balanceUsd ?? 0) / overview.spotUsd
+          : 0),
+    0,
+  )
   const vsHold =
     holdBtc > 0 ? ((scope.reduce((t, v) => t + v.reserveBtc + v.withdrawnBtc, 0) + bufferBtc) / holdBtc) * 100 : null
   const removed = outs.reduce((t, a) => t + (a.btc ?? 0), 0)
@@ -132,15 +156,34 @@ export default async function StatementPage({
           <table className="w-full text-sm">
             <tbody className="divide-y divide-[var(--ud-line)]">
               {[
-                ['Hearst fee = 15 % of the mined bitcoin, net of electricity', feeOk ? 'Respected' : 'To check'],
-                ['Buffer refill ≤ 50 % of the month’s mined bitcoin', refillOk ? 'Respected' : 'To check'],
+                [
+                  'Your lines, checked by the contract (verifyVault)',
+                  rws.length === 0 ? '—' : `${onChain} of ${rws.length} month${rws.length > 1 ? 's' : ''} verified`,
+                ],
+                [
+                  'Hearst fee = 15 % of the mined bitcoin, net of electricity',
+                  allOnChain ? 'Respected — checked on-chain' : feeOk ? 'Respected' : 'To check',
+                ],
+                [
+                  'Buffer refill ≤ 50 % of the month’s mined bitcoin',
+                  allOnChain ? 'Respected — checked on-chain' : refillOk ? 'Respected' : 'To check',
+                ],
                 [
                   'Bitcoin produced + buffer, vs simply holding',
                   vsHold !== null ? `${vsHold.toFixed(1)} % of what the deposit would have bought` : '—',
                 ],
-                ['Reserve registry', 'HearstReserveRegistry · Ethereum'],
+                [
+                  'Reserve registry',
+                  registry?.status === 'verified' && registry.explorerUrl ? (
+                    <a href={registry.explorerUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+                      HearstReserveRegistry · Ethereum
+                    </a>
+                  ) : (
+                    'HearstReserveRegistry · Ethereum'
+                  ),
+                ],
               ].map(([k, v]) => (
-                <tr key={k}>
+                <tr key={String(k)}>
                   <td className="py-2.5 text-fg-secondary">{k}</td>
                   <td className="py-2.5 text-right tabular-nums text-fg">{v}</td>
                 </tr>

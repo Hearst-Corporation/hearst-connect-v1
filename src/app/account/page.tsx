@@ -1,6 +1,7 @@
 import { Callout } from '@/components/compositions'
-import { loadActivity, loadOverview, loadRewards, loadWallets } from '@/features/client-portal/load'
-import { reservePoints, scopeToVault, withChainSpot } from '@/features/client-portal/scope'
+import { loadActivity, loadAttestations, loadOverview, loadRewards, loadWallets } from '@/features/client-portal/load'
+import { reservePoints, scopeToVault, withChainLedgers, withChainSpot } from '@/features/client-portal/scope'
+import { readVaultLedgers } from '@/lib/chain/reserve-registry'
 import { loadUserDashboard } from '@/features/user-dashboard/load'
 import { UserDashboardView, type VaultTab } from '@/features/user-dashboard/user-dashboard'
 import { accountHref, parseAccountPath, tabOf } from '@/features/user-dashboard/urls'
@@ -29,15 +30,20 @@ export default async function AccountPage({
   const wanted = legacy.vault ?? path.vault
   const wantedTab = legacy.tab ?? path.tab
   const tab = tabOf(wantedTab)
-  const [data, ledger, rewards, activity, wallets] = await Promise.all([
+  const [data, book, bookRewards, activity, wallets, ledgers] = await Promise.all([
     loadUserDashboard(),
     loadOverview(),
     loadRewards(),
     loadActivity(),
     loadWallets(),
+    // Les lignes de ses vaults, vérifiées une à une par HearstReserveRegistry.
+    loadAttestations().then(readVaultLedgers),
   ])
-  // Le cours du bitcoin vient du contrat, comme le bloc Mining Economics.
-  const overview = ledger === null ? null : withChainSpot(ledger, data.productionCost)
+  /* Les chiffres de ses vaults viennent du registre on-chain, le cours du
+     bitcoin de l'oracle — comme le bloc Mining Economics. */
+  const chained = book === null ? null : withChainLedgers(withChainSpot(book, data.productionCost), bookRewards ?? [], ledgers)
+  const overview = chained?.overview ?? null
+  const rewards = chained?.rewards ?? null
 
   if (overview === null || overview.vaults.length === 0) {
     return (
