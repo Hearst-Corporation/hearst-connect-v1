@@ -10,8 +10,9 @@ import { chainClient, contractLink } from './client'
  *
  * Chaque mois clos, Hearst publie la racine Merkle des lignes de tous les
  * vaults. Le backend remet au client SA ligne et SA preuve ; ce module demande
- * au contrat si la ligne fait partie du mois publié ET respecte les règles de
- * l'offre (`verifyVault`), puis lit la comparaison au simple achat
+ * au contrat si la ligne fait partie du mois publié, respecte les règles de
+ * l'offre et convertit ses montants USDC au cours de clôture publié
+ * (`verifyVault`), puis lit la comparaison au simple achat
  * (`vsHoldBps`) et la date de publication (`attestation`).
  *
  * Une ligne que le contrat refuse n'est jamais affichée : elle est comptée
@@ -33,6 +34,8 @@ const VAULT_LINE = {
     { name: 'withdrawnTotalSats', type: 'uint64' },
     { name: 'bufferSats', type: 'uint64' },
     { name: 'holdSats', type: 'uint64' },
+    { name: 'electricityUsdc', type: 'uint64' },
+    { name: 'bufferUsdc', type: 'uint64' },
   ],
 } as const
 
@@ -75,6 +78,7 @@ const REGISTRY_ABI = [
               { name: 'withdrawnSats', type: 'uint64' },
               { name: 'reserveSats', type: 'uint64' },
               { name: 'vaultCount', type: 'uint32' },
+              { name: 'btcCloseUsdE8', type: 'uint64' },
             ],
           },
           { name: 'publishedAt', type: 'uint64' },
@@ -100,6 +104,9 @@ export type ChainVaultMonth = Readonly<{
   withdrawnTotalBtc: number
   bufferBtc: number
   holdBtc: number
+  /** Facture d'électricité du mois et buffer restant, en dollars (USDC) — vérifiés contre le cours de clôture. */
+  electricityUsd: number
+  bufferUsd: number
 }>
 
 /** Le livre on-chain d'un vault : ses mois vérifiés, le dernier, et d'où ils viennent. */
@@ -130,6 +137,8 @@ const LINE_FIELDS = [
   'withdrawnTotalSats',
   'bufferSats',
   'holdSats',
+  'electricityUsdc',
+  'bufferUsdc',
 ] as const
 
 type Line = { vaultKey: `0x${string}` } & Record<(typeof LINE_FIELDS)[number], bigint>
@@ -163,6 +172,8 @@ function monthFrom(period: number, l: Line): ChainVaultMonth {
     withdrawnTotalBtc: btc(l.withdrawnTotalSats),
     bufferBtc: btc(l.bufferSats),
     holdBtc: btc(l.holdSats),
+    electricityUsd: Number(l.electricityUsdc) / 1e6,
+    bufferUsd: Number(l.bufferUsdc) / 1e6,
   }
 }
 

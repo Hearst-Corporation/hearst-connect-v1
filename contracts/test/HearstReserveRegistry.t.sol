@@ -15,6 +15,12 @@ contract HearstReserveRegistryTest is Test {
     uint16 internal constant FEE = 1500; // 15 % du miné net d'électricité
     uint16 internal constant CAP = 5000; // recharge ≤ 50 % du miné
     bytes32 internal constant REPORT = keccak256("rapport-202611.pdf");
+    uint64 internal constant CLOSE = 9_482_000_000_000; // cours de clôture du mois : 94 820 $
+
+    /// Un montant en sats exprimé en USDC (6 décimales) au cours de clôture : l'inverse de usdcToSats.
+    function _usdc(uint64 sats) internal pure returns (uint64) {
+        return uint64((uint256(sats) * CLOSE) / 1e10);
+    }
 
     function setUp() public {
         registry = new HearstReserveRegistry(admin, publisher, FEE, CAP);
@@ -40,7 +46,9 @@ contract HearstReserveRegistryTest is Test {
             reserveSats: 100_000_000 + mined - fee - refill,
             withdrawnTotalSats: 0,
             bufferSats: 120_000_000,
-            holdSats: 1_054_600_000
+            holdSats: 1_054_600_000,
+            electricityUsdc: _usdc(elec),
+            bufferUsdc: _usdc(120_000_000)
         });
     }
 
@@ -54,7 +62,8 @@ contract HearstReserveRegistryTest is Test {
             toReserveSats: 100_553_870,
             withdrawnSats: 0,
             reserveSats: 201_107_740,
-            vaultCount: 1
+            vaultCount: 1,
+            btcCloseUsdE8: CLOSE
         });
     }
 
@@ -312,7 +321,8 @@ contract HearstReserveRegistryTest is Test {
             toReserveSats: l.toReserveSats,
             withdrawnSats: l.withdrawnSats,
             reserveSats: l.reserveSats,
-            vaultCount: 1
+            vaultCount: 1,
+            btcCloseUsdE8: CLOSE
         });
         vm.prank(publisher);
         registry.publish(period, root, REPORT, t);
@@ -332,5 +342,39 @@ contract HearstReserveRegistryTest is Test {
 
         jan.reserveSats += 1; // une réserve qui ne découle pas du mois précédent
         assertFalse(registry.verifyContinuity(202_612, dec, none, jan, none));
+    }
+
+    // ── Montants USDC et cours de clôture ─────────────────────────────────
+
+    function test_publish_revertsWithoutClosePrice() public {
+        HearstReserveRegistry.Totals memory t = _totals();
+        t.btcCloseUsdE8 = 0;
+        vm.expectRevert(abi.encodeWithSelector(HearstReserveRegistry.InvalidTotals.selector, uint8(5)));
+        vm.prank(publisher);
+        registry.publish(202_611, keccak256("root"), REPORT, t);
+    }
+
+    function test_usdcToSats() public view {
+        // 15 073 USDC au cours de 94 820 $ = 0,15896435 BTC
+        assertEq(registry.usdcToSats(15_073_000_000, CLOSE), 15_896_435);
+    }
+
+    function test_verifyVault_refusesUsdcThatDoesNotMatchSats() public {
+        HearstReserveRegistry.VaultLine memory l = _line(keccak256("v"), 111_806_441, 36_789_295, 0);
+        _publishSingle(202_611, l);
+        bytes32[] memory none = new bytes32[](0);
+        assertTrue(registry.verifyVault(202_611, l, none));
+        assertTrue(registry.lineMatchesPrice(l, CLOSE));
+
+        // Une facture USDC gonflée de 10 $ ne correspond plus à l'électricité en sats.
+        HearstReserveRegistry.VaultLine memory padded = l;
+        padded.electricityUsdc += 10_000_000;
+        assertFalse(registry.lineMatchesPrice(padded, CLOSE));
+        assertFalse(registry.verifyVault(202_611, padded, none));
+
+        // Un buffer USDC qui ne colle pas au buffer en sats non plus.
+        HearstReserveRegistry.VaultLine memory buffer = l;
+        buffer.bufferUsdc = buffer.bufferUsdc / 2;
+        assertFalse(registry.lineMatchesPrice(buffer, CLOSE));
     }
 }

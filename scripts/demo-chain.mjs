@@ -79,11 +79,11 @@ for (const a of attestations) {
     [
       'send',
       registry,
-      'publish(uint32,bytes32,bytes32,(uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint32))',
+      'publish(uint32,bytes32,bytes32,(uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint32,uint64))',
       String(a.period),
       a.merkleRoot,
       reportHash,
-      `(${t.minedSats},${t.electricitySats},${t.feeSats},${t.refillSats},${t.toReserveSats},${t.withdrawnSats},${t.reserveSats},${t.vaultCount})`,
+      `(${t.minedSats},${t.electricitySats},${t.feeSats},${t.refillSats},${t.toReserveSats},${t.withdrawnSats},${t.reserveSats},${t.vaultCount},${t.btcCloseUsdE8})`,
       '--rpc-url',
       rpc,
       ...signAs('publisher'),

@@ -26,7 +26,8 @@ contract Publish is Script {
             withdrawnSats: _u64(json, ".totals.withdrawnSats"),
             reserveSats: _u64(json, ".totals.reserveSats"),
             // forge-lint: disable-next-line(unsafe-typecast)
-            vaultCount: uint32(vm.parseJsonUint(json, ".totals.vaultCount"))
+            vaultCount: uint32(vm.parseJsonUint(json, ".totals.vaultCount")),
+            btcCloseUsdE8: _u64(json, ".totals.btcCloseUsdE8")
         });
 
         vm.startBroadcast();

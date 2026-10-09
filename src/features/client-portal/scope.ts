@@ -148,6 +148,18 @@ export function withChainLedger(
       producedBtc: Number(produced.toFixed(8)),
       withdrawnBtc: latest.withdrawnTotalBtc,
       capitalBtc: latest.holdBtc,
+      /* Le buffer USDC et la facture du mois viennent aussi de la ligne vérifiée (le contrat les a
+         recoupés avec l'électricité et le buffer en sats, au cours de clôture). */
+      buffer:
+        vault.buffer === undefined
+          ? undefined
+          : {
+              ...vault.buffer,
+              balanceUsd: latest.bufferUsd,
+              monthlyElectricityUsd: latest.electricityUsd,
+              monthsCovered: latest.electricityUsd > 0 ? Number((latest.bufferUsd / latest.electricityUsd).toFixed(1)) : null,
+              electricityPaidUsd: l.months.reduce((t, m) => t + m.electricityUsd, 0),
+            },
       availableBtc:
         vault.status === 'RELEASED' ? 0 : Math.max(0, Number((latest.reserveBtc - vault.pendingWithdrawalBtc).toFixed(8))),
       chain: {
@@ -171,6 +183,7 @@ export function withChainLedger(
             minedBtc: m.minedBtc,
             feeBtc: m.feeBtc,
             refillBtc: m.refillBtc,
+            electricityUsd: m.electricityUsd,
             usd: Math.round(m.toReserveBtc * r.priceUsd),
             onChain: true,
           }

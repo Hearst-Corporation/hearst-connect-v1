@@ -4,9 +4,10 @@
 //
 // Usage : node build-merkle.mjs <entrée.json> <sortie.json> [rapport.pdf]
 //
-// L'entrée donne, par vault, les faits du mois : miné, électricité (en sats au cours de clôture),
-// recharge du buffer, versement au client, buffer restant (en sats au cours de clôture), et l'état du
-// mois précédent (réserve, cumul versé).
+// L'entrée donne le cours de clôture du mois (btcCloseUsdE8) et, par vault, les faits du mois : miné,
+// facture d'électricité et buffer restant en USDC (6 décimales), recharge du buffer, versement au client,
+// et l'état du mois précédent (réserve, cumul versé). L'électricité et le buffer en sats sont calculés
+// ici au cours de clôture, comme le contrat les vérifie (lineMatchesPrice).
 // Le script calcule le reste avec les MÊMES règles que le contrat :
 //   frais     = feeBps du miné net d'électricité (0 si l'électricité dépasse le miné)
 //   réserve   = miné − frais − recharge, ajouté à la réserve du mois précédent, moins le versement
@@ -34,10 +35,12 @@ const LINE_FIELDS = [
   'withdrawnTotalSats',
   'bufferSats',
   'holdSats',
+  'electricityUsdc',
+  'bufferUsdc',
 ];
 const LEAF_ENCODING = ['uint32', 'bytes32', ...LINE_FIELDS.map(() => 'uint64')];
 const TOTAL_FIELDS = ['minedSats', 'electricitySats', 'feeSats', 'refillSats', 'toReserveSats', 'withdrawnSats', 'reserveSats'];
-const INPUT_FIELDS = ['minedSats', 'electricitySats', 'refillSats', 'withdrawnSats', 'prevReserveSats', 'prevWithdrawnTotalSats', 'bufferSats', 'holdSats'];
+const INPUT_FIELDS = ['minedSats', 'electricityUsdc', 'refillSats', 'withdrawnSats', 'prevReserveSats', 'prevWithdrawnTotalSats', 'bufferUsdc', 'holdSats'];
 const UINT64_MAX = 2n ** 64n - 1n;
 const BPS = 10_000n;
 const SAMPLE_SALT = '0x' + bytesToHex(keccak256(utf8ToBytes('hearst-sample-salt (public, exemple seulement)')));
@@ -68,6 +71,11 @@ const feeBps = BigInt(input.feeBps ?? fail('feeBps manquant'));
 const refillCapBps = BigInt(input.refillCapBps ?? fail('refillCapBps manquant'));
 const feeFor = (mined, elec) => (elec >= mined ? 0n : ((mined - elec) * feeBps) / BPS);
 
+// ── Cours de clôture : il convertit l'USDC en sats (doit égaler totals.btcCloseUsdE8 publié) ──
+const btcCloseUsdE8 = BigInt(input.btcCloseUsdE8 ?? fail('btcCloseUsdE8 manquant (cours de clôture, USD à 8 décimales)'));
+if (btcCloseUsdE8 === 0n) fail('btcCloseUsdE8 ne peut pas valoir zéro');
+const usdcToSats = (usdc) => (usdc * 10_000_000_000n) / btcCloseUsdE8;
+
 // ── Contrôles et calcul des lignes ────────────────────────────────────────
 const period = Number(input.period);
 const year = Math.floor(period / 100);
@@ -92,7 +100,9 @@ const lines = input.vaults.map((v, i) => {
   seen.add(v.id);
   const f = Object.fromEntries(INPUT_FIELDS.map((k) => [k, sats(v, k)]));
 
-  const feeSats = feeFor(f.minedSats, f.electricitySats);
+  const electricitySats = usdcToSats(f.electricityUsdc);
+  const bufferSats = usdcToSats(f.bufferUsdc);
+  const feeSats = feeFor(f.minedSats, electricitySats);
   if (f.refillSats * BPS > f.minedSats * refillCapBps) fail(`vault ${v.id} : recharge au-dessus du plafond`);
   if (feeSats + f.refillSats > f.minedSats) fail(`vault ${v.id} : frais + recharge dépassent le miné`);
   const toReserveSats = f.minedSats - feeSats - f.refillSats;
@@ -101,15 +111,17 @@ const lines = input.vaults.map((v, i) => {
 
   const line = {
     minedSats: f.minedSats,
-    electricitySats: f.electricitySats,
+    electricitySats,
     feeSats,
     refillSats: f.refillSats,
     toReserveSats,
     withdrawnSats: f.withdrawnSats,
     reserveSats: f.prevReserveSats + toReserveSats - f.withdrawnSats,
     withdrawnTotalSats: f.prevWithdrawnTotalSats + f.withdrawnSats,
-    bufferSats: f.bufferSats,
+    bufferSats,
     holdSats: f.holdSats,
+    electricityUsdc: f.electricityUsdc,
+    bufferUsdc: f.bufferUsdc,
   };
   for (const [k, n] of Object.entries(line)) if (n > UINT64_MAX) fail(`vault ${v.id} : ${k} dépasse uint64`);
   return {id: v.id, vaultKey: vaultKeyOf(v.id), ...line};
@@ -135,7 +147,7 @@ const output = {
   feeBps: Number(feeBps),
   refillCapBps: Number(refillCapBps),
   leafEncoding: LEAF_ENCODING,
-  totals: {...str(totals), vaultCount: lines.length},
+  totals: {...str(totals), vaultCount: lines.length, btcCloseUsdE8: btcCloseUsdE8.toString()},
   vaults: lines.map((l, i) => ({
     id: l.id,
     vaultKey: l.vaultKey,

@@ -3,61 +3,62 @@
   "period": 202611,
   "feeBps": 1500,
   "refillCapBps": 5000,
+  "btcCloseUsdE8": "9482000000000",
   "vaults": [
     {
       "id": "V-0001",
       "minedSats": "111806441",
-      "electricitySats": "36789295",
       "refillSats": "0",
       "withdrawnSats": "0",
       "prevReserveSats": "100553870",
       "prevWithdrawnTotalSats": "0",
       "holdSats": "1054629825",
-      "bufferSats": "84615883"
+      "electricityUsdc": "34883609519",
+      "bufferUsdc": "80232780260"
     },
     {
       "id": "V-0002",
       "minedSats": "46958705",
-      "electricitySats": "15451504",
       "refillSats": "0",
       "withdrawnSats": "0",
       "prevReserveSats": "42232625",
       "prevWithdrawnTotalSats": "0",
       "holdSats": "442944526",
-      "bufferSats": "35538670"
+      "electricityUsdc": "14651116092",
+      "bufferUsdc": "33697766894"
     },
     {
       "id": "V-0003",
       "minedSats": "380141901",
-      "electricitySats": "125083604",
       "refillSats": "0",
       "withdrawnSats": "0",
       "prevReserveSats": "341883157",
       "prevWithdrawnTotalSats": "0",
       "holdSats": "3585741405",
-      "bufferSats": "287694002"
+      "electricityUsdc": "118604273312",
+      "bufferUsdc": "272791452696"
     },
     {
       "id": "V-0004",
       "minedSats": "95035475",
-      "electricitySats": "31270901",
       "refillSats": "0",
       "withdrawnSats": "42735394",
       "prevReserveSats": "85470789",
       "prevWithdrawnTotalSats": "0",
       "holdSats": "896435351",
-      "bufferSats": "71923500"
+      "electricityUsdc": "29651068328",
+      "bufferUsdc": "68197862700"
     },
     {
       "id": "V-0005",
       "minedSats": "626116071",
-      "electricitySats": "206020053",
       "refillSats": "0",
       "withdrawnSats": "0",
       "prevReserveSats": "563101669",
       "prevWithdrawnTotalSats": "0",
       "holdSats": "5905927020",
-      "bufferSats": "473848947"
+      "electricityUsdc": "195348214254",
+      "bufferUsdc": "449303571545"
     }
   ]
 }

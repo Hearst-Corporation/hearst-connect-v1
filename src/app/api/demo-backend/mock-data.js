@@ -3204,7 +3204,7 @@ const ATTEST_FEE_BPS = FEE_BPS
 const ATTEST_REFILL_CAP_BPS = Math.round(BUFFER_TOPUP_CAP * 10_000)
 const ATTEST_SALT = keccak256(toBytes('hearst-demo-salt (public, démo seulement)'))
 /* Doit rester identique à HearstReserveRegistry.vaultLeaf : la période, la clé, puis les champs de VaultLine. */
-const LINE_FIELDS = ['minedSats', 'electricitySats', 'feeSats', 'refillSats', 'toReserveSats', 'withdrawnSats', 'reserveSats', 'withdrawnTotalSats', 'bufferSats', 'holdSats']
+const LINE_FIELDS = ['minedSats', 'electricitySats', 'feeSats', 'refillSats', 'toReserveSats', 'withdrawnSats', 'reserveSats', 'withdrawnTotalSats', 'bufferSats', 'holdSats', 'electricityUsdc', 'bufferUsdc']
 const LEAF_ENCODING = ['uint32', 'bytes32', ...LINE_FIELDS.map(() => 'uint64')]
 const periodOf = (ym) => Number(ym.replace('-', ''))
 /** La clé opaque d'un vault : keccak256(sel ‖ identifiant). La chaîne ne voit jamais l'identifiant. */
@@ -3240,9 +3240,13 @@ function vaultChainLines(v) {
         withdrawnSats,
         reserveSats: reserve,
         withdrawnTotalSats: withdrawnTotal,
-        bufferSats: Math.round((m.bufferUsd / m.price) * 1e8),
+        // Le buffer en sats : son montant USDC au cours de clôture, arrondi comme le contrat (usdcToSats).
+        bufferSats: Math.floor((m.bufferUsd * 1e6 * 1e10) / (m.price * 1e8)),
         holdSats,
+        electricityUsdc: m.electricityUsd * 1e6,
+        bufferUsdc: m.bufferUsd * 1e6,
       },
+      closeUsdE8: m.price * 1e8,
     })
   }
   return out
@@ -3269,6 +3273,8 @@ function attestationOf(period) {
       withdrawnSats: sum('withdrawnSats'),
       reserveSats: sum('reserveSats'),
       vaultCount: rows.length,
+      // Le cours de clôture du mois : le même pour tous les vaults (celui du calendrier de la démo).
+      btcCloseUsdE8: rows[0].entry.closeUsdE8,
     },
     vaults: rows.map((r, i) => ({ v: r.v, vaultId: vaultKey(r.v), month: r.entry.month, line: r.entry.line, proof: tree.getProof(i) })),
   }

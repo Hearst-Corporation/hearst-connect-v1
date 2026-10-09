@@ -23,6 +23,7 @@ Elles sont fixées au déploiement et ne changent plus (`FEE_BPS`, `REFILL_CAP_B
 | Recharge du buffer | au plus 50 % du miné du mois | ligne et totaux |
 | Continuité | réserve du mois = réserve précédente + versé à la réserve − versé au client | `verifyContinuity`, sur deux mois d'un même vault |
 | Face au simple achat | (réserve + déjà versé + buffer restant) ÷ ce qu'aurait acheté le dépôt | `vsHoldBps` (10 700 = 107 %) |
+| Montants en dollars | facture d'électricité et buffer en USDC = leurs montants en sats au cours de clôture du mois (à 1 sat près) | `lineMatchesPrice`, appelée par `verifyVault` ; le cours est publié dans les totaux (`btcCloseUsdE8`) |
 
 `verifyVault` ne répond `true` que si la ligne est dans l'attestation **et** respecte ces règles : une ligne aux frais gonflés est refusée même si Hearst l'a publiée. Le buffer d'électricité restant (en USDC, au client) entre dans `vsHoldBps`, converti en sats au cours de clôture.
 
@@ -42,10 +43,11 @@ L'espace client n'affiche pas les chiffres d'un vault tels que le backend les do
 | « If bought that day » (simple achat) | `holdSats` |
 | Face au simple achat | `vsHoldBps`, calculé par le contrat (buffer compté en sats au cours de clôture) |
 | Détail d'un mois (relevé, distributions) | `minedSats`, `feeSats`, `refillSats`, `toReserveSats` |
+| Buffer d'électricité (USDC), facture du mois | `bufferUsdc`, `electricityUsdc`, recoupés avec les sats au cours de clôture |
 | « Verified on Ethereum to <mois> » | le dernier mois vérifié |
 | Disponible au retrait | réserve vérifiée − retraits en attente (le backend) |
 
-Restent au backend ce qui n'existe pas sur la chaîne : les dates (dépôt, blocage), le buffer en USDC et les factures d'électricité en dollars, les retraits en attente, le mois en cours tant qu'il n'est pas attesté.
+Restent au backend ce qui n'existe pas sur la chaîne : les dates (dépôt, blocage), les retraits en attente, le mois en cours tant qu'il n'est pas attesté.
 
 `scripts/demo-chain.mjs` déploie les deux contrats, publie chaque mois de la démo (22 mois, novembre 2024 → août 2026, 6 vaults) et les relevés du réseau, puis affiche les variables à configurer.
 
@@ -145,7 +147,7 @@ contracts/
 cd contracts
 forge soldeer install      # première fois : télécharge les bibliothèques
 forge build                # compile
-forge test                 # 25 tests, dont 256 essais aléatoires sur les périodes
+forge test                 # 44 tests (registre 28, oracle 16), dont des essais aléatoires sur les périodes et les relevés
 forge test -vvvv --match-test test_verifyVault_twoVaults   # le détail d'un test
 forge test --gas-report    # coût en gas de chaque fonction
 forge fmt                  # formate le code
@@ -228,7 +230,7 @@ L'adresse du contrat s'affiche. Sur sepolia.etherscan.io, l'onglet **Contract** 
 
 ## 8. Publier un mois
 
-1. Exporter les lignes du mois clôturé au format de `script-js/samples/202611.json`. Pour chaque vault, en satoshis : miné, électricité du mois (convertie au cours de clôture), recharge du buffer, versement au client, réserve et cumul versé du mois précédent, buffer restant en sats (`bufferSats`), et `holdSats` (ce que son dépôt aurait acheté le jour du dépôt). Le script calcule les frais, la part versée à la réserve et la nouvelle réserve.
+1. Exporter les lignes du mois clôturé au format de `script-js/samples/202611.json` : le cours de clôture du mois (`btcCloseUsdE8`, USD à 8 décimales) puis, pour chaque vault, le miné, la recharge du buffer, le versement au client, la réserve et le cumul versé du mois précédent, et `holdSats` (ce que son dépôt aurait acheté le jour du dépôt), en satoshis, avec la facture d'électricité du mois et le buffer restant en USDC (`electricityUsdc`, `bufferUsdc`, 6 décimales). Le script convertit l'USDC en sats au cours de clôture, calcule les frais, la part versée à la réserve et la nouvelle réserve.
 2. Construire l'attestation. Le sel vient du Trousseau, jamais d'un fichier :
 
    ```bash

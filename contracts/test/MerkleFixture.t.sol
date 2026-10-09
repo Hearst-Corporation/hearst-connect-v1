@@ -35,7 +35,8 @@ contract MerkleFixtureTest is Test {
             withdrawnSats: _u64(".totals.withdrawnSats"),
             reserveSats: _u64(".totals.reserveSats"),
             // forge-lint: disable-next-line(unsafe-typecast)
-            vaultCount: uint32(vm.parseJsonUint(json, ".totals.vaultCount"))
+            vaultCount: uint32(vm.parseJsonUint(json, ".totals.vaultCount")),
+            btcCloseUsdE8: _u64(".totals.btcCloseUsdE8")
         });
         bytes32 root = vm.parseJsonBytes32(json, ".merkleRoot");
         bytes32 report = vm.parseJsonBytes32(json, ".reportHash");
@@ -82,7 +83,9 @@ contract MerkleFixtureTest is Test {
             reserveSats: _u64(string.concat(p, ".reserveSats")),
             withdrawnTotalSats: _u64(string.concat(p, ".withdrawnTotalSats")),
             bufferSats: _u64(string.concat(p, ".bufferSats")),
-            holdSats: _u64(string.concat(p, ".holdSats"))
+            holdSats: _u64(string.concat(p, ".holdSats")),
+            electricityUsdc: _u64(string.concat(p, ".electricityUsdc")),
+            bufferUsdc: _u64(string.concat(p, ".bufferUsdc"))
         });
     }
 

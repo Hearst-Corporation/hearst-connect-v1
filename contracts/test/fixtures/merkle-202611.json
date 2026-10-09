@@ -1,6 +1,6 @@
 {
   "period": 202611,
-  "merkleRoot": "0xb0da0db12515d7153271757b8ea5ab49b9260df7d6813ec27330f650b6b21059",
+  "merkleRoot": "0xb46db6758e1df43aa3721ce32eb88cc4c0748470248d006182571918b11c5df9",
   "reportHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "feeBps": 1500,
   "refillCapBps": 5000,
@@ -16,17 +16,20 @@
     "uint64",
     "uint64",
     "uint64",
+    "uint64",
+    "uint64",
     "uint64"
   ],
   "totals": {
     "minedSats": "1260058593",
-    "electricitySats": "414615357",
+    "electricitySats": "414615353",
     "feeSats": "126816483",
     "refillSats": "0",
     "toReserveSats": "1133242110",
     "withdrawnSats": "42735394",
     "reserveSats": "2223748826",
-    "vaultCount": 5
+    "vaultCount": 5,
+    "btcCloseUsdE8": "9482000000000"
   },
   "vaults": [
     {
@@ -40,20 +43,22 @@
       "withdrawnSats": "0",
       "reserveSats": "201107740",
       "withdrawnTotalSats": "0",
-      "bufferSats": "84615883",
+      "bufferSats": "84615882",
       "holdSats": "1054629825",
+      "electricityUsdc": "34883609519",
+      "bufferUsdc": "80232780260",
       "vsHoldBps": 2709,
-      "leaf": "0x71a0b81422997324c1135ad595a4386962d73db0d34d6a7b8e87adcd971f1aae",
+      "leaf": "0x8380a1a9222842615b133a78ebda0166b98e2436d8329e702a8dc5bdd8f261e4",
       "proof": [
-        "0x821bd603436f1fa1832d4b13167f89599489bf96aba168ada1c7842a584b96a3",
-        "0x4cb3c4da8e9dee7933879b721acf76cf8b2ebec348c20c25a5e4446aec483119"
+        "0x938f601ec89a55c6316098beb145926012a6ff73f6efeedd3fe506904a8789e4",
+        "0xf8073baf4f24538d1c1eb8ad9adcbcb5a9378bb5316e77d39d6c8ceca5983e39"
       ]
     },
     {
       "id": "V-0002",
       "vaultKey": "0x75d83977a531c21233d841175cb73e6c03c86328ee54a5605bcf58a9f75cce27",
       "minedSats": "46958705",
-      "electricitySats": "15451504",
+      "electricitySats": "15451503",
       "feeSats": "4726080",
       "refillSats": "0",
       "toReserveSats": "42232625",
@@ -62,39 +67,43 @@
       "withdrawnTotalSats": "0",
       "bufferSats": "35538670",
       "holdSats": "442944526",
+      "electricityUsdc": "14651116092",
+      "bufferUsdc": "33697766894",
       "vsHoldBps": 2709,
-      "leaf": "0x434214ce1e01b3a94a8e3237162d242a1f3e9e2b66702ca771fa8e30fcc034ee",
+      "leaf": "0x434ab33135c15abea298b40deee6291a7fafd33766666f115920f6aea5137355",
       "proof": [
-        "0x523d2da8a8c8595ba249dc8fb9aad9870d313b91ab53c737428a4ff9cd15e6d4",
-        "0xc411e88c87ceb91eb730fe4fec72d83bc909ed2903a68bee8fa0d2342b730f8e",
-        "0xa4a313f4d186b01e4e1273346d2079c0fd3f3691754c4899ceb8bdb8be31c1bc"
+        "0x5f879c380f703e889ecfaa1a074b524f17d2c1b5c175d913d49b2d793e96c4e9",
+        "0xf35980b9a9799c94fecb864f1e850a5cfc081a88d8e971122dfb42ab07f7af32",
+        "0x9d2ed98ce116232180132ef78e817a1d42cd346ab79b09812e5f8518fc8d2cb6"
       ]
     },
     {
       "id": "V-0003",
       "vaultKey": "0xa2fa9c9bf22f2ccf1e5ad8d47e5c3676374c6054a55867b96813183dd027cf77",
       "minedSats": "380141901",
-      "electricitySats": "125083604",
+      "electricitySats": "125083603",
       "feeSats": "38258744",
       "refillSats": "0",
       "toReserveSats": "341883157",
       "withdrawnSats": "0",
       "reserveSats": "683766314",
       "withdrawnTotalSats": "0",
-      "bufferSats": "287694002",
+      "bufferSats": "287694001",
       "holdSats": "3585741405",
+      "electricityUsdc": "118604273312",
+      "bufferUsdc": "272791452696",
       "vsHoldBps": 2709,
-      "leaf": "0xc411e88c87ceb91eb730fe4fec72d83bc909ed2903a68bee8fa0d2342b730f8e",
+      "leaf": "0xf35980b9a9799c94fecb864f1e850a5cfc081a88d8e971122dfb42ab07f7af32",
       "proof": [
-        "0x176341faba623b2f9b0b15836df824ee81e88066025b890228b0316157c8ff38",
-        "0xa4a313f4d186b01e4e1273346d2079c0fd3f3691754c4899ceb8bdb8be31c1bc"
+        "0xbc3d2238e86707d70f3c59ec2367d6ae095a4d31e5789724278f66aaae45e987",
+        "0x9d2ed98ce116232180132ef78e817a1d42cd346ab79b09812e5f8518fc8d2cb6"
       ]
     },
     {
       "id": "V-0004",
       "vaultKey": "0x10767a4981a0d135edb2b999038b64fa20fb690648535ebfd6499f60b385a13d",
       "minedSats": "95035475",
-      "electricitySats": "31270901",
+      "electricitySats": "31270900",
       "feeSats": "9564686",
       "refillSats": "0",
       "toReserveSats": "85470789",
@@ -103,32 +112,36 @@
       "withdrawnTotalSats": "42735394",
       "bufferSats": "71923500",
       "holdSats": "896435351",
+      "electricityUsdc": "29651068328",
+      "bufferUsdc": "68197862700",
       "vsHoldBps": 2709,
-      "leaf": "0x523d2da8a8c8595ba249dc8fb9aad9870d313b91ab53c737428a4ff9cd15e6d4",
+      "leaf": "0x5f879c380f703e889ecfaa1a074b524f17d2c1b5c175d913d49b2d793e96c4e9",
       "proof": [
-        "0x434214ce1e01b3a94a8e3237162d242a1f3e9e2b66702ca771fa8e30fcc034ee",
-        "0xc411e88c87ceb91eb730fe4fec72d83bc909ed2903a68bee8fa0d2342b730f8e",
-        "0xa4a313f4d186b01e4e1273346d2079c0fd3f3691754c4899ceb8bdb8be31c1bc"
+        "0x434ab33135c15abea298b40deee6291a7fafd33766666f115920f6aea5137355",
+        "0xf35980b9a9799c94fecb864f1e850a5cfc081a88d8e971122dfb42ab07f7af32",
+        "0x9d2ed98ce116232180132ef78e817a1d42cd346ab79b09812e5f8518fc8d2cb6"
       ]
     },
     {
       "id": "V-0005",
       "vaultKey": "0x325f4be19d19fb056fb3630547e02ec9986ec56d107d498910d6ff0a43bcaac9",
       "minedSats": "626116071",
-      "electricitySats": "206020053",
+      "electricitySats": "206020052",
       "feeSats": "63014402",
       "refillSats": "0",
       "toReserveSats": "563101669",
       "withdrawnSats": "0",
       "reserveSats": "1126203338",
       "withdrawnTotalSats": "0",
-      "bufferSats": "473848947",
+      "bufferSats": "473848946",
       "holdSats": "5905927020",
+      "electricityUsdc": "195348214254",
+      "bufferUsdc": "449303571545",
       "vsHoldBps": 2709,
-      "leaf": "0x821bd603436f1fa1832d4b13167f89599489bf96aba168ada1c7842a584b96a3",
+      "leaf": "0x938f601ec89a55c6316098beb145926012a6ff73f6efeedd3fe506904a8789e4",
       "proof": [
-        "0x71a0b81422997324c1135ad595a4386962d73db0d34d6a7b8e87adcd971f1aae",
-        "0x4cb3c4da8e9dee7933879b721acf76cf8b2ebec348c20c25a5e4446aec483119"
+        "0x8380a1a9222842615b133a78ebda0166b98e2436d8329e702a8dc5bdd8f261e4",
+        "0xf8073baf4f24538d1c1eb8ad9adcbcb5a9378bb5316e77d39d6c8ceca5983e39"
       ]
     }
   ]

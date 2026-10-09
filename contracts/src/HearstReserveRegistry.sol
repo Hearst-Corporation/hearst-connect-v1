@@ -26,6 +26,8 @@ contract HearstReserveRegistry is AccessControl {
 
     uint16 internal constant MAX_FEE_BPS = 3000;
     uint16 internal constant BPS = 10_000;
+    /// @dev USDC (6 décimales) × 1e10 ÷ cours (8 décimales) = sats.
+    uint256 internal constant USDC_TO_SATS = 1e10;
 
     /// @notice Totaux publics d'une période, en satoshis (1 BTC = 100 000 000 sats).
     struct Totals {
@@ -37,6 +39,7 @@ contract HearstReserveRegistry is AccessControl {
         uint64 withdrawnSats; // bitcoin versé aux clients ce mois-ci
         uint64 reserveSats; // réserves cumulées de tous les vaults en fin de mois
         uint32 vaultCount; // nombre de vaults couverts par la racine
+        uint64 btcCloseUsdE8; // cours de clôture du mois (USD, 8 décimales) : il convertit l'USDC en sats
     }
 
     /// @notice La ligne d'un vault pour une période, telle que remise au client avec sa preuve.
@@ -52,6 +55,8 @@ contract HearstReserveRegistry is AccessControl {
         uint64 withdrawnTotalSats; // cumul de ce qui lui a été versé depuis le dépôt
         uint64 bufferSats; // son buffer d'électricité restant (USDC), en sats au cours de clôture
         uint64 holdSats; // ce que son dépôt aurait acheté au marché le jour du dépôt
+        uint64 electricityUsdc; // sa facture d'électricité du mois, payée en USDC (6 décimales)
+        uint64 bufferUsdc; // son buffer d'électricité restant, en USDC (6 décimales)
     }
 
     /// @notice Une attestation publiée pour une période.
@@ -146,12 +151,28 @@ contract HearstReserveRegistry is AccessControl {
         return _attestations[period].length;
     }
 
-    /// @notice Vrai si la ligne fait partie de la dernière révision de la période ET respecte les règles de l'offre.
+    /// @notice Vrai si la ligne fait partie de la dernière révision de la période, respecte les règles de l'offre
+    ///         ET convertit ses montants USDC au cours de clôture publié pour ce mois.
     /// @dev    `line.vaultKey` est opaque : la chaîne ne révèle ni le client ni le vault.
     function verifyVault(uint32 period, VaultLine calldata line, bytes32[] calldata proof) public view returns (bool) {
         uint256 count = _attestations[period].length;
         if (count == 0 || !lineFollowsRules(line)) return false;
-        return MerkleProof.verifyCalldata(proof, _attestations[period][count - 1].merkleRoot, vaultLeaf(period, line));
+        Attestation storage a = _attestations[period][count - 1];
+        if (!lineMatchesPrice(line, a.totals.btcCloseUsdE8)) return false;
+        return MerkleProof.verifyCalldata(proof, a.merkleRoot, vaultLeaf(period, line));
+    }
+
+    /// @notice L'électricité et le buffer d'une ligne, en sats, sont bien ses montants USDC convertis au cours
+    ///         de clôture (à un satoshi près, pour l'arrondi).
+    function lineMatchesPrice(VaultLine calldata line, uint64 btcCloseUsdE8) public pure returns (bool) {
+        if (btcCloseUsdE8 == 0) return false;
+        return _near(line.electricitySats, usdcToSats(line.electricityUsdc, btcCloseUsdE8))
+            && _near(line.bufferSats, usdcToSats(line.bufferUsdc, btcCloseUsdE8));
+    }
+
+    /// @notice Un montant USDC (6 décimales) en sats, au cours donné (USD, 8 décimales), arrondi vers le bas.
+    function usdcToSats(uint64 usdc, uint64 btcUsdE8) public pure returns (uint256) {
+        return (uint256(usdc) * USDC_TO_SATS) / btcUsdE8;
     }
 
     /// @notice Vérifie deux mois consécutifs d'un même vault : les deux lignes sont attestées et
@@ -195,7 +216,7 @@ contract HearstReserveRegistry is AccessControl {
     }
 
     /// @notice Feuille Merkle d'une ligne de vault, au format standard d'OpenZeppelin
-    ///         (double hachage ; types : uint32 puis les onze champs de VaultLine).
+    ///         (double hachage ; types : uint32 puis les treize champs de VaultLine).
     function vaultLeaf(uint32 period, VaultLine calldata line) public pure returns (bytes32) {
         return keccak256(bytes.concat(keccak256(abi.encode(period, line))));
     }
@@ -222,13 +243,20 @@ contract HearstReserveRegistry is AccessControl {
 
     /// @dev Les totaux sont des sommes de lignes arrondies vers le bas : les frais totaux ne peuvent
     ///      pas dépasser FEE_BPS du net total, ni la recharge totale son plafond.
-    ///      Règles : 1 = répartition du miné, 2 = frais trop élevés, 3 = recharge trop élevée, 4 = aucun vault.
+    ///      Règles : 1 = répartition du miné, 2 = frais trop élevés, 3 = recharge trop élevée, 4 = aucun vault,
+    ///      5 = cours de clôture absent.
     function _checkTotals(Totals calldata t) private view {
         if (t.vaultCount == 0) revert InvalidTotals(4);
+        if (t.btcCloseUsdE8 == 0) revert InvalidTotals(5);
         if (uint256(t.feeSats) + t.refillSats + t.toReserveSats != t.minedSats) revert InvalidTotals(1);
         uint256 net = t.electricitySats >= t.minedSats ? 0 : t.minedSats - t.electricitySats;
         if (uint256(t.feeSats) * BPS > net * FEE_BPS) revert InvalidTotals(2);
         if (uint256(t.refillSats) * BPS > uint256(t.minedSats) * REFILL_CAP_BPS) revert InvalidTotals(3);
+    }
+
+    /// @dev Deux montants en sats égaux à un satoshi près.
+    function _near(uint256 a, uint256 b) private pure returns (bool) {
+        return a > b ? a - b <= 1 : b - a <= 1;
     }
 
     /// @dev Période au format AAAAMM : année 2024–2099, mois 01–12.
