@@ -208,8 +208,8 @@ Les mots de passe des keystores se rangent dans le Trousseau macOS. Les scripts 
 
 **En production**, les rôles se répartissent ainsi :
 
-- **Admin** : un **Safe multisig** (app.safe.global), par exemple 2 signatures sur 3 dirigeants. C'est lui qui gère les rôles et signe les corrections. Une clé seule ne doit jamais pouvoir réécrire l'historique.
-- **Publisher** : une clé dédiée, avec juste assez d'ETH pour publier, idéalement sur un portefeuille matériel ou un KMS. Si elle est compromise, l'admin la révoque (`revokeRole`) et en nomme une autre. Le pire qu'elle puisse faire est de publier un mois faux, qui reste visible et se corrige par révision.
+- **Admin** : un **compte Fireblocks** de Hearst, avec une politique d'approbation à plusieurs dirigeants (TAP). C'est lui qui gère les rôles et signe les corrections : une correction exige le quorum. Tous les paiements de l'offre passent déjà par Fireblocks (dépôts, retraits, électricité, restitutions) ; les clés des contrats y vivent aussi. Une clé seule ne doit jamais pouvoir réécrire l'historique.
+- **Publisher** : un **compte Fireblocks dédié**, signé par API avec le co-signer, avec juste assez d'ETH pour publier. La tâche planifiée (`ops/hearst-chain.yml`) demande la signature à Fireblocks : la clé ne quitte jamais Fireblocks, et la politique limite ce compte à `publish` et `publishNetwork`. Si l'accès est compromis, l'admin révoque le rôle (`revokeRole`) et en nomme un autre. Le pire qu'il puisse faire est de publier un mois faux, qui reste visible et se corrige par révision. Sur Sepolia, la clé de publication est un compte Rabby (HEARST CONNECT B) dans le keystore Foundry et les secrets GitHub : test uniquement.
 - **Deployer** : sert une seule fois, il n'a aucun droit sur le contrat.
 
 ## 7. Déployer sur Sepolia (réseau de test)
@@ -265,8 +265,8 @@ security add-generic-password -s hearst-vault-salt -a hearst -w "0x$(openssl ran
 ## 10. Avant le mainnet
 
 - [ ] Fixer le taux de frais Hearst (`feeBps` dans l'export ; l'exemple utilise 15 %)
-- [ ] Créer le Safe admin et choisir la clé publisher
+- [ ] Créer dans Fireblocks le compte admin (quorum de dirigeants) et le compte de publication (utilisateur API, co-signer)
 - [ ] Un ou deux mois réels publiés sur Sepolia, avec les preuves vérifiées par un client test
 - [ ] Revue de code externe, ou au minimum une seconde lecture par un développeur Solidity
-- [ ] Déploiement mainnet : `--rpc-url mainnet`, avec le Safe comme `REGISTRY_ADMIN`
+- [ ] Déploiement mainnet : `--rpc-url mainnet`, avec le compte admin Fireblocks comme `REGISTRY_ADMIN`
 - [ ] Afficher l'adresse du contrat et le lien « Vérifier sur Etherscan » dans l'espace client Hearst Connect
