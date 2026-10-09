@@ -15,6 +15,7 @@ import { BoltIcon, CheckBadgeIcon, CpuChipIcon } from '@heroicons/react/16/solid
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { PayElectricityButton } from './pay-electricity-button'
 import { CloseActions } from './close-actions'
+import { ChainReconciliation } from './chain-reconciliation'
 import type { ChainAttestation } from '@/lib/chain/reserve-registry'
 
 /**
@@ -149,6 +150,9 @@ export function MonthlyClose({
         dues={due.map((l) => ({ vaultId: l.vaultId, amountUsd: l.electricityUsd }))}
         attestation={attestations[m.month] ?? null}
       />
+
+      {/* Le livre face à la chaîne : rapprochement du mois publié, ou contrôle avant publication. */}
+      <ChainReconciliation month={m} attestation={attestations[m.month] ?? null} />
 
       {/* Le mois en quatre chiffres : ce que le parc a produit, ce qu'il reste
           à payer, ce qui entre dans les réserves, ce qui reste à valider. La

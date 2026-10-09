@@ -270,7 +270,26 @@ export async function readVaultLedgers(
 }
 
 /** L'attestation publiée d'un mois : l'empreinte de son rapport, sa date et son numéro de révision. */
-export type ChainAttestation = Readonly<{ period: number; reportHash: string; publishedAt: string; revision: number; registry: string; explorerUrl: string | null }>
+export type ChainAttestation = Readonly<{
+  period: number
+  reportHash: string
+  publishedAt: string
+  revision: number
+  registry: string
+  explorerUrl: string | null
+  /** Les totaux publics du mois, tels que publiés (sats ; cours de clôture en USD à 8 décimales). */
+  totals: Readonly<{
+    minedSats: number
+    electricitySats: number
+    feeSats: number
+    refillSats: number
+    toReserveSats: number
+    withdrawnSats: number
+    reserveSats: number
+    vaultCount: number
+    btcCloseUsdE8: number
+  }>
+}>
 
 export async function readAttestation(period: number): Promise<ChainAttestation | null> {
   const client = chainClient()
@@ -285,6 +304,17 @@ export async function readAttestation(period: number): Promise<ChainAttestation 
       revision: Number(revision),
       registry: address,
       explorerUrl: contractLink(address),
+      totals: {
+        minedSats: Number(att.totals.minedSats),
+        electricitySats: Number(att.totals.electricitySats),
+        feeSats: Number(att.totals.feeSats),
+        refillSats: Number(att.totals.refillSats),
+        toReserveSats: Number(att.totals.toReserveSats),
+        withdrawnSats: Number(att.totals.withdrawnSats),
+        reserveSats: Number(att.totals.reserveSats),
+        vaultCount: Number(att.totals.vaultCount),
+        btcCloseUsdE8: Number(att.totals.btcCloseUsdE8),
+      },
     }
   } catch {
     // Mois pas encore publié (NotPublished) ou chaîne injoignable.
