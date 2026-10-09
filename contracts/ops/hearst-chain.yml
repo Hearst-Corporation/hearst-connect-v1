@@ -1,17 +1,19 @@
 # La tâche planifiée de la chaîne Hearst (Sepolia), sur les serveurs de GitHub Actions.
-# Elle vit dans le dépôt privé pierre584/hearst-chain-cron (.github/workflows/hearst-chain.yml) : GitHub ne
+# Elle vit dans le dépôt pierre584/hearst-chain-cron (public pour des minutes illimitées ; la clé reste un secret) (.github/workflows/hearst-chain.yml) : GitHub ne
 # déclenche une tâche planifiée que sur la branche par défaut, et la branche main de hearst-connect-v1
 # déploie la production. Cette copie sert de référence.
 #
-# Toutes les 30 minutes :
-#   1. publie dans HearstReserveRegistry les mois clos pas encore attestés (rien la plupart du temps) ;
-#   2. publie dans HearstMiningOracle les relevés du réseau bitcoin (mempool.space).
+# Toutes les 5 minutes, elle VÉRIFIE ; elle ne publie que si ça compte :
+#   1. dans HearstReserveRegistry, les mois clos pas encore attestés (rien la plupart du temps) ;
+#   2. dans HearstMiningOracle, les relevés du réseau bitcoin (mempool.space) — dès que la difficulté change,
+#      que les frais de bloc bougent de plus de 10 %, ou au plus tard 30 minutes après la dernière publication.
+#   Le cours du BTC n'a pas besoin d'être publié : le contrat lit Chainlink à chaque lecture.
 # Secret requis : HEARST_PUBLISHER_KEY, la clé privée du compte de publication (HEARST CONNECT B).
 name: Hearst chain (Sepolia)
 
 on:
   schedule:
-    - cron: '7,37 * * * *' # toutes les 30 minutes (à :07 et :37)
+    - cron: '*/5 * * * *' # vérification toutes les 5 minutes
   workflow_dispatch:
 
 concurrency:
@@ -24,7 +26,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Code de l'application (branche v2)
         uses: actions/checkout@v4
@@ -51,4 +53,5 @@ jobs:
             --admin 0xF4B2719bD911f3D2D52Ee108c8CaFb8570f63c0c \
             --publisher-address 0xc4197d502133ECAf7983663E69BA4b895831196D \
             --registry 0x0d0756DfB37F8162Cb7bA633912772D3D4545d62 \
-            --oracle 0x489C70Bf7892F6B0F44e318F206a5BB11C3c127e
+            --oracle 0x489C70Bf7892F6B0F44e318F206a5BB11C3c127e \
+            --network-if-changed

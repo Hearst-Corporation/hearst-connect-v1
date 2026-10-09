@@ -183,7 +183,9 @@ if (attestations.length === 0) console.log('  registre à jour, rien à publier'
 const terms = '(65000,1100,11200000,1460,86400)' // 0,065 $/kWh · 11 J/TH · 11,20 $/TH/s · 4 ans · 1 jour
 const oracle =
   opt('oracle') ?? deploy('HearstMiningOracle', [admin, publisherAddress, opt('btc-usd-feed', '0x' + '0'.repeat(40)), terms])
-execFileSync('node', ['publish-network.mjs', '--rpc-url', rpc, ...signAs('publisher'), '--nonce', nextNonce('publisher').nonce], {
+// --network-if-changed : les relevés ne partent que s'ils comptent (voir publish-network.mjs, --if-changed).
+const networkArgs = args.includes('--network-if-changed') ? ['--if-changed'] : []
+execFileSync('node', ['publish-network.mjs', ...networkArgs, '--rpc-url', rpc, ...signAs('publisher'), '--nonce', nextNonce('publisher').nonce], {
   cwd: join(CONTRACTS, 'script-js'),
   env: { ...process.env, MINING_ORACLE_ADDRESS: oracle },
   stdio: ['ignore', 'inherit', 'inherit'],

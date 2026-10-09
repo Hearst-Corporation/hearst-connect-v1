@@ -12,8 +12,11 @@
  *   MINING_ORACLE_ADDRESS=0x… node publish-network.mjs --rpc-url sepolia --account hearst-publisher
  *   MINING_ORACLE_ADDRESS=0x… node publish-network.mjs --rpc-url local --unlocked --from 0x7099…
  *   node publish-network.mjs --dry-run        # affiche les relevés sans rien envoyer
+ *   … --if-changed   publie seulement si ça compte : la difficulté a changé (ajustement du réseau), les frais
+ *                    de bloc ont bougé de plus de 10 %, ou la dernière publication a 30 minutes ou plus.
+ *                    La tâche planifiée vérifie toutes les 5 minutes avec cette option.
  * Les arguments après le script sont passés tels quels à `cast send`.
- * Une tâche planifiée (cron, launchd) le lance toutes les heures : `maxAge` du contrat dit au-delà
+ * La tâche planifiée (GitHub Actions, contracts/ops/hearst-chain.yml) le lance ; `maxAge` du contrat dit au-delà
  * de quand l'espace client affiche les relevés comme périmés.
  */
 import { execFileSync } from 'node:child_process'
@@ -45,8 +48,13 @@ async function readings() {
   }
 }
 
-const args = process.argv.slice(2)
-const dryRun = args.includes('--dry-run')
+const FEES_MOVE = 0.1 // 10 %
+const MAX_SILENCE_S = 30 * 60 - 60 // 30 minutes, à une minute près (l'horloge de la tâche dérive)
+
+const all = process.argv.slice(2)
+const dryRun = all.includes('--dry-run')
+const ifChanged = all.includes('--if-changed')
+const args = all.filter((a) => a !== '--dry-run' && a !== '--if-changed')
 const r = await readings()
 
 console.log('Relevés du réseau')
@@ -62,6 +70,32 @@ const oracle = process.env.MINING_ORACLE_ADDRESS
 if (!oracle) {
   console.error('MINING_ORACLE_ADDRESS manquant')
   process.exit(1)
+}
+
+/* Publier quand ça compte : on compare aux relevés déjà sur la chaîne. */
+if (ifChanged) {
+  const rpc = args[args.indexOf('--rpc-url') + 1]
+  const out = execFileSync('cast', ['call', oracle, 'network()(uint128,uint128,uint32,uint64,uint64,uint64)', '--rpc-url', rpc], {
+    encoding: 'utf8',
+  })
+  const [difficulty, , , fees, , updatedAt] = out.trim().split('\n').map((l) => BigInt(l.split(' ')[0]))
+  const ageS = Math.floor(Date.now() / 1000) - Number(updatedAt)
+  const feesMove = fees === 0n ? 1 : Math.abs(Number(r.feesPerBlockSats - fees)) / Number(fees)
+  const reason =
+    updatedAt === 0n
+      ? 'premier relevé'
+      : r.difficulty !== difficulty
+        ? `nouvelle difficulté (${(Number(difficulty) / 1e12).toFixed(2)} T → ${(Number(r.difficulty) / 1e12).toFixed(2)} T)`
+        : feesMove > FEES_MOVE
+          ? `frais de bloc ${(feesMove * 100).toFixed(0)} % de variation`
+          : ageS >= MAX_SILENCE_S
+            ? `dernière publication il y a ${Math.round(ageS / 60)} min`
+            : null
+  if (reason === null) {
+    console.log(`Rien à publier : difficulté inchangée, frais à ${(feesMove * 100).toFixed(0)} %, dernière publication il y a ${Math.round(ageS / 60)} min`)
+    process.exit(0)
+  }
+  console.log(`Publication : ${reason}`)
 }
 
 execFileSync(

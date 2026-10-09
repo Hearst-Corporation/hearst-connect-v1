@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { formatNumber } from '@/lib/format'
 import { isAvailable, valueOf, type Availability } from '@/lib/vaults/model'
 import { BoltIcon, ChartBarIcon, CpuChipIcon, CurrencyDollarIcon, SignalIcon } from '@heroicons/react/24/outline'
@@ -26,12 +27,39 @@ import { MetricRow, difficultyLabel, hashpriceLabel } from './metric-row'
 
 const usd = (v: number) => `$${formatNumber(v, { maximumFractionDigits: 0 })}`
 
+/** Relecture du contrat : le cours Chainlink bouge en continu, la lecture ne coûte aucun gaz. */
+const LIVE_EVERY_MS = 20_000
+
 export function MiningEconomicsFlank({
-  cost,
+  cost: initial,
 }: Readonly<{
   /** Tout le bloc vient de `HearstMiningOracle.economics()` : relevés ET calculs. */
   cost: Availability<ProductionCost>
 }>) {
+  /* EN DIRECT : quand le bloc vient du contrat, il se relit toutes les 20 secondes (onglet visible
+     seulement). Une lecture qui échoue garde la dernière valeur affichée plutôt que de vider le bloc. */
+  const [cost, setCost] = useState(initial)
+  const live = valueOf(initial)?.onChain !== undefined
+  useEffect(() => {
+    if (!live) return
+    let stopped = false
+    const tick = async () => {
+      if (document.hidden) return
+      try {
+        const res = await fetch('/account/live/mining-economics', { cache: 'no-store' })
+        if (!res.ok) return
+        const next = (await res.json()) as Availability<ProductionCost>
+        if (!stopped && isAvailable(next)) setCost(next)
+      } catch {
+        // Réseau coupé : la dernière lecture reste affichée.
+      }
+    }
+    const id = window.setInterval(tick, LIVE_EVERY_MS)
+    return () => {
+      stopped = true
+      window.clearInterval(id)
+    }
+  }, [live])
   const c = valueOf(cost)
   const stale = isAvailable(cost) && cost.stale
 
