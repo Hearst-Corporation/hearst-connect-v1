@@ -158,7 +158,11 @@ export default async function StatementPage({
               {[
                 [
                   'Your lines, checked by the contract (verifyVault)',
-                  rws.length === 0 ? '—' : `${onChain} of ${rws.length} month${rws.length > 1 ? 's' : ''} verified`,
+                  scope.every((v) => v.chain?.status === 'unconfigured' || v.chain === undefined)
+                    ? 'Registry not deployed yet'
+                    : rws.length === 0
+                      ? '—'
+                      : `${onChain} of ${rws.length} month${rws.length > 1 ? 's' : ''} verified`,
                 ],
                 [
                   'Hearst fee = 15 % of the mined bitcoin, net of electricity',

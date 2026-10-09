@@ -194,7 +194,7 @@ function MiningEconomicsBody({ cost, stale }: Readonly<{ cost: ProductionCost; s
       <p className="mining-flank-foot">
         <SignalIcon className="size-3.5" aria-hidden="true" />
         <span>
-          {stale ? 'On-chain readings older than a day' : 'Read on-chain'}
+          {cost.onChain ? (stale ? 'On-chain readings older than a day' : 'Read on-chain') : 'Live network readings'}
           {cost.onChain ? (
             <>
               {' · '}

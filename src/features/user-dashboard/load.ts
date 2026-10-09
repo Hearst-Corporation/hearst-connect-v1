@@ -44,6 +44,8 @@ export type {
 } from '@/lib/product/readings'
 
 const DASHBOARD_ENDPOINT = '/api/v1/dashboard'
+/** Repli de Mining Economics tant que HearstMiningOracle n'est pas configuré. */
+const PRODUCTION_COST_ENDPOINT = '/api/v1/mining/production-cost'
 const PORTFOLIO_ENDPOINT = '/api/v1/me/portfolio'
 const MOVEMENTS_ENDPOINT = '/api/v1/me/movements'
 const HISTORY_ENDPOINT = '/api/v1/vault/history'
@@ -573,6 +575,28 @@ function projectionFrom(field: ResolvedField | null): VaultProjection | null {
   }
 }
 
+/** Coût de production du backend (repli tant que l'oracle on-chain n'est pas configuré).
+ *  Sans le coût NI le prix de marché, il n'y a pas d'écart à montrer — donc rien à afficher. */
+function productionCostFrom(field: ResolvedField | null): ProductionCost | null {
+  const raw = field?.value
+  if (typeof raw !== 'object' || raw === null) return null
+  const r = raw as Record<string, unknown>
+  const costPerBtcUsd = num(r.costPerBtcUsd)
+  const marketPriceUsd = num(r.marketPriceUsd)
+  if (costPerBtcUsd === null || marketPriceUsd === null) return null
+  return {
+    costPerBtcUsd,
+    marketPriceUsd,
+    // La marge est RECALCULÉE et non lue : deux sources pour un même fait
+    // finissent toujours par diverger.
+    marginPct: marketPriceUsd > 0 ? ((marketPriceUsd - costPerBtcUsd) / marketPriceUsd) * 100 : 0,
+    electricityUsdPerKwh: num(r.electricityUsdPerKwh),
+    networkDifficulty: num(r.networkDifficulty),
+    hashrateEhs: num(r.hashrateEhs),
+    asOf: typeof r.asOf === 'string' ? r.asOf : null,
+  }
+}
+
 /** Rendements par poche. Une poche sans taux lisible est écartée, pas mise à zéro. */
 function bucketYieldsFrom(field: ResolvedField | null): readonly BucketYield[] | null {
   const raw = field?.value
@@ -797,8 +821,14 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     callBackend<Record<string, unknown>>('admin-market-snapshot'),
     callBackend<Record<string, unknown>>('me-vault'),
     callBackend<Record<string, unknown>>('me-vault-projection'),
-    // Mining Economics : lu sur la chaîne (HearstMiningOracle), plus sur le backend.
-    readMiningEconomics(),
+    /* Mining Economics : lu sur la chaîne (HearstMiningOracle). Tant qu'aucun contrat n'est
+       configuré sur ce déploiement, les relevés du backend restent en place — sans la
+       mention « Read on-chain ». */
+    readMiningEconomics().then(async (chain) =>
+      chain.kind === 'unavailable' && chain.status === 'NOT_CONFIGURED'
+        ? { chain, backend: await callBackend<Record<string, unknown>>('mining-production-cost') }
+        : { chain, backend: null },
+    ),
     callBackend<Record<string, unknown>>('vault-bucket-yields'),
     callBackend<Record<string, unknown>>('mining-fleet'),
     callBackend<Record<string, unknown>>('mining-distributions'),
@@ -976,7 +1006,21 @@ export async function loadUserDashboard(): Promise<UserDashboard> {
     PROJECTION_ENDPOINT,
   )
 
-  const productionCost = productionCostResponse
+  const productionCost: Availability<ProductionCost> = (() => {
+    const { chain, backend } = productionCostResponse
+    if (backend === null) return chain
+    const field = readField(backend, 'productionCost')
+    const cost = productionCostFrom(field.value)
+    const hashprice = valueOf(marketSnapshot)?.hashprice ?? null
+    return availabilityFromResolved<ProductionCost>(
+      {
+        status: field.status,
+        value: cost === null ? null : { ...cost, ...(hashprice !== null ? { hashpriceUsdPerPhDay: hashprice } : {}) },
+        reason: 'no_production_cost',
+      },
+      PRODUCTION_COST_ENDPOINT,
+    )
+  })()
 
   const bucketYieldsField = readField(bucketYieldsResponse, 'bucketYields')
   const bucketYields = availabilityFromResolved<readonly BucketYield[]>(
