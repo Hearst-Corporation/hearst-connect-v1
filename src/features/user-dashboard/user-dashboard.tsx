@@ -497,7 +497,7 @@ export function UserDashboardView({ tab, data, overview, vault, rewards, activit
               </div>
             </div>
 
-            <MiningEconomicsFlank cost={data.productionCost} hashprice={valueOf(data.marketSnapshot)?.hashprice ?? null} />
+            <MiningEconomicsFlank cost={data.productionCost} />
           </section>
           ) : null}
 

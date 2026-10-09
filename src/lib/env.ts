@@ -63,6 +63,35 @@ function readUrl(name: string, purpose: string): EnvVarReport {
   return { name, status: 'ok', purpose, detail: null }
 }
 
+/** Ethereum JSON-RPC node the on-chain readings go through. `null` if not configured. */
+export function chainRpcUrl(): string | null {
+  const raw = process.env.HEARST_CHAIN_RPC_URL?.trim()
+  if (!raw) return null
+  try {
+    new URL(raw)
+  } catch {
+    return null
+  }
+  return raw
+}
+
+/** Address of `HearstMiningOracle` (Mining Economics). `null` if not configured or malformed. */
+export function miningOracleAddress(): `0x${string}` | null {
+  const raw = process.env.HEARST_MINING_ORACLE_ADDRESS?.trim()
+  return raw && /^0x[0-9a-fA-F]{40}$/.test(raw) ? (raw as `0x${string}`) : null
+}
+
+/** Block explorer base for contract links (Etherscan, Sepolia Etherscan…). `null` = no link shown. */
+export function chainExplorerUrl(): string | null {
+  const raw = process.env.HEARST_CHAIN_EXPLORER_URL?.trim()
+  if (!raw) return null
+  try {
+    return new URL(raw).toString().replace(/\/+$/, '')
+  } catch {
+    return null
+  }
+}
+
 /** Backend URL, without a trailing slash. `null` if not configured. */
 export function backendUrl(): string | null {
   const raw = process.env.HEARST_API_URL?.trim()
@@ -133,6 +162,7 @@ function environmentReport(): EnvVarReport[] {
   return [
     readUrl('HEARST_API_URL', 'Hearst Connect backend base (Railway) — authentication authority. GPU1 / connect-api.hearst.app forbidden.'),
     readSecret('AUTH_SECRET', 'Frontend session cookie protection, only.'),
+    readUrl('HEARST_CHAIN_RPC_URL', 'Ethereum node — Mining Economics is read from HearstMiningOracle.'),
   ]
 }
 

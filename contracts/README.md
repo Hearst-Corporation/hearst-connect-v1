@@ -26,6 +26,43 @@ Elles sont fixées au déploiement et ne changent plus (`FEE_BPS`, `REFILL_CAP_B
 
 `verifyVault` ne répond `true` que si la ligne est dans l'attestation **et** respecte ces règles : une ligne aux frais gonflés est refusée même si Hearst l'a publiée. Le buffer d'électricité restant (en USDC, au client) entre dans `vsHoldBps`, converti en sats au cours de clôture.
 
+## L'économie du minage on-chain — `HearstMiningOracle`
+
+Le bloc **Mining Economics** de l'espace client est lu dans ce contrat, chiffre par chiffre. Le contrat n'affiche pas un coût que Hearst lui aurait donné : il le **calcule** à chaque lecture (`economics()`), à partir de trois sources.
+
+| Source | Ce qu'elle apporte | Qui l'écrit |
+|---|---|---|
+| Relevés du réseau | difficulté, hashrate mesuré, hauteur du dernier bloc, frais moyens par bloc | la clé opérationnelle (`PUBLISHER_ROLE`), via `script-js/publish-network.mjs` (mempool.space) |
+| Cours BTC/USD | le prix du bitcoin | un flux **Chainlink** s'il est branché au déploiement ; sinon il est publié avec les relevés (Coinbase) |
+| Paramètres du parc | électricité ($/kWh), rendement (J/TH), coût machine par TH/s, amortissement, fraîcheur maximale | la gouvernance (`setTerms`), avec un événement public à chaque changement |
+
+Les calculs du contrat :
+
+- **récompense d'un bloc** = subvention à cette hauteur (halvings compris) + frais moyens ;
+- **bitcoin produit par TH/s et par jour** = 1e12 × 86 400 ÷ (difficulté × 2³²) × récompense ;
+- **hashprice** = ce bitcoin × 1 000 (PH/s) × cours ;
+- **coût d'un bitcoin** = (électricité d'un TH/s par jour + machine amortie par jour) ÷ bitcoin produit par jour. L'électricité seule est aussi exposée (`energyCostPerBtcUsdE8`) ;
+- **marge** = cours − coût, en dollars et en points de base ;
+- **`stale`** passe à vrai si un relevé ou le cours a plus de `maxAge` secondes. L'espace client l'écrit alors en pied de bloc.
+
+Relevés du 9 octobre 2026 : difficulté 132,72 T, cours 82 500 $, 11 J/TH à 0,065 $/kWh. Le contrat calcule un coût de **52 022 $** par bitcoin, dont 35 951 $ d'électricité, une marge de +30 478 $ (36,9 %) et un hashprice de 39,38 $ par PH/s et par jour.
+
+```bash
+# déploiement (mêmes rôles que le registre)
+REGISTRY_ADMIN=… REGISTRY_PUBLISHER=… BTC_USD_FEED=… \
+  forge script script/DeployMiningOracle.s.sol --rpc-url sepolia --account hearst-deployer --broadcast --verify
+
+# publication des relevés (toutes les heures, par cron ou launchd)
+cd script-js
+MINING_ORACLE_ADDRESS=0x… node publish-network.mjs --rpc-url $SEPOLIA_RPC_URL --account hearst-publisher
+node publish-network.mjs --dry-run      # lit les relevés sans rien envoyer
+
+# lecture
+cast call $MINING_ORACLE_ADDRESS "economics()" --rpc-url sepolia
+```
+
+Côté application, `HEARST_CHAIN_RPC_URL` et `HEARST_MINING_ORACLE_ADDRESS` (voir `.env.example` à la racine) branchent le bloc sur le contrat. Le lecteur est `src/lib/chain/mining-oracle.ts`. Le cours du contrat sert aussi à toutes les conversions en dollars de l'espace client.
+
 ## 1. Les notions en cinq minutes
 
 | Notion | Ce que c'est ici |
@@ -63,12 +100,15 @@ Bibliothèques, gérées par Soldeer et déclarées dans `foundry.toml` :
 
 ```
 contracts/
-├── src/HearstReserveRegistry.sol        le contrat
+├── src/HearstReserveRegistry.sol        le registre de réserve
+├── src/HearstMiningOracle.sol           l'économie du minage (relevés réseau, cours, coût d'un bitcoin)
 ├── test/HearstReserveRegistry.t.sol     tests unitaires (rôles, périodes, révisions, preuves) + fuzzing
 ├── test/MerkleFixture.t.sol             l'arbre JS et le contrat donnent les mêmes résultats
 ├── test/fixtures/merkle-202611.json     attestation d'exemple (5 vaults fictifs, sel public)
 ├── script/Deploy.s.sol                  déploiement
 ├── script/Publish.s.sol                 publication d'un mois
+├── script/DeployMiningOracle.s.sol      déploiement de l'oracle
+├── script-js/publish-network.mjs        publication des relevés du réseau (mempool.space, Coinbase)
 ├── script-js/build-merkle.mjs           fabrique racine + preuves à partir des lignes du mois
 ├── script-js/samples/202611.json        lignes d'exemple
 ├── foundry.toml                         configuration (compilateur, réseaux, Etherscan)

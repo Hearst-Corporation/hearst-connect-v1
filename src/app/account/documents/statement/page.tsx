@@ -7,6 +7,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { statementHref } from '@/features/client-portal/statement-href'
+import { withChainSpot } from '@/features/client-portal/scope'
+import { readMiningEconomics } from '@/lib/chain/mining-oracle'
 
 export const metadata: Metadata = { title: 'Statement' }
 export const dynamic = 'force-dynamic'
@@ -31,7 +33,9 @@ export default async function StatementPage({
   if (!year && !month) notFound()
   const wanted = vaultWord?.match(/^vault-(\d+)$/)?.[1]
   // Les relevés de chaque vault sont filtrés plus bas : on lit tous les rewards.
-  const [overview, rewards, activity] = await Promise.all([loadOverview(), loadRewards(), loadActivity()])
+  const [ledger, rewards, activity, economics] = await Promise.all([loadOverview(), loadRewards(), loadActivity(), readMiningEconomics()])
+  // Le cours du bitcoin vient du contrat (HearstMiningOracle), comme sur l'espace client.
+  const overview = ledger === null ? null : withChainSpot(ledger, economics)
   if (overview === null || rewards === null) return <p className="p-10 text-sm text-fg-tertiary">This statement could not be produced.</p>
 
   const inPeriod = (ym: string) => (year ? ym.startsWith(year) : ym === month)

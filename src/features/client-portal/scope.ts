@@ -1,7 +1,8 @@
 import type { ReserveSplitPoint } from '@/features/admin-dashboard/book-charts'
 import type { UserDashboard } from '@/features/user-dashboard/load'
-import { available } from '@/lib/vaults/model'
-import type { PortalReward, PortalVault } from './load'
+import type { ProductionCost } from '@/lib/product/readings'
+import { available, valueOf, type Availability } from '@/lib/vaults/model'
+import type { PortalOverview, PortalReward, PortalVault } from './load'
 
 /**
  * Le tableau de bord du client, RAMENÉ À SON VAULT.
@@ -88,4 +89,18 @@ export function reservePoints(vaults: readonly PortalVault[], rewards: readonly 
       })),
     }
   })
+}
+
+/**
+ * Le cours du bitcoin de l'espace client : celui que lit `HearstMiningOracle`.
+ *
+ * Le bloc Mining Economics affiche le cours du contrat ; la position, les KPI
+ * et le relevé convertissent en dollars au même cours. Deux prix du bitcoin
+ * sur un même écran se liraient comme un bug. Tant que le contrat ne répond
+ * pas, le cours du livre reste en place.
+ */
+export function withChainSpot(overview: PortalOverview, cost: Availability<ProductionCost>): PortalOverview {
+  const spot = valueOf(cost)?.marketPriceUsd
+  if (spot === undefined || !(spot > 0)) return overview
+  return { ...overview, spotUsd: spot, totals: { ...overview.totals, valueUsd: overview.totals.reserveBtc * spot } }
 }

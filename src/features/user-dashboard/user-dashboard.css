@@ -2572,6 +2572,13 @@
   color: var(--hearst-green-text);
 }
 
+/* Le nom du contrat mène à sa page sur l'explorateur : souligné discret, même couleur. */
+.ud-root .mining-flank-foot a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ── Compute Infrastructure (panneau central) ────────────────────────────
    Le parc industriel derrière le vault. Trois cellules de mesure puis un pied
    de service : chaque mesure reçoit le traitement que sa nature appelle, au

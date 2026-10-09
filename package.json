@@ -22,6 +22,7 @@
     "react-dom": "19.2.6",
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
+    "viem": "2.38.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

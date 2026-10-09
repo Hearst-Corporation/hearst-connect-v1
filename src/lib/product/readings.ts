@@ -100,4 +100,18 @@ export type ProductionCost = {
   readonly networkDifficulty: number | null
   readonly hashrateEhs: number | null
   readonly asOf: string | null
+  /** Électricité seule pour miner un bitcoin (sans les machines). */
+  readonly energyCostPerBtcUsd?: number
+  /** Cours − coût, en dollars par bitcoin. */
+  readonly marginPerBtcUsd?: number
+  /** Revenu d'un PH/s pendant un jour, en dollars. */
+  readonly hashpriceUsdPerPhDay?: number
+  readonly blockHeight?: number
+  /** Présent quand la lecture vient de HearstMiningOracle. */
+  readonly onChain?: {
+    readonly address: string
+    readonly chainId: number
+    readonly explorerUrl: string | null
+    readonly priceFromFeed: boolean
+  }
 }
