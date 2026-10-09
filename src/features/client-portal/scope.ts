@@ -171,6 +171,7 @@ export function withChainLedger(
         bufferBtc: latest.bufferBtc,
         vsHoldPct: l.vsHoldPct,
         rejected: l.rejected,
+        continuity: l.continuity,
       },
     },
     rewards: rewards.map((r) => {

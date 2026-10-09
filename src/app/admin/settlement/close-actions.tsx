@@ -4,6 +4,7 @@ import { decideApproval } from '@/features/admin-approvals/actions'
 import { payElectricity } from '@/lib/mining/actions'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import type { ChainAttestation } from '@/lib/chain/reserve-registry'
 
 /**
  * LA CLÔTURE DU MOIS EN UN COUP D'ŒIL — où elle en est, et ses deux gestes en lot.
@@ -18,7 +19,10 @@ export function CloseActions({
   total,
   rewardIds,
   dues,
+  attestation = null,
 }: Readonly<{
+  /** Le mois tel que HearstReserveRegistry l'a publié, ou `null` s'il ne l'est pas (encore). */
+  attestation?: ChainAttestation | null
   month: string
   total: number
   /** Les décisions de reward encore en attente ce mois-ci. */
@@ -71,14 +75,21 @@ export function CloseActions({
   const validated = total - rewardIds.length
   const paid = total - dues.length
   const steps = [
-    { label: 'Calculated', detail: 'Fleet output split by vault', done: true },
-    { label: 'Rewards validated', detail: `${validated} / ${total}`, done: rewardIds.length === 0 },
-    { label: 'Electricity paid', detail: `${paid} / ${total} · via Fireblocks`, done: dues.length === 0 },
-    // Le mois clos s'atteste sur le registre de réserve (Ethereum) : racine des lignes, totaux, rapport.
+    { label: 'Calculated', detail: 'Fleet output split by vault', done: true, href: null },
+    { label: 'Rewards validated', detail: `${validated} / ${total}`, done: rewardIds.length === 0, href: null },
+    { label: 'Electricity paid', detail: `${paid} / ${total} · via Fireblocks`, done: dues.length === 0, href: null },
+    /* Le mois clos s'atteste sur le registre de réserve (Ethereum) : racine des lignes, totaux, empreinte du
+       rapport (avec ses transactions Fireblocks). Lu sur la chaîne : la tâche serveur publie un mois dès qu'il
+       est validé et payé (vérification toutes les 5 minutes). */
     {
       label: 'Attested on-chain',
-      detail: rewardIds.length === 0 && dues.length === 0 ? 'Reserve registry · Ethereum' : 'When both are done',
-      done: rewardIds.length === 0 && dues.length === 0,
+      detail: attestation
+        ? `Published ${new Date(attestation.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })}${attestation.revision > 0 ? ` · revision ${attestation.revision}` : ''}`
+        : rewardIds.length === 0 && dues.length === 0
+          ? 'Publishing — the server checks every 5 minutes'
+          : 'When both are done',
+      done: attestation !== null,
+      href: attestation?.explorerUrl ?? null,
     },
   ]
 
@@ -97,7 +108,13 @@ export function CloseActions({
               </span>
               <span className="flex min-w-0 flex-col">
                 <span className={`text-sm ${s.done ? 'text-fg-secondary' : 'font-medium text-fg'}`}>{s.label}</span>
-                <span className="text-[11px] text-fg-tertiary">{s.detail}</span>
+                {s.href ? (
+                  <a href={s.href} target="_blank" rel="noreferrer" className="text-[11px] text-fg-tertiary underline underline-offset-2">
+                    {s.detail}
+                  </a>
+                ) : (
+                  <span className="text-[11px] text-fg-tertiary">{s.detail}</span>
+                )}
               </span>
             </li>
           ))}

@@ -49,6 +49,19 @@ const REGISTRY_ABI = [
   },
   {
     type: 'function',
+    name: 'verifyContinuity',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'prevPeriod', type: 'uint32' },
+      { ...VAULT_LINE, name: 'prev' },
+      { name: 'prevProof', type: 'bytes32[]' },
+      VAULT_LINE,
+      { name: 'proof', type: 'bytes32[]' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+  {
+    type: 'function',
     name: 'vsHoldBps',
     stateMutability: 'pure',
     inputs: [VAULT_LINE],
@@ -124,6 +137,8 @@ export type ChainVaultLedger = Readonly<{
   revision: number
   /** Lignes remises par le backend que le contrat a refusées. */
   rejected: number
+  /** Continuité d'un mois à l'autre (verifyContinuity) : paires de mois consécutifs vérifiées, et le verdict. */
+  continuity: Readonly<{ checked: number; ok: boolean }>
 }>
 
 const LINE_FIELDS = [
@@ -156,6 +171,8 @@ function lineOf(raw: Readonly<Record<string, string>>): Line | null {
 }
 
 const btc = (sats: bigint) => Number(sats) / 1e8
+/** Le mois suivant, au format AAAAMM (202612 → 202701). */
+const nextPeriod = (period: number) => (period % 100 === 12 ? (Math.floor(period / 100) + 1) * 100 + 1 : period + 1)
 const monthOf = (period: number) => `${Math.floor(period / 100)}-${String(period % 100).padStart(2, '0')}`
 
 function monthFrom(period: number, l: Line): ChainVaultMonth {
@@ -215,9 +232,22 @@ export async function readVaultLedgers(
           .sort((x, y) => x.a.period - y.a.period)
         const last = good.at(-1)
         if (last === undefined) return
-        const [bps, [att, revision]] = await Promise.all([
+        /* Chaque paire de mois consécutifs : la réserve d'un mois découle de la précédente
+           (+ versé à la réserve − versé au client), et le cumul versé s'enchaîne. */
+        const pairs = good.slice(1).map((r, i) => [good[i], r] as const).filter(([p, r]) => nextPeriod(p.a.period) === r.a.period)
+        const [bps, [att, revision], links] = await Promise.all([
           client.readContract({ address, abi: REGISTRY_ABI, functionName: 'vsHoldBps', args: [last.line] }),
           client.readContract({ address, abi: REGISTRY_ABI, functionName: 'attestation', args: [last.a.period] }),
+          Promise.all(
+            pairs.map(([p, r]) =>
+              client.readContract({
+                address,
+                abi: REGISTRY_ABI,
+                functionName: 'verifyContinuity',
+                args: [p.a.period, p.line, p.a.proof as `0x${string}`[], r.line, r.a.proof as `0x${string}`[]],
+              }),
+            ),
+          ),
         ])
         out.set(vaultId, {
           vaultId,
@@ -229,6 +259,7 @@ export async function readVaultLedgers(
           publishedAt: new Date(Number(att.publishedAt) * 1000).toISOString(),
           revision: Number(revision),
           rejected: rows.length - good.length,
+          continuity: { checked: links.length, ok: links.every(Boolean) },
         })
       }),
     )

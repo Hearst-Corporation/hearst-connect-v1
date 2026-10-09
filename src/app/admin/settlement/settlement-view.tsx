@@ -3,6 +3,7 @@ import { DashCard, PanelHeaderLink, PanelState } from '@/components/admin/dashbo
 import { BentoCard, BentoGrid } from '@/components/admin/grid'
 import { loadAdminApprovals, loadAdminVaultRegistry } from '@/lib/admin-dashboard/load'
 import { callBackend } from '@/lib/backend/client'
+import { readAttestation, type ChainAttestation } from '@/lib/chain/reserve-registry'
 import { formatNumber } from '@/lib/format'
 import { requireSession } from '@/lib/auth'
 import { valueOf } from '@/lib/vaults/model'
@@ -51,6 +52,10 @@ export async function renderSettlement(showAllMachines: boolean) {
   ])
 
   const months = closeRes.ok && closeRes.data.months?.value ? closeRes.data.months.value : []
+  /* La 4e étape de la clôture lue sur la chaîne : le mois est-il publié dans HearstReserveRegistry ? */
+  const attestations: Record<string, ChainAttestation | null> = Object.fromEntries(
+    await Promise.all(months.map(async (m) => [m.month, await readAttestation(Number(m.month.replace('-', '')))] as const)),
+  )
   const machines = machinesRes.ok && machinesRes.data.machines?.value ? machinesRes.data.machines.value : null
   const distributions = distRes.ok && distRes.data.distributions.value ? distRes.data.distributions.value : []
   const pockets = rwaRes.ok && rwaRes.data.pockets.value ? rwaRes.data.pockets.value : []
@@ -107,7 +112,7 @@ export async function renderSettlement(showAllMachines: boolean) {
             title="Split by vault"
             subtitle="The fleet’s output and electricity, split by each vault’s mining capital — approve each reward, pay each electricity"
           >
-            <MonthlyClose months={months} decisionIds={decisionIds} rewards={rewards} vaults={valueOf(registry) ?? []} />
+            <MonthlyClose months={months} decisionIds={decisionIds} rewards={rewards} vaults={valueOf(registry) ?? []} attestations={attestations} />
           </DashCard>
         </BentoCard>
       </BentoGrid>

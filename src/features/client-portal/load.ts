@@ -62,6 +62,8 @@ export type PortalVaultChain =
       vsHoldPct: number
       /** Lignes refusées par le contrat (jamais affichées). */
       rejected: number
+      /** Continuité mois à mois vérifiée par le contrat (verifyContinuity). */
+      continuity: Readonly<{ checked: number; ok: boolean }>
     }>
   | Readonly<{ status: 'unverified' | 'unconfigured' }>
 

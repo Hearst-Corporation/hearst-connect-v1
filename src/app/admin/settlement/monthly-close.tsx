@@ -15,6 +15,7 @@ import { BoltIcon, CheckBadgeIcon, CpuChipIcon } from '@heroicons/react/16/solid
 import { BitcoinIcon } from '@/assets/brand/bitcoin'
 import { PayElectricityButton } from './pay-electricity-button'
 import { CloseActions } from './close-actions'
+import type { ChainAttestation } from '@/lib/chain/reserve-registry'
 
 /**
  * LA CLÔTURE DU MOIS — le geste mensuel, vault par vault, au même endroit.
@@ -79,8 +80,11 @@ export function MonthlyClose({
   decisionIds,
   rewards,
   vaults,
+  attestations = {},
 }: Readonly<{
   months: readonly CloseMonth[]
+  /** L'attestation on-chain de chaque mois (`AAAA-MM → attestation`), `null` tant qu'il n'est pas publié. */
+  attestations?: Readonly<Record<string, ChainAttestation | null>>
   /** Le registre des vaults : le lien de chaque ligne dit `vault-2`, son rang de tranche. */
   vaults: readonly AdminVaultRecord[]
   /** Le reward du mois de chaque vault, en sats (`mois → vaultId → sats`) :
@@ -143,6 +147,7 @@ export function MonthlyClose({
         total={m.lines.length}
         rewardIds={m.lines.filter((l) => l.status === 'pending' && decisionIds[l.vaultId]).map((l) => decisionIds[l.vaultId])}
         dues={due.map((l) => ({ vaultId: l.vaultId, amountUsd: l.electricityUsd }))}
+        attestation={attestations[m.month] ?? null}
       />
 
       {/* Le mois en quatre chiffres : ce que le parc a produit, ce qu'il reste

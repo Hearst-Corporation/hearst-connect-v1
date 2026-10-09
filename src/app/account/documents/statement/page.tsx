@@ -195,6 +195,16 @@ export default async function StatementPage({
                   'Bitcoin produced + buffer, vs simply holding',
                   vsHold !== null ? `${vsHold.toFixed(1)} % of what the deposit would have bought` : '—',
                 ],
+                ...(scope.some((v) => v.chain?.status === 'verified')
+                  ? [
+                      [
+                        'Month-to-month continuity (verifyContinuity) — each reserve follows from the previous one',
+                        scope.every((v) => v.chain?.status !== 'verified' || v.chain.continuity.ok)
+                          ? `Respected — ${scope.reduce((t, v) => t + (v.chain?.status === 'verified' ? v.chain.continuity.checked : 0), 0)} month links checked on-chain`
+                          : 'Broken — to check',
+                      ],
+                    ]
+                  : []),
                 ...(attested !== null
                   ? [
                       [
@@ -225,6 +235,21 @@ export default async function StatementPage({
               ))}
             </tbody>
           </table>
+          {attested !== null ? (
+            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              {scope
+                .filter((v) => rws.some((r) => r.vaultId === v.vaultId && r.onChain))
+                .map((v) => (
+                  <a
+                    key={v.vaultId}
+                    href={`/account/live/proof?vault=${encodeURIComponent(v.vaultId)}&period=${attested}`}
+                    className="text-fg underline underline-offset-2"
+                  >
+                    Download {scope.length > 1 ? `${v.label}’s` : 'your'} line and proof (JSON)
+                  </a>
+                ))}
+            </p>
+          ) : null}
           <p className="mt-3 text-xs leading-relaxed text-fg-tertiary">
             Each closed month, Hearst publishes on Ethereum one fingerprint of every vault’s line, the totals and this
             report’s hash. Your line and its proof let anyone check on-chain that it is part of the month and follows these
