@@ -46,18 +46,20 @@ async function askPassword() {
   process.stdout.write('Mot de passe du keystore Foundry : ')
   process.stdin.setRawMode(true)
   process.stdin.resume()
-  let pw = ''
+  let raw = ''
   for await (const chunk of process.stdin) {
-    for (const ch of chunk.toString('utf8')) {
-      if (ch === '\r' || ch === '\n') {
-        process.stdin.setRawMode(false)
-        process.stdin.pause()
-        process.stdout.write('\n')
-        return pw
-      }
-      if (ch === '\u0003') process.exit(130)
-      pw = ch === '\u007f' ? pw.slice(0, -1) : pw + ch
-    }
+    raw += chunk.toString('utf8')
+    if (raw.includes('\u0003')) process.exit(130)
+    if (/[\r\n]/.test(raw)) break
+  }
+  process.stdin.setRawMode(false)
+  process.stdin.pause()
+  process.stdout.write('\n')
+  // Un mot de passe COLLÉ arrive entouré des marqueurs invisibles du Terminal (ESC[200~ … ESC[201~) :
+  // on les retire, ainsi que toute autre séquence d'échappement, puis on applique les effacements.
+  let pw = ''
+  for (const ch of raw.split(/[\r\n]/)[0].replace(/\u001b\[[0-9;]*[~A-Za-z]/g, '')) {
+    pw = ch === '\u007f' || ch === '\b' ? pw.slice(0, -1) : pw + ch
   }
   return pw
 }
