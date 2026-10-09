@@ -1,9 +1,9 @@
-# La tâche horaire de la chaîne Hearst (Sepolia), sur les serveurs de GitHub Actions.
+# La tâche planifiée de la chaîne Hearst (Sepolia), sur les serveurs de GitHub Actions.
 # Elle vit dans le dépôt privé pierre584/hearst-chain-cron (.github/workflows/hearst-chain.yml) : GitHub ne
 # déclenche une tâche planifiée que sur la branche par défaut, et la branche main de hearst-connect-v1
 # déploie la production. Cette copie sert de référence.
 #
-# Chaque heure :
+# Toutes les 30 minutes :
 #   1. publie dans HearstReserveRegistry les mois clos pas encore attestés (rien la plupart du temps) ;
 #   2. publie dans HearstMiningOracle les relevés du réseau bitcoin (mempool.space).
 # Secret requis : HEARST_PUBLISHER_KEY, la clé privée du compte de publication (HEARST CONNECT B).
@@ -11,7 +11,7 @@ name: Hearst chain (Sepolia)
 
 on:
   schedule:
-    - cron: '7 * * * *' # chaque heure, à la 7e minute
+    - cron: '7,37 * * * *' # toutes les 30 minutes (à :07 et :37)
   workflow_dispatch:
 
 concurrency:
