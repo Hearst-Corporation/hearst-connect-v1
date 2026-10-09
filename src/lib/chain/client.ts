@@ -9,8 +9,10 @@ export function chainClient(): PublicClient | null {
   return rpc === null ? null : createPublicClient({ transport: http(rpc, { timeout: 8_000 }) })
 }
 
-/** Le lien « Read Contract » d'un contrat sur l'explorateur, ou `null` sans explorateur configuré. */
+/** Le lien « Read Contract » d'un contrat sur l'explorateur, ou `null` sans explorateur configuré.
+ *  Blockscout (code vérifié via Sourcify) et Etherscan n'écrivent pas l'onglet de la même façon. */
 export function contractLink(address: string): string | null {
   const explorer = chainExplorerUrl()
-  return explorer ? `${explorer}/address/${address}#readContract` : null
+  if (explorer === null) return null
+  return explorer.includes('blockscout') ? `${explorer}/address/${address}?tab=read_contract` : `${explorer}/address/${address}#readContract`
 }

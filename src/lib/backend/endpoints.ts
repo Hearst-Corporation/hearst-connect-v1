@@ -506,6 +506,15 @@ export const BACKEND_ENDPOINTS: readonly BackendEndpoint[] = [
     caveat: 'Nothing here is displayed as such: every line is checked by HearstReserveRegistry.verifyVault on Ethereum first, and only a verified line reaches the screen.',
   }),
   defineEndpoint({
+    id: 'me-report',
+    path: '/api/v1/me/report',
+    category: 'business',
+    auth: 'session',
+    surface: '/account',
+    summary: 'The monthly report of a closed month (`?period=YYYYMM`): its exact text — every Fireblocks transaction of the month, totals, Merkle root — and the client’s own Fireblocks transactions.',
+    caveat: 'The report’s SHA-256 is published on-chain with the month’s attestation (reportHash); the statement recomputes it and compares before claiming a match.',
+  }),
+  defineEndpoint({
     id: 'me-activity',
     path: '/api/v1/me/activity',
     category: 'business',

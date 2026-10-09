@@ -237,3 +237,26 @@ export async function readVaultLedgers(
     return null
   }
 }
+
+/** L'attestation publiée d'un mois : l'empreinte de son rapport, sa date et son numéro de révision. */
+export type ChainAttestation = Readonly<{ period: number; reportHash: string; publishedAt: string; revision: number; registry: string; explorerUrl: string | null }>
+
+export async function readAttestation(period: number): Promise<ChainAttestation | null> {
+  const client = chainClient()
+  const address = reserveRegistryAddress()
+  if (client === null || address === null) return null
+  try {
+    const [att, revision] = await client.readContract({ address, abi: REGISTRY_ABI, functionName: 'attestation', args: [period] })
+    return {
+      period,
+      reportHash: att.reportHash,
+      publishedAt: new Date(Number(att.publishedAt) * 1000).toISOString(),
+      revision: Number(revision),
+      registry: address,
+      explorerUrl: contractLink(address),
+    }
+  } catch {
+    // Mois pas encore publié (NotPublished) ou chaîne injoignable.
+    return null
+  }
+}

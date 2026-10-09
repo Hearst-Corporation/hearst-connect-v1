@@ -1,5 +1,6 @@
 import { PrintButton } from '@/app/proposal/[id]/print-button'
-import { loadActivity, loadAttestations, loadOverview, loadRewards } from '@/features/client-portal/load'
+import { createHash } from 'node:crypto'
+import { loadActivity, loadAttestations, loadOverview, loadReport, loadRewards } from '@/features/client-portal/load'
 import { btc, monthLabel, usd } from '@/features/client-portal/parts'
 import { requireSession } from '@/lib/auth'
 import { formatDate } from '@/lib/format'
@@ -8,11 +9,20 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { statementHref } from '@/features/client-portal/statement-href'
 import { withChainLedgers, withChainSpot } from '@/features/client-portal/scope'
-import { readVaultLedgers } from '@/lib/chain/reserve-registry'
+import { readAttestation, readVaultLedgers } from '@/lib/chain/reserve-registry'
 import { readMiningEconomics } from '@/lib/chain/mining-oracle'
 
 export const metadata: Metadata = { title: 'Statement' }
 export const dynamic = 'force-dynamic'
+
+/** Ce que fait chaque transaction Fireblocks du rapport mensuel, en clair. */
+const FIREBLOCKS_KIND: Record<string, string> = {
+  deposit: 'Deposit received',
+  electricity: 'Electricity paid from the buffer',
+  conversion: 'Bitcoin sold to refill the buffer',
+  fee: 'Hearst fee',
+  withdrawal: 'Withdrawal to your wallet',
+}
 
 /**
  * UN RELEVÉ — mensuel (un vault, un mois) ou annuel (tous les vaults, une
@@ -34,12 +44,16 @@ export default async function StatementPage({
   if (!year && !month) notFound()
   const wanted = vaultWord?.match(/^vault-(\d+)$/)?.[1]
   // Les relevés de chaque vault sont filtrés plus bas : on lit tous les rewards.
-  const [book, bookRewards, activity, economics, ledgers] = await Promise.all([
+  // Un relevé mensuel lit aussi le rapport du mois et son attestation on-chain (empreinte publiée).
+  const attested = month ? Number(month.replace('-', '')) : null
+  const [book, bookRewards, activity, economics, ledgers, report, attestation] = await Promise.all([
     loadOverview(),
     loadRewards(),
     loadActivity(),
     readMiningEconomics(),
     loadAttestations().then(readVaultLedgers),
+    attested === null ? null : loadReport(attested),
+    attested === null ? null : readAttestation(attested),
   ])
   // Les chiffres des vaults viennent du registre on-chain, le cours de l'oracle — comme sur l'espace client.
   const chained = book === null || bookRewards === null ? null : withChainLedgers(withChainSpot(book, economics), bookRewards, ledgers)
@@ -89,6 +103,11 @@ export default async function StatementPage({
   const vsHold =
     holdBtc > 0 ? ((scope.reduce((t, v) => t + v.reserveBtc + v.withdrawnBtc, 0) + bufferBtc) / holdBtc) * 100 : null
   const removed = outs.reduce((t, a) => t + (a.btc ?? 0), 0)
+  /* L'empreinte du rapport du mois, RECALCULÉE ici sur son texte exact, puis comparée à celle que
+     l'attestation a publiée on-chain : le rapport liste toutes les transactions Fireblocks du mois. */
+  const reportHash = report ? '0x' + createHash('sha256').update(report.json).digest('hex') : null
+  const reportMatches = reportHash !== null && attestation !== null && attestation.reportHash.toLowerCase() === reportHash
+  const fireblocksTxs = (report?.mine ?? []).filter((t) => scope.some((v) => v.label === t.vault))
   const title = year ? `Annual report ${year}` : `Monthly statement — ${monthLabel(month ?? '')}`
 
   return (
@@ -176,6 +195,18 @@ export default async function StatementPage({
                   'Bitcoin produced + buffer, vs simply holding',
                   vsHold !== null ? `${vsHold.toFixed(1)} % of what the deposit would have bought` : '—',
                 ],
+                ...(attested !== null
+                  ? [
+                      [
+                        'Monthly report fingerprint — lists every Fireblocks transaction of the month',
+                        attestation === null
+                          ? 'Not published on-chain yet'
+                          : reportMatches
+                            ? `Matches the one published on-chain${attestation.revision > 0 ? ` (revision ${attestation.revision})` : ''}`
+                            : 'Does not match — to check',
+                      ],
+                    ]
+                  : []),
                 [
                   'Reserve registry',
                   registry?.status === 'verified' && registry.explorerUrl ? (
@@ -218,9 +249,31 @@ export default async function StatementPage({
           </section>
         ) : null}
 
+        {fireblocksTxs.length > 0 ? (
+          <section>
+            <p className="mb-3 text-sm font-medium text-fg">Fireblocks transactions</p>
+            <ul className="flex flex-col divide-y divide-[var(--ud-line)] text-sm">
+              {fireblocksTxs.map((t) => (
+                <li key={t.id} className="flex items-baseline justify-between gap-4 py-2.5">
+                  <span className="text-fg-secondary">
+                    {formatDate(t.at)} · {FIREBLOCKS_KIND[t.kind] ?? t.kind}
+                    {scope.length > 1 && t.vault ? ` · ${t.vault}` : ''}
+                    <span className="block font-mono text-[11px] text-fg-tertiary">
+                      Fireblocks {t.id.slice(0, 8)} · on-chain {t.txHash.slice(0, 10)}…
+                    </span>
+                  </span>
+                  <span className="shrink-0 tabular-nums text-fg">
+                    {t.asset === 'USDC' ? usd(Number(t.amount)) : `${Number(t.amount).toFixed(4)} BTC`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <footer className="border-t border-[var(--ud-line)] pt-5 text-xs leading-relaxed text-fg-tertiary">
-          Every reward is converted into bitcoin at its month’s price and credited once Hearst has validated it. Withdrawals are
-          executed and co-signed through Fireblocks. Figures in bitcoin are the reference; dollar values are indicative.
+          Every reward is converted into bitcoin at its month’s price and credited once Hearst has validated it. Every payment —
+          deposits, electricity, conversions, fees, withdrawals — is executed through Fireblocks. Figures in bitcoin are the reference; dollar values are indicative.
         </footer>
       </article>
     </div>

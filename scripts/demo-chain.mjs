@@ -20,7 +20,6 @@
  * À la fin, le script affiche les variables à mettre dans .env.local (ou sur Vercel).
  */
 import { execFileSync } from 'node:child_process'
-import { createHash } from 'node:crypto'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -140,8 +139,8 @@ const latest = Number(cast('call', registry, 'latestPeriod()(uint32)', '--rpc-ur
 const attestations = mock.demoAttestations().filter((a) => a.period > latest)
 for (const a of attestations) {
   const t = a.totals
-  // L'empreinte du « rapport » du mois : celle de ses lignes, faute de PDF dans la démo.
-  const reportHash = '0x' + createHash('sha256').update(JSON.stringify(a.vaults.map((v) => v.line))).digest('hex')
+  // L'empreinte du rapport du mois : totaux, racine et TOUTES les transactions Fireblocks du mois.
+  const reportHash = mock.monthlyReport(a.period).reportHash
   // Jusqu'à 4 essais : une erreur passagère du nœud ne doit pas arrêter la série. Avant de réessayer,
   // on relit la chaîne — le mois a peut-être été publié malgré l'erreur — et on recale le numéro d'ordre.
   for (let attempt = 1; ; attempt++) {

@@ -14,6 +14,7 @@ name: Hearst chain (Sepolia)
 on:
   schedule:
     - cron: '*/5 * * * *' # vérification toutes les 5 minutes
+    - cron: '0 6 1 * *' # le 1er du mois : la tâche se réactive (voir keepalive)
   workflow_dispatch:
 
 concurrency:
@@ -55,3 +56,16 @@ jobs:
             --registry 0x0d0756DfB37F8162Cb7bA633912772D3D4545d62 \
             --oracle 0x489C70Bf7892F6B0F44e318F206a5BB11C3c127e \
             --network-if-changed
+
+  # GitHub met en pause les tâches planifiées d'un dépôt public sans activité pendant 60 jours.
+  # Le 1er de chaque mois, la tâche se réactive elle-même, ce qui remet ce compteur à zéro.
+  keepalive:
+    if: github.event.schedule == '0 6 1 * *'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Réactiver la tâche planifiée
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/hearst-chain.yml/enable"

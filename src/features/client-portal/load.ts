@@ -182,6 +182,21 @@ export type PortalAttestation = Readonly<{
 }>
 
 export const loadAttestations = () => read<readonly PortalAttestation[]>('me-attestations', 'attestations')
+/** Une transaction Fireblocks d'un mois, telle que le rapport mensuel la liste. */
+export type PortalFireblocksTx = Readonly<{
+  id: string
+  kind: 'deposit' | 'electricity' | 'conversion' | 'fee' | 'withdrawal' | string
+  asset: string
+  amount: string
+  at: string
+  txHash: string
+  vault?: string
+}>
+
+/** Le rapport d'un mois : son texte exact (dont l'empreinte est on-chain) et les transactions Fireblocks du client. */
+export type PortalReport = Readonly<{ period: number; json: string; reportHash: string; mine: readonly PortalFireblocksTx[] }>
+
+export const loadReport = (period: number) => read<PortalReport>('me-report', 'report', { period: String(period) })
 export const loadActivity = () => read<readonly PortalActivity[]>('me-activity', 'activity')
 export const loadWallets = () => read<readonly PortalWallet[]>('me-wallets', 'wallets')
 export const loadDocuments = () => read<readonly PortalDocument[]>('me-documents', 'documents')

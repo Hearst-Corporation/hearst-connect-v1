@@ -811,6 +811,20 @@ function payloadFor(path, search = '') {
         ),
       }
     }
+    /* Le rapport d'un mois (?period=AAAAMM) : le texte exact dont l'empreinte est publiée on-chain, et
+       les transactions Fireblocks de SES vaults ce mois-là (reconnaissables par leur identifiant). */
+    if (p === '/api/v1/me/report') {
+      const period = Number(new URLSearchParams(search).get('period'))
+      const r = Number.isInteger(period) ? monthlyReport(period) : null
+      const month = `${String(period).slice(0, 4)}-${String(period).slice(4)}`
+      return {
+        report: bloc(
+          r === null
+            ? null
+            : { period, json: r.json, reportHash: r.reportHash, mine: vaults.flatMap((v) => vaultFireblocksTxs(v, month).map((t) => ({ ...t, vault: vaultNameOf(c, v) }))) },
+        ),
+      }
+    }
     if (p === '/api/v1/me/rewards') {
       const vid = new URLSearchParams(search).get('vaultId')
       const list = vaults.filter((v) => !vid || vaultKey(v) === vid)
@@ -3286,6 +3300,60 @@ function demoAttestations() {
   return periods.map(attestationOf).filter((a) => a !== null)
 }
 
+/* ══ LE RAPPORT MENSUEL — et les transactions Fireblocks du mois ══════════════
+ * Chaque attestation publie l'empreinte (SHA-256) du rapport du mois. Le rapport
+ * liste TOUTES les transactions Fireblocks qui ont fait bouger l'argent ce mois-là :
+ * électricité payée sur les buffers (USDC), conversions pour les recharger, frais
+ * Hearst, retraits des clients (BTC), dépôts reçus. Sans identité de client ni clé
+ * de vault : un identifiant Fireblocks, un montant, un hash on-chain. Chacun peut
+ * alors rapprocher les montants attestés des transferts réellement exécutés.
+ */
+const fireblocksId = (key) => {
+  const h = createHash('sha256').update(`fb:${key}`).digest('hex')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20, 32)}`
+}
+const onchainHash = (key) => '0x' + createHash('sha256').update(`hash:${key}`).digest('hex')
+
+/** Les transactions Fireblocks d'un vault pour un mois attesté, de la plus ancienne à la plus récente. */
+function vaultFireblocksTxs(v, month) {
+  const m = vaultMonths(v).find((x) => x.month === month && x.status === 'distributed')
+  const out = []
+  const tx = (key, kind, asset, amount, day, txHash = onchainHash(key)) =>
+    out.push({ id: fireblocksId(key), kind, asset, amount: String(amount), at: `${month}-${String(day).padStart(2, '0')}`, txHash })
+  if (VAULT_START[v]?.slice(0, 7) === month) tx(`dep_${v}`, 'deposit', 'USDC', VAULT_PRINCIPAL[v], Number(VAULT_START[v].slice(8, 10)))
+  if (m) {
+    tx(`elec_${v}_${month}`, 'electricity', 'USDC', m.electricityUsd, 5)
+    if (m.bufferTopUpSats > 0) tx(`conv_${v}_${month}`, 'conversion', 'BTC', (m.bufferTopUpSats / 1e8).toFixed(8), 6)
+    if (m.feeSats > 0) tx(`fee_${v}_${month}`, 'fee', 'BTC', (m.feeSats / 1e8).toFixed(8), 6)
+  }
+  for (const w of withdrawalsOf(v).filter((x) => x.status === 'approved' && x.at.slice(0, 7) === month)) {
+    tx(`wd_${w.id}`, 'withdrawal', 'BTC', (w.sats / 1e8).toFixed(8), Number(w.at.slice(8, 10)), w.seeded ? seededHash(w) : onchainHash(`wd_${w.id}`))
+  }
+  return out
+}
+
+/** Le rapport d'un mois attesté, sérialisé une fois pour toutes : son empreinte est celle publiée on-chain. */
+function monthlyReport(period) {
+  const a = attestationOf(period)
+  if (a === null) return null
+  const month = `${String(period).slice(0, 4)}-${String(period).slice(4)}`
+  const fireblocks = allVaultIndexes()
+    .flatMap((v) => vaultFireblocksTxs(v, month))
+    .sort((x, y) => (x.at === y.at ? x.id.localeCompare(y.id) : x.at.localeCompare(y.at)))
+  const report = {
+    version: 2,
+    period,
+    rules: { feeBps: ATTEST_FEE_BPS, refillCapBps: ATTEST_REFILL_CAP_BPS },
+    btcCloseUsdE8: a.totals.btcCloseUsdE8,
+    merkleRoot: a.merkleRoot,
+    totals: a.totals,
+    custody: 'Fireblocks',
+    fireblocks,
+  }
+  const json = JSON.stringify(report)
+  return { json, reportHash: '0x' + createHash('sha256').update(json).digest('hex'), fireblocks }
+}
+
 /*
  * LA DÉRIVE GRANDIT AVEC LE TEMPS : chaque mois, le minage s'écarte de sa
  * cible (le bitcoin bouge, la production s'accumule). Un vault sort de sa
@@ -3935,6 +4003,7 @@ applyWorld(null)
 
 export {
   ACCOUNTS,
+  monthlyReport,
   ATTEST_FEE_BPS,
   ATTEST_REFILL_CAP_BPS,
   demoAttestations,
