@@ -1,0 +1,54 @@
+# La tâche horaire de la chaîne Hearst (Sepolia), sur les serveurs de GitHub Actions.
+# Elle vit dans le dépôt privé pierre584/hearst-chain-cron (.github/workflows/hearst-chain.yml) : GitHub ne
+# déclenche une tâche planifiée que sur la branche par défaut, et la branche main de hearst-connect-v1
+# déploie la production. Cette copie sert de référence.
+#
+# Chaque heure :
+#   1. publie dans HearstReserveRegistry les mois clos pas encore attestés (rien la plupart du temps) ;
+#   2. publie dans HearstMiningOracle les relevés du réseau bitcoin (mempool.space).
+# Secret requis : HEARST_PUBLISHER_KEY, la clé privée du compte de publication (HEARST CONNECT B).
+name: Hearst chain (Sepolia)
+
+on:
+  schedule:
+    - cron: '7 * * * *' # chaque heure, à la 7e minute
+  workflow_dispatch:
+
+concurrency:
+  group: hearst-chain
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Code de l'application (branche v2)
+        uses: actions/checkout@v4
+        with:
+          repository: Hearst-Corporation/hearst-connect-v1
+          ref: v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Dépendances
+        run: corepack enable && pnpm install --frozen-lockfile --ignore-scripts
+
+      - uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Publier les mois clos et les relevés du réseau
+        env:
+          HEARST_PUBLISHER_KEY: ${{ secrets.HEARST_PUBLISHER_KEY }}
+        run: |
+          node scripts/demo-chain.mjs \
+            --rpc-url https://ethereum-sepolia-rpc.publicnode.com \
+            --private-key-env HEARST_PUBLISHER_KEY \
+            --admin 0xF4B2719bD911f3D2D52Ee108c8CaFb8570f63c0c \
+            --publisher-address 0xc4197d502133ECAf7983663E69BA4b895831196D \
+            --registry 0x0d0756DfB37F8162Cb7bA633912772D3D4545d62 \
+            --oracle 0x489C70Bf7892F6B0F44e318F206a5BB11C3c127e

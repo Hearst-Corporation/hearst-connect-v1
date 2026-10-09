@@ -14,12 +14,14 @@
  *     --deployer hearst-publisher --publisher hearst-publisher --admin 0x… --publisher-address 0x… \
  *     --btc-usd-feed 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43
  * Contrats déjà déployés : --registry 0x… --oracle 0x… (ne publie que les mois manquants).
+ * Sur un serveur (tâche horaire GitHub Actions) : --private-key-env HEARST_PUBLISHER_KEY, la clé de
+ * publication étant un secret du dépôt — voir contracts/ops/hearst-chain.yml.
  *
  * À la fin, le script affiche les variables à mettre dans .env.local (ou sur Vercel).
  */
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -33,7 +35,11 @@ const opt = (name, fallback = null) => {
   return i >= 0 ? args[i + 1] : fallback
 }
 const rpc = opt('rpc-url', 'http://127.0.0.1:8545')
-const local = !opt('deployer')
+// Sur un serveur (GitHub Actions), la clé de publication arrive par une variable d'environnement secrète.
+const keyEnv = opt('private-key-env')
+const serverKey = keyEnv ? process.env[keyEnv] : null
+if (keyEnv && !serverKey) throw new Error(`${keyEnv} est vide : la clé de publication manque`)
+const local = !opt('deployer') && !serverKey
 // Comptes de test d'anvil n°0 (admin, déploiement) et n°1 (publication).
 const ANVIL_ADMIN = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
 const ANVIL_PUBLISHER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
@@ -64,17 +70,18 @@ async function askPassword() {
   return pw
 }
 let passwordFile = null
-if (!local) {
+if (!local && !serverKey) {
   const dir = mkdtempSync(join(tmpdir(), 'hearst-'))
   passwordFile = join(dir, 'pw')
-  // Lancé par la tâche planifiée : le mot de passe arrive dans un fichier (lu du Trousseau), sans question.
-  writeFileSync(passwordFile, process.env.HEARST_KEYSTORE_PASSWORD_FILE ? readFileSync(process.env.HEARST_KEYSTORE_PASSWORD_FILE, 'utf8').trim() : await askPassword(), { mode: 0o600 })
+  writeFileSync(passwordFile, await askPassword(), { mode: 0o600 })
   process.on('exit', () => rmSync(dir, { recursive: true, force: true }))
 }
 const signAs = (role) =>
   local
     ? ['--unlocked', '--from', role === 'deployer' ? ANVIL_ADMIN : ANVIL_PUBLISHER]
-    : ['--account', opt(role === 'deployer' ? 'deployer' : 'publisher'), '--password-file', passwordFile]
+    : serverKey
+      ? ['--private-key', serverKey]
+      : ['--account', opt(role === 'deployer' ? 'deployer' : 'publisher'), '--password-file', passwordFile]
 
 const run = (cmd, argv, opts = {}) => execFileSync(cmd, argv, { cwd: CONTRACTS, encoding: 'utf8', ...opts })
 const cast = (...argv) => run('cast', argv).trim()
@@ -88,7 +95,9 @@ const signerAddress = (role) =>
     ? role === 'deployer'
       ? ANVIL_ADMIN
       : ANVIL_PUBLISHER
-    : cast('wallet', 'address', '--account', opt(role === 'deployer' ? 'deployer' : 'publisher'), '--password-file', passwordFile)
+    : serverKey
+      ? cast('wallet', 'address', '--private-key', serverKey)
+      : cast('wallet', 'address', '--account', opt(role === 'deployer' ? 'deployer' : 'publisher'), '--password-file', passwordFile)
 const nonces = new Map()
 const syncNonce = (address) => nonces.set(address, Number(cast('nonce', address, '--rpc-url', rpc)))
 function nextNonce(role) {
