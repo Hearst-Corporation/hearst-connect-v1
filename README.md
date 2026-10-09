@@ -55,6 +55,10 @@ fallback value.
 
 ## Sign in locally
 
+Connexion locale : `http://localhost:4600/login`, `adrien@hearstcorporation.io` / `Adrien0334$$`, the admin
+`hearst-connect-backend`'s `pnpm dev` seeds on a local database (with `HEARST_API_URL=http://localhost:4610` and an
+`AUTH_SECRET` here).
+
 Sign-in is email + password. The login form's server action posts to `POST {HEARST_API_URL}/api/v1/auth/login` and
 expects `{ token, tokenType, expiresAt, user: { id, email, role } }`. Only `role: admin` opens a session (shown as
 "Space owner"); an `investor` is refused with "This account does not have access to the admin console". The bearer
