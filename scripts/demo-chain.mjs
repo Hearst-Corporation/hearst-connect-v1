@@ -19,7 +19,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -67,7 +67,8 @@ let passwordFile = null
 if (!local) {
   const dir = mkdtempSync(join(tmpdir(), 'hearst-'))
   passwordFile = join(dir, 'pw')
-  writeFileSync(passwordFile, await askPassword(), { mode: 0o600 })
+  // Lancé par la tâche planifiée : le mot de passe arrive dans un fichier (lu du Trousseau), sans question.
+  writeFileSync(passwordFile, process.env.HEARST_KEYSTORE_PASSWORD_FILE ? readFileSync(process.env.HEARST_KEYSTORE_PASSWORD_FILE, 'utf8').trim() : await askPassword(), { mode: 0o600 })
   process.on('exit', () => rmSync(dir, { recursive: true, force: true }))
 }
 const signAs = (role) =>
