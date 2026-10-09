@@ -8,7 +8,8 @@
 #   2. dans HearstMiningOracle, les relevés du réseau bitcoin (mempool.space) — dès que la difficulté change,
 #      que les frais de bloc bougent de plus de 10 %, ou au plus tard 30 minutes après la dernière publication.
 #   Le cours du BTC n'a pas besoin d'être publié : le contrat lit Chainlink à chaque lecture.
-# Secret requis : HEARST_PUBLISHER_KEY, la clé privée du compte de publication (HEARST CONNECT B).
+# Secrets : HEARST_PUBLISHER_KEY, la clé privée du compte de publication (HEARST CONNECT B) ;
+# HEARST_RPC_URL, l'accès Alchemy Sepolia.
 name: Hearst chain (Sepolia)
 
 on:
@@ -47,9 +48,11 @@ jobs:
       - name: Publier les mois clos et les relevés du réseau
         env:
           HEARST_PUBLISHER_KEY: ${{ secrets.HEARST_PUBLISHER_KEY }}
+          # Accès Alchemy Sepolia (secret : l'URL porte la clé) ; à défaut, l'accès public PublicNode.
+          HEARST_RPC_URL: ${{ secrets.HEARST_RPC_URL }}
         run: |
           node scripts/demo-chain.mjs \
-            --rpc-url https://ethereum-sepolia-rpc.publicnode.com \
+            --rpc-url "${HEARST_RPC_URL:-https://ethereum-sepolia-rpc.publicnode.com}" \
             --private-key-env HEARST_PUBLISHER_KEY \
             --admin 0xF4B2719bD911f3D2D52Ee108c8CaFb8570f63c0c \
             --publisher-address 0xc4197d502133ECAf7983663E69BA4b895831196D \
