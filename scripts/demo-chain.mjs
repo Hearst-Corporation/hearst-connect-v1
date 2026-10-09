@@ -77,6 +77,26 @@ const signAs = (role) =>
 
 const run = (cmd, argv, opts = {}) => execFileSync(cmd, argv, { cwd: CONTRACTS, encoding: 'utf8', ...opts })
 const cast = (...argv) => run('cast', argv).trim()
+const pause = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+
+/* Le numéro d'ordre (nonce) de chaque transaction, tenu ICI plutôt que redemandé au nœud : un accès
+   public répartit les requêtes entre plusieurs serveurs, dont l'un peut ne pas avoir encore vu la
+   transaction précédente — il redonnerait le même numéro, que le réseau refuse (« underpriced »). */
+const signerAddress = (role) =>
+  local
+    ? role === 'deployer'
+      ? ANVIL_ADMIN
+      : ANVIL_PUBLISHER
+    : cast('wallet', 'address', '--account', opt(role === 'deployer' ? 'deployer' : 'publisher'), '--password-file', passwordFile)
+const nonces = new Map()
+const syncNonce = (address) => nonces.set(address, Number(cast('nonce', address, '--rpc-url', rpc)))
+function nextNonce(role) {
+  const address = signerAddress(role)
+  if (!nonces.has(address)) syncNonce(address)
+  const n = nonces.get(address)
+  nonces.set(address, n + 1)
+  return { address, nonce: String(n) }
+}
 
 function deploy(contract, ctorArgs) {
   const out = run('forge', [
@@ -86,6 +106,8 @@ function deploy(contract, ctorArgs) {
     rpc,
     '--broadcast',
     ...signAs('deployer'),
+    '--nonce',
+    nextNonce('deployer').nonce,
     // Code source vérifié sur Etherscan quand une clé est fournie (ETHERSCAN_API_KEY).
     ...(process.env.ETHERSCAN_API_KEY && !local ? ['--verify', '--etherscan-api-key', process.env.ETHERSCAN_API_KEY] : []),
     '--constructor-args',
@@ -110,22 +132,39 @@ for (const a of attestations) {
   const t = a.totals
   // L'empreinte du « rapport » du mois : celle de ses lignes, faute de PDF dans la démo.
   const reportHash = '0x' + createHash('sha256').update(JSON.stringify(a.vaults.map((v) => v.line))).digest('hex')
-  run(
-    'cast',
-    [
-      'send',
-      registry,
-      'publish(uint32,bytes32,bytes32,(uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint32,uint64))',
-      String(a.period),
-      a.merkleRoot,
-      reportHash,
-      `(${t.minedSats},${t.electricitySats},${t.feeSats},${t.refillSats},${t.toReserveSats},${t.withdrawnSats},${t.reserveSats},${t.vaultCount},${t.btcCloseUsdE8})`,
-      '--rpc-url',
-      rpc,
-      ...signAs('publisher'),
-    ],
-    { stdio: ['ignore', 'ignore', 'inherit'] },
-  )
+  // Jusqu'à 4 essais : une erreur passagère du nœud ne doit pas arrêter la série. Avant de réessayer,
+  // on relit la chaîne — le mois a peut-être été publié malgré l'erreur — et on recale le numéro d'ordre.
+  for (let attempt = 1; ; attempt++) {
+    const { address, nonce } = nextNonce('publisher')
+    try {
+      run(
+        'cast',
+        [
+          'send',
+          registry,
+          'publish(uint32,bytes32,bytes32,(uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint32,uint64))',
+          String(a.period),
+          a.merkleRoot,
+          reportHash,
+          `(${t.minedSats},${t.electricitySats},${t.feeSats},${t.refillSats},${t.toReserveSats},${t.withdrawnSats},${t.reserveSats},${t.vaultCount},${t.btcCloseUsdE8})`,
+          '--rpc-url',
+          rpc,
+          ...signAs('publisher'),
+          '--nonce',
+          nonce,
+        ],
+        { stdio: ['ignore', 'ignore', 'pipe'] },
+      )
+      break
+    } catch (e) {
+      pause(15_000)
+      const now = Number(cast('call', registry, 'latestPeriod()(uint32)', '--rpc-url', rpc).split(' ')[0])
+      syncNonce(address)
+      if (now >= a.period) break
+      if (attempt === 4) throw e
+      console.log(`  ${a.period} : le nœud a refusé (${String(e.stderr ?? e.message).trim().split('\n')[0]}), nouvel essai…`)
+    }
+  }
   console.log(`  ${a.period} publié : ${t.vaultCount} vaults, racine ${a.merkleRoot.slice(0, 12)}…`)
 }
 if (attestations.length === 0) console.log('  registre à jour, rien à publier')
@@ -134,7 +173,7 @@ if (attestations.length === 0) console.log('  registre à jour, rien à publier'
 const terms = '(65000,1100,11200000,1460,86400)' // 0,065 $/kWh · 11 J/TH · 11,20 $/TH/s · 4 ans · 1 jour
 const oracle =
   opt('oracle') ?? deploy('HearstMiningOracle', [admin, publisherAddress, opt('btc-usd-feed', '0x' + '0'.repeat(40)), terms])
-execFileSync('node', ['publish-network.mjs', '--rpc-url', rpc, ...signAs('publisher')], {
+execFileSync('node', ['publish-network.mjs', '--rpc-url', rpc, ...signAs('publisher'), '--nonce', nextNonce('publisher').nonce], {
   cwd: join(CONTRACTS, 'script-js'),
   env: { ...process.env, MINING_ORACLE_ADDRESS: oracle },
   stdio: ['ignore', 'inherit', 'inherit'],
