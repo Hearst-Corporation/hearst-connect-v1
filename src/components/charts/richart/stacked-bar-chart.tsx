@@ -5,6 +5,7 @@ import { ChartAccessibilityTable } from '@/components/charts/richart/_shared/cha
 import { ChartTooltipShell, TooltipRow } from '@/components/charts/richart/_shared/chart-tooltip'
 import { useChartViewport } from '@/components/charts/richart/_shared/viewport'
 import { formatNumber } from '@/lib/format'
+import { useId } from 'react'
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
 /**
@@ -16,7 +17,15 @@ import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
  * période, sans lissage : chaque mois est un montant clos.
  */
 
-export type StackSeries = Readonly<{ key: string; label: string; color: string }>
+export type StackSeries = Readonly<{
+  key: string
+  label: string
+  color: string
+  /** Hachurée : une valeur pas encore acquise (un mois clos qui attend sa validation). */
+  hatched?: boolean
+  /** Coins arrondis en haut même sous une autre série — pour des séries qui ne se superposent jamais. */
+  roundTop?: boolean
+}>
 export type StackPoint = Readonly<{
   label: string
   detail: string
@@ -85,6 +94,7 @@ export function HearstStackedBarChart({
   wide?: boolean
 }>) {
   const { ref, width, viewportHeight } = useChartViewport({ height, kind: 'columns' })
+  const hatchId = `hatch-${useId().replace(/:/g, '')}`
   const data = points.map((p) => ({
     label: p.label,
     detail: p.detail,
@@ -111,7 +121,14 @@ export function HearstStackedBarChart({
       <ul className="mb-2 flex h-[18px] flex-wrap gap-x-4 gap-y-1 text-[11px] text-fg-tertiary" aria-hidden="true">
         {series.map((s) => (
           <li key={s.key} className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-[3px]" style={{ backgroundColor: s.color }} />
+            <span
+              className="inline-block size-2 rounded-[3px]"
+              style={
+                s.hatched
+                  ? { backgroundImage: `repeating-linear-gradient(135deg, ${s.color} 0 2px, transparent 2px 4px)`, boxShadow: `inset 0 0 0 1px ${s.color}` }
+                  : { backgroundColor: s.color }
+              }
+            />
             {s.label}
           </li>
         ))}
@@ -125,6 +142,18 @@ export function HearstStackedBarChart({
             margin={{ ...chartTheme.margin, right: 12, left: 0 }}
             barCategoryGap={wide ? '8%' : n <= 6 ? '28%' : '18%'}
           >
+            {series.some((s) => s.hatched) ? (
+              <defs>
+                {series
+                  .filter((s) => s.hatched)
+                  .map((s) => (
+                    <pattern key={s.key} id={`${hatchId}-${s.key}`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                      <rect width="6" height="6" fill={s.color} fillOpacity="0.18" />
+                      <line x1="0" y1="0" x2="0" y2="6" stroke={s.color} strokeWidth="2.5" />
+                    </pattern>
+                  ))}
+              </defs>
+            ) : null}
             <CartesianGrid stroke={chartTheme.grid} strokeOpacity={chartTheme.gridOpacity} vertical={false} />
             <XAxis
               dataKey="label"
@@ -149,9 +178,11 @@ export function HearstStackedBarChart({
                 key={s.key}
                 dataKey={s.key}
                 stackId="stack"
-                fill={s.color}
+                fill={s.hatched ? `url(#${hatchId}-${s.key})` : s.color}
+                stroke={s.hatched ? s.color : undefined}
+                strokeWidth={s.hatched ? 1 : 0}
                 maxBarSize={maxBarSize}
-                radius={i === series.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                radius={i === series.length - 1 || s.roundTop ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                 isAnimationActive={false}
               />
             ))}

@@ -117,13 +117,19 @@ export const BUCKET_SERIES: readonly StackSeries[] = [
 
 /* V2 : le dépôt loue de la puissance de calcul — il n'est pas dans la réserve. La réserve,
    c'est le bitcoin produit par le minage, net d'électricité et des frais Hearst. */
-const RESERVE_SERIES: readonly StackSeries[] = [{ key: 'accumulated', label: 'Produced by mining, net of fees', color: '#9eea7a' }]
+const RESERVE_SERIES: readonly StackSeries[] = [
+  { key: 'accumulated', label: 'Produced by mining, net of fees', color: '#9eea7a', roundTop: true },
+]
+/* Un mois clos qui attend sa validation et son attestation on-chain : hachuré, jamais compté dans le total. */
+const PENDING_SERIES: StackSeries = { key: 'pending', label: 'Closed, awaiting validation', color: '#9eea7a', hatched: true }
 
 export type ClientShare = { readonly label: string; readonly value: number }
 export type ReserveSplitPoint = {
   readonly month: string
   readonly deposits: number
   readonly accumulated: number
+  /** Un mois clos pas encore attesté : la réserve qu'il donnerait une fois validé (accumulé + ce mois). */
+  readonly pending?: number
   /** La réserve de chaque client à ce mois — montrée au survol. */
   readonly byClient?: readonly ClientShare[]
 }
@@ -140,8 +146,9 @@ export function ReserveCompositionChart({
   if (points.length === 0) {
     return <p className="py-6 text-center text-sm text-fg-tertiary">No vault open yet.</p>
   }
-  const last = points[points.length - 1]
-  const total = last.accumulated
+  // Le total : le dernier mois ACQUIS. Un mois en attente n'est pas encore au client.
+  const total = [...points].reverse().find((p) => p.pending === undefined)?.accumulated ?? 0
+  const series = points.some((p) => p.pending !== undefined) ? [...RESERVE_SERIES, PENDING_SERIES] : RESERVE_SERIES
   const label = (ym: string) =>
     new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' })
   return (
@@ -156,11 +163,11 @@ export function ReserveCompositionChart({
             points={points.map((p) => ({
               label: label(p.month),
               detail: label(p.month),
-              values: { accumulated: p.accumulated },
+              values: (p.pending === undefined ? { accumulated: p.accumulated } : { pending: p.pending }) as Record<string, number>,
               breakdown: p.byClient,
               breakdownTitle,
             }))}
-            series={RESERVE_SERIES}
+            series={series}
             unit="BTC"
             height={h}
             wide={wide}

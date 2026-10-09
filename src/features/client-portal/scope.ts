@@ -60,34 +60,46 @@ export function scopeToVault(data: UserDashboard, vault: PortalVault): UserDashb
 }
 
 /**
- * La réserve dans le temps : chaque versement converti à son entrée, plus les
- * rewards crédités, mois après mois — par vault au survol. Un vault rendu sort
- * de la réserve à partir du mois de sa restitution.
+ * La réserve du client, UNE COLONNE PAR MOIS CLOS depuis son dépôt.
+ *
+ * Le premier mois est le premier mois miné (le mois du dépôt n'a rien produit :
+ * une colonne vide faussait le compte). Un mois acquis — validé et, quand la
+ * chaîne est branchée, vérifié par HearstReserveRegistry — est plein. Un mois
+ * clos qui attend encore sa validation ou son attestation est hachuré
+ * (`pending`) et n'entre pas dans le total. Le mois en cours n'a pas de
+ * colonne : il n'a encore aucun chiffre attesté. Au 20e mois, 19 mois sont clos.
  */
 export function reservePoints(vaults: readonly PortalVault[], rewards: readonly PortalReward[]): ReserveSplitPoint[] {
-  const credited = rewards.filter((r) => r.status !== 'pending' && r.status !== 'declined')
-  const months = [...new Set([...vaults.map((v) => v.lockupStartAt.slice(0, 7)), ...credited.map((r) => r.month)])].sort()
+  const chainOf = new Map(vaults.map((v) => [v.vaultId, v.chain?.status]))
+  const live = rewards.filter((r) => r.status !== 'declined')
+  // Acquis : validé, et vérifié on-chain dès que la chaîne vérifie ce vault.
+  const acquired = (r: PortalReward) => r.status !== 'pending' && (chainOf.get(r.vaultId) !== 'verified' || r.onChain === true)
+  const months = [...new Set(live.map((r) => r.month))].sort()
+  if (months.length === 0) return []
   const all: string[] = []
-  if (months.length > 0) {
-    const d = new Date(`${months[0]}-01T00:00:00Z`)
-    while (true) {
-      const m = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
-      all.push(m)
-      if (m >= months[months.length - 1]) break
-      d.setUTCMonth(d.getUTCMonth() + 1)
-    }
+  const d = new Date(`${months[0]}-01T00:00:00Z`)
+  while (true) {
+    const m = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+    all.push(m)
+    if (m >= months[months.length - 1]) break
+    d.setUTCMonth(d.getUTCMonth() + 1)
   }
+  const lastAcquired = live.filter(acquired).reduce((t, r) => (r.month > t ? r.month : t), '')
   return all.map((m) => {
-    const open = vaults.filter((v) => v.lockupStartAt.slice(0, 7) <= m && !(v.releasedMonth && m >= v.releasedMonth))
+    const open = vaults.filter((v) => !(v.releasedMonth && m >= v.releasedMonth))
+    const pendingMonth = m > lastAcquired
+    const sumFor = (vaultIds: readonly string[], withPending: boolean) =>
+      live
+        .filter((r) => r.month <= m && vaultIds.includes(r.vaultId) && (acquired(r) || withPending))
+        .reduce((t, r) => t + r.btc, 0)
+    const ids = open.map((v) => v.vaultId)
     return {
       month: m,
       // V2 : le dépôt loue de la puissance — il n'entre pas dans la réserve.
       deposits: 0,
-      accumulated: credited.filter((r) => r.month <= m && open.some((v) => v.vaultId === r.vaultId)).reduce((t, r) => t + r.btc, 0),
-      byClient: open.map((v) => ({
-        label: v.label,
-        value: credited.filter((r) => r.vaultId === v.vaultId && r.month <= m).reduce((t, r) => t + r.btc, 0),
-      })),
+      accumulated: sumFor(ids, false),
+      ...(pendingMonth ? { pending: sumFor(ids, true) } : {}),
+      byClient: open.map((v) => ({ label: v.label, value: sumFor([v.vaultId], pendingMonth) })),
     }
   })
 }
