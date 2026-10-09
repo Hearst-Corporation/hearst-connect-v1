@@ -53,7 +53,7 @@ jobs:
             --private-key-env HEARST_PUBLISHER_KEY \
             --admin 0xF4B2719bD911f3D2D52Ee108c8CaFb8570f63c0c \
             --publisher-address 0xc4197d502133ECAf7983663E69BA4b895831196D \
-            --registry 0x0d0756DfB37F8162Cb7bA633912772D3D4545d62 \
+            --registry 0x32faB21D6Ad0c01c62b3076409b7fAd802007144 \
             --oracle 0x489C70Bf7892F6B0F44e318F206a5BB11C3c127e \
             --network-if-changed
 
